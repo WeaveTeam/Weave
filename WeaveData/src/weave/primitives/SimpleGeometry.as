@@ -31,15 +31,35 @@ package weave.primitives
 	 */
 	public class SimpleGeometry implements ISimpleGeometry
 	{
-		public function SimpleGeometry(type:String = GeometryType.POLYGON)
+		/**
+		 * @param type One of the constants defined in GeometryType.
+		 * @param points An optional Array of Objects to pass to setVertices().
+		 * @see weave.primitives.GeometryType
+		 * @see #setVertices()
+		 */
+		public function SimpleGeometry(type:String = GeometryType.POLYGON, points:Array = null)
 		{
 			_type = type;
+			if (points)
+				setVertices(points);
 		}
 		
-		public function getVertices():Array { return _vertices; }
-		public function setVertices(o:Array):void 
+		/**
+		 * Gets the points of the geometry.
+		 * @return An Array of objects, each having "x" and "y" properties.
+		 */
+		public function getVertices():Array
+		{
+			return _vertices;
+		}
+		
+		/**
+		 * Initializes the geometry.
+		 * @param points An Array of objects, each having "x" and "y" properties.
+		 */
+		public function setVertices(points:Array):void 
 		{	
-			_vertices = o.concat();
+			_vertices = points.concat();
 			
 			bounds.reset();
 			for each (var obj:* in _vertices)
@@ -52,7 +72,10 @@ package weave.primitives
 		
 		public const bounds:IBounds2D = new Bounds2D(); 
 		
-		private var _vertices:Array = null; // [object with x and y fields, another object with x and y fields, ...]
+		/**
+		 * An Array of objects, each having "x" and "y" properties.
+		 */
+		private var _vertices:Array = null;
 		private var _type:String = '';
 		
 		
@@ -69,14 +92,15 @@ package weave.primitives
 			var yMin:Number = bounds.getYMin();
 			var yMax:Number = bounds.getYMax();
 			
-			var p1:Point = new Point(xMin, yMin);
-			var p2:Point = new Point(xMax, yMin);
-			var p3:Point = new Point(xMax, yMax);
-			var p4:Point = new Point(xMin, yMax);
-			var simpleGeometry:ISimpleGeometry = new SimpleGeometry(GeometryType.POLYGON);
-			(simpleGeometry as SimpleGeometry).setVertices([p1, p2, p3, p4]);
+			var geom:SimpleGeometry = new SimpleGeometry(GeometryType.POLYGON);
+			geom.setVertices([
+				new Point(xMin, yMin),
+				new Point(xMax, yMin),
+				new Point(xMax, yMax),
+				new Point(xMin, yMax)
+			]);
 			
-			return simpleGeometry;
+			return geom;
 		}
 	}
 }

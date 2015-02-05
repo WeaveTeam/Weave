@@ -21,18 +21,18 @@ package weave.core
 {
 	import flash.display.Stage;
 	import flash.events.Event;
+	import flash.events.EventDispatcher;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.TimerEvent;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
-	import flash.utils.Timer;
+	import flash.utils.getDefinitionByName;
 	import flash.utils.getTimer;
 	
 	import mx.core.UIComponentGlobals;
 	import mx.core.mx_internal;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.IStageUtils;
@@ -55,74 +55,60 @@ package weave.core
 	{
 		public function StageUtils()
 		{
-			initialize();
+			try {
+				this.pauseForGCIfCollectionImminent = getDefinitionByName('flash.system.System')["pauseForGCIfCollectionImminent"];
+			} catch (e:Error) { }
+			
+			eventManager.throttledMouseMoveInterval = maxComputationTimePerFrame;
+			addEventCallback(Event.ENTER_FRAME, null, handleCallLater);
+			addEventCallback(Event.RENDER, null, handleCallLater);
 		}
 		
-		private const frameTimes:Array = [];
-		public var debug_async_stack:Boolean = false;
-		public var debug_fps:Boolean = false; // set to true to trace the frames per second
-		public var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
-		public var debug_callLater:Boolean = false; // set this to true to delay async tasks
+		private const eventManager:EventManager = new EventManager();
+		
+		public static function get debug_fps():Boolean { return EventCallbackCollection.debug_fps; }
+		public static function set debug_fps(value:Boolean):void { EventCallbackCollection.debug_fps = value; }
+		public static var debug_async_time:Boolean = false;
+		public static var debug_async_stack:Boolean = false;
+		public static var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
+		public static var debug_callLater:Boolean = false; // set this to true to delay async tasks
 		public var averageFrameTime:int = 0;
+		
+		private var pauseForGCIfCollectionImminent:Function = null;
+		private const frameTimes:Array = [];
 		private const _stackTraceMap:Dictionary = new Dictionary(true); // used by callLater to remember stack traces
 		private const _taskElapsedTime:Dictionary = new Dictionary(true);
 		private const _taskStartTime:Dictionary = new Dictionary(true);
-		
-		private var _event:Event = null; // returned by get event()
-		private var _eventTime:int = 0; // returned by get eventTime()
-		private var _shiftKey:Boolean = false; // returned by get shiftKey()
-		private var _altKey:Boolean = false; // returned by get altKey()
-		private var _ctrlKey:Boolean = false; // returned by get ctrlKey()
-		private var _mouseButtonDown:Boolean = false; // returned by get mouseButtonDown()
-		private var _currentFrameStartTime:int = getTimer(); // this is the result of getTimer() on the last ENTER_FRAME event.
-		private var _previousFrameElapsedTime:int = 0; // this is the amount of time it took to process the previous frame.
 		private var _currentTaskStopTime:int = 0; // set on enterFrame, used by _iterateTask
-		private var _pointClicked:Boolean = false;
-
-		private var _callbackCollectionsInitialized:Boolean = false; // This is true after the callback collections have been created.
-		private var _listenersInitialized:Boolean = false; // This is true after the mouse listeners have been added.
-		private const _initializeTimer:Timer = new Timer(0, 1); // only used if initialize() is attempted before stage is accessible
-		private const _callbackCollections:Object = {}; // mapping from event type to the ICallbackCollection associated with it
-		private var _stage:Stage = null; // pointer to the Stage, null until initialize() succeeds
-		private const _lastMouseDownPoint:Point = new Point(NaN, NaN); // stage coords of last mouseDown event
-		private const _lastThrottledMousePoint:Point = new Point(NaN, NaN); // stage coords of mouse for last throttled mouseMove event
-		private var _triggeredThrottledMouseThisFrame:Boolean = false; // set to false on enterFrame, set to true on throttled mouse move
-		private var _nextThrottledMouseMoveTime:int = 0; // time threshold before triggering throttled mouse move again
-
 		
 		/**
-		 * This is used to keep strong references to the generated listeners so that they can be added with weak references.
-		 * The weak references only matter when this code is loaded as a sub-application and later unloaded.
-		 * The keys are event types and each value is an Array: [captureListener, stageListener]
-		 */		
-		private const _generatedListeners:Object = {};
-		
-		/**
-		 * This is a list of supported event types.
-		 */
-		private const _eventTypes:Array = [
-			POINT_CLICK_EVENT, THROTTLED_MOUSE_MOVE_EVENT,
-			MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK,
-			MouseEvent.MOUSE_DOWN, MouseEvent.MOUSE_MOVE,
-			MouseEvent.MOUSE_OUT, MouseEvent.MOUSE_OVER,
-			MouseEvent.MOUSE_UP, MouseEvent.MOUSE_WHEEL,
-			MouseEvent.ROLL_OUT, MouseEvent.ROLL_OVER,
-			Event.ACTIVATE, Event.DEACTIVATE,
-			KeyboardEvent.KEY_DOWN, KeyboardEvent.KEY_UP,
-			Event.ENTER_FRAME, Event.FRAME_CONSTRUCTED, Event.EXIT_FRAME, Event.RENDER
-		];
-		
-		/**
-		 * This is a special pseudo-event supported by StageUtils.
+		 * This is a special pseudo-event type supported by StageUtils.
 		 * Callbacks added to this event will only trigger when the mouse was clicked and released at the same screen location.
 		 */
-		public static const POINT_CLICK_EVENT:String = "pointClick";
+		public static function get POINT_CLICK_EVENT():String { return EventCallbackCollection.POINT_CLICK_EVENT; }
 		
 		/**
-		 * This is a special pseudo-event supported by StageUtils.
+		 * Adds event listeners to handle clicking on a single pixel.
+		 */
+		public static function addPointClickListener(target:EventDispatcher, listener:Function):void
+		{
+			var p:Point = new Point();
+			function handleEvent(event:MouseEvent):void
+			{
+				if (event.type == MouseEvent.MOUSE_DOWN)
+					p.x = event.stageX, p.y = event.stageY;
+				else if (p.x == event.stageX && p.y == event.stageY)
+					listener(event);
+			}
+			target.addEventListener(MouseEvent.MOUSE_DOWN, handleEvent);
+			target.addEventListener(MouseEvent.CLICK, handleEvent);
+		}
+		
+		/**
+		 * This is a special pseudo-event type supported by StageUtils.
 		 * Callbacks added to this event will only trigger when the mouse was clicked and released at the same screen location.
 		 */
-		public static const THROTTLED_MOUSE_MOVE_EVENT:String = "throttledMouseMove";
+		public static function get THROTTLED_MOUSE_MOVE_EVENT():String { return EventCallbackCollection.THROTTLED_MOUSE_MOVE_EVENT; }
 		
 		/**
 		 * This is an Array of "callLater queues", each being an Array of function invocations to be done later.
@@ -132,7 +118,9 @@ package weave.core
 		private const _priorityCallLaterQueues:Array = [[], [], [], []];
 		private var _activePriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE + 1; // task priority that is currently being processed
 		private var _activePriorityElapsedTime:uint = 0; // elapsed time for active task priority
-		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE, 100, 65, 35]; // An Array of allocated times corresponding to callLater queues.
+		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE, 300, 200, 100]; // An Array of allocated times corresponding to callLater queues.
+		private var _deactivatedMaxComputationTimePerFrame:uint = 1000;
+		private var _nextCallLaterPriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE; // private variable to control the priority of the next callLater() internally
 
 		/**
 		 * This gets the maximum milliseconds spent per frame performing asynchronous tasks.
@@ -148,6 +136,7 @@ package weave.core
 		 */
 		public function setMaxComputationTimePerFrame(value:uint):void
 		{
+			eventManager.throttledMouseMoveInterval = value;
 			maxComputationTimePerFrame = value;
 		}
 		
@@ -175,27 +164,36 @@ package weave.core
 		 * When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
 		 */
 		[Bindable] public var maxComputationTimePerFrame:uint = 100;
+		private var maxComputationTimePerFrame_noActivity:uint = 250;
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get stage():Stage
+		{
+			return eventManager.stage;
+		}
 		
 		/**
 		 * @inheritDoc
 		 */
 		public function get keyboardEvent():KeyboardEvent
 		{
-			return _event as KeyboardEvent;
+			return eventManager.event as KeyboardEvent;
 		}
 		/**
 		 * @inheritDoc
 		 */
 		public function get mouseEvent():MouseEvent
 		{
-			return _event as MouseEvent;
+			return eventManager.event as MouseEvent;
 		}
 		/**
 		 * @inheritDoc
 		 */
 		public function get event():Event
 		{
-			return _event as Event;
+			return eventManager.event as Event;
 		}
 		
 		/**
@@ -203,7 +201,7 @@ package weave.core
 		 */
 		public function get eventTime():int
 		{
-			return _eventTime;
+			return eventManager.eventTime;
 		}
 		
 		/**
@@ -211,21 +209,21 @@ package weave.core
 		 */
 		public function get shiftKey():Boolean
 		{
-			return _shiftKey;
+			return eventManager.shiftKey;
 		}
 		/**
 		 * @inheritDoc
 		 */
 		public function get altKey():Boolean
 		{
-			return _altKey;
+			return eventManager.altKey;
 		}
 		/**
 		 * @inheritDoc
 		 */
 		public function get ctrlKey():Boolean
 		{
-			return _ctrlKey;
+			return eventManager.ctrlKey;
 		}
 		
 		/**
@@ -233,7 +231,7 @@ package weave.core
 		 */
 		public function get mouseButtonDown():Boolean
 		{
-			return _mouseButtonDown;
+			return eventManager.mouseButtonDown;
 		}
 		
 		/**
@@ -241,7 +239,7 @@ package weave.core
 		 */
 		public function get pointClicked():Boolean
 		{
-			return _pointClicked;
+			return eventManager.pointClicked;
 		}
 		
 		/**
@@ -249,7 +247,7 @@ package weave.core
 		 */
 		public function get previousFrameElapsedTime():int
 		{
-			return _previousFrameElapsedTime;
+			return eventManager.previousFrameElapsedTime;
 		}
 		
 		/**
@@ -257,7 +255,7 @@ package weave.core
 		 */
 		public function get currentFrameElapsedTime():int
 		{
-			return getTimer() - _currentFrameStartTime;
+			return getTimer() - eventManager.currentFrameStartTime;
 		}
 		
 		private static var _time:int;
@@ -291,23 +289,40 @@ package weave.core
 		 */
 		private function handleCallLater():void
 		{
-			if (_event.type == Event.ENTER_FRAME)
+			// sanity check
+			if (maxComputationTimePerFrame == 0)
+				maxComputationTimePerFrame = 100;
+
+			var maxComputationTime:uint;
+			if (eventManager.useDeactivatedFrameRate)
+				maxComputationTime = _deactivatedMaxComputationTimePerFrame;
+			else if (!eventManager.userActivity)
+				maxComputationTime = maxComputationTimePerFrame_noActivity;
+			else
+				maxComputationTime = maxComputationTimePerFrame;
+			if (!eventManager.event)
+			{
+				reportError("StageUtils.handleCallLater(): _event is null. This should never happen.");
+				return;
+			}
+			if (eventManager.event.type == Event.ENTER_FRAME)
 			{
 				resetDebugTime();
 				
 				if (debug_fps)
 				{
 					frameTimes.push(previousFrameElapsedTime);
-					if (frameTimes.length == 24)
+					if (StandardLib.sum(frameTimes) >= 1000)
 					{
-						averageFrameTime = StandardLib.mean.apply(null, frameTimes);
-						trace(Math.round(1000 / averageFrameTime),'fps; max computation time',maxComputationTimePerFrame);
+						averageFrameTime = StandardLib.mean(frameTimes);
+						var fps:Number = StandardLib.roundSignificant(1000 / averageFrameTime, 2);
+						trace(fps,'fps; max computation time',maxComputationTime);
 						frameTimes.length = 0;
 					}
 				}
 				
-				if (_previousFrameElapsedTime > 3000)
-					trace('Previous frame took', _previousFrameElapsedTime, 'ms');
+				if (eventManager.previousFrameElapsedTime > 3000)
+					trace('Previous frame took', eventManager.previousFrameElapsedTime, 'ms');
 			}
 			
 			if (UIComponentGlobals.callLaterSuspendCount > 0)
@@ -317,13 +332,22 @@ package weave.core
 			// This avoids wasting time on async tasks that do nothing and return early, adding themselves back to the queue.
 
 			var args:Array;
+			var args2:Array; // this is set to args[2]
 			var stackTrace:String;
 			var now:int;
-			var allStop:int = _currentFrameStartTime + maxComputationTimePerFrame;
+			var allStop:int = eventManager.currentFrameStartTime + maxComputationTime;
 
 			_currentTaskStopTime = allStop; // make sure _iterateTask knows when to stop
 
 			// first run the functions that should be called before anything else.
+			if (pauseForGCIfCollectionImminent != null)
+			{
+				var t:int = getTimer();
+				pauseForGCIfCollectionImminent();
+				t = getTimer() - t;
+				if (t > maxComputationTimePerFrame)
+					trace('paused',t,'ms for GC');
+			}
 			var queue:Array = _priorityCallLaterQueues[WeaveAPI.TASK_PRIORITY_IMMEDIATE] as Array;
 			var countdown:int;
 			for (countdown = queue.length; countdown > 0; countdown--)
@@ -334,9 +358,13 @@ package weave.core
 				now = getTimer();
 				// stop when max computation time is reached for this frame
 				if (now > allStop)
+				{
+					if (debug_callLater)
+						DebugTimer.cancel();
 					return;
+				}
 				
-				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint = 0)
+				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint)
 				args = queue.shift();
 				stackTrace = _stackTraceMap[args];
 				
@@ -344,7 +372,13 @@ package weave.core
 				
 				// don't call the function if the relevantContext was disposed.
 				if (!WeaveAPI.SessionManager.objectWasDisposed(args[0]))
-					(args[1] as Function).apply(null, args[2]);
+				{
+					args2 = args[2] as Array;
+					if (args2 != null && args2.length > 0)
+						(args[1] as Function).apply(null, args2);
+					else
+						(args[1] as Function)();
+				}
 				
 				if (debug_callLater)
 					DebugTimer.end(stackTrace);
@@ -356,6 +390,10 @@ package weave.core
 			var lastPriority:int = _activePriority == minPriority ? _priorityCallLaterQueues.length - 1 : _activePriority - 1;
 			var pStart:int = getTimer();
 			var pAlloc:int = int(_priorityAllocatedTimes[_activePriority]);
+			if (eventManager.useDeactivatedFrameRate)
+				pAlloc = pAlloc * _deactivatedMaxComputationTimePerFrame / maxComputationTimePerFrame;
+			else if (!eventManager.userActivity)
+				pAlloc = pAlloc * maxComputationTimePerFrame_noActivity / maxComputationTimePerFrame;
 			var pStop:int = Math.min(allStop, pStart + pAlloc - _activePriorityElapsedTime); // continue where we left off
 			queue = _priorityCallLaterQueues[_activePriority] as Array;
 			countdown = queue.length;
@@ -372,7 +410,13 @@ package weave.core
 					
 					// if max computation time was reached for this frame or we have visited all priorities, stop now
 					if (now > allStop || _activePriority == lastPriority)
+					{
+						if (debug_callLater)
+							DebugTimer.cancel();
+						if (debug_fps)
+							trace('spent',currentFrameElapsedTime,'ms');
 						return;
+					}
 					
 					// see if there are any entries left in the queues (except for the immediate queue)
 					var remaining:int = 0;
@@ -380,7 +424,11 @@ package weave.core
 						remaining += (_priorityCallLaterQueues[i] as Array).length;
 					// stop if no more entries
 					if (remaining == 0)
+					{
+						if (debug_callLater)
+							DebugTimer.cancel();
 						break;
+					}
 					
 					// switch to next priority, reset elapsed time
 					_activePriority++;
@@ -389,11 +437,17 @@ package weave.core
 						_activePriority = minPriority;
 					pStart = now;
 					pAlloc = int(_priorityAllocatedTimes[_activePriority]);
+					if (eventManager.useDeactivatedFrameRate)
+						pAlloc = pAlloc * _deactivatedMaxComputationTimePerFrame / maxComputationTimePerFrame;
+					else if (!eventManager.userActivity)
+						pAlloc = pAlloc * maxComputationTimePerFrame_noActivity / maxComputationTimePerFrame;
 					pStop = Math.min(allStop, pStart + pAlloc);
 					queue = _priorityCallLaterQueues[_activePriority] as Array;
 					countdown = queue.length;
 					
 					// restart loop to check stopping condition
+					if (debug_callLater)
+						DebugTimer.cancel();
 					continue;
 				}
 				
@@ -414,8 +468,11 @@ package weave.core
 				{
 					// TODO: PROFILING: check how long this function takes to execute.
 					// if it takes a long time (> 1000 ms), something's wrong...
-					
-					(args[1] as Function).apply(null, args[2]);
+					args2 = args[2] as Array;
+					if (args2 != null && args2.length > 0)
+						(args[1] as Function).apply(null, args2);
+					else
+						(args[1] as Function)();
 				}
 				
 				if (debug_callLater)
@@ -426,17 +483,19 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void
+		public function callLater(relevantContext:Object, method:Function, parameters:Array = null):void
 		{
+			if (method == null)
+			{
+				reportError('StageUtils.callLater(): received null "method" parameter');
+				return;
+			}
+			
 //			WeaveAPI.SessionManager.assignBusyTask(arguments, relevantContext as ILinkableObject);
 			
-			if (priority >= _priorityCallLaterQueues.length)
-			{
-				reportError("Invalid priority value: " + priority);
-				priority = WeaveAPI.TASK_PRIORITY_BUILDING;
-			}
 			//trace("call later @",currentFrameElapsedTime);
-			_priorityCallLaterQueues[priority].push(arguments);
+			_priorityCallLaterQueues[_nextCallLaterPriority].push(arguments);
+			_nextCallLaterPriority = WeaveAPI.TASK_PRIORITY_IMMEDIATE;
 			
 			if (debug_async_stack)
 				_stackTraceMap[arguments] = new Error("This is the stack trace from when callLater() was called.").getStackTrace();
@@ -448,7 +507,7 @@ package weave.core
 		 * @return A single iterative task function that invokes the other tasks to completion in order.
 		 *         The function will accept a stopTime:int parameter which when set to -1 will
 		 *         reset the task counter to zero so the compound task will start from the first task again.
-		 * @see #startTask
+		 * @see #startTask()
 		 */
 		public static function generateCompoundIterativeTask(...iterativeTasks):Function
 		{
@@ -463,6 +522,7 @@ package weave.core
 				if (iTask >= iterativeTasks.length)
 					return 1;
 				
+				var i:int = iTask; // need to detect if iTask changes
 				var iterate:Function = iterativeTasks[iTask] as Function;
 				var progress:Number;
 				if (iterate.length)
@@ -471,8 +531,12 @@ package weave.core
 				}
 				else
 				{
-					while ((progress = iterate()) < 1 && getTimer() < stopTime) { }
+					while (iTask == i && (progress = iterate()) < 1 && getTimer() < stopTime) { }
 				}
+				// if iTask changed as a result of iterating, we need to restart
+				if (iTask != i)
+					return 0;
+				
 				var totalProgress:Number = (iTask + progress) / iterativeTasks.length;
 				if (progress == 1)
 					iTask++;
@@ -480,19 +544,28 @@ package weave.core
 			}
 		}
 		
+		private var _debugTaskTimes:Dictionary = new Dictionary(true);
+		
 		/**
 		 * @inheritDoc
 		 */
-		public function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null):void
+		public function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null, description:String = null):void
 		{
 			// do nothing if task already active
 			if (WeaveAPI.ProgressIndicator.hasTask(iterativeTask))
 				return;
 			
+			if (debug_async_time)
+			{
+				if (_debugTaskTimes[iterativeTask])
+					trace('interrupted', getTimer()-_debugTaskTimes[iterativeTask][0], priority, _debugTaskTimes[iterativeTask][1], delete _debugTaskTimes[iterativeTask]);
+				_debugTaskTimes[iterativeTask] = [getTimer(), DebugUtils.getCompactStackTrace(new Error())];
+			}
+			
 			if (priority >= _priorityCallLaterQueues.length)
 			{
 				reportError("Invalid priority value: " + priority);
-				priority = WeaveAPI.TASK_PRIORITY_BUILDING;
+				priority = WeaveAPI.TASK_PRIORITY_NORMAL;
 			}
 			
 			if (debug_async_stack)
@@ -501,13 +574,14 @@ package weave.core
 				_taskStartTime[iterativeTask] = getTimer();
 				_taskElapsedTime[iterativeTask] = 0;
 			}
-			WeaveAPI.ProgressIndicator.addTask(iterativeTask, relevantContext as ILinkableObject);
+			WeaveAPI.ProgressIndicator.addTask(iterativeTask, relevantContext as ILinkableObject, description);
 			
 			var useTimeParameter:Boolean = iterativeTask.length > 0;
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed.
-			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback, useTimeParameter], priority);
+			_nextCallLaterPriority = priority;
+			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback, useTimeParameter]);
 			//_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
 		}
 		
@@ -519,6 +593,8 @@ package weave.core
 			// remove the task if the context was disposed
 			if (WeaveAPI.SessionManager.objectWasDisposed(context))
 			{
+				if (debug_async_time && _debugTaskTimes[task])
+					trace('disposed', getTimer()-_debugTaskTimes[task][0], priority, _debugTaskTimes[task][1], delete _debugTaskTimes[task]);
 				WeaveAPI.ProgressIndicator.removeTask(task);
 				return;
 			}
@@ -533,9 +609,9 @@ package weave.core
 			{
 				// perform the next iteration of the task
 				if (useTimeParameter)
-					progress = task.call(null, _currentTaskStopTime) as Number;
+					progress = task(_currentTaskStopTime) as Number;
 				else
-					progress = task.apply() as Number;
+					progress = task() as Number;
 				
 				if (progress === null || isNaN(progress) || progress < 0 || progress > 1)
 				{
@@ -545,9 +621,9 @@ package weave.core
 						trace(stackTrace);
 						// this is incorrect behavior, but we can put a breakpoint here
 						if (useTimeParameter)
-							progress = task.call(null, _currentTaskStopTime) as Number;
+							progress = task(_currentTaskStopTime) as Number;
 						else
-							progress = task.apply() as Number;
+							progress = task() as Number;
 					}
 					progress = 1;
 				}
@@ -556,12 +632,14 @@ package weave.core
 					trace(getTimer() - time, stackTrace);
 					// this is incorrect behavior, but we can put a breakpoint here
 					if (useTimeParameter)
-						progress = task.call(null, _currentTaskStopTime) as Number;
+						progress = task(_currentTaskStopTime) as Number;
 					else
-						progress = task.apply() as Number;
+						progress = task() as Number;
 				}
 				if (progress == 1)
 				{
+					if (debug_async_time && _debugTaskTimes[task])
+						trace('completed', getTimer()-_debugTaskTimes[task][0], priority, _debugTaskTimes[task][1], delete _debugTaskTimes[task]);
 					// task is done, so remove the task
 					WeaveAPI.ProgressIndicator.removeTask(task);
 					// run final callback after task completes and is removed
@@ -591,7 +669,8 @@ package weave.core
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed.
-			callLater(null, _iterateTask, arguments, priority);
+			_nextCallLaterPriority = priority;
+			callLater(null, _iterateTask, arguments);
 		}
 		
 		/**
@@ -599,180 +678,7 @@ package weave.core
 		 */
 		public function getSupportedEventTypes():Array
 		{
-			return _eventTypes.concat();
-		}
-		
-		/**
-		 * initialize callback collections.
-		 */
-		private function initialize(event:TimerEvent = null):void
-		{
-			var type:String;
-			
-			// initialize callback collections if not done so already
-			if (!_callbackCollectionsInitialized)
-			{
-				// create a new callback collection for each type of event
-				for each (type in _eventTypes)
-					_callbackCollections[type] = new CallbackCollection();
-				
-				// set this flag so callback collections won't be initialized again
-				_callbackCollectionsInitialized = true;
-				
-				addEventCallback(Event.ENTER_FRAME, null, handleCallLater);
-				addEventCallback(Event.RENDER, null, handleCallLater);
-			}
-			
-			// initialize the mouse event listeners if possible and necessary
-			if (!_listenersInitialized && WeaveAPI.topLevelApplication != null && WeaveAPI.topLevelApplication.stage != null)
-			{
-				// save a pointer to the stage.
-				_stage = WeaveAPI.topLevelApplication.stage;
-				// create listeners for each type of event
-				for each (type in _eventTypes)
-				{
-					// do not create event listeners for these meta events
-					if (type == POINT_CLICK_EVENT || type == THROTTLED_MOUSE_MOVE_EVENT)
-						continue;
-					
-					generateListeners(type);
-				}
-				_listenersInitialized = true;
-			}
-			
-			// check again if listeners have been initialized
-			if (!_listenersInitialized)
-			{
-				// if initialize() can't be done yet, start a timer so initialize() will be called later.
-				_initializeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, initialize);
-				_initializeTimer.start();
-			}
-		}
-		/**
-		 * This is for internal use only.
-		 * These inline functions are generated inside this function to avoid re-use of local variables.
-		 * @param eventType An event type to generate a listener function for.
-		 * @return An event listener function for the given eventType that updates the event variables and runs event callbacks.
-		 */
-		private function generateListeners(eventType:String):void
-		{
-			var cc:ICallbackCollection = _callbackCollections[eventType] as ICallbackCollection;
-			var isEnterFrameEvent:Boolean = eventType == Event.ENTER_FRAME;
-			var isMouseDownEvent:Boolean = eventType == MouseEvent.MOUSE_DOWN;
-			var isClickEvent:Boolean = eventType == MouseEvent.CLICK;
-			var isMouseMoveEvent:Boolean = eventType == MouseEvent.MOUSE_MOVE;
-			var tmmc:ICallbackCollection = _callbackCollections[THROTTLED_MOUSE_MOVE_EVENT] as ICallbackCollection;
-			var pcc:ICallbackCollection = _callbackCollections[POINT_CLICK_EVENT] as ICallbackCollection;
-
-			// this function is responsible for setting all event-related static variables and determining when to trigger meta events
-			var captureListener:Function = function (event:Event):void
-			{
-				// set event variables
-				_event = event;
-				_eventTime = getTimer();
-				
-				var stageX:Number = _stage.mouseX;
-				var stageY:Number = _stage.mouseY;
-				
-				if (isEnterFrameEvent)
-				{
-					_previousFrameElapsedTime = _eventTime - _currentFrameStartTime;
-					_currentFrameStartTime = _eventTime;
-					_triggeredThrottledMouseThisFrame = false;
-					// sanity check
-					if (maxComputationTimePerFrame == 0)
-						maxComputationTimePerFrame = 100;
-				}
-				
-				var keyboardEvent:KeyboardEvent = event as KeyboardEvent;
-				if (keyboardEvent)
-				{
-					_altKey = keyboardEvent.altKey;
-					_shiftKey = keyboardEvent.shiftKey;
-					_ctrlKey = keyboardEvent.ctrlKey;
-				}
-				
-				var handleThrottledMouseMove:Boolean = false;
-				var mouseEvent:MouseEvent = event as MouseEvent;
-				if (mouseEvent)
-				{
-					// Ignore this event if stageX is undefined.
-					// It seems that whenever we get a mouse event with undefined coordinates,
-					// we always get a duplicate event right after that defines the coordinates.
-					// The ctrlKey,altKey,shiftKey properties always seem to be false when the coordinates are NaN.
-					if (isNaN(mouseEvent.stageX))
-						return; // do nothing when coords are undefined
-					
-					_altKey = mouseEvent.altKey;
-					_shiftKey = mouseEvent.shiftKey;
-					_ctrlKey = mouseEvent.ctrlKey;
-					_mouseButtonDown = mouseEvent.buttonDown;
-					
-					if (isMouseDownEvent)
-					{
-						// remember the mouse down point for handling POINT_CLICK_EVENT callbacks.
-						_lastMouseDownPoint.x = mouseEvent.stageX;
-						_lastMouseDownPoint.y = mouseEvent.stageY;
-					}
-					if (isClickEvent)
-						_pointClicked = mouseEvent.stageX == _lastMouseDownPoint.x && mouseEvent.stageY == _lastMouseDownPoint.y;
-					
-					// Always handle throttled mouse move prior to a non-move mouse event so throttled
-					// mouse callbacks know about the movement before the other mouse event callbacks.
-					// Also, handle throttled mouse move on a move event if at least one frame and enough
-					// time has passed since the previous throttled mouse move.
-					if (!isMouseMoveEvent || (!_triggeredThrottledMouseThisFrame && _eventTime >= _nextThrottledMouseMoveTime))
-						handleThrottledMouseMove = true;
-				}
-				else // not a mouse event
-				{
-					// Handle throttled mouse move on a non-mouse event if at least one frame and enough
-					// time has passed since the previous throttled mouse move.
-					if (!_triggeredThrottledMouseThisFrame && _eventTime >= _nextThrottledMouseMoveTime)
-						handleThrottledMouseMove = true;
-				}
-
-				// handle mouse move events before triggering throttled mouse move callbacks
-				if (isMouseMoveEvent)
-					cc.triggerCallbacks();
-				
-				// Handle throttled mouse move after regular mouse move, before other non-move mouse events.
-				// Don't trigger throttled mouse move callbacks if the mouse hasn't moved.
-				if (handleThrottledMouseMove && (stageX != _lastThrottledMousePoint.x || stageY != _lastThrottledMousePoint.y))
-				{
-					_triggeredThrottledMouseThisFrame = true;
-					tmmc.triggerCallbacks();
-					_lastThrottledMousePoint.x = stageX;
-					_lastThrottledMousePoint.y = stageY;
-					_nextThrottledMouseMoveTime = _eventTime + maxComputationTimePerFrame;
-				}
-				
-				// handle point click meta event
-				if (isClickEvent && _pointClicked)
-					pcc.triggerCallbacks();
-				
-				// finally, trigger callbacks for non-mouse-move events
-				if (!isMouseMoveEvent)
-					cc.triggerCallbacks();
-				
-				// clear _event variable
-				_event = null;
-			};
-			
-			var stageListener:Function = function(event:Event):void
-			{
-				if (event.target == _stage)
-					captureListener(event);
-			};
-			
-			_generatedListeners[eventType] = [captureListener, stageListener];
-			
-			// Add a listener to the capture phase so the callbacks will run before the target gets the event.
-			_stage.addEventListener(eventType, captureListener, true, 0, true); // use capture phase
-			
-			// If the target is the stage, the capture listener won't be called, so add
-			// an additional listener that runs callbacks when the stage is the target.
-			_stage.addEventListener(eventType, stageListener, false, 0, true); // do not use capture phase
+			return EventCallbackCollection.eventTypes.concat();
 		}
 		
 		/**
@@ -780,7 +686,7 @@ package weave.core
 		 */
 		public function addEventCallback(eventType:String, relevantContext:Object, callback:Function, runCallbackNow:Boolean = false):void
 		{
-			var cc:ICallbackCollection = _callbackCollections[eventType] as ICallbackCollection;
+			var cc:ICallbackCollection = eventManager.callbackCollections[eventType] as ICallbackCollection;
 			if (cc != null)
 			{
 				cc.addImmediateCallback(relevantContext, callback, runCallbackNow);
@@ -796,9 +702,300 @@ package weave.core
 		 */
 		public function removeEventCallback(eventType:String, callback:Function):void
 		{
-			var cc:ICallbackCollection = _callbackCollections[eventType] as ICallbackCollection;
+			var cc:ICallbackCollection = eventManager.callbackCollections[eventType] as ICallbackCollection;
 			if (cc != null)
 				cc.removeCallback(callback);
 		}
 	}
+}
+
+import flash.display.Stage;
+import flash.events.Event;
+import flash.events.KeyboardEvent;
+import flash.events.MouseEvent;
+import flash.events.TimerEvent;
+import flash.geom.Point;
+import flash.system.Capabilities;
+import flash.utils.getTimer;
+import flash.utils.setTimeout;
+
+import weave.core.CallbackCollection;
+
+/**
+ * Manages a set of EventCallbackCollections.
+ * @see #callbackCollections
+ */
+internal class EventManager
+{
+	public function EventManager()
+	{
+		// create a new callback collection for each type of event
+		for each (var type:String in EventCallbackCollection.eventTypes)
+			callbackCollections[type] = WeaveAPI.SessionManager.registerDisposableChild(WeaveAPI.globalHashMap, new EventCallbackCollection(this, type));
+		
+		waitForStage();
+	}
+
+	private function waitForStage(event:TimerEvent = null):void
+	{
+		if (!WeaveAPI.topLevelApplication || !WeaveAPI.topLevelApplication.stage)
+		{
+			// try again later
+			setTimeout(waitForStage, 0);
+			return;
+		}
+		
+		// ready to add event listeners
+		stage = WeaveAPI.topLevelApplication.stage;
+		for (var type:String in callbackCollections)
+			(callbackCollections[type] as EventCallbackCollection).listenToStage(stage);
+	}
+	
+	/**
+	 * This is a mapping from event type to corresponding EventCallbackCollection.
+	 */
+	public const callbackCollections:Object = {};
+	
+	public var stage:Stage;
+	public var event:Event = null; // the current event
+	public var eventTime:int = 0;
+	public var shiftKey:Boolean = false;
+	public var altKey:Boolean = false;
+	public var ctrlKey:Boolean = false;
+	public var mouseButtonDown:Boolean = false;
+	public var userActivity:int = 0; // greater than 0 when there was user activity since the last frame.
+	public var currentFrameStartTime:int = getTimer(); // this is the result of getTimer() on the last ENTER_FRAME event.
+	public var previousFrameElapsedTime:int = 0; // this is the amount of time it took to process the previous frame.
+	public var pointClicked:Boolean = false;
+	
+	public var deactivated:Boolean = true; // true when application is deactivated
+	public var useDeactivatedFrameRate:Boolean = false; // true when deactivated and framerate drop detected
+	
+	public const lastMouseDownPoint:Point = new Point(NaN, NaN); // stage coords of last mouseDown event
+	public const lastThrottledMousePoint:Point = new Point(NaN, NaN); // stage coords of mouse for last throttled mouseMove event
+	public var triggeredThrottledMouseThisFrame:Boolean = false; // set to false on enterFrame, set to true on throttled mouse move
+	public var nextThrottledMouseMoveTime:int = 0; // time threshold before triggering throttled mouse move again
+	public var throttledMouseMoveInterval:int = 100; // time threshold before triggering throttled mouse move again
+}
+
+/**
+ * Helper class for event callbacks.
+ * @see #listenToStage()
+ */
+internal class EventCallbackCollection extends CallbackCollection
+{
+	public static var debug_fps:Boolean = false;
+	
+	/**
+	 * This is a special pseudo-event type.
+	 * Callbacks added to this event will only trigger when the mouse was clicked and released at the same screen location.
+	 */
+	public static const POINT_CLICK_EVENT:String = "pointClick";
+	
+	/**
+	 * This is a special pseudo-event type.
+	 * Callbacks added to this event will only trigger when the mouse was clicked and released at the same screen location.
+	 */
+	public static const THROTTLED_MOUSE_MOVE_EVENT:String = "throttledMouseMove";
+	
+	/**
+	 * This is a list of supported event types.
+	 */
+	public static const eventTypes:Array = [
+		POINT_CLICK_EVENT, THROTTLED_MOUSE_MOVE_EVENT,
+		MouseEvent.CLICK, MouseEvent.DOUBLE_CLICK,
+		MouseEvent.MOUSE_DOWN, MouseEvent.MOUSE_MOVE,
+		MouseEvent.MOUSE_OUT, MouseEvent.MOUSE_OVER,
+		MouseEvent.MOUSE_UP, MouseEvent.MOUSE_WHEEL,
+		MouseEvent.ROLL_OUT, MouseEvent.ROLL_OVER,
+		Event.ACTIVATE, Event.DEACTIVATE,
+		KeyboardEvent.KEY_DOWN, KeyboardEvent.KEY_UP,
+		Event.ENTER_FRAME, Event.FRAME_CONSTRUCTED, Event.EXIT_FRAME, Event.RENDER
+	];
+	
+	/**
+	 * @param eventManager The EventManager instance to use as a variable buffer.
+	 * @param eventType The event type corresponding to this callback collection.
+	 */
+	public function EventCallbackCollection(eventManager:EventManager, eventType:String)
+	{
+		super(setEvent);
+		
+		this.eventManager = eventManager;
+		this.eventType = eventType;
+	}
+
+	private var eventManager:EventManager;
+	private var eventType:String;
+	private var cancelable:Boolean = true;
+	
+	/**
+	 * This is the _preCallback
+	 */
+	private function setEvent(event:Event):void
+	{
+		eventManager.event = event;
+	}
+	
+	/**
+	 * This function remembers the previous event value, runs callbacks using the new event value,
+	 * then restores the previous event value. This is necessary because it is possible for a popup
+	 * browser window to interrupt Flash with requests in the middle of an event.
+	 */
+	private function runEventCallbacks(event:Event):void
+	{
+		var previousEvent:Event = eventManager.event; // remember previous value
+		_runCallbacksImmediately(event); // make sure event is set before each immediate callback
+		_preCallback(previousEvent); // restore the previous value
+	}
+	
+	/**
+	 * Call this when the stage is available to set up event listeners.
+	 */
+	public function listenToStage(stage:Stage):void
+	{
+		// do not create event listeners for these meta events
+		if (eventType == POINT_CLICK_EVENT || eventType == THROTTLED_MOUSE_MOVE_EVENT)
+			return;
+		
+		if (eventType == KeyboardEvent.KEY_DOWN && Capabilities.playerType == "Desktop")
+			cancelable = false;
+
+		// Add a listener to the capture phase so the callbacks will run before the target gets the event.
+		stage.addEventListener(eventType, captureListener, true, 0, true); // use capture phase
+		
+		// If the target is the stage, the capture listener won't be called, so add
+		// an additional listener that runs callbacks when the stage is the target.
+		stage.addEventListener(eventType, stageListener, false, 0, true); // do not use capture phase
+		
+		// when callbacks are disposed, remove the listeners
+		addDisposeCallback(null, function():void {
+			stage.removeEventListener(eventType, captureListener, true);
+			stage.removeEventListener(eventType, stageListener, false);
+		});
+	}
+	
+	private function stageListener(event:Event):void
+	{
+		if (event.target == eventManager.stage)
+			captureListener(event);
+	};
+	
+	/**
+	 * This function is responsible for setting all event-related variables and determining when to trigger meta events.
+	 */
+	private function captureListener(event:Event):void
+	{
+		// avoid handling redundant events generated by SystemManager
+		if (event.cancelable && cancelable)
+			return;
+		
+		// detect deactivated framerate (when app is hidden)
+		if (eventManager.deactivated && eventType == Event.ENTER_FRAME)
+		{
+			var wasted:int = getTimer() - eventManager.eventTime;
+			if (debug_fps)
+				trace('wasted', wasted);
+			eventManager.useDeactivatedFrameRate = wasted > 100;
+		}
+		
+		// set event variables
+		if (eventManager.event != null)
+		{
+			trace(eventManager.event.type, 'was interrupted by', event.type);
+		}
+		eventManager.eventTime = getTimer();
+		
+		var stageX:Number = eventManager.stage.mouseX;
+		var stageY:Number = eventManager.stage.mouseY;
+		
+		if (eventType == Event.ENTER_FRAME)
+		{
+			if (eventManager.userActivity > 0 && !eventManager.mouseButtonDown)
+				eventManager.userActivity--;
+			eventManager.previousFrameElapsedTime = eventManager.eventTime - eventManager.currentFrameStartTime;
+			eventManager.currentFrameStartTime = eventManager.eventTime;
+			eventManager.triggeredThrottledMouseThisFrame = false;
+		}
+		else if (eventType == Event.ACTIVATE || eventType == Event.DEACTIVATE)
+		{
+			if (debug_fps)
+				trace(eventType);
+			eventManager.deactivated = eventType == Event.DEACTIVATE;
+			eventManager.useDeactivatedFrameRate = false;
+		}
+		
+		var keyboardEvent:KeyboardEvent = event as KeyboardEvent;
+		if (keyboardEvent)
+		{
+			eventManager.userActivity = 2;
+			eventManager.altKey = keyboardEvent.altKey;
+			eventManager.shiftKey = keyboardEvent.shiftKey;
+			eventManager.ctrlKey = keyboardEvent.ctrlKey;
+		}
+		
+		var handleThrottledMouseMove:Boolean = false;
+		var mouseEvent:MouseEvent = event as MouseEvent;
+		if (mouseEvent)
+		{
+			// Ignore this event if stageX is undefined.
+			// It seems that whenever we get a mouse event with undefined coordinates,
+			// we always get a duplicate event right after that defines the coordinates.
+			// The ctrlKey,altKey,shiftKey properties always seem to be false when the coordinates are NaN.
+			if (isNaN(mouseEvent.stageX))
+				return; // do nothing when coords are undefined
+			
+			eventManager.userActivity = 2;
+			eventManager.altKey = mouseEvent.altKey;
+			eventManager.shiftKey = mouseEvent.shiftKey;
+			eventManager.ctrlKey = mouseEvent.ctrlKey;
+			eventManager.mouseButtonDown = mouseEvent.buttonDown;
+			
+			if (eventType == MouseEvent.MOUSE_DOWN)
+			{
+				// remember the mouse down point for handling POINT_CLICK_EVENT callbacks.
+				eventManager.lastMouseDownPoint.x = mouseEvent.stageX;
+				eventManager.lastMouseDownPoint.y = mouseEvent.stageY;
+			}
+			if (eventType == MouseEvent.CLICK || eventType == MouseEvent.MOUSE_UP)
+				eventManager.pointClicked = mouseEvent.stageX == eventManager.lastMouseDownPoint.x && mouseEvent.stageY == eventManager.lastMouseDownPoint.y;
+			
+			// Always handle throttled mouse move prior to a non-move mouse event so throttled
+			// mouse callbacks know about the movement before the other mouse event callbacks.
+			// Also, handle throttled mouse move on a move event if at least one frame and enough
+			// time has passed since the previous throttled mouse move.
+			if (eventType != MouseEvent.MOUSE_MOVE || (!eventManager.triggeredThrottledMouseThisFrame && eventManager.eventTime >= eventManager.nextThrottledMouseMoveTime))
+				handleThrottledMouseMove = true;
+		}
+		else // not a mouse event
+		{
+			// Handle throttled mouse move on a non-mouse event if at least one frame and enough
+			// time has passed since the previous throttled mouse move.
+			if (!eventManager.triggeredThrottledMouseThisFrame && eventManager.eventTime >= eventManager.nextThrottledMouseMoveTime)
+				handleThrottledMouseMove = true;
+		}
+		
+		// handle mouse move events before triggering throttled mouse move callbacks
+		if (eventType == MouseEvent.MOUSE_MOVE)
+			runEventCallbacks(event);
+		
+		// Handle throttled mouse move after regular mouse move, before other non-move mouse events.
+		// Don't trigger throttled mouse move callbacks if the mouse hasn't moved.
+		if (handleThrottledMouseMove && (stageX != eventManager.lastThrottledMousePoint.x || stageY != eventManager.lastThrottledMousePoint.y))
+		{
+			eventManager.triggeredThrottledMouseThisFrame = true;
+			(eventManager.callbackCollections[THROTTLED_MOUSE_MOVE_EVENT] as EventCallbackCollection).runEventCallbacks(event);
+			eventManager.lastThrottledMousePoint.x = stageX;
+			eventManager.lastThrottledMousePoint.y = stageY;
+			eventManager.nextThrottledMouseMoveTime = eventManager.eventTime + eventManager.throttledMouseMoveInterval;
+		}
+		
+		// handle point click meta event
+		if (eventType == MouseEvent.CLICK && eventManager.pointClicked)
+			(eventManager.callbackCollections[POINT_CLICK_EVENT] as EventCallbackCollection).runEventCallbacks(event);
+		
+		// finally, trigger callbacks for non-mouse-move events
+		if (eventType != MouseEvent.MOUSE_MOVE)
+			runEventCallbacks(event);
+	};
 }

@@ -22,10 +22,8 @@ package weave.utils
 	import flash.geom.Point;
 	
 	/**
-	 * 
-	 * @author abaumann
-	 * @author adufilie
-	 */	
+	 * A set of static functions for drawing to Graphics objects.
+	 */
 	public class DrawUtils
 	{
 		/**
@@ -87,11 +85,13 @@ package weave.utils
 
 		/**
 		 * @param horizontalEndPoints When true, the curve starts and ends horizontal. When false, vertical.
-		 * @param curveNormValue Values that produce nice curves range from 0 to 1, 0 being a straight line. 
+		 * @param curveNormValue Values that produce nice curves range from 0 to 1, 0 being a straight line.
+		 * @param continuingLine If true, the graphics cursor is assumed to be already at (startX,startY) and moveTo will not be used prior to drawing the curve.
 		 */
-		public static function drawDoubleCurve(graphics:Graphics, startX:Number, startY:Number, endX:Number, endY:Number, horizontalEndPoints:Boolean, curveNormValue:Number = 1):void
+		public static function drawDoubleCurve(graphics:Graphics, startX:Number, startY:Number, endX:Number, endY:Number, horizontalEndPoints:Boolean, curveNormValue:Number = 1, continuingLine:Boolean = false):void
 		{
-			graphics.moveTo(startX, startY);
+			if (!continuingLine)
+				graphics.moveTo(startX, startY);
 			
 			var dx:Number = (endX - startX);
 			var dy:Number = (endY - startY);
@@ -117,53 +117,6 @@ package weave.utils
 				graphics.lineTo(endX, endY);
 			else
 				graphics.curveTo(startX + (endX - startX)/2, startY + (1 - curvature)/2*(endY - startY), endX, endY);
-		}
-		
-		private static function drawDashedLine(graphics:Graphics, startX:Number, startY:Number, endX:Number, endY:Number, dashLength:int, gapLength:int = 0):void
-		{
-			/*// draw different line segments between this distance that are dashLength
-			// end point and start point should always have a dash coming from them
-			var segmentLength:int = getEuclidDistance(startX, startY, endX, endY);
-			
-			// solve for y = mx + b
-			var m:Number = (startY - endY) / (startX - endX);*/
-			
-			// if the gapLength is not 1 pixel or more, we want to ignore it and make the gap equal the dash length
-			if(gapLength <= 0)
-				gapLength = dashLength;
-				
-			var segmentLengthX:int = Math.abs(endX - startX);
-			var segmentLengthY:int = Math.abs(endY - startY);
-			
-			
-			var numDashGapX:int = segmentLengthX / (dashLength+gapLength);
-			var numDashGapY:int = segmentLengthY / (dashLength+gapLength);
-			
-			var gapLengthX:int = segmentLengthX / (gapLength);
-			var gapLengthY:int = segmentLengthY / (gapLength);
-						
-			graphics.moveTo(startX, startY);
-			/*var b:Number = startY - m*startX;*/
-			
-			var nextX:int = startX;
-			var nextY:int = startY;
-			
-			for (var i:int = 0; i < Math.max(numDashGapX, numDashGapY); i++)
-			{				
-				/*nextY = m*(nextX) + b;
-				graphics.lineTo(nextX, nextY);
-				graphics.moveTo(nextX + gapLength, nextY + gapLength);*/
-				graphics.moveTo( nextX, nextY );
-
-				//nextX += 
-
-				//graphics.lineTo(startX + (i+1)*dashLengthX, startY + (i+1)*dashLengthY);
-			}	
-		}
-		
-		private static function getEuclidDistance(startX:Number, startY:Number, endX:Number, endY:Number):Number
-		{
-			return Math.sqrt(  (endX - startX)*(endX - startX) + (endY - startY)*(endY - startY)  )
 		}
 	}
 }

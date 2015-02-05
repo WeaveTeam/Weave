@@ -22,7 +22,6 @@ package weave.ui
 	
 	import mx.controls.TextInput;
 	import mx.core.mx_internal;
-	import mx.utils.ObjectUtil;
 	
 	import weave.compiler.StandardLib;
 

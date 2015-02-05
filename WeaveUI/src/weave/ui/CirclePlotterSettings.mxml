@@ -38,14 +38,13 @@
 		<mx:Spacer/>
 		<ui:IndentTextInput indent="100" label="{lang('Thickness:')}" id="thicknessText"/>
 		<ui:Indent indent="100" label="{lang('Color:')}">
-			<mx:ColorPicker id="colorPicker"/>
+			<ui:CustomColorPicker id="colorPicker"/>
 		</ui:Indent>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
 			import mx.managers.PopUpManager;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.linkBindableProperty;
 			import weave.visualization.layers.PlotManager;
@@ -105,8 +104,8 @@
 				if(panel is MapTool)
 				{
 					_addRemoveContextMenuItem.enabled = true;
-					anchorPoint.x = e.mouseTarget.stage.mouseX;
-					anchorPoint.y = e.mouseTarget.stage.mouseY;
+					anchorPoint.x = WeaveAPI.StageUtils.stage.mouseX;
+					anchorPoint.y = WeaveAPI.StageUtils.stage.mouseY;
 				}
 				else
 				{

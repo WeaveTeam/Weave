@@ -19,9 +19,6 @@
 
 package weave.visualization.plotters
 {
-	import com.modestmaps.mapproviders.BlueMarbleMapProvider;
-	import com.modestmaps.mapproviders.OpenStreetMapProvider;
-	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.LineScaleMode;
@@ -35,7 +32,6 @@ package weave.visualization.plotters
 	
 	import org.openscales.proj4as.ProjConstants;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.data.IProjectionManager;
@@ -44,21 +40,21 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.services.IWMSService;
+	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.Dictionary2D;
+	import weave.primitives.ZoomBounds;
 	import weave.services.wms.CustomWMS;
 	import weave.services.wms.ModestMapsWMS;
 	import weave.services.wms.OnEarthProvider;
-	import weave.services.wms.OpenMapQuestAerialProvider;
-	import weave.services.wms.OpenMapQuestProvider;
-	import weave.services.wms.StamenProvider;
 	import weave.services.wms.WMSProviders;
 	import weave.services.wms.WMSTile;
 	import weave.utils.BitmapText;
-	import weave.utils.Dictionary2D;
+	import weave.utils.ZoomUtils;
 
 	/**
 	 * WMSPlotter
@@ -69,6 +65,8 @@ package weave.visualization.plotters
 	 */
 	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus, IDisposableObject
 	{
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, WMSPlotter, "WMS images");
+		
 		// TODO: move the image reprojection code elsewhere
 		
 		public var debug:Boolean = false;
@@ -83,7 +81,13 @@ package weave.visualization.plotters
 			_textField.alpha = 0.2;
 			
 			//setting default WMS Map to Blue Marble
-			setProvider(WMSProviders.BLUE_MARBLE_MAP);
+			setProvider(WMSProviders.OPEN_STREET_MAP);
+		}
+		
+		public function get sourceSRS():String
+		{
+			var srv:IWMSService = _service;
+			return srv ? srv.getProjectionSRS() : null;
 		}
 
 		// the service and its parameters
@@ -97,33 +101,8 @@ package weave.visualization.plotters
 			if (_service is ModestMapsWMS)
 				return (_service as ModestMapsWMS).providerName.value;
 			
-			if (_service is BlueMarbleMapProvider)
-				return WMSProviders.BLUE_MARBLE_MAP;
-			
 			if (_service is OnEarthProvider)
 				return WMSProviders.NASA;
-			
-			if (_service is OpenStreetMapProvider)
-				return WMSProviders.OPEN_STREET_MAP;
-			
-			if (_service is OpenMapQuestProvider)
-				return WMSProviders.MAPQUEST;
-			
-			if (_service is OpenMapQuestAerialProvider)
-				return WMSProviders.MAPQUEST_AERIAL;
-			
-			if (_service is StamenProvider)
-			{
-				var stamenProvider:StamenProvider = _service as StamenProvider;
-				if (stamenProvider.style == StamenProvider.STYLE_TERRAIN)
-					return WMSProviders.STAMEN_TERRAIN;
-				
-				if (stamenProvider.style == StamenProvider.STYLE_TONER)
-					return WMSProviders.STAMEN_TONER;
-				
-				if (stamenProvider.style == StamenProvider.STYLE_WATERCOLOR)
-					return WMSProviders.STAMEN_WATERCOLOR;
-			}
 			
 			if (_service is CustomWMS)
 				return WMSProviders.CUSTOM_MAP;
@@ -177,7 +156,7 @@ package weave.visualization.plotters
 		{
 			// check if this tile has a cached shape
 			var cachedValue:ProjectedShape = _tileSRSToShapeCache.get(tile, getDestinationSRS());
-			if (cachedValue != null)
+			if (cachedValue)
 				return cachedValue;
 			
 			// we need to create the cached shape
@@ -275,7 +254,7 @@ package weave.visualization.plotters
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			// if there is no service to use, we can't draw anything
-			if (_service == null)
+			if (!_service)
 				return;
 
 			var serviceSRS:String = _service.getProjectionSRS();			
@@ -318,9 +297,9 @@ package weave.visualization.plotters
 			for (var i:int = 0; i < allTiles.length; i++)
 			{
 				var tile:WMSTile = allTiles[i];
-				if (tile.bitmapData == null)
+				if (!tile.bitmapData)
 				{
-					if (displayMissingImage.value == false)
+					if (!displayMissingImage.value)
 						continue;
 					tile.bitmapData = _missingImage.bitmapData;
 				}
@@ -344,7 +323,7 @@ package weave.visualization.plotters
 		 */
 		private function drawUnProjectedTiles(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			if (_service == null)
+			if (!_service)
 				return;
 
 			var allTiles:Array = _service.requestImages(dataBounds, screenBounds, preferLowerQuality.value);
@@ -357,9 +336,9 @@ package weave.visualization.plotters
 					continue;
 				
 				// if there is no bitmap data, decide whether to continue or display missing image
-				if (tile.bitmapData == null)
+				if (!tile.bitmapData)
 				{
-					if (displayMissingImage.value == false)
+					if (!displayMissingImage.value)
 						continue;
 					
 					tile.bitmapData = _missingImage.bitmapData;
@@ -442,7 +421,7 @@ package weave.visualization.plotters
 		 */
 		public function setProvider(provider:String):void
 		{
-			if(!verifyServiceName(provider))
+			if (!verifyServiceName(provider))
 				return;
 			
 			if (provider == WMSProviders.NASA)
@@ -468,7 +447,7 @@ package weave.visualization.plotters
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			output.reset();
-			if (_service != null)
+			if (_service)
 			{
 				// determine bounds of plotter
 				_service.getAllowedBounds(output);
@@ -485,9 +464,9 @@ package weave.visualization.plotters
 		
 		public function dispose():void
 		{
-			if (_service != null)
+			if (_service)
 				_service.cancelPendingRequests(); // cancel everything to prevent any callbacks from running
-			WeaveAPI.SessionManager.disposeObjects(_service);
+			WeaveAPI.SessionManager.disposeObject(_service);
 		}
 
 		/**
@@ -498,7 +477,7 @@ package weave.visualization.plotters
 			var nasaService:OnEarthProvider = _service as OnEarthProvider;
 			var style:String = styles.value;
 			
-			if (nasaService == null)
+			if (!nasaService)
 				return;
 			
 			nasaService.changeStyleToMonth(style);
@@ -506,7 +485,7 @@ package weave.visualization.plotters
 		
 		private function verifyServiceName(s:String):Boolean
 		{
-			if (s == null || s == '')
+			if (!s)
 				return false;
 			
 			return WMSProviders.providers.indexOf(s) >= 0;
@@ -516,6 +495,27 @@ package weave.visualization.plotters
 		{
 			return false;
 		}
+		
+		public function adjustZoomBounds(zoomBounds:ZoomBounds):void
+		{
+			if (!_service)
+				return;
+			
+			var minScreenSize:int = Math.max(_service.getImageWidth(), _service.getImageHeight());
+			zoomBounds.getDataBounds(_tempDataBounds);
+			zoomBounds.getScreenBounds(_tempScreenBounds);
+			getBackgroundDataBounds(_tempBackgroundDataBounds);
+			
+			var inputZoomLevel:Number = ZoomUtils.getZoomLevel(_tempDataBounds, _tempScreenBounds, _tempBackgroundDataBounds, minScreenSize);
+			var inputScale:Number = ZoomUtils.getScaleFromZoomLevel(_tempBackgroundDataBounds, minScreenSize, inputZoomLevel);
+			
+			var outputZoomLevel:Number = Math.round(inputZoomLevel);
+			var outputScale:Number = ZoomUtils.getScaleFromZoomLevel(_tempBackgroundDataBounds, minScreenSize, outputZoomLevel);
+			
+			ZoomUtils.zoomDataBoundsByRelativeScreenScale(_tempDataBounds, _tempScreenBounds, _tempScreenBounds.getXCenter(), _tempScreenBounds.getYCenter(), outputScale / inputScale, false);
+			zoomBounds.setDataBounds(_tempDataBounds);
+		}
+		
 		[Deprecated(replacement="service")] public function set serviceName(value:String):void { setProvider(value); }
 	}
 }

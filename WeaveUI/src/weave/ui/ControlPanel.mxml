@@ -23,10 +23,9 @@
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				backgroundColor="0xCCCCCC"
 				addedToStage="handleAddedToStage();"
-				width="640"
-				height="480"
-				sessionPanelCoordsAsPercentages="false"
+				enablePercentageCoords="false"
 				layout="vertical"
+				showBusyIndicator="false"
 				escapeKeyClosesPanel="true"
 				titleStyleName="weave-panel-title-style"
 				>
@@ -36,44 +35,61 @@
 	</mx:Metadata>
 	<mx:Script>
 		<![CDATA[
+			import mx.containers.Box;
 			import mx.containers.TabNavigator;
+			import mx.core.INavigatorContent;
+			import mx.core.IUIComponent;
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
-			import weave.Weave;
-			import weave.api.WeaveAPI;
+			import weave.api.core.DynamicState;
 			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
+			import weave.api.getLinkableOwner;
 			import weave.api.getSessionState;
 			import weave.api.newDisposableChild;
+			import weave.api.objectWasDisposed;
+			import weave.api.reportError;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
+			import weave.compiler.Compiler;
 			import weave.core.ClassUtils;
-			import weave.core.DynamicState;
 			import weave.core.SessionManager;
-			import weave.utils.EditorManager;
+			import weave.editors.DynamicEditor;
 			
 
-			private var _targetObjects:Array = null;
+			protected var _targetObjects:Array = null;
 			private var _savedTargetSessionStates:Array;
-			private var _savedGlobalSessionStates:Array;
-			private var _savedGlobalNames:Object;
-			private var createdChildren:Boolean = false;
+			private var _savedPathSessionStates:Array;
+			private var _savedPaths:Object;
 			
+			override public function reposition():void
+			{
+				panelX.value = '' + int(20 + Math.random() * 10) + "%"; // near middle of screen if width 50%
+				panelY.value = '' + int(20 + Math.random() * 10) + "%"; // near middle of screen if height 50%
+				panelWidth.value = '640';
+				panelHeight.value = '480';
+			}
+
 			override protected function get borderIsVisible():Boolean
 			{
 				return true;
 			}
 			
+			[PercentProxy("percentWidth")]
 			override public function set width(value:Number):void
 			{
+				value = Math.round(value);
 				super.width = value;
 				if (!initialized)
 					panelWidth.value = String(value);
 			}
 			
+			[PercentProxy("percentHeight")]
 			override public function set height(value:Number):void
 			{
+				value = Math.round(value);
 				super.height = value;
 				if (!initialized)
 					panelHeight.value = String(value);
@@ -84,7 +100,7 @@
 			 */
 			protected var controlPanelControls:ControlPanelControls = new ControlPanelControls();
 			
-			public function get tabNavigator():TabNavigator
+			public function get tabNavigator():CustomTabNavigator
 			{
 				return controlPanelControls ? controlPanelControls.tabNavigator : null;
 			}
@@ -94,28 +110,65 @@
 				super.layout = "vertical";
 			}
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				closeable.value = false;
-				pinnable.value = false;
+				enableZOrder.value = false;
 				minimizable.value = false;
 				maximizable.value = false;
+				enableSubMenu.value = true;
+				subMenuButton.data = [
+					{
+						label: lang('Edit session state'),
+						click: function():void {
+							SessionStateEditor.openDefaultEditor((
+								sessionEditorTarget is Function
+									? sessionEditorTarget()
+									: sessionEditorTarget
+							) as ILinkableObject);
+						},
+						shown: function():Boolean { return sessionEditorTarget != null; }
+					},{
+						label: lang('Create save point'),
+						click: save
+					},{
+						label: lang('Revert to save point'),
+						click: revert
+					}
+				];
 				
 				// title is set here instead of in the mxml because otherwise it would
 				// overwrite any other value set in mxml components based on this class.
 				title = lang('Control Panel');
 			}
 			
+			private var _children:Array = [];
 			public function set children(array:Array):void
 			{
-				initialize();
-				for (var i:int = 0; i < array.length; i++)
+				for each (var child:DisplayObject in array)
 				{
-					controlPanelControls.tabNavigator.addChild(array[i]);
+					if (!(child as INavigatorContent))
+					{
+						var box:Box = new Box();
+						box.percentWidth = 100;
+						box.percentHeight = 100;
+						box.addChild(child);
+						child = box;
+					}
+					if (createdChildren)
+						controlPanelControls.tabNavigator.addChild(child);
+					else
+						_children.push(child);
 				}
 			}
+			
+			/**
+			 * Set this to enable the "Edit session state" menu item.
+			 * This can either be an ILinkableObject or a Function that returns an ILinkableObject.
+			 */
+			public var sessionEditorTarget:Object = null;
 			
 			/**
 			 * setter for _targetObjects
@@ -145,7 +198,7 @@
 				controlPanelControls.validateNow();
 				
 				// show buttons if there are targets, hide them if not
-				if (_targetObjects == null || _targetObjects.length == 0)
+				if (!_targetObjects || !_targetObjects.length)
 				{
 					closeable.value = true;
 					if (controlPanelControls == controlPanelControls.buttons.parent)
@@ -159,15 +212,6 @@
 				}
 			}
 			
-			private function toggleRevertSaveButtons():void
-			{
-				var show:Boolean = Weave.properties.showRevertButton.value;
-				controlPanelControls.revertBtn.visible = show;
-				controlPanelControls.revertBtn.includeInLayout = show;
-				controlPanelControls.saveBtn.visible = show;
-				controlPanelControls.saveBtn.includeInLayout = show;
-			}
-			
 			/**
 			 * This function reverts session state(s) in targets to the previous state(s) set in save() 
 			 */
@@ -178,14 +222,14 @@
 				var i:int = 0;
 				for each(var object:ILinkableObject in _targetObjects)
 				{
-					if (!(WeaveAPI.SessionManager as SessionManager).objectWasDisposed(object))
+					if (!WeaveAPI.SessionManager.objectWasDisposed(object))
 						setSessionState(object, _savedTargetSessionStates[i++]); 
 				}
-				for each (var dynamicState:DynamicState in _savedGlobalSessionStates)
+				for each (var obj:Object in _savedPathSessionStates)
 				{
-					var classDef:Class = ClassUtils.getClassDefinition(dynamicState.className);
-					var globalObject:ILinkableObject = Weave.root.requestObject(dynamicState.objectName, classDef, false);
-					setSessionState(globalObject, dynamicState.sessionState);
+					var ilo:ILinkableObject = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, obj["path"]);
+					if (ilo)
+						setSessionState(ilo, obj["state"]);
 				}
 			}
 			
@@ -197,18 +241,39 @@
 			 */
 			public function save():void
 			{
-				if (_targetObjects == null && parent is ILinkableObject)
+				if (!_targetObjects)
 				{
-					targets = [parent]; // this calls save() again
-					return;
+					var target:ILinkableObject = sessionEditorTarget as ILinkableObject;
+					if (!target && this.hasOwnProperty(OUTER_DOCUMENT))
+						target = this[OUTER_DOCUMENT] as ILinkableObject;
+					if (!target)
+						target = parent as ILinkableObject
+					if (target)
+					{
+						targets = [target]; // this calls save() again
+						return;
+					}
 				}
 				if (tabNavigator)
+				{
 					for each (var child:Object in tabNavigator.getChildren())
+					{
 						if (child is ILinkableObjectEditor)
-							(child as ILinkableObjectEditor).applyChanges();
+						{
+							try
+							{
+								(child as ILinkableObjectEditor).applyChanges();
+							}
+							catch (e:Error)
+							{
+								reportError(e);
+							}
+						}
+					}
+				}
 				
-				_savedGlobalNames = {};
-				_savedGlobalSessionStates = [];
+				_savedPaths = {};
+				_savedPathSessionStates = [];
 				_savedTargetSessionStates = [];
 				for each(var object:ILinkableObject in _targetObjects)
 				{
@@ -227,19 +292,15 @@
 					dynamicObjects.unshift(object);
 				for each (var dynamicObject:ILinkableDynamicObject in dynamicObjects)
 				{
-					// if the dynamic object references a global object by name...
-					if (dynamicObject.internalObject && dynamicObject.globalName != null && !_savedGlobalNames[dynamicObject.globalName])
+					// if the dynamic object references a path...
+					var path:Array = dynamicObject.targetPath;
+					var pathStr:String = Compiler.stringify(path);
+					if (dynamicObject.internalObject && path != null && !_savedPaths[pathStr])
 					{
 						// avoid duplicate entries and infinite recursion
-						_savedGlobalNames[dynamicObject.globalName] = true;
+						_savedPaths[pathStr] = true;
 						// save the session state of the global object
-						_savedGlobalSessionStates.push(
-							new DynamicState(
-								dynamicObject.globalName,
-								getQualifiedClassName(dynamicObject.internalObject),
-								getSessionState(dynamicObject.internalObject)
-							)
-						);
+						_savedPathSessionStates.push({"path": path, "state": getSessionState(dynamicObject.internalObject)});
 						saveRelatedSessionStates(dynamicObject.internalObject);
 					}
 				}
@@ -247,11 +308,10 @@
 			
 			override protected function createChildren():void
 			{
-				super.createChildren();
-				
 				if (createdChildren)
 					return;
-				createdChildren = true;
+				
+				super.createChildren();
 
 				var children:Array = getChildren();
 				removeAllChildren();
@@ -265,7 +325,8 @@
 					controlPanelControls.tabNavigator.addChild(children[i]);
 				}
 				
-				Weave.properties.showRevertButton.addImmediateCallback(this, toggleRevertSaveButtons, true);
+				while (_children.length)
+					controlPanelControls.tabNavigator.addChild(_children.shift());
 			}
 			
 			override protected function childrenCreated():void
@@ -275,26 +336,12 @@
 			
 			private function handleControlsCreated(e:FlexEvent):void
 			{
-				controlPanelControls.revertBtn.addEventListener(MouseEvent.CLICK,function (e:MouseEvent):void { revert() });
 				controlPanelControls.cancelBtn.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void { revert(); removePanel(); });
-				controlPanelControls.saveBtn.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void { save(); });
 				controlPanelControls.saveCloseBtn.addEventListener(MouseEvent.CLICK, function (e:MouseEvent):void { save(); removePanel(); });
 			}
 			
 			private function handleAddedToStage():void
 			{
-				var xMargin:Number = stage.stageWidth - width;
-				var xRange:Number = Math.min(xMargin, 64);
-				if (x < 0 || x > xMargin)
-					panelX.value = String((xMargin - xRange)/2 + Math.random() * xRange);
-				var yMargin:Number = stage.stageHeight - height;
-				var yRange:Number = Math.min(yMargin, 64);
-				if (y < 0 || y > yMargin)
-					panelY.value = String((yMargin - yRange)/2 + Math.random() * yRange);
-				
-				if(xMargin < 0 || yMargin < 0)
-					constrainAndSaveCoordinates();
-				
 				save();
 			}
 			
@@ -306,21 +353,86 @@
 				super.handleEscapeKey();
 			}
 			
-			public static function openEditor(linkableObject:ILinkableObject, targets:Array = null, initialSessionStates:Array = null):ILinkableObjectEditor
+			public static function getControlPanelTitle(object:ILinkableObject, format:String = "Settings for {0}"):String
 			{
-				var editor:ILinkableObjectEditor = EditorManager.getNewEditor(linkableObject);
-				if (editor)
+				var className:String = getQualifiedClassName(object).split('::').pop();
+				var objectName:String = getSessionStateName(object);
+				var str:String = WeaveAPI.ClassRegistry.getDisplayName(Object(object).constructor) || lang(className);
+				if (objectName && objectName != className)
+					str += ' ' + Compiler.encodeString(objectName);
+				return lang(format, str);
+			}
+			
+			public static function getSessionStateName(object:ILinkableObject):String
+			{
+				var childName:String = null;
+				var owner:ILinkableObject = getLinkableOwner(object);
+				if (owner is ILinkableHashMap)
 				{
-					var controlPanel:ControlPanel = newDisposableChild(linkableObject, ControlPanel);
-					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
-					PopUpManager.centerPopUp(controlPanel);
-					controlPanel.targets = targets || [linkableObject];
-					if (initialSessionStates)
-						controlPanel._savedTargetSessionStates = initialSessionStates;
-					controlPanel.tabNavigator.addChild(editor as DisplayObject);
-					controlPanel.panelTitle.value = "{tabNavigator.getChildAt(0).label}";
+					childName = (owner as ILinkableHashMap).getName(object);
 				}
-				return editor;
+				else if (owner)
+				{
+					var properties:Array = (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(owner);
+					for each (var property:String in properties)
+					{
+						if (owner[property] === object)
+						{
+							childName = property;
+							break;
+						}
+					}
+				}
+				return childName;
+			}
+			
+			private static const editors:Dictionary = new Dictionary(true); // ILinkableObject -> ILinkableObjectEditor
+			private static const editorPanels:Dictionary = new Dictionary(true); // ILinkableObject -> ControlPanel
+			
+			/**
+			 * Opens a panel for editing an object.
+			 * @param linkableObject The object for which to create a ControlPanel.
+			 * @param targets An Array of ILinkableObject targets for the ControlPanel.
+			 * @param initialSessionStates An Array of session states corresponding to the Array of targets.
+			 * @param sessionEditorFallback If this is set to true and no editor could be created, the default session editor is opened.
+			 * @return true if an editor window was opened.
+			 */
+			public static function openEditor(linkableObject:ILinkableObject, targets:Array = null, initialSessionStates:Array = null, sessionEditorFallback:Boolean = true):Boolean
+			{
+				var controlPanel:ControlPanel = editorPanels[linkableObject] as ControlPanel;
+				if (!controlPanel || objectWasDisposed(controlPanel))
+				{
+					var editor:IUIComponent = WeaveAPI.EditorManager.getNewEditor(linkableObject);
+					if (!editor)
+						editor = DynamicEditor.createComponent(linkableObject, getSessionStateName(linkableObject), false);
+					if (!editor)
+					{
+						if (sessionEditorFallback)
+							SessionStateEditor.openDefaultEditor(linkableObject);
+						return sessionEditorFallback;
+					}
+					
+					editors[linkableObject] = editor;
+					
+					controlPanel = newDisposableChild(linkableObject, ControlPanel);
+					controlPanel.children = [editor];
+					controlPanel.title = controlPanel._defaultTitle = getControlPanelTitle(linkableObject);
+					controlPanel.sessionEditorTarget = linkableObject;
+					
+					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
+				}
+				
+				editorPanels[linkableObject] = controlPanel;
+				
+				controlPanel.restorePanel();
+				
+				if (!controlPanel.parent)
+					PopUpManager.addPopUp(controlPanel, WeaveAPI.topLevelApplication as DisplayObject);
+				
+				controlPanel.targets = targets || [linkableObject];
+				if (initialSessionStates)
+					controlPanel._savedTargetSessionStates = initialSessionStates;
+				return true;
 			}
 		]]>
 	</mx:Script>

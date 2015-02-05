@@ -21,6 +21,8 @@ package weave.core
 {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.display.Graphics;
+	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.TimerEvent;
 	import flash.utils.Dictionary;
@@ -39,9 +41,8 @@ package weave.core
 	import weave.api.core.ILinkableVariable;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
-
 	import weave.api.ui.ILinkableLayoutManager;
-	import weave.utils.Dictionary2D;
+	import weave.primitives.Dictionary2D;
 
 	/**
 	 * This is an all-static class containing functions related to UI and ILinkableObjects.
@@ -51,6 +52,23 @@ package weave.core
 	 */
 	public class UIUtils
 	{
+		public static var debug:Boolean = false;
+		
+		/**
+		 * Links a LinkableBoolean's session state to a component's <code>visible</code> and <code>includeInLayout</code> properties.
+		 * @param relevantContext The context in which the linking remains relevant (usually <code>this</code>).
+		 * @param shownState The LinkableBoolean.
+		 * @param component The UIComponent.
+		 * @param invert Set to true if shownState should be negated.
+		 */
+		public static function linkVisibility(relevantContext:Object, shownState:LinkableBoolean, component:Object, invert:Boolean = false):void
+		{
+			var target:UIComponent = UIComponent(component);
+			shownState.addGroupedCallback(relevantContext, function():void {
+				target.visible = target.includeInLayout = shownState.value != invert;
+			}, true);
+		}
+		
 		/**
 		 * This function determines if a particular component or one of its children has input focus.
 		 * @param component The component to test.
@@ -58,8 +76,87 @@ package weave.core
 		 */
 		public static function hasFocus(component:UIComponent):Boolean
 		{
+			if (!component)
+				return false;
 			var focus:DisplayObject = component.getFocus();
 			return focus && component.contains(focus);
+		}
+		
+		/**
+		 * This will set the following parameters of a component:
+		 * paddingLeft, paddingRight, paddingTop, paddingBottom, percentWidth, percentHeight, minWidth, minHeight
+		 * @param componentOrEvent A UIComponent or an event with a UIComponent target.
+		 * @param padding Sets paddingLeft, paddingRight, paddingTop, and paddingBottom to the same value.
+		 * @param percentWidth Sets percentWidth if not NaN
+		 * @param percentHeight Sets percentHeight if not NaN
+		 * @param collapsableToZero If true, sets minWidth,minHeight to zero
+		 */
+		public static function pad(componentOrEvent:Object, padding:int, percentWidth:Number = NaN, percentHeight:Number = NaN, collapsableToZero:Boolean = false):void
+		{
+			if (componentOrEvent is Event)
+				componentOrEvent = (componentOrEvent as Event).target;
+			
+			var component:UIComponent = componentOrEvent as UIComponent;
+			if (!component)
+				throw new Error("First parameter must be either a UIComponent or an Event with a UIComponent currentTarget.");
+			
+			component.setStyle('paddingLeft', padding);
+			component.setStyle('paddingTop', padding);
+			component.setStyle('paddingRight', padding);
+			component.setStyle('paddingBottom', padding);
+			if (isFinite(percentWidth))
+				component.percentWidth = percentWidth;
+			if (isFinite(percentHeight))
+				component.percentHeight = percentHeight;
+			if (collapsableToZero)
+				component.minWidth = component.minHeight = 0;
+		}
+		
+		/**
+		 * Draws an invisible border around the edge of a component for catching mouse events.
+		 * @param sprite The component.
+		 * @param haloDistance The halo's distance from the edge (may be negative for an inset halo)
+		 */
+		public static function drawInvisibleHalo(sprite:Sprite, haloDistance:Number):void
+		{
+			var d:Number = haloDistance;
+			var w:Number = sprite.width;
+			var h:Number = sprite.height;
+			drawInvisiblePolygon(sprite, [
+				0,0, w,0, w,h, 0,h, 0,0,
+				0-d,0-d, w+d,0-d, w+d,h+d, 0-d,h+d, 0-d,0-d
+			], false);
+		}
+		
+		/**
+		 * Draws an invisible polygon on a component for catching mouse events.
+		 * @param sprite The component.
+		 * @param coords An array containing coordinates like [x0,y0, x1,y1, ...].  If omitted, a default rectangle will be used.
+		 * @param normalizedCoords true for normalized coordinates (x and y values will be multiplied by sprite.width and sprite.height)
+		 * @param borderThickness The thickness of the polygon border in pixels.
+		 */		
+		public static function drawInvisiblePolygon(sprite:Sprite, coords:Array = null, normalizedCoords:Boolean = false, borderThickness:Number = 0):void
+		{
+			if (!coords)
+				coords = [0,0, 1,0, 1,1, 0,1], normalizedCoords = true;
+			
+			if (coords.length < 4)
+				return;
+			
+			var g:Graphics = sprite.graphics;
+			g.moveTo(coords[0], coords[1]);
+			g.beginFill(0xFF0000, debug ? 0.5 : 0);
+			g.lineStyle(borderThickness, 0xFF0000, debug ? 0.5 : 0);
+			var n:int = coords.length / 2;
+			for (var i:int = 1; i <= n; i++)
+			{
+				var ix:int = i % n * 2;
+				if (normalizedCoords)
+					g.lineTo(sprite.width * coords[ix], sprite.height * coords[ix + 1]);
+				else
+					g.lineTo(coords[ix], coords[ix + 1]);
+			}
+			g.endFill();
 		}
 		
 		/**
@@ -224,7 +321,7 @@ package weave.core
 						// case 2: check if child is the internal display object of an ILinkableDisplayObject
 						for each (var wrapper:ILinkableDisplayObject in wrappers)
 						{
-							if (wrapper.getDisplayObject() == child)
+							if (wrapper.object == child)
 							{
 								name = hashMap.getName(wrapper);
 								break;
@@ -311,7 +408,7 @@ package weave.core
 			// special case: ILinkableDisplayObject
 			if (childObject is ILinkableDisplayObject)
 			{
-				(childObject as ILinkableDisplayObject).setParentContainer(uiParent);
+				(childObject as ILinkableDisplayObject).parent = uiParent;
 				
 				var callback:Function = function():void { updateChildOrder(uiParent, hashMap, keepLinkableChildrenOnTop); };
 				linkFunctionCache.set(uiParent, childObject, callback);
@@ -326,7 +423,7 @@ package weave.core
 				return;
 
 			// When the child is added to the parent, the child order should be updated.
-			// When the child is removed from the parent with removeChild() or removeChildAt(), it should be disposed of.
+			// When the child is removed from the parent with removeChild() or removeChildAt(), it should be disposed.
 			var listenLater:Function = function(event:Event):void
 			{
 				if (event.target == uiChild && !objectWasDisposed(uiChild))
@@ -358,6 +455,14 @@ package weave.core
 				spark_addChild(uiParent, uiChild);
 		}
 		
+		public static function spark_numChildren(parent:DisplayObjectContainer):int
+		{
+			if (parent is IVisualElementContainer)
+				return (parent as IVisualElementContainer).numElements;
+			else
+				return parent.numChildren;
+		}
+		
 		public static function spark_addChild(parent:DisplayObjectContainer, child:DisplayObject):DisplayObject
 		{
 			if (parent is IVisualElementContainer)
@@ -369,6 +474,61 @@ package weave.core
 			}
 			else
 				return parent.addChild(child);
+		}
+		
+		public static function spark_removeChild(parent:DisplayObjectContainer, child:DisplayObject):DisplayObject
+		{
+			if (parent is IVisualElementContainer)
+			{
+				if (child is IVisualElement)
+					return (parent as IVisualElementContainer).removeElement(child as IVisualElement) as DisplayObject;
+				else
+					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
+			}
+			else
+				return parent.removeChild(child);
+		}
+		
+		public static function spark_addChildAt(parent:DisplayObjectContainer, child:DisplayObject, index:int):DisplayObject
+		{
+			if (parent is IVisualElementContainer)
+			{
+				if (child is IVisualElement)
+					return (parent as IVisualElementContainer).addElementAt(child as IVisualElement, index) as DisplayObject;
+				else
+					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
+			}
+			else
+				return parent.addChildAt(child, index);
+		}
+		
+		public static function spark_removeChildAt(parent:DisplayObjectContainer, index:int):DisplayObject
+		{
+			if (parent is IVisualElementContainer)
+				return (parent as IVisualElementContainer).removeElementAt(index) as DisplayObject;
+			else
+				return parent.removeChildAt(index);
+		}
+		
+		public static function spark_getChildAt(parent:DisplayObjectContainer, index:int):DisplayObject
+		{
+			if (parent is IVisualElementContainer)
+				return (parent as IVisualElementContainer).getElementAt(index) as DisplayObject;
+			else
+				return parent.getChildAt(index);
+		}
+		
+		public static function spark_getChildIndex(parent:DisplayObjectContainer, child:DisplayObject):int
+		{
+			if (parent is IVisualElementContainer && child is IVisualElement)
+			{
+				if (child is IVisualElement)
+					return (parent as IVisualElementContainer).getElementIndex(child as IVisualElement);
+				else
+					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
+			}
+			else
+				return parent.getChildIndex(child);
 		}
 		
 		public static function spark_setChildIndex(parent:DisplayObjectContainer, child:DisplayObject, index:int):void
@@ -433,15 +593,15 @@ package weave.core
 				return;
 			}
 			
-			var i:int;
 			var uiChild:DisplayObject;
 			// get all child DisplayObjects we are interested in
 			var uiChildren:Array = hashMap.getObjects();
-			for (i = uiChildren.length; i--;)
+			var i:int = uiChildren.length;
+			while (i-- > 0)
 			{
 				var wrapper:ILinkableDisplayObject = uiChildren[i] as ILinkableDisplayObject;
 				if (wrapper)
-					uiChildren[i] = wrapper.getDisplayObject();
+					uiChildren[i] = wrapper.object;
 				if (!(uiChildren[i] is DisplayObject))
 					uiChildren.splice(i, 1);
 			}

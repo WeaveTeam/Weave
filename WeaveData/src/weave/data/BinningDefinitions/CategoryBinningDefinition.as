@@ -19,12 +19,15 @@
 
 package weave.data.BinningDefinitions
 {
+	import flash.utils.getTimer;
+	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IQualifiedKey;
+	import weave.api.linkableObjectIsBusy;
+	import weave.api.newDisposableChild;
 	import weave.core.SessionManager;
+	import weave.core.StageUtils;
 	import weave.data.BinClassifiers.SingleValueClassifier;
 	import weave.utils.AsyncSort;
 
@@ -37,8 +40,81 @@ package weave.data.BinningDefinitions
 	{
 		public function CategoryBinningDefinition()
 		{
-			overrideBinNames.lock(); // no bin names allowed
+			// no bin names allowed
+			overrideBinNames.lock();
 			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, overrideBinNames);
+		}
+		
+		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
+		{
+			// clear any existing bin classifiers
+			output.removeAllObjects();
+			
+			// get all string values in the a column
+			_sortMap = {};
+			strArray = new Array(column.keys.length); // alloc max length
+			this.column = column;
+			i = iout = 0;
+			keys = column.keys;
+			_iterateAll(-1); // restart from first task
+			// high priority because not much can be done without data
+			WeaveAPI.StageUtils.startTask(asyncResultCallbacks, _iterateAll, WeaveAPI.TASK_PRIORITY_HIGH, _done);
+		}
+		
+		private var _sortMap:Object; // used by _sortFunc
+		private var strArray:Array;
+		private var i:int;
+		private var iout:int;
+		private var str:String;
+		private var column:IAttributeColumn;
+		private var keys:Array;
+		private var _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate1, _iterate2);
+		private var asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);
+		
+		private function _iterate1(stopTime:int):Number
+		{
+			for (; i < keys.length; i++)
+			{
+				if (getTimer() > stopTime)
+					return i / keys.length;
+				
+				str = column.getValueFromKey(keys[i], String) as String;
+				if (str && !_sortMap.hasOwnProperty(str))
+				{
+					strArray[int(iout++)] = str;
+					_sortMap[str] = column.getValueFromKey(keys[i], Number);
+				}
+			}
+			
+			strArray.length = iout; // truncate
+			asyncSort.beginSort(strArray, _sortFunc); // sort strings by corresponding numeric values
+			i = 0;
+			
+			return 1;
+		}
+		
+		private function _iterate2(stopTime:int):Number
+		{
+			if (linkableObjectIsBusy(asyncSort))
+				return 0;
+			
+			for (; i < strArray.length; i++)
+			{
+				if (getTimer() > stopTime)
+					return i / strArray.length;
+				
+				str = strArray[i] as String;
+				
+				var svc:SingleValueClassifier = output.requestObject(str, SingleValueClassifier, false);
+				svc.value = strArray[i];
+			}
+			
+			return 1;
+		}
+		
+		private function _done():void
+		{
+			asyncResultCallbacks.triggerCallbacks();
 		}
 		
 		/**
@@ -48,48 +124,6 @@ package weave.data.BinningDefinitions
 		{
 			return ObjectUtil.numericCompare(_sortMap[str1], _sortMap[str2])
 				|| ObjectUtil.stringCompare(str1, str2);
-		}
-		
-		private var _sortMap:Object; // used by _sortFunc
-		
-		/**
-		 * derive an explicit definition.
-		 */
-		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
-		{
-			// clear any existing bin classifiers
-			output.removeAllObjects();
-			
-			// get all string values in the a column
-			_sortMap = {};
-			var strArray:Array = new Array(column.keys.length); // alloc max length
-			var i:int = 0;
-			var str:String;
-			for each (var key:IQualifiedKey in column.keys)
-			{
-				str = column.getValueFromKey(key, String) as String;
-				if (str && !_sortMap.hasOwnProperty(str))
-				{
-					strArray[int(i++)] = str;
-					_sortMap[str] = column.getValueFromKey(key, Number);
-				}
-			}
-			strArray.length = i; // truncate
-			AsyncSort.sortImmediately(strArray, _sortFunc); // sort strings by corresponding numeric values
-			var n:int = strArray.length;
-			for (i = 0; i < n; i++)
-			{
-				//first get name from overrideBinNames
-				str = strArray[i] as String;
-				
-				//TODO: look up replacement name once we store original + modified names together rather than a simple Array of replacement names.
-				
-				var svc:SingleValueClassifier = output.requestObject(str, SingleValueClassifier, false);
-				svc.value = strArray[i];
-			}
-			
-			// trigger callbacks now because we're done updating the output
-			asyncResultCallbacks.triggerCallbacks();
 		}
 	}
 }

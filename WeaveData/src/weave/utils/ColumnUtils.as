@@ -21,16 +21,19 @@ package weave.utils
 {
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
-	import mx.utils.StringUtil;
+	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.copySessionState;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IKeyFilter;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
@@ -38,8 +41,10 @@ package weave.utils
 	import weave.api.getLinkableDescendants;
 	import weave.api.getLinkableOwner;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableHashMap;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.ExtendedDynamicColumn;
+	import weave.data.AttributeColumns.ProxyColumn;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.primitives.BLGNode;
 	import weave.primitives.GeneralizedGeometry;
@@ -58,7 +63,7 @@ package weave.utils
 		 */		
 		public static function getTitle(column:IAttributeColumn):String
 		{
-			var title:String = column.getMetadata(ColumnMetadata.TITLE) || 'Undefined';
+			var title:String = column.getMetadata(ColumnMetadata.TITLE) || ProxyColumn.DATA_UNAVAILABLE;
 			
 			// debug code
 			if (false)
@@ -83,13 +88,20 @@ package weave.utils
 			var title:String = ColumnUtils.getTitle(column);
 			var keyType:String = ColumnUtils.getKeyType(column);
 			var dataType:String = ColumnUtils.getDataType(column);
+			var projection:String = column.getMetadata(ColumnMetadata.PROJECTION);
+			var dateFormat:String = column.getMetadata(ColumnMetadata.DATE_FORMAT);
+			
+			if (dataType == DataType.DATE && dateFormat)
+				dataType = dataType + '; ' + dateFormat;
+			if (dataType == DataType.GEOMETRY && projection)
+				dataType = dataType + '; ' + projection;
 			
 			if (dataType && keyType)
-				return StringUtil.substitute("{0} ({1} -> {2})", title, keyType, dataType);
+				return StandardLib.substitute("{0} ({1} -> {2})", title, keyType, dataType);
 			if (keyType)
-				return StringUtil.substitute("{0} (Key Type: {1})", title, keyType);
+				return StandardLib.substitute("{0} (Key Type: {1})", title, keyType);
 			if (dataType)
-				return StringUtil.substitute("{0} (Data Type: {1})", title, dataType);
+				return StandardLib.substitute("{0} (Data Type: {1})", title, dataType);
 			
 			return title;
 		}
@@ -103,11 +115,15 @@ package weave.utils
 		{
 			var name:String;
 			var nameMap:Object = {};
-			var refs:Array = getLinkableDescendants(column, IColumnReference);
-			for (var i:int = 0; i < refs.length; i++)
+			var cols:Array;
+			if (column is ReferencedColumn)
+				cols = [column];
+			else
+				cols = getLinkableDescendants(column, ReferencedColumn);
+			for (var i:int = 0; i < cols.length; i++)
 			{
-				var ref:IColumnReference = refs[i];
-				var source:IDataSource = ref.getDataSource();
+				var col:ReferencedColumn = cols[i];
+				var source:IDataSource = col.getDataSource();
 				var sourceOwner:ILinkableHashMap = getLinkableOwner(source) as ILinkableHashMap;
 				if (!sourceOwner)
 					continue;
@@ -170,6 +186,27 @@ package weave.utils
 				column = (column as IColumnWrapper).getInternalColumn();
 			return column;
 		}
+		
+		public static function hack_findInternalDynamicColumn(columnWrapper:IColumnWrapper):DynamicColumn
+		{
+			var columnWrapper:IColumnWrapper = columnWrapper as IColumnWrapper;
+			if (columnWrapper)
+			{
+				// temporary solution - find internal dynamic column
+				while (true)
+				{
+					if (columnWrapper.getInternalColumn() is DynamicColumn)
+						columnWrapper = columnWrapper.getInternalColumn() as IColumnWrapper;
+					else if (columnWrapper.getInternalColumn() is ExtendedDynamicColumn)
+						columnWrapper = (columnWrapper.getInternalColumn() as ExtendedDynamicColumn).internalDynamicColumn;
+					else
+						break;
+				}
+				if (columnWrapper is ExtendedDynamicColumn)
+					columnWrapper = (columnWrapper as ExtendedDynamicColumn).internalDynamicColumn;
+			}
+			return columnWrapper as DynamicColumn;
+		}
 
 		/**
 		 * Gets an array of QKey objects from <code>column</code> which meet the criteria
@@ -201,17 +238,9 @@ package weave.utils
 			return result;
 		}
 		
-		/**
-		 * This is mostly a convenience function to call through Javascript. For example,
-		 * a user could invoke 'KeySet.replaceKeys( getQKeys(keyObjects) )' where keyObjects
-		 * is an array of generic objects in Javascript.  
-		 * @param genericObjects An array of generic objects with <code>keyType</code>
-		 * and <code>localName</code> properties.
-		 * @return An array of IQualifiedKey objects.
-		 */
-		[Deprecated(replacement="WeaveAPI.QKeyManager.mapQKeys()")] public static function getQKeys(genericObjects:Array):Array
+		[Deprecated(replacement="WeaveAPI.QKeyManager.convertToQKeys()")] public static function getQKeys(genericObjects:Array):Array
 		{
-			return WeaveAPI.QKeyManager.mapQKeys(genericObjects);
+			return WeaveAPI.QKeyManager.convertToQKeys(genericObjects);
 		}
 			
 		/**
@@ -262,7 +291,7 @@ package weave.utils
 		{
 			var qkey:IQualifiedKey = getQKey(key);
 			if (column != null)
-				return StandardLib.asBoolean( column.getValueFromKey(qkey) );
+				return StandardLib.asBoolean( column.getValueFromKey(qkey, Number) );
 			return false;
 		}
 		/**
@@ -289,7 +318,7 @@ package weave.utils
 		public static function getGeometry(geometryColumn:IAttributeColumn, key:Object):Array
 		{
 			var qkey:IQualifiedKey = getQKey(key);
-			var genGeoms:Array = geometryColumn.getValueFromKey(qkey) as Array;
+			var genGeoms:Array = geometryColumn.getValueFromKey(qkey, Array) as Array;
 			
 			if (genGeoms == null)
 				return null;
@@ -318,36 +347,54 @@ package weave.utils
 			
 			return result;			
 		}
+		
+		public static function test_getAllValues(column:IAttributeColumn, dataType:Class):Array
+		{
+			var t:int = getTimer();
+			var keys:Array = column.keys;
+			var values:Array = new Array(keys.length);
+			for (var i:* in keys)
+				values[i] = column.getValueFromKey(keys[i], dataType);
+			weaveTrace(getTimer()-t);
+			return values;
+		}
 
 		/**
 		 * This function takes the common keys from a list of columns and generates a table of data values for each key from each specified column.
 		 * @param columns A list of IAttributeColumns to compute a join table from.
 		 * @param dataType The dataType parameter to pass to IAttributeColumn.getValueFromKey().
 		 * @param allowMissingData If this is set to true, then all keys will be included in the join result.  Otherwise, only the keys that have associated values will be included.
-		 * @param keys A list of IQualifiedKey objects to use to filter the results.
+		 * @param keyFilter Either an IKeyFilter or an Array of IQualifiedKey objects used to filter the results.
 		 * @return An Array of Arrays, the first being IQualifiedKeys and the rest being Arrays data values from the given columns that correspond to the IQualifiedKeys. 
 		 */
-		public static function joinColumns(columns:Array, dataType:Class = null, allowMissingData:Boolean = false, keys:Array = null):Array
+		public static function joinColumns(columns:Array, dataType:Class = null, allowMissingData:Boolean = false, keyFilter:Object = null):Array
 		{
+			var keys:Array;
 			var key:IQualifiedKey;
 			var column:IAttributeColumn;
 			// if no keys are specified, get the keys from the columns
-			if (keys == null)
+			if (keyFilter is Array)
+			{
+				keys = (keyFilter as Array).concat(); // make a copy so we don't modify the original
+			}
+			else if (keyFilter is IKeySet)
+			{
+				keys = (keyFilter as IKeySet).keys.concat(); // make a copy so we don't modify the original
+			}
+			else
 			{
 				// count the number of appearances of each key in each column
 				var keyCounts:Dictionary = new Dictionary();
 				for each (column in columns)
 					for each (key in column.keys)
 						keyCounts[key] = int(keyCounts[key]) + 1;
-				// get a list of keys that appeared in every column
+				// get a list of keys
 				keys = [];
+				var filter:IKeyFilter = keyFilter as IKeyFilter;
 				for (var qkey:* in keyCounts)
 					if (allowMissingData || keyCounts[qkey] == columns.length)
-						keys.push(qkey);
-			}
-			else
-			{
-				keys = keys.concat(); // make a copy so we don't modify the original
+						if (!filter || filter.containsKey(qkey))
+							keys.push(qkey);
 			}
 			// put the keys in the result
 			var result:Array = [keys];
@@ -355,10 +402,15 @@ package weave.utils
 			for (var cIndex:int = 0; cIndex < columns.length; cIndex++)
 			{
 				column = columns[cIndex];
+				
+				var dt:Class = dataType;
+				if (!dt && column)
+					dt = DataType.getClass(column.getMetadata(ColumnMetadata.DATA_TYPE));
+				
 				var values:Array = [];
 				for (var kIndex:int = 0; kIndex < keys.length; kIndex++)
 				{
-					var value:* = column.getValueFromKey(keys[kIndex] as IQualifiedKey, dataType);
+					var value:* = column ? column.getValueFromKey(keys[kIndex] as IQualifiedKey, dt) : undefined;
 					var isUndef:Boolean = StandardLib.isUndefined(value);
 					if (!allowMissingData && isUndef)
 					{
@@ -376,56 +428,65 @@ package weave.utils
 			}
 			return result;
 		}
-		
-		public static function generateTableCSV(attrCols:Array,keys:* = null,dataType:Class = null):String
+		/**
+		 * This function takes an array of attribute columns, a set of keys, and the type of the columns
+		 * @param attrCols An array of IAttributeColumns or ILinkableHashMaps containing IAttributeColumns.
+		 * @param subset An IKeyFilter or IKeySet specifying which keys to include in the CSV output, or null to indicate all keys available in the Attributes.
+		 * @param dataType
+		 * @return A string containing a CSV-formatted table containing the attributes of the requested keys.
+		 */
+		public static function generateTableCSV(attrCols:Array, subset:IKeyFilter = null, dataType:Class = null):String
 		{
 			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
 			
 			var records:Array = [];				
-			// get the list of column titles
-			var definedAttrCols:Array = [];				
-			var columnTitles:Array = [];
-			var i:int;
-			var item:*;
-			for (i = 0; i < attrCols.length; i++)
-			{
-				item = attrCols[i];
-				// to make sure undefined attributes are not exported
-				if ((item is IColumnWrapper) && (item as IColumnWrapper).getInternalColumn())
-				{
-					columnTitles.push(ColumnUtils.getTitle(item));
-					definedAttrCols.push(item);
+			var columnLookup:Dictionary = new Dictionary(true);
+			attrCols = attrCols.map(
+				function(item:Object, i:int, a:Array):* {
+					return item is ILinkableHashMap
+						? (item as ILinkableHashMap).getObjects(IAttributeColumn)
+						: item as IAttributeColumn;
 				}
-				if (item is LinkableHashMap)
-				{
-					var hashMapColumns:Array = (item as LinkableHashMap).getObjects();
-					for (var j:int = 0; j < hashMapColumns.length; j++)
-					{
-						if ((hashMapColumns[j] as  IColumnWrapper).getInternalColumn())
-						{
-							columnTitles.push(ColumnUtils.getTitle(hashMapColumns[j]));
-							definedAttrCols.push(hashMapColumns[j]);
-						}								
-					}
+			);
+			attrCols = VectorUtils.flatten(attrCols);
+			attrCols = attrCols.map(
+				function(column:IAttributeColumn, i:int, a:Array):IAttributeColumn {
+					return hack_findNonWrapperColumn(column);
 				}
-			}
-			if (!keys)
-				keys = getAllKeys(definedAttrCols);
+			).filter(
+				function(column:IAttributeColumn, i:int, a:Array):Boolean {
+					if (!column || columnLookup[column])
+						return false;
+					columnLookup[column] = true;
+					return true;
+				}
+			);
+			var columnTitles:Array = attrCols.map(
+				function(column:IAttributeColumn, i:int, a:Array):String {
+					return getTitle(column);
+				}
+			);
+			var keys:Array;
+			if (!subset)
+				keys = getAllKeys(attrCols);
+			else
+				keys = getAllKeys(attrCols).filter(function(key:IQualifiedKey, idx:*, arr:Array):Boolean { return subset.containsKey(key);});
 			
 			var keyTypeMap:Object = {};				
 			// create the data for each column in each selected row
-			for each (item in keys)
+			for each (var key:IQualifiedKey in keys)
 			{
-				var key:IQualifiedKey = item as IQualifiedKey;
 				var record:Object = {};
 				// each record has a property named after the keyType equal to the key value				
 				record[key.keyType] = key.localName;
 				keyTypeMap[key.keyType] = true;
 				
-				for (i = 0; i < definedAttrCols.length; i++)
+				for (var i:int = 0; i < attrCols.length; i++)
 				{
-					var value:Object = (definedAttrCols[i] as IAttributeColumn).getValueFromKey(key, dataType);
-					if (!isNaN(value as Number))
+					var col:IAttributeColumn = attrCols[i] as IAttributeColumn;
+					var dt:Class = dataType || DataType.getClass(col.getMetadata(ColumnMetadata.DATA_TYPE));
+					var value:Object = col.getValueFromKey(key, dt);
+					if (StandardLib.isDefined(value))
 						record[columnTitles[i]] = value;
 				}
 				records.push(record);
@@ -481,20 +542,170 @@ package weave.utils
 			{
 				// don't run callbacks while we edit session state
 				getCallbackCollection(columnHashMap).delayCallbacks();
-				// remember the order
+				// remember the name order
 				var names:Array = columnHashMap.getNames();
-				
-				// create a new wrapper column
-				var newCol:DynamicColumn = columnHashMap.requestObject(null, DynamicColumn, false);
+				// remember the session state of the first column
+				var state:Array = columnHashMap.getSessionState();
+				state.length = 1; // only keep first column
+				// overwrite existing column, reusing the same name
+				var newCol:DynamicColumn = columnHashMap.requestObject(names[0], DynamicColumn, false);
 				// copy the old col inside the new col
-				newCol.requestLocalObjectCopy(cols[0]);
-				// remove old col
-				columnHashMap.removeObject(columnHashMap.getName(cols[0]));
-				
+				newCol.setSessionState(state, true);
 				// restore name order
 				columnHashMap.setNameOrder(names);
 				// done editing session state
 				getCallbackCollection(columnHashMap).resumeCallbacks();
+			}
+		}
+		
+		/**
+		 * Retrieves a metadata value from a list of columns if they all share the same value.
+		 * @param columns The columns.
+		 * @param propertyName The metadata property name.
+		 * @return The metadata value if it is the same across all columns, or null if not. 
+		 */		
+		public static function getCommonMetadata(columns:Array, propertyName:String):String
+		{
+			var value:String;
+			for (var i:int = 0; i < columns.length; i++)
+			{
+				var column:IAttributeColumn = columns[i] as IAttributeColumn;
+				if (i == 0)
+					value = column.getMetadata(propertyName);
+				else if (value != column.getMetadata(propertyName))
+					return null;
+			}
+			return value;
+		}
+		
+		public static function getAllCommonMetadata(columns:Array):Object
+		{
+			var output:Object = {};
+			if (!columns.length)
+				return output;
+			// We only need to get property names from the first column
+			// because we only care about metadata common to all columns.
+			for each (var key:String in columns[0].getMetadataPropertyNames())
+			{
+				var value:String = getCommonMetadata(columns, key);
+				if (value)
+					output[key] = value;
+			}
+			return output;
+		}
+		
+		private static const _preferredMetadataPropertyOrder:Array = 'title,keyType,dataType,number,string,min,max,year'.split(',');
+		public static function sortMetadataPropertyNames(names:Array):void
+		{
+			StandardLib.sortOn(names, [_preferredMetadataPropertyOrder.indexOf, names]);
+		}
+		
+		/**
+		 * This will initialize selectable attributes using a list of columns and/or column references.
+		 * @param selectableAttributes An Array of IColumnWrapper and/or ILinkableHashMaps to initialize.
+		 * @param input An Array of IAttributeColumn and/or IColumnReference objects. If not specified, getColumnsWithCommonKeyType() will be used.
+		 * @see #getColumnsWithCommonKeyType()
+		 */
+		public static function initSelectableAttributes(selectableAttributes:Array, input:Array = null):void
+		{
+			if (!input)
+				input = getColumnsWithCommonKeyType();
+			
+			for (var i:int = 0; i < selectableAttributes.length; i++)
+				initSelectableAttribute(selectableAttributes[i], input[i % input.length]);
+		}
+		
+		/**
+		 * Gets a list of columns with a common keyType.
+		 */
+		public static function getColumnsWithCommonKeyType(keyType:String = null):Array
+		{
+			var columns:Array = getLinkableDescendants(WeaveAPI.globalHashMap, ReferencedColumn);
+			
+			// if keyType not specified, find the most common keyType
+			if (!keyType)
+			{
+				var keyTypeCounts:Object = new Object();
+				for each (var column:IAttributeColumn in columns)
+				keyTypeCounts[ColumnUtils.getKeyType(column)] = int(keyTypeCounts[ColumnUtils.getKeyType(column)]) + 1;
+				var count:int = 0;
+				for (var kt:String in keyTypeCounts)
+					if (keyTypeCounts[kt] > count)
+						count = keyTypeCounts[keyType = kt];
+			}
+			
+			// remove columns not of the selected key type
+			var n:int = 0;
+			for (var i:int = 0; i < columns.length; i++)
+				if (ColumnUtils.getKeyType(columns[i]) == keyType)
+					columns[n++] = columns[i];
+			columns.length = n;
+			
+			return columns;
+		}
+		
+		/**
+		 * This will initialize one selectable attribute using a column or column reference. 
+		 * @param selectableAttribute A selectable attribute (IColumnWrapper/ILinkableHashMap/ReferencedColumn)
+		 * @param column_or_columnReference Either an IAttributeColumn or an ILinkableHashMap
+		 * @param clearHashMap If the selectableAttribute is an ILinkableHashMap, all objects will be removed from it prior to adding a column.
+		 */
+		public static function initSelectableAttribute(selectableAttribute:Object, column_or_columnReference:Object, clearHashMap:Boolean = true):void
+		{
+			var inputCol:IAttributeColumn = column_or_columnReference as IAttributeColumn;
+			var inputRef:IColumnReference = column_or_columnReference as IColumnReference;
+			
+			var outputRC:ReferencedColumn = selectableAttribute as ReferencedColumn;
+			if (outputRC)
+			{
+				var inputRC:ReferencedColumn;
+				if (inputCol)
+					inputRC = inputCol as ReferencedColumn
+						|| getLinkableDescendants(inputCol, ReferencedColumn)[0] as ReferencedColumn;
+				
+				if (inputRC)
+					copySessionState(inputRC, outputRC);
+				else if (inputRef)
+					outputRC.setColumnReference(inputRef.getDataSource(), inputRef.getColumnMetadata());
+				else
+					outputRC.setColumnReference(null, null);
+			}
+			
+			var outputDC:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(selectableAttribute as IColumnWrapper);
+			if (outputDC && outputDC.getInternalColumn() == null)
+			{
+				if (inputCol)
+				{
+					if (inputCol is DynamicColumn)
+						copySessionState(inputCol, outputDC);
+					else
+						outputDC.requestLocalObjectCopy(inputCol);
+				}
+				else if (inputRef)
+					ReferencedColumn(
+						outputDC.requestLocalObject(ReferencedColumn, false)
+					).setColumnReference(
+						inputRef.getDataSource(),
+						inputRef.getColumnMetadata()
+					);
+				else
+					outputDC.removeObject();
+			}
+			
+			var outputHash:ILinkableHashMap = selectableAttribute as ILinkableHashMap;
+			if (outputHash)
+			{
+				if (clearHashMap)
+					outputHash.removeAllObjects()
+				if (inputCol)
+					outputHash.requestObjectCopy(null, inputCol);
+				else if (inputRef)
+					ReferencedColumn(
+						outputHash.requestObject(null, ReferencedColumn, false)
+					).setColumnReference(
+						inputRef.getDataSource(),
+						inputRef.getColumnMetadata()
+					);
 			}
 		}
 		

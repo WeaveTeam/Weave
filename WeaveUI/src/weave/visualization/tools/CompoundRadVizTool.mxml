@@ -32,7 +32,6 @@
 			import spark.core.SpriteVisualElement;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeySet;
 			import weave.api.data.IQualifiedKey;
@@ -50,7 +49,7 @@
 			import weave.visualization.plotters.AnchorPoint;
 			import weave.visualization.plotters.CompoundRadVizPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, CompoundRadVizTool, lang("Compound RadViz"));
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, CompoundRadVizTool, "Compound RadViz");
 			
 			private static const ANCHOR_LAYER:String = "anchorLayer";
 			
@@ -58,9 +57,9 @@
 			private var _plotter:CompoundRadVizPlotter ;
 			private var _anchorPlotter:AnchorPlotter ;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				// lock dynamic objects into place
 				_plotter = initializePlotters(CompoundRadVizPlotter, false);
@@ -69,16 +68,6 @@
 				visualization.plotManager.enableAutoZoomToExtent.value = true;
 				visualization.plotManager.enableFixedAspectRatio.value = true;
 				visualization.enableZoomAndPan.value = false;
-				
-				var count:int = getDefaultColumnsOfMostCommonKeyType().length;
-				var columnsToInit:Array = [];
-				for (var i:int = 0; i < count; i++)
-				{
-					columnsToInit.push(_plotter.columns.requestObject(null, DynamicColumn, false));
-				}
-				
-				if(columnsToInit.length > 0)
-					(initColumnDefaults as Function).apply(null, columnsToInit);
 				
 				_plotter.setAnchorLocations();
 				_anchorPlotter = visualization.plotManager.plotters.requestObject(ANCHOR_LAYER, AnchorPlotter, true);
@@ -93,12 +82,19 @@
 				visualization.plotManager.marginLeft.value = visualization.plotManager.marginRight.value = "20";				
 			}
 			
+			override public function initSelectableAttributes(input:Array):void
+			{
+				input.slice(0,10).forEach(function(item:Object, i:int, a:Array):void {
+					ColumnUtils.initSelectableAttribute(_plotter.columns, item, i == 0);
+				});
+			}
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
-				(size as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn ;
-				(colorComponent as DynamicColumnComponent).dynamicObject = colorColumn;
+				(size as DynamicColumnComponent).dynamicObject = _plotter.radiusColumn;
+				(colorComponent as DynamicColumnComponent).columnWrapper = _plotter.fillStyle.color;
 				columnList.hashMap = _plotter.columns;
 				
 				linkBindableProperty(_plotter.enableJitter,jitterckbx,'selected');
@@ -190,22 +186,7 @@
 				_probedAnchor.y.value = Math.sin(theta);			
 			}
 			
-			public function get colorColumn():DynamicColumn
-			{
-				return Weave.defaultColorDataColumn.internalDynamicColumn;
-			}
-			
-			override public function getSelectableAttributeNames():Array
-			{
-				return [lang("Size"),lang("Color"),lang("Anchor Dimensions")];
-			}
-			
-			override public function getSelectableAttributes():Array
-			{
-				return [_plotter.radiusColumn,colorColumn,_plotter.columns];
-			}
-			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				var columns:Array = _plotter.columns.getObjects(IAttributeColumn);
 				for (var i:int = 0; i < columns.length; i++)
@@ -216,9 +197,9 @@
 	</mx:Script>
 	<ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Attributes')}">
-			<ui:DynamicColumnComponent visTool="{this}" id="colorComponent" label="{lang('Color')}" />
-			<ui:DynamicColumnComponent visTool="{this}" id="size" label="{lang('Size')}" />
-			<ui:ColumnListComponent visTool="{this}" id="columnList" label="{lang('Anchor Dimensions')}"/>
+			<ui:DynamicColumnComponent id="colorComponent"/>
+			<ui:DynamicColumnComponent id="size"/>
+			<ui:ColumnListComponent id="columnList"/>
 		</mx:VBox>		
 		
 		<mx:VBox id="VizControlsPanel" label="{lang('Appearance')}">
@@ -230,7 +211,7 @@
 							alpha="1.0"
 							snapInterval="0.1"
 							tickInterval="0.1" labels="{['10%', '30%', '50%', '70%', '90%', '100%']}"
-							dataTipFormatFunction="{PlotterUtils.alphaSliderFormatFunction}"
+							dataTipFormatFunction="{(function():Function{return PlotterUtils.alphaSliderFormatFunction;}())}"
 							minimum="0.1" maximum="1.0" value="1.0"
 							liveDragging="true"/>
 			</ui:Indent>

@@ -24,8 +24,13 @@ package weave.data.AttributeColumns
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.newLinkableChild;
+	import weave.compiler.StandardLib;
+	import weave.core.LinkableWatcher;
+	import weave.data.KeySets.SortedKeySet;
 	import weave.data.QKeyManager;
 	import weave.utils.AsyncSort;
 	import weave.utils.VectorUtils;
@@ -39,84 +44,51 @@ package weave.data.AttributeColumns
 	{
 		public function SortedIndexColumn()
 		{
-			super();
-			addImmediateCallback(this, invalidateLookup);
+			this.addImmediateCallback(this, _updateStats);
 		}
-
-		private function invalidateLookup():void
-		{
-			// invalidate lookup
-			_keyToIndexMap = null;
-			// TODO: set unit?
-		}
-
-		/**
-		 * This object maps a key to the index of that key in the sorted list of keys.
-		 */
-		private var _keyToIndexMap:Dictionary = null;
 		
-		/**
-		 * This is used to store the sorted list of keys.
-		 */
-		private var _keys:Array = new Array();
+		private var _sortedKeys:Array;
+		private var _sortIndex:Dictionary;
+		private var _column:IAttributeColumn;
+		private var _triggerCount:uint = 0;
+		private const _statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
+		
+		private function _updateStats():void
+		{
+			_column = getInternalColumn();
+			_statsWatcher.target = _column && WeaveAPI.StatisticsCache.getColumnStatistics(_column);
+		}
+		
+		private function get _stats():IColumnStatistics
+		{
+			return _statsWatcher.target as IColumnStatistics;
+		}
+		
+		private function validate():void
+		{
+			if (_column)
+			{
+				_sortIndex = _stats.getSortIndex();
+				if (_sortIndex)
+					_sortedKeys = StandardLib.sortOn(_column.keys, _sortIndex, null, false);
+				else
+					_sortedKeys = _column.keys;
+			}
+			else
+			{
+				_sortIndex = null;
+				_sortedKeys = [];
+			}
+			
+			_triggerCount = triggerCounter;
+		}
 
-		/**
-		 * This function returns the unique strings of the internal column.
-		 * @return The keys this column defines values for.
-		 */
 		override public function get keys():Array
 		{
-			// validate lookup table if necessary
-			if (_keyToIndexMap == null)
-				createLookupTable();
-			return _keys;
-		}
-
-		/**
-		 * @param key A key to test.
-		 * @return true if the key exists in this IKeySet.
-		 */
-		override public function containsKey(key:IQualifiedKey):Boolean
-		{
-			return _keyToIndexMap[key] != undefined;
-		}
-		
-		/**
-		 * This function will sort the keys and create the keyToIndexMap mapping the keys to their sorted index values.
-		 */
-		private function createLookupTable():void
-		{
-			// get the keys from the internal column
-			var keys:Array = getInternalColumn() ? getInternalColumn().keys : [];
-			// make a copy of the list of keys
-			VectorUtils.copy(keys, _keys);
-			// sort the keys based on the numeric values associated with them
-			AsyncSort.sortImmediately(_keys, sortByNumericValue);
-			// update the lookup table
-			_keyToIndexMap = new Dictionary();
-			var i:int = _keys.length;
-			while (--i > -1)
-			{
-				// since numericCompare sorts NaN at the end, ignoring NaN's won't affect the remaining indices
-				var key:IQualifiedKey = _keys[i] as IQualifiedKey;
-				if (!isNaN(getInternalColumn().getValueFromKey(key, Number)))
-					_keyToIndexMap[_keys[i]] = i;
-			}
-		}
-
-		/**
-		 * This function is used to sort a list of keys.
-		 * @param key1 The first key identifying a Number to compare.
-		 * @param key2 The second key identifying a Number to compare.
-		 * @return The compare result used to sort a list of keys.
-		 */
-		private function sortByNumericValue(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{
-			var val1:Number = getInternalColumn().getValueFromKey(key1, Number);
-			var val2:Number = getInternalColumn().getValueFromKey(key2, Number);
-			// if numeric values are equal, compare the keys
-			return ObjectUtil.numericCompare(val1, val2)
-				|| QKeyManager.keyCompare(key1, key2);
+			if (_triggerCount != triggerCounter)
+				validate();
+			
+			return _sortedKeys;
 		}
 		
 		/**
@@ -126,26 +98,16 @@ package weave.data.AttributeColumns
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			var result:*;
-			if (getInternalColumn() != null)
-			{
-				// validate lookup table if necessary
-				if (_keyToIndexMap == null)
-					createLookupTable();
-				// get the list of internal keys from the given stringValue
-				result = Number(_keyToIndexMap[key]);
-			}
-			else
-			{
-				result = NaN;
-			}
-			// cast to other types
-			if (dataType == String)
-				result = getInternalColumn() ? getInternalColumn().getValueFromKey(key, String) : '';
-			else if (dataType == Boolean)
-				result = !isNaN(result); // true if key exists in lookup table
+			if (_triggerCount != triggerCounter)
+				validate();
 			
-			return result;
+			if (!_column)
+				return dataType == String ? '' : undefined;
+			
+			if (dataType == Number)
+				return _sortIndex ? Number(_sortIndex[key]) : NaN;
+			
+			return _column.getValueFromKey(key, dataType);
 		}
 		
 		/**
@@ -154,15 +116,12 @@ package weave.data.AttributeColumns
 		 */
 		public function deriveStringFromNumber(index:Number):String
 		{
-			// validate lookup table if necessary
-			if (_keyToIndexMap == null)
-				createLookupTable();
-			// return the key at the given number as an index
-			index = Math.round(index);
-			// return '' if there is no key at the given index value
-			if (index < 0 || index >= _keys.length)
+			if (_triggerCount != triggerCounter)
+				validate();
+			
+			if (!_column || index < 0 || index >= _sortedKeys.length || int(index) != index)
 				return '';
-			return getInternalColumn() ? getInternalColumn().getValueFromKey(_keys[index], String) : '';
+			return _column.getValueFromKey(_sortedKeys[index], String);
 		}
 	}
 }

@@ -34,6 +34,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -43,7 +44,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
-
 /**
  * SQLUtils
  * 
@@ -52,24 +52,29 @@ import java.util.Vector;
  * @author Kyle Monico
  * @author Yen-Fu Luo
  * @author Philip Kovac
+ * @author Patrick Stickney
+ * @author John Fallon
  */
 public class SQLUtils
 {
 	public static String MYSQL = "MySQL";
+	public static String SQLITE = "SQLite";
 	public static String POSTGRESQL = "PostgreSQL";
 	public static String SQLSERVER = "Microsoft SQL Server";
 	public static String ORACLE = "Oracle";
 	
-	public static String SQLUTILS_SERIAL_TRIGGER_TYPE = "SQLUTILS_SERIAL_TRIGGER_TYPE"; // used internally in createTable(), not an actual valid type
+	public static String DEFAULT_SQLITE_DATABASE = "sqlite_master";
 	
 	/**
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
+	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
 	 * @return A driver name that can be used in the getConnection() function.
 	 */
 	public static String getDriver(String dbms) throws RemoteException
 	{
 		if (dbms.equalsIgnoreCase(MYSQL))
 			return "com.mysql.jdbc.Driver";
+		if(dbms.equalsIgnoreCase(SQLITE))
+			return "org.sqlite.JDBC";
 		if (dbms.equalsIgnoreCase(POSTGRESQL))
 			return "org.postgis.DriverWrapper";
 		if (dbms.equalsIgnoreCase(SQLSERVER))
@@ -85,7 +90,7 @@ public class SQLUtils
 		try
 		{
 			String dbms = conn.getMetaData().getDatabaseProductName();
-			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, POSTGRESQL })
+			for (String match : new String[]{ ORACLE, SQLSERVER, MYSQL, SQLITE, POSTGRESQL })
 				if (dbms.equalsIgnoreCase(match))
 					return match;
 			return dbms;
@@ -104,6 +109,8 @@ public class SQLUtils
 			return ORACLE;
 		if (connectString.startsWith("jdbc:mysql"))
 			return MYSQL;
+		if (connectString.startsWith("jdbc:sqlite"))
+			return SQLITE;
 		if (connectString.startsWith("jdbc:postgresql"))
 			return POSTGRESQL;
 		
@@ -111,7 +118,7 @@ public class SQLUtils
 	}
 	
 	/**
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, Microsoft SQL Server)
+	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, Microsoft SQL Server)
 	 * @param ip The IP address of the DBMS.
 	 * @param port The port the DBMS is on (optional, can be "" to use default).
 	 * @param database The name of a database to connect to (can be "" for MySQL)
@@ -138,13 +145,18 @@ public class SQLUtils
 			format = "jdbc:%s:thin:%s/%s@%s:%s";
 			//"jdbc:oracle:thin:<user>/<password>@<host>:<port>:<instance>"
 		}
+		else if(SQLITE.equalsIgnoreCase(dbms))
+		{
+			format = "jdbc:%s:%s";
+			// "jdbc:sqlite:C:/path/to/file/DataBase.db"
+		}
 		else // MySQL or PostGreSQL
 		{
 			format = "jdbc:%s://%s/%s?user=%s&password=%s";
 		}
 
 		// MySQL connect string uses % as an escape character, so we must use URLEncoder.
-		// PostGreSQL does not support % as an escape character, and does not work with the & character.
+		// PostgreSQL does not support % as an escape character, and does not work with the & character.
 		if (dbms.equalsIgnoreCase(MYSQL))
 		{
 			try
@@ -164,6 +176,8 @@ public class SQLUtils
 		String result = "";
 		if (dbms.equalsIgnoreCase(ORACLE))
 			result = String.format(format, dbms.toLowerCase(), user, pass, host, database);
+		else if( dbms.equalsIgnoreCase(SQLITE))
+			result = String.format(format, dbms.toLowerCase(), database);
 		else
 			result = String.format(format, dbms.toLowerCase(), host, database, user, pass);
 
@@ -174,27 +188,45 @@ public class SQLUtils
 	 * This maps a driver name to a Driver instance.
 	 * The purpose of this map is to avoid instantiating extra Driver objects unnecessarily.
 	 */
-	private static DriverMap _driverMap = new DriverMap();
+	private static HashMap<String,Driver> _driverMap = new HashMap<String,Driver>();
 	
-	@SuppressWarnings("serial")
-	private static class DriverMap extends HashMap<String,Driver>
+	/**
+	 * Call this when shutting down your application to deregister SQL drivers.
+	 */
+	public static void staticCleanup()
 	{
-		protected void finalize()
+		for (Connection conn : _staticReadOnlyConnections.values())
+			cleanup(conn);
+		_staticReadOnlyConnections.clear();
+		
+		// Now deregister JDBC drivers in this context's ClassLoader:
+		// Get the webapp's ClassLoader
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
+		// Loop through all drivers
+		Enumeration<Driver> drivers = DriverManager.getDrivers();
+		while (drivers.hasMoreElements())
 		{
-			for (Driver driver : _driverMap.values())
+			Driver driver = drivers.nextElement();
+			if (driver.getClass().getClassLoader() != cl)
 			{
-				try
-				{
-					DriverManager.deregisterDriver(driver);
-				}
-				catch (SQLException e)
-				{
-					e.printStackTrace();
-				}
+				// driver was not registered by the webapp's ClassLoader and may be in use elsewhere
+				continue;
+			}
+			
+			// This driver was registered by the webapp's ClassLoader, so deregister it:
+			try
+			{
+				DriverManager.deregisterDriver(driver);
+			}
+			catch (SQLException e)
+			{
+				e.printStackTrace();
 			}
 		}
+		
+		_driverMap.clear();
 	}
-
+	
 	/**
 	 * This maps a connection string to a Connection object.  Used by getStaticReadOnlyConnection().
 	 */
@@ -334,7 +366,7 @@ public class SQLUtils
 	
 	/**
 	 * @param colName
-	 * @return colName with special characters replaced and truncated to 64 characters.
+	 * @return colName with special characters replaced and truncated to 30 characters.
 	 */
 	public static String fixColumnName(String colName, String suffix)
 	{
@@ -383,7 +415,7 @@ public class SQLUtils
 	}
 
 	/**
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
+	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
 	 * @param symbol The symbol to quote.
 	 * @return The symbol surrounded in quotes, usable in queries for the specified DBMS.
 	 */
@@ -396,7 +428,7 @@ public class SQLUtils
 		{
 			openQuote = closeQuote = "`";
 		}
-		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE))
+		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE) || dbms.equalsIgnoreCase(SQLITE))
 		{
 			openQuote = closeQuote = "\"";
 		}
@@ -426,7 +458,7 @@ public class SQLUtils
 	}
 	
 	/**
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
+	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
 	 * @param symbol The quoted symbol.
 	 * @return The symbol without its dbms-specific quotes.
 	 */
@@ -438,7 +470,7 @@ public class SQLUtils
 		{
 			openQuote = closeQuote = '`';
 		}
-		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE))
+		else if (dbms.equalsIgnoreCase(POSTGRESQL) || dbms.equalsIgnoreCase(ORACLE) || dbms.equalsIgnoreCase(SQLITE))
 		{
 			openQuote = closeQuote = '"';
 		}
@@ -502,6 +534,7 @@ public class SQLUtils
 	
 	/**
 	 * This will wrap a query expression in a string cast.
+	 * If the database is not supported by this function, the queryExpression will not be altered.
 	 * @param conn An SQL Connection.
 	 * @param queryExpression An expression to be used in a SQL Query.
 	 * @return The query expression wrapped in a string cast.
@@ -511,7 +544,7 @@ public class SQLUtils
 		String dbms = getDbmsFromConnection(conn);
 		if (dbms.equals(MYSQL))
 			return String.format("cast(%s as char)", queryExpression);
-		if (dbms.equals(POSTGRESQL))
+		if (dbms.equals(POSTGRESQL) || dbms.equals(SQLITE))
 			return String.format("cast(%s as varchar)", queryExpression);
 		
 		// dbms type not supported by this function yet
@@ -520,7 +553,7 @@ public class SQLUtils
 	
 	/**
 	 * This function returns the name of a binary data type that can be used in SQL queries.
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
+	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
 	 * @return The name of the binary SQL type to use for the given DBMS.
 	 */
 	public static String binarySQLType(String dbms)
@@ -536,7 +569,7 @@ public class SQLUtils
 	
 	/**
 	 * Returns quoted schema & table to use in SQL queries for the given DBMS.
-	 * @param dbms The name of a DBMS (MySQL, PostGreSQL, ...)
+	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
 	 * @param schema The schema the table resides in.
 	 * @param table The table.
 	 * @return The schema & table name surrounded in quotes, usable in queries for the specified DBMS.
@@ -548,6 +581,9 @@ public class SQLUtils
 		
 		if (dbms.equalsIgnoreCase(ORACLE))
 			schema = schema.toUpperCase();
+		
+		if(dbms.equalsIgnoreCase(SQLITE))
+			return quoteSymbol(dbms, table);
 		
 		return quoteSymbol(dbms, schema) + "." + quoteSymbol(dbms, table);
 	}
@@ -561,13 +597,8 @@ public class SQLUtils
 	 */
 	public static String quoteSchemaTable(Connection conn, String schema, String table) throws SQLException
 	{
-		if (schema.length() == 0)
-			return quoteSymbol(conn, table);
-		
-		if (SQLUtils.isOracleServer(conn))
-			return quoteSymbol(conn, schema).toUpperCase() + "." + quoteSymbol(conn, table);
-		else
-			return quoteSymbol(conn, schema) + "." + quoteSymbol(conn, table);
+		String dbms = getDbmsFromConnection(conn);
+		return quoteSchemaTable(dbms, schema, table);
 	}
 
 	public static boolean sqlTypeIsNumeric(int sqlType)
@@ -597,6 +628,10 @@ public class SQLUtils
 	}
 	
 	/**
+	 * Example usage:
+	 * {@code
+	 *     getResultFromQuery(conn, "SELECT a, b FROM mytable WHERE c = ? and d = ?", new Object[]&#124; "my-c-value", 0xDDDD &#125;, false)
+	 * }
 	 * @param connection An SQL Connection
 	 * @param query An SQL Query with '?' place holders for parameters
 	 * @param params Parameters for the SQL query for all '?' place holders, or null if there are no parameters.
@@ -780,7 +815,9 @@ public class SQLUtils
 				columnQuery = "*"; // select all columns
 			
 			// build WHERE clause
-			WhereClause<V> where = new WhereClause<V>(conn, whereParams, caseSensitiveFields, true);
+			WhereClause<V> where = new WhereClauseBuilder<V>(false)
+				.addGroupedConditions(whereParams, caseSensitiveFields, null)
+				.build(conn);
 			
 			// build complete query
 			query = String.format(
@@ -810,14 +847,7 @@ public class SQLUtils
 		return result;
 	}
 	
-
-	/**
-	 * @param connection An SQL Connection
-	 * @param query An SQL query
-	 * @return A SQLResult object containing the result of the query
-	 * @throws SQLException
-	 */
-	public static int getRowCountFromUpdateQuery(Connection connection, String query)
+	public static int executeUpdate(Connection connection, String query)
 		throws SQLException
 	{
 		Statement stmt = null;
@@ -841,7 +871,48 @@ public class SQLUtils
 		// return the copy of the query result
 		return result;
 	}
+	
+	public static int executeUpdate(Connection conn, String query, Object[] params)
+		throws SQLException
+	{
+		PreparedStatement stmt = null;
+		int result = 0;
+		
+		try
+		{
+			stmt = conn.prepareStatement(query);
+			constrainQueryParams(conn, params);
+			setPreparedStatementParams(stmt, params);
+			result = stmt.executeUpdate();
+		}
+		catch (SQLException e)
+		{
+			throw e;
+		}
+		finally
+		{
+			// close everything in reverse order
+			SQLUtils.cleanup(stmt);
+		}
+		
+		// return the copy of the query result
+		return result;
+	}
 
+	public static int getSingleIntFromQuery(Connection conn, String query, int defaultValue) throws SQLException
+	{
+		Statement stmt = null;
+		try
+		{
+			stmt = conn.createStatement();
+			return getSingleIntFromQuery(stmt, query, defaultValue);
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
+		}
+	}
+	
 	public static int getSingleIntFromQuery(Statement stmt, String query, int defaultValue) throws SQLException
 	{
 		ResultSet resultSet = null;
@@ -858,6 +929,26 @@ public class SQLUtils
 		}
 	}
 
+	public static int getSingleIntFromQuery(Connection conn, String query, Object[] params, int defaultValue) throws SQLException
+	{
+		PreparedStatement pstmt = null;
+		ResultSet resultSet = null;
+		try
+		{
+			pstmt = conn.prepareStatement(query);
+			setPreparedStatementParams(pstmt, params);
+			resultSet = pstmt.executeQuery();
+			if (resultSet.next())
+				return resultSet.getInt(1);
+			return defaultValue;
+		}
+		finally
+		{
+			SQLUtils.cleanup(resultSet);
+			SQLUtils.cleanup(pstmt);
+		}
+	}
+	
 	/**
 	 * @param conn An existing SQL Connection
 	 * @return A List of schema names
@@ -878,6 +969,10 @@ public class SQLUtils
 				// use column index instead of name because sometimes the names are lower case, sometimes upper.
 				while (rs.next())
 					schemas.add(rs.getString(1)); // table_catalog
+			}
+			else if( md.getDatabaseProductName().equalsIgnoreCase(SQLITE))
+			{
+				schemas.add("sqlite_master");
 			}
 			else
 			{
@@ -926,6 +1021,8 @@ public class SQLUtils
 			else
 				rs = md.getTables(null, schemaName, null, types);
 			
+			//May need a case here for SQLITE using sqlite_master as a catalog name.
+			
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			// column indices: 1=table_cat,2=table_schem,3=table_name,4=table_type,5=remarks
 			while (rs.next())
@@ -967,6 +1064,8 @@ public class SQLUtils
 			else
 				rs = md.getColumns(null, schemaName, tableName, null);
 			
+			//May need a case here for SQLITE using sqlite_master as a catalog name.
+			
 			// use column index instead of name because sometimes the names are lower case, sometimes upper.
 			while (rs.next())
 				columns.add(rs.getString(4)); // column_name
@@ -979,7 +1078,38 @@ public class SQLUtils
 		return columns;
 	}
 	
+	// not implemented by SQLite JDBC driver
+	/* *
+	 * Attaches a database to an SQLite instance.
+	 * @param conn A SQLite connection.
+	 * @param databaseName The name of the database.
+	 * @param filePath The path to the file where the database either exists or should be created.
+	 * @throws SQLException
+	 * /
+	public static void createSQLiteDatabase(Connection conn, String databaseName, String filePath) throws SQLException
+	{
+		if (SQLUtils.schemaExists(conn, databaseName))
+			return;
+		
+		String query = String.format("ATTACH DATABASE ? AS %s", quoteSymbol(conn, databaseName));
+		PreparedStatement stmt = null;
+		try
+		{
+			stmt = prepareStatement(conn, query, new String[]{ filePath });
+			stmt.executeUpdate(query);
+		}
+		catch (SQLException e)
+		{
+			throw new SQLExceptionWithQuery(query, e);
+		}
+		finally
+		{
+			SQLUtils.cleanup(stmt);
+		}
+	}*/
+	
 	/**
+	 * Creates a schema in a non-SQLite database.  For SQLite, this does nothing.
 	 * @param conn An existing SQL Connection
 	 * @param schema The value to be used as the Schema name
 	 * @throws SQLException If the query fails.
@@ -987,10 +1117,13 @@ public class SQLUtils
 	public static void createSchema(Connection conn, String schema)
 		throws SQLException
 	{
+		if (isSQLite(conn))
+			return;
+		
 		if (SQLUtils.schemaExists(conn, schema))
 			return;
 
-		String query = "CREATE SCHEMA " + schema;
+		String query = String.format("CREATE SCHEMA %s", schema);
 		Statement stmt = null;
 		try
 		{
@@ -1033,22 +1166,13 @@ public class SQLUtils
 			return;
 		
 		StringBuilder columnClause = new StringBuilder();
-		int primaryKeyColumn = -1;
 		for (int i = 0; i < columnNames.size(); i++)
 		{
 			if( i > 0 )
 				columnClause.append(',');
 			String type = columnTypes.get(i);
-			if (SQLUTILS_SERIAL_TRIGGER_TYPE.equals(type))
-			{
-				type = getBigIntTypeString(conn) + " NOT NULL";
-				primaryKeyColumn = i;
-			}
 			columnClause.append(String.format("%s %s", quoteSymbol(conn, columnNames.get(i)), type));
 		}
-		
-		if (primaryKeyColumns == null && primaryKeyColumn >= 0)
-			primaryKeyColumns = Arrays.asList(columnNames.get(primaryKeyColumn));
 		
 		if (primaryKeyColumns != null && primaryKeyColumns.size() > 0)
 		{
@@ -1077,64 +1201,6 @@ public class SQLUtils
 		{
 			stmt = conn.createStatement();
 			stmt.executeUpdate(query);
-			
-			if (primaryKeyColumn >= 0)
-			{
-				String dbms = getDbmsFromConnection(conn);
-				
-				String quotedSequenceName = getQuotedSequenceName(dbms, schemaName, tableName);
-				String unquotedSequenceName = getUnquotedSequenceName(schemaName, tableName);
-				
-				if (dbms.equals(ORACLE))
-				{
-					if (getSequences(conn, schemaName).indexOf(unquotedSequenceName) >= 0)
-						stmt.executeUpdate(query = String.format("drop sequence %s", quotedSequenceName));
-					
-					stmt.executeUpdate(query = String.format("create sequence %s start with 1 increment by 1", quotedSequenceName));
-					
-					String quotedTriggerName = quoteSchemaTable(ORACLE, schemaName, "trigger_" + unquotedSequenceName);
-					String quotedIdColumn = quoteSymbol(ORACLE, columnNames.get(primaryKeyColumn));
-					// http://earlruby.org/2009/01/creating-auto-increment-columns-in-oracle/
-					query = String.format("create or replace trigger %s\n", quotedTriggerName) +
-						String.format("before insert on %s\n", quotedSchemaTable) +
-						              "for each row\n" +
-						              "declare\n" +
-						              "  max_id number;\n" +
-						              "  cur_seq number;\n" +
-						              "begin\n" +
-						String.format("  if :new.%s is null then\n", quotedIdColumn) +
-						String.format("    select %s.nextval into :new.%s from dual;\n", quotedSequenceName, quotedIdColumn) +
-						              "  else\n" +
-						String.format("    select greatest(nvl(max(%s),0), :new.%s) into max_id from %s;\n", quotedIdColumn, quotedIdColumn, quotedSchemaTable) +
-						String.format("    select %s.nextval into cur_seq from dual;\n", quotedSequenceName) +
-						              "    while cur_seq < max_id\n" +
-						              "    loop\n" +
-						String.format("      select %s.nextval into cur_seq from dual;\n", quotedSequenceName) +
-						              "    end loop;\n" +
-						              "  end if;\n" +
-						              "end;\n";
-				}
-				else if (dbms.equals(POSTGRESQL))
-				{
-					// TODO http://stackoverflow.com/questions/3905378/manual-inserts-on-a-postgres-table-with-a-primary-key-sequence
-					throw new InvalidParameterException("PostGreSQL support not implemented for column type " + SQLUTILS_SERIAL_TRIGGER_TYPE);
-					/*
-					String quotedTriggerName = quoteSchemaTable(POSTGRESQL, schemaName, "trigger_" + unquotedSequenceName);
-					String quotedIdColumn = quoteSymbol(POSTGRESQL, columnNames.get(primaryKeyColumn));
-					String quotedFuncName = generateQuotedSymbolName("function", conn, schemaName, tableName);
-					query = String.format("create or replace function %s() returns trigger language plpgsql as\n", quotedFuncName) +
-					                      "$$ begin\n" +
-					        String.format("  if ( currval('test_id_seq')<NEW.id ) then\n" +
-					"    raise exception 'currval(test_id_seq)<id';\n" +
-					"  end if;\n" +
-					"  return NEW;\n" +
-					"end; $$;\n" +
-					"create trigger test_id_seq_check before insert or update of id on test\n" +
-					"  for each row execute procedure test_id_check();";
-					*/
-				}
-				stmt.executeUpdate(query);
-			}
 		}
 		catch (SQLException e)
 		{
@@ -1209,13 +1275,13 @@ public class SQLUtils
 			param = (T)(Float)((Double) param).floatValue();
 		return param;
 	}
-	protected static <TYPE> void setPreparedStatementParams(PreparedStatement cstmt, List<TYPE> params) throws SQLException
+	public static <TYPE> void setPreparedStatementParams(PreparedStatement cstmt, List<TYPE> params) throws SQLException
 	{
 		int i = 1;
 		for (TYPE param : params)
 			cstmt.setObject(i++, param);
 	}
-	protected static <TYPE> void setPreparedStatementParams(PreparedStatement cstmt, TYPE[] params) throws SQLException
+	public static <TYPE> void setPreparedStatementParams(PreparedStatement cstmt, TYPE[] params) throws SQLException
 	{
 		int i = 1;
 		for (TYPE param : params)
@@ -1239,7 +1305,9 @@ public class SQLUtils
 			updateBlock = Strings.join(",", updateBlockList);
 		    
 			// build where clause
-		    WhereClause<Object> where = new WhereClause<Object>(conn, whereParams, caseSensitiveFields, true);
+		    WhereClause<Object> where = new WhereClauseBuilder<Object>(false)
+		    	.addGroupedConditions(whereParams, caseSensitiveFields, null)
+		    	.build(conn);
 		    queryParams.addAll(where.params);
 		    
 		    // build and execute query
@@ -1252,184 +1320,168 @@ public class SQLUtils
 			cleanup(stmt);
 		}
 	}
+	
 	/**
-	 * Takes a list of maps, each of which corresponds to one rowmatch criteria; in the case it is being used for,
-	 * this will only be two entries long, but this covers the general case.
-	 * @param conn
-	 * @param schemaName
-	 * @param table
-	 * @param column The name of the column to return.
-	 * @param queryParams A list of where parameters specified as Map entries.
-	 * @return The values from the specified column.
-	 * @throws SQLException
+	 * Modifies a query so it will only return a single row.
+	 * @param dbms The target DBMS.
+	 * @param query A SQL Query.
+	 * @return The modified query.
 	 */
-	public static List<Integer> crossRowSelect(Connection conn, String schemaName, String table, String column, List<Map<String,String>> queryParams, Set<String> caseSensitiveFields) throws SQLException
+	private static String limitQueryToOneRow(String dbms, String query)
 	{
-		String query = null;
-		List<Integer> results = new LinkedList<Integer>();
-		WhereClause<String> where = new WhereClause<String>(conn, queryParams, caseSensitiveFields, false);
-		// Construct the query with placeholders.
-		String qColumn = quoteSymbol(conn, column);
-		String qTable = quoteSchemaTable(conn, schemaName, table);
-		if (queryParams.size() == 0)
+		if (dbms.equals(ORACLE))
+			return String.format("SELECT * FROM (%s) WHERE ROWNUM <= 1", query);
+		
+		if (dbms.equals(MYSQL) || dbms.equals(POSTGRESQL) || dbms.equals(SQLITE))
+			return query + " LIMIT 1";
+		
+		throw new InvalidParameterException("DBMS not supported: " + dbms);
+	}
+	private static String newIdClause(String dbms, String quotedIdField, String quotedTable)
+	{
+		if (dbms.equals(SQLITE))
 		{
-			query = String.format("SELECT %s from %s group by %s", qColumn, qTable, qColumn);
-		}
-		else
-		{
-			query = String.format(
-					"SELECT %s FROM (SELECT %s, count(*) c FROM %s %s group by %s) result WHERE c = %s",
-					qColumn,
-					qColumn,
-					qTable,
-					where.clause,
-					qColumn,
-					queryParams.size()
-					);
+			return String.format(
+					"(SELECT CASE WHEN MAX(%s) IS NULL THEN 1 ELSE MAX(%s)+1 END FROM %s LIMIT 1)",
+					quotedIdField,
+					quotedIdField,
+					quotedTable
+			);
 		}
 		
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
-		try
+		if (dbms.equals(SQLSERVER))
 		{
-			stmt = prepareStatement(conn, query, where.params);
-			
-			rs = stmt.executeQuery();
-			rs.setFetchSize(SQLResult.FETCH_SIZE);
-			while (rs.next())
-			{
-				results.add(rs.getInt(column));
-			}
-			return results;
+			return String.format(
+					"(SELECT TOP 1 CASE WHEN MAX(%s) IS NULL THEN 1 ELSE MAX(%s)+1 END FROM %s)",
+					quotedIdField,
+					quotedIdField,
+					quotedTable
+			);
 		}
-		catch (SQLException e)
+		
+		if (dbms.equals(ORACLE))
 		{
-			throw new SQLExceptionWithQuery(query, e);
+			String query = String.format("SELECT MAX(%s)+1 FROM %s", quotedIdField, quotedTable);
+			query = limitQueryToOneRow(dbms, query);
+			return String.format("GREATEST(1, (%s))", query);
 		}
-		finally
-		{
-			cleanup(rs);
-			cleanup(stmt);
-		}
+		
+		// MySQL/PostgreSQL
+		return String.format(
+				"GREATEST(1, (SELECT MAX(%s)+1 FROM %s LIMIT 1))",
+				quotedIdField,
+				quotedTable
+			);
 	}
-	public static Integer insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data, String idField) throws SQLException
+	
+	/**
+	 * Generates a new id manually using MAX(idField)+1.
+	 * @param conn
+	 * @param schemaName
+	 * @param tableName
+	 * @param data Unquoted field names mapped to raw values.
+	 * @param idField
+	 * @return The ID of the new row.
+	 * @throws SQLException
+	 */
+	public static int insertRowReturnID(Connection conn, String schemaName, String tableName, Map<String,Object> data, String idField) throws SQLException
 	{
 		String dbms = getDbmsFromConnection(conn);
 		boolean isOracle = dbms.equals(ORACLE);
 		boolean isSQLServer = dbms.equals(SQLSERVER);
 		boolean isMySQL = dbms.equals(MYSQL);
-		boolean isPostGreSQL = dbms.equals(POSTGRESQL);
+		boolean isPostgreSQL = dbms.equals(POSTGRESQL);
+		boolean isSQLite = dbms.equals(SQLITE);
+		boolean useTwoQueries = isMySQL || isOracle || isSQLite;
 		
 		String query = null;
 		List<String> columns = new LinkedList<String>();
-		List<Object> values = new LinkedList<Object>();
+		LinkedList<Object> values = new LinkedList<Object>();
 		for (Entry<String,Object> entry : data.entrySet())
 		{
 			columns.add(quoteSymbol(conn, entry.getKey()));
 			values.add(entry.getValue());
 		}
-		String column_string = Strings.join(",", columns);
-		String qmark_string = Strings.mult(",", "?", values.size());
 		
 		String quotedIdField = quoteSymbol(conn, idField);
 		String quotedTable = quoteSchemaTable(conn, schemaName, tableName);
 		
-		if (isPostGreSQL)
-		{
-			column_string = String.format("%s,%s", quotedIdField, column_string);
-			qmark_string = String.format("GREATEST(1, (SELECT MAX(%s)+1 FROM %s)),", quotedIdField, quotedTable) + qmark_string;
-		}
+		String fields_string = quotedIdField + "," + Strings.join(",", columns);
 		
-		query = String.format("INSERT INTO %s (%s)", quotedTable, column_string);
+		String id_string;
+		if (useTwoQueries)
+			id_string = "?"; // we get the new id below and then give it as a param
+		else
+			id_string = newIdClause(dbms, quotedIdField, quotedTable);
 		
+		String values_string = id_string + "," + Strings.mult(",", "?", values.size());
+		
+		// build query
+		query = String.format("INSERT INTO %s (%s)", quotedTable, fields_string);
+
 		if (isSQLServer)
 			query += String.format(" OUTPUT INSERTED.%s", quotedIdField);
 		
-		query += String.format(" VALUES (%s)", qmark_string);
+		query += String.format(" VALUES (%s)", values_string);
 		
-		if (isPostGreSQL)
+		if (isPostgreSQL)
 			query += String.format(" RETURNING %s", quotedIdField);
 		
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
 		try
 		{
-			
-			stmt = prepareStatement(conn, query, values);
+			int id;
 			synchronized (conn)
 			{
-			    if (isSQLServer || isPostGreSQL)
-			    {
-			    	rs = stmt.executeQuery();
-			    }
-			    else
-			    {
-			    	stmt.executeUpdate();
-			    	cleanup(stmt);
-			    	
-			    	if (isOracle)
-			    	{
-			    		String quotedSequenceName = getQuotedSequenceName(dbms, schemaName, tableName);
-			    		query = String.format("select %s.currval from dual", quotedSequenceName);
-			    	}
-			    	else if (isMySQL)
-			    	{
-			    		query = "select last_insert_id()";
-			    	}
-			    	else
-			    	{
-			    		throw new SQLException("insertRowReturnID: dbms not supported: " + dbms);
-			    	}
-			    	stmt = conn.prepareStatement(query);
-			    	rs = stmt.executeQuery();
-			    }
+				if (useTwoQueries)
+				{
+					String nextQuery = query;
+					
+					query = String.format(
+							"SELECT %s FROM %s",
+							newIdClause(dbms, quotedIdField, quotedTable),
+							quotedTable
+						);
+					query = limitQueryToOneRow(dbms, query);
+					id = getSingleIntFromQuery(conn, query, 1);
+					
+					values.addFirst(id);
+					
+					query = nextQuery;
+					executeUpdate(conn, query, values.toArray());
+				}
+				else
+				{
+					id = getSingleIntFromQuery(conn, query, values.toArray(), -1);
+				}
 			}
-		    rs.next();
-		    return rs.getInt(1);
+			return id;
 		}
 		catch (SQLException e)
 		{
 			throw new SQLExceptionWithQuery(query, e);
 		}
-		finally
-		{
-			cleanup(rs);
-			cleanup(stmt);
-		}
 	}
 	
+	/**
+	 * This function checks if a connection is for a PostgreSQL server.
+	 * @param conn A SQL Connection.
+	 * @return A value of true if the Connection is for a PostgreSQL server.
+	 * @throws SQLException 
+	 */
+	public static boolean isPostgreSQL(Connection conn)
+	{
+		return getDbmsFromConnection(conn).equals(POSTGRESQL);
+	}
 	
 	/**
-	 * This function is for use with an Oracle connection
-	 * @param conn An existing Oracle SQL Connection
-	 * @param schemaName A schema name accessible through the given connection
-	 * @return A List of sequence names in the given schema
-	 * @throws SQLException If the query fails.
+	 * This function checks if a connection is for a MySQL server.
+	 * @param conn A SQL Connection.
+	 * @return A value of true if the Connection is for a MySQL server.
+	 * @throws SQLException 
 	 */
-	protected static List<String> getSequences(Connection conn, String schemaName) throws SQLException
+	public static boolean isMySQL(Connection conn)
 	{
-		List<String> sequences = new Vector<String>();
-		ResultSet rs = null;
-		try
-		{
-			DatabaseMetaData md = conn.getMetaData();
-			String[] types = new String[]{"SEQUENCE"};
-			
-			rs = md.getTables(null, schemaName.toUpperCase(), null, types);
-			
-			// use column index instead of name because sometimes the names are lower case, sometimes upper.
-			// column indices: 1=sequence_cat,2=sequence_schem,3=sequence_name,4=sequence_type,5=remarks
-			while (rs.next())
-				sequences.add(rs.getString(3)); // sequence_name
-			
-			Collections.sort(sequences, String.CASE_INSENSITIVE_ORDER);
-		}
-		finally
-		{
-			// close everything in reverse order
-			cleanup(rs);
-		}
-		return sequences;
+		return getDbmsFromConnection(conn).equals(MYSQL);
 	}
 	
 	/**
@@ -1451,6 +1503,16 @@ public class SQLUtils
 	public static boolean isSQLServer(Connection conn)
 	{
 		return getDbmsFromConnection(conn).equals(SQLSERVER);
+	}
+	
+	/**
+	 * This function checks if a connection is for a SQLite server.
+	 * @param conn A SQL Connection.
+	 * @return A value of true if the Connection is for a SQLite Server.
+	 */
+	public static boolean isSQLite(Connection conn)
+	{
+		return getDbmsFromConnection(conn).equals(SQLITE);
 	}
 	
 	private static String truncate(String str, int maxLength)
@@ -1542,7 +1604,7 @@ public class SQLUtils
 	public static void addColumn( Connection conn, String schemaName, String tableName, String columnName, String columnType)
 		throws SQLException
 	{
-		String format = "ALTER TABLE %s ADD %s %s"; // Note: PostGreSQL does not accept parentheses around the new column definition.
+		String format = "ALTER TABLE %s ADD %s %s"; // Note: PostgreSQL does not accept parentheses around the new column definition.
 		String query = String.format(format, quoteSchemaTable(conn, schemaName, tableName), quoteSymbol(conn, columnName), columnType);
 		Statement stmt = null;
 		try
@@ -1578,7 +1640,7 @@ public class SQLUtils
 		String query = "";
 		try
 		{
-			query = "SELECT " + quoteSymbol(conn, columnArg) + " FROM " + quoteSchemaTable(conn, schemaName, tableName);
+			query = String.format("SELECT %s FROM %s", quoteSymbol(conn, columnArg), quoteSchemaTable(conn, schemaName, tableName));
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(query);
@@ -1616,7 +1678,7 @@ public class SQLUtils
 		String query = "";
 		try
 		{
-			query = "SELECT " + quoteSymbol(conn, columnArg) + " FROM " + quoteSchemaTable(conn, schemaName, tableName);
+			query = String.format("SELECT %s FROM %s", quoteSymbol(conn, columnArg), quoteSchemaTable(conn, schemaName, tableName));
 			
 			stmt = conn.createStatement();
 			rs = stmt.executeQuery(query);
@@ -1772,7 +1834,7 @@ public class SQLUtils
 	public static <V> int deleteRows(Connection conn, String schemaName, String tableName, WhereClause<V> where) throws SQLException
 	{
 		// VERY IMPORTANT - do not delete if there are no records specified, because that would delete everything.
-		if (where.params.size() == 0)
+		if (Strings.isEmpty(where.clause))
 			return 0;
 		
 		PreparedStatement pstmt = null;
@@ -1796,14 +1858,21 @@ public class SQLUtils
 
 	/**
 	 * This will escape special characters in a SQL search string.
+	 * Not reliable on SQLite since there is no escape character.
 	 * @param conn A SQL Connection.
 	 * @param searchString A SQL search string containing special characters to be escaped.
 	 * @return The searchString with special characters escaped.
 	 * @throws SQLException 
 	 */
-	public static String escapeSearchString(Connection conn, String searchString) throws SQLException
+	private static String escapeSearchString(Connection conn, String searchString) throws SQLException
 	{
 		String escape = conn.getMetaData().getSearchStringEscape();
+		
+		if (escape == null)
+		{
+			return searchString;
+		}
+		
 		StringBuilder sb = new StringBuilder();
 		int n = searchString.length();
 		for (int i = 0; i < n; i++)
@@ -1889,29 +1958,6 @@ public class SQLUtils
 		return "DATETIME";
 	}
 	
-	public static String getSerialPrimaryKeyTypeString(Connection conn) throws SQLException
-	{
-		String dbms = getDbmsFromConnection(conn);
-		if (dbms.equals(SQLSERVER))
-			return "BIGINT PRIMARY KEY IDENTITY";
-		
-		if (dbms.equals(ORACLE))
-			return SQLUTILS_SERIAL_TRIGGER_TYPE;
-		
-		// for mysql or postgresql, return the following.
-		return "SERIAL PRIMARY KEY";
-	}
-	
-	private static String getUnquotedSequenceName(String schema, String table)
-	{
-		return generateSymbolName("sequence", schema, table);
-	}
-	
-	private static String getQuotedSequenceName(String dbms, String schema, String table)
-	{
-		return quoteSchemaTable(dbms, schema, getUnquotedSequenceName(schema, table));
-	}
-
 	protected static String getCSVNullValue(Connection conn)
 	{
 		try
@@ -1969,66 +2015,63 @@ public class SQLUtils
 		public String clause;
 		public List<V> params;
 		
-		
-		public static class ColumnFilter
-		{
-			public String field;
-			/**
-			 * Contains a list of String values or a list of numeric ranges (Object[] containing two values: min,max)
-			 */
-			public Object[] filters;
-		}
-		
 		/**
-		 * @param conn
-		 * @param filters Either a list of String values or a list of numeric ranges (Object[] containing two values: min,max)
+		 * An object with three modes: and, or, and cond.
+		 * If one property is specified, the others must be null.
 		 */
-		public static WhereClause<Object> fromFilters(Connection conn, ColumnFilter[] filters) throws SQLException
+		public static class NestedColumnFilters
 		{
-			WhereClause<Object> result = new WhereClause<Object>("", new Vector<Object>());
-			StringBuilder sb = new StringBuilder();
-			for (ColumnFilter filter : filters)
+			/**
+			 * Nested filters to be grouped with AND logic.
+			 */
+			public NestedColumnFilters[] and;
+			/**
+			 * Nested filters to be grouped with OR logic.
+			 */
+			public NestedColumnFilters[] or;
+			/**
+			 * A condition for a particular field.
+			 */
+			public ColumnFilter cond;
+			
+			/**
+			 * Makes sure the values in this object are specified correctly.
+			 * @throws RemoteException If this object or any of its nested objects are missing required values.
+			 */
+			public void assertValid() throws RemoteException
 			{
-				if (filter.filters == null || filter.filters.length == 0)
-					continue;
+				if ((and==null?0:1) + (or==null?0:1) + (cond==null?0:1) != 1)
+					error("Exactly one of the properties 'and', 'or', 'cond' must be set");
 				
-				if (sb.length() == 0)
-					sb.append(" WHERE ");
-				else
-					sb.append(" AND ");
-				
-				sb.append("(");
-				String quotedField = quoteSymbol(conn, filter.field);
-				String stringCompare = null;
-				for (int i = 0; i < filter.filters.length; i++)
+				if (cond != null)
+					cond.assertValid();
+				if (and != null)
 				{
-					Object filterValue = filter.filters[i];
-					if (i > 0)
-						sb.append(" OR ");
-					
-					if (filterValue.getClass() == Object[].class)
-					{
-						// numeric range
-						sb.append(String.format("(? <= %s AND %s <= ?)", quotedField, quotedField));
-						Object[] range = (Object[])filterValue;
-						result.params.add(range[0]);
-						result.params.add(range[1]);
-					}
-					else
-					{
-						// string value
-						if (stringCompare == null)
-							stringCompare = caseSensitiveCompare(conn, quotedField, "?");
-						sb.append(stringCompare);
-						result.params.add(filterValue);
-					}
+					if (and.length == 0)
+						error("'and' must have at least one item");
+					for (NestedColumnFilters nested : and)
+						if (nested != null)
+							nested.assertValid();
+						else
+							error("'and' must not contain null items");
 				}
-				sb.append(")");
+				if (or != null)
+				{
+					if (or.length == 0)
+						error("'or' must have at least one item");
+					for (NestedColumnFilters nested : or)
+						if (nested != null)
+							nested.assertValid();
+						else
+							error("'or' must not contain null items");
+				}
 			}
-			result.clause = sb.toString();
-			return result;
+			private void error(String message) throws RemoteException
+			{
+				throw new RemoteException("NestedColumnFilters: " + message);
+			}
 		}
-		
+
 		public WhereClause(String whereClause, List<V> params)
 		{
 			this.clause = whereClause;
@@ -2036,100 +2079,306 @@ public class SQLUtils
 		}
 		
 		/**
+		 * A condition for filtering query results.
+		 */
+		public static class ColumnFilter
+		{
+			/**
+			 * The unquoted field name.
+			 */
+			public Object f;
+			/**
+			 * Contains a list of String values ["a", "b", ...]
+			 * If <code>v</code> is set, <code>r</code> must be null.
+			 */
+			public Object[] v;
+			/**
+			 * Contains a list of numeric ranges [[min,max], [min2,max2], ...]
+			 * If <code>r</code> is set, <code>v</code> must be null.
+			 */
+			public Object[][] r;
+			
+			/**
+			 * Makes sure the values in this object are specified correctly.
+			 * @throws RemoteException If this object or any of its nested objects are missing required values.
+			 */
+			public void assertValid() throws RemoteException
+			{
+				if (f == null)
+					error("'f' cannot be null");
+				if ((v == null) == (r == null))
+					error("Either 'v' or 'r' must be set, but not both");
+			}
+			private void error(String message) throws RemoteException
+			{
+				throw new RemoteException("ColumnFilter: " + message);
+			}
+		}
+		
+		/**
+		 * Builds a WhereClause from nested filtering logic.
 		 * @param conn
-		 * @param conditions
-		 * @param caseSensitiveFields
-		 * @param conjunctive Set to <code>true</code> for "AND" logic or <code>false</code> for "OR" logic.
+		 * @param filters
+		 * @return The WhereClause.
 		 * @throws SQLException
 		 */
-		public WhereClause(Connection conn, Map<String,V> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
+		public static WhereClause<Object> fromFilters(Connection conn, NestedColumnFilters filters) throws SQLException
 		{
-			List<Map<String,V>> list = new Vector<Map<String,V>>(1);
-			list.add(conditions);
-			// we have to negate our conjunctive parameter because we have just nested our conditions
-			init(conn, list, caseSensitiveFields, !conjunctive);
+			WhereClause<Object> where = new WhereClause<Object>("", new Vector<Object>());
+			StringBuilder sb = new StringBuilder(" WHERE ");
+			if (filters != null)
+				build(conn, sb, where.params, filters);
+			if (!where.params.isEmpty())
+				where.clause = sb.toString();
+			return where;
 		}
-		
-		public WhereClause(Connection conn, List<Map<String,V>> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
+		private static void build(Connection conn, StringBuilder clause, List<Object> params, NestedColumnFilters filters) throws SQLException
 		{
-			init(conn, conditions, caseSensitiveFields, conjunctive);
-		}
-		
-		private void init(Connection conn, List<Map<String,V>> conditions, Set<String> caseSensitiveFields, boolean conjunctive) throws SQLException
-		{
-			params = new Vector<V>();
-			if (caseSensitiveFields == null)
-				caseSensitiveFields = Collections.emptySet();
-			List<List<Pair>> nestedPairs = new LinkedList<List<Pair>>();
-			for (Map<String,V> group : conditions)
+			clause.append("(");
+			if (filters.cond != null)
 			{
-				List<Pair> pairs = new LinkedList<Pair>();
-				for (Entry<String,V> entry : group.entrySet())
+				String quotedField = quoteSymbol(conn, filters.cond.f.toString());
+				String stringCompare = null;
+				Object[] values = filters.cond.v != null ? filters.cond.v : filters.cond.r;
+				for (int i = 0; i < values.length; i++)
 				{
-					pairs.add(new Pair(quoteSymbol(conn, entry.getKey()), "?"));
-					params.add(entry.getValue());
+					if (i > 0)
+						clause.append(" OR ");
+					
+					if (values == filters.cond.v) // string value
+					{
+						if (stringCompare == null)
+						{
+							stringCompare = String.format("%s = ?", quotedField);
+							//stringCompare = caseSensitiveCompare(conn, quotedField, "?");
+						}
+						clause.append(stringCompare);
+						params.add(values[i]);
+					}
+					else // numeric range
+					{
+						clause.append(String.format("(? <= %s AND %s <= ?)", quotedField, quotedField));
+						Object[] range = (Object[])values[i];
+						params.add(range[0]);
+						params.add(range[1]);
+					}
 				}
-				nestedPairs.add(pairs);
 			}
-			Set<String> quotedCSF = new HashSet<String>();
-			for (String field : caseSensitiveFields)
-				quotedCSF.add(quoteSymbol(conn, field));
-			String dnf = buildNormalForm(conn, nestedPairs, quotedCSF, conjunctive);
+			else
+			{
+				NestedColumnFilters[] list = filters.and != null ? filters.and : filters.or;
+				int i = 0;
+				for (NestedColumnFilters item : list)
+				{
+					if (i > 0)
+						clause.append(list == filters.and ? " AND " : " OR ");
+					build(conn, clause, params, item);
+					i++;
+				}
+			}
+			clause.append(")");
+		}
+	}
+	
+	/**
+	 * The escape character (backslash) used by convertWildcards() and getLikeEscapeClause()
+	 * @see #convertWildcards(String)
+	 * @see #getLikeEscapeClause(Connection)
+	 */
+	public static final char WILDCARD_ESCAPE = '\\';
+	
+	/**
+	 * Converts a search string which uses basic '?' and '*' wildcards into an equivalent SQL search string.
+	 * @param searchString A search string which uses basic '?' and '*' wildcards
+	 * @return The equivalent SQL search string using a backslash (\) as an escape character.
+	 * @see #getLikeEscapeClause(Connection)
+	 */
+	public static String convertWildcards(String searchString)
+	{
+		// escape special characters (including the escape character first)
+		for (char chr : new char[]{ WILDCARD_ESCAPE, '%', '_', '[' })
+			searchString = searchString.replace("" + chr, "" + WILDCARD_ESCAPE + chr);
+		// replace our wildcards with SQL wildcards
+		searchString = searchString.replace('?', '_').replace('*', '%');
+		return searchString;
+	}
+	
+	/**
+	 * Returns an ESCAPE clause for use with a LIKE comparison.
+	 * @param conn The SQL Connection where the ESCAPE clause will be used.
+	 * @return The ESCAPE clause specifying a backslash (\) as the escape character.
+	 * @see #convertWildcards(String)
+	 */
+	public static String getLikeEscapeClause(Connection conn)
+	{
+		String dbms = getDbmsFromConnection(conn);
+		if (dbms.equals(MYSQL) || dbms.equals(POSTGRESQL))
+			return " ESCAPE '\\\\' ";
+		return " ESCAPE '\\' ";
+	}
+	
+	/**
+	 * Specifies how two SQL terms should be compared
+	 */
+	public static enum CompareMode
+	{
+		NORMAL, CASE_SENSITIVE, WILDCARD
+	}
+	public static class WhereClauseBuilder<V>
+	{
+		private List<List<Condition>> _nestedConditions = new Vector<List<Condition>>();
+		private List<V> _params = new Vector<V>();
+		private boolean _conjunctive = false;
+		
+		/**
+		 * @param conjunctive Set to <code>true</code> for Conjunctive Normal Form: (a OR b) AND (x OR y).
+		 *                    Set to <code>false</code> for Disjunctive Normal Form: (a AND b) OR (x AND y).
+		 */
+		public WhereClauseBuilder(boolean conjunctive)
+		{
+			_conjunctive = conjunctive;
+		}
+		
+		/**
+		 * Adds a set of grouped inner conditions.
+		 * Conjunctive Normal Form uses outer AND logic and will group these inner conditions with OR logic like (field1 = value1 OR field2 = value2).
+		 * Disjunctive Normal Form uses outer OR logic and will group these inner conditions with AND logic like (field1 = value1 AND field2 = value2).
+		 * @param fieldsAndValues Unquoted field names mapped to raw values
+		 * @param caseSensitiveFields A set of field names which should use case sensitive compare.
+		 * @param wildcardFields A set of field names which should use a "LIKE" SQL clause for wildcard search.
+		 * @see weave.utils.SQLUtils#convertWildcards(String)
+		 */
+		public WhereClauseBuilder<V> addGroupedConditions(Map<String,V> fieldsAndValues, Set<String> caseSensitiveFields, Set<String> wildcardFields) throws SQLException
+		{
+			Map<String, CompareMode> compareModes = new HashMap<String,CompareMode>();
+			if (caseSensitiveFields != null)
+				for (String field : caseSensitiveFields)
+					compareModes.put(field, CompareMode.CASE_SENSITIVE);
+			if (wildcardFields != null)
+				for (String field : wildcardFields)
+					compareModes.put(field, CompareMode.WILDCARD);
+			return addGroupedConditions(fieldsAndValues, compareModes);
+		}
+		
+		/**
+		 * Adds a set of grouped inner conditions.
+		 * Conjunctive Normal Form uses outer AND logic and will group these inner conditions with OR logic like (field1 = value1 OR field2 = value2).
+		 * Disjunctive Normal Form uses outer OR logic and will group these inner conditions with AND logic like (field1 = value1 AND field2 = value2).
+		 * @param fieldsAndValues Unquoted field names mapped to raw values
+		 * @param compareModes Field names mapped to compare modes
+		 * @see weave.utils.SQLUtils#convertWildcards(String)
+		 */
+		public WhereClauseBuilder<V> addGroupedConditions(Map<String,V> fieldsAndValues, Map<String,CompareMode> compareModes) throws SQLException
+		{
+			if (fieldsAndValues.size() == 0)
+				return this;
+			List<Condition> conditions = new Vector<Condition>();
+			for (Entry<String,V> entry : fieldsAndValues.entrySet())
+			{
+				Condition cond = new Condition();
+				cond.field = entry.getKey();
+				cond.valueExpression = "?";
+				if (compareModes != null)
+					cond.compareMode = compareModes.get(cond.field);
+				conditions.add(cond);
+				
+				_params.add(entry.getValue());
+			}
+			_nestedConditions.add(conditions);
+			return this;
+		}
+		
+		/**
+		 * Checks the number of groups which have been added via addGroupedConditions().
+		 * @return The number of groups.
+		 */
+		public int countGroups()
+		{
+			return _nestedConditions.size();
+		}
+		
+		/**
+		 * Builds a WhereClause based on the conditions previously specified with addGroupedConditions().
+		 * @param conn A SQL Connection for which the query will be formatted.
+		 * @return A WhereClause.
+		 * @throws SQLException
+		 */
+		public WhereClause<V> build(Connection conn) throws SQLException
+		{
+			String dnf = buildNormalForm(conn);
+			String clause = "";
 			if (dnf.length() > 0)
 				clause = String.format(" WHERE %s ", dnf);
-			else
-				clause = "";
+			
+			return new WhereClause<V>(clause, _params);
 		}
 		
-        protected static String buildDisjunctiveNormalForm(
-                Connection conn,
-				List<List<Pair>> symbolicArguments,
-				Set<String> caseSensitiveFields
-            ) throws SQLException
-        {
-            return buildNormalForm(conn, symbolicArguments, caseSensitiveFields, false);
-        }
-		protected static String buildNormalForm(
-				Connection conn,
-				List<List<Pair>> nestedPairs,
-				Set<String> caseSensitiveFields, boolean conjunctive
-			) throws SQLException
+		protected String buildNormalForm(Connection conn) throws SQLException
 		{
-			String outerJunction = conjunctive ? " AND " : " OR ";
-			String innerJunction = conjunctive ? " OR " : " AND ";
+			String outerJunction = _conjunctive ? " AND " : " OR ";
+			String innerJunction = _conjunctive ? " OR " : " AND ";
 		    List<String> junctions = new LinkedList<String>();
-		    for (List<Pair> juncMap : nestedPairs)
+		    for (List<Condition> conditions : _nestedConditions)
 		    {
-		        List<String> juncList = new LinkedList<String>();
-		        for (Pair pair : juncMap)
-		        {
-		        	boolean caseSensitive = caseSensitiveFields.contains(pair.a) || caseSensitiveFields.contains(pair.b);
-		            juncList.add(buildPredicate(conn, pair.a, pair.b, caseSensitive));
-		        }
-		        junctions.add(String.format("(%s)", Strings.join(innerJunction, juncList)));
+		        List<String> predicates = new LinkedList<String>();
+		        for (Condition condition : conditions)
+		        	predicates.add(condition.buildPredicate(conn));
+		        junctions.add(String.format("(%s)", Strings.join(innerJunction, predicates)));
 		    }
 	        return Strings.join(outerJunction, junctions);
 		}
 		
-		protected static String buildPredicate(Connection conn, String symbol1, String symbol2, boolean caseSensitive) throws SQLException
+		protected static class Condition
 		{
-			if (caseSensitive)
-			{
-				String compare = caseSensitiveCompare(conn, symbol1, symbol2);
-				return new StringBuilder().append('(').append(compare).append(')').toString();
-			}
-			return new StringBuilder().append('(').append(symbol1).append('=').append(symbol2).append(')').toString();
-		}
-		
-		protected static class Pair
-		{
-			public String a;
-			public String b;
+			/**
+			 * Unquoted SQL field name
+			 */
+			public String field;
 			
-			public Pair(String a, String b)
+			/**
+			 * Fragment of a SQL query for a value (recommended to be "?" unless hard-coded and safe).
+			 */
+			public String valueExpression;
+			
+			/**
+			 * Specifies how the field and value should be compared
+			 */
+			public CompareMode compareMode = CompareMode.NORMAL;
+			
+			public Condition()
 			{
-				this.a = a;
-				this.b = b;
+			}
+			
+			/**
+			 * @param field Unquoted SQL field name
+			 * @param value Fragment of a SQL query for a value (recommended to be "?" unless hard-coded and safe).
+			 * @param compareMode Specifies how the field and value should be compared
+			 */
+			public Condition(String field, String value, CompareMode compareMode)
+			{
+				this.field = field;
+				this.valueExpression = value;
+				this.compareMode = compareMode;
+			}
+			
+			public String buildPredicate(Connection conn) throws SQLException
+			{
+				// prevent null pointer error from switch
+				if (compareMode == null)
+					compareMode = CompareMode.NORMAL;
+				String quotedField = quoteSymbol(conn, field);
+				switch (compareMode)
+				{
+					case CASE_SENSITIVE:
+						String compare = caseSensitiveCompare(conn, quotedField, valueExpression);
+						return new StringBuilder().append('(').append(compare).append(')').toString();
+					case WILDCARD:
+						return new StringBuilder().append('(')
+							.append(quotedField).append(" LIKE ").append(valueExpression).append(getLikeEscapeClause(conn))
+							.append(')').toString();
+					default:
+						return new StringBuilder().append('(').append(quotedField).append('=').append(valueExpression).append(')').toString();
+				}
 			}
 		}
 	}

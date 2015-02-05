@@ -57,19 +57,26 @@ package weave.primitives
 		
 		public function setup(dataMin:Number, dataMax:Number, numTicksReq:Number, forceTickCount:Boolean = false):void
 		{
-			this._dataMin = dataMin;
-			this._dataMax = dataMax;
-			this._numTicksReq = numTicksReq;
+			_dataMin = dataMin;
+			_dataMax = dataMax;
+			_numTicksReq = numTicksReq;
 			
 			if (forceTickCount)
 			{
 				_numTicks = _numTicksReq;
 				
-				_range = _dataMax - _dataMin;
-				
-				_tickDelta = _range / (_numTicksReq - 1);
-				_tickMin = Math.floor (_dataMin / _tickDelta) * _tickDelta;
-				_tickMax = Math.ceil (_dataMax / _tickDelta) * _tickDelta;
+				if (_dataMin == _dataMax)
+				{
+					_range = 0;
+					_tickDelta = _tickMin = _tickMax = _dataMin;
+				}
+				else
+				{
+					_range = _dataMax - _dataMin;
+					_tickDelta = _range / (_numTicksReq - 1);
+					_tickMin = Math.floor(_dataMin / _tickDelta) * _tickDelta;
+					_tickMax = Math.ceil(_dataMax / _tickDelta) * _tickDelta;
+				}
 				_axisMin = _tickMin - (.5 * _tickDelta);
 				_axisMax = _tickMax + (.5 * _tickDelta);
 			}
@@ -94,7 +101,7 @@ package weave.primitives
 				_axisMax = _tickMax + (.5 * _tickDelta);
 			}
 			
-			_numDigits = Math.max(-Math.floor(Math.log(_tickDelta) / Math.LN10), 0.0);
+			_numDigits = forceTickCount ? -1 : Math.max(-Math.floor(Math.log(_tickDelta) / Math.LN10), 0.0);
 		}
 		
 		public function get range():Number

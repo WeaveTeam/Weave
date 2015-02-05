@@ -27,22 +27,16 @@ package weave.services.beans
 		[Bindable] public var connectString:String = "" ;
 		[Bindable] public var is_superuser:Boolean = false;
 		
-		public function ConnectionInfo(obj:Object)
-		{
-			for (var name:String in obj)
-				if (this.hasOwnProperty(name))
-					this[name] = obj[name];
-		}
-
 		/**
 		 * This is a list of supported DBMS values.
 		 */
 		public static function get dbmsList():Array
 		{
-			return [MYSQL, POSTGRESQL, SQLSERVER, ORACLE];
+			return [MYSQL, SQLITE, POSTGRESQL, SQLSERVER, ORACLE];
 		}
 		
 		public static const MYSQL:String = 'MySQL';
+		public static const SQLITE:String = 'SQLite';
 		public static const POSTGRESQL:String = 'PostGreSQL';
 		public static const SQLSERVER:String = 'Microsoft SQL Server';
 		public static const ORACLE:String = 'Oracle';
@@ -57,6 +51,7 @@ package weave.services.beans
 			switch (dbms)
 			{
 				case MYSQL: return 3306;
+				case SQLITE: return 0;
 				case POSTGRESQL: return 5432;
 				case SQLSERVER: return 1433;
 				case ORACLE: return 1521;

@@ -27,6 +27,7 @@ package weave.visualization.plotters
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
@@ -40,10 +41,12 @@ package weave.visualization.plotters
 	 */
 	public class SimpleGlyphPlotter extends AbstractGlyphPlotter
 	{
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, SimpleGlyphPlotter, "Simple glyphs");
+		
 		public function SimpleGlyphPlotter()
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
-			setColumnKeySources([screenSize, dataX, dataY], [true, false, false]);
+			setColumnKeySources([screenSize, dataX, dataY], [-1, 1, -1]);
 		}
 		
 		private static const LEFT:String = 'left', CENTER:String = 'center', RIGHT:String = 'right';

@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
     <!--
     Smart developers always View Source.
@@ -33,6 +34,7 @@
         <! END Browser History required section -->
 
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script src="https://raw.github.com/IVPR/Weave/master/WeaveClient/weave-tools.js"></script>
         <script type="text/javascript" src="swfobject.js"></script>
         <script type="text/javascript">
             // For version detection, set to min. required Flash Player version, or 0 (or 0.0.0), for no version detection.
@@ -100,7 +102,6 @@
 	<!-- <img id="img_tag"/><br/> -->
 	<textarea id="resultTextArea" width="100%" cols="70" rows="10"></textarea>
 </td></tr></table>
-<script language="JavaScript" type="text/javascript" src="json2.js"></script>
 <script language="JavaScript" type="text/javascript">
 
 // Disable caching of AJAX responses
@@ -108,17 +109,24 @@ $.ajaxSetup({
     cache: false
 });
 
-function queryDataService(method, params, callback, queryId)
+queryService = function(url, method, params, resultHandler, queryId)
 {
-	console.log('queryDataService',method,params);
-	var url = '/WeaveServices/DataService';
 	var request = {
 		jsonrpc: "2.0",
 		id: queryId || "no_id",
 		method: method,
 		params: params
 	};
-	$.post(url, JSON.stringify(request), callback, "json");
+	$.post(url, JSON.stringify(request), handleResponse, "json");
+
+	function handleResponse(response)
+	{
+		if (response.error)
+			resultTextArea.value = JSON.stringify(response, null, 3);
+		else if (resultHandler)
+			resultHandler(response.result, queryId);
+	}
+	
 	resultTextArea.value = 'Awaiting response for ' + method + ' request...';
 }
 
@@ -126,47 +134,33 @@ function testServerQuery(secondMethodName)
 {
 	var keyType = keyTypeInput.value;
 	queryDataService(
-		'getEntityIdsByMetadata',
+		'findEntityIds',
 		{
-			publicMetadata: {keyType: keyType},
-			entityType: 1
+			publicMetadata: {entityType: 'column', keyType: keyType},
+			wildcardFields: []
 		},
-		handleColumnIds
+		function(ids)
+		{
+			console.log("Found " + ids.length + " column ids: " + ids);
+	
+			// trim the list of ids to 10
+			if (ids.length > 10)
+				ids.length = 10;
+	
+			queryDataService(
+				secondMethodName,
+				[ids],
+				function(data)
+				{
+					var dataStr = JSON.stringify(data, null, 3);
+					console.log(dataStr);
+					resultTextArea.value = dataStr;
+				}
+			);
+	
+		}
 	);
 
-	function handleColumnIds(response)
-	{
-		if (response.error)
-		{
-			resultTextArea.value = JSON.stringify(response, null, 3);
-			return;
-		}
-		var ids = response.result;
-		console.log("Found " + ids.length + " column ids: " + ids);
-
-		// trim the list of ids to 10
-		if (ids.length > 10)
-			ids.length = 10;
-
-		queryDataService(
-			secondMethodName,
-			[ids],
-			handleDataSet
-		);
-
-		function handleDataSet(response)
-		{
-			if (response.error)
-			{
-				resultTextArea.value = JSON.stringify(response, null, 3);
-				return;
-			}
-			var data = response.result;
-			var dataStr = JSON.stringify(data, null, 3);
-			console.log(dataStr);
-			resultTextArea.value = dataStr;
-		}
-	}
 }
 
 function getImage()
@@ -189,12 +183,20 @@ function getImage()
 	 }
     });
 }
-// this function gets called when the weave instance is ready.
+
+resultTextArea.value = '';
+
+//this function gets called when the Weave API is ready, before any session state is loaded.
+function weaveApiReady(weave)
+{
+	resultTextArea.value = 'weaveApiReady(weave) called (id="' + weave.id + '")\n';
+	document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
+}
+// this function gets called after Weave's initial session state has loaded.
 function weaveReady(weave)
 {
 	disableButtons(false);
-	document.getElementById('versionSpan').innerHTML = weave.getSessionState(['WeaveProperties','version']);
-	resultTextArea.value = 'Weave JavaScript API is ready (id="'+(weave && weave.id)+'").';
+	resultTextArea.value += 'weaveReady(weave) called (id="' + weave.id + '")\n';
 }
 // this function will enable or disable the api test buttons.
 function disableButtons(disabled)

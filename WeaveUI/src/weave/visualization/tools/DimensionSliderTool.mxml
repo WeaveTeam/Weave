@@ -32,17 +32,16 @@
 
 <mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.ui.IVisTool;
-			import weave.data.AttributeColumns.ProxyColumn;
+			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.AttributeColumns.SecondaryKeyNumColumn;
-			import weave.data.ColumnReferences.HierarchyColumnReference;
+			import weave.utils.ColumnUtils;
 
-			WeaveAPI.registerImplementation(IVisTool, DimensionSliderTool, "Dimension Slider Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DimensionSliderTool, "Dimension Slider Tool");
 			
-	override protected function constructor():void
+	override protected function inConstructor():void
 	{
-		super.constructor();
+		super.inConstructor();
 	}
 	override public function dispose():void
 	{
@@ -55,10 +54,6 @@
 		return SecondaryKeyNumColumn.secondaryKeyFilter.value;
 	}
 			
-	//class data
-
-	private var values:Array = [];
-	
 	//overrides of abstract SliderTool functions
 	
 	/**
@@ -67,12 +62,9 @@
 	override protected function childrenCreated():void
 	{
 		super.childrenCreated();
-		if (dimsLabel != null)
-			dimsLabel.text = lang("Replace labels with values from a dimension with a secondary key:");
 		
 		SecondaryKeyNumColumn.secondaryKeyFilter.addGroupedCallback(this, handleSliderChange, true);
-		checkBox_useGlobalMinMax.visible = true;
-		checkBox_useGlobalMinMax.includeInLayout = true;
+		checkBox_useGlobalMinMax_show = true;
 	}
 
 	/**
@@ -82,59 +74,16 @@
 	 * @param ref A reference to an attribute tag in an AttributeHierarchy.
 	 * @return An Array of @year values that the referenced column is defined for.
 	 */
-	override protected function getValuesFromColHier(ref:HierarchyColumnReference):Array
+	override protected function getValuesFromColHier(refCol:ReferencedColumn):Array
 	{
-		var dimensionColumn:ProxyColumn = WeaveAPI.AttributeColumnCache.getColumn(ref) as ProxyColumn;
-		if (dimensionColumn)
+		var col:SecondaryKeyNumColumn = ColumnUtils.hack_findNonWrapperColumn(refCol) as SecondaryKeyNumColumn;
+		if (col)
 		{
-			var internalColumn:SecondaryKeyNumColumn = dimensionColumn.getInternalColumn() as SecondaryKeyNumColumn;
-			if (internalColumn)
-			{
-				addToListOfDims(ref);
-				return internalColumn.secondaryKeys;
-			}
+			addToListOfDims(refCol);
+			return col.secondaryKeys;
 		}
 		return [];
 	}
-
-	/**
-	 * handleLabelChange
-	 * This method is called every time there is a change in labels,
-	 * so be sure to change labels only as often as is necesary.  
-	 * We fill in the hslider labels from this.labelsLinkableString
-	 * Since this.labelsLinkableString is a LinkableString it can be changed by
-	 * the user by editing the sessionHistory.  
-	 * */
-	override public function handleLabelChange():void
-	{
-		//@TODO have values associated with the labels so that the labels can be
-		//   changed and the values are still passed into the column request
-		if (!parent)
-			return callLater(handleLabelChange);
-		var labelsString:String = labelsLinkableString.value;
-		values = labelsString.split(',');
-		if (values.length <= maxLabelCount.value)
-			dimensionSlider.labels = values;
-		else
-		{
-			dimensionSlider.labels = new Array();
-			
-			var interval:int = Math.ceil(values.length / maxLabelCount.value);
-			for (var i:int = 0; i < values.length; ++i)
-			{
-				if (i % interval == 0)
-					dimensionSlider.labels.push(values[i]);
-				else
-					dimensionSlider.labels.push('');
-			}			
-		}
-
-		dimensionSlider.minimum = 0;
-		dimensionSlider.maximum = values.length - 1;
-		
-		//set tick interval 
-		dimensionSlider.tickInterval = 1;
-	}	
 
 	/** 
 	 * change - this method is automatically called when the hslider
@@ -143,18 +92,7 @@
 	 * **/
 	override public function handleSliderChange():void
 	{
-		SecondaryKeyNumColumn.secondaryKeyFilter.value = values[dimensionSlider.value];
-	}
-	
-	
-	/**
-	 * This is specified in the HSlider above - called to get the tooltip that appears when 
-	 * the user probes over the slider.  Item is the index of the value that the user is hovering 
-	 * over.  
-	 **/
-	override protected function formatDataTip(item:Number):String 
-	{
-		return values[item];
+		SecondaryKeyNumColumn.secondaryKeyFilter.value = sliderValue;
 	}
 			
 			

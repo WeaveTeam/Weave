@@ -1,48 +1,43 @@
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
 package weave.ui
 {
 	import mx.collections.ArrayCollection;
-	import mx.containers.HBox;
-	import mx.controls.Label;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
+	import weave.utils.EventUtils;
 
-	public class KeyTypesMenu extends HBox
+	public class KeyTypesMenu extends CustomComboBox
 	{
-		private var menuLabel:Label = new Label();
-		private var comboBox:CustomComboBox = new CustomComboBox();
+		public static const helpContent:String = 'The keytype is used to link your dataset with other data sets and shapefiles. Data sets and shapefiles with the same keytype are linked. Select from the options provided here or enter your own keytype.';
+		
 		public function KeyTypesMenu()
 		{
-			menuLabel.text = lang("Select Keytype");
-			comboBox.toolTip=lang('The keytype is used to link your dataset with other data sets and shapefiles. Data sets and shapefiles with the same keytype are linked. Select from the options provided here or enter your own keytype.');
-			comboBox.editable= true; 
-			addChild(menuLabel);
-			addChild(comboBox);
-			getCallbackCollection(WeaveAPI.QKeyManager).addGroupedCallback(this,handleQKeyManagerChange,true);
+			editable = true;
+			updateKeyTypes();
+			EventUtils.doubleBind(this, 'selectedKeyType', this, 'text');
 		}
 		
-		/**
-		 * Sets the width of the label component.
-		 * */
-		public function set indent(value:int):void
+		override public function open():void
 		{
-			menuLabel.width = value; 
-		}
-		
-		/**
-		 * Returns the text of the label component
-		 * */
-		public function get labelText():String
-		{
-			return menuLabel.text; 
-		}
-		
-		/**
-		 * Sets the text of the label component
-		 * */
-		public function set labelText(value:String):void
-		{
-			menuLabel.text = value;
+			updateKeyTypes();
+			super.open();
 		}
 		
 		/**
@@ -52,7 +47,13 @@ package weave.ui
 		 * */
 		public function addKeyTypeToMenu(keytype:String,addToTop:Boolean=true):void
 		{
-			var keytypesSource:ArrayCollection = comboBox.dataProvider as ArrayCollection;
+			_addKeyTypeToMenu(keytype, addToTop);
+			invalidateDisplayList();//required incase the length of the keytype is longer than other items and it might be cut-off.
+			validateNow();
+		}
+		private function _addKeyTypeToMenu(keytype:String,addToTop:Boolean=true):void
+		{
+			var keytypesSource:ArrayCollection = dataProvider as ArrayCollection;
 			
 			if(keytypesSource.contains(keytype))
 				return;
@@ -61,8 +62,6 @@ package weave.ui
 				keytypesSource.addItemAt(keytype,0);
 			else
 				keytypesSource.addItem(keytype);
-			
-			comboBox.invalidateDisplayList();//required incase the length of the keytype is longer than other items and it might be cut-off.
 		}
 		
 		/**
@@ -71,7 +70,7 @@ package weave.ui
 		 **/
 		public function removeKeyTypeFromMenu(keytype:String):void
 		{
-			var keytypesSource:ArrayCollection = comboBox.dataProvider as ArrayCollection;
+			var keytypesSource:ArrayCollection = dataProvider as ArrayCollection;
 			
 			var itemIndex:int = keytypesSource.getItemIndex(keytype);
 			
@@ -82,25 +81,18 @@ package weave.ui
 		/**
 		 * Returns the selected item from the menu
 		 **/
-		public function get selectedItem():Object
-		{
-			return comboBox.text;//we use text and not selectedItem because user can enter the keytype
-		}
+		[Bindable] public var selectedKeyType:String = null;
 		
-		public function set selectedItem(item:Object):void
-		{
-			comboBox.selectedItem = item;	
-		}
-		
-		private function handleQKeyManagerChange():void
+		private function updateKeyTypes():void
 		{
 			var keytypes:Array = WeaveAPI.QKeyManager.getAllKeyTypes();
 			for each(var keytype:String in keytypes)
 			{
-				addKeyTypeToMenu(keytype,false);
+				_addKeyTypeToMenu(keytype,false);
 			}
 			
-			comboBox.invalidateDisplayList();
+			invalidateDisplayList();
+			validateNow();
 		}
 	}
 }

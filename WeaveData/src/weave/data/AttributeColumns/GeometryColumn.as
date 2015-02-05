@@ -25,35 +25,34 @@ package weave.data.AttributeColumns
 	import weave.primitives.GeneralizedGeometry;
 	
 	/**
-	 * GeometryAttributeColumn
 	 * The values in this column are Arrays of GeneralizedGeometry objects.
 	 * 
 	 * @author adufilie
 	 */
 	public class GeometryColumn extends AbstractAttributeColumn
 	{
-		public function GeometryColumn(metadata:XML = null)
+		public function GeometryColumn(metadata:Object = null)
 		{
 			super(metadata);
 		}
 		
 		/**
-		 * _keyToGeometryArrayMapping
 		 * This object maps a key to an array of geometry objects that have that key.
 		 */
 		private var _keyToGeometryArrayMapping:Dictionary = new Dictionary();
 		
 		/**
-		 * _geometryVector
 		 * This vector maps an index value to a GeneralizedGeometry object.
 		 */
 		private const _geometryVector:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
 		
 		/**
-		 * _geometryToIndexMapping
 		 * This maps a GeneralizedGeometry object to its index in _geometryVector.
 		 */
 		private var _geometryToIndexMapping:Object = new Dictionary(true);
+		
+		protected const _uniqueKeys:Array = new Array();
+		protected var _keyToIndex:Dictionary = new Dictionary(true);
 		
 		/**
 		 * This is a list of unique keys this column defines values for.
@@ -62,7 +61,6 @@ package weave.data.AttributeColumns
 		{
 			return _uniqueKeys;
 		}
-		protected const _uniqueKeys:Array = new Array();
 
 		/**
 		 * @param key A key to test.
@@ -80,6 +78,7 @@ package weave.data.AttributeColumns
 				// clear existing mappings
 				_keyToGeometryArrayMapping = new Dictionary();
 				_geometryToIndexMapping = new Dictionary(true);
+				_keyToIndex = new Dictionary(true);
 			}
 			
 			if (keys.length != geometries.length)
@@ -102,6 +101,7 @@ package weave.data.AttributeColumns
 				{
 					_keyToGeometryArrayMapping[key] = [geom];
 					_uniqueKeys[uniqueKeyIndex] = key; // remember unique keys
+					_keyToIndex[key] = uniqueKeyIndex;
 					uniqueKeyIndex++;
 				}
 				else
@@ -114,15 +114,6 @@ package weave.data.AttributeColumns
 			
 			triggerCallbacks();
 		}
-
-		/**
-		 * recordCount
-		 * This is the number of unique record keys this column defines values for.
-		 */		
-		public function get recordCount():int
-		{
-			return _uniqueKeys.length;
-		}
 		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class=null):*
 		{
@@ -132,7 +123,7 @@ package weave.data.AttributeColumns
 			if (dataType == Boolean)
 				value = (value is Array);
 			else if (dataType == Number)
-				value = value ? (value as Array).length : NaN;
+				value = Number(_keyToIndex[key]);
 			else if (dataType == String)
 				value = value ? 'Geometry(' + key.keyType + '#' + key.localName + ')' : undefined;
 			

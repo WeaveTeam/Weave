@@ -34,22 +34,21 @@ package weave.visualization.layers
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
 	
-	import mx.utils.StringUtil;
-	
 	import spark.components.Group;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
+	import weave.api.getSessionState;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotter;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
 	import weave.utils.ProbeTextUtils;
@@ -236,17 +235,18 @@ package weave.visualization.layers
 		
 		
 		protected function handleDoubleClick(event:MouseEvent):void
-		{								
-			handleMouseEvent(event);			
+		{
+			handleMouseEvent(event);
 		}
 		
+		private var hack_mouseDownSelectionState:Object = null;
 		protected function handleMouseDown(event:MouseEvent):void
 		{			
 			updateMouseMode(InteractionController.INPUT_DRAG); // modifier keys may have changed just prior to pressing mouse button, so update mode now
 			
 			//for detecting change between drag start and drag end
 			// TEMPORARY HACK - Weave.defaultSelectionKeySet
-			detectLinkableObjectChange( handleMouseDown, Weave.defaultSelectionKeySet );
+			hack_mouseDownSelectionState = getSessionState(Weave.defaultSelectionKeySet);
 			
 			mouseDragActive = true;
 			// clear probe when drag starts
@@ -317,7 +317,7 @@ package weave.visualization.layers
 			
 			if (debug && gestureEvent)
 			{
-				weaveTrace(StringUtil.substitute("gesture local({0}) offset({1}) scale({2})", [gestureEvent.localX, gestureEvent.localY], [gestureEvent.offsetX, gestureEvent.offsetY], [gestureEvent.scaleX, gestureEvent.scaleY]));
+				weaveTrace(StandardLib.substitute("gesture local({0}) offset({1}) scale({2})", [gestureEvent.localX, gestureEvent.localY], [gestureEvent.offsetX, gestureEvent.offsetY], [gestureEvent.scaleX, gestureEvent.scaleY]));
 			}
 			
 			switch (event.type)
@@ -547,6 +547,7 @@ package weave.visualization.layers
 		
 		private var _selectionGraphicsCleared:Boolean = true;
 		private const _selectionGeometry:SimpleGeometry = new SimpleGeometry();
+		private const _selectionPoint:SimpleGeometry = new SimpleGeometry(GeometryType.POINT);
 		private var _lassoScreenPoints:Array = [];
 		private var _lastLassoPoint:Point = null;
 		
@@ -595,11 +596,11 @@ package weave.visualization.layers
 			_dashedLine.graphics = g; 
 			if (_mouseMode == InteractionController.ZOOM)
 			{
-				_dashedLine.lineStyle(2, 0x00faff, .75);
+				_dashedLine.lineStyle(2, Weave.properties.dashedZoomColor.value, .75);
 			}
 			else
 			{
-				_dashedLine.lineStyle(2, 0x00ff00, .75);
+				_dashedLine.lineStyle(2, Weave.properties.dashedSelectionColor.value, .75);
 			}
 			
 			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
@@ -813,8 +814,8 @@ package weave.visualization.layers
 				var keys:Array = null;
 				if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE)
 				{
-					// if user has probed something and not dragged the mouse during selection, select only the probed shapes 
-					if (!_lastProbedQKeys || !queryBounds.isEmpty())
+					// if user has probed something and not dragged the mouse during selection, select only the probed shapes
+					if (!(_lastProbedQKeys && queryBounds.getWidth() == 0 && queryBounds.getHeight() == 0))
 						keys = plotManager.hack_getSpatialIndex(name).getKeysGeometryOverlap(queryBounds, minImportance, false, tempDataBounds);
 				}
 				else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
@@ -849,14 +850,14 @@ package weave.visualization.layers
 			}
 			
 			
+			// TEMPORARY HACK - Weave.defaultSelectionKeySet
+			var hack_noSelectionChangeSinceMouseDown:Boolean = WeaveAPI.SessionManager.computeDiff(hack_mouseDownSelectionState, getSessionState(Weave.defaultSelectionKeySet)) === undefined;
+			
 			// if mouse is released and selection hasn't changed since mouse down, clear selection
-			if (_mouseMode == InteractionController.SELECT &&
-				!WeaveAPI.StageUtils.mouseButtonDown &&
-				!detectLinkableObjectChange(handleMouseDown, /*HACK*/Weave.defaultSelectionKeySet/*HACK*/))
+			if (_mouseMode == InteractionController.SELECT && !WeaveAPI.StageUtils.mouseButtonDown && hack_noSelectionChangeSinceMouseDown)
 			{
 				clearSelection();
 			}
-
 		}
 		
 		/**
@@ -895,9 +896,9 @@ package weave.visualization.layers
 				lastActiveLayer = name;
 				
 				// get data coords from screen coords
-				var bufferSize:Number = 16; 
+				var bufferSize:Number = Weave.properties.probeBufferSize.value; 
 				
-				queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize, bufferSize);
+				queryBounds.setCenteredRectangle(mouseX, mouseY, bufferSize * 2, bufferSize * 2);
 				tempScreenBounds.projectCoordsTo(queryBounds, tempDataBounds);
 				
 				var xPrecision:Number = tempDataBounds.getXCoverage() / tempScreenBounds.getXCoverage();
@@ -909,7 +910,6 @@ package weave.visualization.layers
 				
 				if (!tempDataBounds.overlaps(queryBounds))
 					continue;
-				tempDataBounds.constrainBounds(queryBounds, false);
 				var keys:Array = plotManager.hack_getSpatialIndex(name).getClosestOverlappingKeys(queryBounds, xPrecision, yPrecision, tempDataBounds);
 				//trace(layers.getName(layer),keys);
 				
@@ -975,7 +975,7 @@ package weave.visualization.layers
 		}
 
 		/**
-		 * An array of additional columns to be displayed in the probe tooltip for this visualization instance 
+		 * An array of additional columns (or ILinkableHashMaps containing columns) to be displayed in the probe tooltip for this visualization instance 
 		 */		
 		public var additionalProbeColumns:Array = null;
 		

@@ -20,15 +20,12 @@
 package weave.services.wms
 {
 	import flash.display.BitmapData;
-	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.services.IURLRequestToken;
-	import weave.api.services.IURLRequestUtils;
 	import weave.primitives.Bounds2D;
 
 	/**
@@ -125,6 +122,11 @@ package weave.services.wms
 			return _bounds;
 		}
 
+		/**
+		 * The zoomLevel property name.
+		 */
+		public static const ZOOM_LEVEL:String = 'zoomLevel';
+		
 		/**
 		 * This function gets the zoom level of this tile. By default, the zoom level is 
 		 * defined as the area of the bounding box divided by the pixel area 

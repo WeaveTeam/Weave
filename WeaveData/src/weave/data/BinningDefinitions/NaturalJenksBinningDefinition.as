@@ -23,18 +23,13 @@ package weave.data.BinningDefinitions
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnWrapper;
-	import weave.api.data.IPrimitiveColumn;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
-	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.utils.AsyncSort;
@@ -55,10 +50,9 @@ package weave.data.BinningDefinitions
 	{
 		public function NaturalJenksBinningDefinition()
 		{
-			this.numOfBins.value = 5; //defaults to 5 bins	
 		}
 		
-		public const numOfBins:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
+		public const numOfBins:LinkableNumber = registerLinkableChild(this,new LinkableNumber(5));
 		
 		// reusable temporary object
 		private static const _tempNumberClassifier:NumberClassifier = new NumberClassifier();
@@ -71,9 +65,7 @@ package weave.data.BinningDefinitions
 			if (column)
 			{
 				// BEGIN DIMENSION SLIDER HACK
-				var nonWrapperColumn:IAttributeColumn = column;
-				while (nonWrapperColumn is IColumnWrapper)
-					nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).getInternalColumn();
+				var nonWrapperColumn:IAttributeColumn = ColumnUtils.hack_findNonWrapperColumn(column);
 				if (nonWrapperColumn is SecondaryKeyNumColumn)
 				{
 					SecondaryKeyNumColumn.allKeysHack = true;
@@ -98,7 +90,7 @@ package weave.data.BinningDefinitions
 				_keys = [];
 			}
 			
-			_sortedValues = new Array(_keys.length);
+			_sortedValues = new Array();
 			_keyCount = 0;
 			_previousSortedValues.length = 0;
 			
@@ -110,7 +102,8 @@ package weave.data.BinningDefinitions
 			
 			_compoundIterateAll(-1); // reset compound task
 			
-			WeaveAPI.StageUtils.startTask(asyncResultCallbacks, _compoundIterateAll, WeaveAPI.TASK_PRIORITY_PARSING, _handleJenksBreaks);
+			// high priority because not much can be done without data
+			WeaveAPI.StageUtils.startTask(asyncResultCallbacks, _compoundIterateAll, WeaveAPI.TASK_PRIORITY_HIGH, _handleJenksBreaks);
 		}
 		
 		private var _compoundIterateAll:Function = StageUtils.generateCompoundIterativeTask(_getValueFromKeys, _iterateSortedKeys, _iterateJenksBreaks);
@@ -119,11 +112,15 @@ package weave.data.BinningDefinitions
 		private var _keys:Array = []; 
 		private function _getValueFromKeys(stopTime:int):Number
 		{
+			var currValue:Number;
 			for (; _keyCount < _keys.length; _keyCount++)
 			{
 				if (getTimer() > stopTime)
 					return _keyCount/_keys.length;
-				_sortedValues[_keyCount] = _column.getValueFromKey(_keys[_keyCount],Number);
+				/*ignore NaN */
+				currValue = _column.getValueFromKey(_keys[_keyCount],Number);
+				if (isFinite(currValue))
+					_sortedValues.push(currValue);
 			}
 			
 			// begin sorting now
@@ -354,7 +351,7 @@ package weave.data.BinningDefinitions
 				var name:String = getOverrideNames()[iBin];
 				//if it is empty string set it from generateBinLabel
 				if(!name)
-					name = _tempNumberClassifier.generateBinLabel(_column as IPrimitiveColumn);
+					name = _tempNumberClassifier.generateBinLabel(_column);
 				output.requestObjectCopy(name, _tempNumberClassifier);
 			}
 			
@@ -389,13 +386,10 @@ package weave.data.BinningDefinitions
 		{
 			var keys:Array = column ? column.keys : [];
 			var sortedColumn:Array = new Array(keys.length);
-			var i:uint = 0;
-			for each (var key:IQualifiedKey in keys)	
-			{
-				sortedColumn[i] = column.getValueFromKey(key,Number);
-				i = i+1;
-			}
-			AsyncSort.sortImmediately(sortedColumn, ObjectUtil.numericCompare);
+			for (var i:int = 0; i < keys.length; i++)
+				sortedColumn[i] = Number(column.getValueFromKey(keys[i], Number));
+			
+			StandardLib.sort(sortedColumn);
 			return sortedColumn;
 		}
 		

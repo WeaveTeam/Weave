@@ -22,9 +22,6 @@ package weave.services.wms
 	import com.modestmaps.core.Coordinate;
 	import com.modestmaps.mapproviders.AbstractMapProvider;
 	import com.modestmaps.mapproviders.IMapProvider;
-	import com.modestmaps.mapproviders.OpenStreetMapProvider;
-	
-	import weave.api.services.IWMSService;
 
 	/**
 	 * This class is simply another provider to be used with ModestMaps library.

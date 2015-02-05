@@ -20,25 +20,35 @@
 */
 -->
 <mx:HBox xmlns="weave.editors.*" 
-		xmlns:mx="http://www.adobe.com/2006/mxml"
-		implements="weave.api.ui.ILinkableObjectEditor"
-		horizontalScrollPolicy="off" verticalScrollPolicy="off" xmlns:ui="weave.ui.*">
-	<mx:CheckBox id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter()"/>
-	<mx:Button enabled="{filterEnable.selected}" label="..." toolTip="{lang('Select a column to be used for filtering the data.')}" click="AttributeSelectorPanel.openDefaultSelector(stringFilter.column, lang('Filter'));"/>
-	<ui:CustomComboBox id="filterValue" enabled="{filterEnable.selected}" prompt="{lang('Select filter value...')}" toolTip="{lang('Select a value used to filter the data.')}"/>
+		xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
+		implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject"
+		paddingLeft="4"
+		horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" verticalAlign="middle">
+	<ui:CustomCheckBox id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter();"/>
+	<mx:Button enabled="{filterEnable.selected}"
+			   width="24" icon="@Embed(source='/weave/resources/images/eject-inset.png')"
+			   toolTip="{lang('Select a column to be used for filtering the data.')}"
+			   click="AttributeSelectorPanel.open(stringFilter.column, lang('Filter'));"/>
+	<ui:CustomComboBox id="filterValue" enabled="{filterEnable.selected}"
+					   prompt="{lang('Select filter value...')}"
+					   toolTip="{lang('Select a value used to filter the data.')}"
+					   width="100%" minWidth="22"/>
 	<mx:Script>
 		<![CDATA[
+			import mx.utils.ObjectUtil;
+			
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
 			import weave.api.unlinkBindableProperty;
-			import weave.core.CallbackJuggler;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableWatcher;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.StringDataFilter;
 			import weave.ui.AttributeSelectorPanel;
-			import weave.ui.ControlPanel;
-			import weave.utils.AsyncSort;
 			import weave.utils.ColumnUtils;
+			import weave.utils.VectorUtils;
 
 			[Bindable] private var columnTitle:String;
 			private function getEnableLabel(columnTitle:String):String
@@ -46,22 +56,22 @@
 				return lang('Filter by {0}', columnTitle || '...');
 			}
 			
-			private const filterJuggler:CallbackJuggler = new CallbackJuggler(this, handleFilter, true);
-			private const columnJuggler:CallbackJuggler = new CallbackJuggler(this, handleColumn, true);
+			private const filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleFilter, true);
+			private const columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleColumn, true);
 			private var _linkedFilter:StringDataFilter;
 			
 			public function get stringFilter():StringDataFilter
 			{
-				return filterJuggler.target as StringDataFilter;
+				return filterWatcher.target as StringDataFilter;
 			}
 			
 			public function setTarget(object:ILinkableObject):void
 			{
-				filterJuggler.target = object as StringDataFilter;
+				filterWatcher.target = object as StringDataFilter;
 				
 				if (stringFilter)
 				{
-					columnJuggler.target = stringFilter.column;
+					columnWatcher.target = stringFilter.column;
 					this.enabled = true;
 				}
 				else
@@ -88,10 +98,8 @@
 				}
 				handleFilter();
 			}
-			public function applyChanges():void
-			{
-				// changes are applied immediately
-			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 
 			private function toggleFilter():void
 			{
@@ -139,13 +147,10 @@
 					//TODO - make this asynchronous
 					var valueMap:Object = {};
 					for each (var key:IQualifiedKey in column.keys)
-						valueMap[column.getValueFromKey(key, String)] = true;
+						valueMap[column.getValueFromKey(key, String)] = column.getValueFromKey(key, Number);
 					
-					var valueList:Array = [];
-					for (var string:String in valueMap)
-						valueList.push(string);
-					
-					AsyncSort.sortImmediately(valueList, AsyncSort.compareCaseInsensitive);
+					var valueList:Array = VectorUtils.getKeys(valueMap);
+					StandardLib.sortOn(valueList, valueMap);
 					
 					filterValue.dataProvider = valueList;
 				}

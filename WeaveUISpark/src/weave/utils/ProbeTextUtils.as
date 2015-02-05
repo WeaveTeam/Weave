@@ -26,7 +26,6 @@ package weave.utils
 	import mx.managers.ToolTipManager;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
@@ -66,22 +65,38 @@ package weave.utils
 		public static const probeLineFormatter:LinkableFunction = new LinkableFunction(DEFAULT_LINE_FORMAT, true, false, ['column', 'key', 'string', 'title']);
 		
 		/**
-		 * getProbeText
-		 * @param keySet The key set you are interested in.
-		 * @param additionalColumns An array of additional columns (other than global probed columns) to be displayed in the probe tooltip
-		 * @param maxRecordsShown Maximum no. of records shown in one probe tooltip
-		 * @return A string to be displayed on a tooltip while probing 
+		 * Additional columns (or ILinkableHashMaps containing columns) to be used by getProbeText() when the additionalAttributes parameter is not specified.
+		 * This variable will be set automatically when that parameter is passed to getProbeText().
 		 */
-		public static function getProbeText(keys:Array, additionalColumns:Array = null):String
+		private static var savedAdditionalAttributes:Array = null;
+		
+		/**
+		 * @param keySet The key set you are interested in.
+		 * @param additionalAttributes An array of additional columns (or ILinkableHashMaps containing columns) to be included in the probe text.
+		 *                               If this parameter is not specified, the previously specified Array (or null) will be used.
+		 * @return A String containing formatted values from the probed columns.
+		 */
+		public static function getProbeText(keys:Array, additionalAttributes:* = undefined):String
 		{
+			// save the additional columns for the next time this function is called so the same info will be returned.
+			if (additionalAttributes !== undefined)
+				savedAdditionalAttributes = additionalAttributes;
+			
 			var result:String = '';
 			var headers:Array = probeHeaderColumns.getObjects(IAttributeColumn);
 			// include headers in list of columns so that those appearing in the headers won't be duplicated.
 			var columns:Array = headers.concat(probedColumns.getObjects(IAttributeColumn));
-			if (additionalColumns != null)
-				columns = columns.concat(additionalColumns);
+			// add additional columns (flatten any hash maps)
+			for each (var item:Object in savedAdditionalAttributes)
+			{
+				if (item is ILinkableHashMap)
+					columns = columns.concat((item as ILinkableHashMap).getObjects(IAttributeColumn));
+				else if (item is IAttributeColumn)
+					columns.push(item);
+			}
+			
 			var keys:Array = keys.concat();
-			AsyncSort.sortImmediately(keys);
+			StandardLib.sort(keys);
 			var key:IQualifiedKey;
 			var recordCount:int = 0;
 			var maxRecordsShown:Number = Weave.properties.maxTooltipRecordsShown.value;
@@ -103,10 +118,12 @@ package weave.utils
 				
 				if (record)
 					record += '\n';
-				var lookup:Object = new Object() ;
+				var lookup:Object = {};
 				for (var iColumn:int = 0; iColumn < columns.length; iColumn++)
 				{
 					var column:IAttributeColumn = columns[iColumn] as IAttributeColumn;
+					if (!column)
+						continue;
 					var value:String = String(column.getValueFromKey(key, String));
 					if (!value || value == 'NaN')
 						continue;
@@ -165,7 +182,7 @@ package weave.utils
 			(probeToolTip as UIComponent).setStyle("backgroundAlpha", Weave.properties.probeToolTipBackgroundAlpha.value);
 			if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
 				(probeToolTip as UIComponent).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
-			Weave.properties.defaultTextFormat.copyToStyle(probeToolTip as UIComponent);
+			Weave.properties.visTextFormat.copyToStyle(probeToolTip as UIComponent);
 		}
 
 		public static var yAxisToolTip:IToolTip;
@@ -184,7 +201,7 @@ package weave.utils
 			if (!probeToolTip)
 				probeToolTip = ToolTipManager.createToolTip('', 0, 0);
 		
-			var stage:Stage = WeaveAPI.topLevelApplication.stage;
+			var stage:Stage = WeaveAPI.StageUtils.stage;
 			tempBounds.setBounds(stage.x, stage.y, stage.stageWidth, stage.stageHeight);
 		
 			if (stageBounds == null)

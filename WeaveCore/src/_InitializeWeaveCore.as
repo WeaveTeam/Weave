@@ -19,7 +19,6 @@
 
 package
 {
-	import weave.api.WeaveAPI;
 	import weave.api.core.IErrorManager;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableHashMap;
@@ -27,6 +26,10 @@ package
 	import weave.api.core.IProgressIndicator;
 	import weave.api.core.ISessionManager;
 	import weave.api.core.IStageUtils;
+	import weave.api.ui.IEditorManager;
+	import weave.compiler.Compiler;
+	import weave.core.ClassUtils;
+	import weave.core.EditorManager;
 	import weave.core.ErrorManager;
 	import weave.core.ExternalSessionStateInterface;
 	import weave.core.LinkableHashMap;
@@ -38,22 +41,34 @@ package
 
 	public class _InitializeWeaveCore
 	{
+		ClassUtils.registerDeprecatedClass('weave.api.WeaveAPI', WeaveAPI);
+		
 		/**
 		 * Register singleton implementations for WeaveAPI framework classes
 		 */
-		WeaveAPI.registerSingleton(ISessionManager, SessionManager);
-		WeaveAPI.registerSingleton(IStageUtils, StageUtils);
-		WeaveAPI.registerSingleton(IErrorManager, ErrorManager);
-		WeaveAPI.registerSingleton(IExternalSessionStateInterface, ExternalSessionStateInterface);
-		WeaveAPI.registerSingleton(IProgressIndicator, ProgressIndicator);
-		WeaveAPI.registerSingleton(ILocaleManager, LocaleManager);
-		WeaveAPI.registerSingleton(ILinkableHashMap, LinkableHashMap);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IStageUtils, StageUtils);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IErrorManager, ErrorManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IExternalSessionStateInterface, ExternalSessionStateInterface);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IProgressIndicator, ProgressIndicator);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(ILocaleManager, LocaleManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IEditorManager, EditorManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(ILinkableHashMap, LinkableHashMap);
 		
 		/**
 		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
 		 */
 		WeaveXMLDecoder.includePackages(
 			"weave",
+			"weave.api",
+			"weave.api.core",
+			"weave.api.data",
+			"weave.api.primitives",
+			"weave.api.services",
+			"weave.api.services.beans",
+			"weave.api.ui",
+			"weave.compiler",
+			"weave.core",
 			"weave.utils"
 		);
 	}

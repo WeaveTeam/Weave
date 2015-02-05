@@ -26,12 +26,11 @@ package weave.visualization.layers
 	import spark.components.Group;
 	import spark.core.SpriteVisualElement;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
-	import weave.api.setSessionState;
-	import weave.api.core.ILinkableObject;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.setSessionState;
 	import weave.core.ClassUtils;
 	import weave.core.SessionManager;
 

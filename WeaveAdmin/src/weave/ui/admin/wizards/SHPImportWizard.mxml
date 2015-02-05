@@ -44,7 +44,7 @@
 			showTableCombo="false"
 			creationComplete="tableSelector.tableControls.label = lang('SQL Table Prefix');"
 			activeTable="{shpFileNameInput.text}"
-			tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
+			tableOverwriteCheckVisible="{admin.currentUserIsSuperuser}"/>
 	</mx:VBox>
 	
 	<mx:VBox width="100%" height="100%">
@@ -53,14 +53,17 @@
 									change="handleChange();"
 									prompt="{lang('Enter a table name')}"
 									text="{tableSelector.activeTable}"/>
-			<ui:HelpComponent>This is the name that will be visible in Weave.</ui:HelpComponent>
+			<ui:HelpComponent>
+				This is the name that will be visible in Weave.
+			</ui:HelpComponent>
 		</ui:Indent>
 		
 		<mx:HBox>
 			<mx:CheckBox id="dbfImportCheckBox" label="{lang('Publish DBF data as Weave attribute columns')}" selected="true" change="handleKeyColumnsChange()" />
 			<ui:HelpComponent>
 				The DBF file is used to generate record identifiers for the geometries contained in the SHP file.
-				Creating attribute columns for the rest of the DBF data is optional, but requires a key column or set of columns with values that uniquely identify rows in the DBF table.
+				Creating attribute columns for the rest of the DBF data is optional, but requires a key column or
+				set of columns with values that uniquely identify rows in the DBF table.
 			</ui:HelpComponent>
 		</mx:HBox>
 		<ui:IndentTextInput label="{lang('Null flag values')}" id="nullFlagInput" group="{indentGroup}"
@@ -74,7 +77,9 @@
 		<ui:Indent label="{lang('DBF Key column(s)')}" group="{indentGroup}">
 			<ui:CustomComboBox id="dbfKeyColumnsCombo" dataProvider="{dbfColumns}" change="handleKeyColumnsChange()" editable="true" width="240"/>
 			<ui:HelpComponent>
-				Separate DBF column names by commas.  Values in the given columns will be concatenated to form unique identifiers for the shapes. These keys will also be used as the keys of the DataTable entry created from the DBF file.
+				Separate DBF column names by commas.
+				Values in the given columns will be concatenated to form unique identifiers for the shapes.
+				These keys will also be used as the keys of the DataTable entry created from the DBF file.
 			</ui:HelpComponent>
 		</ui:Indent>
 		
@@ -87,6 +92,7 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import weave.api.reportError;
 			import flash.utils.getQualifiedClassName;
 			
 			import mx.collections.ArrayCollection;
@@ -97,7 +103,6 @@
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.StringUtil;
 			
-			import weave.api.WeaveAPI;
 			import weave.core.UIUtils;
 			import weave.services.Admin;
 			import weave.services.WeaveAdminService;
@@ -106,6 +111,7 @@
 			import weave.ui.admin.ServerFileViewer;
 			import weave.utils.EventUtils;
 			
+			[Bindable] private var admin:Admin = Admin.instance;
 			private static const paddingIndent:int = 20;
 			[Bindable] public var indentGroup:IndentGroup = new IndentGroup();
 			
@@ -262,8 +268,15 @@
 			private var shapeFileReferenceList:FileReferenceList = new FileReferenceList();
 			private function browseAndUploadShapeFiles():void
 			{
-				var fileTypes:Array = [new FileFilter("Shape Files", "*.*")];
-				shapeFileReferenceList.browse(fileTypes);
+				try
+				{
+					var fileTypes:Array = [new FileFilter("Shape Files", "*.*")];
+					shapeFileReferenceList.browse(fileTypes);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 
 			private function fileErrorHandler(event:IOErrorEvent):void
@@ -304,14 +317,14 @@
 			private function openServerBrowser():void
 			{
 				_serverFileBrowser = ServerFileViewer.createServerFileViewer(this, ServerFileViewer.INPUT_SHP);
-				_serverFileBrowser.datagrid.addEventListener(MouseEvent.DOUBLE_CLICK, serverFileBrowserSelectFile);
+				_serverFileBrowser.dataGrid.addEventListener(MouseEvent.DOUBLE_CLICK, serverFileBrowserSelectFile);
 				_serverFileBrowser.selectButton.addEventListener(MouseEvent.CLICK, serverFileBrowserSelectFile);				
 			}
 			private function serverFileBrowserSelectFile(e:MouseEvent):void
 			{
 				fileUploadCount = targetFileUploadCount = 0;
 				
-				var tableName:String = _serverFileBrowser.datagrid.selectedItem.name;
+				var tableName:String = _serverFileBrowser.selectedFileInfo.fileName;
 				tableName = tableName.substring(0,tableName.lastIndexOf("."));
 				
 				shpFileNameInput.text = tableName;

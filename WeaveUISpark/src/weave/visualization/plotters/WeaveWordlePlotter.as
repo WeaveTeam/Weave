@@ -23,7 +23,6 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.text.TextFormat;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -52,7 +51,7 @@ package weave.visualization.plotters
 			fillStyle.color.defaultValue.setSessionState(0x808080);
 			
 			// set up session state
-			setColumnKeySources([wordColumn], [true]);
+			setColumnKeySources([wordColumn], [-1]);
 			
 			registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(wordColumn));
 		}	
@@ -134,7 +133,7 @@ package weave.visualization.plotters
 				
 				var recordKey:IQualifiedKey = recordKeys[i] as IQualifiedKey;
 				
-				normalized = wordColumn.getValueFromKey( recordKey );
+				normalized = wordColumn.getValueFromKey(recordKey, Number);
 				
 				tempPoint.x = randPoints[recordKey][0] * screenBounds.getWidth() + screenBounds.getXMin();
 				tempPoint.y = randPoints[recordKey][1] * screenBounds.getHeight() + screenBounds.getYMin();

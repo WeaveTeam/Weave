@@ -30,43 +30,47 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
+	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.ColumnReferences.HierarchyColumnReference;
-	import weave.utils.HierarchyUtils;
 	import weave.utils.VectorUtils;
 
 	/**
-	 * XLSDataSource
-	 * 
 	 * @author skolman
 	 * @author adufile
 	 */
-	public class XLSDataSource extends AbstractDataSource
+	public class XLSDataSource extends AbstractDataSource_old implements IDataSource_File
 	{
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, XLSDataSource, "XLS file");
+
 		public function XLSDataSource()
 		{
+		}
+		
+		override protected function get initializationComplete():Boolean
+		{
+			return super.initializationComplete
+				&& xlsSheetsArray
+				&& xlsSheetsArray.length > 0;
 		}
 		
 		override protected function initialize():void
 		{
 			super.initialize();
-//			keyColName.lock();
-//			keyType.lock();
 
-			if (url.value != "" && url.value != null)
+			if (detectLinkableObjectChange(initialize, url) && url.value)
 			{
 				var urlRequest:URLRequest = new URLRequest(url.value);
 				urlRequest.contentType = "application/vnd.ms-excel";
-				WeaveAPI.URLRequestUtils.getURL(this, urlRequest, handleXLSDownload, handleXLSDownloadError, null, URLLoaderDataFormat.BINARY);
+				WeaveAPI.URLRequestUtils.getURL(this, urlRequest, handleXLSDownload, handleXLSDownloadError, url.value, URLLoaderDataFormat.BINARY);
 			}
 		}
 
@@ -76,67 +80,64 @@ package weave.data.DataSources
 		
 		// contains the parsed xls data
 		private var xlsSheetsArray:ArrayCollection = null;
-		private function loadXLSData(xlsSheetsArray:ArrayCollection):void
-		{
-			this.xlsSheetsArray = xlsSheetsArray;
-			if (_attributeHierarchy.value == null)
-			{
-				// loop through column names, adding indicators to hierarchy
-				var firstRow:Array = xlsSheetsArray[0].values[0];
-				var category:XML = <category name="XLS Data"/>;
-				for each (var colName:String in firstRow)
-				{
-					category.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
-				}
-				_attributeHierarchy.value = <hierarchy>{ category }</hierarchy>;
-			}
-			
-			//trace("hierarchy was set to " + attributeHierarchy.xml);
-		}
 		
 		/**
-		 * handleXLSDownload
 		 * Called when the XLS file is downloaded from the URL
 		 */
-		private function handleXLSDownload(event:ResultEvent, token:Object = null):void
+		private function handleXLSDownload(event:ResultEvent, url:String):void
 		{
-			var xls:ExcelFile = new ExcelFile();
-			xls.loadFromByteArray(ByteArray(event.result));
-			loadXLSData(xls.sheets);
+			if (url != this.url.value)
+				return;
+			
+			try
+			{
+				var xls:ExcelFile = new ExcelFile();
+				xls.loadFromByteArray(ByteArray(event.result));
+				xlsSheetsArray = xls.sheets;
+				if (_attributeHierarchy.value == null && xlsSheetsArray.length > 0)
+				{
+					// loop through column names, adding indicators to hierarchy
+					var firstRow:Array = xlsSheetsArray[0].values[0];
+					var root:XML = <hierarchy title={ WeaveAPI.globalHashMap.getName(this) }/>;
+					for each (var colName:String in firstRow)
+					{
+						root.appendChild(<attribute title={colName} name={colName} keyType={ keyType.value }/>);
+					}
+					_attributeHierarchy.value = root;
+				}
+			}
+			catch (e:Error)
+			{
+				reportError(e, "Unable to read Excel file.");
+			}
 		}
 		
 		/**
-		 * handleXLSDownloadError
 		 * Called when the XLS file fails to download from the URL
 		 */
-		private function handleXLSDownloadError(event:FaultEvent, token:Object = null):void
+		private function handleXLSDownloadError(event:FaultEvent, url:String):void
 		{
+			if (url != this.url.value)
+				return;
+			
 			reportError(event);
 		}
 		
 		/**
-		 * requestColumnFromSource
-		 * This function must be implemented by classes by extend AbstractDataSource.
-		 * This function should make a request to the source to fill in the proxy column.
-		 * @param columnReference An object that contains all the information required to request the column from this IDataSource. 
-		 * @param A ProxyColumn object that will be updated when the column data is ready.
+		 * @inheritDoc
 		 */
-		override protected function requestColumnFromSource(columnReference:IColumnReference, proxyColumn:ProxyColumn):void
+		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
-			var hierarchyRef:HierarchyColumnReference = columnReference as HierarchyColumnReference;
-			if (!hierarchyRef)
-				return handleUnsupportedColumnReference(columnReference, proxyColumn);
-
-			var pathInHierarchy:XML = hierarchyRef.hierarchyPath.value;
-			var leafNode:XML = HierarchyUtils.getLeafNodeFromPath(pathInHierarchy);
-			proxyColumn.setMetadata(leafNode);
 			var colName:String = String(proxyColumn.getMetadata("name"));
-			trace(xlsSheetsArray[0].values[0]);
-			var colIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0],colName);
-			var keyColIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0],keyColName.value);
-			if (keyColIndex == -1)
-				keyColIndex = 0; // default to first column (temp solution)
+			var colIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0], colName);
+			var keyColIndex:int = getColumnIndexFromSheetValues(xlsSheetsArray[0].values[0], keyColName.value);
 
+			if (colIndex < 0)
+			{
+				proxyColumn.dataUnavailable(lang("No such column: {0}", colName));
+				return;
+			}
+			
 			var xlsDataColumn:Vector.<String> = getColumnValues(colIndex);
 			var keyStringsArray:Array = VectorUtils.copy(getColumnValues(keyColIndex), []);
 			var keysArray:Array = WeaveAPI.QKeyManager.getQKeys(keyType.value, keyStringsArray);
@@ -145,7 +146,7 @@ package weave.data.DataSources
 			// loop through values, determine column type
 			var nullValues:Array = ["null", "\\N", "NaN"];
 			var nullValue:String;
-			var isNumericColumn:Boolean = true
+			var isNumericColumn:Boolean = true;
 			//check if it is a numeric column.
 			for each (var columnValue:String in xlsDataColumn)
 			{
@@ -165,12 +166,12 @@ package weave.data.DataSources
 			var newColumn:IAttributeColumn;
 			if (isNumericColumn)
 			{
-				newColumn = new NumberColumn(leafNode);
+				newColumn = new NumberColumn(proxyColumn.getProxyMetadata());
 				(newColumn as NumberColumn).setRecords(keysVector, Vector.<Number>(xlsDataColumn));
 			}
 			else
 			{
-				newColumn = new StringColumn(leafNode);
+				newColumn = new StringColumn(proxyColumn.getProxyMetadata());
 				(newColumn as StringColumn).setRecords(keysVector, Vector.<String>(xlsDataColumn));
 			}
 			proxyColumn.setInternalColumn(newColumn);
@@ -179,8 +180,14 @@ package weave.data.DataSources
 		private function getColumnValues(columnIndex:int):Vector.<String>
 		{
 			var values:Vector.<String> = new Vector.<String>();
-			for (var i:int = 1; i < xlsSheetsArray[0].values.length; i++)
-				values[i-1] = xlsSheetsArray[0].values[i][columnIndex];
+			values.length = xlsSheetsArray[0].values.length - 1;
+			for (var i:int = 0; i < values.length; i++)
+			{
+				if (columnIndex < 0)
+					values[i] = String(i + 1);
+				else
+					values[i] = xlsSheetsArray[0].values[i + 1][columnIndex];
+			}
 			return values;
 		}
 		

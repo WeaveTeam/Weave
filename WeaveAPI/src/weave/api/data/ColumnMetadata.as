@@ -22,13 +22,49 @@ package weave.api.data
 	 */
 	public class ColumnMetadata
 	{
+		public static const ENTITY_TYPE:String = 'entityType';
 		public static const TITLE:String = "title";
 		public static const NUMBER:String = "number";
 		public static const STRING:String = "string";
 		public static const KEY_TYPE:String = "keyType";
 		public static const DATA_TYPE:String = "dataType";
+		public static const PROJECTION:String = "projection";
+		public static const AGGREGATION:String = "aggregation";
+		public static const DATE_FORMAT:String = "dateFormat";
 		public static const MIN:String = "min";
 		public static const MAX:String = "max";
-		public static const PROJECTION:String = 'projection';
+		
+		public static function getAllMetadata(column:IAttributeColumn):Object
+		{
+			var meta:Object = {};
+			for each (var name:String in column.getMetadataPropertyNames())
+				meta[name] = column.getMetadata(name);
+			return meta;
+		}
+		
+		/**
+		 * @param propertyName The name of a metadata property.
+		 * @return An Array of suggested String values for the specified metadata property.
+		 */
+		public static function getSuggestedPropertyValues(propertyName:String):Array
+		{
+			switch (propertyName)
+			{
+				case ColumnMetadata.ENTITY_TYPE:
+					return [EntityType.TABLE, EntityType.COLUMN, EntityType.HIERARCHY, EntityType.CATEGORY];
+				
+				case ColumnMetadata.DATA_TYPE:
+					return [DataType.NUMBER, DataType.STRING, DataType.DATE, DataType.GEOMETRY];
+				
+				case ColumnMetadata.DATE_FORMAT:
+					return ['YYYY', 'YYYY-MM-DD', 'HH:NN:SS'];
+				
+				case ColumnMetadata.AGGREGATION:
+					return [Aggregation.SAME, Aggregation.FIRST, Aggregation.LAST, Aggregation.MEAN, Aggregation.SUM, Aggregation.MIN, Aggregation.MAX, Aggregation.COUNT];
+				
+				default:
+					return [];
+			}
+		}
 	}
 }

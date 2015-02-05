@@ -15,11 +15,14 @@
 		<![CDATA[
 			import mx.core.FlexGlobals;
 			import mx.rpc.events.ResultEvent;
+			
+			import weave.api.reportError;
 			import weave.application.VisApp;
 			
-			import weave.api.WeaveAPI;
+			weaveTraceImpl as Function; // if we don't reference this, it won't be included in the build
 			
-			public var visApp:VisApp = null
+			public var version:String;
+			public var visApp:VisApp = null;
 			private var params:Object = null;
 			
 			override public function get parameters():Object
@@ -29,50 +32,79 @@
 			
 			private function appComplete():void
 			{
-				addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, doDragEnter);
-				addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, doDragDrop);
-				addEventListener(NativeDragEvent.NATIVE_DRAG_EXIT, doDragExit);
+				var xml:XML = NativeApplication.nativeApplication.applicationDescriptor;
+				var ns:Namespace = xml.namespace();
+				this.version = xml.ns::versionNumber;
+				
+				WeaveAPI.StageUtils.stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, doDragEnter);
+				WeaveAPI.StageUtils.stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, doDragDrop);
+				WeaveAPI.StageUtils.stage.addEventListener(NativeDragEvent.NATIVE_DRAG_EXIT, doDragExit);
 			}
 			private function doDragEnter(e:NativeDragEvent):void
 			{
-				NativeDragManager.acceptDragDrop(this);
+				if (e.clipboard.hasFormat(ClipboardFormats.FILE_LIST_FORMAT) || e.clipboard.hasFormat(ClipboardFormats.URL_FORMAT))
+					NativeDragManager.acceptDragDrop(WeaveAPI.StageUtils.stage);
 			}
 			private function doDragDrop(e:NativeDragEvent):void
 			{
 				var dropFiles:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
-				for each (var file:File in dropFiles)
+				if (dropFiles && dropFiles.length)
 				{
-					switch (file.extension.toLowerCase())
+					for each (var file:File in dropFiles)
 					{
-						case "xml":
-						case "weave":
-							params['file'] = file.nativePath;
-							loadFile(file.nativePath);
-							return;
-						default:
+						switch (file.extension.toLowerCase())
+						{
+							case "xml":
+							case "weave":
+								params['file'] = file.nativePath;
+							default:
+						}
+						WeaveAPI.StageUtils.callLater(this, loadFile, [file]);
 					}
 				}
-				var url:String = e.clipboard.getData(ClipboardFormats.URL_FORMAT) as String;
-				if (url)
+				else
 				{
-					loadFile(url);
-					return;
+					var url:String = e.clipboard.getData(ClipboardFormats.URL_FORMAT) as String;
+					if (url)
+					{
+						debugTrace(e, url);
+						loadFileUrl(url);
+						return;
+					}
 				}
 			}
+			
+			private function loadFile(file:File):void
+			{
+				file.addEventListener(Event.COMPLETE, handleFileLoadComplete);
+				file.addEventListener(IOErrorEvent.IO_ERROR, handleFileLoadError);
+				file.load();
+			}
+			private function handleFileLoadError(event:Event):void
+			{
+				reportError(event);
+			}
+			
+			private function handleFileLoadComplete(event:Event):void
+			{
+				var file:File = event.target as File;
+				visApp.handleDraggedFile(file.name, file.data);
+			}
+			
 			private function doDragExit(e:NativeDragEvent):void
 			{
 				
 			}
 			
-			private function loadFile(path:String):void
+			private function loadFileUrl(url:String):void
 			{
 				WeaveAPI.URLRequestUtils.getURL(
 					null,
-					new URLRequest(path),
+					new URLRequest(url),
 					function (event:ResultEvent, token:Object = null):void
 					{
-						WeaveAPI.URLRequestUtils.setBaseURL(path);
-						visApp.loadSessionState(event.result, path);
+						WeaveAPI.URLRequestUtils.setBaseURL(url);
+						visApp.loadSessionState(event.result, url);
 					}
 				);
 			}
@@ -108,15 +140,23 @@
 						}
 					}
 					// first parameter is filename
-					if (i >= args.length)
-					{
-						trace('no file name specified');
-						args.push('defaults.xml');
-					}
 					params['file'] = args[i];
 				}
+				
+				// only load the default file the first time the application is invoked
+				if (firstTimeInvoke && !params['file'])
+				{
+					trace('Loading default file', DEFAULT_FILE);
+					params['file'] = DEFAULT_FILE;
+				}
+				firstTimeInvoke = false;
+				
 				this.params = params;
 			}
+			
+			private var firstTimeInvoke:Boolean = true;
+			
+			private const DEFAULT_FILE:String = 'defaults.xml';
 		]]>
 	</fx:Script>
 	<!--<weave:VisApplication width="100%" height="100%" id="visApp"/>-->

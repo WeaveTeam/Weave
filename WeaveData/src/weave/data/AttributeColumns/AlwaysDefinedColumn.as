@@ -19,6 +19,8 @@
 
 package weave.data.AttributeColumns
 {
+	import flash.utils.Dictionary;
+	
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
@@ -63,23 +65,53 @@ package weave.data.AttributeColumns
 		}
 		private var _cachedDefaultValue:*;
 		
+		private var _cache_type_key:Dictionary = new Dictionary(true);
+		private var _cacheCounter:int = 0;
+		private static const UNDEFINED:Object = {};
+		
 		/**
-		 * getValueFromKey
 		 * @param key A key of the type specified by keyType.
 		 * @return The value associated with the given key.
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			var value:* = internalDynamicColumn.getValueFromKey(key, dataType);
-
-			if (StandardLib.isUndefined(value))
+			if (!DynamicColumn.cache)
 			{
-				value = _cachedDefaultValue;
-				if (dataType != null)
-					value = EquationColumnLib.cast(value, dataType);
+				var value:* = internalDynamicColumn.getValueFromKey(key, dataType);
+				
+				if (StandardLib.isUndefined(value))
+				{
+					value = _cachedDefaultValue;
+					if (dataType != null)
+						value = EquationColumnLib.cast(value, dataType);
+				}
+				
+				return value;
 			}
 			
-			return value;
+			if (triggerCounter != _cacheCounter)
+			{
+				_cacheCounter = triggerCounter;
+				_cache_type_key = new Dictionary(true);
+			}
+			var _cache:Dictionary = _cache_type_key[dataType];
+			if (!_cache)
+				_cache_type_key[dataType] = _cache = new Dictionary(true);
+			
+			value = _cache[key];
+			if (value === undefined)
+			{
+				value = internalDynamicColumn.getValueFromKey(key, dataType);
+				if (StandardLib.isUndefined(value))
+				{
+					value = _cachedDefaultValue;
+					if (dataType != null)
+						value = EquationColumnLib.cast(value, dataType);
+				}
+				
+				_cache[key] = value === undefined ? UNDEFINED : value;
+			}
+			return value === UNDEFINED ? undefined : value;
 		}
 	}
 }

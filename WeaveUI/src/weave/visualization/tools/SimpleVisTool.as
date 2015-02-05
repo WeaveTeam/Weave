@@ -31,31 +31,35 @@ package weave.visualization.tools
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.ICSVExportable;
+	import weave.api.data.IColumnReference;
+	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableDescendants;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IAltText;
+	import weave.api.ui.IInitSelectableAttributes;
 	import weave.api.ui.ILinkableContainer;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
-	import weave.api.ui.IVisToolWithSelectableAttributes;
+	import weave.api.ui.ISelectableAttributes;
+	import weave.api.ui.IVisTool;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.UIUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.editors.AltTextEditor;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.editors.SimpleAxisEditor;
 	import weave.editors.WindowSettingsEditor;
 	import weave.editors.managers.LayerListComponent;
-	import weave.ui.AutoResizingTextArea;
 	import weave.ui.DraggablePanel;
+	import weave.ui.Paragraph;
 	import weave.ui.PenTool;
 	import weave.utils.ColumnUtils;
-	import weave.utils.LinkableTextFormat;
 	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.LayerSettings;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
@@ -66,17 +70,17 @@ package weave.visualization.tools
 	 * 
 	 * @author adufilie
 	 */
-	public class SimpleVisTool extends DraggablePanel implements IVisToolWithSelectableAttributes, ILinkableContainer,ICSVExportable
+	public class SimpleVisTool extends DraggablePanel implements IVisTool, IInitSelectableAttributes, ILinkableContainer
 	{
 		public function SimpleVisTool()
 		{
 			// Don't put any code here.
-			// Put code in the constructor() function instead.
+			// Put code in the inConstructor() function instead.
 		}
 
-		override protected function constructor():void
+		override protected function inConstructor():void
 		{
-			super.constructor();
+			super.inConstructor();
 			
 			// lock an InteractiveVisualization onto the panel
 			_visualization = children.requestObject("visualization", SimpleInteractiveVisualization, true);
@@ -86,46 +90,36 @@ package weave.visualization.tools
 			{
 				invalidateDisplayList();
 			}
-			getCallbackCollection(LinkableTextFormat.defaultTextFormat).addGroupedCallback(this, updateTitleLabel, true);
+			getCallbackCollection(Weave.properties.visTitleTextFormat).addGroupedCallback(this, updateTitleLabel, true);
 		}
 
 		public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
 		public const children:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 
 		private var toolVBox:VBox; // simpleVisToolVBox contains titleLabel and visCanvas
-		private var visTitle:AutoResizingTextArea; // For display of title inside the window area
+		private var visTitle:Paragraph; // For display of title inside the window area
 		protected var visCanvas:Canvas; // For linkDisplayObjects
 		private var _visualization:SimpleInteractiveVisualization;
-		protected var layerListComponent:LayerListComponent;
-		protected var simpleAxisEditor:SimpleAxisEditor;
-		protected var windowSettingsEditor:WindowSettingsEditor;
 		public const altTextEditor:AltTextEditor = newLinkableChild(this, AltTextEditor);
-		
-		private var createdChildren:Boolean = false;
+		internal var layersEditor:LayerListComponent;
+		internal var axesEditor:SimpleAxisEditor;
+		internal var windowEditor:WindowSettingsEditor;
 		
 		override protected function createChildren():void
 		{
-			super.createChildren();
-			
 			if (createdChildren)
 				return;
 			
-			createdChildren = true;
+			super.createChildren();
 			
-			toolVBox = new VBox()
+			toolVBox = new VBox();
 			toolVBox.percentHeight = 100;
 			toolVBox.percentWidth = 100;
 			toolVBox.setStyle("verticalGap", 0);
 			toolVBox.setStyle("horizontalAlign", "center");
 			
-			visTitle = new AutoResizingTextArea();
-			visTitle.selectable = false;
-			visTitle.editable = false;
-			visTitle.setStyle('borderStyle', 'none');
+			visTitle = new Paragraph();
 			visTitle.setStyle('textAlign', 'center');
-			visTitle.setStyle('fontWeight', 'bold');
-			visTitle.setStyle('backgroundAlpha', 0);
-			visTitle.percentWidth = 100;
 			updateTitleLabel();
 			
 			visCanvas = new Canvas();
@@ -142,21 +136,33 @@ package weave.visualization.tools
 				visCanvas.addChild(flexChildren[i]);
 			
 			this.addChild(toolVBox);
+		}
+						
+		override protected function childrenCreated():void
+		{
+			super.childrenCreated();
 			
-			layerListComponent = new LayerListComponent();
-			layerListComponent.visualization = visualization;
+			BindingUtils.bindSetter(handleBindableTitle, this, 'title');
+		}
+		
+		override protected function initControlPanel():void
+		{
+			super.initControlPanel();
+			
+			layersEditor = new LayerListComponent();
+			layersEditor.visualization = visualization;
 			
 			//TODO: hide axis controls when axis isn't enabled
-
-			simpleAxisEditor = new SimpleAxisEditor();
-			simpleAxisEditor.setTargets(this, visualization, enableTitle);
 			
-			windowSettingsEditor = new WindowSettingsEditor();
-			windowSettingsEditor.target = this;
+			axesEditor = new SimpleAxisEditor();
+			axesEditor.setTargets(visualization, enableTitle, panelTitle);
+			
+			windowEditor = new WindowSettingsEditor();
+			windowEditor.target = this;
 			
 			altTextEditor.target = this as IAltText;
 			
-			var options:Array = [layerListComponent, simpleAxisEditor, windowSettingsEditor];
+			var options:Array = [layersEditor, axesEditor, windowEditor];
 			
 			if(this is IAltText)
 			{
@@ -167,15 +173,6 @@ package weave.visualization.tools
 			{
 				controlPanel.children = options;
 			}
-			
-			//DisabilityOptions.Instance.disabilityArray.push(disability);
-		}
-		
-		override protected function childrenCreated():void
-		{
-			super.childrenCreated();
-			
-			BindingUtils.bindSetter(handleBindableTitle, this, 'title');
 		}
 		
 		private function handleBindableTitle(value:String):void
@@ -184,10 +181,10 @@ package weave.visualization.tools
 		}
 		private function updateTitleLabel():void
 		{
-			if (!parent)
+			if (!createdChildren)
 				return callLater(updateTitleLabel);
 			
-			LinkableTextFormat.defaultTextFormat.copyToStyle(visTitle);
+			Weave.properties.visTitleTextFormat.copyToStyle(visTitle);
 		}
 		
 		
@@ -197,7 +194,14 @@ package weave.visualization.tools
 		 */		
 		public function getSelectableAttributeNames():Array
 		{
-			return [];
+			var obj:ISelectableAttributes = mainPlotter as ISelectableAttributes;
+			if (!obj)
+			{
+				var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
+				if (descendants.length == 1)
+					obj = descendants[0];
+			}
+			return obj ? obj.getSelectableAttributeNames() : [];
 		}
 
 		/**
@@ -206,7 +210,14 @@ package weave.visualization.tools
 		 */		
 		public function getSelectableAttributes():Array
 		{
-			return [];
+			var obj:ISelectableAttributes = mainPlotter as ISelectableAttributes;
+			if (!obj)
+			{
+				var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
+				if (descendants.length == 1)
+					obj = descendants[0];
+			}
+			return obj ? obj.getSelectableAttributes() : [];
 		}
 
 		private function updateToolWindowSettings():void
@@ -218,7 +229,7 @@ package weave.visualization.tools
 		
 		private function handleTitleToggleChange():void
 		{
-			if (!parent)
+			if (!createdChildren)
 			{
 				callLater(handleTitleToggleChange);
 				return;
@@ -293,35 +304,12 @@ package weave.visualization.tools
 			return childScale;
 		}
 		
-		public static function getDefaultColumnsOfMostCommonKeyType():Array
+		/**
+		 * @inheritDoc
+		 */
+		public function initSelectableAttributes(input:Array):void
 		{
-			var probedColumns:Array = ProbeTextUtils.probedColumns.getObjects(IAttributeColumn);
-			if (probedColumns.length == 0)
-				probedColumns = ProbeTextUtils.probeHeaderColumns.getObjects(IAttributeColumn);
-			
-			var keyTypeCounts:Object = new Object();
-			for each (var column:IAttributeColumn in probedColumns)
-				keyTypeCounts[ColumnUtils.getKeyType(column)] = int(keyTypeCounts[ColumnUtils.getKeyType(column)]) + 1;
-			var selectedKeyType:String = null;
-			var count:int = 0;
-			for (var keyType:String in keyTypeCounts)
-				if (keyTypeCounts[keyType] > count)
-					count = keyTypeCounts[selectedKeyType = keyType];
-			
-			// remove columns not of the selected key type
-			var i:int = probedColumns.length;
-			while (--i > -1)
-				if (ColumnUtils.getKeyType(probedColumns[i]) != selectedKeyType)
-					probedColumns.splice(i, 1);
-			
-			if (probedColumns.length == 0)
-			{
-				var filteredColumn:FilteredColumn = Weave.defaultColorDataColumn;
-				if (filteredColumn.getInternalColumn())
-					probedColumns.push(filteredColumn.getInternalColumn());
-			}
-			
-			return probedColumns;
+			ColumnUtils.initSelectableAttributes(getSelectableAttributes(), input);
 		}
 		
 		/**
@@ -363,30 +351,6 @@ package weave.visualization.tools
 			Weave.defaultSelectionKeySet.replaceKeys(keys);
 		}
 		
-		
-		/**
-		 * This function takes a list of dynamic column objects and
-		 * initializes the internal columns to default ones.
-		 */
-		public static function initColumnDefaults(dynamicColumn:DynamicColumn, ... moreDynamicColumns):void
-		{
-			moreDynamicColumns.unshift(dynamicColumn);
-			
-			var probedColumns:Array = getDefaultColumnsOfMostCommonKeyType();
-			for (var i:int = 0; i < moreDynamicColumns.length; i++)
-			{
-				var selectedColumn:ILinkableObject = probedColumns[i % probedColumns.length] as ILinkableObject;
-				var columnToInit:DynamicColumn = moreDynamicColumns[i] as DynamicColumn;
-				if (columnToInit.getInternalColumn() == null)
-				{
-					if (selectedColumn is DynamicColumn)
-						copySessionState(selectedColumn, columnToInit);
-					else
-						columnToInit.requestLocalObjectCopy(selectedColumn);
-				}
-			}
-		}
-		
 		/**
 		 * @param mainPlotterClass The main plotter class definition.
 		 * @param showAxes Set to true if axes should be added.
@@ -426,11 +390,6 @@ package weave.visualization.tools
 		override public function dispose():void
 		{
 			super.dispose();
-		}
-		
-		public function exportCSV():String
-		{
-			return ColumnUtils.generateTableCSV(getSelectableAttributes());
 		}
 	}
 }

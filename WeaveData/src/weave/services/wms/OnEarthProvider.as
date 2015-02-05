@@ -20,8 +20,6 @@
 package weave.services.wms
 {
 	import flash.display.Bitmap;
-	import flash.events.MouseEvent;
-	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.utils.Dictionary;
 	
@@ -30,18 +28,14 @@ package weave.services.wms
 	
 	import org.openscales.proj4as.ProjConstants;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
-	import weave.core.ErrorManager;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
-	import weave.core.StageUtils;
 	import weave.primitives.Bounds2D;
-	import weave.services.URLRequestUtils;
-	import weave.utils.AsyncSort;
 
 	/**
 	 * This class handles the requests for tiles from NASA's OnEarth WMS.
@@ -105,8 +99,6 @@ package weave.services.wms
 		private var _shapeLayers:String;
 		private var _styles:LinkableString = new LinkableString();
 		private var _imageFormat:String;
-		private var _imageWidth:int;
-		private var _imageHeight:int;
 		private var _transparent:Boolean;
 		
 		// the XML of the tile service is embedded to prevent redownloading
@@ -123,16 +115,7 @@ package weave.services.wms
 		 * This array contains the parameters needed to fill the request URL.
 		 * The even indices are constants, and the odd indices must be filled.
 		 */
-		private const _requestURLParams:Array = [
-			'request=',			'',
-			'&layers=',			'',
-			'&srs=', 			'',
-			'&format=image/',	'',
-			'&styles=', 		'',
-			'&width=', 			'',
-			'&height=', 		'',
-			'&bbox=', 			''
-			];
+		private const _requestURLParams:RequestUrlParams = new RequestUrlParams();
 		
 		/**
 		 * This array contains the months allowed for the styles of the BMNG tiles.
@@ -345,19 +328,17 @@ package weave.services.wms
 						continue;
 
 					// fill requestURL parameters
-					_requestURLParams[1] = "GetMap"; // should always be this for NASA
-					_requestURLParams[3] = _shapeLayers;
-					_requestURLParams[5] = _srs;
-					_requestURLParams[7] = _imageFormat;
+					_requestURLParams.request = "GetMap"; // should always be this for NASA
+					_requestURLParams.layers = _shapeLayers;
+					_requestURLParams.srs = _srs;
+					_requestURLParams.format = 'image/' + _imageFormat;
 					if (_stylesToMonths.indexOf(_styles.value) < 0)
 						_styles.value = _stylesToMonths[0];
-					_requestURLParams[9] = _styles.value;
-					_requestURLParams[11] = _imageWidth;
-					_requestURLParams[13] = _imageHeight;
-					_requestURLParams[15] = _tempBounds.getXNumericMin() +","+ _tempBounds.getYNumericMin() +","+ _tempBounds.getXNumericMax() +","+ _tempBounds.getYNumericMax();
-					var fullRequestString:String = _requestURL.value;
-					for (j = 0; j < _requestURLParams.length; ++j)
-						fullRequestString += _requestURLParams[j];
+					_requestURLParams.styles = _styles.value;
+					_requestURLParams.width = _imageWidth;
+					_requestURLParams.height = _imageHeight;
+					_requestURLParams.bbox = _tempBounds.getXNumericMin() +","+ _tempBounds.getYNumericMin() +","+ _tempBounds.getXNumericMax() +","+ _tempBounds.getYNumericMax();
+					var fullRequestString:String = _requestURL.value + _requestURLParams;
 					if (_urlToTile[fullRequestString] != undefined)
 						continue;
 					
@@ -376,22 +357,8 @@ package weave.services.wms
 				tiles = lowerQualTiles.concat(completedTiles);
 			else
 				tiles = completedTiles;
-			AsyncSort.sortImmediately(tiles, tileSortingComparison);
+			sortTiles(tiles);
 			return tiles;
-		}
-		
-		/**
-		 * This is a private method used for sorting an array of WMSTiles.
-		 */ 
-		private function tileSortingComparison(a:WMSTile, b:WMSTile):int
-		{
-			// if a is higher quality (less data/screen => smaller value), it succeeds b
-			if (a.zoomLevel < b.zoomLevel)
-				return 1;
-			else if (a.zoomLevel == b.zoomLevel)
-				return 0;
-			else
-				return -1;			
 		}
 
 		override public function getAllowedBounds(output:IBounds2D):void
@@ -450,5 +417,24 @@ package weave.services.wms
 		{
 			return '2011 (c) NASA Jet Propulsion Laboratory at California Institute of Technology';
 		}
+	}
+}
+
+import mx.utils.ObjectUtil;
+
+internal class RequestUrlParams
+{
+	public var request:String, layers:String, srs:String, format:String, styles:String, width:int, height:int, bbox:String;
+	public function toString():String
+	{
+		var o:Object = ObjectUtil.copy(this);
+		var str:String = '';
+		for (var k:String in o)
+		{
+			if (str.length)
+				str += '&';
+			str += k + '=' + encodeURI(o[k]);
+		}
+		return str;
 	}
 }

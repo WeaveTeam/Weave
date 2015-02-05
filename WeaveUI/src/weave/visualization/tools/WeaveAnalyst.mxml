@@ -28,7 +28,7 @@
 				width="100%"  height="100%"
 				
 				autoLayout="true"
-				implements="weave.api.ui.IVisTool" xmlns:tools="weave.visualization.tools.*" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*" 
+				implements="weave.api.ui.IVisTool_R" xmlns:tools="weave.visualization.tools.*" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*" 
 				>
 	
 	<mx:HDividedBox id="parentCanvasDiv" width="100%" height="100%">
@@ -44,12 +44,12 @@
 					<mx:String>3.Confusion Matrix</mx:String>
 				</mx:ArrayCollection>
 			</mx:ComboBox-->
-			<tools:WeaveAnalystDataMiningModule  id="dataMinAlgos" width="100%" height="5%" change="dataMinAlgos_changeHandler(event)">
+			<mx:ComboBox id="dataMinAlgos" width="100%" height="5%" change="dataMinAlgos_changeHandler(event)">
 				<mx:String>Data Mining Algorithms</mx:String>
 				<mx:String>1.Principal Component Analysis</mx:String>
 				<mx:String>2.KMeans Clustering</mx:String>
 				<mx:String>3.Confusion Matrix</mx:String>
-			</tools:WeaveAnalystDataMiningModule>
+			</mx:ComboBox>
 			<tools:WeaveAnalystStatisticsModule  id="statModule" width="100%" height="40%">		</tools:WeaveAnalystStatisticsModule>	
 		</mx:VDividedBox>
 		
@@ -75,14 +75,13 @@
 		<![CDATA[
 			import mx.events.ListEvent;
 			
-			import weave.Weave;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.core.UIUtils;
 			import weave.editors.PrincipalComponentEditor;
-			import weave.services.WeaveRServlet;
+			import weave.utils.ColumnUtils;
 
 
 			private static var analystInstance:WeaveAnalyst = null;
@@ -98,7 +97,7 @@
 			
 			 protected function constructor():*
 			{
-				 var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				 var columns:Array = ColumnUtils.getColumnsWithCommonKeyType();
 				 for (var i:int = 0; i < columns.length; i++)
 					 inputColumns.requestObjectCopy(null, columns[i]);
 				 

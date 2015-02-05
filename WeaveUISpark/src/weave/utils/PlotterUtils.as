@@ -23,7 +23,7 @@ package weave.utils
 	import flash.display.BitmapData;
 	import flash.geom.Rectangle;
 	
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 
 	/**
 	 * PlotterUtils
@@ -50,14 +50,14 @@ package weave.utils
 		}
 		
 		/**
-		 * This will dispose of any existing BitmapData inside a Bitmap and set it to null.
+		 * This will dispose any existing BitmapData inside a Bitmap and set it to null.
 		 * @param bitmap The Bitmap to empty.
 		 */
 		public static function emptyBitmapData(bitmap:Bitmap):void
 		{
 			if (bitmap.bitmapData)
 			{
-				disposeObjects(bitmap.bitmapData);
+				disposeObject(bitmap.bitmapData);
 				bitmap.bitmapData = null;
 			}
 		}
@@ -124,9 +124,9 @@ package weave.utils
 				{
 					var newBitmapData:BitmapData = new BitmapData(unscaledWidth, unscaledHeight, true, fillColor);
 					//trace("new BitmapData(",[unscaledWidth, unscaledHeight, true, 0x00000000],");");
-					// dispose of oldBitmapData, if any exists
+					// dispose oldBitmapData, if any exists
 					if (oldBitmapData != null)
-						disposeObjects(oldBitmapData);
+						disposeObject(oldBitmapData);
 					// connect Bitmap to newBitmapData
 					bitmap.bitmapData = newBitmapData;
 					result = true;
@@ -165,7 +165,7 @@ package weave.utils
 		
 		public static function alphaSliderFormatFunction(value:Number):String
 		{
-			return lang("{0}% Opaque", int(value * 100)) + "\n" + lang("{0}% Transparent", int(100 - value * 100));
+			return lang("{0}% Opaque", Math.round(value * 100)) + "\n" + lang("{0}% Transparent", Math.round(100 - value * 100));
 		}
 	}
 }

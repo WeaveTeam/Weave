@@ -1,124 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 -->
-<mx:Box  xmlns:mx="http://www.adobe.com/2006/mxml"  implements="weave.ui.CustomDataGrid.IFilterComponent, weave.api.core.IDisposableObject"
-		 verticalScrollPolicy="off" horizontalScrollPolicy="off"  creationPolicy="all" >
-	
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		implements="weave.ui.CustomDataGrid.IFilterComponent, weave.api.core.ILinkableObject"
+		horizontalAlign="center" verticalGap="0"
+		verticalScrollPolicy="off" horizontalScrollPolicy="off"  creationPolicy="all" xmlns:ui="weave.ui.*" >
+	<mx:Label id="lbl" textAlign="center" width="100%"/>
+	<mx:HSlider id="rangeSlider"
+				thumbCount="2" liveDragging="true" width="100%" height="100%" minWidth="0"
+				initialize="initRangeSlider()" showDataTip="false"
+				showTrackHighlight="true" />
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
-			import mx.events.FlexEvent;
 			
-			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IColumnStatistics;
 			import weave.api.data.IQualifiedKey;
-			import weave.api.disposeObjects;
 			import weave.api.getCallbackCollection;
+			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
-			import weave.core.CallbackJuggler;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableNumber;
-			import weave.utils.EventUtils;
+			import weave.core.LinkableWatcher;
+			import weave.core.UIUtils;
 			
-			public function dispose():void
+			override protected function childrenCreated():void
 			{
-				disposeObjects(_statsCallbackJuggler, _columnCallbackJuggler);
-			}
-				
-			
-			public var column:WeaveCustomDataGridColumn;
-			
-			public function mapColumnToFilter(column:WeaveCustomDataGridColumn):void{				
-				 this.column = column;
-				 _columnCallbackJuggler.target = column ? column.attrColumn : null;
-				 _statsCallbackJuggler.target = column ? WeaveAPI.StatisticsCache.getColumnStatistics(column.attrColumn) : null;
-			}
-			private var _statsCallbackJuggler:CallbackJuggler = new CallbackJuggler(this, initRangeSlider, true);
-			private var _columnCallbackJuggler:CallbackJuggler = new CallbackJuggler(this, initRangeSlider, true);
-			
-			override protected function childrenCreated():void{
 				super.childrenCreated();
 				// this prevents null point error while updatingDisplayList(thumbs is Null)
 				rangeSlider.validateProperties();
+				getCallbackCollection(this).addGroupedCallback(this, handleLinkableValues, true);
+				BindingUtils.bindSetter(handleBindableValues, rangeSlider, 'values');
+			}
+			
+			public function mapColumnToFilter(col:DataGridColumnForQKeyWithFilterAndGraphics):void
+			{
+				 _columnWatcher.target = col ? col.attrColumn : null;
+				 _statsWatcher.target = col ? WeaveAPI.StatisticsCache.getColumnStatistics(col.attrColumn) : null;
+				 initRangeSlider();
+			}
+			
+			private const _statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, initRangeSlider, true);
+			private const _columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, initRangeSlider, true);
+			
+			private function get column():IAttributeColumn
+			{
+				return _columnWatcher.target as IAttributeColumn;
+			}
+			private function get stats():IColumnStatistics
+			{
+				return _statsWatcher.target as IColumnStatistics;
 			}
 			
 			protected function initRangeSlider():void
 			{
-				if(!column || !rangeSlider){
+				if (!column || !rangeSlider)
+				{
 					callLater(initRangeSlider);
 					return;
 				}
-				dataMinimum = WeaveAPI.StatisticsCache.getColumnStatistics(column.attrColumn).getMin();
-				dataMaximum = WeaveAPI.StatisticsCache.getColumnStatistics(column.attrColumn).getMax();
-				rangeSlider.values = [dataMinimum, dataMaximum];
-				BindingUtils.bindSetter(handleBindableValues, rangeSlider, 'values');
-				getCallbackCollection(this).addGroupedCallback(this, handleLinkableValues);				
+				rangeSlider.minimum = stats.getMin();
+				rangeSlider.maximum = stats.getMax();
+				handleLinkableValues();
+			}
+			/**
+			 * Number of significant digits to use when user interacts with the slider.
+			 */
+			public var significantDigits:int = 3;
+			
+			private function fixPrecision(value:Number):Number
+			{
+				if (value == stats.getMin() || value == stats.getMax())
+					return value;
+				return StandardLib.roundSignificant(value, significantDigits);
 			}
 			private function handleBindableValues(values:Array):void
 			{
-				minimum.value = values[0];
-				maximum.value = values[1];
+				if (UIUtils.hasFocus(rangeSlider))
+				{
+					minimum.value = fixPrecision(values[0]);
+					maximum.value = fixPrecision(values[1]);
+				}
 			}
 			private function handleLinkableValues():void				
 			{
-				rangeSlider.values = [minimum.value, maximum.value];
-			}
-			
-			
-			//only get need to be allowed set needs to be disabled
-			[Bindable]		
-			public var dataMinimum:Number;
-			[Bindable]
-			public var dataMaximum:Number; 
-			
-			public const minimum:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
-			public const maximum:LinkableNumber = registerLinkableChild(this,new LinkableNumber());
-			
-			//range value nor getting stored in session need to find why?s
-			public function get isActive():Boolean{
 				var min:Number = minimum.value;
 				var max:Number = maximum.value;
-				return (min != dataMinimum || max != dataMaximum);
+				if (isNaN(min))
+					min = stats.getMin();
+				if (isNaN(max))
+					max = stats.getMax();
+				if (StandardLib.compare(rangeSlider.values, [min,max]) != 0)
+					rangeSlider.values = [min, max];
+				
+				lbl.text = lang("[{0}, {1}]", min, max);
 			}
 			
+			public const minimum:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
+			public const maximum:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
 			
-			public function filterFunction(key:Object):Boolean	{
-				var value:Number = column.attrColumn.getValueFromKey(key as IQualifiedKey, Number);
+			/**
+			 * @return true if maximum/minimum values are not equal to the column stats min/max values.
+			 */
+			public function get isActive():Boolean
+			{
+				return !(
+					isFinite(minimum.value) && minimum.value == stats.getMin() &&
+					isFinite(maximum.value) && maximum.value == stats.getMax()
+				);
+			}
+			
+			public function filterFunction(key:Object):Boolean
+			{
+				if (!column)
+					return true;
+				var value:Number = column.getValueFromKey(key as IQualifiedKey, Number);
 				var min:Number = minimum.value;
 				var max:Number = maximum.value;
-				if (!isNaN(value))
+				if (isFinite(value))
 				{
-					if (!isNaN(min) && value < min)return false;
-					if (!isNaN(max) && value > max)return false;
+					if (isFinite(min) && value < min)
+						return false;
+					if (isFinite(max) && value > max)
+						return false;
 				}
 				return true;
 			}
-			
-			
 		]]>
 	</mx:Script>
-	
-	<mx:HSlider id="rangeSlider" thumbCount="2" liveDragging="true" width="100%" height="100%" minWidth="0"
-				minimum="{dataMinimum}" maximum="{dataMaximum}"
-				labels="{[dataMinimum, dataMaximum]}"
-				initialize="initRangeSlider()"
-				showTrackHighlight="true" />
-	
-</mx:Box >
+</mx:VBox>

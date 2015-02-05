@@ -31,6 +31,8 @@ package weave.compiler
 	
 	import weave.utils.fixErrorMessage;
 	
+	use namespace flash_proxy;
+	
 	/**
 	 * This class can compile simple ActionScript expressions into functions.
 	 * 
@@ -49,7 +51,7 @@ package weave.compiler
 		 * Set this to true to enable trace statements for debugging.
 		 */
 		public var debug:Boolean = false;
-		
+
 		private static const INDEX_METHOD:int = -1;
 		private static const INDEX_CONDITION:int = 0;
 		private static const INDEX_TRUE:int = 1;
@@ -93,7 +95,7 @@ package weave.compiler
 		
 		/**
 		 * Used during compiling only.
-		 */		
+		 */
 		private static const _jumpStatements:Array = [ST_BREAK, ST_CONTINUE, ST_RETURN, ST_THROW];
 		
 		/**
@@ -187,8 +189,12 @@ package weave.compiler
 		private static const WHITESPACE:String = '\r\n \t\f';
 		/**
 		 * This is used to match number tokens.
-		 */		
+		 */
 		private static const numberRegex:RegExp = /^(0x[0-9A-Fa-f]+|[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)/;
+		
+		private static const maxUnicodeEscapeValue:uint = 0x10FFFF;
+		private static const maxUnicodeEscapeChars:uint = 8; // {10FFFF}
+		private static const unicodeRegex:RegExp = /^(\{[0-9A-Fa-f]+\}|[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/;
 		
 		private const JUMP_LOOKUP:Dictionary = new Dictionary(); // Function -> true
 		private const LOOP_LOOKUP:Dictionary = new Dictionary(); // Function -> true or ST_BREAK or ST_CONTINUE
@@ -236,24 +242,23 @@ package weave.compiler
 		
 		/**
 		 * This is used to temporarily store the host of the property that was accessed by the last call to the '.' operator.
-		 */		
+		 */
 		private var _propertyHost:Object = null;
 		/**
 		 * This is used to temporarily store the property name that was accessed by the last call to the '.' operator.
-		 */		
+		 */
 		private var _propertyName:* = null;
 
 		/**
 		 * This function compiles an expression into a Function that evaluates using variables from a symbolTable.
-		 * Strings may be surrounded by quotation marks (") and literal quotation marks are escaped by two quote marks together ("").
-		 * The escape sequence for a quoted variable name to indicate a quotation mark is two quotation marks together.
 		 * @param expression An expression to compile.
 		 * @param symbolTable This is a lookup table containing custom variables and functions that can be used in the expression. Multiple lookup tables can be specified in an Array. The values in the lookup tables may be changed outside the function after compiling.
 		 * @param errorHandler A function that takes an Error and optionally returns true if execution should continue, behaving as if the current instruction returned undefined.
 		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
 		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
-		 * @return A Function generated from the expression String, or null if the String does not represent a valid expression.
+		 * @return A Function generated from the expression String.
+		 * @throws Error If the expression is invalid.
 		 */
 		public function compileToFunction(expression:String, symbolTable:Object, errorHandler:Function = null, useThisScope:Boolean = false, paramNames:Array = null, paramDefaults:Array = null):Function
 		{
@@ -267,19 +272,31 @@ package weave.compiler
 		 * This function will compile an expression into a compiled object representing a function that takes no parameters and returns a value.
 		 * This function is useful for inspecting the structure of the compiled function and decompiling individual parts.
 		 * @param expression An expression to parse.
-		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
+		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens.
+		 * @throws Error If the expression is invalid.
 		 */
 		public function compileToObject(expression:String):ICompiledObject
 		{
 			return finalize(compileTokens(getTokens(expression), true));
 		}
 		
-		// TODO: includeLibrary(sourceSymbolTable, destinationSymbolTable) where it copies all the properties of source to destination
+		/**
+		 * Add keys to this dictionary for deprecated library replacements using dot notation rather than "::" package notation.
+		 */
+		public static const deprecatedClassReplacements:Object = {};
 		
 		/**
-		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
+		 * First checks deprecatedClassReplacements, then getDefinitionByName().
+		 * @param name The name used to look up a definition.
+		 * @return The corresponding object.
+		 * @throws Error If there is no definition corresponding to the name.
 		 */
-		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
+		private static function getDefinition(name:String):Object
+		{
+			if (name.indexOf("::") >= 0)
+				name = StandardLib.replace(name, "::", ".");
+			return deprecatedClassReplacements[name] as Class || getDefinitionByName(name);
+		}
 		
 		/**
 		 * This function will include additional libraries to be supported by the compiler when compiling functions.
@@ -296,7 +313,7 @@ package weave.compiler
 					if (library is String)
 					{
 						className = library as String;
-						library = getDefinitionByName(className);
+						library = getDefinition(className);
 						if (libraries.indexOf(library) >= 0)
 							continue;
 					}
@@ -331,16 +348,72 @@ package weave.compiler
 		/**
 		 * This function gets a list of all the libraries currently being used by the compiler.
 		 * @return A new Array containing a list of all the objects and/or classes used as libraries in the compiler.
-		 */		
+		 */
 		public function getAllLibraries():Array
 		{
 			return libraries.concat(); // make a copy
 		}
+		
+		/**
+		 * Provides functionality equivalent to ECMAScript's Function.prototype.bind().
+		 */
+		public static function bind(func:Function, that:*, ...args):Function
+		{
+			if (func == null)
+				throw new Error("function parameter cannot be null");
+			
+			if (args.length)
+				return function():*{ return func.apply(that, args.concat(arguments)); };
+			else
+				return function():*{ return func.apply(that, arguments); };
+		}
+		
+		/**
+		 * Creates a memoized version of a Function.
+		 * The parameters passed to the memoized version of the Function must be JSON-serializable.
+		 * @param func The function to memoize.
+		 * @param bindThis Optional thisArg parameter to pass to func.apply().
+		 * @param bindArgs Optional arguments to bind that should appear before any additional arguments passed to the memoized function.
+		 * @return A memoized version of the function.
+		 * @see #bind
+		 */
+		public static function memoize(func:Function, bindThis:* = null, ...bindArgs):Function
+		{
+			var cache:Object = {};
+			return function(...args):* {
+				var str:String = stringify(args);
+				if (cache.hasOwnProperty(str))
+					return cache[str];
+				if (bindArgs.length)
+					return cache[str] = func.apply(bindThis, bindArgs.concat(args));
+				return cache[str] = func.apply(bindThis, args);
+			};
+		}
+		
 		/**
 		 * This function will initialize the operators and constants.
 		 */
 		private function initialize():void
 		{
+			// add global support for function binding if not already added
+			if (!Function.prototype.bind)
+			{
+				try
+				{
+					Function.prototype.bind = function(that:*, ...args):* {
+						var func:Function = this;
+						if (args.length)
+							return function():*{ return func.apply(that, args.concat(arguments)); };
+						else
+							return function():*{ return func.apply(that, arguments); };
+					};
+				}
+				catch (e:Error)
+				{
+					trace("Compiler.initialize(): ", e.getStackTrace());
+				}
+			}
+			
 			if (!statements)
 			{
 				statements = {};
@@ -361,9 +434,7 @@ package weave.compiler
 				constants[String(_const)] = _const;
 			
 			// global classes
-			var _QName:* = getDefinitionByName('QName'); // workaround to avoid asdoc error
-			var _XML:* = getDefinitionByName('XML'); // workaround to avoid asdoc error
-			for each (var _class:Class in [Array, Boolean, Class, Date, Error, Function, int, Namespace, Number, Object, _QName, String, uint, _XML])
+			for each (var _class:Class in [Array, Boolean, Class, Date, Error, Function, int, Namespace, Number, Object, QName_Class, String, uint, XML_Class])
 				globals[getQualifiedClassName(_class)] = _class;
 			// global functions
 			for each (var _funcName:String in 'decodeURI,decodeURIComponent,encodeURI,encodeURIComponent,escape,isFinite,isNaN,isXMLName,parseFloat,parseInt,trace,unescape'.split(','))
@@ -380,11 +451,19 @@ package weave.compiler
 			
 			// impure operators
 			operators["["] = function(...args):* { return args; }; // array creation
+			operators["{"] = function(...args):Object // object creation
+			{
+				var o:Object = {};
+				var end:int = args.length - 1;
+				for (var i:int = 0; i < end; i += 2)
+					o[args[i]] = args[i + 1];
+				return o;
+			}
 			operators[OPERATOR_NEW] = function(classOrQName:Object, ...params):Object
 			{
 				var classDef:Class = classOrQName as Class;
 				if (!classDef && classOrQName)
-					classDef = getDefinitionByName(String(classOrQName)) as Class;
+					classDef = getDefinition(String(classOrQName)) as Class;
 				switch (params.length)
 				{
 					case 0: return new classDef();
@@ -402,6 +481,8 @@ package weave.compiler
 				}
 			};
 			operators[FUNCTION] = function(..._):*{};
+			operators['=>'] = function(..._):*{};
+			operators[':'] = function(key:String, value:*):* { this[key] = value; };
 			// property access should not be optimized to constants
 			operators["."] = function(object:*, ...chain):* {
 				var iHost:int = chain.length - 2;
@@ -416,8 +497,10 @@ package weave.compiler
 				return object;
 			};
 			operators[".."] = function(object:*, propertyName:*):* {
-				if (typeof(object) == 'xml')
-					return object.descendants(propertyName);
+				if (object is XML_Class)
+					return (object as XML_Class).descendants(propertyName);
+				if (object is Proxy)
+					return (object as Proxy).getDescendants(propertyName);
 				return object.flash_proxy::getDescendants(propertyName);
 			};
 			operators['in'] = function(...args):* {
@@ -503,7 +586,12 @@ package weave.compiler
 			pureOperators['void'] = function(..._):void { };
 			pureOperators['typeof'] = function(value:*):* { return typeof(value); };
 			pureOperators['as'] = function(a:*, b:*):Object { return a as b; };
-			pureOperators['is'] = pureOperators['instanceof'] = function(a:*, b:*):Boolean { return a is b; };
+			pureOperators['is'] = pureOperators['instanceof'] = function(a:*, classOrQName:*):Boolean {
+				var classDef:Class = classOrQName as Class;
+				if (!classDef && classOrQName)
+					classDef = getDefinition(String(classOrQName)) as Class;
+				return a is classDef;
+			};
 			// assignment operators -- first arg is host object, last arg is new value, remaining args are a chain of property names
 			assignmentOperators['=']    = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] =    a[i + 1]; };
 			assignmentOperators['+=']   = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] +=   a[i + 1]; };
@@ -589,10 +677,29 @@ package weave.compiler
 		/**
 		 * This will set the behavior of the '#' operator.
 		 * @param hashFunction A function that takes one parameter for use as an infix operator.
-		 */		
+		 */
 		public function setHashOperator(hashFunction:Function):void
 		{
 			constants[OPERATOR_ESCAPE + '#'] = operators['#'] = hashFunction;
+		}
+		
+		/**
+		 * Tests if an expression is a single, valid symbol name.
+		 */
+		public function isValidSymbolName(expression:String):Boolean
+		{
+			try
+			{
+				var tokens:Array = getTokens(expression);
+				if (tokens.length != 1 || expression != tokens[0])
+					return false;
+				var str:String = tokens[0];
+				if (operators.hasOwnProperty(str.charAt(0)))
+					return false;
+				return !numberRegex.exec(str);
+			}
+			catch (e:Error) { }
+			return false;
 		}
 
 		/**
@@ -622,7 +729,8 @@ package weave.compiler
 		 * This function is for internal use only.
 		 * @param expression An expression to parse.
 		 * @param index The starting index of the token.
-		 * @return The token beginning at the specified index, or null if an invalid quoted string was found.
+		 * @return The token beginning at the specified index.
+		 * @throws Error If a block comment or quoted String is not terminated properly.
 		 */
 		private function getToken(expression:String, index:int):String
 		{
@@ -717,7 +825,8 @@ package weave.compiler
 		 * Example set of input tokens:  pow ( - ( - 2 + 1 ) ** - 4 , 3 ) - ( 4 + - 1 )
 		 * @param tokens An Array of tokens for an expression.  This array will be modified in place.
 		 * @param allowSemicolons Set to true to allow multiple statements and empty expressions.
-		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens, or null if the tokens do not represent a valid expression.
+		 * @return A CompiledConstant or CompiledFunctionCall generated from the tokens.
+		 * @throws Error If the tokens do not describe a valid expression.
 		 */
 		private function compileTokens(tokens:Array, allowSemicolons:Boolean):ICompiledObject
 		{
@@ -728,6 +837,7 @@ package weave.compiler
 			var i:int;
 			var token:String;
 			var str:String;
+			var call:CompiledFunctionCall;
 			
 			// first step: compile quoted Strings and Numbers
 			for (i = 0; i < tokens.length; i++)
@@ -860,22 +970,65 @@ package weave.compiler
 				tokens.splice(left - 1, end - left + 1, compileOperator('?:', [condition, trueBranch, falseBranch]));
 			}
 			// stop if any branch operators remain
-			if (Math.max(tokens.indexOf('?'), tokens.indexOf(':')) >= 0)
+			if (Math.max(tokens.indexOf('?')) >= 0)
 				throw new Error('Invalid conditional branch');
 			
-			// next step: variable assignment, right to left
+			// next step: inline functions (headers only), right to left
+			i = tokens.length;
+			while (i--)
+			{
+				if (tokens[i] == FUNCTION)
+					tokens.splice(i, 2, compileFunctionHeader(FUNCTION, tokens[i + 1]));
+				if (tokens[i] == '=>')
+					tokens.splice(i - 1, 2, compileFunctionHeader('=>', tokens[i - 1]));
+			}
+			
+			// next step: function applications
+			for (i = 0; i < tokens.length; i++)
+			{
+				call = tokens[i] as CompiledFunctionCall;
+				if (call && call.evaluatedMethod == operators[','] && tokens[i - 1] is ICompiledObject && !isFunctionHeader(tokens[i - 1]))
+					tokens.splice(i - 1, 2, new CompiledFunctionCall(tokens[i - 1], call.compiledParams));
+			}
+			
+			// next step: variable assignment and inline function definitions, right to left
 			while (true)
 			{
 				i = tokens.length;
 				while (i--)
-					if (assignmentOperators.hasOwnProperty(tokens[i]))
+				{
+					if (isFunctionHeader(tokens[i]))
+						tokens.splice(i, 2, compileFunctionDefinition(tokens[i], tokens[i + 1]));
+					else if (assignmentOperators.hasOwnProperty(tokens[i]))
 						break;
+				}
 				if (i < 0)
 					break;
 				if (i == 0 || i + 1 == tokens.length)
 					throw new Error("Misplaced '" + tokens[i] + "'");
-				tokens.splice(i - 1, 3, compileVariableAssignment.apply(null, tokens.slice(i - 1, i + 2)));
+				tokens.splice(i - 1, 3, compileVariableAssignment(tokens[i - 1], tokens[i], tokens[i + 1]));
 			}
+			
+			//next step: object literal property declarations: [variable, ":", expr]
+			for (i = 0; i < tokens.length; i++)
+			{
+				if (tokens[i + 1] == ':' && tokens[i + 2] is ICompiledObject)
+				{
+					var constant:CompiledConstant = tokens[i] as CompiledConstant;
+					if (constant && !(constant.value is String) && constants.hasOwnProperty(constant.name) && isValidSymbolName(constant.name))
+						constant = new CompiledConstant(constant.name, constant.name);
+					
+					call = tokens[i] as CompiledFunctionCall;
+					if (isVariableLookup(call))
+						constant = call.compiledMethod as CompiledConstant;
+					
+					if (constant && constant.value is String)
+						tokens.splice(i, 3, compileOperator(":", [constant, tokens[i + 2]]));
+				}
+			}
+			// stop if any ":" remain
+			if (tokens.indexOf(':') >= 0)
+				throw new Error('Misplaced ":"');
 			
 			// next step: commas
 			compileInfixOperators(tokens, [',']);
@@ -883,7 +1036,6 @@ package weave.compiler
 			// next step: handle statements
 			if (allowSemicolons)
 			{
-				var call:CompiledFunctionCall;
 				// remove leading ';'
 				while (tokens[0] == ';')
 					tokens.shift();
@@ -968,7 +1120,7 @@ package weave.compiler
 		\x00 .. \xFF        a byte specified in hexadecimal
 		\u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
 		*/
-		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\', '{':'{'};
+		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\'};
 		private static const DECODE_LOOKUP:Object = {'b':'\b', 'f':'\f', 'n':'\n', 'r':'\r', 't':'\t'};
 		
 		/**
@@ -979,6 +1131,8 @@ package weave.compiler
 		 */
 		public static function encodeString(string:String, quote:String = '"'):String
 		{
+			if (string == null)
+				return 'null';
 			var result:Array = new Array(string.length);
 			for (var i:int = 0; i < string.length; i++)
 			{
@@ -987,6 +1141,73 @@ package weave.compiler
 				result[i] = esc ? '\\' + esc : chr;
 			}
 			return quote + result.join('') + quote;
+		}
+		
+		/**
+		 * Generates a deterministic JSON-like representation of an object, meaning object keys appear in sorted order.
+		 * @param value The object to stringify.
+		 * @param replacer A function like function(key:String, value:*):*
+		 * @param indent Either a Number or a String to specify indentation of nested values
+		 * @param json_values_only If this is set to true, only JSON-compatible values will be used (NaN/Infinity/undefined -> null)
+		 */
+		public static function stringify(value:*, replacer:Function = null, indent:* = null, json_values_only:Boolean = false):String
+		{
+			indent = indent is Number ? StandardLib.lpad('', indent as Number, ' ') : indent as String || ''
+			return _stringify("", value, replacer, indent ? '\n' : '', indent, json_values_only);
+		}
+		private static function _stringify(key:String, value:*, replacer:Function, lineBreak:String, indent:String, json_values_only:Boolean):String
+		{
+			if (replacer != null)
+				value = replacer(key, value);
+			
+			var output:Array;
+			var item:*;
+			var key:String;
+			
+			if (value is String)
+				return encodeString(value as String);
+			
+			// non-string primitives
+			if (value == null || typeof value != 'object')
+			{
+				if (json_values_only && (value === undefined || !isFinite(value as Number)))
+					value = null;
+				return String(value) || String(null);
+			}
+			
+			// loop over keys in Array or Object
+			var lineBreakIndent:String = lineBreak + indent;
+			output = [];
+			if (value is Array)
+			{
+				for (var i:int = 0; i < (value as Array).length; i++)
+					output.push(_stringify(String(i), value[i], replacer, lineBreakIndent, indent, json_values_only));
+			}
+			else if (value.constructor == Object)
+			{
+				for (key in value)
+					output.push(encodeString(key) + ": " + _stringify(key, value[key], replacer, lineBreakIndent, indent, json_values_only));
+				// sort keys
+				StandardLib.sort(output);
+			}
+			else
+			{
+				for each (var list:Array in DescribeType.getInfo(value, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
+					for each (item in list)
+						if (item.access != 'writeonly')
+							output.push(encodeString(item.name) + ": " + _stringify(item.name, value[item.name], replacer, lineBreakIndent, indent, json_values_only));
+				// sort keys
+				StandardLib.sort(output);
+			}
+			
+			if (output.length == 0)
+				return value is Array ? "[]" : "{}";
+			
+			return (value is Array ? "[" : "{")
+				+ lineBreakIndent
+				+ output.join(indent ? ',' + lineBreakIndent : ', ')
+				+ lineBreak
+				+ (value is Array ? "]" : "}");
 		}
 		
 		/**
@@ -1051,10 +1272,21 @@ package weave.compiler
 					}
 					else if (c == 'u')
 					{
-						// \u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
-						var unicode:String = input.substr(escapeIndex + 2, 4);
-						c = String.fromCharCode(parseInt(unicode, 16));
-						searchIndex = escapeIndex + 6; // skip over escape sequence
+						var unicodeDigits:String;
+						var unicodeValue:int;
+						var foundUnicode:Object = unicodeRegex.exec(input.substr(escapeIndex + 2, maxUnicodeEscapeChars))
+						if (foundUnicode)
+						{
+							unicodeDigits = foundUnicode[0];
+							if (unicodeDigits.charAt(0) == '{') // \u{10FFFF}
+								unicodeValue = parseInt(unicodeDigits.substr(1, unicodeDigits.length - 2), 16);
+							else // \u0000 .. \uFFFF    a 16-bit Unicode character specified in hexadecimal
+								unicodeValue = parseInt(unicodeDigits, 16);
+						}
+						if (!foundUnicode || unicodeValue > maxUnicodeEscapeValue)
+							throw new Error("Malformed Unicode character escape sequence: " + input);
+						c = StandardLib.ucs2encode(unicodeValue);
+						searchIndex = escapeIndex + 2 + unicodeDigits.length; // skip over escape sequence
 					}
 					else
 					{
@@ -1169,50 +1401,39 @@ package weave.compiler
 				
 				if (leftBracket == '{')
 				{
+					var block:ICompiledObject = compileTokens(subArray, true);
+					var blockCall:CompiledFunctionCall = block as CompiledFunctionCall;
+					if (blockCall)
+					{
+						var blockItems:Array = null;
+						if (blockCall.evaluatedMethod == operators[';'] && blockCall.compiledParams.length == 0)
+							blockItems = [];
+						if (blockCall.evaluatedMethod == operators[','])
+							blockItems = blockCall.compiledParams;
+						if (blockCall.evaluatedMethod == operators[':'])
+							blockItems = [blockCall];
+						if (blockItems && (blockItems.length == 0 || StandardLib.getArrayType(blockItems) == CompiledFunctionCall))
+						{
+							var params:Array = [];
+							for each (var item:CompiledFunctionCall in blockItems)
+							{
+								if (item.evaluatedMethod != operators[':'])
+								{
+									params = null;
+									break;
+								}
+								params.push(item.compiledParams[0], item.compiledParams[1]);
+							}
+							if (params != null)
+							{
+								tokens.splice(open, 2, compileOperator('{', params));
+								continue;
+							}
+						}
+					}
 					// It's ok if it creates an extra {} wrapper because finalize() will take care of that.
 					// It's important to remember that the brackets existed for statement processing.
-					tokens.splice(open, 2, compileOperator(';', [compileTokens(subArray, true)]));
-					
-					// compile inline function
-					if (open >= 2 && tokens[open - 2] == FUNCTION)
-					{
-						var call:CompiledFunctionCall = compiledToken as CompiledFunctionCall;
-						if (!call || call.evaluatedMethod != operators[','])
-							throwInvalidSyntax(FUNCTION);
-						
-						// verify that each parameter inside operator ',' is a variable name or a local assignment to a constant.
-						var variableNames:Array = [];
-						var variableValues:Array = [];
-						for each (token in call.compiledParams)
-						{
-							var variable:CompiledFunctionCall = token as CompiledFunctionCall;
-							if (!variable)
-								throwInvalidSyntax(FUNCTION);
-							
-							if (!variable.compiledParams)
-							{
-								// local variable
-								variableNames.push(variable.evaluatedMethod);
-								variableValues.push(undefined);
-							}
-							else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2 && variable.compiledParams[1] is CompiledConstant)
-							{
-								// local variable assignment
-								variableNames.push(variable.evaluatedParams[0]);
-								variableValues.push(variable.evaluatedParams[1]);
-							}
-							else
-								throwInvalidSyntax(FUNCTION);
-						}
-						var functionParams:Object = {};
-						functionParams[FUNCTION_PARAM_NAMES] = variableNames;
-						functionParams[FUNCTION_PARAM_VALUES] = variableValues;
-						functionParams[FUNCTION_CODE] = finalize(tokens[open]);
-						call = compileOperator(FUNCTION, [new CompiledConstant(null, functionParams)]);
-						call.originalTokens = tokens.splice(open - 2, 3, call);
-						continue;
-					}
-					
+					tokens.splice(open, 2, compileOperator(';', [block]));
 					continue;
 				}
 				
@@ -1241,7 +1462,9 @@ package weave.compiler
 					continue;
 				}
 				
-				if (leftBracket == '(' && compiledToken) // if there is a compiled token to the left, this is a function call
+				var compiledCall:CompiledFunctionCall = compiledToken as CompiledFunctionCall;
+				// if there is a compiled token to the left, this is a function call (unless the token is a function header or is a call to operator ';')
+				if (leftBracket == '(' && compiledToken && !isFunctionHeader(compiledToken) && !(compiledCall && compiledCall.evaluatedMethod == operators[';']))
 				{
 					if (open >= 2)
 					{
@@ -1264,12 +1487,15 @@ package weave.compiler
 				
 				// '{' or '(' group that does not correspond to a function call
 				
-				if (leftBracket == '(' && compiledParams.length == 0 && token != FUNCTION)
+				if (leftBracket == '(' && compiledParams.length == 0 && (token != FUNCTION && tokens[open + 2] != '=>'))
 					throw new Error("Missing expression inside parentheses");
 				
 				if (leftBracket == '(' && statements.hasOwnProperty(token) && statements[token])
 					separator = '('; // statement params
 				tokens.splice(open, 2, compileOperator(separator, compiledParams));
+				
+				if (token === FUNCTION && leftBracket == '(')
+					tokens.splice(open - 1, 2, compileFunctionHeader(FUNCTION, tokens[open]));
 			}
 		}
 		
@@ -1493,15 +1719,75 @@ package weave.compiler
 			}
 		}
 		
-		/**
-		 * @param operatorName
-		 * @param compiledParams
-		 * @return 
-		 */
 		private function compileOperator(operatorName:String, compiledParams:Array):CompiledFunctionCall
 		{
 			operatorName = OPERATOR_ESCAPE + operatorName;
-			return new CompiledFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
+			var op:CompiledFunctionCall = new CompiledFunctionCall(new CompiledConstant(operatorName, constants[operatorName]), compiledParams);
+			//op.originalTokens = originalTokensForDecompiling;
+			return op;
+		}
+		
+		private function compileFunctionHeader(functionOperator:String, paramsToken:Object):ICompiledObject
+		{
+			if (functionOperator != FUNCTION && functionOperator != '=>')
+				throw new Error("compileFunctionHeader called with unsupported operator: " + functionOperator);
+			
+			// when compiling a function operator, only the argument list should be provided
+			var args:CompiledFunctionCall = paramsToken as CompiledFunctionCall;
+			if (!args)
+				throwInvalidSyntax(functionOperator);
+			
+			// if there is only a single variable name, wrap it in an operator ',' call
+			if (!args.compiledParams)
+				args = compileOperator(',', [args]);
+			
+			if (args.evaluatedMethod != operators[','])
+				throwInvalidSyntax(functionOperator);
+			
+			// verify that each parameter inside operator ',' is a variable name or a local assignment to a constant.
+			var variableNames:Array = [];
+			var variableValues:Array = [];
+			for each (var token:Object in args.compiledParams)
+			{
+				var variable:CompiledFunctionCall = token as CompiledFunctionCall;
+				if (!variable)
+					throwInvalidSyntax(functionOperator);
+				
+				if (!variable.compiledParams)
+				{
+					// local variable
+					variableNames.push(variable.evaluatedMethod);
+					variableValues.push(undefined);
+				}
+				else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2 && variable.compiledParams[1] is CompiledConstant)
+				{
+					// local variable assignment
+					variableNames.push(variable.evaluatedParams[0]);
+					variableValues.push(variable.evaluatedParams[1]);
+				}
+				else
+					throwInvalidSyntax(functionOperator);
+			}
+			var functionParams:Object = {};
+			functionParams[FUNCTION_PARAM_NAMES] = variableNames;
+			functionParams[FUNCTION_PARAM_VALUES] = variableValues;
+			
+			var op:CompiledFunctionCall = compileOperator(functionOperator, [new CompiledConstant(null, functionParams)]);
+			op.originalTokens = functionOperator == FUNCTION ? [FUNCTION, paramsToken] : [paramsToken, '=>'];
+			return op;
+		}
+		
+		private function compileFunctionDefinition(functionHeader:CompiledFunctionCall, body:ICompiledObject):ICompiledObject
+		{
+			if (!body)
+				throwInvalidSyntax((functionHeader.compiledMethod as CompiledConstant).name.substr(OPERATOR_ESCAPE.length));
+			var cc:CompiledConstant = functionHeader.compiledParams[0];
+			if (cc.value[FUNCTION_CODE] != null)
+				throw new Error("Unexpected error: attempting to overwrite function body");
+			cc.value[FUNCTION_CODE] = finalize(body);
+			functionHeader.evaluateConstants();
+			functionHeader.originalTokens.push(body);
+			return functionHeader;
 		}
 		
 		private function compileVariableAssignment(variableToken:*, assignmentOperator:String, valueToken:*):CompiledFunctionCall
@@ -1616,7 +1902,7 @@ package weave.compiler
 						}
 						
 						// if there is only a single variable, wrap it in an operator ',' call
-						if (!call.compiledParams || call.evaluatedMethod == operators['='])
+						if (isVariableLookup(call) || call.evaluatedMethod == operators['='])
 							tokens[startIndex + iPattern] = token = call = compileOperator(',', [call]);
 						
 						// special case for "for (var x in y) { }"
@@ -1624,7 +1910,7 @@ package weave.compiler
 						{
 							// check the variable
 							call = call.compiledParams[0] as CompiledFunctionCall;
-							if (!call || call.compiledParams) // not a variable?
+							if (!isVariableLookup(call))
 								throwInvalidSyntax(stmt);
 							// save single variable name
 							varNames = [call.evaluatedMethod];
@@ -1641,7 +1927,7 @@ package weave.compiler
 							if (!variable)
 								throwInvalidSyntax(stmt);
 							
-							if (!variable.compiledParams) // local initialization
+							if (isVariableLookup(variable)) // local initialization
 							{
 								// variable initialization only -- remove from ',' params
 								call.compiledParams.splice(iParam--, 1);
@@ -1698,7 +1984,7 @@ package weave.compiler
 						{
 							try
 							{
-								var def:Object = getDefinitionByName(_lib.value);
+								var def:Object = getDefinition(_lib.value);
 								if (def is Class)
 									_lib.value = def;
 							}
@@ -1821,16 +2107,16 @@ package weave.compiler
 						// check the first parameter of the 'in' operator
 						call = call.compiledParams[0] as CompiledFunctionCall;
 						
-						if (call.evaluatedMethod == operators[','] && call.compiledParams.length == 2)
+						if (call && call.evaluatedMethod == operators[','] && call.compiledParams.length == 2)
 						{
 							var _var:CompiledFunctionCall = call.compiledParams[0] as CompiledFunctionCall;
 							if (!_var || _var.evaluatedMethod != operators[ST_VAR])
 								throwInvalidSyntax(statement);
-							call = call.compiledParams[1]; // should be the variable
+							call = call.compiledParams[1] as CompiledFunctionCall; // should be the variable
 						}
 							
 						// the 'in' operator must have a variable or property reference as its first parameter
-						if (!(call.compiledParams == null || call.evaluatedMethod == operators['.'])) // not a variable and not a property
+						if (!call || !(call.compiledParams == null || call.evaluatedMethod == operators['.'])) // not a variable and not a property
 							throwInvalidSyntax(statement);
 					}
 					
@@ -1850,7 +2136,7 @@ package weave.compiler
 				return statements.hasOwnProperty(token);
 			
 			var method:* = call.evaluatedMethod;
-			return (JUMP_LOOKUP[method] || LOOP_LOOKUP[method])
+			return (JUMP_LOOKUP[method as Function] || LOOP_LOOKUP[method as Function])
 		}
 		
 		/**
@@ -1897,6 +2183,11 @@ package weave.compiler
 			
 			var i:int;
 			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
+			
+			// function headers should not appear alone
+			if (isFunctionHeader(call))
+				compileFunctionDefinition(call, null); // this will throw an appropriate error
+				
 			call.compiledMethod = _finalize(call.compiledMethod, varLookup);
 			if (!call.compiledMethod)
 				throw new Error("Misplaced variable declaration");
@@ -1913,6 +2204,9 @@ package weave.compiler
 			call.evaluateConstants();
 			
 			var method:Object = call.evaluatedMethod;
+			
+			if (method == operators[':'])
+				throw new Error("Invalid object literal syntax");
 			
 			// remove var declarations from their current locations
 			if (method == operators[ST_VAR])
@@ -1979,7 +2273,7 @@ package weave.compiler
 				return params[INDEX_CONDITION];
 			}
 			
-			if (PURE_OP_LOOKUP[method])
+			if (PURE_OP_LOOKUP[method as Function])
 			{
 				// if all parameters are constants, just evaluate the pure operator as a constant.
 				for each (var param:Object in params)
@@ -2018,7 +2312,7 @@ package weave.compiler
 			}
 			
 			// special case for variable lookup
-			if (!call.compiledParams)
+			if (isVariableLookup(call))
 				return decompileObject(call.compiledMethod);
 			
 			var cMethod:CompiledConstant = call.compiledMethod as CompiledConstant
@@ -2039,7 +2333,7 @@ package weave.compiler
 			if (cMethod && constants[cMethod.name] == cMethod.value && operators[op] == cMethod.value)
 			{
 				var n:int = cParams.length;
-				if (n > 0 && (ASSIGN_OP_LOOKUP[cMethod.value] || op == '.' || op == '..'))
+				if (n > 0 && (ASSIGN_OP_LOOKUP[cMethod.value as Function] || op == '.' || op == '..'))
 				{
 					var result:String = params[0];
 					for (i = 1; i < n; i++)
@@ -2052,7 +2346,7 @@ package weave.compiler
 						var variable:CompiledFunctionCall = null;
 						try {
 							variable = compileToObject(constant.value) as CompiledFunctionCall;
-							if (variable.compiledParams)
+							if (!isVariableLookup(variable))
 								variable = null;
 						} catch (e:Error) { }
 						
@@ -2088,7 +2382,19 @@ package weave.compiler
 				if (op == '(' && n > 0) // zero params not allowed for this syntax
 					return '(' + params.join('; ') + ')';
 				
-				if (PURE_OP_LOOKUP[cMethod.value] || op == 'in')
+				if (op == '{')
+				{
+					var str:String = '';
+					for (i = 0; i < params.length - 1; i += 2)
+					{
+						if (str)
+							str += ', ';
+						str += params[i] + ': ' + params[i + 1];
+					}
+					return '{' + str + '}';
+				}
+				
+				if (PURE_OP_LOOKUP[cMethod.value as Function] || op == 'in')
 				{
 					if (n == 1) // unary op
 					{
@@ -2128,9 +2434,11 @@ package weave.compiler
 		 * @param useThisScope If this is set to true, properties of 'this' can be accessed as if they were local variables.
 		 * @param paramNames This specifies local variable names to be associated with the arguments passed in as parameters to the compiled function.
 		 * @param paramDefaults This specifies default values corresponding to the parameter names.  This must be the same length as the paramNames array.
+		 * @param flattenFunctionDefinition If set to true and the compiledObject represents a function definition, that function definition will be evaluated and returned.
+		 * @param bindThis If non-null, the <code>this</code> symbol will be bound to the given value. Otherwise, it will be dynamically determined by how the function is called.
 		 * @return A Function that takes any number of parameters and returns the result of evaluating the ICompiledObject.
 		 */
-		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, errorHandler:Function, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null):Function
+		public function compileObjectToFunction(compiledObject:ICompiledObject, symbolTable:Object, errorHandler:Function, useThisScope:Boolean, paramNames:Array = null, paramDefaults:Array = null, flattenFunctionDefinition:Boolean = true, bindThis:Object = null):Function
 		{
 			if (compiledObject == null)
 				return null;
@@ -2157,6 +2465,7 @@ package weave.compiler
 
 			const builtInSymbolTable:Object = {};
 			builtInSymbolTable['eval'] = undefined;
+			builtInSymbolTable['this'] = bindThis;
 			
 			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
 			const allSymbolTables:Array = [builtInSymbolTable]; // buit-in first
@@ -2183,6 +2492,9 @@ package weave.compiler
 			// check globals last
 			allSymbolTables.push(globals);
 			
+			// this flag is set to useThisScope when the compiledObject is a function definition
+			var cascadeThisScope:Boolean = false;
+			
 			// this function avoids unnecessary function call overhead by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function():*
 			{
@@ -2198,12 +2510,13 @@ package weave.compiler
 				var propertyHost:Object;
 				var propertyName:String;
 				
+				if (bindThis === null)
+					builtInSymbolTable['this'] = this;
+				builtInSymbolTable['arguments'] = arguments;
+				
 				allSymbolTables[LOCAL_SYMBOL_TABLE_INDEX] = localSymbolTable;
 				if (useThisScope)
-					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = this;
-				
-				builtInSymbolTable['this'] = this;
-				builtInSymbolTable['arguments'] = arguments;
+					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = builtInSymbolTable['this'];
 				
 				// make function parameters available under the specified parameter names
 				if (paramNames)
@@ -2229,7 +2542,7 @@ package weave.compiler
 					
 					if (compiledParams)
 					{
-						if (LOOP_LOOKUP[method] && call.evalIndex == INDEX_METHOD)
+						if (LOOP_LOOKUP[method as Function] && call.evalIndex == INDEX_METHOD)
 						{
 							if (method == operators[ST_DO] || method == operators[ST_FOR_DO])
 							{
@@ -2246,7 +2559,7 @@ package weave.compiler
 							
 							// handle branching and short-circuiting
 							// skip evaluation of true or false branch depending on condition and branch operator
-							if (BRANCH_LOOKUP[method] !== undefined && call.evalIndex > INDEX_CONDITION)
+							if (BRANCH_LOOKUP[method as Function] !== undefined && call.evalIndex > INDEX_CONDITION)
 								if (BRANCH_LOOKUP[method] == (call.evalIndex != (call.evaluatedParams[INDEX_CONDITION] ? INDEX_TRUE : INDEX_FALSE)))
 									continue;
 							
@@ -2259,7 +2572,7 @@ package weave.compiler
 							{
 								// special case for for-in and for-each
 								// implemented as "for (each|in)(\in(list), item=undefined, stmt)
-								if (LOOP_LOOKUP[method] && call.evalIndex == INDEX_FOR_ITEM && (method == operators[ST_FOR_IN] || method == operators[ST_FOR_EACH]))
+								if (LOOP_LOOKUP[method as Function] && call.evalIndex == INDEX_FOR_ITEM && (method == operators[ST_FOR_IN] || method == operators[ST_FOR_EACH]))
 								{
 									if ((call.evaluatedParams[INDEX_FOR_LIST] as Array).length > 0)
 									{
@@ -2316,9 +2629,9 @@ package weave.compiler
 							}
 							
 							if (i == allSymbolTables.length)
-								result = getDefinitionByName(symbolName);
+								result = getDefinition(symbolName);
 						}
-						else if (JUMP_LOOKUP[method])
+						else if (JUMP_LOOKUP[method as Function])
 						{
 							if (method == operators[ST_RETURN])
 							{
@@ -2334,7 +2647,7 @@ package weave.compiler
 									
 									call = stack[stack.length - 1] as CompiledFunctionCall;
 									method = call.evaluatedMethod;
-									if (LOOP_LOOKUP[method] && LOOP_LOOKUP[method] != ST_BREAK)
+									if (LOOP_LOOKUP[method as Function] && LOOP_LOOKUP[method as Function] != ST_BREAK)
 										break; // loop will be handled below.
 								}
 							}
@@ -2344,7 +2657,7 @@ package weave.compiler
 								{
 									call = stack.pop() as CompiledFunctionCall;
 									method = call.evaluatedMethod;
-									if (LOOP_LOOKUP[method] && LOOP_LOOKUP[method] != ST_CONTINUE)
+									if (LOOP_LOOKUP[method as Function] && LOOP_LOOKUP[method as Function] != ST_CONTINUE)
 									{
 										method = operators[ST_BREAK];
 										continue stackLoop;
@@ -2358,7 +2671,7 @@ package weave.compiler
 								throw call.evaluatedParams[0];
 							}
 						}
-						else if (ASSIGN_OP_LOOKUP[method] && compiledParams.length == 2) // two params means local assignment
+						else if (ASSIGN_OP_LOOKUP[method as Function] && compiledParams.length == 2) // two params means local assignment
 						{
 							// local assignment
 							symbolName = call.evaluatedParams[0];
@@ -2382,7 +2695,7 @@ package weave.compiler
 							{
 								symbolName = result as String;
 								if (symbolName)
-									result = getDefinitionByName(result);
+									result = getDefinition(result);
 								else if (!(result is Class))
 									throw new Error("Unable to import non-Class: " + decompileObject(call));
 								
@@ -2406,7 +2719,7 @@ package weave.compiler
 								if (method === Object)
 								{
 									var params:Array = call.evaluatedParams;
-									result = {}
+									result = {};
 									for (i = 0; i < params.length - 1; i += 2)
 										result[params[i]] = params[i + 1];
 								}
@@ -2416,11 +2729,11 @@ package weave.compiler
 							// special case for Class('some.qualified.ClassName')
 							else if (method === Class && call.evaluatedParams[0] is String)
 							{
-								result = getDefinitionByName(call.evaluatedParams[0]);
+								result = getDefinition(call.evaluatedParams[0]);
 							}
 							else // all other single-parameter type casting operations
 							{
-								result = method(call.evaluatedParams[0]);
+								result = cast(call.evaluatedParams[0], method as Class);
 							}
 						}
 						else if (method == operators[ST_VAR]) // variable initialization
@@ -2430,35 +2743,41 @@ package weave.compiler
 									localSymbolTable[result] = undefined;
 							result = undefined;
 						}
-						else if (method == operators[FUNCTION]) // inline function definition
+						else if (method == operators[FUNCTION] || method == operators['=>']) // inline function definition
 						{
 							var _symbolTables:Array = [localSymbolTable].concat(symbolTable); // works whether symbolTable is an Array or Object
 							if (useThisScope)
-								_symbolTables.push(this);
+								_symbolTables.push(builtInSymbolTable['this']);
 							
 							var funcParams:Object = call.evaluatedParams[0];
 							result = compileObjectToFunction(
 								funcParams[FUNCTION_CODE],
 								_symbolTables,
 								errorHandler,
-								useThisScope,
+								cascadeThisScope,
 								funcParams[FUNCTION_PARAM_NAMES],
-								funcParams[FUNCTION_PARAM_VALUES]
+								funcParams[FUNCTION_PARAM_VALUES],
+								false,
+								method == operators['=>'] || (cascadeThisScope && bindThis !== null) ? builtInSymbolTable['this'] : null
 							);
 						}
 						else if (call.evaluatedHost is Proxy)
 						{
-							// use Proxy.flash_proxy::callProperty
+							// use Proxy.callProperty
 							var proxyParams:Array = call.evaluatedParams.concat();
 							proxyParams.unshift(call.evaluatedMethodName);
-							result = (call.evaluatedHost as Proxy).flash_proxy::callProperty.apply(call.evaluatedHost, proxyParams);
+							result = (call.evaluatedHost as Proxy).callProperty.apply(call.evaluatedHost, proxyParams);
 						}
 						else
 						{
 							// normal function call
 							result = method.apply(call.evaluatedHost, call.evaluatedParams);
+							// in case this is operator '.', save these values
 							propertyHost = _propertyHost;
 							propertyName = _propertyName;
+							// then reset them so they do not get re-used by mistake
+							_propertyHost = null;
+							_propertyName = null;
 						}
 					}
 					catch (e:*)
@@ -2483,7 +2802,7 @@ package weave.compiler
 					}
 					
 					// handle while and for loops
-					if (LOOP_LOOKUP[method])
+					if (LOOP_LOOKUP[method as Function])
 					{
 						if (method == operators[ST_FOR_IN] || method == operators[ST_FOR_EACH])
 						{
@@ -2521,20 +2840,59 @@ package weave.compiler
 			};
 			
 			// if the compiled object is a function definition, return that function definition instead of the wrapper.
-			if (compiledObjectIsFunctionDefinition(compiledObject))
+			if (flattenFunctionDefinition && compiledObjectIsFunctionDefinition(compiledObject))
+			{
+				cascadeThisScope = useThisScope;
 				return wrapperFunction() as Function;
+			}
 			
 			return wrapperFunction;
+		}
+		
+		/**
+		 * Tests if a token is a variable lookup.
+		 */
+		private function isVariableLookup(token:Object):Boolean
+		{
+			var cfc:CompiledFunctionCall = token as CompiledFunctionCall;
+			return cfc && !cfc.compiledParams;
+		}
+		
+		private function isFunctionHeader(token:Object):Boolean
+		{
+			var cfc:CompiledFunctionCall = token as CompiledFunctionCall;
+			return cfc && (cfc.evaluatedMethod == operators[FUNCTION] || cfc.evaluatedMethod == operators['=>'])
+				&& cfc.evaluatedParams[0][FUNCTION_CODE] === undefined;
 		}
 		
 		/**
 		 * This will check if the compiled object is a function definition.
 		 * @param compiledObject A compiled object returned by compileToObject().
 		 * @return true if the compiledObject is a function definition.
-		 */		
+		 */
 		public function compiledObjectIsFunctionDefinition(compiledObject:ICompiledObject):Boolean
 		{
-			return compiledObject is CompiledFunctionCall && (compiledObject as CompiledFunctionCall).evaluatedMethod == operators[FUNCTION];
+			var cfc:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
+			return cfc && (cfc.evaluatedMethod == operators[FUNCTION] || cfc.evaluatedMethod == operators['=>']);
+		}
+		
+		/**
+		 * Casts an object to a specified type.
+		 * If given an unclassed Object, the properties will be copied over to a new instance of the type.
+		 * @param object An object to cast.
+		 * @param type The desired type.
+		 * @return An instance of the desired type.
+		 * @throws Error If unable to cast the object to the desired type.
+		 */
+		public static function cast(object:Object, type:Class):*
+		{
+			if (object is type || object === null || object.constructor != Object)
+				return type(object);
+			var newObj:Object = new type();
+			for (var key:String in object)
+				if (newObj.hasOwnProperty(key))
+					newObj[key] = object[key];
+			return newObj;
 		}
 
 		public static const _do_continue_test:String = <![CDATA[

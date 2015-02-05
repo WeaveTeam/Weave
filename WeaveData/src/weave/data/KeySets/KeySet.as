@@ -21,14 +21,10 @@ package weave.data.KeySets
 {
 	import flash.utils.Dictionary;
 	
-	import mx.utils.ObjectUtil;
-	
-	import weave.api.WeaveAPI;
-	import weave.api.copySessionState;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getSessionState;
-	import weave.api.setSessionState;
+	import weave.api.newLinkableChild;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableVariable;
 	
@@ -47,6 +43,11 @@ package weave.data.KeySets
 		}
 		
 		/**
+		 * An interface for keys added and removed
+		 */
+		public const keyCallbacks:KeySetCallbackInterface = newLinkableChild(this, KeySetCallbackInterface);
+		
+		/**
 		 * Verifies that the value is a two-dimensional array or null.
 		 */		
 		private function verifySessionState(value:Array):Boolean
@@ -55,14 +56,6 @@ package weave.data.KeySets
 				if (!(row is Array))
 					return false;
 			return true;
-		}
-		
-		/**
-		 * Changed to use StandardLib.arrayCompare().
-		 */
-		override protected function sessionStateEquals(otherSessionState:*):Boolean
-		{
-			return StandardLib.arrayCompare(_sessionState, otherSessionState) == 0;
 		}
 		
 		/**
@@ -82,13 +75,14 @@ package weave.data.KeySets
 
 			// each row of CSV represents a different keyType (keyType is the first token in the row)
 			var newKeys:Array = [];
-			for each (var row:Array in _sessionState)
-				(newKeys.push as Function).apply(null, WeaveAPI.QKeyManager.getQKeys(row[0], row.slice(1)));
+			for each (var row:Array in _sessionStateInternal)
+				newKeys.push.apply(null, WeaveAPI.QKeyManager.getQKeys(row[0], row.slice(1)));
 			
 			// avoid internal recursion while still allowing callbacks to cause recursion afterwards
 			delayCallbacks();
 			_currentlyUpdating = true;
 			replaceKeys(newKeys);
+			keyCallbacks.flushKeys();
 			_currentlyUpdating = false;
 			resumeCallbacks();
 		}
@@ -123,6 +117,7 @@ package weave.data.KeySets
 			delayCallbacks();
 			_currentlyUpdating = true;
 			setSessionState(keyTable);
+			keyCallbacks.flushKeys();
 			_currentlyUpdating = false;
 			resumeCallbacks();
 		}
@@ -154,7 +149,7 @@ package weave.data.KeySets
 			if (_locked)
 				return false;
 			
-			WeaveAPI.QKeyManager.mapQKeys(newKeys);
+			WeaveAPI.QKeyManager.convertToQKeys(newKeys);
 			if (newKeys == _keys)
 				_keys = _keys.concat();
 			
@@ -181,21 +176,21 @@ package weave.data.KeySets
 				_keyIndex[key] = outputIndex;
 				// if the previous key index did not have this key, a change has been detected.
 				if (prevKeyIndex[key] == undefined)
+				{
 					changeDetected = true;
+					keyCallbacks.keysAdded.push(key);
+				}
 				// increase stored index
 				outputIndex++;
 			}
 			_keys.length = outputIndex; // trim to actual length
 			// loop through old keys and see if any were removed
-			if (!changeDetected)
+			for (key in prevKeyIndex)
 			{
-				for (key in prevKeyIndex)
+				if (_keyIndex[key] == undefined) // if this previous key is gone now, change detected
 				{
-					if (_keyIndex[key] == undefined) // if this previous key is gone now, change detected
-					{
-						changeDetected = true;
-						break;
-					}
+					changeDetected = true;
+					keyCallbacks.keysRemoved.push(key);
 				}
 			}
 
@@ -217,6 +212,8 @@ package weave.data.KeySets
 			// stop if there are no keys to remove
 			if (_keys.length == 0)
 				return false; // set did not change
+			
+			keyCallbacks.keysRemoved = keyCallbacks.keysRemoved.concat(_keys);
 
 			// clear key-to-index mapping
 			_keyIndex = new Dictionary();
@@ -249,7 +246,7 @@ package weave.data.KeySets
 				return false;
 			
 			var changeDetected:Boolean = false;
-			WeaveAPI.QKeyManager.mapQKeys(additionalKeys);
+			WeaveAPI.QKeyManager.convertToQKeys(additionalKeys);
 			for each (var key:IQualifiedKey in additionalKeys)
 			{
 				if (_keyIndex[key] == undefined)
@@ -260,6 +257,7 @@ package weave.data.KeySets
 					_keyIndex[key] = newIndex;
 					
 					changeDetected = true;
+					keyCallbacks.keysAdded.push(key);
 				}
 			}
 			
@@ -283,7 +281,7 @@ package weave.data.KeySets
 				return clearKeys();
 			
 			var changeDetected:Boolean = false;
-			WeaveAPI.QKeyManager.mapQKeys(unwantedKeys);
+			WeaveAPI.QKeyManager.convertToQKeys(unwantedKeys);
 			for each (var key:IQualifiedKey in unwantedKeys)
 			{
 				if (_keyIndex[key] != undefined)
@@ -303,6 +301,7 @@ package weave.data.KeySets
 					delete _keyIndex[key];
 
 					changeDetected = true;
+					keyCallbacks.keysRemoved.push(key);
 				}
 			}
 
@@ -325,7 +324,7 @@ package weave.data.KeySets
 				var keyTypeProperty:String = 'sessionedKeyType';
 				if (value.hasOwnProperty(keysProperty) && value.hasOwnProperty(keyTypeProperty))
 					if (value[keyTypeProperty] != null && value[keysProperty] != null)
-						value = WeaveAPI.CSVParser.createCSVToken(value[keyTypeProperty]) + ',' + value[keysProperty];
+						value = WeaveAPI.CSVParser.createCSVRow([value[keyTypeProperty]]) + ',' + value[keysProperty];
 			}
 			// backwards compatibility -- parse CSV String
 			if (value is String)
@@ -351,11 +350,11 @@ package weave.data.KeySets
 			
 			k2.replaceKeys(WeaveAPI.QKeyManager.getQKeys('t', ['a','b','x','y']));
 			trace('copy k2 to k');
-			copySessionState(k2, k);
+			WeaveAPI.SessionManager.copySessionState(k2, k);
 			assert(k, WeaveAPI.QKeyManager.getQKeys('t', ['a','b','x','y']));
 			
 			trace('test deprecated session state');
-			setSessionState(k, {sessionedKeyType: 't2', sessionedKeys: 'a,b,x,y'}, true);
+			WeaveAPI.SessionManager.setSessionState(k, {sessionedKeyType: 't2', sessionedKeys: 'a,b,x,y'}, true);
 			assert(k, WeaveAPI.QKeyManager.getQKeys('t2', ['a','b','x','y']));
 			
 			testFunction(k, k.replaceKeys, 'replace k', 't', ['1'], 't', ['1']);
@@ -376,7 +375,7 @@ package weave.data.KeySets
 		private static function traceKeySet(keySet:KeySet):void
 		{
 			trace(' ->', getKeyStrings(keySet.keys));
-			trace('   ', ObjectUtil.toString(getSessionState(keySet)));
+			trace('   ', Compiler.stringify(WeaveAPI.SessionManager.getSessionState(keySet)));
 		}
 		private static function testFunction(keySet:KeySet, func:Function, comment:String, keyType:String, keys:Array, expectedResultKeyType:String, expectedResultKeys:Array, expectedResultKeyType2:String = null, expectedResultKeys2:Array = null):void
 		{

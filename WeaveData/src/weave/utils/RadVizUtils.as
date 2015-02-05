@@ -23,6 +23,7 @@ package weave.utils
 	
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
 	import weave.radviz.MatrixEntry;
 
@@ -214,23 +215,9 @@ package weave.utils
 			}	
 			// sort by increasing similarity values 
 			// we want the least similar dimensions at index 0
-			AsyncSort.sortImmediately(similarityMatrix, sortEntries);
+			StandardLib.sortOn(similarityMatrix, 'similarity');
 			
 			return similarityMatrix;
-		}
-		
-		/**
-		 * This function sorts matrix entries based on their similarity values 
-		 * @param entry1 First MatrixEntry (a)
-		 * @param entry2 Second MatrixEntry (b)
-		 * @return Sort value: 0: (a==b); -1:(a < b); 1:(a > b)
-		 * 
-		 */		
-		private static function sortEntries( entry1:MatrixEntry, entry2:MatrixEntry):int
-		{
-			if( entry1.similarity > entry2.similarity) return 1;
-			if( entry1.similarity < entry2.similarity) return -1;
-			return 0;
 		}
 		
 		/** 

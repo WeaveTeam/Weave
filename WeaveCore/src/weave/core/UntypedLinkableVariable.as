@@ -20,7 +20,6 @@
 package weave.core
 {
 	/**
-	 * UntypedLinkableVariable
 	 * This is a LinkableVariable that adds "get value" and "set value" functions for untyped values.
 	 * 
 	 * @author adufilie
@@ -29,12 +28,12 @@ package weave.core
 	{
 		public function UntypedLinkableVariable(defaultValue:Object = null, verifier:Function = null, defaultValueTriggersCallbacks:Boolean = true)
 		{
-			super(null, verifier, defaultValue, defaultValueTriggersCallbacks);
+			super(null, verifier, arguments.length ? defaultValue : undefined, defaultValueTriggersCallbacks);
 		}
 
 		public function get value():Object
 		{
-			return _sessionState;
+			return _sessionStateExternal;
 		}
 		public function set value(value:Object):void
 		{

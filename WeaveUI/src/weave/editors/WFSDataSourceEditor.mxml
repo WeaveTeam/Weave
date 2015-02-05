@@ -24,66 +24,89 @@
 	xmlns="weave.editors.*"
 	verticalScrollPolicy="off"
 	horizontalScrollPolicy="off"
-	implements="weave.api.ui.ILinkableObjectEditor"
+	implements="weave.api.ui.IDataSourceEditor"
 	creationPolicy="all" xmlns:ui="weave.ui.*"
 	>
-	<mx:Label id="editorTitle" fontWeight="bold" text="{lang((_wfsDataSource ? 'Edit' : 'Add') + ' WFS Data Source')}"/>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
 	<ui:Indent label="{lang('Source Name *')}">
 		<mx:TextInput id="sourceName" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL *')}">
-		<mx:TextInput id="url" width="100%" toolTip="{lang('enter the base url of your WFS Source e.g. : http://openscales.org/geoserver/wfs')}"/>
+		<ui:TextInputWithPrompt id="url" width="100%" prompt="http://www.example.com/geoserver/wfs"/>
 	</ui:Indent>
 	<mx:CheckBox label="Swap X and Y coordinate order" id="swapXY"/>
 	<mx:Spacer height="20"/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
-			import weave.Weave;
+			import mx.controls.Alert;
+			
 			import weave.api.core.ILinkableObject;
-			import weave.api.reportError;
+			import weave.api.data.IDataSource;
+			import weave.compiler.StandardLib;
 			import weave.data.DataSources.WFSDataSource;
 			
 			override protected function createChildren():void
 			{
 				super.createChildren();
 				
-				sourceName.text = Weave.root.generateUniqueName("WFSDataSource");
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(WFSDataSource));
 			}
 			
-			[Bindable] private var _wfsDataSource:WFSDataSource = null;
+			[Bindable] private var target:WFSDataSource = null;
 			public function setTarget(object:ILinkableObject):void
 			{
+				target = object as WFSDataSource;
+				
 				if (!parent)
 				{
 					callLater(setTarget, arguments);
 					return;
 				}
 				
-				_wfsDataSource = object as WFSDataSource;
-				if (_wfsDataSource)
+				if (target)
 				{
-					sourceName.text = Weave.root.getName(_wfsDataSource);
-					url.text = _wfsDataSource.url.value;
-					swapXY.selected = _wfsDataSource.swapXY.value;
+					sourceName.text = WeaveAPI.globalHashMap.getName(target);
+					url.text = target.url.value;
+					swapXY.selected = target.swapXY.value;
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
 				}
 			}
 			
-			public function applyChanges():void
+			public function hasPendingChanges():Boolean
 			{
-				try
-				{
-					_wfsDataSource.url.value = url.text;
-					_wfsDataSource.swapXY.value = swapXY.selected;
-				}
-				catch (e:Error)
-				{
-					reportError(e);
-				}
+				return StandardLib.asString(target.url.value) != StandardLib.asString(url.text)
+					|| target.swapXY.value != swapXY.selected;
 			}
 			
+			public function applyChanges():void
+			{
+				target.url.value = url.text;
+				target.swapXY.value = swapXY.selected;
+			}
+			
+			public function createDataSource():IDataSource
+			{
+				if (!sourceName.text || !url.text)
+				{
+					Alert.show(lang("Please fill all required fields"), lang("Error"));
+					return null;
+				}
+				if (WeaveAPI.globalHashMap.getObject(sourceName.text))
+				{
+					Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
+					return null;
+				}
+				target = WeaveAPI.globalHashMap.requestObject(sourceName.text, WFSDataSource, false);
+				if (!target)
+				{
+					Alert.show(lang("Unexpected problem. Unable to add the data source."));
+					return null;
+				}
+				applyChanges();
+				return target;
+			}
 		]]>
 	</mx:Script>
 </mx:VBox>

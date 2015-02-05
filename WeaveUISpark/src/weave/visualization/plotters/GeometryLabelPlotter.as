@@ -21,15 +21,14 @@ package weave.visualization.plotters
 {
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotter;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.KeySets.SortedKeySet;
-	import weave.data.QKeyManager;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 
@@ -40,6 +39,8 @@ package weave.visualization.plotters
 	 */
 	public class GeometryLabelPlotter extends TextGlyphPlotter
 	{
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GeometryLabelPlotter, "Geometry labels");
+
 		public function GeometryLabelPlotter()
 		{
 			registerSpatialProperty(geometryColumn);
@@ -53,44 +54,27 @@ package weave.visualization.plotters
 			linkSessionState(geometryColumn, dataX.requestLocalObject(ReprojectedGeometryColumn, true));
 			linkSessionState(geometryColumn, dataY.requestLocalObject(ReprojectedGeometryColumn, true));
 			
-			_filteredKeySet.setColumnKeySources([geometryColumn], null, keyCompare);
+			_sortCopyKeys = SortedKeySet.generateSortCopyFunction([getGeometryArea, sortColumn, text], [-1, 1, 1]);
+			_filteredKeySet.setColumnKeySources([geometryColumn, sortColumn, text], null, _sortCopyKeys);
 		}
 		
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
 		
-		private var _sortColumnCompare:Function = SortedKeySet.generateCompareFunction([sortColumn, text]);
+		private var _sortCopyKeys:Function;
 		
-		/**
-		 * This function compares geometry record keys according to geometry bounding box area
-		 * @param key1 First record key ("a")
-		 * @param key2 Second record key ("b")
-		 * @return Compare value: 0: (a == b), -1: (a &lt; b), 1: (a &gt; b)
-		 */		
-		public function keyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
+		private function getGeometryArea(key:IQualifiedKey):Number
 		{
 			try
 			{
-				// get the first geom in each list
-				var geom1:GeneralizedGeometry = (geometryColumn.getValueFromKey(key1) as Array)[0] as GeneralizedGeometry;
-				var geom2:GeneralizedGeometry = (geometryColumn.getValueFromKey(key2) as Array)[0] as GeneralizedGeometry;
-				
-				// sort descending by bounding box area
-				var result:int = -ObjectUtil.numericCompare(geom1.bounds.getArea(), geom2.bounds.getArea());
-				if (result != 0)
-					return result;
+				var geom:GeneralizedGeometry = geometryColumn.getValueFromKey(key, Array)[0] as GeneralizedGeometry;
+				return geom.bounds.getArea();
 			}
 			catch (e:Error)
 			{
 				// we don't care if this fails
 			}
-			
-			// revert to default compare
-			return _sortColumnCompare(key1, key2);
+			return NaN;
 		}
-		
-		// reusable temporary objects
-		private var tempBounds1:IBounds2D = new Bounds2D();
-		private var tempBounds2:IBounds2D = new Bounds2D();
 		
 		// backwards compatibility 0.9.6
 		[Deprecated(replacement="geometryColumn")] public function set geometry(value:Object):void

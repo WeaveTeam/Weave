@@ -26,6 +26,7 @@ package weave.services
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
+	import flash.net.URLRequestMethod;
 	import flash.utils.ByteArray;
 	
 	import mx.core.mx_internal;
@@ -34,9 +35,10 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.URLUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
+	import weave.compiler.StandardLib;
+	import weave.utils.VectorUtils;
 
 	/**
 	 * An all-static class containing functions for downloading URLs.
@@ -45,12 +47,17 @@ package weave.services
 	 */
 	public class URLRequestUtils implements IURLRequestUtils
 	{
+		public static var debug:Boolean = false;
 		public static var delayResults:Boolean = false; // when true, delays result/fault handling and fills the 'delayed' Array.
 		public static const delayed:Array = []; // array of objects with properties:  label:String, resume:Function
 		
 		public static const DATA_FORMAT_TEXT:String = URLLoaderDataFormat.TEXT;
 		public static const DATA_FORMAT_BINARY:String = URLLoaderDataFormat.BINARY;
 		public static const DATA_FORMAT_VARIABLES:String = URLLoaderDataFormat.VARIABLES;
+		
+		public static const LOCAL_FILE_URL_SCHEME:String = "local://";
+		private var _baseURL:String;
+		private var _localFiles:Object = {};
 		
 		/**
 		 * This will set the base URL for use with relative URL requests.
@@ -65,8 +72,6 @@ package weave.services
 			}
 		}
 		
-		private var _baseURL:String;
-		
 		/**
 		 * This will update a URLRequest to use the base URL specified via setBaseURL().
 		 */
@@ -74,6 +79,41 @@ package weave.services
 		{
 			if (_baseURL)
 				request.url = URLUtil.getFullURL(_baseURL, request.url);
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function saveLocalFile(name:String, content:ByteArray):String
+		{
+			_localFiles[name] = content;
+			return LOCAL_FILE_URL_SCHEME + name;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getLocalFile(name:String):ByteArray
+		{
+			return _localFiles[name];
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function removeLocalFile(name:String):void
+		{
+			delete _localFiles[name];
+		}
+
+		/**
+		 * @inheritDoc
+		 */
+		public function getLocalFileNames():Array
+		{
+			var list:Array = VectorUtils.getKeys(_localFiles);
+			StandardLib.sort(list);
+			return list;
 		}
 		
 		/**
@@ -88,35 +128,57 @@ package weave.services
 		 */
 		public function getURL(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader
 		{
+			var urlLoader:CustomURLLoader;
+			var fault:Fault;
+			
+			if (request.url.indexOf(LOCAL_FILE_URL_SCHEME) == 0)
+			{
+				var fileName:String = request.url.substr(LOCAL_FILE_URL_SCHEME.length);
+				
+				// If it's a local file, we still need to return a new URLLoader.
+				// CustomURLLoader doesn't load if the last parameter to the constructor is false.
+				urlLoader = new CustomURLLoader(request, dataFormat, false);
+				urlLoader.addResponder(new CustomAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token));
+				
+				if (_localFiles.hasOwnProperty(fileName))
+				{
+					WeaveAPI.StageUtils.callLater(relevantContext, urlLoader.applyResult, [_localFiles[fileName]]);
+				}
+				else
+				{
+					fault = new Fault("Error", "Missing local file: " + fileName);
+					WeaveAPI.StageUtils.callLater(relevantContext, urlLoader.applyFault, [fault]);
+				}
+				
+				return urlLoader;
+			}
+			
 			addBaseURL(request);
 			
 			// attempt to load crossdomain.xml from same folder as file
 			//Security.loadPolicyFile(URLUtil.getFullURL(request.url, 'crossdomain.xml'));
 			
-			var urlLoader:CustomURLLoader;
 			try
 			{
-				urlLoader = new CustomURLLoader(relevantContext, request, dataFormat, true);
-				urlLoader.addResponder(new CustomAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token));
+				urlLoader = new CustomURLLoader(request, dataFormat, true);
 			}
 			catch (e:Error)
 			{
 				// When an error occurs, we need to run the asyncFaultHandler later
 				// and return a new URLLoader. CustomURLLoader doesn't load if the 
 				// last parameter to the constructor is false.
-				urlLoader = new CustomURLLoader(relevantContext, request, dataFormat, false);
-				WeaveAPI.StageUtils.callLater(
-					relevantContext, 
-					asyncFaultHandler || noOp, 
-					[new FaultEvent(FaultEvent.FAULT, false, true, new Fault(String(e.errorID), e.name, e.message)), token]
-				);
+				urlLoader = new CustomURLLoader(request, dataFormat, false);
+				
+				fault = new Fault(String(e.errorID), e.name, e.message);
+				fault.rootCause = e;
+				WeaveAPI.StageUtils.callLater(relevantContext, urlLoader.applyFault, [fault]);
 			}
+			
+			urlLoader.addResponder(new CustomAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token));
 			
 			return urlLoader;
 		}
 		
-		private function noOp(..._):void { } // does nothing
-
 		/**
 		 * This function will download content from a URL and call the given handler functions when it completes or a fault occurrs.
 		 * @param relevantContext Specifies an object that the async handlers are relevant to.  If the object is disposed via WeaveAPI.SessionManager.dispose() before the download finishes, the async handler functions will not be called.  This parameter may be null.
@@ -124,14 +186,14 @@ package weave.services
 		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
 		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
 		 * @param token An object that gets passed to the handler functions.
-		 * @param useCache A boolean indicating whether to use the cached images. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
+		 * @param useCache A boolean indicating whether to use the cached images for HTTP GET requests. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
 		 * @return An IURLRequestToken that can be used to cancel the request and cancel the async handlers.
 		 */
 		public function getContent(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):IURLRequestToken
 		{
 			addBaseURL(request);
 			
-			if (useCache)
+			if (useCache && request.method == URLRequestMethod.GET)
 			{
 				var content:Object = _contentCache[request.url]; 
 				if (content)
@@ -140,7 +202,7 @@ package weave.services
 					var contentRequestToken:ContentAsyncResponder = new ContentAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token);
 					var resultEvent:ResultEvent = ResultEvent.createEvent(content);
 					// wait one frame and make sure to call contentResult() instead of result().
-					WeaveAPI.StageUtils.callLater(relevantContext, contentRequestToken.contentResult, [resultEvent], WeaveAPI.TASK_PRIORITY_PARSING);
+					WeaveAPI.StageUtils.callLater(relevantContext, contentRequestToken.contentResult, [resultEvent]);
 					return contentRequestToken;
 				}
 			}
@@ -150,7 +212,7 @@ package weave.services
 			if (loader == null || loader.isClosed)
 			{
 				// make the request and add handler function that will load the content
-				loader = getURL(relevantContext, request, handleGetContentResult, null, request.url, DATA_FORMAT_BINARY) as CustomURLLoader;
+				loader = getURL(relevantContext, request, handleGetContentResult, handleGetContentFault, request.url, DATA_FORMAT_BINARY) as CustomURLLoader;
 				_requestURLToLoader[request.url] = loader;
 			}
 			
@@ -182,8 +244,9 @@ package weave.services
 			var bytes:ByteArray = resultEvent.result as ByteArray;
 			if (!bytes || bytes.length == 0)
 			{
-				var faultEvent:FaultEvent = FaultEvent.createEvent(new Fault("Error", "HTTP GET failed: Content is null from " + url));
-				customURLLoader.asyncToken.mx_internal::applyFault(faultEvent);
+				var fault:Fault = new Fault("Error", "HTTP GET failed: Content is null from " + url);
+				delete _requestURLToLoader[url];
+				customURLLoader.applyFault(fault);
 				return;
 			}
 
@@ -207,8 +270,9 @@ package weave.services
 			};
 			var handleLoaderError:Function = function(errorEvent:IOErrorEvent):void
 			{
-				var faultEvent:FaultEvent = FaultEvent.createEvent(new Fault(errorEvent.type, errorEvent.text));
-				customURLLoader.asyncToken.mx_internal::applyFault(faultEvent);
+				var fault:Fault = new Fault(errorEvent.type, errorEvent.text + " (" + url + ")");
+				delete _requestURLToLoader[url];
+				customURLLoader.applyFault(fault);
 			};
 		
 		
@@ -218,6 +282,10 @@ package weave.services
 			loader.contentLoaderInfo.addEventListener(Event.COMPLETE, handleLoaderComplete);
 			loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, handleLoaderError);
 			loader.loadBytes(bytes);
+		}
+		private function handleGetContentFault(faultEvent:FaultEvent, url:String):void
+		{
+			delete _requestURLToLoader[url];
 		}
 	}
 }
@@ -239,16 +307,16 @@ import mx.rpc.IResponder;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 import mx.utils.ObjectUtil;
-import mx.utils.StringUtil;
 
-import weave.api.WeaveAPI;
 import weave.api.core.ILinkableObject;
 import weave.api.services.IURLRequestToken;
+import weave.compiler.StandardLib;
+import weave.services.ExternalDownloader;
 import weave.services.URLRequestUtils;
 
 internal class CustomURLLoader extends URLLoader
 {
-	public function CustomURLLoader(relevantContext:Object, request:URLRequest, dataFormat:String, loadNow:Boolean)
+	public function CustomURLLoader(request:URLRequest, dataFormat:String, loadNow:Boolean)
 	{
 		super.dataFormat = dataFormat;
 		_urlRequest = request;
@@ -269,9 +337,12 @@ internal class CustomURLLoader extends URLLoader
 				URLRequestUtils.delayed.push({"label": label, "resume": resume});
 			}
 			
-			// keep track of pending requests
-			WeaveAPI.ProgressIndicator.addTask(this, relevantContext as ILinkableObject);
-			addResponder(new AsyncResponder(removeTask, removeTask));
+			if (failedHosts[getHost()] && JavaScript.available)
+			{
+				// don't bother trying a URLLoader with the same host that previously failed due to a security error
+				ExternalDownloader.download(_urlRequest, dataFormat, _asyncToken);
+				return;
+			}
 			
 			// set up event listeners
 			addEventListener(Event.COMPLETE, handleGetResult);
@@ -279,8 +350,23 @@ internal class CustomURLLoader extends URLLoader
 			addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSecurityError);
 			addEventListener(ProgressEvent.PROGRESS, handleProgressUpdate);
 			
+			if (URLRequestUtils.debug)
+				trace(debugId(this), 'request', request.url);
 			super.load(request);
 		}
+	}
+	
+	/**
+	 * Lookup for hosts that previously failed due to crossdomain.xml security error
+	 */
+	private static const failedHosts:Object = {}; // host -> true
+	private function getHost():String
+	{
+		var url:String = _urlRequest.url;
+		var start:int = url.indexOf("/") + 2;
+		var length:int = url.indexOf("/", start);
+		var host:String = url.substr(0, length);
+		return host;
 	}
 	
 	internal var label:String;
@@ -295,7 +381,8 @@ internal class CustomURLLoader extends URLLoader
 	
 	override public function close():void
 	{
-		WeaveAPI.ProgressIndicator.removeTask(this);
+		if (URLRequestUtils.debug)
+			trace(debugId(this), 'cancel', _urlRequest.url);
 		_isClosed = true;
 		try {
 			super.close();
@@ -356,27 +443,13 @@ internal class CustomURLLoader extends URLLoader
 		}
 	}
 
-	/**
-	 * This function is the event listener for a URLLoader's ProgressEvent.
-	 * The primary purpose is to relay the URLLoader and its progress to the 
-	 * ProgressIndicator class.
-	 *  
-	 * @param event
-	 */
 	private function handleProgressUpdate(event:Event):void
 	{
-		WeaveAPI.ProgressIndicator.updateTask(this, bytesLoaded / bytesTotal);
+		for each (var responder:Object in _asyncToken.responders)
+			if (responder is CustomAsyncResponder)
+				WeaveAPI.ProgressIndicator.updateTask(responder, bytesLoaded / bytesTotal);
 	}
 
-	/**
-	 * This function gets called when a getURL request succeeds or fails.
-	 * @param token The URLLoader to remove from the task list.
-	 */
-	private function removeTask(event:Event, token:Object = null):void
-	{
-		WeaveAPI.ProgressIndicator.removeTask(this);
-	}
-	
 	private var _resumeFunc:Function = null;
 	private var _resumeParam:Object = null;
 	/**
@@ -389,7 +462,7 @@ internal class CustomURLLoader extends URLLoader
 		{
 			_resumeFunc = resume; // this cancels the pending delay behavior
 		}
-		else
+		else if (_resumeFunc != resume)
 		{
 			_resumeFunc(_resumeParam);
 		}
@@ -401,6 +474,8 @@ internal class CustomURLLoader extends URLLoader
 	 */
 	private function handleGetResult(event:Event):void
 	{
+		if (URLRequestUtils.debug)
+			trace(debugId(this), 'complete', _urlRequest.url);
 		//WeaveAPI.externalTrace('getResult ' + label);
 		if (URLRequestUtils.delayResults && _resumeFunc == null)
 		{
@@ -410,7 +485,7 @@ internal class CustomURLLoader extends URLLoader
 		}
 		
 		// broadcast result to responders
-		_asyncToken.mx_internal::applyResult(ResultEvent.createEvent(data));
+		applyResult(data);
 	}
 	
 	private function fixErrorMessage(errorEvent:ErrorEvent):void
@@ -418,7 +493,7 @@ internal class CustomURLLoader extends URLLoader
 		var text:String = errorEvent.text;
 		// If the user is running the non-debugger version of Flash Player, provide the same info the debugger version would provide.
 		if (text == "Error #2048")
-			text += StringUtil.substitute(": Security sandbox violation: {0} cannot load data from {1}", WeaveAPI.topLevelApplication.url, urlRequest.url);
+			text += StandardLib.substitute(": Security sandbox violation: {0} cannot load data from {1}", WeaveAPI.topLevelApplication.url, urlRequest.url);
 		if (text == "Error #2032")
 			text += ": Stream Error. URL: " + urlRequest.url;
 		errorEvent.text = text;
@@ -430,6 +505,8 @@ internal class CustomURLLoader extends URLLoader
 	 */
 	private function handleGetError(event:Event):void
 	{
+		if (URLRequestUtils.debug)
+			trace(debugId(this), 'error', _urlRequest.url);
 		if (URLRequestUtils.delayResults && _resumeFunc == null)
 		{
 			_resumeFunc = handleGetError;
@@ -443,11 +520,12 @@ internal class CustomURLLoader extends URLLoader
 		if (errorEvent)
 		{
 			fixErrorMessage(errorEvent);
-			fault = new Fault(String(event.type), event.type, errorEvent.text);
+			fault = new Fault(event.type, event.type, errorEvent.text);
 		}
 		else
-			fault = new Fault(String(event.type), event.type, "Request cancelled");
-		_asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault));
+			fault = new Fault(event.type, event.type, "Request cancelled");
+		applyFault(fault);
+		_isClosed = true;
 	}
 	
 	/**
@@ -457,20 +535,28 @@ internal class CustomURLLoader extends URLLoader
 	private function handleSecurityError(event:SecurityErrorEvent):void
 	{
 		fixErrorMessage(event);
-		if (false)
+		if (JavaScript.available)
 		{
-			// call the JQueryCaller to use JQuery to try to download a file that we had a security error
-			// on - this is to get around the Flash player's security restrictions for downloading files
-			// from servers without a permissive crossdomain.xml
-			/** NOTE: this will not work for anything other than text data - it can be used to access data
-			 *        in formats such as XML from a server that does not have a crossdomain.xml that is 
-			 *        permissive, this will NOT work for binary data such as images **/
-			//JQueryCaller.getFileFromURL(_urlRequest.url, _asyncToken);
+			// Server did not have a permissive crossdomain.xml, so try JavaScript/CORS
+			failedHosts[getHost()] = true;
+			ExternalDownloader.download(_urlRequest, dataFormat, _asyncToken);
 		}
 		else
 		{
 			handleGetError(event);
 		}
+	}
+	
+	internal function applyResult(data:Object):void
+	{
+		if (this.data !== data)
+			this.data = data;
+		_asyncToken.mx_internal::applyResult(ResultEvent.createEvent(data));
+	}
+	
+	internal function applyFault(fault:Fault):void
+	{
+		_asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault));
 	}
 }
 
@@ -484,12 +570,14 @@ internal class CustomAsyncResponder extends AsyncResponder implements IURLReques
 	public function CustomAsyncResponder(relevantContext:Object, loader:CustomURLLoader, result:Function, fault:Function, token:Object = null)
 	{
 		super(result || noOp, fault || noOp, token);
-	
+		
 		this.relevantContext = relevantContext;
 		
 		this.loader = loader;
 		if (loader)
 			loader.addResponder(this);
+		
+		WeaveAPI.ProgressIndicator.addTask(this, relevantContext as ILinkableObject);
 	}
 	
 	private static function noOp(..._):void {} // does nothing
@@ -499,19 +587,22 @@ internal class CustomAsyncResponder extends AsyncResponder implements IURLReques
 	
 	public function cancelRequest():void
 	{
+		WeaveAPI.ProgressIndicator.removeTask(this);
 		if (loader && !WeaveAPI.SessionManager.objectWasDisposed(this))
 			loader.removeResponder(this);
-		WeaveAPI.SessionManager.disposeObjects(this);
+		WeaveAPI.SessionManager.disposeObject(this);
 	}
 	
 	override public function result(data:Object):void
 	{
+		WeaveAPI.ProgressIndicator.removeTask(this);
 		if (!WeaveAPI.SessionManager.objectWasDisposed(this) && !WeaveAPI.SessionManager.objectWasDisposed(relevantContext))
 			super.result(data);
 	}
 	
 	override public function fault(data:Object):void
 	{
+		WeaveAPI.ProgressIndicator.removeTask(this);
 		if (!WeaveAPI.SessionManager.objectWasDisposed(this) && !WeaveAPI.SessionManager.objectWasDisposed(relevantContext))
 			super.fault(data);
 	}

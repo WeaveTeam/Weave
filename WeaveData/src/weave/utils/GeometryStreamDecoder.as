@@ -24,7 +24,6 @@ package weave.utils
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
@@ -399,7 +398,8 @@ package weave.utils
 			};
 			
 			// Weave automatically triggers callbacks when all tasks complete
-			WeaveAPI.StageUtils.startTask(metadataCallbacks, task, WeaveAPI.TASK_PRIORITY_PARSING);
+			// high priority because metadata affects keys and keys are a prerequisite for many things
+			WeaveAPI.StageUtils.startTask(metadataCallbacks, task, WeaveAPI.TASK_PRIORITY_HIGH);
 		}
 		
 		private function readShapeType(stream:ByteArray):void
@@ -587,8 +587,9 @@ package weave.utils
 				return 1; // done
 			}
 			
-				// Weave automatically triggers callbacks when all tasks complete
-			WeaveAPI.StageUtils.startTask(this, task, WeaveAPI.TASK_PRIORITY_PARSING);
+			// Weave automatically triggers callbacks when all tasks complete
+			// low priority because the geometries can still be used even without all the detail.
+			WeaveAPI.StageUtils.startTask(this, task, WeaveAPI.TASK_PRIORITY_LOW);
 		}
 
 		
@@ -602,7 +603,7 @@ package weave.utils
 		{
 			var p:int = bytes.position;
 			var h:String = '0123456789ABCDEF';
-			var result:String = StringUtil.substitute('({0} bytes, pos={1})', bytes.length, p);
+			var result:String = StandardLib.substitute('({0} bytes, pos={1})', bytes.length, p);
 			bytes.position = 0;
 			while (bytes.bytesAvailable)
 			{

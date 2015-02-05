@@ -19,17 +19,12 @@
 
 package weave.data.BinningDefinitions
 {
-	import mx.utils.ObjectUtil;
-	
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnWrapper;
-	import weave.api.data.IPrimitiveColumn;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.data.BinClassifiers.NumberClassifier;
-	import weave.utils.AsyncSort;
 	
 	/**
 	 * Divides a data range into a number of bins based on range entered by user.
@@ -50,9 +45,7 @@ package weave.data.BinningDefinitions
 		public const splitValues:LinkableString = newLinkableChild(this, LinkableString);
 		
 		/**
-		 * getBinClassifiersForColumn - implements IBinningDefinition Interface
-		 * @param column 
-		 * @param output
+		 * @inheritDoc
 		 */
 		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
@@ -63,12 +56,8 @@ package weave.data.BinningDefinitions
 			// clear any existing bin classifiers
 			output.removeAllObjects();
 			
-			var nonWrapperColumn:IAttributeColumn = column;
-			while (nonWrapperColumn is IColumnWrapper)
-				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).getInternalColumn();
-			
 			var i:int;
-			var values:Array = splitValues.value.split(',');
+			var values:Array = String(splitValues.value || '').split(',');
 			// remove bad values
 			for (i = values.length; i--;)
 			{
@@ -79,7 +68,7 @@ package weave.data.BinningDefinitions
 					values[i] = number;
 			}
 			// sort numerically
-			AsyncSort.sortImmediately(values, ObjectUtil.numericCompare);
+			StandardLib.sort(values);
 			
 			for (i = 0; i < values.length - 1; i++)
 			{
@@ -92,7 +81,7 @@ package weave.data.BinningDefinitions
 				name = getOverrideNames()[i];
 				//if it is empty string set it from generateBinLabel
 				if(!name)
-					name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
+					name = tempNumberClassifier.generateBinLabel(column);
 				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 			

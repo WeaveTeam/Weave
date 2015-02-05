@@ -20,8 +20,12 @@
 package weave.core
 {
 	import avmplus.DescribeType;
+	import avmplus.getQualifiedClassName;
 	
 	import flash.system.ApplicationDomain;
+	
+	import weave.compiler.Compiler;
+	import weave.compiler.StandardLib;
 
 	/**
 	 * This is an all-static class containing functions related to qualified class names.
@@ -40,7 +44,72 @@ package weave.core
 			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
 			if (domain.hasDefinition(classQName))
 				return domain.getDefinition(classQName) as Class;
-			return null;
+			if (classQName && classQName.indexOf("::") >= 0)
+				classQName = StandardLib.replace(classQName, "::", ".");
+			return _deprecatedLookup[classQName];
+		}
+		
+		/**
+		 * This tests if a class exists.
+		 * @param classQName The qualified class name.
+		 * @return true if the class exists.
+		 */
+		public static function hasClassDefinition(classQName:String):Boolean
+		{
+			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
+			if (domain.hasDefinition(classQName))
+				return true;
+			if (classQName && classQName.indexOf("::") >= 0)
+				classQName = StandardLib.replace(classQName, "::", ".");
+			return !!_deprecatedLookup[classQName];
+		}
+		
+		/**
+		 * Checks if a class is deprecated.
+		 * @param classQName The qualified class name.
+		 * @return true if the class is deprecated.
+		 */
+		public static function isClassDeprecated(classQName:String):Boolean
+		{
+			// cache class info first because in doing so we may find out the class is deprecated and register it as such.
+			if (!cacheClassInfo(classQName))
+				return false;
+			if (classQName && classQName.indexOf("::") >= 0)
+				classQName = StandardLib.replace(classQName, "::", ".");
+			return !!_deprecatedLookup[classQName];
+		}
+		
+		/**
+		 * Storage for registerDeprecatedClass()
+		 * Keys in this Object use dot notation rather than "::" package notation.
+		 * @see #registerDeprecatedClass()
+		 * @see Compiler#deprecatedClassReplacements
+		 */
+		private static const _deprecatedLookup:Object = Compiler.deprecatedClassReplacements;
+		
+		/**
+		 * Registers a replacement class for a deprecated qualified class name.
+		 * @param deprecatedClassQName The deprecated qualified class name.
+		 * @param replacementClass The class that replaces the deprecated one.
+		 */
+		public static function registerDeprecatedClass(deprecatedClassQName:String, replacementClass:Class):void
+		{
+			if (deprecatedClassQName.indexOf("::") >= 0)
+				deprecatedClassQName = StandardLib.replace(deprecatedClassQName, "::", ".");
+			
+			_deprecatedLookup[deprecatedClassQName] = replacementClass;
+			
+			// handle case when package is not specified
+			var shortName:String = deprecatedClassQName.substr(deprecatedClassQName.lastIndexOf('.') + 1);
+			if (!_deprecatedLookup[shortName])
+				_deprecatedLookup[shortName] = replacementClass;
+			
+			// make sure class can be looked up by name (in case it's an internal class)
+			deprecatedClassQName = getQualifiedClassName(replacementClass);
+			if (deprecatedClassQName.indexOf("::") >= 0)
+				deprecatedClassQName = StandardLib.replace(deprecatedClassQName, "::", ".");
+			if (!getClassDefinition(deprecatedClassQName))
+				_deprecatedLookup[deprecatedClassQName] = replacementClass;
 		}
 
 		/**
@@ -128,11 +197,6 @@ package weave.core
 		private static const classExtendsMap:Object = new Object();
 		
 		/**
-		 * avmplus.describeTypeJSON(o:*, flags:uint):Object
-		 */
-		private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
-		
-		/**
 		 * This function will populate the classImplementsMap and classExtendsMap for the given qualified class name.
 		 * @param classQName A qualified class name.
 		 * @return true if the class info has been cached.
@@ -146,7 +210,14 @@ package weave.core
 			if (classDef == null)
 				return false;
 
-			var type:Object = describeTypeJSON(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_BASES | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
+			var type:Object = DescribeType.getInfo(
+				classDef,
+				DescribeType.INCLUDE_TRAITS
+					| DescribeType.USE_ITRAITS
+					| DescribeType.INCLUDE_INTERFACES
+					| DescribeType.INCLUDE_BASES
+					| DescribeType.INCLUDE_METADATA
+			);
 
 			var iMap:Object = new Object();
 			for each (var _implements:String in type.traits.interfaces)
@@ -158,14 +229,41 @@ package weave.core
 				eMap[_extends] = true;
 			classExtendsMap[classQName] = eMap;
 			
+			for each (var meta:Object in type.traits.metadata)
+				if (meta.name == 'Deprecated')
+					registerDeprecatedClass(classQName, classDef);
+			
 			return true; // successfully cached
 		}
 		
-		/*
-		private function typeEquals(o:*, cls:Class):Boolean
+		
+		/**
+		 * Partitions a list of classes based on which interfaces they implement.
+		 * @param A list of interfaces.
+		 * @return An Array of filtered Arrays corresponding to the given interfaces, including a final
+		 *         Array containing the remaining classes that did not implement any of the given interfaces.
+		 */
+		public static function partitionClassList(classes:Array, ...interfaces):Array
 		{
-			return o == null ? false : Object(o).constructor == cls;
+			if (interfaces.length == 1 && interfaces[0] is Array)
+				interfaces = interfaces[0];
+			var partitions:Array = [];
+			for each (var interfaceClass:Class in interfaces)
+			{
+				var partition:Array = [];
+				classes = classes.filter(function(impl:Class, i:int, a:Array):Boolean {
+					if (classImplements(getQualifiedClassName(impl), getQualifiedClassName(interfaceClass)))
+					{
+						// include in result, remove from from classes
+						partition.push(impl);
+						return false;
+					}
+					return true;
+				});
+				partitions.push(partition);
+			}
+			partitions.push(classes);
+			return partitions;
 		}
-		*/
 	}
 }

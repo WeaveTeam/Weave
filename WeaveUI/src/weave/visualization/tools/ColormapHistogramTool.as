@@ -20,7 +20,6 @@
 package weave.visualization.tools
 {
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.ui.IVisTool;
 	
 	/**
@@ -30,11 +29,11 @@ package weave.visualization.tools
 	 */
 	public class ColormapHistogramTool extends HistogramTool
 	{
-		WeaveAPI.registerImplementation(IVisTool, ColormapHistogramTool, "Color Histogram");
+		WeaveAPI.ClassRegistry.registerImplementation(IVisTool, ColormapHistogramTool, "Color Histogram");
 
 		public function ColormapHistogramTool()
 		{
-			plotter.dynamicColorColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+			plotter.fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 		}
 	}
 }

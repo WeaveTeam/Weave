@@ -158,5 +158,10 @@ package weave.primitives
 		{
 			unusedInstances.length = 0;
 		}
+		
+		/**
+		 * The importance property name.
+		 */
+		public static const IMPORTANCE:String = 'importance';
 	}
 }

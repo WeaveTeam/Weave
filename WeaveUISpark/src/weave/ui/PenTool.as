@@ -34,10 +34,8 @@ package weave.ui
 	import mx.events.FlexEvent;
 	import mx.events.ResizeEvent;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
-	import weave.api.core.IStageUtils;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
@@ -231,11 +229,24 @@ package weave.ui
 			_editMode = value;
 			
 			_drawing = false;
-			if (value)
-				CustomCursorManager.showCursor(PEN_CURSOR);
-			else
-				CustomCursorManager.hack_removeAllCursors();
+			toggleCursor(value);
 			invalidateDisplayList();
+		}
+		
+		private static var _cursorId:int = 0;
+		private static function toggleCursor(show:Boolean):void
+		{
+			if (show)
+			{
+				if (!_cursorId)
+					_cursorId = CustomCursorManager.showCursor(PEN_CURSOR);
+			}
+			else
+			{
+				if (_cursorId)
+					CustomCursorManager.removeCursor(_cursorId);
+				_cursorId = 0;
+			}
 		}
 
 		/**
@@ -462,7 +473,7 @@ package weave.ui
 			if (!_editMode)
 				return;
 			
-			CustomCursorManager.showCursor(PEN_CURSOR);
+			toggleCursor(true);
 		}
 		
 		/**
@@ -474,7 +485,7 @@ package weave.ui
 			if (!_editMode)
 				return;
 			
-			CustomCursorManager.hack_removeAllCursors();
+			toggleCursor(false);
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -704,7 +715,7 @@ package weave.ui
 					
 					_removeDrawingsMenuItem.enabled = true;
 				}
-				CustomCursorManager.showCursor(PEN_CURSOR);
+				toggleCursor(true);
 			}
 		}
 		
@@ -719,15 +730,20 @@ package weave.ui
 			if (!contextMenu)
 				return;
 
-			CustomCursorManager.hack_removeCurrentCursor();
+			toggleCursor(false);
 
 			//Reset Context Menu as if no PenMouse Object is there and let following code adjust as necessary.
 			_penToolMenuItem.caption = ENABLE_PEN;
 			_removeDrawingsMenuItem.enabled = false;
 
-			// If session state is imported need to detect if there are drawings.
-			var linkableContainer:ILinkableContainer = getLinkableContainer(e.mouseTarget) as ILinkableContainer;
-			if (linkableContainer)
+			var linkableContainer:ILinkableContainer = getLinkableContainer(e.mouseTarget);
+			var visualization:Visualization = getVisualization(e.mouseTarget);
+			
+			_penToolMenuItem.enabled = !!visualization && !!linkableContainer;
+			_removeDrawingsMenuItem.enabled = false;
+			_changeDrawingMode.enabled = false;
+			
+			if (_penToolMenuItem.enabled)
 			{
 				var penObject:PenTool = linkableContainer.getLinkableChildren().getObject( PEN_OBJECT_NAME ) as PenTool;
 				if (penObject)
@@ -756,11 +772,11 @@ package weave.ui
 		private static function handlePenToolToggleMenuItem(e:ContextMenuEvent):void
 		{
 			var linkableContainer:ILinkableContainer = getLinkableContainer(e.mouseTarget);
-			if (!linkableContainer)
-				return;
-
 			var visualization:Visualization = getVisualization(e.mouseTarget);
-			if (!visualization)
+			
+			_penToolMenuItem.enabled = !!visualization && !!linkableContainer;
+			
+			if (!_penToolMenuItem.enabled)
 				return;
 			
 			var penTool:PenTool = linkableContainer.getLinkableChildren().requestObject(PEN_OBJECT_NAME, PenTool, false);
@@ -771,7 +787,7 @@ package weave.ui
 				_penToolMenuItem.caption = DISABLE_PEN;
 				_removeDrawingsMenuItem.enabled = true;
 				_changeDrawingMode.enabled = true;
-				CustomCursorManager.showCursor(PEN_CURSOR);
+				toggleCursor(true);
 			}
 			else
 			{

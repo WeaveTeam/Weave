@@ -21,23 +21,21 @@ package weave.data
 {
 	import flash.geom.Point;
 	import flash.utils.ByteArray;
-	import flash.utils.Dictionary;
 	
 	import org.openscales.proj4as.Proj4as;
 	import org.openscales.proj4as.ProjConstants;
 	import org.openscales.proj4as.ProjPoint;
 	import org.openscales.proj4as.ProjProjection;
 	
-	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
 	import weave.api.newDisposableChild;
+	import weave.api.objectWasDisposed;
 	import weave.api.primitives.IBounds2D;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.Dictionary2D;
 	
 	/**
 	 * An interface for reprojecting columns of geometries and individual coordinates.
@@ -67,8 +65,7 @@ package weave.data
 
 			//ProjProjection.defs['aeac-us'] = '+title=Albers Equal-Area Conic +proj=aea +lat_1=37.25 +lat_2=40.25 +lat_0=36 +lon_0=-72 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs';
 			
-			ProjProjection.defs['EPSG:26986'] = "+title=NAD83 / Massachusetts Mainland +proj=lcc +lat_1=42.68333333333333 +lat_2=41.71666666666667 +lat_0=41 +lon_0=-71.5 +x_0=200000 +y_0=750000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs";
-			ProjProjection.defs["EPSG:3638"] = "+title=NAD83(NSRS2007) / Ohio South +proj=lcc +lat_1=40.03333333333333 +lat_2=38.73333333333333 +lat_0=38 +lon_0=-82.5 +x_0=600000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
+			ProjProjection.defs['EPSG:102736'] = "+title=NAD 1983 StatePlane Tennessee FIPS 4100 Feet +proj=lcc +lat_1=35.25 +lat_2=36.41666666666666 +lat_0=34.33333333333334 +lon_0=-86 +x_0=600000.0000000001 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs";
 			ProjProjection.defs['VANDG'] = "+title=Van Der Grinten +proj=vandg +x_0=0 +y_0=0 +lon_0=0";
 			
 			var ba:ByteArray = (new ProjDatabase()) as ByteArray;
@@ -82,48 +79,33 @@ package weave.data
 
 
 		/**
-		 * This is a multi-dimensional lookup:   unprojectedColumn -> Object, destinationSRS -> ProxyColumn
-		 * Example: _reprojectedColumnCache[column][destinationSRS] is a ProxyColumn containing geometries reprojected to the given SRS.
+		 * This is a multi-dimensional lookup for ProxyColumn objects containing reprojected geometries:   (unprojectedColumn, destinationSRS) -> ProxyColumn
 		 */		
-		private const _reprojectedColumnCache:Dictionary = new Dictionary(true); // weak links to be gc-friendly
+		private const _reprojectedColumnCache_d2d_col_srs:Dictionary2D = new Dictionary2D(true); // weak links to be gc-friendly
 		
 		/**
-		 * This function will return the projected column if a reprojection should be performed or the original column if there is no projection.
-		 * @param columnReference A reference to a column containing geometry data.
-		 * @param destinationProjectionSRS The string corresponding to a projection destination.
-		 * @return The projected column or the original column.
+		 * @inheritDoc
 		 */
-		public function getProjectedGeometryColumn(columnReference:IColumnReference, destinationProjectionSRS:String):IAttributeColumn
+		public function getProjectedGeometryColumn(geometryColumn:IAttributeColumn, destinationProjectionSRS:String):IAttributeColumn
 		{
-			var unprojectedColumn:IAttributeColumn = WeaveAPI.AttributeColumnCache.getColumn(columnReference);
-			if (unprojectedColumn == null)
+			if (!geometryColumn)
 				return null;
 				
 			// if there is no projection specified, return the original column
 			if (destinationProjectionSRS == null || destinationProjectionSRS == '')
-				return unprojectedColumn;
+				return geometryColumn;
 			
 			// check the cache
-			var srsCache:Object = _reprojectedColumnCache[unprojectedColumn] as Object;
-			if (srsCache == null)
+			var worker:WorkerThread = _reprojectedColumnCache_d2d_col_srs.get(geometryColumn, destinationProjectionSRS);
+			
+			// if worker doesn't exist yet or was disposed, (re)create it
+			if (!worker || objectWasDisposed(worker))
 			{
-				srsCache = new Object(); // destinationSRS -> ProxyColumn
-				_reprojectedColumnCache[unprojectedColumn] = srsCache;
+				worker = new WorkerThread(this, geometryColumn, destinationProjectionSRS);
+				_reprojectedColumnCache_d2d_col_srs.set(geometryColumn, destinationProjectionSRS, worker);
 			}
-			var reprojectedColumn:ProxyColumn = srsCache[destinationProjectionSRS] as ProxyColumn;
 
-			// if reprojected column is cached, return it
-			if (reprojectedColumn)
-				return reprojectedColumn;
-
-			// otherwise, create a proxy that will provide the reprojected shapes and save it in the cache
-			reprojectedColumn = newDisposableChild(this, ProxyColumn);
-			srsCache[destinationProjectionSRS] = reprojectedColumn;
-			
-			// create a WorkerThread that will reproject the geometries
-			new WorkerThread(this, unprojectedColumn, reprojectedColumn, destinationProjectionSRS);
-			
-			return reprojectedColumn;
+			return worker.reprojectedColumn;
 		}
 		
 		/**
@@ -310,6 +292,21 @@ package weave.data
 			
 			output.setBounds(minWorldLon, minWorldLat, maxWorldLon, maxWorldLat);
 		}
+		
+		public static function getProjectionFromURN(ogc_crs_urn:String):String
+		{
+			var array:Array = ogc_crs_urn.split(':');
+			var prevToken:String = '';
+			while (array.length > 2)
+				prevToken = array.shift();
+			var proj:String = array.join(':');
+			var altProj:String = prevToken;
+			if (array.length > 1)
+				altProj += ':' + array[1];
+			if (!WeaveAPI.ProjectionManager.projectionExists(proj) && WeaveAPI.ProjectionManager.projectionExists(altProj))
+				proj = altProj;
+			return proj;
+		}
 	}
 }
 
@@ -320,13 +317,15 @@ import org.openscales.proj4as.Proj4as;
 import org.openscales.proj4as.ProjPoint;
 import org.openscales.proj4as.ProjProjection;
 
-import weave.api.WeaveAPI;
+import weave.api.core.IDisposableObject;
 import weave.api.data.ColumnMetadata;
-import weave.api.data.DataTypes;
+import weave.api.data.DataType;
 import weave.api.data.IAttributeColumn;
 import weave.api.data.IColumnWrapper;
 import weave.api.data.IProjector;
 import weave.api.data.IQualifiedKey;
+import weave.api.newDisposableChild;
+import weave.api.registerDisposableChild;
 import weave.data.AttributeColumns.GeometryColumn;
 import weave.data.AttributeColumns.ProxyColumn;
 import weave.data.AttributeColumns.StreamedGeometryColumn;
@@ -337,21 +336,32 @@ import weave.primitives.GeometryType;
 import weave.utils.BLGTreeUtils;
 import weave.utils.ColumnUtils;
 	
-internal class WorkerThread
+internal class WorkerThread implements IDisposableObject
 {
-	public function WorkerThread(projectionManager:ProjectionManager, unprojectedColumn:IAttributeColumn, reprojectedColumn:ProxyColumn, destinationProjectionSRS:String)
+	public function WorkerThread(projectionManager:ProjectionManager, unprojectedColumn:IAttributeColumn, destinationProjectionSRS:String)
 	{
+		registerDisposableChild(unprojectedColumn, this);
 		this.projectionManager = projectionManager;
 		this.unprojectedColumn = unprojectedColumn;
-		this.reprojectedColumn = reprojectedColumn;
 		this.destinationProjSRS = destinationProjectionSRS;
+		this.reprojectedColumn = newDisposableChild(this, ProxyColumn);
 		unprojectedColumn.addImmediateCallback(this, asyncStart, true);
 	}
+	
+	public function dispose():void
+	{
+		projectionManager = null;
+		unprojectedColumn = null;
+		reprojectedColumn = null;
+		destinationProjSRS = null;
+	}
+	
+	// provides access to reprojected geometries
+	public var reprojectedColumn:ProxyColumn;
 	
 	// values passed to the constructor -- these will not change.
 	private var projectionManager:ProjectionManager;
 	private var unprojectedColumn:IAttributeColumn;
-	private var reprojectedColumn:ProxyColumn;
 	private var destinationProjSRS:String;
 	
 	// these values may change as the geometries are processed.
@@ -401,7 +411,7 @@ internal class WorkerThread
 		var metadata:XML = <attribute
 				title={ ColumnUtils.getTitle(unprojectedColumn) }
 		keyType={ ColumnUtils.getKeyType(unprojectedColumn) }
-		dataType={ DataTypes.GEOMETRY }
+		dataType={ DataType.GEOMETRY }
 		projection={ destinationProjSRS }
 		/>;
 		reprojectedColumn.setMetadata(metadata);
@@ -427,8 +437,9 @@ internal class WorkerThread
 		numGeoms = 0;
 		for (var i:int = 0; i < keys.length; i++)
 		{
-			var value:Array = unprojectedColumn.getValueFromKey(keys[i]) as Array;
-			numGeoms += value.length;
+			var value:Array = unprojectedColumn.getValueFromKey(keys[i], Array) as Array;
+			if (value)
+				numGeoms += value.length;
 			values.push(value);
 		}
 		keyIndex = 0;
@@ -443,7 +454,10 @@ internal class WorkerThread
 		if (numGeoms == 0)
 			asyncComplete();
 		else
-			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_PARSING, asyncComplete);
+		{
+			// TODO - assess priority assignment
+			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_NORMAL, asyncComplete);
+		}
 	}
 	
 	/**
@@ -535,7 +549,8 @@ internal class WorkerThread
 		
 		// after all geometries have been reprojected, update the reprojected column
 		var geomColumn:GeometryColumn = reprojectedColumn.getInternalColumn() as GeometryColumn;
-		geomColumn.setGeometries(keysVector, geomVector);
+		if (geomColumn)
+			geomColumn.setGeometries(keysVector, geomVector);
 		
 		reprojectedColumn.triggerCallbacks();
 		reprojectedColumn.resumeCallbacks();

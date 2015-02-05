@@ -25,12 +25,11 @@ package weave.visualization.plotters
 	import flash.display.LineScaleMode;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
-	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
-	import weave.api.core.IDisposableObject;
+	import weave.api.core.DynamicState;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
@@ -40,9 +39,11 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.compiler.Compiler;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
@@ -52,7 +53,7 @@ package weave.visualization.plotters
 	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.GeometryType;
-	import weave.utils.PlotterUtils;
+	import weave.utils.CachedBitmap;
 	import weave.visualization.plotters.styles.ExtendedFillStyle;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
@@ -61,16 +62,17 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, IDisposableObject
+	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, ISelectableAttributes
 	{
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GeometryPlotter, "Geometries");
+		
 		public function GeometryPlotter()
 		{
 			// initialize default line & fill styles
 			line.scaleMode.defaultValue.setSessionState(LineScaleMode.NONE);
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+			line.color.defaultValue.value = 0x000000;
 
-			line.weight.addImmediateCallback(this, disposeCachedBitmaps);
-			
 			linkSessionState(StreamedGeometryColumn.geometryMinimumScreenArea, pixellation);
 
 			setSingleKeySource(geometryColumn);
@@ -81,6 +83,15 @@ package weave.visualization.plotters
 			
 			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // bounding box should trigger spatial
 			registerSpatialProperty(_filteredKeySet.keyFilter); // subset should trigger spatial callbacks
+		}
+		
+		public function getSelectableAttributeNames():Array
+		{
+			return ['Color', 'Geometry'];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [fill.color, geometryColumn];
 		}
 		
 		public const symbolPlotters:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IPlotter));
@@ -103,16 +114,16 @@ package weave.visualization.plotters
 		/**
 		 * This is the line style used to draw the lines of the geometries.
 		 */
-		public const line:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle, invalidateCachedBitmaps);
+		public const line:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle);
 		/**
 		 * This is the fill style used to fill the geometries.
 		 */
-		public const fill:ExtendedFillStyle = newLinkableChild(this, ExtendedFillStyle, invalidateCachedBitmaps);
+		public const fill:ExtendedFillStyle = newLinkableChild(this, ExtendedFillStyle);
 
 		/**
 		 * This is the size of the points drawn when the geometry represents point data.
 		 **/
-		public const iconSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, validateIconSize), disposeCachedBitmaps);
+		public const iconSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10, validateIconSize));
 		private function validateIconSize(value:Number):Boolean { return 0.2 <= value && value <= 1024; };
 
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
@@ -122,7 +133,7 @@ package weave.visualization.plotters
 			var notGeoms:Boolean = false;
 			
 			// the column value may contain a single geom or an array of geoms
-			var value:* = column.getValueFromKey(recordKey);
+			var value:* = column.getValueFromKey(recordKey, Array);
 			if (value is Array)
 			{
 				geoms = value; // array of geoms
@@ -147,7 +158,7 @@ package weave.visualization.plotters
 		
 		public function getGeometriesFromRecordKey(recordKey:IQualifiedKey, minImportance:Number = 0, bounds:IBounds2D = null):Array
 		{
-			var value:* = geometryColumn.getValueFromKey(recordKey);
+			var value:* = geometryColumn.getValueFromKey(recordKey, Array);
 			var geoms:Array = null;
 			var notGeoms:Boolean = false;
 			
@@ -216,88 +227,28 @@ package weave.visualization.plotters
 			return dataBounds.getArea() / screenBounds.getArea();
 		}
 		
-		private var colorToBitmapMap:Dictionary = new Dictionary(); // color -> BitmapData
-		private var colorToBitmapValidFlagMap:Dictionary = new Dictionary(); // color -> valid flag
-
-		// this calls dispose() on all cached bitmaps and removes references to them.
-		private function disposeCachedBitmaps():void
+		/**
+		 * A memoized version of _getCircleBitmap().
+		 */
+		private const getCircleBitmap:Function = Compiler.memoize(_getCircleBitmap);
+		/**
+		 * Use getCircleBitmap() instead.
+		 * @param radius iconSize.value / 2
+		 */
+		private function _getCircleBitmap(lineParams:Array, fillParamsExt:Array, radius:Number):CachedBitmap
 		{
-			var disposed:Boolean = false;
-			for each (var bitmapData:BitmapData in colorToBitmapMap)
-			{
-				bitmapData.dispose();
-				disposed = true;
-			}
-			if (disposed)
-				colorToBitmapMap = new Dictionary();
-			invalidateCachedBitmaps();
+			var graphics:Graphics = tempShape.graphics;
+			graphics.clear();
 			
-			var weight:Number = line.weight.getValueFromKey(null, Number);
-			pointOffset = (Math.ceil(iconSize.value) + weight) / 2;
-			circleBitmapSize = Math.ceil(pointOffset * 2 + 1);
-			circleBitmapDataRectangle.width = circleBitmapSize;
-			circleBitmapDataRectangle.height = circleBitmapSize;
-		}
-		// this invalidates all cached bitmap graphics
-		private function invalidateCachedBitmaps():void
-		{
-			for (var k:* in colorToBitmapValidFlagMap)
-			{
-				colorToBitmapValidFlagMap = new Dictionary();
-				return;
-			}
-		}
-		
-		private var circleBitmapSize:int = 0;
-		private var circleBitmapDataRectangle:Rectangle = new Rectangle(0,0,0,0);
-		
-		// this is the offset used to draw a circle onto a cached BitmapData
-		private var pointOffset:Number;
-		
-		// this function returns the BitmapData associated with the given key
-		private function drawCircle(destination:BitmapData, color:Number, x:Number, y:Number):void
-		{
-			var bitmapData:BitmapData = colorToBitmapMap[color] as BitmapData;
-			if (!bitmapData)
-			{
-				// create bitmap
-				try
-				{
-					bitmapData = new BitmapData(circleBitmapSize, circleBitmapSize);
-				}
-				catch (e:Error)
-				{
-					return; // do nothing if this fails
-				}
-				colorToBitmapMap[color] = bitmapData;
-			}
-			if (colorToBitmapValidFlagMap[color] == undefined)
-			{
-				// draw graphics on cached bitmap
-				var g:Graphics = tempShape.graphics;
-				g.clear();
-				if (isNaN(color))
-				{
-					if (fill.enableMissingDataGradient.value)
-						fill.beginFillStyle(null, g);
-				}
-				else if (fill.enabled.defaultValue.value)
-				{
-					g.beginFill(color, fill.alpha.getValueFromKey(null, Number));
-				}
-				line.beginLineStyle(null, g);
-				g.drawCircle(pointOffset, pointOffset, iconSize.value / 2);
-				g.endFill();
-				PlotterUtils.clearBitmapData(bitmapData);
-				bitmapData.draw(tempShape);
-				g.clear(); // clear tempShape now so these graphics don't get used anywhere else by mistake
-				
-				colorToBitmapValidFlagMap[color] = true;
-			}
-			// copy bitmap graphics
-			tempPoint.x = Math.round(x - pointOffset);
-			tempPoint.y = Math.round(y - pointOffset);
-			destination.copyPixels(bitmapData, circleBitmapDataRectangle, tempPoint, null, null, true);
+			fill.beginFillExt(graphics, fillParamsExt);
+			graphics.lineStyle.apply(graphics, lineParams);
+			graphics.drawCircle(0, 0, radius);
+			graphics.endFill();
+			var cb:CachedBitmap = new CachedBitmap(tempShape);
+			
+			graphics.clear(); // clear tempShape now so these graphics don't get used anywhere else by mistake
+			
+			return cb;
 		}
 		
 		public var debug:Boolean = false;
@@ -349,6 +300,7 @@ package weave.visualization.plotters
 			if (debugGridSkip)
 				simplifyDataBounds = null;
 
+			var drawImages:Boolean = pointDataImageColumn.getInternalColumn() != null;
 			var recordIndex:Number = task.asyncState[RECORD_INDEX];
 			var minImportance:Number = task.asyncState[MIN_IMPORTANCE];
 			var d_progress:Dictionary = task.asyncState[D_PROGRESS];
@@ -358,7 +310,7 @@ package weave.visualization.plotters
 			{
 				var recordKey:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
 				var geoms:Array = null;
-				var value:* = geometryColumn.getValueFromKey(recordKey);
+				var value:* = geometryColumn.getValueFromKey(recordKey, Array);
 				if (value is Array)
 					geoms = value;
 				else if (value is GeneralizedGeometry)
@@ -367,34 +319,47 @@ package weave.visualization.plotters
 					_singleGeom[0] = value;
 				}
 				
-				if (geoms && geoms.length > 0)
+				for (var pass:int = 0; pass < 2; pass++)
 				{
-					var graphics:Graphics = tempShape.graphics;
-					var styleSet:Boolean = false;
+					if (pass == 1 && !drawImages)
+						break;
 					
-					// draw the geom
-					for (var i:int = 0; i < geoms.length; i++)
+					if (geoms && geoms.length > 0)
 					{
-						var geom:GeneralizedGeometry = geoms[i] as GeneralizedGeometry;
-						if (geom)
+						var graphics:Graphics = tempShape.graphics;
+						var styleSet:Boolean = false;
+						
+						// draw the geom
+						for (var i:int = 0; i < geoms.length; i++)
 						{
-							// skip shapes that are considered unimportant at this zoom level
-							if (geom.geomType == GeometryType.POLYGON && geom.bounds.getArea() < minImportance)
-								continue;
-							if (!styleSet)
+							var geom:GeneralizedGeometry = geoms[i] as GeneralizedGeometry;
+							if (geom)
 							{
-								graphics.clear();
-								fill.beginFillStyle(recordKey, graphics);
-								line.beginLineStyle(recordKey, graphics);
-								styleSet = true;
+								// skip shapes that are considered unimportant at this zoom level
+								if (geom.geomType == GeometryType.POLYGON && geom.bounds.getArea() < minImportance)
+									continue;
+								if (pass == 0)
+								{
+									if (!styleSet)
+									{
+										graphics.clear();
+										fill.beginFillStyle(recordKey, graphics);
+										line.beginLineStyle(recordKey, graphics);
+										styleSet = true;
+									}
+									drawMultiPartShape(recordKey, geom, geom.getSimplifiedGeometry(minImportance, simplifyDataBounds), task.dataBounds, task.screenBounds, graphics, task.buffer);
+								}
+								else
+								{
+									drawImage(recordKey, geom.bounds.getXCenter(), geom.bounds.getYCenter(), task.dataBounds, task.screenBounds, graphics, task.buffer);
+								}
 							}
-							drawMultiPartShape(recordKey, geom.getSimplifiedGeometry(minImportance, simplifyDataBounds), geom.geomType, task.dataBounds, task.screenBounds, graphics, task.buffer);
 						}
-					}
-					if (styleSet)
-					{
-						graphics.endFill();
-						task.buffer.draw(tempShape);
+						if (pass == 0 && styleSet)
+						{
+							graphics.endFill();
+							task.buffer.draw(tempShape);
+						}
 					}
 				}
 				
@@ -440,25 +405,26 @@ package weave.visualization.plotters
 
 		/**
 		 * This function draws a list of GeneralizedGeometry objects
-		 * @param geometryParts A 2-dimensional Array or Vector of objects, each having x and y properties.
+		 * @param geomParts A 2-dimensional Array or Vector of objects, each having x and y properties.
 		 */
-		private function drawMultiPartShape(key:IQualifiedKey, geometryParts:Object, shapeType:String, dataBounds:IBounds2D, screenBounds:IBounds2D, graphics:Graphics, bitmapData:BitmapData):void
+		private function drawMultiPartShape(key:IQualifiedKey, geom:GeneralizedGeometry, geomParts:Object, dataBounds:IBounds2D, screenBounds:IBounds2D, graphics:Graphics, bitmapData:BitmapData):void
 		{
-			for (var i:int = 0; i < geometryParts.length; i++)
-				drawShape(key, geometryParts[i], shapeType, dataBounds, screenBounds, graphics, bitmapData);
+			var geomType:String = geom.geomType;
+			for (var i:int = 0; i < geomParts.length; i++)
+				drawShape(key, geomParts[i], geomType, dataBounds, screenBounds, graphics, bitmapData);
 		}
 		/**
 		 * This function draws a single geometry.
 		 * @param points An Array or Vector of objects, each having x and y properties.
 		 */
-		private function drawShape(key:IQualifiedKey, points:Object, shapeType:String, dataBounds:IBounds2D, screenBounds:IBounds2D, outputGraphics:Graphics, outputBitmapData:BitmapData):void
+		private function drawShape(key:IQualifiedKey, points:Object, geomType:String, dataBounds:IBounds2D, screenBounds:IBounds2D, outputGraphics:Graphics, outputBitmapData:BitmapData):void
 		{
 			if (points.length == 0)
 				return;
 
 			var currentNode:Object;
 
-			if (shapeType == GeometryType.POINT)
+			if (geomType == GeometryType.POINT)
 			{
 				for each (currentNode in points)
 				{
@@ -468,27 +434,14 @@ package weave.visualization.plotters
 					// round coordinates for faster & more consistent rendering
 					tempPoint.x = Math.round(tempPoint.x);
 					tempPoint.y = Math.round(tempPoint.y);
-					if (pointDataImageColumn.getInternalColumn())
-					{
-						var bitmapData:BitmapData = pointDataImageColumn.getValueFromKey(key) || _missingImage;
-						var imgWidth:Number = useFixedImageSize.value ? iconSize.value : bitmapData.width;
-						var imgHeight:Number = useFixedImageSize.value ? iconSize.value : bitmapData.height;
-						tempMatrix.identity();
-						if (useFixedImageSize.value)
-							tempMatrix.scale(iconSize.value / bitmapData.width, iconSize.value / bitmapData.height);
-						tempMatrix.translate(tempPoint.x - imgWidth / 2, tempPoint.y - imgHeight / 2);
-						outputBitmapData.draw(bitmapData, tempMatrix, null, null, null, true);
-					}
-					else
-					{
-						drawCircle(outputBitmapData, fill.color.getValueFromKey(key, Number), tempPoint.x, tempPoint.y);
-					}
+					var cachedBitmap:CachedBitmap = getCircleBitmap(line.getLineStyleParams(key), fill.getBeginFillParamsExt(key), iconSize.value / 2);
+					cachedBitmap.drawTo(outputBitmapData, tempPoint.x, tempPoint.y);
 				}
 				return;
 			}
 
 			// prevent moveTo/lineTo from drawing a filled polygon if the shape type is line
-			if (shapeType == GeometryType.LINE)
+			if (geomType == GeometryType.LINE)
 				outputGraphics.endFill();
 
 			var numPoints:int = points.length;
@@ -525,29 +478,47 @@ package weave.visualization.plotters
 				outputGraphics.lineTo(x, y);
 			}
 			
-			if (debug)
-				return;
-			
-			if (shapeType == GeometryType.POLYGON)
-				outputGraphics.lineTo(firstX, firstY);
+			if (!debug)
+				if (geomType == GeometryType.POLYGON)
+					outputGraphics.lineTo(firstX, firstY);
 		}
 		
-		public function dispose():void
+		private function drawImage(key:IQualifiedKey, dataX:Number, dataY:Number, dataBounds:IBounds2D, screenBounds:IBounds2D, outputGraphics:Graphics, outputBitmapData:BitmapData):void
 		{
-			disposeCachedBitmaps();
+			tempPoint.x = dataX;
+			tempPoint.y = dataY;
+			dataBounds.projectPointTo(tempPoint, screenBounds);
+			// round coordinates for faster & more consistent rendering
+			tempPoint.x = Math.round(tempPoint.x);
+			tempPoint.y = Math.round(tempPoint.y);
+			
+			var bitmapData:BitmapData = pointDataImageColumn.getValueFromKey(key, BitmapData) || _missingImage;
+			var w:Number = bitmapData.width;
+			var h:Number = bitmapData.height;
+			tempMatrix.identity();
+			if (useFixedImageSize.value)
+			{
+				var maxSize:Number = Math.max(w, h);
+				var scale:Number = iconSize.value / maxSize;
+				tempMatrix.scale(scale, scale);
+				tempMatrix.translate(Math.round(Math.abs(maxSize - w) / 2), Math.round(Math.abs(maxSize - h) / 2));
+				w = h = iconSize.value;
+			}
+			tempMatrix.translate(Math.round(tempPoint.x - w / 2), Math.round(tempPoint.y - h / 2));
+			outputBitmapData.draw(bitmapData, tempMatrix, null, null, null, true);
 		}
 
 		// backwards compatibility 0.9.6
 		[Deprecated(replacement="line")] public function set lineStyle(value:Object):void
 		{
 			try {
-				setSessionState(line, value[0].sessionState);
+				setSessionState(line, value[0][DynamicState.SESSION_STATE]);
 			} catch (e:Error) { }
 		}
 		[Deprecated(replacement="fill")] public function set fillStyle(value:Object):void
 		{
 			try {
-				setSessionState(fill, value[0].sessionState);
+				setSessionState(fill, value[0][DynamicState.SESSION_STATE]);
 			} catch (e:Error) { }
 		}
 		[Deprecated(replacement="geometryColumn")] public function set geometry(value:Object):void

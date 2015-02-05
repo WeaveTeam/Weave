@@ -19,23 +19,23 @@
 
 package weave.data.AttributeColumns
 {
-	import weave.api.WeaveAPI;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.SessionManager;
+	import weave.utils.VectorUtils;
 
 	/**
-	 * ProxyColumn
 	 * This class is a proxy (a wrapper) for another attribute column.
 	 * 
 	 * @author adufilie
 	 */
 	public class ProxyColumn extends AbstractAttributeColumn implements IColumnWrapper
 	{
-		public function ProxyColumn(metadata:XML = null)
+		public function ProxyColumn(metadata:Object = null)
 		{
 			super(metadata);
 		}
@@ -62,9 +62,9 @@ package weave.data.AttributeColumns
 		 * This function updates the proxy metadata.
 		 * @param metadata New metadata for the proxy.
 		 */
-		public function setMetadata(metadata:XML):void
+		override public function setMetadata(metadata:Object):void
 		{
-			_metadata = metadata;
+			_metadata = copyValues(metadata);
 			triggerCallbacks();
 		}
 
@@ -77,10 +77,25 @@ package weave.data.AttributeColumns
 		 */
 		override public function getMetadata(propertyName:String):String
 		{
+			if (propertyName === ColumnMetadata.TITLE && _overrideTitle)
+				return _overrideTitle;
+			
 			var overrideValue:String = super.getMetadata(propertyName);
 			if (overrideValue == null && _internalColumn != null)
 				return _internalColumn.getMetadata(propertyName);
 			return overrideValue;
+		}
+		
+		public function getProxyMetadata():Object
+		{
+			return copyValues(_metadata);
+		}
+		
+		override public function getMetadataPropertyNames():Array
+		{
+			if (_internalColumn)
+				return VectorUtils.union(super.getMetadataPropertyNames(), _internalColumn.getMetadataPropertyNames());
+			return super.getMetadataPropertyNames();
 		}
 		
 		/**
@@ -109,6 +124,8 @@ package weave.data.AttributeColumns
 		}
 		public function setInternalColumn(newColumn:IAttributeColumn):void
 		{
+			_overrideTitle = null;
+			
 			if (newColumn == this)
 			{
 				trace("WARNING! Attempted to set ProxyColumn.internalAttributeColumn to self: " + this);
@@ -137,37 +154,41 @@ package weave.data.AttributeColumns
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			var value:*
-
-			if (_internalColumn == null)
-				value = NaN;
-			else
-				value = _internalColumn.getValueFromKey(key, dataType);
-
-			return value;
+			if (_internalColumn)
+				return _internalColumn.getValueFromKey(key, dataType);
+			return undefined;
 		}
 
 		/**
-		 * dispose
-		 * This function should be called when the ProxyColumn is no longer in use.
-		 * All existing pointers to objects should be set to null so they can be garbage collected.
+		 * @inheritDoc
 		 */
 		override public function dispose():void
 		{
 			super.dispose();
+			_metadata = null;
 			setInternalColumn(null); // this will remove the callback that was added to the internal column
 		}
-
+		
+		private var _overrideTitle:String;
+		
+		/**
+		 * Call this function when the ProxyColumn should indicate that the requested data is unavailable.
+		 * @param message The message to display in the title of the ProxyColumn. Default is "Data unavailable."
+		 */
+		public function dataUnavailable(message:String = null):void
+		{
+			delayCallbacks();
+			setInternalColumn(null);
+			_overrideTitle = message || DATA_UNAVAILABLE;
+			triggerCallbacks();
+			resumeCallbacks();
+		}
+		
+		public static const DATA_UNAVAILABLE:String = lang('Data unavailable');
+			
 		override public function toString():String
 		{
 			return debugId(this) + '( ' + (getInternalColumn() ? getInternalColumn() : super.toString()) + ' )';
 		}
-		
-		/**
-		 * undefinedColumn
-		 * This object can be used as an alternative to a null
-		 * return value for a function returning a ProxyColumn.
-		 */
-		public static const undefinedColumn:ProxyColumn = registerDisposableChild(ProxyColumn, new ProxyColumn(<attribute name="Undefined"/>));
 	}
 }

@@ -15,6 +15,8 @@
 
 package weave.api.data
 {
+	import flash.utils.Dictionary;
+	
 	import weave.api.core.ILinkableObject;
 
 	/**
@@ -24,52 +26,68 @@ package weave.api.data
 	 */
 	public interface IColumnStatistics extends ILinkableObject
 	{
-		//TODO(?): median,range,coefficient of variance,midrange
+		//TODO(?): range,coefficient of variance,midrange
 		
 		/**
+		 * Gets the numeric value for a given key normalized between 0 and 1.
 		 * @param key
 		 * @return A number between 0 and 1, or NaN 
 		 */		
 		function getNorm(key:IQualifiedKey):Number;
 		
 		/**
-		 * @return The minimum numeric value defined in the column.
+		 * Gets the minimum numeric value defined in the column.
 		 */
 		function getMin():Number;
 		
 		/**
-		 * @return The maximum numeric value defined in the column.
+		 * Gets the maximum numeric value defined in the column.
 		 */
 		function getMax():Number;
 		
 		/**
-		 * @return The count of the records having numeric values defined in the column.
+		 * Gets the count of the records having numeric values defined in the column.
 		 */
 		function getCount():Number;
 		
 		/**
-		 * @return The sum of all the numeric values defined in the column.
+		 * Gets the sum of all the numeric values defined in the column.
 		 */
 		function getSum():Number;
 		
 		/**
-		 * @return The sum of the squared numeric values defined in the column.
+		 * Gets the sum of the squared numeric values defined in the column.
 		 */
 		function getSquareSum():Number;
 		
 		/**
-		 * @return The mean value of all the numeric values defined in the column.
+		 * Gets the mean value of all the numeric values defined in the column.
 		 */
 		function getMean():Number;
 		
 		/**
-		 * @return The variance of the numeric values defined in the column.
+		 * Gets the variance of the numeric values defined in the column.
 		 */
 		function getVariance():Number;
 		
 		/**
-		 * @return The standard deviation of the numeric values defined in the column.
+		 * Gets the standard deviation of the numeric values defined in the column.
 		 */
 		function getStandardDeviation():Number;
+		
+		/**
+		 * Gets the median value of all the numeric values defined in the column.
+		 */
+		function getMedian():Number;
+		
+		/**
+		 * Gets a Dictionary mapping IQualifiedKeys to sort indices derived from sorting the numeric values in the column.
+		 */
+		function getSortIndex():Dictionary;
+		
+		/**
+		 * TEMPORARY SOLUTION - Gets a Dictionary mapping IQualifiedKey to Numeric data.
+		 */
+		function hack_getNumericData():Dictionary;
 	}
 }

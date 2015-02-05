@@ -20,6 +20,7 @@ package weave.utils
 {
 	import flash.display.BitmapData;
 	import flash.geom.Point;
+	import flash.system.Capabilities;
 	import flash.ui.Mouse;
 	import flash.ui.MouseCursor;
 	import flash.ui.MouseCursorData;
@@ -35,6 +36,25 @@ package weave.utils
 	public class CustomCursorManager
 	{
 		public static var debug:Boolean = false;
+		
+		private static var _initialized:Boolean = false;
+		private static var _customCursorsSupported:Boolean = true;
+		public static function get customCursorsSupported():Boolean
+		{
+			if (!_initialized)
+			{
+				if (Capabilities.manufacturer == "Adobe Linux" && JavaScript.available)
+				{
+					_customCursorsSupported = JavaScript.exec(
+						'try {',
+						'	return this.children.wmode.value != "transparent";',
+						'} catch (e) { return true; }'
+					);
+				}
+				_initialized = true;
+			}
+			return _customCursorsSupported;
+		}
 		
 		/**
 		 * This will register an embedded cursor.
@@ -75,7 +95,7 @@ package weave.utils
 			Mouse.registerCursor(cursorName, cursorData);
 		}
 		
-        private static var idCounter:int = 0; // used to generate unique IDs for cursors
+        private static var idCounter:int = 1; // used to generate unique IDs for cursors
 		private static const cursorStack:Array = []; // keeps track of previously shown cursors
 		
 		/**
@@ -142,7 +162,7 @@ package weave.utils
 		 * @private
 		 * @TODO Stop using this function and remove it.
 		 */
-		public static function hack_removeCurrentCursor():void
+		[Deprecated(replacement="removeCursor")] public static function hack_removeCurrentCursor():void
 		{
 			if (cursorStack.length == 0)
 				return;
@@ -155,20 +175,26 @@ package weave.utils
 		 * @private
 		 * @TODO Stop using this function and remove it.
 		 */
-		public static function hack_removeAllCursors():void
+		[Deprecated(replacement="removeCursor")] public static function hack_removeAllCursors():void
 		{
 			cursorStack.length = 0;
 			updateCursor();
 		}
 	}
 }
+import flash.ui.MouseCursor;
+
+import weave.utils.CustomCursorManager;
 
 internal class CursorEntry
 {
 	public function CursorEntry(id:int, name:String)
 	{
 		this.id = id;
-		this.name = name;
+		if (CustomCursorManager.customCursorsSupported)
+			this.name = name;
+		else
+			this.name = MouseCursor.BUTTON;
 	}
 	
 	public var id:Number;

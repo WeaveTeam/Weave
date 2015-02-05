@@ -15,7 +15,6 @@
 
 package weave.api.services
 {
-	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.primitives.IBounds2D;
 
@@ -74,5 +73,15 @@ package weave.api.services
 		 * for the provider.
 		 */ 
 		function getCreditInfo():String;
+		
+		/**
+		 * Gets the width in pixels of an image tile.
+		 */
+		function getImageWidth():int;
+		
+		/**
+		 * Gets the height in pixels of an image tile.
+		 */
+		function getImageHeight():int;
 	}
 }

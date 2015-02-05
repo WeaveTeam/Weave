@@ -21,7 +21,6 @@ package weave.ui
 	import mx.collections.ArrayCollection;
 	import mx.collections.ICollectionView;
 	import mx.controls.DataGrid;
-	import mx.controls.List;
 	import mx.controls.dataGridClasses.DataGridColumn;
 	import mx.controls.listClasses.ListBase;
 	import mx.core.IUIComponent;
@@ -34,8 +33,15 @@ package weave.ui
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.core.CallbackJuggler;
+	import weave.api.data.IColumnReference;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.core.LinkableWatcher;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	
+	/**
+	 * Callbacks trigger when the list of objects changes.
+	 */
 	public class VariableListController implements ILinkableObject
 	{
 		public function VariableListController()
@@ -55,6 +61,7 @@ package weave.ui
 		}
 		
 		/**
+		 * 
 		 * @param editor This can be either a List or a DataGrid.
 		 */
 		public function set view(editor:ListBase):void
@@ -87,25 +94,35 @@ package weave.ui
 				_editor.addEventListener(DragEvent.DRAG_ENTER, dragEnterCaptureHandler, true);
 			}
 			
+			_nameColumn = null;
+			_valueColumn = null;
 			var dataGrid:DataGrid = _editor as DataGrid;
 			if (dataGrid)
 			{
-				dataGrid.editable = true;
-				dataGrid.addEventListener(ListEvent.ITEM_EDIT_END, handleItemEditEnd);
-				
-				var nameCol:DataGridColumn = new DataGridColumn();
-				nameCol.sortable = false;
-				nameCol.editable = true;
-				nameCol.headerText = lang("Name");
-				nameCol.labelFunction = getObjectName;
-				
-				var valueCol:DataGridColumn = new DataGridColumn();
-				valueCol.sortable = false;
-				valueCol.editable = false;
-				valueCol.headerText = lang("Value");
-				valueCol.labelFunction = getItemLabel;
-				
-				dataGrid.columns = [nameCol, valueCol];
+				dataGrid.sortableColumns = false;
+				// keep existing columns if there are any
+				if (!dataGrid.columns.length)
+				{
+					dataGrid.editable = true;
+					dataGrid.addEventListener(ListEvent.ITEM_EDIT_END, handleItemEditEnd);
+					dataGrid.draggableColumns = false;
+					
+					_nameColumn = new DataGridColumn();
+					_nameColumn.sortable = false;
+					_nameColumn.editable = true;
+					_nameColumn.labelFunction = getObjectName;
+					_nameColumn.showDataTips = true;
+					_nameColumn.dataTipFunction = nameColumnDataTip;
+					setNameColumnHeader();
+					
+					_valueColumn = new DataGridColumn();
+					_valueColumn.sortable = false;
+					_valueColumn.editable = false;
+					_valueColumn.headerText = lang("Value");
+					_valueColumn.labelFunction = getItemLabel;
+					
+					dataGrid.columns = [_nameColumn, _valueColumn];
+				}
 			}
 			else if (_editor)
 			{
@@ -115,6 +132,21 @@ package weave.ui
 			if (dynamicObject && _editor)
 				_editor.rowCount = 1;
 			updateDataProvider();
+		}
+		
+		private function setNameColumnHeader():void
+		{
+			if (!_nameColumn)
+				return;
+			if (hashMap && hashMap.getNames().length)
+				_nameColumn.headerText = lang("Name (Click below to edit)")
+			else
+				_nameColumn.headerText = lang("Name");
+		}
+		
+		private function nameColumnDataTip(item:Object, ..._):String
+		{
+			return lang("{0} (Click to rename)", getObjectName(item));
 		}
 		
 		private var _allowMultipleSelection:Boolean = true;
@@ -127,27 +159,31 @@ package weave.ui
 		}
 		
 		private var _editor:ListBase;
-		private const _hashMapJuggler:CallbackJuggler = new CallbackJuggler(this, refreshLabels, true);
-		private const _dynamicObjectJuggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, true);
-		private const _childListJuggler:CallbackJuggler = new CallbackJuggler(this, updateDataProvider, false);
+		private var _nameColumn:DataGridColumn;
+		private var _valueColumn:DataGridColumn;
+		private const _hashMapWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, refreshLabels, true);
+		private const _dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider, true);
+		private const _childListWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider);
 		private var _labelFunction:Function = null;
+		private var _filterFunction:Function = null;
+		private var _reverse:Boolean = false;
 		
 		public function get hashMap():ILinkableHashMap
 		{
-			return _hashMapJuggler.target as ILinkableHashMap;
+			return _hashMapWatcher.target as ILinkableHashMap;
 		}
 		public function set hashMap(value:ILinkableHashMap):void
 		{
 			if (value)
 				dynamicObject = null;
 			
-			_hashMapJuggler.target = value;
-			_childListJuggler.target = value && value.childListCallbacks;
+			_hashMapWatcher.target = value;
+			_childListWatcher.target = value && value.childListCallbacks;
 		}
 		
 		public function get dynamicObject():ILinkableDynamicObject
 		{
-			return _dynamicObjectJuggler.target as ILinkableDynamicObject;
+			return _dynamicObjectWatcher.target as ILinkableDynamicObject;
 		}
 		public function set dynamicObject(value:ILinkableDynamicObject):void
 		{
@@ -158,7 +194,7 @@ package weave.ui
 					_editor.rowCount = 1;
 			}
 			
-			_dynamicObjectJuggler.target = value;
+			_dynamicObjectWatcher.target = value;
 		}
 		
 		private function refreshLabels():void
@@ -172,18 +208,42 @@ package weave.ui
 			if (!_editor)
 				return;
 			
+			var vsp:int = _editor.verticalScrollPosition;
+			var selectedItems:Array = _editor.selectedItems;
+		
 			if (dynamicObject)
 			{
 				_editor.dataProvider = dynamicObject.internalObject;
 			}
 			else if (hashMap)
 			{
-				_editor.dataProvider = hashMap.getObjects();
+				setNameColumnHeader();
+				var objects:Array = hashMap.getObjects();
+				if (_filterFunction != null)
+					objects = objects.filter(_filterFunction);
+				if (_reverse)
+					objects = objects.reverse();
+				_editor.dataProvider = objects;
 			}
+			else
+				_editor.dataProvider = null;
+			
+			if (!(_editor is DataGrid))
+				_editor.rowCount = 1;
 			
 			var view:ICollectionView = _editor.dataProvider as ICollectionView;
 			if (view)
 				view.refresh();
+			
+			if (selectedItems && selectedItems.length)
+			{
+				_editor.validateProperties();
+				if (vsp >= 0 && vsp <= _editor.maxVerticalScrollPosition)
+					_editor.verticalScrollPosition = vsp;
+				_editor.selectedItems = selectedItems;
+			}
+			
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		public function removeAllItems():void
@@ -216,6 +276,17 @@ package weave.ui
 				dynamicObject.removeObject();
 			}
 		}
+		
+		public function beginEditVariableName(object:ILinkableObject):void
+		{
+			var dg:DataGrid = _editor as DataGrid;
+			if (dg && hashMap)
+			{
+				var rowIndex:int = hashMap.getObjects().indexOf(object);
+				if (rowIndex >= 0)
+					dg.editedItemPosition = { columnIndex: 0, rowIndex: rowIndex };
+			}
+		}
 
 		/**
 		 * @param item
@@ -225,8 +296,6 @@ package weave.ui
 		{
 			if (hashMap)
 				return hashMap.getName(item as ILinkableObject);
-			if (dynamicObject)
-				return dynamicObject.globalName;
 			return null;
 		}
 		
@@ -235,13 +304,30 @@ package weave.ui
 			if (_labelFunction != null)
 				return _labelFunction(item);
 			else
-				return getItemName(item);
+				return getObjectName(item) || String(item);
 		}
 		
 		public function set labelFunction(value:Function):void
 		{
 			_labelFunction = value;
 			refreshLabels();
+		}
+		
+		public function set filterFunction(value:Function):void
+		{
+			if (value != null && value.length < 3)
+				value = function(item:*, i:*, a:*):* { return value(item); }
+			_filterFunction = value;
+			updateDataProvider();
+		}
+		
+		public function set reverse(value:Boolean):void
+		{
+			if (_reverse != value)
+			{
+				_reverse = value;
+				updateDataProvider();
+			}
 		}
 		
 		private function updateHashMapNameOrder():void
@@ -261,6 +347,8 @@ package weave.ui
 					if (object)
 						newNameOrder[i] = hashMap.getName(object);
 				}
+				if (_reverse)
+					newNameOrder.reverse();
 				hashMap.setNameOrder(newNameOrder);
 			}
 		}
@@ -289,16 +377,15 @@ package weave.ui
 		// called when something is being dragged on top of this list
 		private function dragOverHandler(event:DragEvent):void
 		{
-			DragManager.showFeedback(DragManager.MOVE);
+			if (dragSourceIsAcceptable(event))
+				DragManager.showFeedback(DragManager.MOVE);
+			else
+				DragManager.showFeedback(DragManager.NONE);
 		}
 		
 		// called when something is dropped into this list
 		private function dragDropHandler(event:DragEvent):void
 		{
-			//need to add re-order functionality				
-			//if(event.dragInitiator == _editor)
-			//super.dragDropHandler(event);
-			
 			//hides the drop visual lines
 			event.currentTarget.hideDropFeedback(event);
 			_editor.mx_internal::resetDragScrolling(); // if we don't do this, list will scroll when mouse moves even when not dragging something
@@ -312,22 +399,38 @@ package weave.ui
 			{
 				event.preventDefault();
 				
-				var object:ILinkableObject;
+				var ref:IColumnReference;
+				var refCol:ReferencedColumn;
+				var meta:Object;
 				var items:Array = event.dragSource.dataForFormat("items") as Array;
 				if (hashMap)
 				{
 					var prevNames:Array = hashMap.getNames();
 					var newNames:Array = [];
 					var dropIndex:int = _editor.calculateDropIndex(event);
+					var newObject:ILinkableObject;
 					
-					// copy each item in the list, in order
-					for (var i:int = 0; i < items.length; i++)
+					// copy items in reverse order because selectedItems is already reversed
+					for (var i:int = items.length - 1; i >= 0; i--)
 					{
-						object = items[i] as ILinkableObject;
-						if (hashMap.getName(object) == null)
+						var object:ILinkableObject = items[i] as ILinkableObject;
+						if (object && hashMap.getName(object) == null)
 						{
-							var newObject:ILinkableObject = hashMap.requestObjectCopy(null, object);
+							newObject = hashMap.requestObjectCopy(null, object);
 							newNames.push(hashMap.getName(newObject));
+						}
+						
+						ref = items[i] as IColumnReference;
+						if (ref)
+						{
+							meta = ref.getColumnMetadata();
+							if (meta)
+							{
+								refCol = hashMap.requestObject(null, ReferencedColumn, false);
+								refCol.setColumnReference(ref.getDataSource(), meta);
+								newObject = refCol;
+								newNames.push(hashMap.getName(newObject));
+							}
 						}
 					}
 					
@@ -336,24 +439,51 @@ package weave.ui
 					newNames.unshift(dropIndex, 0);
 					prevNames.splice.apply(null, args);
 					hashMap.setNameOrder(prevNames);
+					
+					if (items.length == 1 && newObject)
+						beginEditVariableName(newObject);
 				}
 				else if (dynamicObject && items.length > 0)
 				{
 					// only copy the first item in the list
-					dynamicObject.requestLocalObjectCopy(items[0]);
+					var item:Object = items[0];
+					if (item is ILinkableObject)
+						dynamicObject.requestLocalObjectCopy(item as ILinkableObject);
+					
+					ref = item as IColumnReference;
+					if (ref)
+					{
+						meta = ref.getColumnMetadata();
+						if (meta)
+						{
+							refCol = dynamicObject.requestLocalObject(ReferencedColumn, false);
+							refCol.setColumnReference(ref.getDataSource(), meta);
+						}
+					}
 				}
 			}
+		}
+		
+		private function dragSourceIsAcceptable(event:DragEvent):Boolean
+		{
+			if (event.dragSource.hasFormat("items"))
+			{
+				var items:Array = event.dragSource.dataForFormat("items") as Array;
+				for each (var item:Object in items)
+				{
+					var ref:IColumnReference = item as IColumnReference;
+					if (item is ILinkableObject || (ref && ref.getColumnMetadata() != null))
+						return true;
+				}
+			}
+			return false;
 		}
 		
 		// called when something is dragged on top of this list
 		private function dragEnterCaptureHandler(event:DragEvent):void
 		{
-			if (event.dragSource.hasFormat("items"))
-			{
-				var items:Array = event.dragSource.dataForFormat("items") as Array;
-				if (items[0] is ILinkableObject)
-					DragManager.acceptDragDrop(event.currentTarget as IUIComponent);
-			}
+			if (dragSourceIsAcceptable(event))
+				DragManager.acceptDragDrop(event.currentTarget as IUIComponent);
 			event.preventDefault();
 		}
 		
@@ -376,8 +506,6 @@ package weave.ui
 		{
 			if (hashMap)
 				return hashMap.getName(item as ILinkableObject);
-			if (dynamicObject)
-				return dynamicObject.globalName;
 			return null;
 		}
 		
@@ -394,9 +522,6 @@ package weave.ui
 				
 				if (hashMap && newValue && hashMap.getNames().indexOf(newValue) < 0)
 					hashMap.renameObject(oldName, newValue);
-				
-				if (dynamicObject && newValue != dynamicObject.globalName)
-					dynamicObject.globalName = newValue;
 			}
 		}
 	}

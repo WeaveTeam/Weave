@@ -19,11 +19,10 @@
 
 package weave.data.BinningDefinitions
 {
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
-	import weave.api.data.IPrimitiveColumn;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.data.BinClassifiers.NumberClassifier;
@@ -39,12 +38,9 @@ package weave.data.BinningDefinitions
 	{
 		public function EqualIntervalBinningDefinition()
 		{
-			// the value of 1 is arbitrary, but at least when you choose this type of binning
-			// it will show some data rather than nothing
-			this.dataInterval.value = 1;	
 		}
 		
-		public const dataInterval:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const dataInterval:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
 		
 		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
@@ -99,7 +95,7 @@ package weave.data.BinningDefinitions
 				name = getOverrideNames()[iBin];
 				//if it is empty string set it from generateBinLabel
 				if(!name)
-					name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
+					name = tempNumberClassifier.generateBinLabel(column);
 				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 			

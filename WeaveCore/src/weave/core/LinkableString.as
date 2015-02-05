@@ -28,12 +28,12 @@ package weave.core
 	{
 		public function LinkableString(defaultValue:String = null, verifier:Function = null, defaultValueTriggersCallbacks:Boolean = true)
 		{
-			super(String, verifier, defaultValue, defaultValueTriggersCallbacks);
+			super(String, verifier, arguments.length ? defaultValue : undefined, defaultValueTriggersCallbacks);
 		}
 
 		public function get value():String
 		{
-			return _sessionState;
+			return _sessionStateExternal;
 		}
 		public function set value(value:String):void
 		{

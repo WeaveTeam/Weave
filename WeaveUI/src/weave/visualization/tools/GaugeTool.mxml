@@ -21,15 +21,12 @@
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
-	     xmlns:ui="weave.ui.*" 
-	     layout="absolute"
-		 xmlns:settings="weave.ui.settings.*" xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*">
+	     xmlns:ui="weave.ui.*">
 	<mx:Script>
 		<![CDATA[
 			import mx.managers.CursorManager;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.ui.IVisTool;
 			import weave.ui.AttributeSelectorPanel;
@@ -37,24 +34,22 @@
 			import weave.utils.CustomCursorManager;
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.layers.InteractiveVisualization;
-			import weave.visualization.layers.SimpleInteractiveVisualization;
 			import weave.visualization.plotters.GaugePlotter;
 		
-			WeaveAPI.registerImplementation(IVisTool, GaugeTool, lang("Gauge Tool"));
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, GaugeTool, "Gauge Tool");
 			
-			private function get plotter():GaugePlotter { return mainPlotter as GaugePlotter; }
+			internal function get plotter():GaugePlotter { return mainPlotter as GaugePlotter; }
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				cRampEditor.colorRamp = plotter.colorRamp;
 				
 				visualization.plotManager.marginBottomNumber.addGroupedCallback(this, handleMarginChange);
 			}
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				initializePlotters(GaugePlotter, false);
 				
 			
@@ -62,7 +57,7 @@
 				
 				// by default this tool only displays the probed records.
 				//TEMPORARY SOLUTION until we start using VisToolGroup
-				mainPlotter.filteredKeySet.keyFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
+				mainPlotter.filteredKeySet.keyFilter.targetPath = [Weave.DEFAULT_PROBE_KEYSET];
 				//mainLayerSettings.subsetFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
 				mainLayerSettings.selectionFilter.removeObject();
 				mainLayerSettings.probeFilter.removeObject();
@@ -71,7 +66,6 @@
 				getCallbackCollection(plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
-				initColumnDefaults(plotter.meterColumn);
 				plotter.meterColumn.addGroupedCallback(this, updateMarginLabel, true);
 				visualization.bottomMarginClickCallbacks.addGroupedCallback(this, handleMarginLabelClick);
 				
@@ -80,21 +74,12 @@
 				visualization.plotManager.marginBottom.value    = DEFAULT_MARGIN_BOTTOM.toString();
 			}
 			
-			override public function getSelectableAttributeNames():Array
-			{
-				return [lang("Gauge Column")];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [plotter.meterColumn]
-			}
-			
 			private function invalidateAxes():void
 			{
 				handlePanelTitleChange();
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Gauge of {0}", ColumnUtils.getTitle(plotter.meterColumn));
 			}
@@ -104,7 +89,7 @@
 			
 			private function handleMarginLabelClick():void
 			{
-				AttributeSelectorPanel.openToolSelector(this,plotter.meterColumn);
+				AttributeSelectorPanel.open(plotter.meterColumn);
 			}
 			
 			private function showLinkCursor():void
@@ -123,13 +108,14 @@
 				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
 			}
 			
-			private static const DEFAULT_MARGIN_BOTTOM:int = 35;
+			internal static const DEFAULT_MARGIN_BOTTOM:int = 35;
 			private function handleMarginChange():void
 			{
-				marginLabelCheckBox.selected = visualization.plotManager.marginBottomNumber.value != 0;
+				marginLabelCheckBox_selected = visualization.plotManager.marginBottomNumber.value != 0;
 				marginLabel.height = visualization.plotManager.marginBottomNumber.value;
+				marginLabel.visible = visualization.plotManager.marginBottomNumber.value > 0
 			}
-			
+			[Bindable] internal var marginLabelCheckBox_selected:Boolean;
 		]]>
 	</mx:Script>
 	<mx:TextArea id="marginLabel"
@@ -144,13 +130,11 @@
 				 bottom="0"
 				 textAlign="center"
 				 toolTip="{lang('{0}\n\tClick here to select a different attribute.', marginLabelText)}"/>
-	<ui:ControlPanel>
-		<mx:VBox id="attributesPanel" label="{lang('Attributes for Gauge')}" >
-			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Gauge column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = plotter.meterColumn"/>
+	<editorFactory><mx:Component><ui:ControlPanel>
+		<mx:VBox id="attributesPanel" label="{lang('Gauge properties')}" >
+			<ui:DynamicColumnComponent label="{lang('Gauge column:')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = outerDocument.plotter.meterColumn"/>
+			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" selected="{outerDocument.marginLabelCheckBox_selected}" change="outerDocument.visualization.plotManager.marginBottom.value = String(marginLabelCheckBox.selected ? GaugeTool.DEFAULT_MARGIN_BOTTOM : 0);"/>
+			<ui:ColorRampEditor id="cRampEditor" creationComplete="cRampEditor.colorRamp = outerDocument.plotter.colorRamp;"/>
 		</mx:VBox>
-		<mx:VBox id="advControlsPanel" label="{lang('Advanced')}">
-			<mx:CheckBox id="marginLabelCheckBox" label="{lang('Show attribute name')}" change="visualization.plotManager.marginBottom.value = String(marginLabelCheckBox.selected ? DEFAULT_MARGIN_BOTTOM : 0);" toolTip="{lang('Click to hide the title.')}"/>
-			<ui:ColorRampEditor id="cRampEditor"/>
-		</mx:VBox>
-	</ui:ControlPanel>
+	</ui:ControlPanel></mx:Component></editorFactory>
 </SimpleVisTool>

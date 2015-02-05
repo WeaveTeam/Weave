@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:LinkButton
+    xmlns:mx="http://www.adobe.com/2006/mxml"
+    xmlns="weave.ui.*"
+	alpha="0.5" useHandCursor="true"
+	width="20"
+	height="20"
+	includeInLayout="false"
+	initialize="UIUtils.pad(event, 0);"
+	addedToStage="handleAddedToStage(event);"
+	removedFromStage="handleRemovedFromStage(event);"
+	mouseDown="handleMouseDown(event);"
+	>
+	<mx:Script>
+		<![CDATA[
+			import mx.core.ScrollControlBase;
+			import mx.core.UIComponent;
+			
+			import weave.core.UIUtils;
+			
+			[Bindable] public var expandedHeight:int = 96;
+			[Bindable] public var unexpandedHeight:int = 22;
+			
+			private var _expanded:Boolean = false;
+			
+			[Bindable] public function get expanded():Boolean
+			{
+				return _expanded;
+			}
+			public function set expanded(value:Boolean):void
+			{
+				_expanded = value;
+				apply();
+			}
+			
+			private function handleAddedToStage(event:Event):void
+			{
+				parent.addEventListener(Event.RESIZE, handleParentResize);
+				apply();
+			}
+			
+			private function handleRemovedFromStage(event:Event):void
+			{
+				parent.removeEventListener(Event.RESIZE, handleParentResize);
+				apply();
+			}
+			
+			private function handleParentResize(event:Event):void
+			{
+				apply();
+			}
+			
+			private function handleMouseDown(event:MouseEvent):void
+			{
+				expanded = !expanded;
+				apply();
+				callLater(focusLater);
+			}
+			
+			private function focusLater():void
+			{
+				if (parent is UIComponent)
+					(parent as UIComponent).setFocus();
+			}
+			
+			public function apply():void
+			{
+				label = expanded ? '-' : '+';
+				
+				if (!parent)
+					return;
+				
+				parent.height = expanded ? expandedHeight : unexpandedHeight;
+				if (parent is ScrollControlBase)
+					(parent as ScrollControlBase).verticalScrollPolicy = expanded ? 'on' : 'off';
+				this.y = 1;
+				this.x = parent.width - this.width - (expanded && parent is ScrollControlBase ? 16 : 1);
+			}
+			
+			public static function makeExpandable(parent:UIComponent, expanded:Boolean = false, smallHeight:int = 22, largeHeight:int = 96):ExpandButton
+			{
+				var eb:ExpandButton = new ExpandButton();
+				eb.expanded = expanded;
+				eb.unexpandedHeight = smallHeight;
+				eb.expandedHeight = largeHeight;
+				parent.addChild(eb);
+				return eb;
+			}
+		]]>
+	</mx:Script>
+</mx:LinkButton>

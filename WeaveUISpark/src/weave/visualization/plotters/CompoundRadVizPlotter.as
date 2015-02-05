@@ -26,7 +26,6 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -37,6 +36,7 @@ package weave.visualization.plotters
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -62,7 +62,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class CompoundRadVizPlotter extends AbstractPlotter
+	public class CompoundRadVizPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		public function CompoundRadVizPlotter()
 		{
@@ -89,6 +89,16 @@ package weave.visualization.plotters
 				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
 		}
 		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Size", "Color", "Anchor Dimensions"];
+		}
+		
+		public function getSelectableAttributes():Array
+		{
+			return [radiusColumn, fillStyle.color, columns];
+		}
+		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		
@@ -108,7 +118,7 @@ package weave.visualization.plotters
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
-		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
+		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Paired")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		
 		/**
@@ -154,7 +164,8 @@ package weave.visualization.plotters
 			{
 				var keySources:Array = _columns.concat();
 				keySources.unshift(radiusColumn);
-				setColumnKeySources(keySources, [true]);
+				var sortDirections:Array = keySources.map(function(c:*, i:int, a:*):int { return i == 0 ? -1 : 1; });
+				setColumnKeySources(keySources, sortDirections);
 			
 				for each( var key:IQualifiedKey in filteredKeySet.keys)
 				{					

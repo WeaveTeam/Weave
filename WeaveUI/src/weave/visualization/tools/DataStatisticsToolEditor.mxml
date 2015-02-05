@@ -24,7 +24,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 @author spurushe
 -->
-<mx:TabNavigator xmlns="weave.visualization.tools.*" 
+<ui:CustomTabNavigator xmlns="weave.visualization.tools.*" 
 				 xmlns:mx="http://www.adobe.com/2006/mxml"
 				 xmlns:ui="weave.ui.*" 
 				 xmlns:userControls="weave.ui.userControls.*"		 
@@ -43,15 +43,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				_target = object as DataStatisticsTool;
 			}
-			public function applyChanges():void
-			{
-				
-			}
-			
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
 	]]>
 	</mx:Script>
 	
 	<mx:VBox id="StatsPanel" label="Column Statistics">
 		
 	</mx:VBox>	
-</mx:TabNavigator>		
+</ui:CustomTabNavigator>		

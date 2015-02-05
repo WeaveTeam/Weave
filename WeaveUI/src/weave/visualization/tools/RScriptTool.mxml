@@ -69,9 +69,9 @@
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
+			import weave.api.reportError;
 			import weave.data.AttributeColumns.CSVColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.KeySet;
@@ -87,9 +87,9 @@
 			private var iterNumValue:int = 3;
 			
 		
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 			}
 			
 			private function get colorColumn():DynamicColumn
@@ -177,17 +177,23 @@
 			
 			protected function rScriptButton_clickHandler(event:MouseEvent):void
 			{
-				var loadedXML:XML = new XML();
-				if(_sessionFileLoader == null)
+				try
 				{
-					_sessionFileLoader = new FileReference();
+					var loadedXML:XML = new XML();
+					if(_sessionFileLoader == null)
+					{
+						_sessionFileLoader = new FileReference();
+						
+						_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { _sessionFileLoader.load(); _defaultsFilename = _sessionFileLoader.name; } );
+						_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {loadedXML = XML(e.target.data) ;loadXMLtoUI(loadedXML);} );
+					}
 					
-					_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { _sessionFileLoader.load(); _defaultsFilename = _sessionFileLoader.name; } );
-					_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {loadedXML = XML(e.target.data) ;loadXMLtoUI(loadedXML);} );
+					_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);			
 				}
-				
-				_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);			
-				
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			protected function loadXMLtoUI(loadedXML:XML):void{
 				

@@ -19,13 +19,18 @@
 
 package weave.compiler
 {
+	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
+	import flash.utils.getTimer;
 	
 	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
+	import mx.utils.StringUtil;
 	
+	import weave.flascc.FlasCC;
 	import weave.utils.AsyncSort;
+	import weave.utils.CustomDateFormatter;
 	import weave.utils.DebugTimer;
 
 	/**
@@ -47,7 +52,7 @@ package weave.compiler
 			if (value == null)
 				return NaN; // return NaN because Number(null) == 0
 			
-			if (value is Number)
+			if (value is Number || value is Date)
 				return value;
 			
 			try {
@@ -61,6 +66,7 @@ package weave.compiler
 		}
 		
 		/**
+		 * Converts a value to a non-null String
 		 * @param value A value to cast to a String.
 		 * @return The value cast to a String.
 		 */
@@ -93,15 +99,25 @@ package weave.compiler
 			return value;
 		}
 		
+		/**
+		 * Tests if a value is anything other than undefined, null, or NaN.
+		 */
 		public static function isDefined(value:*):Boolean
 		{
-			return !(value == undefined || (value is Number && isNaN(value)) || value == null);
-		}
-		public static function isUndefined(value:*):Boolean
-		{
-			return (value == undefined || (value is Number && isNaN(value)) || value == null);
+			return value !== undefined && value !== null && !(value is Number && isNaN(value));
 		}
 		
+		/**
+		 * Tests if a value is undefined, null, or NaN.
+		 */
+		public static function isUndefined(value:*):Boolean
+		{
+			return value === undefined || value === null || (value is Number && isNaN(value));
+		}
+		
+		/**
+		 * Pads a string on the left.
+		 */
 		public static function lpad(str:String, length:uint, padString:String = ' '):String
 		{
 			if (str.length >= length)
@@ -110,6 +126,10 @@ package weave.compiler
 				padString += padString;
 			return padString.substr(0, length - str.length) + str;
 		}
+		
+		/**
+		 * Pads a string on the right.
+		 */
 		public static function rpad(str:String, length:uint, padString:String = ' '):String
 		{
 			if (str.length >= length)
@@ -139,6 +159,8 @@ package weave.compiler
 			return string;
 		}
 		
+		private static const argRef:RegExp = new RegExp("^(0|[1-9][0-9]*)\}");
+		
 		/**
 		 * Substitutes "{n}" tokens within the specified string with the respective arguments passed in.
 		 * Same syntax as StringUtil.substitute() without the side-effects of using String.replace() with a regex.
@@ -147,17 +169,90 @@ package weave.compiler
 		 */
 		public static function substitute(format:String, ...args):String
 		{
-			for (var i:int = 0; i < args.length; i++)
+			if (args.length == 1 && args[0] is Array)
+				args = args[0] as Array;
+			var split:Array = format.split('{')
+			var output:String = split[0];
+			for (var i:int = 1; i < split.length; i++)
 			{
-				var str:String = '{' + i + '}';
-				var j:int = int.MAX_VALUE;
-				while ((j = format.lastIndexOf(str, j)) >= 0)
-					format = format.substr(0, j) + args[i] + format.substr(j + str.length);
+				var str:String = split[i] as String;
+				if (argRef.test(str))
+				{
+					var j:int = str.indexOf("}");
+					output += args[str.substring(0, j)];
+					output += str.substring(j + 1);
+				}
+				else
+					output += "{" + str;
 			}
-			return format;
+			return output;
 		}
 		
 		/**
+		 * Takes a script where all lines have been indented with tabs,
+		 * removes the common indentation from all lines and optionally
+		 * replaces extra leading tabs with a number of spaces.
+		 * @param script A script.
+		 * @param spacesPerTab If zero or greater, this is the number of spaces to be used in place of each tab character used as indentation.
+		 * @return The modified script.
+		 */		
+		public static function unIndent(script:String, spacesPerTab:int = -1):String
+		{
+			if (script == null)
+				return null;
+			// switch all line endings to \n
+			script = replace(script, '\r\n', '\n', '\r', '\n');
+			// remove trailing whitespace (not leading whitespace)
+			script = StringUtil.trim('.' + script).substr(1);
+			// separate into lines
+			var lines:Array = script.split('\n');
+			// remove blank lines from the beginning
+			while (lines.length && !StringUtil.trim(lines[0]))
+				lines.shift();
+			// stop if there's nothing left
+			if (!lines.length)
+				return '';
+			// find the common indentation
+			var commonIndent:int = int.MAX_VALUE;
+			var line:String;
+			for each (line in lines)
+			{
+				// ignore blank lines
+				if (!StringUtil.trim(line))
+					continue;
+				// count leading tabs
+				var lineIndent:int = 0;
+				while (line.charAt(lineIndent) == '\t')
+					lineIndent++;
+				// remember the minimum number of leading tabs
+				commonIndent = Math.min(commonIndent, lineIndent);
+			}
+			// remove the common indentation from each line
+			for (var i:int = 0; i < lines.length; i++)
+			{
+				line = lines[i];
+				// prepare to remove common indentation
+				var t:int = 0;
+				while (t < commonIndent && line.charAt(t) == '\t')
+					t++;
+				// optionally, prepare to replace extra tabs with spaces
+				var spaces:String = '';
+				if (spacesPerTab >= 0)
+				{
+					while (line.charAt(t) == '\t')
+					{
+						spaces += lpad('', spacesPerTab, '        ');
+						t++;
+					}
+				}
+				// commit changes
+				lines[i] = spaces + line.substr(t);
+			}
+			return lines.join('\n');
+		}
+
+		/**
+		 * Converts a number to a String using a specific numeric base and optionally pads with leading zeros.
 		 * @param number The Number to convert to a String.
 		 * @param base Specifies the numeric base (from 2 to 36) to use.
 		 * @param zeroPad This is the minimum number of digits to return.  The number will be padded with zeros if necessary.
@@ -188,6 +283,7 @@ package weave.compiler
 			}
 			else
 			{
+				number = StandardLib.roundSignificant(number);
 				if (Math.abs(number) < 1)
 					return String(number); // this fixes the bug where "0.1" gets converted to ".1" (we don't want the "0" to be lost)
 				_numberFormatter.precision = -1;
@@ -230,34 +326,7 @@ package weave.compiler
 		}
 		
 		/**
-		 * This function filters out values outside of a given range.
-		 * @param value A value to filter.
-		 * @param min The minimum value to accept.
-		 * @param max The maximum value to accept.
-		 * @return If value is between min and max, returns value.  Otherwise, returns NaN.
-		 */
-		public static function filterRange(value:Number, min:Number, max:Number):Number
-		{
-			if (value < min || value > max)
-				return NaN;
-			return value;
-		}
-		
-		/**
-		 * This function tests if a Number is within a min,max range.
-		 * @param value A value to filter.
-		 * @param min The minimum value to accept.
-		 * @param max The maximum value to accept.
-		 * @return If value is between min and max, returns true.  Otherwise, returns false.
-		 */
-		public static function numberInRange(value:Number, min:Number, max:Number):Boolean
-		{
-			if (value < min || value > max) // a condition will be false if a value is NaN
-				return false;
-			return true;
-		}
-		
-		/**
+		 * Scales a number between 0 and 1 using specified min and max values.
 		 * @param value The value between min and max.
 		 * @param min The minimum value that corresponds to a result of 0.
 		 * @param max The maximum value that corresponds to a result of 1.
@@ -339,9 +408,7 @@ package weave.compiler
 			}
 		}
 		
-//		{ /** begin static code block **/
-//			testRoundSignificant();
-//		} /** end static code block **/
+		//testRoundSignificant();
 		private static function testRoundSignificant():void
 		{
 			for (var pow:int = -5; pow <= 5; pow++)
@@ -353,9 +420,10 @@ package weave.compiler
 		}
 
 		/**
+		 * Calculates an interpolated color for a normalized value.
 		 * @param normValue A Number between 0 and 1.
 		 * @param colors An Array or list of colors to interpolate between.  Normalized values of 0 and 1 will be mapped to the first and last colors.
-		 * @return An interpolated color associated with the given normValue based on the min,max color values.
+		 * @return An interpolated color associated with the given normValue based on the list of color values.
 		 */
 		public static function interpolateColor(normValue:Number, ...colors):Number
 		{
@@ -455,7 +523,10 @@ package weave.compiler
 			
 			var values:Array = [];
 			
-			range = getNiceNumber(max - min, false);
+			// Bug fix: getNiceNumbersInRange(0, 500, 6) returned [0,200,400] when it could be [0,100,200,300,400,500]
+			// Was: range = getNiceNumber(max - min, false);
+			range = max - min;
+			
 			d = getNiceNumber( range / (numberOfValuesInRange - 1), true);
 			graphmin = Math.floor(min / d) * d;
 			graphmax = Math.ceil(max / d) * d;
@@ -470,6 +541,9 @@ package weave.compiler
 			return values;
 		}
 		
+		/**
+		 * Calculates the mean value from a list of Numbers.
+		 */
 		public static function mean(...args):Number
 		{
 			if (args.length == 1 && args[0] is Array)
@@ -480,6 +554,9 @@ package weave.compiler
 			return sum / args.length;
 		}
 		
+		/**
+		 * Calculates the sum of a list of Numbers.
+		 */
 		public static function sum(...args):Number
 		{
 			if (args.length == 1 && args[0] is Array)
@@ -502,35 +579,99 @@ package weave.compiler
 			AsyncSort.sortImmediately(array, compare);
 		}
 		
+		private static const _sortBuffer:Array = [];
+		
 		/**
-		 * This function compares each of the elements in two arrays in order, supporting nested Arrays.
-		 * @param a The first Array for comparison
-		 * @param b The second Array for comparison
-		 * @return The first nonzero compare value, or zero if the arrays are equal.
+		 * Sorts an Array (or Vector) of items in place using properties, lookup tables, or replacer functions.
+		 * @param array An Array (or Vector) to sort.
+		 * @param params Specifies how to get values used to sort items in the array.
+		 *               This can either be an Array of params or a single param, each of which can be one of the following:<br>
+		 *               Array or Vector: values are looked up based on index (Such an Array must be nested in a params array rather than given alone as a single param)<br>
+		 *               Object or Dictionary: values are looked up using items in the array as keys<br>
+		 *               Property name: values are taken from items in the array using a property name<br>
+		 *               Replacer function: array items are passed through this function to get values<br>
+		 * @param sortDirections Specifies sort direction(s) (1 or -1) corresponding to the params.
+		 * @param inPlace Set this to true to modify the original Array (or Vector) in place or false to return a new, sorted copy.
+		 * @param returnSortedIndexArray Set this to true to return a new Array of sorted indices.
+		 * @return Either the original Array (or Vector) or a new one.
+		 * @see Array#sortOn()
 		 */
-		public static function arrayCompare(a:Array, b:Array):int
+		public static function sortOn(array:*, params:*, sortDirections:* = undefined, inPlace:Boolean = true, returnSortedIndexArray:Boolean = false):*
 		{
-			if (!a || !b)
-				return AsyncSort.defaultCompare(a, b);
-			var an:int = a.length;
-			var bn:int = b.length;
-			if (an < bn)
-				return -1;
-			if (an > bn)
-				return 1;
-			for (var i:int = 0; i < an; i++)
+			if (array.length == 0)
+				return inPlace ? array : [];
+			
+			var values:Array;
+			var param:*;
+			var sortDirection:int;
+			var i:int;
+			
+			// expand _sortBuffer as necessary
+			for (i = _sortBuffer.length; i < array.length; i++)
+				_sortBuffer[i] = [];
+			
+			// If there is only one param, wrap it in an array.
+			// Array.sortOn() is preferred over Array.sort() in this case
+			// since an undefined value will crash Array.sort(Array.NUMERIC).
+			if (params === array || !(params is Array))
 			{
-				var ai:* = a[i];
-				var bi:* = b[i];
-				var result:int;
-				if (ai is Array && bi is Array)
-					result = arrayCompare(ai as Array, bi as Array);
-				else
-					result = AsyncSort.defaultCompare(ai, bi);
-				if (result != 0)
-					return result;
+				params = [params];
+				if (sortDirections)
+					sortDirections = [sortDirections];
 			}
-			return 0;
+			
+			var fields:Array = new Array(params.length);
+			var fieldOptions:Array = new Array(params.length);
+			for (var p:int = 0; p < params.length; p++)
+			{
+				param = params[p];
+				sortDirection = sortDirections && sortDirections[p] < 0 ? Array.DESCENDING : 0;
+				
+				i = array.length;
+				if (param is Array || param is Vector)
+					while (i--)
+						_sortBuffer[i][p] = param[i];
+				else if (param is Function)
+					while (i--)
+						_sortBuffer[i][p] = param(array[i]);
+				else if (typeof param === 'object')
+					while (i--)
+						_sortBuffer[i][p] = param[array[i]];
+				else
+					while (i--)
+						_sortBuffer[i][p] = array[i][param];
+				
+				fields[p] = p;
+				fieldOptions[p] = Array.RETURNINDEXEDARRAY | guessSortMode(_sortBuffer[0][p]) | sortDirection;
+			}
+			
+			values = _sortBuffer.slice(0, array.length);
+			values = values.sortOn(fields, fieldOptions);
+			
+			if (returnSortedIndexArray)
+				return values;
+			
+			var array2:Array = new Array(array.length);
+			i = array.length;
+			while (i--)
+				array2[i] = array[values[i]];
+			
+			if (!inPlace)
+				return array2;
+			
+			i = array.length;
+			while (i--)
+				array[i] = array2[i];
+			return array;
+		}
+		
+		/**
+		 * Guesses the appropriate Array.sort() mode based on a sample item from an Array.
+		 * @return Either Array.NUMERIC or 0.
+		 */
+		private static function guessSortMode(sampleItem:Object):int
+		{
+			return sampleItem is Number || sampleItem is Date ? Array.NUMERIC : 0;
 		}
 		
 		/**
@@ -540,7 +681,7 @@ package weave.compiler
 		 */
 		public static function getArrayType(a:Array):Class
 		{
-			if (a.length == 0 || a[0] == null)
+			if (a == null || a.length == 0 || a[0] == null)
 				return null;
 			var type:Class = Object(a[0]).constructor;
 			for each (var item:Object in a)
@@ -576,32 +717,13 @@ package weave.compiler
 			var formattedDateString:String = dateString;
 			if (formatString)
 			{
-				// work around bug in DateFormatter that requires Year, Month, and Day to be in the formatString
-				var separator:String = "//";
-				var appendFormat:String = "";
-				var appendDate:String = "";
-				for (var i:int = 0; i < 3; i++)
-				{
-					var char:String = "YMD".charAt(i);
-					if (formatString.indexOf(char) < 0)
-					{
-						appendFormat += separator + char;
-						appendDate += separator + (char == 'Y' ? '1970' : '1');
-					}
-				}
-				if (appendFormat)
-				{
-					formatString += " " + appendFormat;
-					dateString += " " + appendDate;
-				}
-				
 				_dateFormatter.formatString = formatString;
 				formattedDateString = _dateFormatter.format(dateString);
 				if (_dateFormatter.error)
 					throw new Error(_dateFormatter.error);
 			}
 			var date:Date = DateFormatter.parseDateString(formattedDateString);
-			if (parseAsUniversalTime)
+			if (date && parseAsUniversalTime)
 				date.setTime( date.getTime() - date.getTimezoneOffset() * _timezoneMultiplier );
 			return date;
 		}
@@ -632,7 +754,7 @@ package weave.compiler
 		/**
 		 * This is the DateFormatter used by parseDate() and formatDate().
 		 */
-		private static const _dateFormatter:DateFormatter = new DateFormatter();
+		private static const _dateFormatter:DateFormatter = new CustomDateFormatter();
 		/**
 		 * The number of milliseconds in one minute.
 		 */
@@ -640,12 +762,14 @@ package weave.compiler
 		
 		/**
 		 * This compares two dynamic objects or primitive values and is much faster than ObjectUtil.compare().
+		 * Does not check for circular refrences.
 		 * @param a First dynamic object or primitive value.
 		 * @param b Second dynamic object or primitive value.
 		 * @return A value of zero if the two objects are equal, nonzero if not equal.
 		 */
-		public static function compareDynamicObjects(a:Object, b:Object):int
+		public static function compare(a:Object, b:Object):int
 		{
+			var c:int;
 			if (a === b)
 				return 0;
 			if (a == null)
@@ -666,6 +790,22 @@ package weave.compiler
 				return 1;
 			if (a is Date && b is Date)
 				return ObjectUtil.dateCompare(a as Date, b as Date);
+			if ((a is Array && b is Array) || (a is Vector && b is Vector))
+			{
+				var an:int = a.length;
+				var bn:int = b.length;
+				if (an < bn)
+					return -1;
+				if (an > bn)
+					return 1;
+				for (var i:int = 0; i < an; i++)
+				{
+					c = compare(a[i], b[i]);
+					if (c != 0)
+						return c;
+				}
+				return 0;
+			}
 			
 			var qna:String = getQualifiedClassName(a);
 			var qnb:String = getQualifiedClassName(b);
@@ -698,7 +838,7 @@ package weave.compiler
 				if (!a.hasOwnProperty(p))
 					return 1;
 				
-				var c:int = compareDynamicObjects(a[p], b[p]);
+				c = compare(a[p], b[p]);
 				if (c != 0)
 					return c;
 			}
@@ -734,9 +874,47 @@ package weave.compiler
 					throw "ObjectUtil.compare fail";
 			DebugTimer.lap('ObjectUtil.compare');
 			for (i = 0; i < 100; i++)
-				if (compareDynamicObjects(o1,o2) != 0)
+				if (compare(o1,o2) != 0)
 					throw "StandardLib.compareDynamicObjects fail";
 			DebugTimer.end('StandardLib.compareDynamicObjects');
 		}
+		
+		/**
+		 * Binary to Ascii (Base64)
+		 * @param input Binary data
+		 * @return Base64-encoded data
+		 */
+		public static function btoa(input:ByteArray):String
+		{
+			return FlasCC.call(weave.flascc.btoa, input);
+		}
+		
+		/**
+		 * Ascii (Base64) to Binary
+		 * @param input Base64-encoded data
+		 * @return Decoded binary data
+		 */
+		public static function atob(input:String):ByteArray
+		{
+			return FlasCC.call(weave.flascc.atob, input);
+		}
+		
+		/**
+		 * @see https://github.com/bestiejs/punycode.js
+		 */
+		internal static function ucs2encode(value:uint):String
+		{
+			var output:String = '';
+			if (value > 0xFFFF)
+			{
+				value -= 0x10000;
+				output += String.fromCharCode(value >>> 10 & 0x3FF | 0xD800);
+				value = 0xDC00 | value & 0x3FF;
+			}
+			return output + String.fromCharCode(value);
+		}
+		
+		[Deprecated(replacement="compare")] public static function arrayCompare(a:Object, b:Object):int { return compare(a,b); }
+		[Deprecated(replacement="compare")] public static function compareDynamicObjects(a:Object, b:Object):int { return compare(a,b); }
 	}
 }

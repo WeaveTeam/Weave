@@ -19,14 +19,12 @@
 
 package weave.data.BinningDefinitions
 {
-	import weave.api.WeaveAPI;
-	import weave.api.data.DataTypes;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
-	import weave.api.data.IColumnWrapper;
-	import weave.api.data.IPrimitiveColumn;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.data.BinClassifiers.NumberClassifier;
@@ -42,14 +40,12 @@ package weave.data.BinningDefinitions
 	{
 		public function SimpleBinningDefinition()
 		{
-			// we need a default value for the number of bins (in the spirit of a micro API).
-			numberOfBins.value = 10;
 		}
 		
 		/**
 		 * The number of bins to generate when calling deriveExplicitBinningDefinition().
 		 */
-		public const numberOfBins:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const numberOfBins:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 
 		/**
 		 * From this simple definition, derive an explicit definition.
@@ -60,25 +56,14 @@ package weave.data.BinningDefinitions
 			// clear any existing bin classifiers
 			output.removeAllObjects();
 			
-			var nonWrapperColumn:IAttributeColumn = column;
-			while (nonWrapperColumn is IColumnWrapper)
-				nonWrapperColumn = (nonWrapperColumn as IColumnWrapper).getInternalColumn();
-			
-			var dataType:String = nonWrapperColumn ? ColumnUtils.getDataType(nonWrapperColumn) : null;
-			if (dataType == null)
+			var integerValuesOnly:Boolean = false;
+			var nonWrapperColumn:IAttributeColumn = ColumnUtils.hack_findNonWrapperColumn(column);
+			if (nonWrapperColumn)
 			{
-				// hack -- if we find a number, assume dataType is number
-				for each (var key:IQualifiedKey in column.keys)
-				{
-					if (column.getValueFromKey(key) is Number)
-					{
-						dataType = DataTypes.NUMBER;
-						break;
-					}
-				}
+				var dataType:String = nonWrapperColumn.getMetadata(ColumnMetadata.DATA_TYPE);
+				if (dataType && dataType != DataType.NUMBER)
+					integerValuesOnly = true;
 			}
-			
-			var integerValuesOnly:Boolean = nonWrapperColumn && dataType != DataTypes.NUMBER;
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
 			var dataMin:Number = stats.getMin();
 			var dataMax:Number = stats.getMax();
@@ -146,7 +131,7 @@ package weave.data.BinningDefinitions
 				name = getOverrideNames()[iBin];
 				//if it is empty string set it from generateBinLabel
 				if (!name)
-					name = tempNumberClassifier.generateBinLabel(nonWrapperColumn as IPrimitiveColumn);
+					name = tempNumberClassifier.generateBinLabel(column);
 
 				output.requestObjectCopy(name, tempNumberClassifier);
 			}

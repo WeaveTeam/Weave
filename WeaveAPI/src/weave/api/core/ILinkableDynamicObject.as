@@ -23,25 +23,25 @@ package weave.api.core
 	public interface ILinkableDynamicObject extends ILinkableCompositeObject
 	{
 		/**
-		 * This function gets the internal object, whether local or global.
-		 * @return The internal, dynamically created object.
+		 * This is the local or global internal object.
 		 */
 		function get internalObject():ILinkableObject;
+		
 		/**
-		 * This is the name of the linked global object, or null if the internal object is local.
+		 * This is the path that is currently being watched for linkable object targets.
 		 */
-		function get globalName():String;
+		function get targetPath():Array;
 
 		/**
-		 * This function will change the internalObject if the new globalName is different, unless this object is locked.
-		 * If a new global name is given, the session state of the new global object will take precedence.
-		 * @param newGlobalName This is the name of the global object to link to, or null to unlink from the current global object.
+		 * This will set a path which should be watched for new targets.
+		 * Callbacks will be triggered immediately if the path points to a new target.
+		 * @param newPath The new path to watch.
 		 */
-		function set globalName(newGlobalName:String):void;
+		function set targetPath(newPath:Array):void;
 
 		/**
 		 * This function creates a global object using the given Class definition if it doesn't already exist.
-		 * If the object gets disposed of later, this object will still be linked to the global name.
+		 * If the object gets disposed later, this object will still be linked to the global name.
 		 * If the existing object under the specified name is locked, this function will not modify it.
 		 * @param name The name of the global object to link to.
 		 * @param objectType The Class used to initialize the object.
@@ -70,6 +70,12 @@ package weave.api.core
 		 */
 		function lock():void;
 
+		/**
+		 * This is set to true when lock() is called.
+		 * Subsequent calls to setSessionState() will have no effect.
+		 */
+		function get locked():Boolean;
+		
 		/**
 		 * If the internal object is local, this will remove the object (unless it is locked).
 		 * If the internal object is global, this will remove the link to it.

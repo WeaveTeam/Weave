@@ -22,15 +22,15 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	import flash.text.TextFormatAlign;
+	import flash.utils.getQualifiedClassName;
 	
 	import mx.formatters.NumberFormatter;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -106,8 +106,9 @@ package weave.visualization.plotters
 		private const _bitmapText:BitmapText = new BitmapText(); // for drawing text
 		private var _xDataTickDelta:Number; // x distance between ticks
 		private var _yDataTickDelta:Number; // y distance between ticks
-		private const MIN_LABEL_KEY:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(null, 'minLabel');
-		private const MAX_LABEL_KEY:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(null, 'maxLabel');
+		private const KEY_TYPE:String = getQualifiedClassName(AxisPlotter);
+		private const MIN_LABEL_KEY:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(KEY_TYPE, 'minLabel');
+		private const MAX_LABEL_KEY:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(KEY_TYPE, 'maxLabel');
 		private const _numberFormatter:NumberFormatter = new NumberFormatter();
 		
 		public var showRealMinAndMax:Boolean = false;
@@ -140,7 +141,7 @@ package weave.visualization.plotters
 				// only include tick marks that are between min,max values
 				var tickValue:Number = _axisDescription.tickMin + i * _axisDescription.tickDelta;
 				if (axisLineMinValue.value <= tickValue && tickValue <= axisLineMaxValue.value)
-					newKeys.push(WeaveAPI.QKeyManager.getQKey(null, String(i)));
+					newKeys.push(WeaveAPI.QKeyManager.getQKey(KEY_TYPE, String(i)));
 			}
 			if(showRealMinAndMax)
 				newKeys.push(MAX_LABEL_KEY);

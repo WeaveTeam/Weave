@@ -19,21 +19,24 @@
 
 package weave.data.AttributeColumns
 {
-	import flash.utils.getQualifiedClassName;
-	
-	import weave.api.WeaveAPI;
-	import weave.api.core.ILinkableObject;
+	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
-	import weave.api.registerLinkableChild;
+	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
 	import weave.api.setSessionState;
 	import weave.core.CallbackCollection;
+	import weave.core.ClassUtils;
 	import weave.core.LinkableDynamicObject;
-	import weave.core.SessionManager;
+	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
+	import weave.core.LinkableWatcher;
+	import weave.core.WeaveXMLDecoder;
 	import weave.utils.ColumnUtils;
+	import weave.utils.HierarchyUtils;
 	
 	/**
 	 * This provides a wrapper for a referenced column.
@@ -42,59 +45,88 @@ package weave.data.AttributeColumns
 	 */
 	public class ReferencedColumn extends CallbackCollection implements IColumnWrapper
 	{
+		public function ReferencedColumn()
+		{
+			WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateDataSource);
+		}
+		
+		private var _dataSource:IDataSource;
+		
+		private function updateDataSource():void
+		{
+			var ds:IDataSource = WeaveAPI.globalHashMap.getObject(dataSourceName.value) as IDataSource;
+			if (_dataSource != ds)
+			{
+				_dataSource = ds;
+				triggerCallbacks();
+			}
+		}
+		
 		/**
-		 * This is a reference to another column.
+		 * This is the name of an IDataSource in the top level session state.
 		 */
-		public const dynamicColumnReference:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IColumnReference));
+		public const dataSourceName:LinkableString = newLinkableChild(this, LinkableString, updateDataSource);
+		
+		/**
+		 * This holds the metadata used to identify a column.
+		 */
+		public const metadata:LinkableVariable = newLinkableChild(this, LinkableVariable);
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getDataSource():IDataSource
+		{
+			return _dataSource;
+		}
+		
+		/**
+		 * Updates the session state to refer to a new column.
+		 */
+		public function setColumnReference(dataSource:IDataSource, metadata:Object):void
+		{
+			delayCallbacks();
+			dataSourceName.value = WeaveAPI.globalHashMap.getName(dataSource);
+			this.metadata.setSessionState(metadata);
+			resumeCallbacks();
+		}
 		
 		/**
 		 * The trigger counter value at the last time the internal column was retrieved.
 		 */		
-		private var _dynamicRefTriggerCounter:uint = 0;
+		private var _prevTriggerCounter:uint = 0;
 		/**
 		 * the internal referenced column
 		 */
-		protected var _internalColumn:IAttributeColumn = null;
+		private var _internalColumn:IAttributeColumn = null;
 		
-		/**
-		 * This is the actual IColumnReference object inside dynamicColumnReference.
-		 */
-		public function get internalColumnReference():IColumnReference
-		{
-			return dynamicColumnReference.internalObject as IColumnReference;
-		}
+		private const _columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 		
 		/**
 		 * @inheritDoc 
 		 */		
 		public function getInternalColumn():IAttributeColumn
 		{
-			if (_dynamicRefTriggerCounter != dynamicColumnReference.triggerCounter)
+			if (_prevTriggerCounter != triggerCounter)
 			{
-				_dynamicRefTriggerCounter = dynamicColumnReference.triggerCounter;
+				if (objectWasDisposed(_dataSource))
+					_dataSource = null;
 				
-				var newColumn:IAttributeColumn = WeaveAPI.AttributeColumnCache.getColumn(internalColumnReference);
-				// do nothing if this is the same column
-				if (_internalColumn != newColumn)
+				var col:IAttributeColumn = null;
+				if (dataSourceName.value && !_dataSource)
 				{
-					if (_internalColumn != null)
-						(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _internalColumn);
-
-					_internalColumn = newColumn;
-			
-					if (_internalColumn != null)
-						registerLinkableChild(this, _internalColumn);
+					// data source was named but not found
 				}
+				else
+				{
+					col = WeaveAPI.AttributeColumnCache.getColumn(_dataSource, metadata.getSessionState());
+				}
+				_columnWatcher.target = _internalColumn = col;
+				
+				_prevTriggerCounter = triggerCounter;
 			}
 			return _internalColumn;
 		}
-		
-
-		
-		
-		
-		
-		
 		
 		
 		/************************************
@@ -103,15 +135,26 @@ package weave.data.AttributeColumns
 
 		public function getMetadata(attributeName:String):String
 		{
-			return getInternalColumn() ? _internalColumn.getMetadata(attributeName) : null;
+			if (_prevTriggerCounter != triggerCounter)
+				getInternalColumn();
+			return _internalColumn ? _internalColumn.getMetadata(attributeName) : null;
 		}
 
+		public function getMetadataPropertyNames():Array
+		{
+			if (_prevTriggerCounter != triggerCounter)
+				getInternalColumn();
+			return _internalColumn ? _internalColumn.getMetadataPropertyNames() : [];
+		}
+		
 		/**
 		 * @return the keys associated with this column.
 		 */
 		public function get keys():Array
 		{
-			return getInternalColumn() ? _internalColumn.keys : [];
+			if (_prevTriggerCounter != triggerCounter)
+				getInternalColumn();
+			return _internalColumn ? _internalColumn.keys : [];
 		}
 
 		/**
@@ -120,7 +163,9 @@ package weave.data.AttributeColumns
 		 */
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return getInternalColumn() && _internalColumn.containsKey(key);
+			if (_prevTriggerCounter != triggerCounter)
+				getInternalColumn();
+			return _internalColumn && _internalColumn.containsKey(key);
 		}
 		
 		/**
@@ -130,9 +175,9 @@ package weave.data.AttributeColumns
 		 */
 		public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (getInternalColumn())
-				return _internalColumn.getValueFromKey(key, dataType);
-			return undefined;
+			if (_prevTriggerCounter != triggerCounter)
+				getInternalColumn();
+			return _internalColumn ? _internalColumn.getValueFromKey(key, dataType) : undefined;
 		}
 		
 		public function toString():String
@@ -141,9 +186,42 @@ package weave.data.AttributeColumns
 		}
 		
 		// backwards compatibility
-		[Deprecated(replacement="dynamicColumnReference")] public function set columnReference(value:Object):void
+		[Deprecated] public function set columnReference(value:Object):void { setSessionState(this['dynamicColumnReference'], value); }
+		[Deprecated] public function get dynamicColumnReference():ILinkableDynamicObject
 		{
-			setSessionState(dynamicColumnReference, value);
+			if (!_dcr)
+			{
+				WeaveXMLDecoder.includePackages("weave.data.ColumnReferences"); // for old JS API code using request("HierarchyColumnReference")
+				ClassUtils.registerDeprecatedClass("weave.data.ColumnReferences.HierarchyColumnReference", HierarchyColumnReference);
+				_dcr = newDisposableChild(this, LinkableDynamicObject);
+				var hcr:HierarchyColumnReference = _dcr.requestLocalObject(HierarchyColumnReference, true);
+				hcr.referencedColumn = this;
+			}
+			return _dcr;
 		}
+		private var _dcr:ILinkableDynamicObject;
+	}
+}
+
+import weave.api.core.ILinkableObject;
+import weave.api.newLinkableChild;
+import weave.core.LinkableString;
+import weave.core.LinkableXML;
+import weave.data.AttributeColumns.ReferencedColumn;
+import weave.utils.HierarchyUtils;
+
+// for backwards compatibility
+internal class HierarchyColumnReference implements ILinkableObject
+{
+	public var referencedColumn:ReferencedColumn;
+	[Deprecated] public function set dataSourceName(state:String):void
+	{
+		if (referencedColumn)
+			referencedColumn.dataSourceName.setSessionState(state);
+	}
+	[Deprecated] public function set hierarchyPath(state:Object):void
+	{
+		if (referencedColumn)
+			referencedColumn.metadata.setSessionState(HierarchyUtils.getMetadata(LinkableXML.xmlFromState(state)));
 	}
 }

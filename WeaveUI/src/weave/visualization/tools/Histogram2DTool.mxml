@@ -27,39 +27,36 @@
 			   layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
-			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
-			import weave.api.unlinkSessionState;
-			import weave.core.LinkableBoolean;
 			import weave.core.LinkableVariable;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.ui.AttributeSelectorPanel;
 			import weave.ui.ColorController;
 			import weave.ui.DraggablePanel;
+			import weave.ui.SelectableAttributesCheckBoxList;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
 			import weave.visualization.plotters.Histogram2DPlotter;
 			
-			WeaveAPI.registerImplementation(IVisTool, Histogram2DTool, lang("Histogram 2D"));
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, Histogram2DTool, "Histogram 2D");
 			
-			private function get plotter():Histogram2DPlotter
+			internal function get plotter():Histogram2DPlotter
 			{
 				return mainPlotter as Histogram2DPlotter;
 			}
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				
 				// lock dynamic objects into place
 				initializePlotters(Histogram2DPlotter, true);
 				visualization.enableProbeLine(false, true);
 				
 				xAxisPlotter.forceTickCount.value = true;
+				yAxisPlotter.forceTickCount.value = true;
 				visualization.enableZoomAndPan.value = false;
 				
 				visualization.enableProbeLine(true, true);
@@ -74,145 +71,24 @@
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, updateAxisLabels);
 				getCallbackCollection(mainPlotter).addGroupedCallback(this, updateAxisLabels, true);
 				
-				var self:* = this;
-				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.xColumn); })
-				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.openToolSelector(self, plotter.yColumn); })
+				visualization.bottomMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.xColumn); })
+				visualization.leftMarginClickCallbacks.addImmediateCallback(this, function():void { AttributeSelectorPanel.open(plotter.yColumn); })
 						
 				visualization.enableAutoZoomXToNiceNumbers.value = false;
 				visualization.enableAutoZoomYToNiceNumbers.value = false;
-				
-				initColumnDefaults(plotter.xColumn, plotter.yColumn);
-				
 			}
 			
-			override protected function childrenCreated():void
+			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, null, null), handleAttributesToIncludeInProbe, true);
+			private function handleAttributesToIncludeInProbe():void
 			{
-				super.childrenCreated();
-				
-				cRampEditor.colorRamp = plotter.binColors;
-				handleBinColRadioButtonChange();
-				xColumnComponent.dynamicObject = plotter.xColumn;
-				yColumnComponent.dynamicObject = plotter.yColumn;
-				colorColumnComponent.dynamicObject = Weave.defaultColorDataColumn.internalDynamicColumn;
+				visualization.additionalProbeColumns = SelectableAttributesCheckBoxList.getSelectedAttributeColumns(this, attributesToIncludeInProbe);
 			}
-			
-			override public function getSelectableAttributeNames():Array
-			{
-				return ["X","Y"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [plotter.xColumn,plotter.yColumn];
-			}
-			
-			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
 			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
 			{
-				handleSelectAllAttrInProbe(value);
-			}
-			private function handleSelectAllAttrInProbe(setAll:Boolean):void
-			{
-				var attributes:Array = getSelectableAttributeNames();
-				var valuesToSet:Array = [];
-				if(setAll)
-				{
-					for each (var name:String in attributes)
-					{
-						valuesToSet.push(true);
-					}
-				}
-				else
-				{
-					for each (var name2:String in attributes)
-					{
-						valuesToSet.push(false);
-					}
-				}
-				attributesToIncludeInProbe.setSessionState(valuesToSet);
+				attributesToIncludeInProbe.setSessionState(value ? getSelectableAttributeNames() : []);
 			}
 			
-			private function updateProbeColumns():void
-			{
-				/* first check to see if select all should be disabled or not */
-				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
-				
-				if(attrToIncludeCheckList.indexOf(false) > -1)
-				{
-					probeColumnsCheckBox.selected = false;
-				}
-				else
-				{
-					probeColumnsCheckBox.selected = true;
-				}
-				
-				var attributes:Array = getSelectableAttributes();
-				visualization.additionalProbeColumns = [];
-				
-				var xBinColIndex:int = attributes.indexOf(plotter.xColumn);
-				if (plotter.xBinnedColumn.getInternalColumn() && attrToIncludeCheckList[xBinColIndex])
-				{
-					visualization.additionalProbeColumns.push(plotter.xBinnedColumn.getInternalColumn());
-				}
-				
-				var yBinColIndex:int = attributes.indexOf(plotter.yColumn);
-				if (plotter.yBinnedColumn.getInternalColumn() && attrToIncludeCheckList[yBinColIndex])
-				{
-					visualization.additionalProbeColumns.push(plotter.yBinnedColumn.getInternalColumn());
-				}
-				updateAttributesChecklist();
-			}
-			
-			private function updateAttributesChecklist():void
-			{
-				var attributes:Array = getSelectableAttributeNames();
-				var attrCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
-				var temp:Array = [];
-				for (var i:int = 0; i < attributes.length; i++)
-				{
-					var obj:Object = new Object();
-					obj.label = attributes[i];
-					obj.selected = attrCheckList[i];
-					temp.push(obj);
-				}
-				attributesChecklist.dataProvider = temp;
-			}
-			
-			
-			private var _prevBinnedColumn:BinnedColumn = null;
-			private function handleBinColRadioButtonChange():void
-			{
-				var selectedCol:String = binColGroup.selectedValue as String;
-				
-				//it is null when the tool loads for the first time and so it defaults to the x column
-				if (selectedCol == "xBinCol" || selectedCol == null)
-				{
-					xBinColRadioButton.setStyle('fontWeight','bold');
-					yBinColRadioButton.setStyle('fontWeight','normal');
-					
-					if (_prevBinnedColumn)
-						unlinkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
-					
-					if (plotter.xBinnedColumn)
-						linkSessionState(plotter.xBinnedColumn, binEditor.binnedColumn);
-					
-					_prevBinnedColumn = plotter.xBinnedColumn;
-				}
-				else if (selectedCol == "yBinCol")
-				{
-					yBinColRadioButton.setStyle('fontWeight','bold');
-					xBinColRadioButton.setStyle('fontWeight','normal');
-					
-					if (_prevBinnedColumn)
-						unlinkSessionState(_prevBinnedColumn, binEditor.binnedColumn);
-					
-					if (plotter.yBinnedColumn)
-						linkSessionState(plotter.yBinnedColumn, binEditor.binnedColumn);
-					
-					_prevBinnedColumn = plotter.yBinnedColumn;
-				}
-			}
-			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("2D Histogram of {0} vs {1}", ColumnUtils.getTitle(plotter.xColumn), ColumnUtils.getTitle(plotter.yColumn));
 			}
@@ -228,14 +104,14 @@
 				xAxisPlotter.tickCountRequested.value = xBinCol.numberOfBins;
 				xAxisPlotter.tickMinValue.value = 0;
 				xAxisPlotter.tickMaxValue.value = xBinCol.numberOfBins - 1;	
-				xAxisPlotter.setLabelFunction(xBinCol.deriveStringFromNumber);
+				xAxisPlotter.setLabelFunction(xBinCol.deriveStringFromNumber, xBinCol);
 				
 				var yBinCol:BinnedColumn = plotter.yBinnedColumn;
 				
 				yAxisPlotter.tickCountRequested.value = yBinCol.numberOfBins;
 				yAxisPlotter.tickMinValue.value = 0;
 				yAxisPlotter.tickMaxValue.value = yBinCol.numberOfBins - 1;	
-				yAxisPlotter.setLabelFunction(yBinCol.deriveStringFromNumber);
+				yAxisPlotter.setLabelFunction(yBinCol.deriveStringFromNumber, yBinCol);
 				
 				
 				xAxisPlotter.setSideAxisName(ColumnUtils.getTitle(plotter.xColumn), 0, 0, visualization.plotManager.marginBottomNumber.value - 3, BitmapText.VERTICAL_ALIGN_BOTTOM);
@@ -243,41 +119,12 @@
 			}
 		]]>
 	</mx:Script>
-	
-	<ui:ControlPanel>
+
+	<editorFactory><mx:Component><ui:ControlPanel>
 		<mx:VBox label="{lang('Visualization Controls')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes the tool\'s binned attribute visible in this tool\'s probe tooltip')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="0" height="100%">
-				<mx:itemRenderer>
-					<mx:Component>
-						<mx:CheckBox change="handleSelectionChange()">
-							
-							<mx:Script>
-								<![CDATA[
-									override public function set data(d:Object):void
-									{
-										super.data = d;
-										selected = d && d.selected;
-										label = (d && d.label) as String;
-									}
-									private function handleSelectionChange():void
-									{
-										data.selected = this.selected;
-										var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
-										var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
-										currentState[index]= this.selected;
-										outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
-									}
-								]]>
-							</mx:Script>
-						</mx:CheckBox>
-					</mx:Component>
-				</mx:itemRenderer>
-			</mx:List>
-			<ui:DynamicColumnComponent visTool="{this}" id="xColumnComponent" label="{lang('X Column')}"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="yColumnComponent" label="{lang('Y Column')}"/>
+			<ui:DynamicColumnComponent id="xColumnComponent" label="{lang('X Column')}"/>
+			<ui:DynamicColumnComponent id="yColumnComponent" label="{lang('Y Column')}"/>
+			<ui:SelectableAttributesCheckBoxList id="selectedAttrList" creationComplete="selectedAttrList.setup(outerDocument, outerDocument.attributesToIncludeInProbe)"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Binning Controls')}">
 				<mx:HBox>
@@ -286,16 +133,59 @@
 					<mx:RadioButton groupName="binColGroup" label="{lang('X Column')}" value="xBinCol" id="xBinColRadioButton" selected="true"/>
 					<mx:RadioButton groupName="binColGroup" label="{lang('Y Column')}" value="yBinCol" id="yBinColRadioButton"/>
 				</mx:HBox>
-			<ui:BinningDefinitionEditor id="binEditor"/>
+			<ui:BinningDefinitionEditor id="binEditor" showNoneOption="false"/>
 		</mx:VBox>
 		<mx:VBox label="{lang('Advanced')}">
 			<mx:CheckBox id="showAverageColorData" label="{lang('Color by average data value instead of record count')}"
 						 creationComplete="linkBindableProperty(plotter.showAverageColorData, event.currentTarget, 'selected');"/>
 			<mx:HBox width="100%" verticalAlign="middle" enabled="{showAverageColorData.selected}">
-				<ui:DynamicColumnComponent id="colorColumnComponent" visTool="{this}" label="{lang('Color data')}"/>
+				<ui:DynamicColumnComponent id="colorColumnComponent" label="{lang('Color data')}"/>
 				<mx:Button label="{lang('Edit colors...')}" click="DraggablePanel.openStaticInstance(ColorController);"/>
 			</mx:HBox>
 			<ui:ColorRampEditor id="cRampEditor" enabled="{!showAverageColorData.selected}"/>
 		</mx:VBox>
-	</ui:ControlPanel>
+		<mx:Script>
+			<![CDATA[
+				import weave.api.linkBindableProperty;
+				import weave.ui.ColorController;
+				import weave.ui.DraggablePanel;
+				import weave.visualization.plotters.Histogram2DPlotter;
+				
+				private function get plotter():Histogram2DPlotter { return outerDocument.plotter; }
+				
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					
+					cRampEditor.colorRamp = plotter.binColors;
+					handleBinColRadioButtonChange();
+					xColumnComponent.dynamicObject = plotter.xColumn;
+					yColumnComponent.dynamicObject = plotter.yColumn;
+					colorColumnComponent.dynamicObject = plotter._colorColumn.internalDynamicColumn;
+				}
+				
+				private function handleBinColRadioButtonChange():void
+				{
+					var selectedCol:String = binColGroup.selectedValue as String;
+					
+					//it is null when the tool loads for the first time and so it defaults to the x column
+					if (selectedCol == "xBinCol" || selectedCol == null)
+					{
+						xBinColRadioButton.setStyle('fontWeight','bold');
+						yBinColRadioButton.setStyle('fontWeight','normal');
+						
+						binEditor.setTarget(plotter.xBinnedColumn);
+					}
+					else if (selectedCol == "yBinCol")
+					{
+						yBinColRadioButton.setStyle('fontWeight','bold');
+						xBinColRadioButton.setStyle('fontWeight','normal');
+						
+						binEditor.setTarget(plotter.yBinnedColumn);
+					}
+				}
+
+			]]>
+		</mx:Script>
+	</ui:ControlPanel></mx:Component></editorFactory>
 </SimpleVisTool>

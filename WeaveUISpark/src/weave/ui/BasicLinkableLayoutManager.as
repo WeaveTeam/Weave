@@ -28,6 +28,7 @@ package weave.ui
 	import weave.api.core.IDisposableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.ui.ILinkableLayoutManager;
+	import weave.compiler.StandardLib;
 
 	/**
 	 * This is a basic implementation for ILinkableLayoutManager.
@@ -52,8 +53,12 @@ package weave.ui
 		 */		
 		public function addComponent(id:String, component:IVisualElement):void
 		{
+			if (!id)
+				throw new Error("id cannot be null or empty String");
 			if (_idToComponent[id] != component)
 			{
+				if (_idToComponent[id])
+					throw new Error("id already exists: " + id);
 				_idToComponent[id] = component;
 				_componentToId[component] = id;
 				if (component.parent != this)
@@ -74,7 +79,7 @@ package weave.ui
 				delete _idToComponent[id];
 				delete _componentToId[component];
 				if (component.parent == this)
-					this.addElement(component);
+					this.removeElement(component);
 				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
@@ -85,21 +90,19 @@ package weave.ui
 		 */
 		public function setComponentOrder(orderedIds:Array):void
 		{
+			// do nothing if order didn't change
+			if (StandardLib.compare(orderedIds, getComponentOrder()) == 0)
+				return;
+			
 			getCallbackCollection(this).delayCallbacks();
-			
-			var i:int = 0;
-			for (var index:int = 0; index < orderedIds.length; index++)
+			getCallbackCollection(this).triggerCallbacks();
+			var childIndex:int = 0;
+			for each (var id:String in orderedIds)
 			{
-				var id:String = orderedIds[index] as String;
 				var component:IVisualElement = _idToComponent[id] as IVisualElement;
-				if (component)
-				{
-					if (component.parent == this)
-						this.setElementIndex(component, i++);
-					getCallbackCollection(this).triggerCallbacks();
-				}
+				if (component && component.parent == this)
+					this.setElementIndex(component, childIndex++);
 			}
-			
 			getCallbackCollection(this).resumeCallbacks();
 		}
 		
@@ -109,7 +112,7 @@ package weave.ui
 		public function getComponentOrder():Array
 		{
 			var result:Array = [];
-			for (var index:int = 0; index < numElements; index++)
+			for (var index:int = 0; index < this.numElements; index++)
 			{
 				var component:IVisualElement = getElementAt(index);
 				var id:String = _componentToId[component];
@@ -124,8 +127,7 @@ package weave.ui
 		 */		
 		public function hasComponent(id:String):Boolean
 		{
-			var component:IVisualElement = _idToComponent[id] as IVisualElement;
-			return component != null;
+			return _idToComponent[id] is IVisualElement;
 		}
 		
 		/**

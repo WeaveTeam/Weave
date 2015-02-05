@@ -24,9 +24,7 @@ package weave.data.AttributeColumns
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IQualifiedKey;
@@ -38,8 +36,6 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.services.addAsyncResponder;
-	import weave.services.beans.GeometryStreamMetadata;
-	import weave.utils.AsyncSort;
 	import weave.utils.GeometryStreamDecoder;
 	
 	/**
@@ -51,13 +47,13 @@ package weave.data.AttributeColumns
 	{
 		private static var _debug:Boolean = false;
 		
-		public function StreamedGeometryColumn(metadataTileDescriptors:ByteArray, geometryTileDescriptors:ByteArray, tileService:IWeaveGeometryTileService, metadata:XML = null)
+		public function StreamedGeometryColumn(metadataTileDescriptors:ByteArray, geometryTileDescriptors:ByteArray, tileService:IWeaveGeometryTileService, metadata:Object = null)
 		{
 			super(metadata);
 			
 			_tileService = registerLinkableChild(this, tileService);
 			
-			_geometryStreamDecoder.keyType = metadata.@keyType;
+			_geometryStreamDecoder.keyType = metadata[ColumnMetadata.KEY_TYPE];
 			
 			// handle tile descriptors
 			WeaveAPI.StageUtils.callLater(this, _geometryStreamDecoder.decodeMetadataTileList, [metadataTileDescriptors]);
@@ -147,7 +143,7 @@ package weave.data.AttributeColumns
 				return;
 			
 			// don't bother downloading if we know the result will be empty
-			if (dataBounds.isUndefined() || dataBounds.isEmpty())
+			if (dataBounds.isEmpty())
 				return;
 			
 			var metaRequestBounds:IBounds2D;
@@ -200,13 +196,15 @@ package weave.data.AttributeColumns
 		
 		private function handleMetadataDownloadFault(event:FaultEvent, token:Object = null):void
 		{
-			reportError(event);
+			if (!wasDisposed)
+				reportError(event);
 			//trace("handleDownloadFault",token,ObjectUtil.toString(event));
 			_metadataStreamDownloadCounter--;
 		}
 		private function handleGeometryDownloadFault(event:FaultEvent, token:Object = null):void
 		{
-			reportError(event);
+			if (!wasDisposed)
+				reportError(event);
 			//trace("handleDownloadFault",token,ObjectUtil.toString(event));
 			_geometryStreamDownloadCounter--;
 		}

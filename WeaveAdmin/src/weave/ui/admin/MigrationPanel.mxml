@@ -5,15 +5,15 @@
     horizontalAlign="center">
 	
 	<mx:Spacer height="100%"/>
-	<AutoResizingTextArea id="migrationTextArea" htmlText="{Admin.service.migrationProgress}"
-				 width="100%" focusAlpha="0" textAlign="center"
-				 backgroundAlpha="0" wordWrap="true" borderStyle="none" editable="false"/>
+	<Paragraph htmlText="{adminService.migrationProgress}" textAlign="center" selectable="true"/>
 	<mx:Spacer height="100%"/>
 	
-	<ui:BusyIndicator visible="{!migrationTextArea.text}"/>
+	<ui:BusyIndicator visible="{!adminService.migrationProgress}"/>
 	<mx:Script>
 		<![CDATA[
 			import weave.services.Admin;
+			import weave.services.WeaveAdminService;
+			[Bindable] private var adminService:WeaveAdminService = Admin.service;
 		]]>
 	</mx:Script>
 </mx:VBox>

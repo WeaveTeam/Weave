@@ -22,9 +22,8 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IKeySet;
@@ -40,9 +39,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.FilteredKeySet;
-	import weave.data.KeySets.KeySetUnion;
 	import weave.primitives.GeneralizedGeometry;
-	import weave.utils.ColumnUtils;
 	
 	/**
 	 * A glyph represents a point of data at an X and Y coordinate.
@@ -67,8 +64,6 @@ package weave.visualization.plotters
 			linkSessionState(_filteredKeySet.keyFilter, filteredDataX.filter);
 			linkSessionState(_filteredKeySet.keyFilter, filteredDataY.filter);
 		}
-		
-		private var _keySetUnion:KeySetUnion = newDisposableChild(this, KeySetUnion);
 		
 		protected const filteredDataX:FilteredColumn = newDisposableChild(this, FilteredColumn);
 		protected const filteredDataY:FilteredColumn = newDisposableChild(this, FilteredColumn);
@@ -141,9 +136,9 @@ package weave.visualization.plotters
 			{
 				var result:Number = NaN;
 				var dataCol:IAttributeColumn = i == 0 ? dataX : dataY;
-				if (dataCol.getMetadata(ColumnMetadata.DATA_TYPE) == DataTypes.GEOMETRY)
+				if (dataCol.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.GEOMETRY)
 				{
-					var geoms:Array = dataCol.getValueFromKey(recordKey) as Array;
+					var geoms:Array = dataCol.getValueFromKey(recordKey, Array) as Array;
 					var geom:GeneralizedGeometry;
 					if (geoms && geoms.length)
 						geom = geoms[0] as GeneralizedGeometry;

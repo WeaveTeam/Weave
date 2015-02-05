@@ -22,41 +22,66 @@
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.ui.*"
 		 verticalGap="0" creationPolicy="all"
-		 width="100%" height="100%" >
+		 width="100%" height="100%"
+		 implements="weave.api.core.ILinkableObject">
 	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
 		<mx:Label text="{label}" fontWeight="bold"/>
+		<HelpComponent id="help" visible="false" includeInLayout="false"/>
 		<mx:HBox width="100%" id="selectorControls">
 			<mx:Spacer width="100%"/>
-			<mx:Button label="{lang('Reverse')}"
-					   click="controller.hashMap.setNameOrder(controller.hashMap.getNames().reverse());"
-					   toolTip="{lang('Reverse the order of the attributes')}"/>
 			<mx:Button label="{lang('Open selector...')}" click="openSelector()"/>
 		</mx:HBox>
 	</mx:HBox>
 	<!-- internalList will be added as a child here -->
-	<mx:HBox width="100%">
+	<mx:HBox width="100%" verticalAlign="middle">
+		<CenteredImage id="reverseButton" buttonMode="true" source="@Embed(source='/weave/resources/images/reverse-order.png')"
+						width="22" height="22"
+						toolTip="{lang('Reverse the order of the attributes.')}"
+						click="controller.hashMap.setNameOrder(controller.hashMap.getNames().reverse());"/>
 		<mx:Spacer width="100%"/>
 		<mx:Button
-			label="{lang('Remove all')}"
-			toolTip="{lang('Click here to remove all attributes from the list.')}"
-			click="controller.removeAllItems()"
+			label="{lang('Select all')}"
+			click="_internalList.selectedItems = VectorUtils.getArrayFromCollection(_internalList.dataProvider as ICollectionView).reverse()"
 			enabled="{_internalList.dataProvider.length > 0}"/>
 		<mx:Button
 			label="{lang('Remove selected')}"
-			toolTip="{lang('Click here to remove one or more selected attributes in the list above.')}"
 			click="controller.removeSelectedItems()"
 			enabled="{_internalList.selectedIndex >= 0}"/>
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import avmplus.getQualifiedClassName;
+			
+			import mx.collections.ICollectionView;
 			import mx.controls.DataGrid;
 			import mx.controls.List;
 			import mx.controls.listClasses.ListBase;
 			
 			import weave.api.core.ILinkableHashMap;
-			import weave.api.newDisposableChild;
-			import weave.api.ui.IVisToolWithSelectableAttributes;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.getCallbackCollection;
+			import weave.api.newLinkableChild;
+			import weave.api.ui.ISelectableAttributes;
+			import weave.core.LinkableWatcher;
+			import weave.ui.CustomDataGrid.CustomDataGrid;
 			import weave.utils.ColumnUtils;
+			import weave.utils.VectorUtils;
+			
+			public function set helpContent(value:*):void
+			{
+				if (!help)
+					initialize();
+				help.content = value;
+				help.visible = help.includeInLayout = true;
+			}
+			public function set helpContentHtml(value:*):void
+			{
+				if (!help)
+					initialize();
+				help.htmlText = value;
+				help.visible = help.includeInLayout = true;
+			}
 			
 			/**
 			 * This code will be executed at the time the object is being created.
@@ -68,39 +93,79 @@
 				label = lang('Attributes');
 			}();
 			
+			
 			override protected function createChildren():void
 			{
 				super.createChildren();
-				if (!_internalList)
-					showVariableNames = false;
-				controller.labelFunction = ColumnUtils.getColumnListLabel;
-				if (controller.view)
-					addChildAt(controller.view, _internalListChildIndex);
+				internalList = _internalList || new List();
+				controller.labelFunction = getItemLabel;
+				getCallbackCollection(controller).addGroupedCallback(this, function():void {
+					reverseButton.buttonMode = reverseButton.enabled = (
+						controller.view
+						&& controller.view.dataProvider is ICollectionView
+						&& ICollectionView(controller.view.dataProvider).length > 1
+					);
+					reverseButton.alpha = reverseButton.enabled ? .8 : 0.25;
+				}, true);
 			}
 			
+			private function getItemLabel(item:*):String
+			{
+				return item is IAttributeColumn
+					? ColumnUtils.getColumnListLabel(item)
+					: getQualifiedClassName(item).split('::').pop();
+			}
+			
+			[Bindable] private var _internalList:ListBase;
+			private var _listHeight:Number = NaN;
 			private const _internalListChildIndex:int = 1;
-			[Bindable] private var _internalList:ListBase = null;
-			private const controller:VariableListController = newDisposableChild(this, VariableListController);
+			private const controller:VariableListController = newLinkableChild(this, VariableListController);
+			private const ownerWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateLabel, true);
+			
+			private var _overrideOwner:ISelectableAttributes;
+			public function set overrideOwner(value:ISelectableAttributes):void
+			{
+				ownerWatcher.target = _overrideOwner = value;
+			}
+			
+			public function set listHeight(value:Number):void
+			{
+				_listHeight = value;
+				setListHeight();
+			}
+			private function setListHeight():void
+			{
+				if (_internalList)
+				{
+					if (isFinite(_listHeight))
+						_internalList.height = _listHeight;
+					else
+						_internalList.percentHeight = 100;
+				}
+			}
+			
+			private var _showVariableNames:*;
 			
 			public function get showVariableNames():Boolean
 			{
-				return _internalList is DataGrid;
+				return _showVariableNames is Boolean
+					? _showVariableNames
+					: controller.view is DataGrid;
 			}
 			
 			public function set showVariableNames(value:Boolean):void
 			{
-				if (value && !(_internalList is DataGrid))
-				{
-					if (_internalList)
-						removeChild(_internalList);
-					_internalList = new DataGrid();
-				}
+				_showVariableNames = value;
 				
-				if (!value && !(_internalList is List))
-				{
-					_internalList = new List();
-				}
-				
+				if (!_internalList)
+					internalList = value
+						? controller.view as DataGrid || new CustomDataGrid()
+						: controller.view as List || new List();
+			}
+			
+			public function set internalList(value:ListBase):void
+			{
+				_internalList = value;
 				if (controller.view != _internalList)
 				{
 					if (controller.view && controller.view.parent == this)
@@ -109,49 +174,46 @@
 					controller.view = _internalList;
 					
 					_internalList.percentWidth = 100;
-					_internalList.percentHeight = 100;
-					_internalList.minWidth = 0;
-					_internalList.minHeight = 0;
-					if (numChildren > 0)
-						addChildAt(_internalList, _internalListChildIndex);
+					setListHeight();
+					_internalList.invalidateDisplayList();
 				}
+				
+				if (!controller.view.parent && numChildren >= _internalListChildIndex)
+					addChildAt(controller.view, _internalListChildIndex);
 			}
 			
-			[Bindable] private var _visTool:IVisToolWithSelectableAttributes = null;
-			
-			public function set visTool(value:IVisToolWithSelectableAttributes):void
+			public function beginEditVariableName(object:ILinkableObject):void
 			{
-				_visTool = value;
-				updateLabel();
+				controller.beginEditVariableName(object);
 			}
 			
 			private function updateLabel():void
 			{
-				if (!_internalList)
+				if (!controller.view)
 				{
 					callLater(updateLabel);
 					return;
 				}
-				if (!_visTool)
+				var tool:ISelectableAttributes = ownerWatcher.target as ISelectableAttributes;
+				if (!tool)
 					return;
-				var names:Array = _visTool.getSelectableAttributeNames();
-				var attrs:Array = _visTool.getSelectableAttributes();
+				var names:Array = tool.getSelectableAttributeNames();
+				var attrs:Array = tool.getSelectableAttributes();
 				var index:int = attrs.indexOf(controller.hashMap);
 				if (index >= 0)
-					label = names[index];
+					label = lang(names[index]);
 			}
 			
 			private function openSelector():void
 			{
-				if (_visTool)
-					AttributeSelectorPanel.openToolSelector(_visTool, controller.hashMap, showVariableNames);
-				else
-					AttributeSelectorPanel.openDefaultSelector(controller.hashMap, label, showVariableNames);
+				AttributeSelectorPanel.open(controller.hashMap, label, showVariableNames, _overrideOwner);
 			}
 			
 			public function set hashMap(value:ILinkableHashMap):void
 			{
+				enabled = !!value;
 				controller.hashMap = value;
+				ownerWatcher.target = _overrideOwner || AttributeSelectorPanel.getOwnerWithSelectableAttributes(value);
 				updateLabel();
 			}
 			public function get hashMap():ILinkableHashMap

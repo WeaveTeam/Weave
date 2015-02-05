@@ -25,26 +25,27 @@ package weave.api.data
 	public interface IDataSource extends ILinkableObject
 	{
 		/**
-		 * TODO: Instead of XML, this should be a hierarchy of IColumnReference objects
-		 *       that can be passed to getAttributeColumn().
-		 * 
-		 * @return An AttributeHierarchy object that will be updated when new pieces of the hierarchy are filled in.
+		 * Refreshes the attribute hierarchy.
 		 */
-		function get attributeHierarchy():IAttributeHierarchy;
-
+		function refreshHierarchy():void
+		
 		/**
-		 * initializeHierarchySubtree
-		 * @param subtreeNode A node in the hierarchy representing the root of the subtree to initialize, or null to initialize the root of the hierarchy.
+		 * Gets the root node of the attribute hierarchy, which should have descendant nodes that implement IColumnReference.
 		 */
-		function initializeHierarchySubtree(subtreeNode:XML = null):void;
-
+		function getHierarchyRoot():IWeaveTreeNode;
+		
 		/**
-		 * The parameter to this function used to be pathInHierarchy because old implementations use XML path objects.
-		 * The parameter type is now temporarily Object during this transitional phase.
-		 * In future versions, the parameter will be an IColumnReference object.
-		 * @param columnReference A reference to a column in this IDataSource.
-		 * @return An IAttributeColumn object that will be updated when the column data downloads.
+		 * Finds the hierarchy node that corresponds to a set of metadata, or null if there is no such node.
+		 * @param metadata Metadata used to identify a node in the hierarchy, which may or may not reference a column.
+		 * @return The hierarchy node corresponding to the metadata or null if there is no corresponding node.
 		 */
-		function getAttributeColumn(columnReference:IColumnReference):IAttributeColumn;
+		function findHierarchyNode(metadata:Object):IWeaveTreeNode;
+		
+		/**
+		 * Retrieves an IAttributeColumn from this IDataSource.
+		 * @param metadata Metadata used to identify a column in this IDataSource.
+		 * @return An IAttributeColumn object that will be updated when the column data is available.
+		 */
+		function getAttributeColumn(metadata:Object):IAttributeColumn;
 	}
 }

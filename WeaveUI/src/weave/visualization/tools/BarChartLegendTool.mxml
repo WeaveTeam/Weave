@@ -25,7 +25,6 @@
 			   layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.copySessionState;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
@@ -40,23 +39,21 @@
 			import weave.visualization.plotters.BarChartLegendPlotter;
 			import weave.visualization.plotters.ColorBinLegendPlotter;
 			
-			[Bindable] private var _barLegendPlotter:BarChartLegendPlotter;
-			private var _barLegendLayerName:String;
+			[Bindable] internal var _barLegendPlotter:BarChartLegendPlotter;
 			private const _colorLegendLayerName:String = "color legend";
 			private function get _colorLegendLayerSettings():LayerSettings
 			{
 				return visualization.plotManager.getLayerSettings(_colorLegendLayerName);
 			}
-			private var _colorLegendPlotter:ColorBinLegendPlotter;
+			internal var _colorLegendPlotter:ColorBinLegendPlotter;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				// lock dynamic objects into place
 				
-				// create bar segment legend
+				// create bar chart legend
 				_barLegendPlotter = initializePlotters(BarChartLegendPlotter, false);
-				_barLegendLayerName = SimpleInteractiveVisualization.MAIN_PLOT_LAYER_NAME;
 				
 				// create global color ramp legend
 				_colorLegendPlotter = visualization.plotManager.plotters.requestObject(_colorLegendLayerName, ColorBinLegendPlotter, true);
@@ -81,17 +78,6 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				visualization.plotManager.marginTopNumber.addGroupedCallback(this, handleMarginChange);
-				linkBindableProperty(visualization.plotManager.marginTopNumber, marginLabel, "height");
-				linkBindableProperty(_barLegendPlotter.maxColumns, legendControls.numColumns, 'value');
-				linkBindableProperty(_colorLegendPlotter.maxColumns, legendControls.numColumns, 'value');
-				linkBindableProperty(_barLegendPlotter.ascendingOrder, legendControls.ascendingOrderCheck, 'selected');
-				linkBindableProperty(_colorLegendPlotter.ascendingOrder, legendControls.ascendingOrderCheck, 'selected');
-				linkBindableProperty(_barLegendPlotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
-				linkBindableProperty(_colorLegendPlotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
-				linkBindableProperty(_barLegendPlotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
-				linkBindableProperty(_colorLegendPlotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
-				legendControls.chkShowLegendAttrName.addEventListener(Event.CHANGE, toggleShowAttributeName);
 				
 				_barLegendPlotter.legendTitleFunction.addGroupedCallback(this, updateMarginLabel, true);
 				//_colorLegendPlotter.legendTitleFunction.addGroupedCallback(this, updateMarginLabel, true);
@@ -99,7 +85,7 @@
 			
 			public const dynamicBarChartTool:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(CompoundBarChartTool), handleBarChartChange, true);
 			
-			private function get barChart():CompoundBarChartTool
+			internal function get barChart():CompoundBarChartTool
 			{
 				return dynamicBarChartTool.internalObject as CompoundBarChartTool;
 			}
@@ -112,12 +98,12 @@
 				{
 					copySessionState(barChart.chartColors, _barLegendPlotter.chartColors);
 					copySessionState(barChart.heightColumns, _barLegendPlotter.columns);
+					copySessionState(barChart.colorIndicatesDirection, _barLegendPlotter.colorIndicatesDirection);
 				}
 				
-				var multiColumn:Boolean = barChart && _barLegendPlotter.columns.getObjects().length > 1;
-				// show global color ramp legend
-				_colorLegendLayerSettings.visible.value = !multiColumn;
-				visualization.plotManager.getLayerSettings(SimpleInteractiveVisualization.MAIN_PLOT_LAYER_NAME).visible.value = multiColumn;
+				var showBarLegend:Boolean = barChart && (_barLegendPlotter.columns.getObjects().length > 1 || _barLegendPlotter.colorIndicatesDirection.value);
+				_colorLegendLayerSettings.visible.value = !showBarLegend;
+				visualization.plotManager.getLayerSettings(SimpleInteractiveVisualization.MAIN_PLOT_LAYER_NAME).visible.value = showBarLegend;
 				
 				updateMarginLabel();
 			}
@@ -125,9 +111,9 @@
 			private function handleMarginLabelClick():void
 			{
 				if (_barLegendPlotter.columns.getObjects().length == 1 || barChart == null)
-					AttributeSelectorPanel.openDefaultSelector(_colorLegendPlotter.dynamicColorColumn);
+					AttributeSelectorPanel.open(_colorLegendPlotter.dynamicColorColumn);
 				else
-					AttributeSelectorPanel.openDefaultSelector(barChart.heightColumns);
+					AttributeSelectorPanel.open(barChart.heightColumns);
 			}
 			
 			private function updateMarginLabel():void
@@ -154,41 +140,28 @@
 					visualization.topMarginToolTip = lang("Click to select the attribute(s) used for the bars.");
 					try
 					{
-						var newTitle:String = _barLegendPlotter.legendTitleFunction.apply();
-						marginLabel.text = newTitle ? newTitle : lang("Bar Segment Colors");						
+						marginLabel.text = _barLegendPlotter.legendTitleFunction.apply() || defaultTitle;
 					}
 					catch (e:Error)
 					{
-						marginLabel.text = lang("Bar Segment Colors");
+						marginLabel.text = defaultTitle;
 					}
 					visualization.additionalProbeColumns = null;
 				}
 				LinkableTextFormat.defaultTextFormat.copyToStyle(marginLabel);
 			}
 			
-			override protected function get defaultPanelTitle():String
+			private function get defaultTitle():String
+			{
+				return lang('Bar color')
+			}
+			
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Bar Chart Legend");
 			}
 			
-			private static const DEFAULT_MARGIN_TOP:int = 25;
-			private var _prevMarginTop:String = String(DEFAULT_MARGIN_TOP); // this stores the previous nonzero top margin setting
-			private function handleMarginChange():void
-			{
-				if (visualization.plotManager.marginTopNumber.value != 0)
-				{
-					_prevMarginTop = visualization.plotManager.marginTop.value;
-					legendControls.chkShowLegendAttrName.selected = true;
-				}
-				else
-				{
-					legendControls.chkShowLegendAttrName.selected = false;
-				}
-			}
-			private function toggleShowAttributeName(e:Event):void
-			{
-				visualization.plotManager.marginTop.value = legendControls.chkShowLegendAttrName.selected ? _prevMarginTop : '0';
-			}
+			internal static const DEFAULT_MARGIN_TOP:int = 25;
 		]]>
 	</mx:Script>
 	
@@ -201,7 +174,54 @@
 			wordWrap="true" selectable="false" editable="false"
 			borderThickness="0" backgroundAlpha="0"/>
 	
-	<ui:ControlPanel>
-		<ui:LegendControls id="legendControls"/>
-	</ui:ControlPanel>
+	<editorFactory><mx:Component><ui:ControlPanel>
+		<mx:VBox width="100%" label="{lang('Legend')}">
+			<ui:LegendControls id="legendControls"/>
+			<mx:Button label="{lang('Edit Bar Chart')}" click="outerDocument.barChart.toggleControlPanel();"/>
+		</mx:VBox>
+		<mx:Script>
+			<![CDATA[
+				import weave.api.linkBindableProperty;
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					
+					outerDocument.visualization.plotManager.marginTopNumber.addGroupedCallback(this, handleMarginChange);
+					
+					// backwards compatibility - bar legend order takes priority
+					outerDocument._colorLegendPlotter.reverseOrder.value = outerDocument._barLegendPlotter.reverseOrder.value;
+					
+					linkBindableProperty(outerDocument.visualization.plotManager.marginTopNumber, outerDocument.marginLabel, "height");
+					linkBindableProperty(outerDocument._barLegendPlotter.maxColumns, legendControls.numColumns, 'value');
+					linkBindableProperty(outerDocument._colorLegendPlotter.maxColumns, legendControls.numColumns, 'value');
+					linkBindableProperty(outerDocument._barLegendPlotter.reverseOrder, legendControls.reverseOrderCheck, 'selected');
+					linkBindableProperty(outerDocument._colorLegendPlotter.reverseOrder, legendControls.reverseOrderCheck, 'selected');
+					linkBindableProperty(outerDocument._barLegendPlotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
+					linkBindableProperty(outerDocument._colorLegendPlotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
+					linkBindableProperty(outerDocument._barLegendPlotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
+					linkBindableProperty(outerDocument._colorLegendPlotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
+					legendControls.chkShowLegendAttrName.addEventListener(Event.CHANGE, toggleShowAttributeName);
+				}
+				
+				private var _prevMarginTop:String = String(BarChartLegendTool.DEFAULT_MARGIN_TOP); // this stores the previous nonzero top margin setting
+				private function handleMarginChange():void
+				{
+					if (outerDocument.visualization.plotManager.marginTopNumber.value != 0)
+					{
+						_prevMarginTop = outerDocument.visualization.plotManager.marginTop.value;
+						legendControls.chkShowLegendAttrName.selected = true;
+					}
+					else
+					{
+						legendControls.chkShowLegendAttrName.selected = false;
+					}
+				}
+				
+				private function toggleShowAttributeName(e:Event):void
+				{
+					outerDocument.visualization.plotManager.marginTop.value = legendControls.chkShowLegendAttrName.selected ? _prevMarginTop : '0';
+				}
+			]]>
+		</mx:Script>
+	</ui:ControlPanel></mx:Component></editorFactory>
 </SimpleVisTool>

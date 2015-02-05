@@ -8,7 +8,6 @@ package weave.services.wms
 	
 	import org.openscales.proj4as.ProjConstants;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -19,7 +18,6 @@ package weave.services.wms
 	import weave.core.LinkableVariable;
 	import weave.data.ProjectionManager;
 	import weave.primitives.Bounds2D;
-	import weave.utils.AsyncSort;
 	import weave.utils.ZoomUtils;
 
 	public class CustomWMS extends AbstractWMS
@@ -27,7 +25,6 @@ package weave.services.wms
 		public function CustomWMS()
 		{
 			_currentTileIndex = new WMSTileIndex();
-			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		override public function getProjectionSRS():String
@@ -78,14 +75,13 @@ package weave.services.wms
 		private const _tempFullDataBounds:Bounds2D = new Bounds2D(); 
 		private const _tempDataBounds:Bounds2D = new Bounds2D(); 
 		
-		private var _imageHeight:Number = NaN;
-		private var _imageWidth:Number = NaN;
-		
 		private var imageAttributesSet:Boolean= false;
 		
 		
 		private function getImageAttributes():void
 		{
+			_currentTileIndex = new WMSTileIndex();
+
 			if (!wmsURL.value)
 				return;
 			
@@ -156,25 +152,25 @@ package weave.services.wms
 			dataBoundsToTileXY(_tempDataBounds, zoomScale);
 			
 			// if the tile range is unreasonable, cut it down to a more reasonable range
-			var maxTileRangeX:int = screenBounds.getXCoverage() / _imageWidth + 2;
-			var maxTileRangeY:int = screenBounds.getYCoverage() / _imageHeight + 2;
+			var maxTileRangeX:int = Math.ceil(screenBounds.getXCoverage() / _imageWidth) * 2;
+			var maxTileRangeY:int = Math.ceil(screenBounds.getYCoverage() / _imageHeight) * 2;
 			if (_tempDataBounds.getWidth() > maxTileRangeX)
 			{
 				trace(debugId(this), 'adjusting tile X coverage from', _tempDataBounds.getWidth(), 'to', maxTileRangeX);
 				_tempDataBounds.setWidth(maxTileRangeX);
-				_tempDataBounds.setXCenter(int(_tempDataBounds.getXCenter()));
 			}
 			if (_tempDataBounds.getHeight() > maxTileRangeY)
 			{
 				trace(debugId(this), 'adjusting tile Y coverage from', _tempDataBounds.getHeight(), 'to', maxTileRangeY);
 				_tempDataBounds.setHeight(maxTileRangeY);
-				_tempDataBounds.setYCenter(int(_tempDataBounds.getYCenter()));
 			}
-
-			var xTileMin:Number = _tempDataBounds.xMin;
-			var yTileMin:Number = _tempDataBounds.yMin;
-			var xTileMax:Number = _tempDataBounds.xMax;
-			var yTileMax:Number = _tempDataBounds.yMax;
+			
+			// force integer values
+			var xTileMin:int = Math.floor(_tempDataBounds.xMin);
+			var yTileMin:int = Math.floor(_tempDataBounds.yMin);
+			var xTileMax:int = Math.ceil(_tempDataBounds.xMax);
+			var yTileMax:int = Math.ceil(_tempDataBounds.yMax);
+			_tempDataBounds.setBounds(xTileMin, yTileMin, xTileMax, yTileMax);
 			
 			tileXYToData(_tempDataBounds, zoomScale);
 			_tempFullDataBounds.constrainBounds(_tempDataBounds);
@@ -183,9 +179,9 @@ package weave.services.wms
 			// get tiles we need using the map's projection because the tiles' bounds must be in this projection
 			var lowerQualTiles:Array = _currentTileIndex.getTiles(_tempDataBounds, 0, _tempCoord.z - 1);
 			var completedTiles:Array = _currentTileIndex.getTiles(_tempDataBounds, _tempCoord.z, _tempCoord.z);
-			outerLoop: for (var x:Number = xTileMin; x < xTileMax; ++x)
+			outerLoop: for (var x:int = xTileMin; x < xTileMax; ++x)
 			{
-				for (var y:Number = yTileMin; y < yTileMax; ++y)
+				for (var y:int = yTileMin; y < yTileMax; ++y)
 				{
 					if (_pendingTiles.length >= 100)
 						break outerLoop;
@@ -215,7 +211,7 @@ package weave.services.wms
 				tiles = lowerQualTiles.concat(completedTiles);
 			else
 				tiles = completedTiles;
-			AsyncSort.sortImmediately(tiles, tileSortingComparison);
+			sortTiles(tiles);
 			return tiles;
 		}
 		
@@ -261,7 +257,7 @@ package weave.services.wms
 			inputAndOutput.makeSizePositive();
 			if (tileProjectionSRS.value == 'EPSG:3857')
 			{
-				WeaveAPI.ProjectionManager.transformBounds("EPSG:3857", "EPSG:4326", _tempDataBounds);
+				WeaveAPI.ProjectionManager.transformBounds("EPSG:3857", "EPSG:4326", inputAndOutput);
 
 				inputAndOutput.xMin = zoomScale * (inputAndOutput.xMin + 180) / 360.0; 
 				inputAndOutput.xMax = zoomScale * (inputAndOutput.xMax + 180) / 360.0; 
@@ -388,20 +384,6 @@ package weave.services.wms
 				'{bbox}', [data.getXMin(), data.getYMin(), data.getXMax(), data.getYMax()].join(','),
 				'{size}', [_imageWidth, _imageHeight].join(',')
 			);
-		}
-		
-		/**
-		 * This is a private method used for sorting an array of WMSTiles.
-		 */ 
-		private function tileSortingComparison(a:WMSTile, b:WMSTile):int
-		{
-			// if a is lower quality (lower zoomLevel), it goes before
-			if (a.zoomLevel < b.zoomLevel)
-				return -1;
-			else if (a.zoomLevel == b.zoomLevel)
-				return 0;
-			else
-				return 1;			
 		}
 	}
 }

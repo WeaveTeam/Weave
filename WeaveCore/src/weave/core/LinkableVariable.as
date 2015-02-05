@@ -19,13 +19,9 @@
 
 package weave.core
 {
-	import flash.utils.getDefinitionByName;
-	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableVariable;
-	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	
 	/**
@@ -37,6 +33,42 @@ package weave.core
 	public class LinkableVariable extends CallbackCollection implements ILinkableVariable
 	{
 		/**
+		 * This function is used to prevent the session state from having unwanted values.
+		 * Function signature should be  function(value:*):Boolean
+		 */		
+		protected var _verifier:Function = null;
+		
+		/**
+		 * This is true if the session state has been set at least once.
+		 */
+		protected var _sessionStateWasSet:Boolean = false;
+		
+		/**
+		 * This is true if the _sessionStateType is a primitive type.
+		 */
+		protected var _primitiveType:Boolean = false;
+		
+		/**
+		 * Type restriction passed in to the constructor.
+		 */
+		protected var _sessionStateType:Class = null;
+		
+		/**
+		 * Cannot be modified externally because it is not returned by getSessionState()
+		 */
+		protected var _sessionStateInternal:* = undefined;
+		
+		/**
+		 * Available externally via getSessionState()
+		 */
+		protected var _sessionStateExternal:* = undefined;
+		
+		/**
+		 * This is set to true when lock() is called.
+		 */
+		protected var _locked:Boolean = false;
+		
+		/**
 		 * If a defaultValue is specified, callbacks will be triggered in a later frame unless they have already been triggered before then.
 		 * This behavior is desirable because it allows the initial value to be handled by the same callbacks that handles new values.
 		 * @param sessionStateType The type of values accepted for this sessioned property.
@@ -47,7 +79,7 @@ package weave.core
 		public function LinkableVariable(sessionStateType:Class = null, verifier:Function = null, defaultValue:* = undefined, defaultValueTriggersCallbacks:Boolean = true)
 		{
 			// not supporting XML directly
-			if (sessionStateType == _XML_CLASS)
+			if (sessionStateType == XML_Class)
 				throw new Error("XML is not supported directly as a session state primitive type. Using String instead.");
 			
 			if (sessionStateType != Object)
@@ -62,18 +94,16 @@ package weave.core
 			
 			_verifier = verifier;
 			
-			if (!sessionStateEquals(defaultValue))
+			if (defaultValue !== undefined)
 			{
 				setSessionState(defaultValue);
 				
 				// If callbacks were triggered, make sure callbacks are triggered again one frame later when
 				// it is possible for other classes to have a pointer to this object and retrieve the value.
 				if (defaultValueTriggersCallbacks && triggerCounter > DEFAULT_TRIGGER_COUNT)
-					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+					WeaveAPI.StageUtils.callLater(this, _defaultValueTrigger);
 			}
 		}
-		
-		private static const _XML_CLASS:Class = getDefinitionByName('XML') as Class; // this avoids a weird asdoc build error
 		
 		/**
 		 * @private
@@ -84,44 +114,6 @@ package weave.core
 			if (!wasDisposed && triggerCounter == DEFAULT_TRIGGER_COUNT + 1)
 				triggerCallbacks();
 		}
-
-		/**
-		 * This function is used in setSessionState() to determine if the value has changed or not.
-		 * Classes that extend this class may override this function.
-		 */
-		protected function sessionStateEquals(otherSessionState:*):Boolean
-		{
-			if (_primitiveType)
-				return _sessionState == otherSessionState;
-			
-			var equal:Boolean = StandardLib.compareDynamicObjects(_sessionState, otherSessionState) == 0;
-			
-			// BEGIN TEMPORARY SOLUTION
-			// special case if both are dynamic objects and pointers are equal - always assume they have been modified
-			// this is a temporary solution until detectChanges() is added
-			// (private copy of session state needs to be stored for comparison to public session state)
-			if (equal && _sessionState !== null && typeof(_sessionState) == 'object' && _sessionState === otherSessionState)
-			{
-				return false;
-			}
-			// END TEMPORARY SOLUTION
-			
-			return equal;
-		}
-		
-		/**
-		 * @return true if the session state is considered undefined.
-		 */
-		public function isUndefined():Boolean
-		{
-			return !_sessionStateWasSet || _sessionState == null;
-		}
-		
-		/**
-		 * This function is used to prevent the session state from having unwanted values.
-		 * Function signature should be  function(value:*):Boolean
-		 */		
-		protected var _verifier:Function = null;
 		
 		/**
 		 * This function will verify if a given value is a valid session state for this linkable variable.
@@ -133,29 +125,24 @@ package weave.core
 			return _verifier == null || _verifier(value);
 		}
 		
-		protected var _primitiveType:Boolean = false;
-
-		protected var _sessionStateType:Class = null;
+		/**
+		 * The type restriction passed in to the constructor.
+		 */
 		public function getSessionStateType():Class
 		{
 			return _sessionStateType;
 		}
 
-		protected var _sessionState:* = null;
+		/**
+		 * @inheritDoc
+		 */
 		public function getSessionState():Object
 		{
-			return _sessionState;
+			return _sessionStateExternal;
 		}
-
-		/**
-		 * This is true if the session state has been set at least once.
-		 */
-		protected var _sessionStateWasSet:Boolean = false;
 		
 		/**
-		 * Unless callbacks have been delayed with delayCallbacks(), this function will update _value and run callbacks.
-		 * If this is not the first time setSessionState() is called and the new value equals the current value, this function has no effect.
-		 * @param value The new value.  If the value given is of the wrong type, the value will be set to null.
+		 * @inheritDoc
 		 */
 		public function setSessionState(value:Object):void
 		{
@@ -179,10 +166,10 @@ package weave.core
 				// and we don't want two LinkableVariables to share the same object as their session state.
 				if (type == 'xml')
 				{
-					reportError("XML is not supported directly as a session state primitive type. Using String instead.");
+					WeaveAPI.ErrorManager.reportError("XML is not supported directly as a session state primitive type. Using String instead.");
 					value = XML(value).toXMLString();
 				}
-				else if (type == 'object' && value.constructor != Object)
+				else if (type == 'object' && value.constructor != Object && value.constructor != Array)
 				{
 					// convert to dynamic Object prior to sessionStateEquals comparison
 					value = ObjectUtil.copy(value);
@@ -190,20 +177,56 @@ package weave.core
 				}
 			}
 			
-			// stop if the value did not change
+			// If this is the first time we are calling setSessionState(), including
+			// from the constructor, don't bother checking sessionStateEquals().
+			// Otherwise, stop if the value did not change.
 			if (_sessionStateWasSet && sessionStateEquals(value))
 				return;
 			
 			// If the value is a dynamic object, save a copy because we don't want
 			// two LinkableVariables to share the same object as their session state.
-			if (type == 'object' && !wasCopied)
-				value = ObjectUtil.copy(value);
+			if (type == 'object')
+			{
+				if (!wasCopied)
+					value = ObjectUtil.copy(value);
+				
+				// save external copy, accessible via getSessionState()
+				_sessionStateExternal = value;
+				
+				// save internal copy
+				_sessionStateInternal = ObjectUtil.copy(value);
+			}
+			else
+			{
+				// save primitive value
+				_sessionStateExternal = _sessionStateInternal = value;
+			}
 			
+			// remember that we have set the session state at least once.
 			_sessionStateWasSet = true;
-
-			_sessionState = value;
-
+			
 			triggerCallbacks();
+		}
+		
+		/**
+		 * This function is used in setSessionState() to determine if the value has changed or not.
+		 * Classes that extend this class may override this function.
+		 */
+		protected function sessionStateEquals(otherSessionState:*):Boolean
+		{
+			if (_primitiveType)
+				return _sessionStateInternal == otherSessionState;
+			
+			return StandardLib.compare(_sessionStateInternal, otherSessionState) == 0;
+		}
+		
+		/**
+		 * This function may be called to detect change to a non-primitive session state in case it has been modified externally.
+		 */
+		public function detectChanges():void
+		{
+			if (!sessionStateEquals(_sessionStateExternal))
+				triggerCallbacks();
 		}
 
 		/**
@@ -222,8 +245,10 @@ package weave.core
 		{
 			return _locked;
 		}
-		protected var _locked:Boolean = false;
 
+		/**
+		 * @inheritDoc
+		 */
 		override public function dispose():void
 		{
 			super.dispose();

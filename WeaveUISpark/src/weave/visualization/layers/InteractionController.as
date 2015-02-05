@@ -19,13 +19,12 @@
 
 package weave.visualization.layers
 {
-	import weave.api.WeaveAPI;
+	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.core.ILinkableObject;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
-	import weave.utils.AsyncSort;
 
 	/**
 	 * This class handles mouse/keyboard interactions performed within InteractiveVisualizations
@@ -66,9 +65,10 @@ package weave.visualization.layers
 		public static const SELECTION_MODE_RECTANGLE:String = "rectangle";
 		public static const SELECTION_MODE_CIRCLE:String = "circle";
 		public static const SELECTION_MODE_LASSO:String = "lasso";
+		//public static const SELECTION_MODE_POINT:String = "point";
 		public static function enumSelectionMode():Array
 		{
-			return [SELECTION_MODE_RECTANGLE, SELECTION_MODE_CIRCLE, SELECTION_MODE_LASSO];
+			return [SELECTION_MODE_RECTANGLE, SELECTION_MODE_CIRCLE, SELECTION_MODE_LASSO/*, SELECTION_MODE_POINT*/];
 		}
 		
 		/**
@@ -152,7 +152,7 @@ package weave.visualization.layers
 				for each (var row:Array in rows)
 				{
 					// sort row
-					AsyncSort.sortImmediately(row);
+					StandardLib.sort(row);
 					// save lookup from (modifier keys + mouse event) to action
 					var actionStr:String = row.join(DELIM);
 					if (!_interactionLookup.hasOwnProperty(actionStr))
@@ -209,7 +209,7 @@ package weave.visualization.layers
 			if (inputType)
 			{
 				array.push(inputType);
-				AsyncSort.sortImmediately(array);
+				StandardLib.sort(array);
 				str = array.join(DELIM);
 				var action:String = _interactionLookup[str];
 				
@@ -218,7 +218,7 @@ package weave.visualization.layers
 			}
 			else
 			{
-				AsyncSort.sortImmediately(array);
+				StandardLib.sort(array);
 				str = array.join(DELIM);
 				var mode:String = _interactionModeLookup[str];
 				

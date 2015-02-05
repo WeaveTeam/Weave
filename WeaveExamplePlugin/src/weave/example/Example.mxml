@@ -36,9 +36,8 @@
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import weave.api.WeaveAPI;
 			import weave.api.ui.IVisTool;
-			WeaveAPI.registerImplementation(IVisTool, Example);
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, Example);
 			
 			private var bitmap:Bitmap = new Bitmap(new BitmapData(500, 500, true, 0x00000000));
 			

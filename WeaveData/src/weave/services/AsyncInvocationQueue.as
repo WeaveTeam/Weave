@@ -23,7 +23,6 @@ package weave.services
 	
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.objectWasDisposed;
@@ -71,7 +70,7 @@ package weave.services
 			{
 				_paused = false;
 				
-				for each (var query:DelayedAsyncInvocation in _downloadQueue)
+				for each (var query:ProxyAsyncToken in _downloadQueue)
 					WeaveAPI.ProgressIndicator.addTask(query);
 				
 				if (_downloadQueue.length)
@@ -80,7 +79,7 @@ package weave.services
 		}
 
 		// interface to add a query to the download queue. 
-		public function addToQueue(query:DelayedAsyncInvocation):void
+		public function addToQueue(query:ProxyAsyncToken):void
 		{
 			assertQueueValid();
 			
@@ -130,7 +129,7 @@ package weave.services
 		private var _downloadQueue:Array = new Array();
 
 		// perform a query in the queue
-		protected function performQuery(query:DelayedAsyncInvocation):void
+		protected function performQuery(query:ProxyAsyncToken):void
 		{
 			assertQueueValid();
 			
@@ -148,7 +147,7 @@ package weave.services
 		}
 		
 		// This function gets called when a query has been downloaded.  It will download the next query if available
-		protected function handleQueryResultOrFault(event:Event, query:DelayedAsyncInvocation):void
+		protected function handleQueryResultOrFault(event:Event, query:ProxyAsyncToken):void
 		{
 			if (objectWasDisposed(this))
 				return;
@@ -177,28 +176,6 @@ package weave.services
 				performQuery(_downloadQueue[0]);
 			}
 			return;
-		}
-		
-		public function removeQueriesOfOperationTypes(... operations):void
-		{
-			assertQueueValid();
-			
-			for each (var operation:String in operations)
-			{
-				// remove matching queries
-				// stop when i == 0 because we don't want to remove the query that is currently being downloaded.
-				for (var i:int = _downloadQueue.length - 1; i >= 1; i--)
-				{
-					if ((_downloadQueue[i] as DelayedAsyncInvocation).methodName == operation)
-					{
-						//trace("REMOVING QUERY",i);
-						_downloadQueue.splice(i, 1);
-						
-						WeaveAPI.ProgressIndicator.removeTask(_downloadQueue[i]);
-					}
-				}
-			}
-			//trace("remaining queries: " + _downloadQueue.length);
 		}
 		
 		private function assertQueueValid():void

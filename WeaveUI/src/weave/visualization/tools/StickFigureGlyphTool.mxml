@@ -33,36 +33,18 @@
 			import weave.visualization.plotters.StickFigureGlyphPlotter;
 			
 			public var _plotter:StickFigureGlyphPlotter = null;
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				// lock dynamic objects into place
 				_plotter = initializePlotters(StickFigureGlyphPlotter, true);
 
-				initColumnDefaults(
-						_plotter.dataX,
-						_plotter.dataY,
-						_plotter.theta1,
-						_plotter.theta2,
-						_plotter.theta3,
-						_plotter.theta4
-					);
-				
 				_plotter.dataX.addImmediateCallback(this,updateProbeColumns);
 				_plotter.dataY.addImmediateCallback(this,updateProbeColumns);
 				_plotter.theta1.addImmediateCallback(this,updateProbeColumns);
 				_plotter.theta2.addImmediateCallback(this,updateProbeColumns);
 				_plotter.theta3.addImmediateCallback(this,updateProbeColumns);
 				_plotter.theta4.addImmediateCallback(this,updateProbeColumns);
-			}
-			
-			override public function getSelectableAttributeNames():Array
-			{
-				return ["X","Y","Theta 1","Theta 2","Theta 3","Theta 4"];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [_plotter.dataX,_plotter.dataY,_plotter.theta1,_plotter.theta2,_plotter.theta3,_plotter.theta4];
 			}
 			
 			public const includeToolAttributesInProbe:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateProbeColumns);
@@ -84,7 +66,7 @@
 				//else ProbeTextUtils.probedColumns.copyObject('probedColumns',oldProbeColumns);
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang(
 					"Stick Figure Plot of {0} -vs- {1}, with angles of {2}, {3}, {4}, {5}",
@@ -121,12 +103,12 @@
 				<mx:CheckBox id="probeColumnsCheckBox" label="Include tool attributes in probe tooltip"
 							 toolTip="{lang('Checking this box makes the x, y, color and size attributes visible in this tool\'s probe tooltip')}"
 							 creationComplete="linkBindableProperty(includeToolAttributesInProbe,event.target,'selected')"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="data X" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataX"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="data y" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataY"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="theta1" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta1"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="theta2" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta2"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="theta3" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta3"/>
-				<ui:DynamicColumnComponent visTool="{this}" label="theta4" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta4"/>
+				<ui:DynamicColumnComponent label="data X" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataX"/>
+				<ui:DynamicColumnComponent label="data y" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.dataY"/>
+				<ui:DynamicColumnComponent label="theta1" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta1"/>
+				<ui:DynamicColumnComponent label="theta2" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta2"/>
+				<ui:DynamicColumnComponent label="theta3" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta3"/>
+				<ui:DynamicColumnComponent label="theta4" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.theta4"/>
 				
 				
 				<mx:VBox width="100%" 

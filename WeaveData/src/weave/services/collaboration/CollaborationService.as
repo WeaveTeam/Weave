@@ -1,20 +1,20 @@
 /*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+Weave (Web-based Analysis and Visualization Environment)
+Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+This file is a part of Weave.
+
+Weave is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License, Version 3,
+as published by the Free Software Foundation.
+
+Weave is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.services.collaboration
@@ -48,10 +48,9 @@ package weave.services.collaboration
 	import org.igniterealtime.xiff.util.*;
 	import org.igniterealtime.xiff.vcard.*;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
 	import weave.api.registerDisposableChild;
@@ -74,12 +73,14 @@ package weave.services.collaboration
 		private var port:int;
 		private var username:String;
 		private var password:String;
-
-		private const baseEncoder:Base64Encoder 		= new Base64Encoder();
-		private const baseDecoder:Base64Decoder 		= new Base64Decoder();
-		private var connectedToRoom:Boolean 			= false;
-		private var stateLog:SessionStateLog 			= null;
-		private var synchronizingIncomingDiff:Boolean 	= false;
+		
+		private const baseEncoder:Base64Encoder 				= new Base64Encoder();
+		private const baseDecoder:Base64Decoder 				= new Base64Decoder();
+		private var connectedToRoom:Boolean 					= false;
+		private var stateLog:SessionStateLog 					= null;
+		private var synchronizingIncomingDiff:Boolean 			= false;
+		private var _message:Message 							= new Message();
+		private var weaveExtension:CollaborationWeaveExtension 	= new CollaborationWeaveExtension();
 		
 		public const userList:ArrayCollection 			= new ArrayCollection();
 		public const TYPE_MIC:String 					= "MIC";
@@ -90,15 +91,17 @@ package weave.services.collaboration
 		public var myRole:String;
 		public var room:Room;
 		[Bindable] public var ping:Number;
-
+		
 		public function CollaborationService( root:ILinkableObject )
 		{
 			this.root = root;
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
 			// all of these classes are internal
 			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, Ping, AddonsMessage, AddonStatus])
-				registerClassAlias(getQualifiedClassName(c), c);
-				
+			registerClassAlias(getQualifiedClassName(c), c);
+			
+			CollaborationWeaveExtension.enable();
+			
 			userList.sort = new Sort();
 			userList.sort.compareFunction = ObjectUtil.stringCompare;
 		}
@@ -135,7 +138,7 @@ package weave.services.collaboration
 			//Use this for servers where a registered name is not required,
 			//otherwise you can use the registered login below
 			connection.useAnonymousLogin = true;
-
+			
 			if( !connection.useAnonymousLogin ) 
 			{
 				connection.username = username;
@@ -181,7 +184,7 @@ package weave.services.collaboration
 			if( room != null)
 			{
 				room.removeEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
-//				room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
+				//				room.removeEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 				room.removeEventListener(RoomEvent.USER_JOIN, onUserJoin);
 				room.removeEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
 			}
@@ -196,14 +199,55 @@ package weave.services.collaboration
 			if (!connectedToRoom) {
 				trace("Not connected");
 				return;
-//				throw new Error("Not connected");
+				//				throw new Error("Not connected");
 			}
 			
-			if( target != null)
-				room.sendPrivateMessage( target, encodeObject(message) );
+			//Construct Message object.
+			_message = room.getMessage();
+			if( target != null )
+			{
+				_message.to = new EscapedJID(room.roomJID + "/" + target, false);
+				_message.type = Message.TYPE_CHAT;
+			}
+			
+			if( message is TextMessage )
+			{
+				if( target != null )
+					_message.type = Message.TYPE_CHAT;
+				else
+					_message.type = Message.TYPE_GROUPCHAT;	
+				
+				_message.body = (message as TextMessage).message;
+				
+				if( target != null)
+					room.sendPrivateMessage( target, (message as TextMessage).message );
+				else
+					room.sendMessage( (message as TextMessage).message );
+			}
+				//Special Weave messages case.
 			else
-				room.sendMessage( encodeObject(message) );
+			{
+				weaveExtension.content = encodeObject(message);
+				if( message is FullSessionState )
+					weaveExtension.messageType = CollaborationWeaveExtension.FULL_SESSION_STATE;	
+				else if( message is SessionStateMessage )
+					weaveExtension.messageType = CollaborationWeaveExtension.SESSION_STATE_MESSAGE;
+				else if( message is RequestMouseMessage )
+					weaveExtension.messageType = CollaborationWeaveExtension.REQUEST_MOUSE_MESSAGE;
+				else if( message is MouseMessage )
+					weaveExtension.messageType = CollaborationWeaveExtension.MOUSE_MESSAGE;
+				else if( message is Ping )
+					weaveExtension.messageType = CollaborationWeaveExtension.PING;
+				else if( message is AddonsMessage )
+					weaveExtension.messageType = CollaborationWeaveExtension.ADDONS_MESSAGE;
+				else if( message is AddonStatus )
+					weaveExtension.messageType = CollaborationWeaveExtension.ADDON_STATUS;
+				
+				_message.addExtension(weaveExtension);
+				room.sendMessageWithExtension(_message);
+			}	
 		}
+		
 		public function sendMouseMessage( id:String, color:uint, posX:Number, posY:Number ):void
 		{
 			var message:MouseMessage = new MouseMessage(id, color, posX, posY);
@@ -297,7 +341,7 @@ package weave.services.collaboration
 			room.roomJID = new UnescapedJID(roomName + "@conference" + '.' + serverName);
 			
 			room.addEventListener(RoomEvent.ROOM_JOIN, onRoomJoin);
-//			room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
+			//			room.addEventListener(RoomEvent.ROOM_LEAVE, onTimeout);
 			room.addEventListener(RoomEvent.USER_JOIN, onUserJoin);
 			room.addEventListener(RoomEvent.USER_DEPARTURE, onUserLeave);
 			room.addEventListener(RoomEvent.NICK_CONFLICT, nickConflictError);
@@ -319,7 +363,7 @@ package weave.services.collaboration
 		{
 			if (stateLog)
 			{
-				disposeObjects(stateLog);
+				disposeObject(stateLog);
 				stateLog = null;
 			}
 		}
@@ -366,18 +410,30 @@ package weave.services.collaboration
 		//Handles receiving all messages, including text, diffs, and full session states
 		private function onReceiveMessage(event:MessageEvent):void
 		{
-			//if id is null, it implies that the message originated from the server, 
+			//if id is null, it implies that the message originated from the server,
 			//and not from a user
-			if( event.data.id != null) 
+			if( event.data.id != null)
 			{
 				var i:int;
 				
+				_message = event.data;
+				
+				//A text message from the text box
+				if( _message.getAllExtensionsByNS(CollaborationWeaveExtension.NS) == null)
+				{
+					dispatchLogEvent( _message.from + ": " + _message.body);
+					return;
+				}
+				
 				// handle a message from a user
 				var o:Object = null;
+				var theMessageType:String = "";
 				
 				try
 				{
-					o = decodeObject(event.data.body);
+					var tempArray:Array = _message.getAllExtensionsByNS(CollaborationWeaveExtension.NS);
+					o = decodeObject((tempArray[0] as CollaborationWeaveExtension).content);
+					theMessageType = (tempArray[0] as CollaborationWeaveExtension).messageType;
 				}
 				catch( e:Error )
 				{
@@ -390,15 +446,15 @@ package weave.services.collaboration
 				var userAlias:String = event.data.from.resource;
 				
 				//Full session state message
-				if (o is FullSessionState)
+				if (theMessageType == CollaborationWeaveExtension.FULL_SESSION_STATE)
 				{
 					var fss:FullSessionState = o as FullSessionState;
 					setSessionState(root, fss.state, true);
 					startLogging();
 				}
-				
-				//A session state diff
-				else if (o is SessionStateMessage)
+					
+					//A session state diff
+				else if (theMessageType == CollaborationWeaveExtension.SESSION_STATE_MESSAGE)
 				{
 					if (stateLog != null) //don't do anything until the collaborative session state is loaded
 					{
@@ -418,14 +474,14 @@ package weave.services.collaboration
 									break;
 								}
 							}
-	 						// remove everything up until the diff with the matching id
+							// remove everything up until the diff with the matching id
 							if (foundID)
 								stateLog.undoHistory.splice(0, i + 1);
 							else
 								reportError("collab failed");
 						}
-						
-						// received diff from someone else -- rewind local changes and replay them.
+							
+							// received diff from someone else -- rewind local changes and replay them.
 						else
 						{
 							// apply any pending changes now
@@ -451,40 +507,31 @@ package weave.services.collaboration
 						}
 					}
 				}
-				
-				//A text message from the text box
-				else if ( o is TextMessage)
-				{
-					var tm:TextMessage = o as TextMessage;
-					dispatchLogEvent( tm.id + ": " + tm.message);
-				}
-					
-				else if( o is RequestMouseMessage )
+				else if( theMessageType == CollaborationWeaveExtension.REQUEST_MOUSE_MESSAGE )
 				{
 					var rmm:RequestMouseMessage = o as RequestMouseMessage;
-					if( rmm.id != nickname ) 
+					if( rmm.id != nickname )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_REQUEST_MOUSE_POS, rmm.id, 0, xMousePercent(), yMousePercent()));
 				}
-				else if( o is MouseMessage )
+				else if( theMessageType == CollaborationWeaveExtension.MOUSE_MESSAGE )
 				{
 					var mm:MouseMessage = o as MouseMessage;
 					if( mm.id != nickname )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_MOUSE_POS, mm.id, mm.color, mm.percentX, mm.percentY));
 				}
-				else if( o is Ping )
+				else if( theMessageType == CollaborationWeaveExtension.PING )
 				{
 					var p:Ping = o as Ping;
-					
-					if( !p.sendToRoom ) 
+					if( !p.sendToRoom )
 					{
 						ping = (new Date().getMilliseconds() - p.time);
 						if( ping < 0 ) ping = 500;
 						sendPing(nickname, true, ping);
-					} 
+					}
 					else
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_PING, p.id, 0, p.time));
 				}
-				else if( o is AddonsMessage )
+				else if( theMessageType == CollaborationWeaveExtension.ADDONS_MESSAGE )
 				{
 					var am:AddonsMessage = o as AddonsMessage;
 					if( am.type == TYPE_MIC )
@@ -492,7 +539,7 @@ package weave.services.collaboration
 					else if( am.type == TYPE_CAM )
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.UPDATE_CAM, am.id, ( am.toggle ) ? 1 : 0));
 				}
-				else if( o is AddonStatus )
+				else if( theMessageType == CollaborationWeaveExtension.ADDON_STATUS )
 				{
 					var status:AddonStatus = o as AddonStatus;
 					if( status.info == null )
@@ -500,15 +547,15 @@ package weave.services.collaboration
 					else
 						dispatchEvent(new CollaborationEvent(CollaborationEvent.USER_UPDATE_USERLIST, null, 0, 0, 0, status.info));
 				}
-				//an unknown message with data, but wasn't one of the pre-defined types
+					//an unknown message with data, but wasn't one of the pre-defined types
 				else
 				{
-//					reportError("Unable to determine message type: ", ObjectUtil.toString(o));
+					// reportError("Unable to determine message type: ", ObjectUtil.toString(o));
 					trace(nickname,"Unknown type");
 				}
 			}
-			
-			//A message from the server
+				
+				//A message from the server
 			else
 			{
 				// messages from the server are always strings
@@ -552,7 +599,7 @@ package weave.services.collaboration
 		
 		private function xMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseX / WeaveAPI.topLevelApplication.stage.stageWidth;  }
 		private function yMousePercent():Number { return WeaveAPI.topLevelApplication.stage.mouseY / WeaveAPI.topLevelApplication.stage.stageHeight; }
-
+		
 		//Most servers have this enabled, where if you don't do anything for too long
 		//it'll fire the timeout event
 		private function onTimeout(e:RoomEvent):void
@@ -576,7 +623,7 @@ package weave.services.collaboration
 			//who's on the top of the list. It needs to be sorted, because order
 			//of names in array is not guarenteed
 			var userList:Array = room.toArray().sortOn("displayName");
-	
+			
 			// remove the user that is currently joining from the list
 			for (var i:int = 0; i < userList.length; i++)
 			{
@@ -586,7 +633,7 @@ package weave.services.collaboration
 					break;
 				}
 			}
-
+			
 			if (userList.length == 0) // if we are the only user here
 			{
 				startLogging();

@@ -19,7 +19,6 @@
 
 package weave.core
 {
-	import flash.external.ExternalInterface;
 	import flash.xml.XMLDocument;
 	import flash.xml.XMLNode;
 	import flash.xml.XMLNodeType;
@@ -27,8 +26,9 @@ package weave.core
 	import mx.rpc.xml.SimpleXMLEncoder;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.core.DynamicState;
 	import weave.api.reportError;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	
 	/**
@@ -81,7 +81,7 @@ package weave.core
 		
 		override public function encodeValue(obj:Object, qname:QName, parentNode:XMLNode):XMLNode
 		{
-			if (DynamicState.objectHasProperties(obj) && obj[DynamicState.CLASS_NAME])
+			if (DynamicState.isDynamicState(obj) && obj[DynamicState.CLASS_NAME])
 			{
 				var className:String = obj[DynamicState.CLASS_NAME];
 				var objectName:String = obj[DynamicState.OBJECT_NAME];
@@ -99,7 +99,7 @@ package weave.core
 			if (obj is Array)
 			{
 				var array:Array = obj as Array;
-				var encoding:String = JSON_ENCODING;
+				var encoding:String = JSON_ENCODING; // JSON is the fallback if nothing else applies
 				var arrayType:Class = StandardLib.getArrayType(array);
 				var item:Object;
 				
@@ -121,12 +121,12 @@ package weave.core
 					array = [array];
 					encoding = CSVROW_ENCODING;
 				}
-				else if (array.length == 0 || arrayType == Object || arrayType == DynamicState)
+				else if (array.length == 0 || arrayType == Object)
 				{
 					encoding = DYNAMIC_ENCODING;
 					for each (item in array)
 					{
-						if (!DynamicState.objectHasProperties(item) || !item[DynamicState.CLASS_NAME])
+						if (!DynamicState.isDynamicState(item) || !item[DynamicState.CLASS_NAME])
 						{
 							encoding = JSON_ENCODING;
 							break;
@@ -162,7 +162,7 @@ package weave.core
 			try
 			{
 				if (obj.hasOwnProperty(LinkableXML.XML_STRING))
-					obj = XML(obj[LinkableXML.XML_STRING]);
+					obj = LinkableXML.xmlFromState(obj);
 			}
 			catch (e:Error)
 			{
@@ -207,15 +207,7 @@ package weave.core
 		
 		private function encodeJSON(obj:Object, qname:QName, parentNode:XMLNode):XMLNode
 		{
-			var str:String;
-			var json:Object = ClassUtils.getClassDefinition('JSON');
-			if (!json)
-				str = json.stringify(obj, null, 2);
-			else if (ExternalInterface.available)
-				str = ExternalInterface.call('JSON.stringify', obj, null, 2);
-			else
-				return null;
-			
+			var str:String = Compiler.stringify(obj, null, 2, true);
 			var node:XMLNode = super.encodeValue(str, qname, parentNode);
 			node.attributes["encoding"] = JSON_ENCODING;
 			return node;

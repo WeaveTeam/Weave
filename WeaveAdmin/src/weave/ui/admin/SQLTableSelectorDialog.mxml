@@ -125,7 +125,11 @@
 					if (schemas == currentSchemas)
 					{
 						if (event is ResultEvent)
+						{
 							schemas = (event as ResultEvent).result as Array;
+							if (schemas && schemas.length == 1)
+								schemaInput.selectedItem = activeSchema = schemas[0];
+						}
 						schemasRefreshButton.enabled = true;
 					}
 				}

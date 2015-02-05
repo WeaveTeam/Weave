@@ -19,11 +19,8 @@
 
 package weave.data.AttributeColumns
 {
-	import flash.utils.getQualifiedClassName;
-	
 	import mx.utils.NameUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
@@ -73,6 +70,11 @@ package weave.data.AttributeColumns
 			return internalDynamicColumn.getMetadata(propertyName);
 		}
 
+		public function getMetadataPropertyNames():Array
+		{
+			return internalDynamicColumn.getMetadataPropertyNames();
+		}
+		
 		/**
 		 * @return the keys associated with this column.
 		 */

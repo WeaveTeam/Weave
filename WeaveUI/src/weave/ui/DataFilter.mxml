@@ -20,36 +20,36 @@
 */
 -->
 <DraggablePanel xmlns="weave.ui.*" 
+				layout="vertical" verticalAlign="middle"
 				xmlns:mx="http://www.adobe.com/2006/mxml" 
-				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisToolWithSelectableAttributes"
+				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				>
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeyFilter;
 			import weave.api.getSessionState;
+			import weave.api.newLinkableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IVisTool;
-			import weave.core.CallbackJuggler;
-			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.core.LinkableWatcher;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
+			import weave.menus.WeaveMenuItem;
 			import weave.utils.ColumnUtils;
-			import weave.utils.EditorManager;
 			
-			WeaveAPI.registerImplementation(IVisTool, DataFilter, "Data Filter");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataFilter, "Data Filter");
 
 			private var _editor:ILinkableObjectEditor;
 			private var _globalName:String;
-			private const _filterJuggler:CallbackJuggler = new CallbackJuggler(this, handlePanelTitleChange, true);
+			private const _filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handlePanelTitleChange, true);
 			
 			private function get globalName():String
 			{
-				return _globalName || (_globalName = Weave.root.getName(this));
+				return _globalName || (_globalName = WeaveAPI.globalHashMap.getName(this));
 			}
 			
 			private function get keyFilter():IKeyFilter
@@ -65,18 +65,35 @@
 				return ((ndf && ndf.column) || (sdf && sdf.column)) as IAttributeColumn;
 			}
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				enableSubMenu.value = true;
 			}
 			
 			override protected function createChildren():void
 			{
+				if (createdChildren)
+					return;
 				super.createChildren();
 				
-				subMenu.addSubMenuItem(lang("String filter"), setFilterType, [StringDataFilter]);
-				subMenu.addSubMenuItem(lang("Number filter"), setFilterType, [NumberDataFilter]);
+				function onClick(item:WeaveMenuItem):void { setFilterType(item.data as Class); }
+				function isToggled(item:WeaveMenuItem):Boolean { return Weave.defaultSubsetKeyFilter.filters.getObject(globalName) is (item.data as Class); }
+				subMenuButton.data = [
+					{
+						data: StringDataFilter,
+						label: lang("String filter"),
+						click: onClick,
+						type: WeaveMenuItem.TYPE_RADIO,
+						toggled: isToggled
+					},{
+						data: NumberDataFilter,
+						label: lang("Number filter"),
+						click: onClick,
+						type: WeaveMenuItem.TYPE_RADIO,
+						toggled: isToggled
+					}
+				];
 				
 				Weave.defaultSubsetKeyFilter.filters.childListCallbacks.addImmediateCallback(this, handleFilters, true);
 				if (!keyFilter)
@@ -109,13 +126,13 @@
 				var filter:IKeyFilter = keyFilter;
 				if (filter && !_editor)
 				{
-					_editor = EditorManager.getNewEditor(filter);
+					_editor = WeaveAPI.EditorManager.getNewEditor(filter);
 					addChild(_editor as DisplayObject);
 				}
-				_filterJuggler.target = filter;
+				_filterWatcher.target = filter;
 			}
 			
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				if (filterColumn)
 					return lang('Filter for {0}', ColumnUtils.getTitle(filterColumn));
@@ -125,7 +142,7 @@
 			
 			public function getSelectableAttributeNames():Array
 			{
-				return filterColumn ? [lang('Filter')] : [];
+				return filterColumn ? ['Filter'] : [];
 			}
 			
 			public function getSelectableAttributes():Array

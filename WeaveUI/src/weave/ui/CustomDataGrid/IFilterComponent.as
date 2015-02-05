@@ -22,12 +22,12 @@ package weave.ui.CustomDataGrid
 	import mx.core.IUIComponent;
 	
 	import weave.api.core.ILinkableObject;
-	import weave.ui.CustomDataGrid.WeaveCustomDataGridColumn;
+	import weave.ui.CustomDataGrid.DataGridColumnForQKeyWithFilterAndGraphics;
 
 	public interface IFilterComponent extends IUIComponent, ILinkableObject
 	{
 		//method to map the Column to filtercomponent
-		function mapColumnToFilter(column:WeaveCustomDataGridColumn):void;
+		function mapColumnToFilter(column:DataGridColumnForQKeyWithFilterAndGraphics):void;
 		
 		//to check whether filter value, has the default value or changed
 		//if changed filterfunction is added for filtering

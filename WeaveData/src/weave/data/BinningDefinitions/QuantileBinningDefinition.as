@@ -19,17 +19,14 @@
 
 package weave.data.BinningDefinitions
 {
-	import mx.utils.ObjectUtil;
-	
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
-	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.data.BinClassifiers.NumberClassifier;
-	import weave.utils.AsyncSort;
 	
 	/**
 	 * QuantileBinningDefinition
@@ -42,10 +39,9 @@ package weave.data.BinningDefinitions
 	{
 		public function QuantileBinningDefinition()
 		{
-			this.refQuantile.value = 0.3;
 		}
 		
-		public const refQuantile:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const refQuantile:LinkableNumber = registerLinkableChild(this, new LinkableNumber(.3));
 		
 		/**
 		 * getBinClassifiersForColumn - implements IBinningDefinition Interface
@@ -92,7 +88,7 @@ package weave.data.BinningDefinitions
 				name = getOverrideNames()[iBin];
 				//if it is empty string set it from generateBinLabel
 				if(!name)
-					name = tempNumberClassifier.generateBinLabel(column as IPrimitiveColumn);
+					name = tempNumberClassifier.generateBinLabel(column);
 				output.requestObjectCopy(name, tempNumberClassifier);
 			}
 			
@@ -122,7 +118,7 @@ package weave.data.BinningDefinitions
 					_sortedColumn[i++] = n;
 			}
 			_sortedColumn.length = i;
-			AsyncSort.sortImmediately(_sortedColumn, ObjectUtil.numericCompare);
+			StandardLib.sort(_sortedColumn);
 			return _sortedColumn;
 		}
 

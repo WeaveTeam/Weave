@@ -36,7 +36,7 @@ Author: skolman
 		<mx:TextInput id="passwordInput" displayAsPassword="true" enter="login()"/>
 	</ui:Indent>
 	<ui:Center>
-		<mx:Button label="Sign in" click="login()"/>
+		<mx:Button label="Sign in" click="login()" keyDown="if (event.keyCode == Keyboard.ENTER) login()"/>
 	</ui:Center>
 	
 	<mx:Script>
@@ -54,11 +54,14 @@ Author: skolman
 				//you click anywhere in the flash application. This is because when the browser loads the page the flash object is not selected.
 				//We force the selection by passing the flash dom object to javascript and explicitly set the focus.
 				//Does not work in Chrome
-				ExternalInterface.call('function browserFocus(){ var f = document.getElementById(\'' + ExternalInterface.objectID + '\'); if(f){ f.tabIndex=0; f.focus(); } }');
+				JavaScript.exec('this.tabIndex = 0; this.focus();');
 			}
 			
 			private function login():void
 			{
+				if (!connectionInput.text && !passwordInput.text)
+					return;
+				
 				// disable while authenticating
 				enabled = false;
 				

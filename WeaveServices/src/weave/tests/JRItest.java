@@ -18,23 +18,14 @@
 */
 package weave.tests;
 
-
-//import weave.beans.WeaveRecordList;
-import java.rmi.RemoteException;
-import weave.beans.RResult;
-import weave.servlets.JRIService;
 import java.util.Properties;
-public class JRItest {
 
-	/**
-	 * @param args
-	 * @throws Exception 
-	 */
-
-
-	static JRIService ws = null;
+public class JRItest
+{
+	//static JRIService ws = null;
 	public static void call(String[] keys,String[] inputNames, Object[][] inputValues, String[] outputNames, String script, String plotScript, boolean showIntermediateResults, boolean showWarnings, boolean useColumnAsList) throws Exception{
 		
+		/*
 		RResult[] scriptResult = null;
 		try {
 			scriptResult =	ws.runScript(keys,inputNames, inputValues, outputNames, script, plotScript, showIntermediateResults, showWarnings,useColumnAsList);
@@ -44,14 +35,14 @@ public class JRItest {
 		finally{
 			System.out.println(scriptResult);
 		}
+		*/
 	}
 	 
 	
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws Exception {
-		// TODO Auto-generated method stub
 		System.out.println("hi");		
-		ws = new JRIService();
+		//ws = new JRIService();
 		
 		Properties prop = System.getProperties();
 		String classPathh = prop.getProperty("java.class.path", null);
@@ -97,13 +88,4 @@ public class JRItest {
 		call(keys, new String []{},new Object[][]{},resultNames,"","",false,false,false);
 	
 	}
-	
-	
-	public JRItest() {
-		
-	}
-	
-	
-	
-	
 }

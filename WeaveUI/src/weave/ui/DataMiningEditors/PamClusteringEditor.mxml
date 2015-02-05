@@ -49,20 +49,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 		<![CDATA[
 			import mx.controls.Button;
 			
-			import weave.services.beans.PartitionAroundMedoidsClusteringResult;
-			
-			import spark.components.TextArea;
-			
 			import weave.Weave;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
 			import weave.services.WeaveRServlet;
-			import weave.services.beans.KMeansClusteringResult;
+			import weave.services.beans.PartitionAroundMedoidsClusteringResult;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
-			import weave.visualization.tools.SimpleVisTool;
 			
 			//to do: take input as columns and as subsets from vizs
 			public const inputColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
@@ -78,10 +73,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var pamClusterInput:NumberInputComponent;
 			private var pamMteric:ChoiceInputComponent;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
-				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				super.inConstructor();
+				var columns:Array = ColumnUtils.getColumnsWithCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					inputColumns.requestObjectCopy(null, columns[i]);
 			}
@@ -93,6 +88,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override protected function createChildren():void
 			{
+				if (createdChildren)
+					return;
 				super.createChildren();
 				pamClusterInput = new NumberInputComponent("pamClusterNumber", "5");
 				pamClusterInput.label = "Enter the number of clusters";

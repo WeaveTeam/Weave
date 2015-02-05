@@ -26,7 +26,7 @@ package weave.core
 	import mx.rpc.xml.SimpleXMLDecoder;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.core.DynamicState;
 	import weave.api.reportError;
 	
 	/**
@@ -40,43 +40,55 @@ package weave.core
 		/**
 		 * This function will include a package in ClassUtils.defaultPackages,
 		 * which is consulted when decoding dynamic session states.
+		 * @param packageOrClass Either a qualified class name as a String, or a pointer to a Class.
+		 * @param others More qualified class names or Class objects.
 		 */
 		public static function includePackages(packageOrClass:*, ...others):void
 		{
-			if (packageOrClass != null)
+			others.unshift(packageOrClass);
+			for each (packageOrClass in others)
 			{
 				if (packageOrClass is Class)
-					packageOrClass = getQualifiedClassName(packageOrClass).split("::")[0];
+				{
+					var qname:String = getQualifiedClassName(packageOrClass);
+					if (qname.indexOf('::') < 0)
+						continue; // no package
+					// get package from qname
+					packageOrClass = qname.split('::')[0];
+				}
+				if (!packageOrClass)
+					continue; // no package
 				packageOrClass = String(packageOrClass);
-				if (defaultPackages.indexOf(packageOrClass) < 0)
+				if (packageOrClass && defaultPackages.indexOf(packageOrClass) < 0)
 					defaultPackages.push(packageOrClass);
 			}
-			for each (packageOrClass in others)
-				includePackages(packageOrClass);
 		}
 		/**
 		 * The list of packages to check for classes when calling getClassDefinition().
 		 */
-		internal static const defaultPackages:Array = ["weave.core"];
+		internal static const defaultPackages:Array = [""];
 
 		/**
 		 * This function will check all the packages specified in the static
 		 * defaultPackages Array if the specified packageName returns no result.
 		 * @param className The name of a class.
 		 * @param packageName The package the class exists in.
-		 * @return The class definition, or null if the class cannot be resolved.
+		 * @return The qualified class name, or null if the class cannot be found.
 		 */
-		public static function getClassDefinition(className:String, packageName:String = null):Class
+		public static function getClassName(className:String, packageName:String = null):String
 		{
+			const oldPkg:String = "org.openindicators";
+			if (packageName && packageName.substr(0, oldPkg.length) === oldPkg)
+				packageName = 'weave' + packageName.substr(oldPkg.length);
+			
 			for (var i:int = -1; i < defaultPackages.length; i++)
 			{
 				var pkg:String = (i < 0) ? packageName : defaultPackages[i];
-				var classDef:Class = ClassUtils.getClassDefinition(pkg ? (pkg + "::" + className) : className) as Class;
-				if (classDef != null)
-					return classDef;
+				var qname:String = pkg ? (pkg + "::" + className) : className;
+				if (ClassUtils.hasClassDefinition(qname))
+					return qname;
 			}
-
-			return null;
+			return packageName ? packageName + "::" + className : className;
 		}
 
 		/**
@@ -129,19 +141,16 @@ package weave.core
 			{
 				var childNode:XMLNode = dataNode.childNodes[i];
 				var className:String = childNode.nodeName;
+				
+				// hack - skip ByteArray nodes
+				if (className == "ByteArray")
+					continue;
+				
 				var packageName:String = childNode.attributes["package"] as String;
 				// ignore child nodes that do not have tag names (whitespace)
 				if (className == null)
 					continue;
-				var classDef:Class = getClassDefinition(className, packageName);
-				var qualifiedClassName:String;
-				if (classDef)
-					qualifiedClassName = getQualifiedClassName(classDef);
-				else
-				{
-					qualifiedClassName = packageName ? (packageName + "::" + className) : className;
-					trace("Class not found: " + qualifiedClassName +" in "+childNode.toString());
-				}
+				var qualifiedClassName:String = getClassName(className, packageName);
 				
 				var name:String = childNode.attributes["name"] as String;
 				if (name == '')
@@ -151,7 +160,7 @@ package weave.core
 				delete childNode.attributes["name"];
 				delete childNode.attributes["package"];
 				//trace("decoding property of dynamic session state xml:",name,qualifiedClassName,childNode);
-				result.push(new DynamicState(name, qualifiedClassName, decodeXML(childNode)));
+				result.push(DynamicState.create(name, qualifiedClassName, decodeXML(childNode)));
 	    	}
 	    	return result;
 	    }
@@ -165,7 +174,7 @@ package weave.core
 			var encoding:String = String(dataNode.attributes.encoding).toLowerCase();
 			if (encoding == WeaveXMLEncoder.JSON_ENCODING)
 			{
-				var str:String = dataNode.firstChild.nodeValue;
+				var str:String = dataNode.firstChild ? dataNode.firstChild.nodeValue : '';
 				var object:Object = null;
 				var json:Object = ClassUtils.getClassDefinition('JSON');
 				if (json)

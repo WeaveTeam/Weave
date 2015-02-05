@@ -26,29 +26,24 @@
 		 layout="absolute">
 	<mx:Script>
 		<![CDATA[
-			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
-			import weave.core.LinkableBoolean;
 			import weave.core.LinkableVariable;
-			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.FilteredColumn;
-			import weave.ui.AttributeSelectorPanel;
+			import weave.core.UIUtils;
+			import weave.ui.SelectableAttributesCheckBoxList;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.plotters.PieChartPlotter;
-			import weave.visualization.plotters.styles.SolidFillStyle;
 
-			WeaveAPI.registerImplementation(IVisTool, PieChartTool, lang("Pie Chart"));
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, PieChartTool, "Pie Chart");
 			
 			public var _plotter:PieChartPlotter = null;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
+				super.inConstructor();
 				// lock dynamic objects into place
 				_plotter = initializePlotters(PieChartPlotter, false);
 				
@@ -60,7 +55,6 @@
 				getCallbackCollection(_plotter).addImmediateCallback(this, invalidateAxes);
 				invalidateAxes();
 				
-				initColumnDefaults(_plotter.data);
 				// see if there is a matching column in probe headers
 				var headers:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
 				for (var i:int = 0; i < headers.length; i++)
@@ -71,9 +65,6 @@
 						break;
 					}
 				}
-				handleSelectAllAttrInProbe(true);//default to include all selectable attributes in tool
-
-				_plotter.data.addImmediateCallback(this, updateProbeColumns, true);
 				
 				visualization.plotManager.marginTop.value = "65";
 				visualization.plotManager.marginBottom.value = "65";
@@ -81,111 +72,24 @@
 				visualization.plotManager.marginRight.value = "85";
 			}
 			
-			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this,new LinkableVariable(Array),updateProbeColumns,true);
+			override public function initSelectableAttributes(input:Array):void
+			{
+				ColumnUtils.initSelectableAttributes([_plotter.data, _plotter.label], input);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+			}
+			
+			public const attributesToIncludeInProbe:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, null, null), handleAttributesToIncludeInProbe, true);
+			private function handleAttributesToIncludeInProbe():void
+			{
+				visualization.additionalProbeColumns = SelectableAttributesCheckBoxList.getSelectedAttributeColumns(this, attributesToIncludeInProbe);
+			}
 			[Deprecated] public function set includeToolAttributesInProbe(value:Boolean):void
 			{
-				handleSelectAllAttrInProbe(value);
-			}
-			
-			private function handleSelectAllAttrInProbe(setAll:Boolean):void
-			{
-				var attributes:Array = getSelectableAttributeNames();
-				var valuesToSet:Array = [];
-				if(setAll)
-				{
-					for each (var name:String in attributes)
-					{
-						valuesToSet.push(true);
-					}
-				}
-				else
-				{
-					for each (var name2:String in attributes)
-					{
-						valuesToSet.push(false);
-					}
-				}
-				attributesToIncludeInProbe.setSessionState(valuesToSet);
-			}
-			
-			private function updateProbeColumns():void
-			{
-				/* first check to see if select all should be disabled or not */
-				var attrToIncludeCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
-				
-				if(attributesChecklist)
-				{
-					if(attrToIncludeCheckList.indexOf(false) > -1)
-					{
-						probeColumnsCheckBox.selected = false;
-					}
-					else
-					{
-						probeColumnsCheckBox.selected = true;
-					}
-				}
-				
-				
-				var attributes:Array = getSelectableAttributes();
-				var columns:Array = [];
-				
-				var datColIndex:int = attributes.indexOf(_plotter.data);
-				if (_plotter.data.getInternalColumn() && attrToIncludeCheckList[datColIndex])
-					columns.push(_plotter.data.getInternalColumn());
-				
-				var colorColIndex:int = attributes.indexOf(colorColumn);
-				if (colorColumn.getInternalColumn() && attrToIncludeCheckList[colorColIndex])	
-					columns.push(colorColumn);
-				
-				var labelColIndex:int = attributes.indexOf(_plotter.label);
-				if (_plotter.label.getInternalColumn() && attrToIncludeCheckList[labelColIndex])	
-					columns.push(_plotter.label.getInternalColumn());
-				
-				
-				if(columns.length>0)
-				{
-					visualization.additionalProbeColumns = columns;
-				}
-				else
-				{
-					visualization.additionalProbeColumns = null;
-				}
-				
-				if(attributesChecklist)
-				{
-					updateAttributesChecklist();
-				}
-				
-				//else ProbeTextUtils.probedColumns.copyObject('probedColumns',oldProbeColumns);
-			}
-			
-			private function updateAttributesChecklist():void
-			{
-				var attributes:Array = getSelectableAttributeNames();
-				var attrCheckList:Array = attributesToIncludeInProbe.getSessionState() as Array;
-				var temp:Array = [];
-				for (var i:int = 0; i < attributes.length; i++)
-				{
-					var obj:Object = new Object();
-					obj.label = attributes[i];
-					obj.selected = attrCheckList[i];
-					temp.push(obj);
-				}
-				attributesChecklist.dataProvider = temp;
-			}
-			
-			public function get colorColumn():DynamicColumn
-			{
-				return AttributeSelectorPanel.hack_findInternalDynamicColumn((_plotter.fillStyle.internalObject as SolidFillStyle).color);
-			}
-			
-			override public function getSelectableAttributeNames():Array
-			{
-				return [lang("Wedge Size"),lang("Wedge Color"),lang("Label")];
-			}
-			override public function getSelectableAttributes():Array
-			{
-				return [_plotter.data,colorColumn,_plotter.label];
+				attributesToIncludeInProbe.setSessionState(value ? getSelectableAttributeNames() : []);
 			}
 			
 			private function invalidateAxes():void
@@ -193,63 +97,42 @@
 				handlePanelTitleChange();
 			}
 
-			override protected function get defaultPanelTitle():String
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Pie Chart of {0}", ColumnUtils.getTitle(_plotter.data));
 			}
 		]]>
 	</mx:Script>
+<editorFactory>
+<mx:Component>
 	<ui:ControlPanel>
+		<mx:Script>
+			<![CDATA[
+				import weave.api.linkBindableProperty;
+			]]>
+		</mx:Script>
 		<mx:VBox id="attributesPanel" label="{lang('Attributes for Pie Chart')}">
-			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Wedge size')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.data"/>
-			<ui:DynamicColumnComponent visTool="{this}" label="{lang('Wedge color')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = colorColumn"/>
-			<ui:DynamicColumnComponent visTool="{this}" id="labelColumInput" label="{lang('Label Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = _plotter.label"/>
+			<ui:DynamicColumnComponent label="{lang('Wedge size')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = outerDocument._plotter.data"/>
+			<ui:DynamicColumnComponent label="{lang('Wedge color')}" creationComplete="(event.target as DynamicColumnComponent).columnWrapper = outerDocument._plotter.fill.color"/>
+			<ui:DynamicColumnComponent id="labelColumInput" label="{lang('Label Column')}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = outerDocument._plotter.label"/>
 			<mx:HBox width="100%">
 				<mx:Label text="{lang('Label angle')}" fontWeight="bold"/>
 				<mx:HSlider
 						snapInterval="0.25" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
 						dataTipFormatFunction="{function(v:Number):String { return lang('{0}%', Math.round(100 * v)); }}"
-						creationComplete="linkBindableProperty(_plotter.labelAngleRatio, event.target, 'value')"/>
+						creationComplete="linkBindableProperty(outerDocument._plotter.labelAngleRatio, event.target, 'value')"/>
 			</mx:HBox>
 			<mx:HBox width="100%">
 				<mx:Label text="{lang('Inner radius')}" fontWeight="bold"/>
 				<mx:HSlider
 						snapInterval="0.05" minimum="0" maximum="1" liveDragging="true" tickInterval="0.25"
-						creationComplete="linkBindableProperty(_plotter.innerRadius, event.target, 'value')"/>
+						creationComplete="linkBindableProperty(outerDocument._plotter.innerRadius, event.target, 'value')"/>
 			</mx:HBox>
 		</mx:VBox>
-		<mx:VBox label="{lang('Probe')}">
-			<mx:CheckBox id="probeColumnsCheckBox" label="{lang('Include tool attributes in probe tooltip')}"
-						 toolTip="{lang('Checking this box makes all of the following attributes visible in this tool\'s probe tooltip')}"
-						 change="handleSelectAllAttrInProbe(probeColumnsCheckBox.selected)"/>
-			<mx:List width="100%" borderThickness="0" id="attributesChecklist" minHeight="0" height="100%">
-				<mx:itemRenderer>
-					<mx:Component>
-						<mx:CheckBox change="handleSelectionChange()">
-							
-							<mx:Script>
-								<![CDATA[
-									override public function set data(d:Object):void
-									{
-										super.data = d;
-										selected = d && d.selected;
-										label = (d && d.label) as String;
-									}
-
-									private function handleSelectionChange():void
-									{
-										data.selected = this.selected;
-										var index:int = outerDocument.getSelectableAttributeNames().indexOf(data.label);
-										var currentState:Array = outerDocument.attributesToIncludeInProbe.getSessionState() as Array;
-										currentState[index]= this.selected;
-										outerDocument.attributesToIncludeInProbe.setSessionState(currentState);
-									}
-								]]>
-							</mx:Script>
-						</mx:CheckBox>
-					</mx:Component>
-				</mx:itemRenderer>
-			</mx:List>
+		<mx:VBox label="{lang('Mouseover info')}">
+			<ui:SelectableAttributesCheckBoxList id="selectedAttrList" creationComplete="selectedAttrList.setup(outerDocument, outerDocument.attributesToIncludeInProbe)"/>
 		</mx:VBox>
 	</ui:ControlPanel>
+</mx:Component>
+</editorFactory>
 </SimpleVisTool>

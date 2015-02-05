@@ -19,7 +19,6 @@
 
 package weave.data.AttributeColumns
 {
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -69,9 +68,7 @@ package weave.data.AttributeColumns
 			_wordToFreqMap = new Object();
 			_words.length = 0;
 			if( wordData.value != null )
-			{
-				_words = WordProcessingUtils.WordProcessingUtilsy( wordData.value, _wordToFreqMap );
-			}
+				WordProcessingUtils.getWordFrequencies(wordData.value, _wordToFreqMap, _words);
 			_keys = WeaveAPI.QKeyManager.getQKeys(STRING_KEY_TYPE, _words);
 			
 			dirty = false;	

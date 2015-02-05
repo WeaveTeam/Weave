@@ -22,9 +22,8 @@ package weave.data.KeySets
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
@@ -94,14 +93,13 @@ package weave.data.KeySets
 		private var _allKeys:Array = []; // Array of IQualifiedKey
 		private var _keyLookup:Dictionary = new Dictionary(true); // IQualifiedKey -> Boolean
 		
-		/*
-		* Catch-22:
-		*     We want to report busy status when computing union, but we don't want to trigger
-		*     union callbacks if nothing changes as a result of the async task.  However,
-		*     if we report busy status, we should be triggering callbacks when the task completes.
-		*     For now, we don't report busy status.
-		*/
-		private var _asyncOwner:ILinkableObject = newDisposableChild(this, CallbackCollection); // separate owner for the async task to avoid affecting our busy status
+		/**
+		 * Use this to check asynchronous task busy status.  This is kept separate because if we report busy status we need to
+		 * trigger callbacks when an asynchronous task completes, but we don't want to trigger KeySetUnion callbacks when nothing
+		 * changes as a result of completing the asynchronous task.
+		 */
+		public const busyStatus:ICallbackCollection = newDisposableChild(this, CallbackCollection); // separate owner for the async task to avoid affecting our busy status
+		
 		private var _asyncKeys:Array; // keys from current key set
 		private var _asyncKeySetIndex:int; // index of current key set
 		private var _asyncKeyIndex:int; // index of current key
@@ -123,7 +121,8 @@ package weave.data.KeySets
 			_asyncKeys = null;
 			_asyncKeySetIndex = 0;
 			_asyncKeyIndex = 0;
-			WeaveAPI.StageUtils.startTask(_asyncOwner, asyncIterate, WeaveAPI.TASK_PRIORITY_BUILDING, asyncComplete);
+			// high priority because all visualizations depend on key sets
+			WeaveAPI.StageUtils.startTask(busyStatus, asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, lang("Computing the union of {0} key sets", _keySets.length));
 		}
 		
 		private function asyncIterate(stopTime:int):Number
@@ -173,7 +172,7 @@ package weave.data.KeySets
 				getCallbackCollection(this).triggerCallbacks();
 			}
 			
-			getCallbackCollection(_asyncOwner).triggerCallbacks();
+			busyStatus.triggerCallbacks();
 		}
 		
 		public function dispose():void

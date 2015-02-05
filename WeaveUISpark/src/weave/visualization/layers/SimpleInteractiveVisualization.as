@@ -27,17 +27,16 @@ package weave.visualization.layers
 	import mx.managers.ToolTipManager;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IKeySet;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.api.core.ICallbackCollection;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IKeySet;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -67,7 +66,7 @@ package weave.visualization.layers
 			
 			// hacks
 			plotManager.hack_adjustFullDataBounds = this.hack_adjustFullDataBounds;
-			plotManager.hack_updateZoom = this.hack_updateZoom;
+			plotManager.hack_onUpdateZoom(this.hack_updateZoom);
 			registerLinkableChild(plotManager.zoomBounds, enableAutoZoomXToNiceNumbers);
 			registerLinkableChild(plotManager.zoomBounds, enableAutoZoomYToNiceNumbers);
 			getCallbackCollection(plotManager.zoomBounds).addGroupedCallback(this, hack_defineZoomIfUndefined, true);
@@ -114,10 +113,12 @@ package weave.visualization.layers
 		private const tempBounds:Bounds2D = new Bounds2D();
 		
 		public function getMainLayerSettings():LayerSettings { return plotManager.getLayerSettings(MAIN_PLOT_LAYER_NAME); }
-		public function getMainPlotter():IPlotter { return plotManager.getPlotter(MAIN_PLOT_LAYER_NAME); }
+		public function getMainPlotter():IPlotter { return _mainPlotterInitialized ? plotManager.getPlotter(MAIN_PLOT_LAYER_NAME) : null; }
 		public function getXAxisPlotter():SimpleAxisPlotter { return plotManager.getPlotter(X_AXIS_LAYER_NAME) as SimpleAxisPlotter; }
 		public function getYAxisPlotter():SimpleAxisPlotter { return plotManager.getPlotter(Y_AXIS_LAYER_NAME) as SimpleAxisPlotter; }
 		public function getProbeLinePlotter():ProbeLinePlotter { return plotManager.getPlotter(PROBE_LINE_LAYER_NAME) as ProbeLinePlotter; }
+		
+		private var _mainPlotterInitialized:Boolean = false;
 		
 		/**
 		 * @param mainPlotterClass The main plotter class definition.
@@ -126,14 +127,20 @@ package weave.visualization.layers
 		 */		
 		public function initializePlotters(mainPlotterClass:Class, showAxes:Boolean):*
 		{
+			getCallbackCollection(plotManager).delayCallbacks();
+			getCallbackCollection(plotManager.layerSettings).delayCallbacks();
+			getCallbackCollection(plotManager.plotters).delayCallbacks();
+			
 			if (mainPlotterClass && !getMainPlotter())
 			{
+				_mainPlotterInitialized = true;
 				plotManager.plotters.requestObject(MAIN_PLOT_LAYER_NAME, mainPlotterClass, true);
 			}
 			if (showAxes)
 			{
 				// x
 				var xAxis:SimpleAxisPlotter = plotManager.plotters.requestObject(X_AXIS_LAYER_NAME, SimpleAxisPlotter, true);
+				xAxis.setupTextFormats(Weave.properties.axisTitleTextFormat, Weave.properties.visTextFormat);
 				xAxis.axisLabelRelativeAngle.value = -45;
 				xAxis.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_TOP;
 				var xSettings:LayerSettings = plotManager.getLayerSettings(X_AXIS_LAYER_NAME);
@@ -144,6 +151,7 @@ package weave.visualization.layers
 				
 				// y
 				var yAxis:SimpleAxisPlotter = plotManager.plotters.requestObject(Y_AXIS_LAYER_NAME, SimpleAxisPlotter, true);
+				yAxis.setupTextFormats(Weave.properties.axisTitleTextFormat, Weave.properties.visTextFormat);
 				yAxis.axisLabelRelativeAngle.value = 45;
 				yAxis.labelVerticalAlign.value = BitmapText.VERTICAL_ALIGN_BOTTOM;
 				var ySettings:LayerSettings = plotManager.getLayerSettings(Y_AXIS_LAYER_NAME);
@@ -156,6 +164,10 @@ package weave.visualization.layers
 				getCallbackCollection(plotManager.zoomBounds).triggerCallbacks();
 			}
 			putAxesOnBottom();
+			
+			getCallbackCollection(plotManager.plotters).resumeCallbacks();
+			getCallbackCollection(plotManager.layerSettings).resumeCallbacks();
+			getCallbackCollection(plotManager).resumeCallbacks();
 			return getMainPlotter();
 		}
 		
@@ -176,7 +188,7 @@ package weave.visualization.layers
 			{
 				var var0:LinkableVariable = pair[0] as LinkableVariable;
 				var var1:LinkableVariable = pair[1] as LinkableVariable;
-				if (var0.isUndefined())
+				if (var0.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
 					linkSessionState(var1, var0);
 				else
 					linkSessionState(var0, var1);
@@ -227,13 +239,10 @@ package weave.visualization.layers
 			// if axes are enabled, make sure width and height are not zero
 			if ((getXAxisPlotter() || getYAxisPlotter()) && plotManager.enableAutoZoomToExtent.value)
 			{
-				if (tempBounds.isEmpty())
-				{
-					if (tempBounds.getWidth() == 0)
-						tempBounds.setWidth(1);
-					if (tempBounds.getHeight() == 0)
-						tempBounds.setHeight(1);
-				}
+				if (tempBounds.getWidth() == 0)
+					tempBounds.setWidth(1);
+				if (tempBounds.getHeight() == 0)
+					tempBounds.setHeight(1);
 			}
 			fullDataBounds.copyFrom(tempBounds);
 		}
@@ -294,7 +303,7 @@ package weave.visualization.layers
 		{
 			super.handleMouseClick(event);
 			
-			if (mouseIsRolledOver)
+			if (mouseIsRolledOver && Weave.properties.enableToolControls.value)
 			{
 				var theMargin:LinkableString = getMarginAndSetQueryBounds(event.localX, event.localY, false);
 				var index:int = [plotManager.marginTop, plotManager.marginBottom, plotManager.marginLeft, plotManager.marginRight].indexOf(theMargin);
@@ -396,7 +405,7 @@ package weave.visualization.layers
 							marginToolTip = ColumnUtils.getTitle(axisColumn);
 							marginToolTip += "\n Key type: "   + ColumnUtils.getKeyType(axisColumn);
 							marginToolTip += "\n Data type: "   + ColumnUtils.getDataType(axisColumn);
-							marginToolTip += "\n # of records: " + WeaveAPI.StatisticsCache.getColumnStatistics(axisColumn).getCount();
+							marginToolTip += "\n Number of records: " + WeaveAPI.StatisticsCache.getColumnStatistics(axisColumn).getCount();
 							marginToolTip += "\n Data source: " + ColumnUtils.getDataSource(axisColumn);
 							if (Weave.properties.enableToolControls.value)
 								marginToolTip += "\n Click to select a different attribute.";
@@ -409,7 +418,7 @@ package weave.visualization.layers
 							var ttPoint:Point = localToGlobal( new Point(queryBounds.getXCenter(), queryBounds.getYCenter()) );
 							_axisToolTip = ToolTipManager.createToolTip('', ttPoint.x, ttPoint.y);
 							_axisToolTip.text = marginToolTip;
-							Weave.properties.defaultTextFormat.copyToStyle(_axisToolTip as UIComponent);
+							Weave.properties.visTextFormat.copyToStyle(_axisToolTip as UIComponent);
 							(_axisToolTip as UIComponent).validateNow();
 							
 							// constrain the tooltip to fall within the bounds of the application											
@@ -596,7 +605,7 @@ package weave.visualization.layers
 					(tooltip as UIComponent).setStyle("backgroundAlpha", Weave.properties.probeToolTipBackgroundAlpha.value);
 					if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
 						(tooltip as UIComponent).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
-					Weave.properties.defaultTextFormat.copyToStyle(tooltip as UIComponent);
+					Weave.properties.visTextFormat.copyToStyle(tooltip as UIComponent);
 					(tooltip as UIComponent).validateNow();
 				}
 		}

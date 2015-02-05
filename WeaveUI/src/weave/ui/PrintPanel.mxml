@@ -67,14 +67,31 @@
 			}
 			catch (se:SecurityError)
 			{
-				reportError(se, lang("Unable to create screenshot due to lack of permissive policy file for embedded image. ") + se.message);
+				reportSecurityError(se);
 			}
 			catch (e:Error)
 			{
 				trace(e.getStackTrace());
 				trace("ImageSnapshot.captureImage() failed, falling back to BitmapUtils.getPNGFromComponent()");
-				_imageSource = BitmapUtils.getPNGFromComponent(component);
+				
+				try
+				{
+					_imageSource = BitmapUtils.getPNGFromComponent(component);
+				}
+				catch (se:SecurityError)
+				{
+					reportSecurityError(se);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
+		}
+		
+		private function reportSecurityError(se:SecurityError):void
+		{
+			reportError(se, lang("Unable to create screenshot due to lack of permissive policy file for embedded image. ") + se.message);
 		}
 		
 		//handle when close button of TitleWindow is clicked
@@ -87,7 +104,7 @@
 		{
 			super.childrenCreated();
 			
-			exportTitle.text = Weave.properties.pageTitle.value;
+			exportTitle.text = "Weave";
 			//Weave.properties.backgroundColor.addImmediateCallback(this, handleBackground, true);
 		}
 		
@@ -226,11 +243,14 @@
 		<mx:Label id="exportTitle" textAlign="center" fontSize="18" fontWeight="bold" horizontalCenter="0" width="100%"
 				  visible="{showTitle.selected}" includeInLayout="{showTitle.selected}"/>
 		<mx:Image id="exportImage" source="{_imageSource}" complete="scalePrintVbox();"/>
-		<ui:OICLogoPane width="100%" visible="{showCopyright.selected}" includeInLayout="{showCopyright.selected}"/>
+		<ui:WeaveCopyrightPane width="100%" visible="{showCopyright.selected}" includeInLayout="{showCopyright.selected}"/>
 	</mx:VBox>
 	
 	<mx:ControlBar horizontalAlign="center">
-		<mx:CheckBox id="showTitle" label="{lang('Title')}" selected="true" change="scalePrintVbox()"/>
+		
+		<!--- @TODO text box for entering title -->
+		<mx:CheckBox id="showTitle" label="{lang('Title')}" selected="false" change="scalePrintVbox()" visible="false" includeInLayout="false"/>
+		
 		<mx:CheckBox id="showCopyright" label="{lang('Copyright')}" creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');" change="scalePrintVbox()"/>
 		<!--<mx:CheckBox id="showBackground" label="{lang('Background')}" selected="true" change="handleBackground();"/>-->
 		<mx:Button id="printButton" label="{lang('Print')}" click="handlePrintClick(event)"/>

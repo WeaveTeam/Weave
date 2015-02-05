@@ -22,22 +22,25 @@ package weave.core
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.core.DynamicState;
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	
 	/**
-	 * This contains an ordered list of name-to-object mappings.
+	 * Allows dynamically creating instances of objects implementing ILinkableObject at runtime.
+	 * The session state is an Array of DynamicState objects.
+	 * @see weave.core.DynamicState
 	 * 
 	 * @author adufilie
 	 */
 	public class LinkableHashMap extends CallbackCollection implements ILinkableHashMap
 	{
 		/**
+		 * Constructor.
 		 * @param typeRestriction If specified, this will limit the type of objects that can be added to this LinkableHashMap.
 		 */
 		public function LinkableHashMap(typeRestriction:Class = null)
@@ -57,11 +60,16 @@ package weave.core
 		private var _typeRestriction:Class = null; // restricts the type of object that can be stored
 		private var _typeRestrictionClassName:String = null; // qualified class name of _typeRestriction
 		
+		/**
+		 * @inheritDoc
+		 */
+		public function get typeRestriction():Class
+		{
+			return _typeRestriction;
+		}
 		
 		/**
-		 * This is an interface for adding and removing callbacks that will get triggered immediately
-		 * when an object is added or removed.
-		 * @return An interface for adding callbacks that get triggered when the list of child objects changes.
+		 * @inheritDoc
 		 */
 		public function get childListCallbacks():IChildListCallbackInterface
 		{
@@ -69,8 +77,7 @@ package weave.core
 		}
 
 		/**
-		 * @param filter If specified, names of objects that are not of this type will be filtered out.
-		 * @return A copy of the ordered list of names of objects contained in this LinkableHashMap.
+		 * @inheritDoc
 		 */
 		public function getNames(filter:Class = null):Array
 		{
@@ -84,8 +91,7 @@ package weave.core
 			return result;
 		}
 		/**
-		 * @param filter If specified, objects that are not of this type will be filtered out.
-		 * @return An ordered Array of objects that correspond to the names returned by getNames(filter).
+		 * @inheritDoc
 		 */
 		public function getObjects(filter:Class = null):Array
 		{
@@ -100,26 +106,21 @@ package weave.core
 			return result;
 		}
 		/**
-		 * @param name The identifying name to associate with an object.
-		 * @return The object associated with the given name.
+		 * @inheritDoc
 		 */
 		public function getObject(name:String):ILinkableObject
 		{
 			return _nameToObjectMap[name] as ILinkableObject;
 		}
 		/**
-		 * @param object An object contained in this LinkableHashMap.
-		 * @return The name associated with the object, or null if the object was not found. 
+		 * @inheritDoc
 		 */
 		public function getName(object:ILinkableObject):String
 		{
 			return _objectToNameMap[object] as String;
 		}
 		/**
-		 * This will reorder the names returned by getNames() and the objects returned by getObjects().
-		 * Any names appearing in newOrder that do not appear in getNames() will be ignored.
-		 * Callbacks will be called if the new child order differs from the old order.
-		 * @param newOrder The new desired ordering of names and their corresponding objects.
+		 * @inheritDoc
 		 */
 		public function setNameOrder(newOrder:Array):void
 		{
@@ -161,13 +162,7 @@ package weave.core
 				_childListCallbacks.runCallbacks(null, null, null);
 		}
 		/**
-		 * This function creates an object in the hash map if it doesn't already exist.
-		 * If there is an existing object associated with the specified name, it will be kept if it
-		 * is the specified type, or replaced with a new instance of the specified type if it is not.
-		 * @param name The identifying name of a new or existing object.
-		 * @param classDef The Class of the desired object type.
-		 * @param lockObject If this is true, the object will be locked in place under the specified name.
-		 * @return The object under the requested name of the requested type, or null if an error occurred.
+		 * @inheritDoc
 		 */
 		public function requestObject(name:String, classDef:Class, lockObject:Boolean):*
 		{
@@ -177,15 +172,15 @@ package weave.core
 		}
 		
 		/**
-		 * This function will copy the session state of an ILinkableObject to a new object under the given name in this LinkableHashMap.
-		 * @param newName A name for the object to be initialized in this LinkableHashMap.
-		 * @param objectToCopy An object to copy the session state from.
-		 * @return The new object of the same type, or null if an error occurred.
+		 * @inheritDoc
 		 */
 		public function requestObjectCopy(name:String, objectToCopy:ILinkableObject):ILinkableObject
 		{
 			if (objectToCopy == null)
+			{
+				removeObject(name);
 				return null;
+			}
 			
 			delayCallbacks(); // make sure callbacks only trigger once
 			//var className:String = getQualifiedClassName(objectToCopy);
@@ -200,10 +195,7 @@ package weave.core
 		}
 		
 		/**
-		 * This function will rename an object by making a copy and removing the original.
-		 * @param oldName The name of an object to replace.
-		 * @param newName The new name to use for the copied object.
-		 * @return The copied object associated with the new name, or the original object if newName is the same as oldName.
+		 * @inheritDoc
 		 */
 		public function renameObject(oldName:String, newName:String):ILinkableObject
 		{
@@ -236,19 +228,11 @@ package weave.core
 		 */
 		private function initObjectByClassName(name:String, className:String, lockObject:Boolean = false):ILinkableObject
 		{
-			// do nothing if locked or className is null
-			if (className != null)
+			if (className)
 			{
-				className = _deprecatedClassReplacements[className] || className;
-				
 				// if no name is specified, generate a unique one now.
 				if (!name)
-				{
-					if (className.indexOf("::") >= 0)
-						name = generateUniqueName(className.split("::")[1]);
-					else
-						name = generateUniqueName(className);
-				}
+					name = generateUniqueName(className.split("::").pop());
 				if ( ClassUtils.classImplements(className, SessionManager.ILinkableObjectQualifiedClassName)
 					&& (_typeRestriction == null || ClassUtils.classIs(className, _typeRestrictionClassName)) )
 				{
@@ -257,7 +241,8 @@ package weave.core
 						// If this name is not associated with an object of the specified type,
 						// associate the name with a new object of the specified type.
 						var classDef:Class = ClassUtils.getClassDefinition(className);
-						if (!(_nameToObjectMap[name] is classDef))
+						var object:Object = _nameToObjectMap[name];
+						if (!object || object.constructor != classDef)
 							createAndSaveNewObject(name, classDef, lockObject);
 						else if (lockObject)
 							this.lockObject(name);
@@ -273,6 +258,10 @@ package weave.core
 					removeObject(name);
 				}
 			}
+			else
+			{
+				removeObject(name);
+			}
 			return _nameToObjectMap[name] as ILinkableObject;
 		}
 		/**
@@ -282,7 +271,7 @@ package weave.core
 		 */
 	    private function createAndSaveNewObject(name:String, classDef:Class, lockObject:Boolean):void
 	    {
-	    	if (_nameIsLocked[name] != undefined)
+	    	if (_nameIsLocked[name])
 	    		return;
 
 			// remove any object currently using this name
@@ -316,20 +305,18 @@ package weave.core
 		    	_nameIsLocked[name] = true;
 	    }
 		/**
-		 * This function will return true if the specified object was previously locked.
-		 * @param name The name of an object.
+		 * @inheritDoc
 		 */
 		public function objectIsLocked(name:String):Boolean
 		{
 			return _nameIsLocked[name] ? true : false;
 		}
 		/**
-		 * @param name The identifying name of an object previously saved with setObject().
-		 * @see weave.api.core.ILinkableHashMap#removeObject
+		 * @inheritDoc
 		 */
 		public function removeObject(name:String):void
 		{
-			if (_nameIsLocked[name] != undefined)
+			if (!name || _nameIsLocked[name])
 				return;
 			
 			var object:ILinkableObject = _nameToObjectMap[name] as ILinkableObject;
@@ -346,29 +333,33 @@ package weave.core
 			// make sure the callback variables signal that the object was removed
 			_childListCallbacks.runCallbacks(name, null, object);
 
-			// dispose of the object AFTER the callbacks know that the object was removed
-			disposeObjects(object);
+			// dispose the object AFTER the callbacks know that the object was removed
+			disposeObject(object);
 		}
 
 		/**
-		 * This function attempts to removes all objects from this LinkableHashMap.
-		 * Any objects that are locked will remain.
+		 * @inheritDoc
 		 */
 		public function removeAllObjects():void
 		{
 			delayCallbacks();
-			for each (var name:String in getNames())
+			for each (var name:String in _orderedNames.concat()) // iterate over a copy of the list
 				removeObject(name);
 			resumeCallbacks();
 		}
 		
 		/**
 		 * This function removes all objects from this LinkableHashMap.
+		 * @inheritDoc
 		 */
 		override public function dispose():void
 		{
 			super.dispose();
 			
+			// first, remove all objects that aren't locked
+			removeAllObjects();
+			
+			// remove all locked objects
 			for each (var name:String in _orderedNames.concat()) // iterate over a copy of the list
 			{
 				_nameIsLocked[name] = undefined; // make sure removeObject() will carry out its action
@@ -377,8 +368,7 @@ package weave.core
 		}
 
 		/**
-		 * This will generate a new name for an object that is different from all the names of objects previously used in this LinkableHashMap.
-		 * @param baseName The name to start with.  If the name is already in use, an integer will be appended to create a unique name.
+		 * @inheritDoc
 		 */
 		public function generateUniqueName(baseName:String):String
 		{
@@ -390,7 +380,7 @@ package weave.core
 		}
 
 		/**
-		 * @return An Array of DynamicState objects which compose the session state for this object.
+		 * @inheritDoc
 		 */
 		public function getSessionState():Array
 		{
@@ -399,7 +389,7 @@ package weave.core
 			{
 				var name:String = _orderedNames[i];
 				var object:ILinkableObject = _nameToObjectMap[name];
-				result[i] = new DynamicState(
+				result[i] = DynamicState.create(
 						name,
 						getQualifiedClassName(object),
 						WeaveAPI.SessionManager.getSessionState(object)
@@ -410,12 +400,14 @@ package weave.core
 		}
 		
 		/**
-		 * This function will update the list of child objects based on an absolute or incremental session state.
-		 * @param newState An Array of child name Strings or DynamicState objects containing the new values and types for child objects.
-		 * @param removeMissingDynamicObjects If true, this will remove any child objects that do not appear in the session state.
+		 * @inheritDoc
  		 */
 		public function setSessionState(newStateArray:Array, removeMissingDynamicObjects:Boolean):void
 		{
+			// special case - no change
+			if (newStateArray == null)
+				return;
+			
 			delayCallbacks();
 			
 			//trace(LinkableHashMap, "setSessionState "+setMissingValuesToNull, ObjectUtil.toString(newState.qualifiedClassNames), ObjectUtil.toString(newState));
@@ -433,7 +425,7 @@ package weave.core
 				for (i = 0; i < newStateArray.length; i++)
 				{
 					typedState = newStateArray[i];
-					if (!DynamicState.objectHasProperties(typedState))
+					if (!DynamicState.isDynamicState(typedState))
 						continue;
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
@@ -461,7 +453,7 @@ package weave.core
 						continue;
 					}
 					
-					if (!DynamicState.objectHasProperties(typedState))
+					if (!DynamicState.isDynamicState(typedState))
 						continue;
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					if (objectName == null)
@@ -479,10 +471,8 @@ package weave.core
 			if (removeMissingDynamicObjects)
 			{
 				// third pass: remove objects based on the Boolean flags in remainingObjects.
-				i = _orderedNames.length;
-				while (i--)
+				for each (objectName in _orderedNames.concat()) // iterate over a copy of the list
 				{
-					objectName = _orderedNames[i];
 					if (remainingObjects[objectName] !== true)
 					{
 						//trace(LinkableHashMap, "missing value: "+objectName);
@@ -494,15 +484,6 @@ package weave.core
 			setNameOrder(newNameOrder);
 			
 			resumeCallbacks();
-		}
-		
-		private static const _deprecatedClassReplacements:Object = {};
-		/**
-		 * For backwards compatibility, registers a deprecated class with its replacement.
-		 */
-		public static function registerDeprecatedClassReplacement(deprecatedClassName:String, replacementClassName:String):void
-		{
-			_deprecatedClassReplacements[deprecatedClassName] = replacementClassName;
 		}
 	}
 }

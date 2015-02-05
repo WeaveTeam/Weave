@@ -30,6 +30,7 @@ package weave.utils
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.primitives.IBounds2D;
+	import weave.compiler.StandardLib;
 	import weave.primitives.Bounds2D;
 
 	/**
@@ -225,7 +226,8 @@ package weave.utils
 				return NO_OVERLAP;
 			var a:Object = polygon2[0];
 			var b:Object;
-			for (var i2:int = polygon2.length; i2--;)
+			var i2:int = polygon2.length;
+			while (i2--)
 			{
 				b = a;
 				a = polygon2[i2];
@@ -257,7 +259,8 @@ package weave.utils
 				return false;
 			var c:Object = polygon[0];
 			var d:Object;
-			for (var i:int = polygon.length; i--;)
+			var i:int = polygon.length;
+			while (i--)
 			{
 				d = c;
 				c = polygon[i];
@@ -333,6 +336,7 @@ package weave.utils
 
 		private static const _tempBitmap:Bitmap = new Bitmap(new BitmapData(360, 180, true));
 		private static const _tempMatrix:Matrix = new Matrix();
+		
 		/**
 		 * polygonOverlapsPoint
 		 * @param polygon An array of objects representing vertices, each having x and y properties.
@@ -354,16 +358,24 @@ package weave.utils
 			var Bx:Number;
 			var By:Number;
 			// loop through the segments of the polygon
-			for (var pointIndex:int = polygon.length; pointIndex--;)
+			var pointIndex:int = polygon.length;
+			while (pointIndex--)
 			{
 				Bx = Ax;
 				By = Ay;
 				Ax = polygon[pointIndex].x;
 				Ay = polygon[pointIndex].y;
-
+				
+				// immediate success if the point is on a horizontal segment AB
+				if (Ay == By && Ay == y && Math.min(Ax, Bx) <= x && x <= Math.max(Ax, Bx))
+					return true;
+				
 				// get intersection of segment AB and a horizontal ray passing through (x,y), then check if the intersection is >= x
-				if (Ay != By && lineIntersectsLine(x, y, x + 1, y, Ax, Ay, Bx, By, tempPoint, false) != null && tempPoint.x >= x)
+				if (lineIntersectsLine(x, y, x + 1, y, Ax, Ay, Bx, By, tempPoint, false) != null && tempPoint.x >= x)
 				{
+					// immediate success if the point is on the segment AB
+					if (tempPoint.x == x)
+						return true;
 					// if the intersection is on an endpoint of segment AB, determine if the segment is above or below the ray
 					if (tempPoint.y == Ay && tempPoint.x == Ax)
 						segSide = ObjectUtil.numericCompare(tempPoint.y, By);
@@ -402,14 +414,12 @@ package weave.utils
 		 * @param by The Y coordinate of point B
 		 * @param cx The X coordinate of point C
 		 * @param cy The Y coordinate of point C
-		 * @return The distance from the line passing through A and B to the point C
+		 * @param asSegment true if you want to treat line AB as a segment, false for an infinite line
+		 * @return The distance from the line passing through A and B (or segment AB) to the point C
 		 */
-		public static function getDistanceFromLine(ax:Number, ay:Number, bx:Number, by:Number, cx:Number, cy:Number):Number
+		public static function getDistanceFromLine(ax:Number, ay:Number, bx:Number, by:Number, cx:Number, cy:Number, asSegment:Boolean):Number
 		{
-			var dx:Number = bx-ax;
-			var dy:Number = by-ay;
-			var dd:Number = Math.sqrt(dx*dx+dy*dy);
-			return Math.abs( ((cx - ax)*dy - (cy - ay)*dx)/dd );
+			return Math.sqrt(getUnscaledDistanceFromLine(ax, ay, bx, by, cx, cy, asSegment));
 		}
 
 		/**
@@ -423,14 +433,33 @@ package weave.utils
 		 * @param by The Y coordinate of point B
 		 * @param cx The X coordinate of point C
 		 * @param cy The Y coordinate of point C
-		 * @return The distance from the line passing through A and B to the point C
+		 * @param asSegment true if you want to treat line AB as a segment, false for an infinite line
+		 * @return The unscaled distance from the line passing through A and B (or segment AB) to the point C
 		 */
-		public static function getUnscaledDistanceFromLine(ax:Number, ay:Number, bx:Number, by:Number, cx:Number, cy:Number):Number
+		public static function getUnscaledDistanceFromLine(ax:Number, ay:Number, bx:Number, by:Number, cx:Number, cy:Number, asSegment:Boolean):Number
 		{
+			var cax:Number = cx-ax;
+			var cay:Number = cy-ay;
+			
+			// if A equals B, compute distance from A to C
+			if (ax == bx && ay == by)
+				return cax*cax + cay*cay;
+			
 			var dx:Number = bx-ax;
 			var dy:Number = by-ay;
-			var dd:Number = dx*dx + dy*dy;
-			return Math.abs( ((cx - ax)*dy - (cy - ay)*dx) / dd );
+			var l2:Number = dx*dx + dy*dy;
+			
+			if (asSegment)
+			{
+				// test if C is beyond the segment
+				var t:Number = (cax*dx + cay*dy) / l2;
+				if (t < 0)
+					return cax*cax + cay*cay;
+				if (t > 1)
+					return (dx=cx-bx, dy=cy-by, dx*dx+dy*dy);
+			}
+			
+			return Math.abs( (cax*dy - cay*dx) / l2 );
 		}
 		
 		/**
@@ -459,6 +488,41 @@ package weave.utils
 			var dx:Number = bx - ax;
 			var dy:Number = by - ay;
 			return dx * dx + dy * dy;
+		}
+		
+		/**
+		 * Computes the convex hull of a set of points.
+		 * http://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
+		 * @param points Array(s) of points used to compute the hull.
+		 * @return An Array of points in the convex hull.
+		 */
+		public static function convexHull(...points):Array
+		{
+			var P:Array = [].concat.apply(null, points);
+			var H:Array = new Array(P.length * 2);
+			var n:int = P.length;
+			var k:int = 0;
+			var i:int, t:int;
+			
+			// Sort points lexicographically
+			StandardLib.sortOn(P, ['x', 'y']);
+			
+			// Build lower hull
+			for (i = 0; i < n; ++i)
+				while (k >= 2 && crossProduct(H[k-2], H[k-1], P[i]) <= 0) k--;
+					H[k++] = P[i];
+			
+			// Build upper hull
+			for (i = n-2, t = k+1; i >= 0; i--)
+				while (k >= t && crossProduct(H[k-2], H[k-1], P[i]) <= 0) k--;
+					H[k++] = P[i];
+			
+			H.length = k;
+			return H;
+		}
+		private static function crossProduct(O:Object, A:Object, B:Object):Number
+		{
+			return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
 		}
 		
 		// reusable temporary objects to reduce GC activity:

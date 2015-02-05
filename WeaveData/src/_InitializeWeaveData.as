@@ -19,16 +19,17 @@
 
 package
 {
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.ICSVParser;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.api.data.IStatisticsCache;
 	import weave.api.services.IURLRequestUtils;
+	import weave.core.ClassUtils;
 	import weave.core.WeaveXMLDecoder;
 	import weave.data.AttributeColumnCache;
 	import weave.data.CSVParser;
+	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.ProjectionManager;
 	import weave.data.QKeyManager;
 	import weave.data.StatisticsCache;
@@ -36,15 +37,18 @@ package
 
 	public class _InitializeWeaveData
 	{
+		[Embed(source="WeavePathData.js", mimeType="application/octet-stream")]
+		public static const WeavePathData:Class;
+		
 		/**
 		 * Register singleton implementations for WeaveAPI framework classes
 		 */
-		WeaveAPI.registerSingleton(IAttributeColumnCache, AttributeColumnCache);
-		WeaveAPI.registerSingleton(IStatisticsCache, StatisticsCache);
-		WeaveAPI.registerSingleton(IQualifiedKeyManager, QKeyManager);
-		WeaveAPI.registerSingleton(IProjectionManager, ProjectionManager);
-		WeaveAPI.registerSingleton(IURLRequestUtils, URLRequestUtils);
-		WeaveAPI.registerSingleton(ICSVParser, CSVParser);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IStatisticsCache, StatisticsCache);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IQualifiedKeyManager, QKeyManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IProjectionManager, ProjectionManager);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(IURLRequestUtils, URLRequestUtils);
+		WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
 		
 		/**
 		 * Include these packages in WeaveXMLDecoder so they will not need to be specified in the XML session state.
@@ -54,12 +58,16 @@ package
 			"weave.data.AttributeColumns",
 			"weave.data.BinClassifiers",
 			"weave.data.BinningDefinitions",
-			"weave.data.ColumnReferences",
 			"weave.data.DataSources",
 			"weave.data.KeySets",
+			"weave.data.Transforms",
 			"weave.primitives",
-			"weave.Reports",
+			"weave.services",
+			"weave.services.beans",
+			"weave.services.collaboration",
 			"weave.services.wms"
 		);
+		ClassUtils.registerDeprecatedClass("OpenIndicatorsServletDataSource", WeaveDataSource);
+		ClassUtils.registerDeprecatedClass("OpenIndicatorsDataSource", WeaveDataSource);
 	}
 }

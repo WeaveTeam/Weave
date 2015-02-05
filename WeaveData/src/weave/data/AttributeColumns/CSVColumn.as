@@ -21,9 +21,8 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -49,7 +48,7 @@ package weave.data.AttributeColumns
 			{
 				case ColumnMetadata.TITLE: return title.value;
 				case ColumnMetadata.KEY_TYPE: return keyType.value;
-				case ColumnMetadata.DATA_TYPE: return numericMode.value ? DataTypes.NUMBER : DataTypes.STRING;
+				case ColumnMetadata.DATA_TYPE: return numericMode.value ? DataType.NUMBER : DataType.STRING;
 			}
 			return super.getMetadata(propertyName);
 		}

@@ -23,8 +23,6 @@ package weave.core
 	
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.WeaveAPI;
-	
 	/**
 	 * This is an all-static class containing functions for loading SWC libraries at runtime.
 	 * 
@@ -100,7 +98,7 @@ package weave.core
 //			var library:Library = _libraries[url] as Library;
 //			if (library)
 //			{
-//				WeaveAPI.SessionManager.disposeObjects(library);
+//				WeaveAPI.SessionManager.disposeObject(library);
 //				delete _libraries[url];
 //			}
 //		}
@@ -135,12 +133,10 @@ import mx.rpc.Fault;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 
-import nochump.util.zip.ZipFile;
-
-import weave.api.WeaveAPI;
 import weave.api.core.IDisposableObject;
+import weave.compiler.StandardLib;
 import weave.core.ClassUtils;
-import weave.utils.AsyncSort;
+import weave.flascc.FlasCC;
 
 /**
  * @private
@@ -196,7 +192,7 @@ internal class Library implements IDisposableObject
 		{
 			_asyncToken = new AsyncToken();
 			// notify the responder one frame later
-			WeaveAPI.StageUtils.callLater(this, _notifyResponders, null, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+			WeaveAPI.StageUtils.callLater(this, _notifyResponders);
 		}
 		
 		_asyncToken.addResponder(new AsyncResponder(asyncResultHandler, asyncFaultHandler, token));
@@ -223,10 +219,11 @@ internal class Library implements IDisposableObject
 		try
 		{
 			// Extract the files from the SWC archive
-			var zipFile:ZipFile = new ZipFile(event.result as ByteArray);
-			_library_swf = zipFile.getInput(zipFile.getEntry("library.swf"));
-			_catalog_xml = XML(zipFile.getInput(zipFile.getEntry("catalog.xml")));
-			zipFile = null;
+			var swc:Object = FlasCC.call(weave.flascc.readZip, event.result as ByteArray);
+			if (!swc)
+				throw new Error("Unable to read SWC archive");
+			_library_swf = swc["library.swf"];
+			_catalog_xml = XML(swc["catalog.xml"]);
 			
 			_swfLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, handleSWFFault);
 			_swfLoader.addEventListener(IOErrorEvent.IO_ERROR, handleSWFFault);
@@ -280,11 +277,6 @@ internal class Library implements IDisposableObject
 	}
 	
 	/**
-	 * avmplus.describeTypeJSON(o:*, flags:uint):Object
-	 */
-	private static const describeTypeJSON:Function = DescribeType.getJSONFunction();
-	
-	/**
 	 * @private
 	 *
 	 * This is called when the SWFLoader finishes loading.
@@ -302,7 +294,7 @@ internal class Library implements IDisposableObject
 		{
 			_classQNames.push(id.split(':').join('.'));
 		}
-		AsyncSort.sortImmediately(_classQNames);
+		StandardLib.sort(_classQNames);
 		
 		// iterate over all the classes, initializing them
 		var index:int = 0;
@@ -319,13 +311,17 @@ internal class Library implements IDisposableObject
 					// initialize the class
 					var classDef:Class = ClassUtils.getClassDefinition(classQName);
 					
+					// We can't get definitions of internal classes, so classDef may be null.
+					if (!classDef)
+						continue;
+					
 					// register this class as an implementation of every interface it implements.
-					var classInfo:Object = describeTypeJSON(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
+					var classInfo:Object = DescribeType.getInfo(classDef, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
 					for each (var interfaceQName:String in classInfo.traits.interfaces)
 					{
 						var interfaceDef:Class = ClassUtils.getClassDefinition(interfaceQName);
 						if (interfaceDef)
-							WeaveAPI.registerImplementation(interfaceDef, classDef);
+							WeaveAPI.ClassRegistry.registerImplementation(interfaceDef, classDef);
 					}
 				}
 				catch (e:Error)
@@ -337,7 +333,8 @@ internal class Library implements IDisposableObject
 			}
 			return 1;
 		}
-		WeaveAPI.StageUtils.startTask(this, loadingTask, WeaveAPI.TASK_PRIORITY_PARSING, _notifyResponders);
+		// immediate priority because we want a quick startup time
+		WeaveAPI.StageUtils.startTask(this, loadingTask, WeaveAPI.TASK_PRIORITY_IMMEDIATE, _notifyResponders);
 	}
 	
 	/**
@@ -362,7 +359,7 @@ internal class Library implements IDisposableObject
 				_asyncToken.mx_internal::applyFault(faultEvent);
 				_asyncToken = null; // prevent responders from being called again
 				
-				WeaveAPI.SessionManager.disposeObjects(this);
+				WeaveAPI.SessionManager.disposeObject(this);
 			}
 		}
 	}

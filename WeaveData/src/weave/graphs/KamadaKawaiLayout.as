@@ -19,25 +19,8 @@
 
 package weave.graphs
 {
-	import flash.geom.Point;
-	import flash.system.fscommand;
-	import flash.utils.Dictionary;
-	
-	import mx.events.RSLEvent;
-	import mx.rpc.AsyncToken;
-	import mx.rpc.events.FaultEvent;
-	import mx.rpc.events.ResultEvent;
-	
-	import weave.api.WeaveAPI;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.graphs.IGraphAlgorithm;
-	import weave.api.graphs.IGraphNode;
 	import weave.api.primitives.IBounds2D;
-	import weave.services.DelayedAsyncResponder;
-	import weave.services.WeaveRServlet;
-	import weave.services.beans.RResult;
 	
 	/**
 	 * This class is a layout algorithm using the PDE minimizing approach described

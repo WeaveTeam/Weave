@@ -35,7 +35,7 @@
 			<mx:TextInput id="importDBFFileNameInputToStore" enabled="true"/>
 			<mx:Button label="Upload ..." click="browseAndUploadDBFFiles();"/>
 		</mx:HBox>
-		<admin:SQLTableSelectorDialog id="tableSelector" tableOverwriteCheckVisible="{Admin.instance.currentUserIsSuperuser}"/>
+		<admin:SQLTableSelectorDialog id="tableSelector" tableOverwriteCheckVisible="{admin.currentUserIsSuperuser}"/>
 		<ui:Center>
 			<mx:VBox>
 				<mx:Label text="Note: This does not create a Weave configuration entry yet, it only uploads the data to a SQL table."/>
@@ -47,20 +47,27 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
-			import mx.events.FlexEvent;
+			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.reportError;
 			import weave.services.Admin;
-			import weave.services.DelayedAsyncInvocation;
 			
+			[Bindable] private var admin:Admin = Admin.instance;
 			private var dbfFileReference:FileReference = new FileReference();
 			
 			private function browseAndUploadDBFFiles():void
 			{
-				var fileTypes:Array = [new FileFilter("DBF Files", "*.dbf")];
-				dbfFileReference.browse(fileTypes);
+				try
+				{
+					var fileTypes:Array = [new FileFilter("DBF Files", "*.dbf")];
+					dbfFileReference.browse(fileTypes);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			
 			private function dbfFileSelectedHandler(event:Event):void
@@ -103,7 +110,7 @@
 					Alert.show("You must specify the name of the destination SQL table.", alertTitle);
 				else
 				{
-					var query:DelayedAsyncInvocation = Admin.instance.storeDBFDataToDatabase(
+					var query:AsyncToken = Admin.instance.storeDBFDataToDatabase(
 						importDBFFileNameInputToStore.text,
 						tableSelector.activeSchema,
 						tableSelector.activeTable,

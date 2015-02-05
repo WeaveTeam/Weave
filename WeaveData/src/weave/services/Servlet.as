@@ -30,18 +30,20 @@ package weave.services
 	
 	import mx.core.mx_internal;
 	import mx.rpc.AsyncToken;
+	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.core.IDisposableObject;
 	import weave.api.services.IAsyncService;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * This is an IAsyncService interface for a servlet that takes its parameters from URL variables.
 	 * 
 	 * @author adufilie
 	 */	
-	public class Servlet implements IAsyncService
+	public class Servlet implements IAsyncService, IDisposableObject
 	{
 		public static const REQUEST_FORMAT_VARIABLES:String = URLLoaderDataFormat.VARIABLES;
 		public static const REQUEST_FORMAT_BINARY:String = URLLoaderDataFormat.BINARY;
@@ -61,8 +63,18 @@ package weave.services
 			METHOD = methodVariableName;
 		}
 		
+		/**
+		 * The name of the property which contains the remote method name.
+		 */
 		private var METHOD:String = "method";
+		/**
+		 * The name of the property which contains method parameters.
+		 */
 		private var PARAMS:String = "params";
+		/**
+		 * The name of the property which specifies the index in the params Array that corresponds to an InputStream on the server side.
+		 */
+		private var STREAM_PARAM_INDEX:String = "streamParameterIndex";
 		
 		/**
 		 * This is the base URL of the servlet.
@@ -129,7 +141,7 @@ package weave.services
 				request.data = new URLVariables();
 				
 				// set url variable for the method name
-				if(methodName)
+				if (methodName)
 					request.data[METHOD] = methodName;
 				
 				if (methodParameters != null)
@@ -138,7 +150,7 @@ package weave.services
 					for (var name:String in methodParameters)
 					{
 						if (methodParameters[name] is Array)
-							request.data[name] = WeaveAPI.CSVParser.createCSV([methodParameters[name]]);
+							request.data[name] = WeaveAPI.CSVParser.createCSVRow(methodParameters[name]);
 						else
 							request.data[name] = methodParameters[name];
 					}
@@ -151,7 +163,7 @@ package weave.services
 				var obj:Object = new Object();
 				obj[METHOD] = methodName;
 				obj[PARAMS] = methodParameters;
-				obj["streamParameterIndex"] = -1; // index of stream parameter
+				obj[STREAM_PARAM_INDEX] = -1; // index of stream parameter
 				
 				var streamContent:ByteArray = null;
 				var params:Array = methodParameters as Array;
@@ -163,7 +175,7 @@ package weave.services
 							break;
 					if (index < params.length)
 					{
-						obj.streamParameterIndex = index; // tell the server about the stream parameter index
+						obj[STREAM_PARAM_INDEX] = index; // tell the server about the stream parameter index
 						streamContent = params[index];
 						params[index] = null; // keep the placeholder where the server will insert the stream parameter
 					}
@@ -225,17 +237,33 @@ package weave.services
 		 * This mapping is necessary so a client with an AsyncToken can cancel the loader. 
 		 */		
 		private const _asyncTokenData:Dictionary = new Dictionary();
-				
+		
 		private function resultHandler(event:ResultEvent, token:AsyncToken):void
 		{
-			token.mx_internal::applyResult(event);
-			delete _asyncTokenData[token];
+			if (_asyncTokenData[token] !== undefined)
+			{
+				token.mx_internal::applyResult(event);
+				delete _asyncTokenData[token];
+			}
 		}
 		
 		private function faultHandler(event:FaultEvent, token:AsyncToken):void
 		{
-			token.mx_internal::applyFault(event);
-			delete _asyncTokenData[token];
+			if (_asyncTokenData[token] !== undefined)
+			{
+				token.mx_internal::applyFault(event);
+				delete _asyncTokenData[token];
+			}
+		}
+		
+		public function dispose():void
+		{
+			var fault:Fault = new Fault('Notification', 'Servlet was disposed', null);
+			for each (var token:AsyncToken in VectorUtils.getKeys(_asyncTokenData))
+			{
+				var event:FaultEvent = new FaultEvent(FaultEvent.FAULT, false, true, fault, token);
+				faultHandler(event, token);
+			}
 		}
 	}
 }

@@ -26,10 +26,19 @@ package weave.visualization.plotters
 	
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	
-	public class ThermometerPlotter extends MeterPlotter
+	public class ThermometerPlotter extends MeterPlotter implements ISelectableAttributes
 	{
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Meter"];
+		}
+		public function getSelectableAttributes():Array
+		{
+			return [meterColumn];
+		}
 		
 		// reusable point objects
 		private const bottom:Point = new Point(), top:Point = new Point();

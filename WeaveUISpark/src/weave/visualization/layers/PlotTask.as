@@ -27,15 +27,14 @@ package weave.visualization.layers
 	import flash.utils.getTimer;
 	
 	import mx.utils.ObjectUtil;
-	import mx.utils.StringUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
+	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkBindableProperty;
 	import weave.api.linkableObjectIsBusy;
@@ -44,6 +43,7 @@ package weave.visualization.layers
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
+	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.primitives.Bounds2D;
@@ -64,14 +64,6 @@ package weave.visualization.layers
 		public static var debugMouseDownPause:Boolean = false;
 		public static var debugIgnoreSpatialIndex:Boolean = false;
 		
-		private static const $debugTrace:Function = debugTrace;
-		
-		private function debugTrace(...args):void
-		{
-			args.unshift(debugId(_plotter),debugId(this),toString());
-			$debugTrace.apply(null, args);
-		}
-		
 		public function toString():String
 		{
 			var type:String = ['subset','selection','probe'][_taskType];
@@ -83,11 +75,11 @@ package weave.visualization.layers
 					type
 				].join('-');
 				
-				if (debug && linkableObjectIsBusy(this))
+				if (linkableObjectIsBusy(this))
 					str += '(busy)';
 				return str;
 			}
-			return StringUtil.substitute('PlotTask({0}, {1})', type, getQualifiedClassName(_plotter).split(':').pop());
+			return StandardLib.substitute('PlotTask({0}, {1})', type, getQualifiedClassName(_plotter).split(':').pop());
 		}
 		
 		public static const TASK_TYPE_SUBSET:int = 0;
@@ -110,7 +102,7 @@ package weave.visualization.layers
 			_layerSettings = layerSettings;
 			
 			// TEMPORARY SOLUTION until we start using VisToolGroup
-			var subsetFilter:IKeyFilter = _plotter.filteredKeySet.keyFilter.getInternalKeyFilter();
+			var subsetFilter:IDynamicKeyFilter = _plotter.filteredKeySet.keyFilter;
 			
 			var keyFilters:Array = [subsetFilter, _layerSettings.selectionFilter, _layerSettings.probeFilter];
 			var keyFilter:ILinkableObject = keyFilters[_taskType];
@@ -119,8 +111,6 @@ package weave.visualization.layers
 			var list:Array = [_plotter, _spatialIndex, _zoomBounds, _layerSettings, keyFilter];
 			for each (var dependency:ILinkableObject in list)
 				registerLinkableChild(_dependencies, dependency);
-			
-			getCallbackCollection(_plotter.filteredKeySet).addImmediateCallback(this, handleKeySetChange, true);
 			
 			_dependencies.addImmediateCallback(this, asyncStart, true);
 			
@@ -133,7 +123,8 @@ package weave.visualization.layers
 			_spatialIndex = null;
 			_zoomBounds = null;
 			_layerSettings = null;
-			disposeObjects(completedBitmap.bitmapData, bufferBitmap.bitmapData);
+			WeaveAPI.SessionManager.disposeObject(completedBitmap.bitmapData);
+			WeaveAPI.SessionManager.disposeObject(bufferBitmap.bitmapData);
 		}
 		
 		public function get taskType():int { return _taskType; }
@@ -184,7 +175,6 @@ package weave.visualization.layers
 		private var _progress:Number = 0;
 		private var _delayInit:Boolean = false;
 		private var _pendingInit:Boolean = false;
-		private var _keyToSortIndex:Dictionary;
 		
 		/**
 		 * This function must be called to set the size of the BitmapData buffer.
@@ -201,20 +191,6 @@ package weave.visualization.layers
 			}
 		}
 		
-		private function handleKeySetChange():void
-		{
-			// save a lookup from key to sorted index
-			// this is very fast
-			_keyToSortIndex = new Dictionary(true);
-			var sorted:Array = _plotter.filteredKeySet.keys;
-			for (var i:int = sorted.length; i--;)
-				_keyToSortIndex[sorted[i]] = i;
-		}
-		private function cachedKeyCompare(key1:IQualifiedKey, key2:IQualifiedKey):int
-		{
-			return ObjectUtil.numericCompare(_keyToSortIndex[key1], _keyToSortIndex[key2]);
-		}
-		
 		/**
 		 * This returns true if the layer should be rendered and selectable/probeable
 		 * @return true if the layer should be rendered and selectable/probeable
@@ -224,12 +200,14 @@ package weave.visualization.layers
 			var visible:Boolean = true;
 			if (!_layerSettings.visible.value)
 			{
-				//debugTrace('visible=false');
+				if (debug)
+					trace(this, 'visible=false');
 				visible = false;
 			}
-			else if (!_layerSettings.selectable.value && _taskType != TASK_TYPE_SUBSET)
+			else if (!_layerSettings.selectable.value && _taskType != TASK_TYPE_SUBSET && !_layerSettings.alwaysRenderSelection.value)
 			{
-				//debugTrace('selection disabled');
+				if (debug)
+					trace(this, 'selection disabled');
 				visible = false;
 			}
 			else
@@ -238,6 +216,10 @@ package weave.visualization.layers
 				if (detectLinkableObjectChange(_spatialIndex.createIndex, _plotter.spatialCallbacks))
 					_spatialIndex.createIndex(_plotter, _layerSettings.hack_includeMissingRecordBounds);
 
+				// if scale is undefined, request geometry detail because this may affect zoomBounds
+				if (isNaN(_zoomBounds.getXScale()))
+					hack_requestGeometryDetail();
+
 				visible = _layerSettings.isZoomBoundsWithinVisibleScale(_zoomBounds);
 			}
 			
@@ -245,9 +227,9 @@ package weave.visualization.layers
 			{
 				WeaveAPI.SessionManager.unassignBusyTask(_dependencies);
 				
-				disposeObjects(bufferBitmap.bitmapData);
+				disposeObject(bufferBitmap.bitmapData);
 				bufferBitmap.bitmapData = null;
-				disposeObjects(completedBitmap.bitmapData);
+				disposeObject(completedBitmap.bitmapData);
 				completedBitmap.bitmapData = null;
 				completedDataBounds.reset();
 				completedScreenBounds.reset();
@@ -257,62 +239,72 @@ package weave.visualization.layers
 		
 		private function asyncStart():void
 		{
-			if (shouldBeRendered())
+			if (asyncInit())
 			{
-				asyncInit();
-				//debugTrace('begin async rendering');
-				WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_RENDERING, asyncComplete);
+				if (debug)
+					trace(this, 'begin async rendering');
+				// normal priority because rendering is not often a prerequisite for other tasks
+				WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_NORMAL, asyncComplete);
 				
 				// assign secondary busy task in case async task gets cancelled due to busy dependencies
 				WeaveAPI.SessionManager.assignBusyTask(_dependencies, this);
 			}
 			else
 			{
-				//debugTrace('should not be rendered');
+				if (debug)
+					trace(this, 'should not be rendered');
 			}
 		}
 		
-		private function asyncInit():void
+		/**
+		 * @return true if shouldBeRendered() returns true.
+		 */
+		private function asyncInit():Boolean
 		{
+			var shouldRender:Boolean = shouldBeRendered();
 			if (_delayInit)
 			{
 				_pendingInit = true;
-				return;
+				return shouldRender;
 			}
 			_pendingInit = false;
 			
 			_progress = 0;
 			_iteration = 0;
 			_iPendingKey = 0;
-			_pendingKeys = _plotter.filteredKeySet.keys;
-			_recordKeys = [];
-			_zoomBounds.getDataBounds(_dataBounds);
-			_zoomBounds.getScreenBounds(_screenBounds);
-			if (_taskType == TASK_TYPE_SUBSET)
+			if (shouldRender)
 			{
-				// TEMPORARY SOLUTION until we start using VisToolGroup
-				_keyFilter = _plotter.filteredKeySet.keyFilter.getInternalKeyFilter();
-				//_keyFilter = _layerSettings.subsetFilter.getInternalKeyFilter();
-			}
-			else if (_taskType == TASK_TYPE_SELECTION)
-				_keyFilter = _layerSettings.selectionFilter.getInternalKeyFilter();
-			else if (_taskType == TASK_TYPE_PROBE)
-				_keyFilter = _layerSettings.probeFilter.getInternalKeyFilter();
+				_pendingKeys = _plotter.filteredKeySet.keys;
+				_recordKeys = [];
+				_zoomBounds.getDataBounds(_dataBounds);
+				_zoomBounds.getScreenBounds(_screenBounds);
+				if (_taskType == TASK_TYPE_SUBSET)
+				{
+					// TEMPORARY SOLUTION until we start using VisToolGroup
+					_keyFilter = _plotter.filteredKeySet.keyFilter.getInternalKeyFilter();
+					//_keyFilter = _layerSettings.subsetFilter.getInternalKeyFilter();
+				}
+				else if (_taskType == TASK_TYPE_SELECTION)
+					_keyFilter = _layerSettings.selectionFilter.getInternalKeyFilter();
+				else if (_taskType == TASK_TYPE_PROBE)
+					_keyFilter = _layerSettings.probeFilter.getInternalKeyFilter();
 			
-			// stop immediately if we shouldn't be rendering
-			if (shouldBeRendered())
-			{
-				//debugTrace(this.toString(),'clear');
+				if (debug)
+					trace(this, 'clear');
 				// clear bitmap and resize if necessary
 				PlotterUtils.setBitmapDataSize(bufferBitmap, _unscaledWidth, _unscaledHeight);
 			}
 			else
 			{
+				// clear graphics if not already cleared
 				PlotterUtils.emptyBitmapData(bufferBitmap);
 				PlotterUtils.emptyBitmapData(completedBitmap);
 				completedDataBounds.reset();
 				completedScreenBounds.reset();
+				_pendingKeys = null;
+				_recordKeys = null;
 			}
+			return shouldRender;
 		}
 		
 		private function asyncIterate(stopTime:int):Number
@@ -326,7 +318,8 @@ package weave.visualization.layers
 			// if plotter is busy, stop immediately
 			if (WeaveAPI.SessionManager.linkableObjectIsBusy(_dependencies))
 			{
-				//debugTrace('dependencies are busy');
+				if (debug)
+					trace(this, 'dependencies are busy');
 				if (!debugIgnoreSpatialIndex)
 					return 1;
 				
@@ -341,16 +334,15 @@ package weave.visualization.layers
 			{
 				_prevBusyGroupTriggerCounter = _dependencies.triggerCounter;
 				
-				asyncInit();
-				
 				// stop immediately if we shouldn't be rendering
-				if (!shouldBeRendered())
+				if (!asyncInit())
 					return 1;
 				
 				// stop immediately if the bitmap is invalid
 				if (PlotterUtils.bitmapDataIsEmpty(bufferBitmap))
 				{
-					//debugTrace('bitmap is empty');
+					if (debug)
+						trace(this, 'bitmap is empty');
 					return 1;
 				}
 				
@@ -390,7 +382,8 @@ package weave.visualization.layers
 						}
 					}
 				}
-				//debugTrace(this.toString(),'recordKeys',_recordKeys.length);
+				if (debug)
+					trace(this, 'recordKeys', _recordKeys.length);
 				
 				// done with keys
 				_pendingKeys = null;
@@ -406,13 +399,23 @@ package weave.visualization.layers
 				// delay asyncInit() while calling plotter function in case it triggers callbacks
 				_delayInit = true;
 				
+				if (debug)
+					trace(this, 'before iteration', _iteration, 'recordKeys', recordKeys.length);
 				_progress = _plotter.drawPlotAsyncIteration(this);
-				//debugTrace(this.toString(),'iteration',_iteration,'progress',_progress);
+				if (debug)
+					trace(this, 'after iteration', _iteration, 'progress', _progress, 'recordKeys', recordKeys.length);
 				
 				_delayInit = false;
 				
 				if (_pendingInit)
-					asyncInit(); // restart from first iteration
+				{
+					// if we get here it means the plotter draw function triggered callbacks
+					// and we need to restart the async task.
+					if (asyncInit())
+						return asyncIterate(stopTime);
+					else
+						return 1;
+				}
 				else
 					_iteration++; // prepare for next iteration
 			}
@@ -422,7 +425,8 @@ package weave.visualization.layers
 		
 		private function asyncComplete():void
 		{
-			//debugTrace('rendering completed');
+			if (debug)
+				trace(this, 'rendering completed');
 			_progress = 0;
 			// don't do anything else if dependencies are busy
 			if (WeaveAPI.SessionManager.linkableObjectIsBusy(_dependencies))
@@ -452,6 +456,8 @@ package weave.visualization.layers
 		
 		private function hack_requestGeometryDetail():void
 		{
+			_zoomBounds.getDataBounds(_dataBounds);
+			_zoomBounds.getScreenBounds(_screenBounds);
 			var minImportance:Number = _dataBounds.getArea() / _screenBounds.getArea();
 			
 			// find nested StreamedGeometryColumn objects

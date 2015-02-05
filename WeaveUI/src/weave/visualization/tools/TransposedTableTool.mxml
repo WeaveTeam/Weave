@@ -26,7 +26,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
 				   layout="absolute"
 				   title="{lang('Transposed Data Table')}" xmlns:editors="weave.editors.*"
-				   implements="weave.api.ui.IVisToolWithSelectableAttributes,weave.api.data.ICSVExportable"
+				   implements="weave.api.ui.IVisTool, weave.api.ui.ISelectableAttributes"
 				   >
 	
 	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0">
@@ -56,7 +56,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import mx.events.DataGridEvent;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
@@ -65,7 +64,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableHashMap;
-			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.FilteredKeySet;
@@ -74,7 +72,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.NumberUtils;
 			
-			WeaveAPI.registerImplementation(IVisTool, TransposedTableTool, lang("Transposed Data Table"));
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TransposedTableTool, "Transposed Data Table");
 			
 			public const columns:LinkableHashMap = newLinkableChild(this,LinkableHashMap,handleColumnsListChange,true);
 			public const headerAttributeColumn:DynamicColumn = newLinkableChild(this,DynamicColumn,createHeaderColumns,true);
@@ -86,16 +84,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			[Bindable]
 			private var sourceArrayCollection:ArrayCollection = new ArrayCollection();
 
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
-				keySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+				super.inConstructor();
+				keySet.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 			}
 			
 			override protected function childrenCreated():void
 			{
-				columnsList.hashMap = columns;
-				linkBindableProperty(headerText,headerTextInput,"text");
+				super.childrenCreated();
 				getCallbackCollection(LinkableTextFormat.defaultTextFormat).addImmediateCallback(this,invalidateDisplayList);
 			}
 			
@@ -111,7 +108,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public function getSelectableAttributeNames():Array
 			{
-				return [lang("Header row"), lang("Data rows")];
+				return ["Header row", "Data rows"];
 			}
 			public function getSelectableAttributes():Array
 			{
@@ -219,7 +216,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			{
 				var columnWidth:Number = (table.columns[event.columnIndex] as DataGridColumn).width;
 				var target:LinkableString = (event.columnIndex == 0) ? headerColumnWidth : dataColumnWidth;
-				if (sessionPanelCoordsAsPercentages)
+				if (enablePercentageCoords)
 					target.value = String(columnWidth / unscaledWidth * 100) + '%';
 				else
 					target.value = String(columnWidth);
@@ -244,13 +241,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					table.horizontalScrollPosition = 0;
 			}
 			
-			public function exportCSV():String
-			{
-				var cols:Array = columns.getObjects();
-				cols.unshift(headerColumn);
-				return ColumnUtils.generateTableCSV(cols);
-			}
-			
 			[Deprecated(replacement="headerColumnWidth")] public function set headerColumnPercentWidth(value:Number):void
 			{
 				headerColumnWidth.value = String(value) + '%';
@@ -268,15 +258,27 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			}
 		]]>
 	</mx:Script>
-	<ui:ControlPanel>
+	<ui:editorFactory><mx:Component><ui:ControlPanel>
 		<mx:VBox id="attributesPanel" label="{lang('Data')}">
 			<mx:HBox>
-				<mx:Label text="{lang('Corner header:')}" fontWeight="bold"/>
+				<mx:Label text="{lang('Corner header:')}"/>
 				<mx:TextInput id="headerTextInput" width="300"/>
 			</mx:HBox>
-			<ui:DynamicColumnComponent id="headerColumn" visTool="{this}" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = headerAttributeColumn" />
-			<ui:ColumnListComponent id="columnsList" visTool="{this}" backgroundAlpha="0.7" height="100%" width="100%"/>
+			<ui:DynamicColumnComponent id="headerColumn" creationComplete="(event.target as DynamicColumnComponent).dynamicObject = outerDocument.headerAttributeColumn" />
+			<ui:ColumnListComponent id="columnsList" backgroundAlpha="0.7" height="100%" width="100%"/>
 		</mx:VBox>
-		<editors:WindowSettingsEditor target="{this}"/>
-	</ui:ControlPanel>
+		<editors:WindowSettingsEditor target="{outerDocument}"/>
+		<mx:Script>
+			<![CDATA[
+				import weave.api.linkBindableProperty;
+				
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					columnsList.hashMap = outerDocument.columns;
+					linkBindableProperty(outerDocument.headerText, headerTextInput, "text");
+				}
+			]]>
+		</mx:Script>
+	</ui:ControlPanel></mx:Component></ui:editorFactory>
 </ui:DraggablePanel>

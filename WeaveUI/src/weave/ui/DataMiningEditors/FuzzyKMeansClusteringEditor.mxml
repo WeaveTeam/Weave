@@ -60,7 +60,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.services.WeaveRServlet;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
-			import weave.visualization.tools.SimpleVisTool;
 			
 			public const inputColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 			private var Rservice:WeaveRServlet = new WeaveRServlet(Weave.properties.rServiceURL.value);
@@ -76,10 +75,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private var fuzzkMeansRandomSets:NumberInputComponent;
 			private var fuzzkMeansMetric:ChoiceInputComponent;
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();
-				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				super.inConstructor();
+				var columns:Array = ColumnUtils.getColumnsWithCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					inputColumns.requestObjectCopy(null, columns[i]);
 			}
@@ -94,6 +93,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			override protected function createChildren():void
 			{
+				if (createdChildren)
+					return;
 				super.createChildren();
 				fuzzkMeansClusterInput = new NumberInputComponent("fkClusterNumber", "5");
 				fuzzkMeansClusterInput.label = "Enter the number of clusters";

@@ -1,20 +1,20 @@
 /*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
 
-    This file is a part of Weave.
+	This file is a part of Weave.
 
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
 
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.application
@@ -25,27 +25,16 @@ package weave.application
 	import flash.ui.ContextMenu;
 	import flash.ui.ContextMenuItem;
 	
-	import mx.core.FlexGlobals;
-	import mx.events.FlexEvent;
-	import mx.managers.PopUpManager;
-	import mx.rpc.AsyncToken;
-	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.copySessionState;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.data.IDataRowSource;
-	import weave.api.ui.IVisTool;
-	import weave.core.LinkableHashMap;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
-	import weave.services.addAsyncResponder;
+	import weave.api.data.IQualifiedKey;
 	import weave.ui.CustomContextMenuManager;
-	import weave.ui.DataMiningEditors.DataMiningPlatter;
-	import weave.ui.DraggablePanel;
-	import weave.ui.RecordDataTable;
-	import weave.visualization.tools.DataStatisticsTool;
-	import weave.visualization.tools.SimpleVisTool;
+
+	import weave.data.DataSources.AnnotationDataSource;
+	import weave.ui.AlertTextBox;
+	import weave.ui.AlertTextBoxEvent;
 	
 	/**
 	 * TODO: this code should be moved into the multiVisLayer class
@@ -61,7 +50,8 @@ package weave.application
 		private static var _addToSubsetCMI:ContextMenuItem = null;
 		private static var _removeFromSubsetCMI:ContextMenuItem = null;
 		private static var _showAllRecordsCMI:ContextMenuItem = null;
-		private static var _viewRecordCMI:ContextMenuItem = null;
+		private static var _annotateRecordsCMI:ContextMenuItem = null;
+//		private static var _viewRecordCMI:ContextMenuItem = null;
 /*
 // TODO: move this clustering code to the appropriate locations: DataMiningPlatter, DataStatisticsTool
 		private static var _runClusteringonSubsetCMI:ContextMenuItem = null;
@@ -80,11 +70,29 @@ package weave.application
 		private static const SUBSET_CREATE_PROBE_CAPTION:String     = lang("Create subset from highlighted record(s)");
 		private static const SUBSET_REMOVE_SELECTION_CAPTION:String = lang("Remove selected record(s) from subset");
 		private static const SUBSET_REMOVE_PROBE_CAPTION:String     = lang("Remove highlighted record(s) from subset");
+		private static const ANNOTATE_SELECTED_RECORDS_CAPTION:String = lang("Annotate selected record(s)");
+		private static const ANNOTATE_HIGHLIGHTED_RECORDS_CAPTION:String = lang("Annotate highlighted record(s)");
 		
 /*
 		private static const SUBSET_RUN_CLUSTERING_CAPTION:String           = lang("Run clustering on subset");
 		private static const SUBSET_DO_STATISTICS_CAPTION:String = lang("Compute Statistics on subset");
 */		
+		private static function get _defaultAnnotationSource():AnnotationDataSource
+		{
+			var annotationSource:AnnotationDataSource;
+
+			var annotationSourceList:Array = WeaveAPI.globalHashMap.getObjects(AnnotationDataSource);
+
+			if (annotationSourceList.length)
+				annotationSource = annotationSourceList[0] as AnnotationDataSource;
+			else
+			{
+				annotationSource = WeaveAPI.globalHashMap.requestObject("Annotations", AnnotationDataSource, false);
+				annotationSource.addDefaultProbeColumn();
+			}
+
+			return annotationSource;
+		}
 		/**
 		 * @param context Any object created as a descendant of a Weave instance.
 		 * @param destination The display object to add the context menu items to.
@@ -115,6 +123,8 @@ package weave.application
 						
 						// create subset only if we have something selected
 						_createSubsetCMI.enabled   		= usingSelection;
+						_annotateRecordsCMI.enabled		= usingSelection;
+
 /*
 						_runClusteringonSubsetCMI.enabled       = usingSelection;
 						_doStatisticsonSubsetCMI.enabled  = usingSelection;
@@ -125,6 +135,7 @@ package weave.application
 						{
 							_removeFromSubsetCMI.caption = SUBSET_REMOVE_SELECTION_CAPTION;
 							_createSubsetCMI.caption     = SUBSET_CREATE_SELECTION_CAPTION;
+							_annotateRecordsCMI.caption  = ANNOTATE_SELECTED_RECORDS_CAPTION;
 /*
 							_runClusteringonSubsetCMI.caption = SUBSET_RUN_CLUSTERING_CAPTION;
 							_doStatisticsonSubsetCMI.caption = SUBSET_DO_STATISTICS_CAPTION;
@@ -133,12 +144,13 @@ package weave.application
 						// if there is not a selection and something is probed, then use it for the subset 
 						else if(_localProbeKeySet.keys.length > 0)
 						{
-							_viewRecordCMI.enabled = true;
-							_viewRecordCMI.caption = lang("Show data for highlighted record" + ((_localProbeKeySet.keys.length > 1)? "s" : "" ));
+//							_viewRecordCMI.enabled = true;
+//							_viewRecordCMI.caption = lang("Show data for highlighted record" + ((_localProbeKeySet.keys.length > 1)? "s" : "" ));
 							_removeFromSubsetCMI.caption = SUBSET_REMOVE_PROBE_CAPTION;
 							_createSubsetCMI.caption     = SUBSET_CREATE_PROBE_CAPTION;
+							_annotateRecordsCMI.caption  = ANNOTATE_HIGHLIGHTED_RECORDS_CAPTION;
 						}
-						if(_localProbeKeySet.keys.length <= 0 ) _viewRecordCMI.enabled = false;
+//						if(_localProbeKeySet.keys.length <= 0 ) _viewRecordCMI.enabled = false;
 						
 						// add to subset only if we have a subset already and we have something selected
 						//_addToSubsetCMI.enabled    		= usingSelection && usingSubset;
@@ -223,7 +235,7 @@ package weave.application
 				},
 				groupName
 				
-		    	);
+				);
 */				
 				
 				
@@ -278,6 +290,32 @@ package weave.application
 					groupName
 				);
 
+			_annotateRecordsCMI = CustomContextMenuManager.createAndAddMenuItemToDestination(
+					ANNOTATE_HIGHLIGHTED_RECORDS_CAPTION,
+					destination,
+					function (e:Event):void
+					{
+						var keys:Array;
+						if (selection.keys.length > 0)
+							keys = selection.keys;
+						else if (_localProbeKeySet.keys.length > 0)
+							keys = _localProbeKeySet.keys;
+						
+						var annotateBox:AlertTextBox = AlertTextBox.show(lang("Annotate Records"),  lang("Annotation for record(s):"), _defaultAnnotationSource.getAnnotation(keys[0]));
+						annotateBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function (e:AlertTextBoxEvent):void {
+							if (!e.confirm) return;
+							var value:String = annotateBox.textInput;
+							for (var idx:int = 0; idx < keys.length; idx++)
+							{
+								_defaultAnnotationSource.setAnnotation(keys[idx], value);
+							}
+						});
+
+
+					},
+					groupName
+				);
+			/*
 			// create and add the view record(s) context menu item
 			_viewRecordCMI = CustomContextMenuManager.createAndAddMenuItemToDestination(
 				lang("Show data for highlighted record"),
@@ -301,9 +339,9 @@ package weave.application
 				},
 				groupName
 				);
-			
-        	return true;
-        }
+			*/
+			return true;
+		}
 		
 	}
 }

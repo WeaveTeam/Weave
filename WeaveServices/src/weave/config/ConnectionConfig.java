@@ -21,6 +21,7 @@ package weave.config;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.sql.Connection;
@@ -47,6 +48,7 @@ import weave.utils.FileUtils;
 import weave.utils.MapUtils;
 import weave.utils.ProgressManager;
 import weave.utils.SQLUtils;
+import weave.utils.Strings;
 import weave.utils.XMLUtils;
 
 /**
@@ -58,6 +60,7 @@ public class ConnectionConfig
 {
 	public static final String XML_FILENAME = "sqlconfig.xml";
 	public static final String DTD_FILENAME = "sqlconfig.dtd";
+	public static final String SQLITE_DB_FILENAME = "weave.db";
 	public static final URL DTD_EMBEDDED = ConnectionConfig.class.getResource("/weave/config/" + DTD_FILENAME);
 	
 	public ConnectionConfig(File file)
@@ -73,6 +76,19 @@ public class ConnectionConfig
 	private DatabaseConfigInfo _databaseConfigInfo;
 	private Map<String,ConnectionInfo> _connectionInfoMap = new HashMap<String,ConnectionInfo>();
 	private Connection _adminConnection = null;
+	
+	/**
+	 * Creates an empty SQLite database file if it doesn't already exist.
+	 * This is only used if SQLite is the chosen config storage location.
+	 * @return A reference to the SQLite database file.
+	 * @throws IOException
+	 * /
+	private File getSQLiteDatabaseFile() throws IOException
+	{
+		File f = new File(_file.getParent(), SQLITE_DB_FILENAME);
+		f.createNewFile();
+		return f;
+	}*/
 	
 	public long getLastModified() throws RemoteException
 	{
@@ -368,10 +384,27 @@ public class ConnectionConfig
 		{
 		}
 		
+		/**
+		 * If using SQLite, this will make sure the schema name is set to the default SQLite schema name.
+		 */
+		public void validateSchema()
+		{
+			try
+			{
+				if (Strings.equal(SQLUtils.getDbmsFromConnectString(this.connection), SQLUtils.SQLITE))
+					this.schema = SQLUtils.DEFAULT_SQLITE_DATABASE;
+			}
+			catch (RemoteException e)
+			{
+				// won't happen
+			}
+		}
+		
 		public void copyFrom(Map<String,String> other)
 		{
 			this.connection = other.get("connection");
 			this.schema = other.get("schema");
+			validateSchema();
 			geometryConfigTable = other.get("geometryConfigTable");
 			dataConfigTable = other.get("dataConfigTable");
 		}
@@ -379,6 +412,7 @@ public class ConnectionConfig
 		{
 			this.connection = other.connection;
 			this.schema = other.schema;
+			validateSchema();
 			this.geometryConfigTable = other.geometryConfigTable;
 			this.dataConfigTable = other.dataConfigTable;
 		}
@@ -412,16 +446,14 @@ public class ConnectionConfig
 		{
 		}
 		
-		private boolean isEmpty(String str) { return str == null || str.length() == 0; }
-		
 		public void validate() throws RemoteException
 		{
 			String missingField = null;
-			if (isEmpty(name))
+			if (Strings.isEmpty(name))
 				missingField = "name";
-			else if (isEmpty(pass))
+			else if (Strings.isEmpty(pass))
 				missingField = "password";
-			else if (isEmpty(connectString))
+			else if (Strings.isEmpty(connectString))
 				missingField = "connectString";
 			if (missingField != null)
 				throw new RemoteException(String.format("Connection %s must be specified", missingField));

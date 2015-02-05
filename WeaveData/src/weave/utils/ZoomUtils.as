@@ -101,7 +101,7 @@ package weave.utils
 		public static function conformDataBoundsToAspectRatio(dataBoundsToModify:IBounds2D, screenBounds:IBounds2D, aspectRatio:Number):void
 		{
 			// do nothing if aspectRatio is NaN or screenBounds is empty
-			if (isNaN(aspectRatio) || screenBounds.isEmpty())
+			if (!isFinite(aspectRatio) || screenBounds.isEmpty())
 				return;
 			
 			var xPixels:Number = screenBounds.getXCoverage();
@@ -162,7 +162,7 @@ package weave.utils
 			tempBounds.copyFrom(dataBounds);
 			
 			// stop if values are undefined/empty
-			if (tempBounds.isUndefined() || tempBounds.isEmpty() || screenBounds.isEmpty())
+			if (tempBounds.isEmpty() || screenBounds.isEmpty())
 				return;
 			
 			// the dataBounds width,height will change by a factor of (1 / relativeScale) because scale is data coords per screen coords

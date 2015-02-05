@@ -15,6 +15,7 @@
 
 package weave.api.core
 {
+	import flash.display.Stage;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
@@ -41,6 +42,7 @@ package weave.api.core
 		function addEventCallback(eventType:String, relevantContext:Object, callback:Function, runCallbackNow:Boolean = false):void;
 		
 		/**
+		 * Removes a callback that was previously added with addEventCallback().
 		 * @param eventType The name of the event to remove a callback for, one of the static values in the MouseEvent class.
 		 * @param callback The function to remove from the list of callbacks.
 		 */
@@ -58,9 +60,8 @@ package weave.api.core
 		 * @param relevantContext This parameter may be null.  If the relevantContext object gets disposed, the specified method will not be called.
 		 * @param method The function to call later.
 		 * @param parameters The parameters to pass to the function.
-		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 */
-		function callLater(relevantContext:Object, method:Function, parameters:Array = null, priority:uint = 2):void;
+		function callLater(relevantContext:Object, method:Function, parameters:Array = null):void;
 		
 		/**
 		 * This will start an asynchronous task, calling iterativeTask() across multiple frames until it returns a value of 1 or the relevantContext object is disposed.
@@ -146,9 +147,15 @@ package weave.api.core
 		 * </listing>
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 * @param finalCallback A function that should be called after the task is completed.
-		 * @see weave.api.WeaveAPI
+		 * @param description A description for the task.
+		 * @see WeaveAPI
 		 */
-		function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null):void;
+		function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null, description:String = null):void;
+		
+		/**
+		 * This is the stage.
+		 */
+		function get stage():Stage;
 		
 		/**
 		 * This is the last event that occurred on the stage.
@@ -174,26 +181,31 @@ package weave.api.core
 		function get keyboardEvent():KeyboardEvent;
 		
 		/**
+		 * Use this to test if the SHIFT key is currently pressed.
 		 * @return The current pressed state of the ctrl key.
 		 */
 		function get shiftKey():Boolean;
 		
 		/**
+		 * Use this to test if the ALT key is currently pressed.
 		 * @return The current pressed state of the ctrl key.
 		 */
 		function get altKey():Boolean;
 		
 		/**
+		 * Use this to test if the CTRL key is currently pressed.
 		 * @return The current pressed state of the ctrl key.
 		 */
 		function get ctrlKey():Boolean;
 		
 		/**
+		 * Use this to test if the mouse button is currently pressed.
 		 * @return The current pressed state of the mouse button.
 		 */
 		function get mouseButtonDown():Boolean;
 		
 		/**
+		 * Use this to test if the mouse was pressed and released at the same coordinate.
 		 * @return true if the mouse was clicked without moving
 		 */
 		function get pointClicked():Boolean;

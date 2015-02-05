@@ -21,11 +21,10 @@ package weave.ui.DataMiningEditors
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.disposeObjects;
+	import weave.api.disposeObject;
 	import weave.api.newDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.CallbackCollection;
@@ -35,7 +34,6 @@ package weave.ui.DataMiningEditors
 	import weave.services.beans.IDataMiningResult;
 	import weave.services.beans.KMeansClusteringResult;
 	import weave.services.beans.PartitionAroundMedoidsClusteringResult;
-	import weave.utils.ColumnUtils;
 	import weave.utils.ResultUtils;
 
 	/**
@@ -149,7 +147,7 @@ package weave.ui.DataMiningEditors
 				] 
 				5. use this final array to make CSV Datasource*/
 
-				disposeObjects(finalColumnsGroup);
+				disposeObject(finalColumnsGroup);
 				finalColumnsGroup = newDisposableChild(this, CallbackCollection);
 				for(var v:int = 0; v < clusterVectors.length; v++)
 				{

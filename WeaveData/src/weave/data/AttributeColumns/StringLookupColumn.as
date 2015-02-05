@@ -23,13 +23,12 @@ package weave.data.AttributeColumns
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
+	import weave.compiler.StandardLib;
 	import weave.data.QKeyManager;
-	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 	
 	/**
@@ -68,11 +67,11 @@ package weave.data.AttributeColumns
 			{
 				_keyType = getInternalColumn().getMetadata(ColumnMetadata.DATA_TYPE);
 				if (!_keyType)
-					_keyType = DataTypes.STRING;
+					_keyType = DataType.STRING;
 			}
 		}
 		
-		private var _keyType:String = DataTypes.STRING;
+		private var _keyType:String = DataType.STRING;
 		
 		/**
 		 * This object maps a String value from the internal column to an Array of keys that map to that value.
@@ -154,19 +153,9 @@ package weave.data.AttributeColumns
 				}
 			}
 			// sort the unique values because these will be the keys and we want them to be in a predictable order
-			AsyncSort.sortImmediately(_uniqueStringKeys, compareStringKeys);
+			StandardLib.sortOn(_uniqueStringKeys, [_numberLookup, _uniqueStringKeys]);
 			
 			detectLinkableObjectChange(createLookupTable, getInternalColumn());
-		}
-
-		/**
-		 * This function uses _stringToNumberMap to get a numeric value to compare for each string value.
-		 * If the numeric compare returns zero, it does a string compare on the string values instead.
-		 */
-		private function compareStringKeys(stringKey1:IQualifiedKey, stringKey2:IQualifiedKey):int
-		{
-			return ObjectUtil.numericCompare(_numberLookup[stringKey1], _numberLookup[stringKey2])
-				|| QKeyManager.keyCompare(stringKey1, stringKey2);
 		}
 
 		/**

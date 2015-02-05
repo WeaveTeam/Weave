@@ -18,17 +18,22 @@
 */
 package weave.services
 {
-	import flash.external.ExternalInterface;
 	import flash.utils.Dictionary;
 	
+	import mx.controls.Alert;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.StringUtil;
 	import mx.utils.UIDUtil;
+	import mx.utils.URLUtil;
 	
+	import weave.api.data.Aggregation;
 	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataTypes;
+	import weave.api.data.DataType;
+	import weave.api.data.EntityType;
+	import weave.api.linkBindableProperty;
+	import weave.api.services.beans.Entity;
+	import weave.api.services.beans.EntityHierarchyInfo;
+	import weave.compiler.StandardLib;
 	import weave.services.beans.DatabaseConfigInfo;
-	import weave.services.beans.EntityHierarchyInfo;
 
 	public class Admin
 	{
@@ -53,7 +58,10 @@ package weave.services
 		public function get service():WeaveAdminService
 		{
 			if (!_service)
+			{
 				_service = new WeaveAdminService("/WeaveServices");
+				linkBindableProperty(_service.authenticated, this, 'userHasAuthenticated');
+			}
 			return _service;
 		}
 
@@ -65,7 +73,17 @@ package weave.services
 		 */
 		public function getFocusEntityId():int
 		{
+			// if the entity does not exist on the server, don't attempt to focus on it
+			if (!entityCache.entityIsCached(focusEntityId))
+				focusEntityId = -1;
 			return focusEntityId;
+		}
+		public function setFocusEntityId(id:int):void
+		{
+			// Request the entity now so that we can later detect if it
+			// exists on the server by checking entityCache.entityIsCached().
+			entityCache.getEntity(id);
+			focusEntityId = id;
 		}
 		public function clearFocusEntityId():void
 		{
@@ -76,7 +94,7 @@ package weave.services
 		public function get entityCache():EntityCache
 		{
 			if (!_entityCache)
-				_entityCache = new EntityCache();
+				_entityCache = new EntityCache(service, true);
 			return _entityCache;
 		}
 		
@@ -90,18 +108,17 @@ package weave.services
 		[Bindable] public var weaveFileNames:Array = [];
 		[Bindable] public var privateWeaveFileNames:Array = [];
 		[Bindable] public var keyTypes:Array = [];
-		[Bindable] private var dataTypes:Array = [];
-		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo(null);
-		
-		// values the user has currently selected
-		[Bindable] public var activePassword:String = '';
-		
+		[Bindable] public var databaseConfigInfo:DatabaseConfigInfo = new DatabaseConfigInfo();
+		/**
+		 * An Array of WeaveFileInfo objects.
+		 * @see weave.services.beans.WeaveFileInfo
+		 */
 		[Bindable] public var uploadedCSVFiles:Array = [];
+		/**
+		 * An Array of WeaveFileInfo objects.
+		 * @see weave.services.beans.WeaveFileInfo
+		 */
 		[Bindable] public var uploadedShapeFiles:Array = [];
-		
-		private var _activeConnectionName:String = '';
-		
-
 		
 		public function Admin()
 		{
@@ -244,7 +261,7 @@ package weave.services
 				function(event:ResultEvent, token:Object):void
 				{
 					// save info
-					databaseConfigInfo = new DatabaseConfigInfo(event.result);
+					databaseConfigInfo = DatabaseConfigInfo(event.result) || new DatabaseConfigInfo();
 				}
 			);
 			service.addHook(
@@ -300,22 +317,18 @@ package weave.services
 				{
 					// save list
 					if (userHasAuthenticated)
-					{
 						keyTypes = event.result as Array || [];
-						dataTypes = keyTypes.concat();
-						dataTypes.unshift(DataTypes.NUMBER, DataTypes.STRING, DataTypes.GEOMETRY);
-					}
 				}
 			);
 			service.addHook(
 				service.newEntity,
 				null,
-				function(event:ResultEvent, user0_pass1_type2_meta3_parent4_index5:Array):void
+				function(event:ResultEvent, user0_pass1_meta2_parent3_index4:Array):void
 				{
 					var id:int = int(event.result);
 					focusEntityId = id;
 					entityCache.invalidate(id);
-					var parentId:int = user0_pass1_type2_meta3_parent4_index5[4];
+					var parentId:int = user0_pass1_meta2_parent3_index4[3];
 					entityCache.invalidate(parentId);
 				}
 			);
@@ -326,9 +339,23 @@ package weave.services
 		private function handleTableImportResult(event:ResultEvent, token:Object):void
 		{
 			var tableId:int = int(event.result);
+			var exists:Boolean = false;
+			var title:String;
 			var info:EntityHierarchyInfo = entityCache.getBranchInfo(tableId);
 			if (info)
-				weaveTrace(lang('Existing data table "{0}" was updated successfully.', info.title));
+			{
+				exists = true;
+				title = info.title;
+			}
+			else if (entityCache.entityIsCached(tableId))
+			{
+				exists = true;
+				var entity:Entity = entityCache.getEntity(tableId);
+				title = entity.publicMetadata[ColumnMetadata.TITLE];
+			}
+			
+			if (exists)
+				weaveTrace(lang('Existing data table "{0}" was updated successfully.', title));
 			else
 				weaveTrace(lang("New data table created successfully."));
 			
@@ -343,13 +370,13 @@ package weave.services
 			
 		[Bindable] public function get activeConnectionName():String
 		{
-			return _activeConnectionName;
+			return service.user;
 		}
 		public function set activeConnectionName(value:String):void
 		{
-			if (_activeConnectionName == value)
+			if (service.user == value)
 				return;
-			_activeConnectionName = value;
+			service.user = value;
 			
 			// log out and prevent the user from seeing anything while logged out.
 			userHasAuthenticated = false;
@@ -358,31 +385,39 @@ package weave.services
 			weaveFileNames = [];
 			privateWeaveFileNames = [];
 			keyTypes = [];
-			dataTypes = [];
-			databaseConfigInfo = new DatabaseConfigInfo(null);
+			databaseConfigInfo = new DatabaseConfigInfo();
 		}
-		
-		
+		[Bindable] public function get activePassword():String
+		{
+			return service.pass;
+		}
+		public function set activePassword(value:String):void
+		{
+			service.pass = value;
+		}
 
 		//////////////////////////////////////////
 		// LocalConnection Code
 		
+		private static const ADMIN_SESSION_WINDOW_NAME_PREFIX:String = "WeaveAdminSession";
+
 		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
 		{
-			var url:String = 'weave.html?';
+			var params:Object = {};
 			if (fileName)
-				url += 'file=' + fileName + '&'
-			url += 'adminSession=' + createWeaveSession();
-			
+				params['file'] = fileName;
 			if (recover)
-				url += '&recover=true';
-			
-			var target:String = '_blank';
-			var params:String = 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1';
-			
-			// use setTimeout so it will call later without blocking ActionScript
-			var script:String = StringUtil.substitute('setTimeout(function(){ window.open("{0}", "{1}", "{2}"); }, 0)', url, target, params);
-			ExternalInterface.call(script);
+				params['recover'] = true;
+			var success:Boolean = JavaScript.exec(
+				{
+					url: 'weave.html?' + StandardLib.replace(URLUtil.objectToString(params, '&'), '%2F', '/'),
+					target: ADMIN_SESSION_WINDOW_NAME_PREFIX + createWeaveSession(),
+					windowParams: 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1'
+				},
+				'return !!window.open(url, target, windowParams);'
+			);
+			if (!success)
+				Alert.show("Please enable popups in your web browser.", "Popup blocked")
 		}
 		
 
@@ -401,7 +436,7 @@ package weave.services
 				oldWeaveServices[weaveService] = null; // keep a pointer to this old service object until the popup window is closed.
 			}
 			// create a new service with a new name
-			var connectionName:String = UIDUtil.createUID(); // NameUtil.createUniqueName(this);
+			var connectionName:String = StandardLib.replace(UIDUtil.createUID(), '-', '');
 			weaveService = new LocalAsyncService(service, true, connectionName);
 			return connectionName;
 		}
@@ -420,19 +455,20 @@ package weave.services
 		
 		public function getSuggestedPropertyValues(propertyName:String):Array
 		{
+			var suggestions:Array = ColumnMetadata.getSuggestedPropertyValues(propertyName);
 			switch (propertyName)
 			{
 				case 'connection':
 					return connectionNames;
 				
-				case ColumnMetadata.DATA_TYPE:
-					return dataTypes;
-				
 				case ColumnMetadata.KEY_TYPE:
 					return keyTypes;
 				
+				case ColumnMetadata.DATA_TYPE:
+					return suggestions.concat(keyTypes);
+				
 				default:
-					return null;
+					return suggestions;
 			}
 		}
 	}

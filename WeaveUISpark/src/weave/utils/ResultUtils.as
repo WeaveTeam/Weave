@@ -25,11 +25,9 @@ package weave.utils
 	import mx.collections.ArrayCollection;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
-	import weave.api.data.IAttributeColumn;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IQualifiedKey;
 	import weave.data.AttributeColumns.CSVColumn;
-	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.KeySets.KeySet;
@@ -52,12 +50,12 @@ package weave.utils
 			var table:Array = [];
 			for (var k:int = 0; k < keys.length; k++)
 				table.push([(keys[k] as IQualifiedKey).localName, column[k]]);
-			var testColumn:CSVColumn = Weave.root.requestObject(colName, CSVColumn, false);
+			var testColumn:CSVColumn = WeaveAPI.globalHashMap.requestObject(colName, CSVColumn, false);
 			testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
 			testColumn.numericMode.value = true;
 			testColumn.data.setSessionState(table);
 			testColumn.title.value =colName;
-			Weave.defaultColorDataColumn.internalDynamicColumn.globalName = Weave.root.getName(testColumn);
+			Weave.defaultColorDataColumn.internalDynamicColumn.globalName = WeaveAPI.globalHashMap.getName(testColumn);
 			
 		}
 		
@@ -122,47 +120,48 @@ package weave.utils
 		
 		public static function get selection():KeySet
 		{
-		return Weave.root.getObject(Weave.DEFAULT_SELECTION_KEYSET) as KeySet;
+			return Weave.defaultSelectionKeySet;
 		}
 		
 		public static function rResultToColumn(keys:Array, RresultArray:Array,Robj:Array):void
 		{
+			if (!keys)
+				return;
 			//Objects "(object{name: , value:}" are mapped whose value length that equals Keys length
-			for (var p:int = 0;p < RresultArray.length; p++)
+			for (var p:int = 0; p < RresultArray.length; p++)
 			{
-				
-				if(RresultArray[p].value is Array){
-					if(keys){
-						if ((RresultArray[p].value).length == keys.length){
-							if (RresultArray[p].value[0] is String)	{
-								var testStringColumn:StringColumn = Weave.root.requestObject(RresultArray[p].name, StringColumn, false);
-								var keyVec:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-								var dataVec:Vector.<String> = new Vector.<String>();
-								VectorUtils.copy(keys, keyVec);
-								VectorUtils.copy(Robj[p].value, dataVec);
-								testStringColumn.setRecords(keyVec, dataVec);
-								if (keys.length > 0)
-									testStringColumn.metadata.@keyType = (keys[0] as IQualifiedKey).keyType;
-								testStringColumn.metadata.@name = RresultArray[p].name;
-							}
-							else{
-								var table:Array = [];
-								for (var k:int = 0; k < keys.length; k++)
-									table.push([ (keys[k] as IQualifiedKey).localName, Robj[p].value[k] ]);
-								
-								//testColumn are named after respective Objects Name (i.e) object{name: , value:}
-								var testColumn:CSVColumn = Weave.root.requestObject(RresultArray[p].name, CSVColumn, false);
-								testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
-								testColumn.numericMode.value = true;
-								testColumn.data.setSessionState(table);
-								testColumn.title.value = RresultArray[p].name;
-							}
-						}
-					}						
-				}										
+				var data:Array = RresultArray[p].value as Array;
+				if (!data || data.length != keys.length)
+					continue;
+				var title:String = RresultArray[p].name;
+				if (data[0] is String)
+				{
+					var testStringColumn:StringColumn = WeaveAPI.globalHashMap.requestObject(title, StringColumn, false);
+					var keyVec:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+					var dataVec:Vector.<String> = new Vector.<String>();
+					VectorUtils.copy(keys, keyVec);
+					VectorUtils.copy(Robj[p].value, dataVec);
+					testStringColumn.setRecords(keyVec, dataVec);
+					var meta:Object = {};
+					meta[ColumnMetadata.TITLE] = title;
+					if (keys.length > 0)
+						meta[ColumnMetadata.KEY_TYPE] = (keys[0] as IQualifiedKey).keyType;
+					testStringColumn.setMetadata(meta);
+				}
+				else
+				{
+					var table:Array = [];
+					for (var k:int = 0; k < keys.length; k++)
+						table.push([ (keys[k] as IQualifiedKey).localName, Robj[p].value[k] ]);
+					
+					//testColumn are named after respective Objects Name (i.e) object{name: , value:}
+					var testColumn:CSVColumn = WeaveAPI.globalHashMap.requestObject(title, CSVColumn, false);
+					testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
+					testColumn.numericMode.value = true;
+					testColumn.data.setSessionState(table);
+					testColumn.title.value = title;
+				}
 			}
 	   }
-		
-		
 	}
 }

@@ -22,11 +22,11 @@ package weave.core
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.utils.StringUtil;
-	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableOwner;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
@@ -54,29 +54,28 @@ package weave.core
 		 */
 		public function LinkableFunction(defaultValue:String = null, ignoreRuntimeErrors:Boolean = false, useThisScope:Boolean = false, paramNames:Array = null)
 		{
-			super(unIndent(defaultValue));
-			_allLinkableFunctions[this] = true; // register this instance so the callbacks will trigger when the libraries change
+			super(StandardLib.unIndent(defaultValue));
+			macroLibraries.addImmediateCallback(this, triggerCallbacks, false, true);
+			getCallbackCollection(macros).addImmediateCallback(this, handleMacros, false, true);
 			_ignoreRuntimeErrors = ignoreRuntimeErrors;
 			_useThisScope = useThisScope;
 			_paramNames = paramNames && paramNames.concat();
-			getCallbackCollection(this).addImmediateCallback(this, handleChange);
 		}
 		
+		private var _catchErrors:Boolean = false;
 		private var _ignoreRuntimeErrors:Boolean = false;
 		private var _useThisScope:Boolean = false;
 		private var _compiledMethod:Function = null;
 		private var _paramNames:Array = null;
 		private var _isFunctionDefinition:Boolean = false;
-
-		/**
-		 * This is called whenever the session state changes.
-		 */
-		private function handleChange():void
-		{
-			// do not compile immediately because we don't want to throw an error at this time.
-			_compiledMethod = null;
-		}
+		private var _triggerCount:uint = 0;
 		
+		private function handleMacros():void
+		{
+			if (getLinkableOwner(this) != macros)
+				triggerCallbacks();
+		}
+
 		/**
 		 * This is used as a placeholder to prevent re-compiling erroneous code.
 		 */
@@ -87,14 +86,23 @@ package weave.core
 		 */
 		public function validate():void
 		{
-			if (_compiledMethod == null)
+			if (_triggerCount != triggerCounter)
 			{
+				// if this LinkableFunction is in the macros list, errors should be caught and reported.
+				if (macros.getName(this))
+					_catchErrors = true;
+				
+				_triggerCount = triggerCounter;
 				// in case compile fails, prevent re-compiling erroneous code
 				_compiledMethod = RETURN_UNDEFINED;
 				_isFunctionDefinition = false;
 				
 				if (_macroProxy == null)
-					_macroProxy = new ProxyObject(_hasMacro, _getMacro, null, evaluateMacro); // allows evaluating macros but not setting them
+					_macroProxy = new ProxyObject(_hasMacro, evaluateMacro, null, callMacro); // allows evaluating macros but not setting them
+				
+				if (detectLinkableObjectChange(_getNewCompiler, macroLibraries))
+					_compiler = _getNewCompiler(true);
+				
 				var object:ICompiledObject = _compiler.compileToObject(value);
 				_isFunctionDefinition = _compiler.compiledObjectIsFunctionDefinition(object);
 				_compiledMethod = _compiler.compileObjectToFunction(object, _macroProxy, errorHandler, _useThisScope, _paramNames);
@@ -108,6 +116,13 @@ package weave.core
 			
 			if (_ignoreRuntimeErrors || debug)
 				return true;
+			
+			if (_catchErrors)
+			{
+				reportError(e);
+				return false;
+			}
+			
 			throw e;
 		}
 		
@@ -116,7 +131,7 @@ package weave.core
 		 */
 		public function get length():int
 		{
-			if (_compiledMethod == null)
+			if (_triggerCount != triggerCounter)
 				validate();
 			return _compiledMethod.length;
 		}
@@ -129,7 +144,7 @@ package weave.core
 		 */
 		public function apply(thisArg:* = null, argArray:Array = null):*
 		{
-			if (_compiledMethod == null)
+			if (_triggerCount != triggerCounter)
 				validate();
 			return _compiledMethod.apply(thisArg, argArray);
 		}
@@ -142,7 +157,7 @@ package weave.core
 		 */
 		public function call(thisArg:* = null, ...args):*
 		{
-			if (_compiledMethod == null)
+			if (_triggerCount != triggerCounter)
 				validate();
 			return _compiledMethod.apply(thisArg, args);
 		}
@@ -165,24 +180,32 @@ package weave.core
 			return macros.getObject(macroName) != null;
 		}
 		
-		private static function _getMacro(macroName:String):*
+		/**
+		 * This function evaluates a macro specified in the macros hash map,
+		 * catching and reporting any errors that are thrown.
+		 * @param macroName The name of the macro to evaluate.
+		 * @return The result of evaluating the macro.
+		 */
+		public static function evaluateMacro(macroName:String):*
 		{
 			var lf:LinkableFunction = macros.getObject(macroName) as LinkableFunction;
 			if (!lf)
 				return undefined;
+			if (lf._triggerCount != lf.triggerCounter)
+				lf.validate();
 			if (lf._isFunctionDefinition)
 				return lf;
 			return lf.apply();
 		}
-		
-		/**
-		 * This function evaluates a macro specified in the macros hash map.
-		 * @param macroName The name of the macro to evaluate.
-		 * @param params The parameters to pass to the macro.
-		 * @return The result of evaluating the macro.
-		 */
-		public static function evaluateMacro(macroName:String, ...params):*
+		public static function callMacro(macroName:String, ...params):*
 		{
+			// error catching/reporting is handled automatically for LinkableFunctions in the macros list.
+			var lf:LinkableFunction = macros.getObject(macroName) as LinkableFunction;
+			return lf ? lf.apply(null, params) : undefined;
+		}
+		public static function applyMacro(macroName:String, params:Array = null):*
+		{
+			// error catching/reporting is handled automatically for LinkableFunctions in the macros list.
 			var lf:LinkableFunction = macros.getObject(macroName) as LinkableFunction;
 			return lf ? lf.apply(null, params) : undefined;
 		}
@@ -195,7 +218,31 @@ package weave.core
 		/**
 		 * This is a list of libraries to include in the static compiler for macros.
 		 */
-		public static const macroLibraries:LinkableString = new LinkableString();
+		public static const macroLibraries:LinkableVariable = registerLinkableChild(WeaveAPI.globalHashMap, new LinkableVariable(null, verifyLibraries));
+
+		private static function verifyLibraries(state:Object):Boolean
+		{
+			var array:Array = state as Array;
+			
+			// backwards compatibility for String
+			if (state is String)
+				array = WeaveAPI.CSVParser.parseCSVRow(state as String);
+			
+			// handle deprecated class replacements
+			if (array)
+				array = array.map(function(name:String, i:*, a:*):String {
+					var def:Class = Compiler.deprecatedClassReplacements[name] as Class;
+					return def ? getQualifiedClassName(def) : name;
+				});
+			
+			// if we don't have any changes, use the original array
+			if (StandardLib.compare(array, state) == 0)
+				return true;
+			
+			// use the new array
+			macroLibraries.setSessionState(array);
+			return false;
+		}
 		
 		/**
 		 * This function will add a library to the static list of macro libraries if it is not already added.
@@ -203,24 +250,12 @@ package weave.core
 		 */
 		public static function includeMacroLibrary(libraryQName:String):void
 		{
-			var rows:Array = WeaveAPI.CSVParser.parseCSV(macroLibraries.value);
-			for each (var row:Array in rows)
-				if (row.indexOf(libraryQName) >= 0)
-					return;
-			rows.push([libraryQName]);
-			macroLibraries.value = WeaveAPI.CSVParser.createCSV(rows);
-		}
-		
-		staticInit();
-		
-		/**
-		 * This function will initialize static variables.
-		 */
-		private static function staticInit():void
-		{
-			// when the libraries change, we need to update the compiler
-			macroLibraries.addImmediateCallback(null, handleLibrariesChange);
-			macroLibraries.value = getQualifiedClassName(WeaveAPI);
+			var array:Array = macroLibraries.getSessionState() as Array || [];
+			if (array.indexOf(libraryQName) < 0)
+			{
+				array.push(libraryQName);
+				macroLibraries.setSessionState(array);
+			}
 		}
 		
 		/**
@@ -230,20 +265,6 @@ package weave.core
 		private static var _allLinkableFunctions:Dictionary = new Dictionary(true); // the keys in this are LinkableFunction instances
 		
 		/**
-		 * This function will update the static compiler when the static libraries change.
-		 */
-		private static function handleLibrariesChange():void
-		{
-			_compiler = _getNewCompiler(true);
-			for (var linkableFunction:Object in _allLinkableFunctions)
-			{
-				var lf:LinkableFunction = linkableFunction as LinkableFunction;
-				if (!lf.wasDisposed)
-					lf.triggerCallbacks();
-			}
-		}
-		
-		/**
 		 * This function returns a new compiler initialized with the libraries specified by the public static libraries variable.
 		 * @param reportErrors If this is true, errors will be reported through WeaveAPI.ErrorManager.
 		 * @return A new initialized compiler.
@@ -251,19 +272,26 @@ package weave.core
 		private static function _getNewCompiler(reportErrors:Boolean):Compiler
 		{
 			var compiler:Compiler = new Compiler();
-			for each (var row:Array in WeaveAPI.CSVParser.parseCSV(macroLibraries.value))
+			try
 			{
-				try
-				{
-					compiler.includeLibraries.apply(null, row);
-				}
-				catch (e:Error)
-				{
-					if (reportErrors)
-						reportError(e);
-				}
+				compiler.includeLibraries.apply(null, macroLibraries.getSessionState() as Array);
+			}
+			catch (e:Error)
+			{
+				if (reportErrors)
+					reportError(e);
 			}
 			return compiler;
+		}
+		
+		/**
+		 * Tests if an expression is a single, valid symbol name.
+		 */
+		public static function isValidSymbolName(expression:String):Boolean
+		{
+			if (!_compiler)
+				_compiler = _getNewCompiler(true);
+			return _compiler.isValidSymbolName(expression);
 		}
 
 //		/**
@@ -274,42 +302,5 @@ package weave.core
 //		{
 //			return _getNewCompiler(false);
 //		}
-		
-		/**
-		 * Takes a script where all lines have been indented, removes the common indentation from all lines and replaces each tab with four spaces.
-		 * The common indentation is naively assumed to be the same as the first non-blank line in the script.
-		 * @param script A script.
-		 * @return The modified script.
-		 */		
-		public static function unIndent(script:String):String
-		{
-			if (script == null)
-				return null;
-			script = StandardLib.replace(script, '\r\n','\n','\r','\n');
-			while (StringUtil.isWhitespace(script.substr(-1)))
-				script = script.substr(0, -1);
-			var lines:Array = script.split('\n');
-			while (!lines[0] && lines.length)
-				lines.shift();
-			
-			if (!lines.length)
-				return '';
-			var indent:int = 0;
-			var line:String = lines[0];
-			while (line.charAt(indent) == '\t')
-				indent++;
-			for (var i:int = 0; i < lines.length; i++)
-			{
-				line = lines[i];
-				var t:int = 0;
-				var spaces:String = '';
-				while (line.charAt(t) == '\t')
-					if (t++ >= indent)
-						spaces += '    ';
-				
-				lines[i] = spaces + line.substr(t);
-			}
-			return lines.join('\n') + '\n';
-		}
 	}
 }

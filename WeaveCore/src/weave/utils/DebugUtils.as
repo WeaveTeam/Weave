@@ -29,8 +29,6 @@ package weave.utils
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.utils.StringUtil;
-	
 	import weave.compiler.StandardLib;
 	
 	/**
@@ -69,7 +67,7 @@ package weave.utils
 			bytes1.position = 0;
 			bytes2.position = 0;
 			
-			weaveTrace(StringUtil.substitute('array.length {0}, bytes1.length {1}, bytes2.length {2}',array.length,bytes1.length, bytes2.length));
+			weaveTrace(StandardLib.substitute('array.length {0}, bytes1.length {1}, bytes2.length {2}',array.length,bytes1.length, bytes2.length));
 			
 			DebugTimer.begin();
 			
@@ -241,20 +239,41 @@ package weave.utils
 		 **  Miscellaneous  **
 		 *********************/
 		
-		public static function debugDisplayList(root:DisplayObject, maxDepth:int = -1, currentDepth:int = 0):String
+		public static function debugDisplayList(root:DisplayObject, maxDepth:int = -1, labelPropertyOrFunction:* = 'name'):String
 		{
-			var pad:String = StandardLib.lpad('', currentDepth * 2, '| ');
+			return _debugDisplayList(root, maxDepth, labelPropertyOrFunction, 0, '', '');
+		}
+		private static function _debugDisplayList(root:DisplayObject, maxDepth:int, labelPropertyOrFunction:*, currentDepth:int, indent:String, childIndent:String):String
+		{
 			var rect:Rectangle = root.getRect(root.parent);
-			var str:String = StandardLib.substitute("{0}{1} ({2}) {3}\n", pad, root.name, debugId(root), rect);
+			var label:String;
+			try
+			{
+				if (labelPropertyOrFunction is Function)
+					label = labelPropertyOrFunction(root);
+				else
+					label = root[labelPropertyOrFunction];
+			}
+			catch (e:*) { }
+			
+			var str:String = StandardLib.substitute("{0}{1}({2}) {3}\n", indent, label != null ? label + ' ' : '', debugId(root), rect);
 			
 			var container:DisplayObjectContainer = root as DisplayObjectContainer;
 			if (container && currentDepth != maxDepth)
-				for (var i:int = 0; i < container.numChildren; i++)
-					str += debugDisplayList(container.getChildAt(i), maxDepth, currentDepth + 1);
-			if (currentDepth == 0)
-				debugTrace(str);
+			{
+				var n:int = container.numChildren;
+				for (var i:int = 0; i < n; i++)
+				{
+					var nextIndent:String = childIndent + (i < n - 1 ? indents[0] : indents[1]);
+					var nextChildIndent:String = childIndent + (i < n - 1 ? indents[2] : indents[3]);
+					str += _debugDisplayList(container.getChildAt(i), maxDepth, labelPropertyOrFunction, currentDepth + 1, nextIndent, nextChildIndent);
+				}
+			}
 			return str;
 		}
+		private static const indents:Array = ['|- ', '`- ', '|  ', '   '];
+		private static const indentsHeavy:Array = ['\u2523 ', '\u2517 ', '\u2503 ', '   '];
+		private static const indentsLight:Array = ['\u251c ', '\u2514 ', '\u2502 ', '   '];
 		
 		private static const STACK_TRACE_DELIM:String = '\n\tat ';
 		/**
@@ -268,7 +287,8 @@ package weave.utils
 				error_or_stack_trace = (error_or_stack_trace as Error).getStackTrace();
 			var lines:Array = String(error_or_stack_trace).split(STACK_TRACE_DELIM);
 			lines.shift(); // remove the first line which is not part of the stack trace
-			for (var i:int = 0; i < lines.length; i++)
+			var i:int = 0;
+			while (i < lines.length)
 			{
 				var line:String = lines[i];
 				// remove namespace
@@ -288,7 +308,19 @@ package weave.utils
 				if (lineNumberIndex > end)
 					lineNumber = line.substring(lineNumberIndex, line.length - 1);
 				
-				lines[i] = line.substring(start, end) + lineNumber;
+				var label:String = line.substring(start, end);
+				if (label == 'Function/<anonymous>()')
+				{
+					var slashIndex:int = Math.max(line.lastIndexOf('/'), line.lastIndexOf('\\'));
+					if (slashIndex >= 0)
+						label = line.substring(slashIndex + 1, lineNumberIndex);
+				}
+				
+				var newLine:String = label + lineNumber;
+				if (newLine == 'apply()')
+					lines.splice(i, 1);
+				else
+					lines[i++] = newLine;
 			}
 			return lines;
 		}

@@ -22,9 +22,6 @@ package weave.services.wms
 	import com.modestmaps.core.Coordinate;
 	import com.modestmaps.mapproviders.AbstractMapProvider;
 	import com.modestmaps.mapproviders.IMapProvider;
-	import com.modestmaps.mapproviders.OpenStreetMapProvider;
-	
-	import weave.api.services.IWMSService;
 
 	/**
 	 * This class is simply another provider to be used with ModestMaps library.
@@ -48,7 +45,7 @@ package weave.services.wms
 		{
 			var sourceCoord:Coordinate = sourceCoordinate(coord);
 			
-			return [ 'http://oatile' + serverNumber + '.mqcdn.com/naip/' + sourceCoord.zoom + '/' + sourceCoord.column + '/' + sourceCoord.row + '.png' ];
+			return [ 'http://otile' + serverNumber + '.mqcdn.com/tiles/1.0.0/sat/' + sourceCoord.zoom + '/' + sourceCoord.column + '/' + sourceCoord.row + '.png' ];
 		}
 	}
 }

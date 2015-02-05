@@ -28,22 +28,18 @@ package weave.core
 	{
 		public function LinkableNumber(defaultValue:Number = NaN, verifier:Function = null, defaultValueTriggersCallbacks:Boolean = true)
 		{
-			_sessionState = NaN; // set to NaN instead of null because null==0
-			super(Number, verifier, defaultValue, defaultValueTriggersCallbacks);
+			// Note: Calling super() will set all the default values for member variables defined in the super class,
+			// which means we can't set _sessionStateInternal = NaN here.
+			super(Number, verifier, arguments.length ? defaultValue : undefined, defaultValueTriggersCallbacks);
 		}
 
 		public function get value():Number
 		{
-			return _sessionState;
+			return _sessionStateExternal;
 		}
 		public function set value(value:Number):void
 		{
 			setSessionState(value);
-		}
-
-		override public function isUndefined():Boolean
-		{
-			return !_sessionStateWasSet || isNaN(_sessionState);
 		}
 
 		override public function setSessionState(value:Object):void
@@ -61,13 +57,12 @@ package weave.core
 
 		override protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
-			// We must check for null here because "_sessionState = NaN" in the constructor
-			// does not take affect until after the super() constructor finishes.
-			if (_sessionState == null)
-				_sessionState = NaN;
-			if (isNaN(_sessionState) && isNaN(otherSessionState))
+			// We must check for null here because we can't set _sessionStateInternal = NaN in the constructor.
+			if (_sessionStateInternal === null)
+				_sessionStateInternal = _sessionStateExternal = NaN;
+			if (isNaN(_sessionStateInternal) && isNaN(otherSessionState))
 				return true;
-			return _sessionState == otherSessionState;
+			return _sessionStateInternal == otherSessionState;
 		}
 	}
 }

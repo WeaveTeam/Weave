@@ -39,9 +39,9 @@ package weave.visualization.layers
 	{
 		public function LayerSettings()
 		{
-//			subsetFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
-			selectionFilter.globalName = Weave.DEFAULT_SELECTION_KEYSET;
-			probeFilter.globalName = Weave.DEFAULT_PROBE_KEYSET;
+//			subsetFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
+			selectionFilter.targetPath = [Weave.DEFAULT_SELECTION_KEYSET];
+			probeFilter.targetPath = [Weave.DEFAULT_PROBE_KEYSET];
 		}
 		
 		/**
@@ -50,9 +50,19 @@ package weave.visualization.layers
 		public const visible:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		/**
+		 * Alpha value (opacity) for rendering the layer.
+		 */
+		public const alpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite));
+		
+		/**
 		 * When this is false, selection and probing are disabled.
 		 */		
 		public const selectable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		
+		/**
+		 * Specifies whether selection/probe should be rendered anyway, even if selectable is set to false.
+		 */
+		public const alwaysRenderSelection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		/**
 		 * Sets the minimum scale at which the layer should be rendered. Scale is defined by pixels per data unit.

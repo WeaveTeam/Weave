@@ -22,7 +22,6 @@ package weave.data.AttributeColumns
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinClassifier;
@@ -32,6 +31,7 @@ package weave.data.AttributeColumns
 	import weave.data.BinningDefinitions.CategoryBinningDefinition;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;
 	import weave.data.BinningDefinitions.SimpleBinningDefinition;
+	import weave.utils.ColumnUtils;
 	
 	/**
 	 * A binned column maps a record key to a bin key.
@@ -54,13 +54,16 @@ package weave.data.AttributeColumns
 		 */
 		override public function getMetadata(propertyName:String):String
 		{
-			switch (propertyName)
+			if (binningDefinition.internalObject)
 			{
-				case ColumnMetadata.MIN:
-					return numberOfBins > 0 ? "0" : null;
-				case ColumnMetadata.MAX:
-					var binCount:int = numberOfBins;
-					return binCount > 0 ? String(binCount - 1) : null;
+				switch (propertyName)
+				{
+					case ColumnMetadata.MIN:
+						return numberOfBins > 0 ? "0" : null;
+					case ColumnMetadata.MAX:
+						var binCount:int = numberOfBins;
+						return binCount > 0 ? String(binCount - 1) : null;
+				}
 			}
 			return super.getMetadata(propertyName);
 		}
@@ -110,7 +113,10 @@ package weave.data.AttributeColumns
 				_dataType = binningDefinition.internalObject is CategoryBinningDefinition ? String : Number;
 				// fill all mappings
 				if (_column && _binClassifiers)
-					WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_BUILDING, triggerCallbacks);
+				{
+					// high priority because not much can be done without data
+					WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, triggerCallbacks);
+				}
 			}
 		}
 		
@@ -215,6 +221,9 @@ package weave.data.AttributeColumns
 		{
 			validateBins();
 			
+			if (_binNames.length == 0 && !binningDefinition.internalObject)
+				return super.getValueFromKey(key, dataType);
+			
 			var binIndex:Number = Number(_keyToBinIndexMap[key]); // undefined -> NaN
 			
 			// Number: return bin index
@@ -245,6 +254,9 @@ package weave.data.AttributeColumns
 		public function deriveStringFromNumber(value:Number):String
 		{
 			validateBins();
+			
+			if (_binNames.length == 0 && !binningDefinition.internalObject)
+				return ColumnUtils.deriveStringFromNumber(internalDynamicColumn, value);
 			
 			try
 			{

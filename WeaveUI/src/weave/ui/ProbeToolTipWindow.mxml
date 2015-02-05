@@ -2,67 +2,82 @@
 <ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
 				   xmlns:editors="weave.editors.*"
+				   implements="weave.api.ui.ISelectableAttributes"
 				   layout="absolute" width="25%" height="20%">
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Button;
-			import mx.core.UIComponent;
-			
 			import weave.Weave;
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.data.IKeySet;
 			import weave.api.getCallbackCollection;
+			import weave.api.registerLinkableChild;
+			import weave.core.LinkableDynamicObject;
+			import weave.core.UIUtils;
 			import weave.data.KeySets.KeySet;
-			import weave.utils.LinkableTextFormat;
+			import weave.editors.WindowSettingsEditor;
 			import weave.utils.ProbeTextUtils;
 			
-			override protected function constructor():void
+			public function getSelectableAttributes():Array
 			{
-				super.constructor();
-				
-				var ltf:LinkableTextFormat = Weave.properties.defaultTextFormat;
-				var target:UIComponent = this;
-				getCallbackCollection(ltf).addGroupedCallback(this, function():void { ltf.copyToStyle(target); }, true);
+				return (controlPanel as ProbeToolTipEditor).getSelectableAttributes();
+			}
+			public function getSelectableAttributeNames():Array
+			{
+				return (controlPanel as ProbeToolTipEditor).getSelectableAttributeNames();
 			}
 			
-			override protected function get defaultPanelTitle():String
+			public const dynamicKeySet:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet), updateText, true);
+			
+			private function get keySet():IKeySet
+			{
+				return dynamicKeySet.internalObject as IKeySet;
+			}
+			
+			override protected function inConstructor():void
+			{
+				super.inConstructor();
+				
+				dynamicKeySet.targetPath = [Weave.DEFAULT_PROBE_KEYSET];
+				getCallbackCollection(ProbeTextUtils.probeHeaderColumns).addGroupedCallback(this, updateText);
+				getCallbackCollection(ProbeTextUtils.probedColumns).addGroupedCallback(this, updateText, true);
+			}
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				Weave.properties.visTextFormat.bindStyle(this, this);
+				WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, function():void {
+					keySetCombo.dataProvider = WeaveAPI.globalHashMap.getNames(KeySet);
+					keySetCombo.selectedItem = dynamicKeySet.globalName;
+				}, true);
+				
+				var windowEditor:WindowSettingsEditor = new WindowSettingsEditor();
+				windowEditor.target = this;
+				controlPanel.children = [windowEditor];
+				windowEditor.addChild(additionalWindowSettings)
+			}
+			
+			override public function get defaultPanelTitle():String
 			{
 				return lang("Mouseover Information");
 			}
 			
-			private var probeKeySet:KeySet = null;
-			
-			override protected function createChildren():void
-			{
-				super.createChildren();
-				var button:Button = new Button();
-				button.label = lang("Open mouseover info editor");
-				button.addEventListener(MouseEvent.CLICK, openToolTipEditor);
-				settingsEditor.addChild(button);
-			}
-			
-			override protected function childrenCreated():void
-			{
-				super.childrenCreated();
-				probeKeySet = Weave.root.getObject(Weave.DEFAULT_PROBE_KEYSET) as KeySet;
-				probeKeySet.addImmediateCallback(this, updateText);
-			}
-			
 			private function updateText():void
 			{
-				if( probeKeySet.keys.length > 0 )
-					probeTextArea.text = ProbeTextUtils.getProbeText(probeKeySet.keys);
+				if (keySet && keySet.keys.length > 0)
+					probeTextArea.text = ProbeTextUtils.getProbeText(keySet.keys);
 				else
 					probeTextArea.text = "";
 			}
-			
-			protected function openToolTipEditor(event:MouseEvent):void
-			{
-				DraggablePanel.openStaticInstance(ProbeToolTipEditor);
-			}
-			
 		]]>
 	</mx:Script>
-	<mx:TextArea id="probeTextArea" height="100%" width="100%" editable="false"/>
-	<ui:ControlPanel>
-		<editors:WindowSettingsEditor id="settingsEditor" target="{this}" />
-	</ui:ControlPanel>
+	<mx:TextArea id="probeTextArea" height="100%" width="100%" backgroundAlpha="0" editable="false"/>
+	
+	<!-- controlPanel -->
+	<ui:ProbeToolTipEditor backgroundColor="0xCCCCCC" showEnableCheckBox="false"/>
+	<mx:VBox id="additionalWindowSettings">
+		<ui:Indent label="{lang('Linked KeySet:')}">
+			<ui:CustomComboBox id="keySetCombo"
+							   change="if (UIUtils.hasFocus(keySetCombo)) dynamicKeySet.globalName = keySetCombo.selectedItem as String;"/>
+		</ui:Indent>
+	</mx:VBox>
 </ui:DraggablePanel>

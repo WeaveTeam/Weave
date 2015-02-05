@@ -19,7 +19,11 @@
 
 package weave.utils
 {
-	import mx.utils.ObjectUtil;
+	import flash.utils.Dictionary;
+	
+	import mx.collections.ArrayCollection;
+	import mx.collections.ICollectionView;
+	import mx.collections.IViewCursor;
 	
 	/**
 	 * This class contains static functions that manipulate Vectors and Arrays.
@@ -30,36 +34,130 @@ package weave.utils
 	 */
 	public class VectorUtils
 	{
+		private static var _lookup:Dictionary = new Dictionary(true);
+		private static var _lookupId:int = 0;
+		
+		/**
+		 * Computes the union of the items in a list of Arrays. Can also be used to get a list of unique items in an Array.
+		 * @param arrays A list of Arrays.
+		 * @return The union of all the unique items in the Arrays in the order they appear.
+		 */
+		public static function union(...arrays):Array
+		{
+			var result:Array = [];
+			_lookupId++;
+			for each (var array:* in arrays)
+			{
+				for each (var item:* in array)
+				{
+					if (_lookup[item] !== _lookupId)
+					{
+						_lookup[item] = _lookupId;
+						result.push(item);
+					}
+				}
+			}
+			return result;
+		}
+		
+		
+		/**
+		 * Computes the intersection of the items in a list of two or more Arrays.
+		 * @param arrays A list of Arrays.
+		 * @return The intersection of the items appearing in all Arrays, in the order that they appear in the first Array.
+		 */
+		public static function intersection(firstArray:*, secondArray:*, ...moreArrays):Array
+		{
+			moreArrays.unshift(secondArray);
+			
+			var result:Array = [];
+			var item:*;
+			var lastArray:* = moreArrays.pop();
+			
+			_lookupId++;
+			for each (item in lastArray)
+				_lookup[item] = _lookupId;
+			
+			for each (var array:* in moreArrays)
+			{
+				for each (item in array)
+					if (_lookup[item] === _lookupId)
+						_lookup[item] = _lookupId + 1;
+				_lookupId++;
+			}
+			
+			for each (item in firstArray)
+				if (_lookup[item] === _lookupId)
+					result.push(item);
+			
+			return result;
+		}
+		
 		/**
 		 * This function copies the contents of the source to the destination.
 		 * Either parameter may be either an Array or a Vector.
+		 * @param source An Array-like object.
+		 * @param destination An Array or Vector.
 		 * @return A pointer to the destination Array (or Vector)
 		 */
-		public static function copy(source:*, destination:*):*
+		public static function copy(source:*, destination:* = null):*
 		{
+			if (!destination)
+				destination = [];
 			destination.length = source.length;
-			var i:int = source.length;
-			while (i--)
+			for (var i:* in source)
 				destination[i] = source[i];
 			return destination;
 		}
 		/**
+		 * Fills a hash map with the keys from an Array.
+		 */
+		public static function fillKeys(output:Object, keys:Array):void
+		{
+			for each (var key:* in keys)
+				output[key] = true;
+		}
+		/**
+		 * Gets all keys in a hash map.
+		 */
+		public static function getKeys(hashMap:Object):Array
+		{
+			var keys:Array = [];
+			for (var key:* in hashMap)
+				keys.push(key);
+			return keys;
+		}
+
+        /** 
+         * If there are any properties of the hashMap, return false; else, return true.
+         * @param hashMap The Object to test for emptiness.
+         * @return A boolean which is true if the Object is empty, false if it has at least one property.
+         */
+        public static function isEmpty(hashMap:Object):Boolean
+        {
+            for (var key:* in hashMap)
+                return false;
+            return true;
+        }
+		
+		/**
 		 * Efficiently removes duplicate adjacent items in a pre-sorted Array (or Vector).
 		 * @param vector The sorted Array (or Vector)
 		 */
-		public static function removeDuplicatesFromSortedArray(vector:*):void
+		public static function removeDuplicatesFromSortedArray(sorted:*):void
 		{
-			var iEnd:int = vector.length;
-			var iPrevWrite:int = 0; // always keep first item 
-			var iRead:int = 1; // start by reading second item
-			for (; iRead < iEnd; iRead++) // increment iRead unconditionally
+			var n:int = sorted.length;
+			if (n == 0)
+				return;
+			var write:int = 0;
+			var prev:* = sorted[0] === undefined ? null : undefined;
+			for (var read:int = 0; read < n; ++read)
 			{
-				// only copy current item if it is different from the previous
-				if (vector[iPrevWrite] != vector[iRead])
-					vector[++iPrevWrite] = vector[iRead];
+				var item:* = sorted[read];
+				if (item !== prev)
+					sorted[write++] = prev = item;
 			}
-			if (iEnd > 0)
-				vector.length = iPrevWrite + 1;
+			sorted.length = write;
 		}
 		/**
 		 * randomizes the order of the elements in the vector in O(n) time by modifying the given array.
@@ -67,11 +165,11 @@ package weave.utils
 		 */
 		public static function randomSort(vector:*):void
 		{
-			var length:int = vector.length;
-			for (var i:int = length; i--;)
+			var i:int = vector.length;
+			while (i)
 			{
 				// randomly choose index j
-				var j:int = Math.floor(Math.random() * length);
+				var j:int = Math.floor(Math.random() * i--);
 				// swap elements i and j
 				var temp:* = vector[i];
 				vector[i] = vector[j];
@@ -129,7 +227,7 @@ package weave.utils
 		private static function testPartition():void
 		{
 			var list:Array = [3,7,5,8,2];
-			var pivotIndex:int = partition(list, 0, list.length - 1, list.length/2, AsyncSort.defaultCompare);
+			var pivotIndex:int = partition(list, 0, list.length - 1, list.length/2, AsyncSort.primitiveCompare);
 			
 			for (var i:int = 0; i < list.length; i++)
 				if (i < pivotIndex != list[i] < list[pivotIndex])
@@ -200,7 +298,7 @@ package weave.utils
 		 * @param destination An Array or Vector to append items to.  If none specified, a new one will be created.
 		 * @return The destination Array with all the nested items in the source appended to it.
 		 */
-		public static function flatten(source:Array, destination:* = null):*
+		public static function flatten(source:*, destination:* = null):*
 		{
 			if (destination == null)
 				destination = [];
@@ -213,6 +311,21 @@ package weave.utils
 				else
 					destination.push(source[i]);
 			return destination;
+		}
+		
+		public static function flattenObject(input:Object, output:Object = null, prefix:String = ''):Object
+		{
+			if (output == null)
+				output = {};
+			if (input == null)
+				return output;
+			
+			for (var key:String in input)
+				if (typeof input[key] == 'object')
+					flattenObject(input[key], output, prefix + key + '.');
+				else
+					output[prefix + key] = input[key];
+			return output;
 		}
 		
 		/**
@@ -249,20 +362,20 @@ package weave.utils
 		
 		/**
 		 * Performs a binary search on a sorted array with no duplicate values.
-		 * @param array Array or Vector of Numbers
+		 * @param sortedUniqueValues Array or Vector of Numbers or Strings
 		 * @param compare A compare function
 		 * @param exactMatchOnly If true, searches for exact match. If false, searches for insertion point.
 		 * @return The index of the matching value or insertion point.
 		 */
-		public static function binarySearch(array:*, item:*, exactMatchOnly:Boolean, compare:Function = null):int
+		public static function binarySearch(sortedUniqueValues:*, item:*, exactMatchOnly:Boolean, compare:Function = null):int
 		{
 			var i:int = 0,
 				imin:int = 0,
-				imax:int = array.length - 1;
+				imax:int = sortedUniqueValues.length - 1;
 			while (imin <= imax)
 			{
 				i = (imin + imax) / 2;
-				var a:* = array[i];
+				var a:* = sortedUniqueValues[i];
 				var c:int = compare != null ? compare(item, a) : (item < a ? -1 : (item > a ? 1 : 0));
 				if (c < 0)
 					imax = i - 1;
@@ -272,6 +385,138 @@ package weave.utils
 					return i;
 			}
 			return exactMatchOnly ? -1 : i;
+		}
+		
+		/**
+		 * Gets an Array of items from an ICollectionView.
+		 * @param collection The ICollectionView.
+		 * @param alwaysMakeCopy If set to false and the collection is an ArrayCollection, returns original source Array.
+		 */
+		public static function getArrayFromCollection(collection:ICollectionView, alwaysMakeCopy:Boolean = true):Array
+		{
+			if (!collection || !collection.length)
+				return [];
+			
+			var array:Array = null;
+			if (collection is ArrayCollection && collection.filterFunction == null)
+				array = (collection as ArrayCollection).source;
+			if (array)
+				return alwaysMakeCopy ? array.concat() : array;
+			
+			array = [];
+			var cursor:IViewCursor = collection.createCursor();
+			do
+			{
+				array.push(cursor.current);
+			}
+			while (cursor.moveNext());
+			return array;
+		}
+		
+		/**
+		 * Creates an object from arrays of keys and values.
+		 * @param keys Keys corresponding to the values.
+		 * @param values Values corresponding to the keys.
+		 * @return A new Object.
+		 */
+		public static function zipObject(keys:Array, values:Array):Object
+		{
+			var n:int = Math.min(keys.length, values.length);
+			var o:Object = {};
+			for (var i:int = 0; i < n; i++)
+				o[keys[i]] = values[i];
+			return o;
+		}
+		
+		/**
+		 * This will get a subset of properties/items/attributes from an Object/Array/XML.
+		 * @param object An Object/Array/XML containing properties/items/attributes to retrieve.
+		 * @param keys A list of property names, index values, or attribute names.
+		 * @param output Optionally specifies where to store the resulting items.
+		 * @return An Object (or Array) containing the properties/items/attributes specified by keysOrIndices.
+		 */
+		public static function getItems(object:*, keys:Array, output:* = null):*
+		{
+			if (!output)
+				output = object is Array ? [] : {};
+			if (!object)
+				return output;
+			for (var keyIndex:* in keys)
+			{
+				var keyValue:* = keys[keyIndex];
+				
+				var item:*;
+				if (object is XML_Class)
+					item = String((object as XML_Class).attribute(keyValue));
+				else
+					item = object[keyValue];
+				
+				if (output is Array)
+					output[keyIndex] = item;
+				else
+					output[keyValue] = item;
+			}
+			return output;
+		}
+		
+		/**
+		 * Removes items from an Array or Vector.
+		 * @param array Array or Vector
+		 * @param indices Array of indices to remove
+		 */
+		public static function removeItems(array:*, indices:Array):void
+		{
+			var n:int = array.length;
+			var skipList:Vector.<int> = Vector.<int>(indices).sort(Array.NUMERIC);
+			skipList.push(n);
+			removeDuplicatesFromSortedArray(skipList);
+			
+			var iSkip:int = 0;
+			var skip:int = skipList[0];
+			var write:int = skip;
+			for (var read:int = skip; read < n; ++read)
+			{
+				if (read == skip)
+					skip = skipList[++iSkip];
+				else
+					array[write++] = array[read];
+			}
+			array.length = write;
+		}
+		
+		/**
+		 * Gets a list of values of a property from a list of objects.
+		 * @param array An Array or Vector of Objects.
+		 * @param property The property name to get from each object
+		 * @return A list of the values of the specified property for each object in the original list.
+		 */
+		public static function pluck(array:*, property:String):*
+		{
+			_pluckProperty = property;
+			return array.map(_pluck);
+		}
+		private static var _pluckProperty:String;
+		private static function _pluck(item:Object, i:int, a:*):*
+		{
+			return item[_pluckProperty];
+		}
+		
+		/**
+		 * Creates a lookup from item (or item property) to index. Does not consider duplicate items (or item property values).
+		 * @param propertyChain A property name or chain of property names to index on rather than the item itself.
+		 * @return A reverse lookup.
+		 */
+		public static function createLookup(array:*, ...propertyChain):Dictionary
+		{
+			var lookup:Dictionary = new Dictionary(true);
+			for (var key:* in array)
+			{
+				var value:* = array[key];
+				for each (var prop:String in propertyChain)
+					value = value[prop];
+				lookup[value] = key;
+			}
+			return lookup;
 		}
 	}
 }

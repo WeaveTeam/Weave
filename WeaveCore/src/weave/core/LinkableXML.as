@@ -32,18 +32,15 @@ package weave.core
 	 */
 	public class LinkableXML extends LinkableVariable
 	{
-		public function LinkableXML(allowNull:Boolean = true)
+		public function LinkableXML()
 		{
 			super(String, verifyXMLString);
-			_allowNull = allowNull;
 		}
-		
-		private var _allowNull:Boolean;
 		
 		private function verifyXMLString(value:String):Boolean
 		{
 			if (value == null)
-				return _allowNull;
+				return true;
 			
 			try {
 				XML(value);
@@ -57,7 +54,7 @@ package weave.core
 		 * This function will run the callbacks attached to this LinkableXML if the session state has changed.
 		 * This function should be called if the XML is modified without calling set value() or setSessionState().
 		 */
-		public function detectChanges():void
+		override public function detectChanges():void
 		{
 			value = value;
 		}
@@ -74,8 +71,8 @@ package weave.core
 				_sessionStateXML = null;
 				try
 				{
-					if (_sessionState) // false if empty string (prefer null over empty xml)
-						_sessionStateXML = XML(_sessionState);
+					if (_sessionStateInternal) // false if empty string (prefer null over empty xml)
+						_sessionStateXML = XML(_sessionStateInternal);
 				}
 				catch (e:Error)
 				{
@@ -107,7 +104,7 @@ package weave.core
 		{
 			// return an XMLString wrapper object for use with WeaveXMLEncoder.
 			var result:Object = {};
-			result[XML_STRING] = _sessionState;
+			result[XML_STRING] = _sessionStateExternal || null;
 			return result;
 		}
 		
@@ -122,5 +119,15 @@ package weave.core
 		 * This is the trigger count at the time when _sessionStateXML was last updated.
 		 */		
 		private var _prevTriggerCount:uint = triggerCounter;
+		
+		/**
+		 * Converts a session state object to XML the same way a LinkableXML object would.
+		 */
+		public static function xmlFromState(state:Object):XML
+		{
+			if (state && state.hasOwnProperty(XML_STRING))
+				state = state[XML_STRING];
+			return XML(state);
+		}
 	}
 }

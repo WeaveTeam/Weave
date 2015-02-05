@@ -19,6 +19,11 @@
 
 package weave.utils
 {
+	import weave.api.data.IColumnReference;
+	import weave.api.data.IDataSource_File;
+	import weave.api.data.IWeaveTreeNode;
+	import weave.api.data.IWeaveTreeNodeWithPathFinding;
+
 	/**
 	 * An all-static class containing functions for dealing with xml hierarchies and xml hierarchy paths.
 	 * 
@@ -26,6 +31,32 @@ package weave.utils
 	 */
 	public class HierarchyUtils
 	{
+		/**
+		 * Gets all metadata stored at the leaf node of a hierarchy path.
+		 * @return An Object mapping attribute names to values.
+		 */
+		public static function getMetadata(leafNodeOrPath:XML):Object
+		{
+			var xml:XML = getNodeFromPath(leafNodeOrPath, leafNodeOrPath);
+			var obj:Object = {};
+			if (xml)
+				for each (var attr:XML in xml.attributes())
+					obj[String(attr.name())] = String(attr);
+			return obj;
+		}
+		
+		/**
+		 * Creates an XML node containing attribute name/value pairs corresponding to the given metadata.
+		 */
+		public static function nodeFromMetadata(metadata:Object):XML
+		{
+			var node:XML = <attribute/>;
+			for (var key:String in metadata)
+				if (metadata[key] != null)
+					node['@'+key] = metadata[key];
+			return node;
+		}
+		
 		/**
 		 * @param hierarchyRoot An XML hierarchy to traverse and compare with the nodes of pathInHierarchy.
 		 * @param pathInHierarchy An XML path, starting at the level of the hierarchy root, which will be compared with the hierarchy.
@@ -219,6 +250,67 @@ package weave.utils
 							return node;
 			}
 			return null;
+		}
+		
+		/**
+		 * Finds a node in a hierarchy which corresponds to a foreign node from a foreign hierarchy.
+		 * Useful when you saved a node from a previous version of a hierarchy which may have been modified since then.
+		 */
+		public static function findEquivalentNode(hierarchy:XML, foreignNode:XML):XML
+		{
+			return getNodeFromPath(hierarchy, getPathFromNode(hierarchy, foreignNode));
+		}
+		
+		/**
+		 * Finds a series of IWeaveTreeNode objects which can be traversed as a path to a descendant node.
+		 * @param root The root IWeaveTreeNode.
+		 * @param descendant The descendant IWeaveTreeNode.
+		 * @return An Array of IWeaveTreeNode objects which can be followed as a path from the root to the descendant, including the root and descendant nodes.
+		 *         The last item in the path may be the equivalent node found in the hierarchy rather than the descendant node that was passed in.
+		 *         Returns null if the descendant is unreachable from this node.
+		 * @see weave.api.data.IWeaveTreeNode#equals()
+		 */
+		public static function findPathToNode(root:IWeaveTreeNode, descendant:IWeaveTreeNode):Array
+		{
+			if (!root || !descendant)
+				return null;
+			
+			if (root is IWeaveTreeNodeWithPathFinding)
+				return (root as IWeaveTreeNodeWithPathFinding).findPathToNode(descendant);
+			
+			if (root.equals(descendant))
+				return [root];
+			
+			for each (var child:IWeaveTreeNode in root.getChildren())
+			{
+				var path:Array = findPathToNode(child, descendant);
+				if (path)
+				{
+					path.unshift(root);
+					return path;
+				}
+			}
+			
+			return null;
+		}
+		
+		/**
+		 * Traverses an entire hierarchy and returns all nodes that
+		 * implement IColumnReference and have column metadata.
+		 */
+		public static function getAllColumnReferenceDescendants(source:IDataSource_File):Array
+		{
+			return getAllColumnReferences(source.getHierarchyRoot(), []);
+		}
+		private static function getAllColumnReferences(node:IWeaveTreeNode, output:Array):Array
+		{
+			var ref:IColumnReference = node as IColumnReference;
+			if (ref && ref.getColumnMetadata())
+				output.push(ref);
+			if (node)
+				for each (var child:IWeaveTreeNode in node.getChildren())
+					getAllColumnReferences(child, output);
+			return output;
 		}
 	}
 }

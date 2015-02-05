@@ -21,78 +21,78 @@ package weave.services
 {
 	import mx.rpc.AsyncToken;
 	
-	
-
 	/**
-	 * WSStatisticsServlet
 	 * @author spurushe
 	 * @author sanbalag
 	 */
-	public class WeaveRServlet
+	public class WeaveRServlet extends AMF3Servlet
 	{
 		public function WeaveRServlet(url:String)
 		{
-			servlet = new AMF3Servlet(url);
+			super(url);
 		}
-		
-		protected var servlet:AMF3Servlet;
-		
-		
 		
 		public function runScript(keys:Array, inputNames:Array, inputValues:Array, outputNames:Array, script:String,plotScript:String, showIntermediateResults:Boolean, showWarningMessages:Boolean , useColumnsAsList:Boolean ):AsyncToken
 		{
-			return servlet.invokeAsyncMethod("runScript", arguments);
+			return invokeAsyncMethod("runScript", arguments);
 		}
 		
 		public function checkforJRIService():AsyncToken
 		{
-			return servlet.invokeAsyncMethod("checkforJRIService",arguments);
+			return invokeAsyncMethod("checkforJRIService",arguments);
 		}
 		
 		public function runScriptOnCSVOnServer(queryObject:Array):AsyncToken
 		{
-			return servlet.invokeAsyncMethod("runScriptOnCSVOnServer", arguments);
+			return invokeAsyncMethod("runScriptOnCSVOnServer", arguments);
 		}
 		
 		public function runScriptOnSQLOnServer(queryObject:Array, queryStatement:String, schema:String):AsyncToken
 		{
-			return servlet.invokeAsyncMethod("runScriptOnSQLOnServer", arguments);
+			return invokeAsyncMethod("runScriptOnSQLOnServer", arguments);
 		}
 		
-		// async result will be of type KMeansClusteringResult
+		/** async result will be of type KMeansClusteringResult */
 		public function KMeansClustering(inputNames:Array, inputValues:Array,showWarnings:Boolean,numberOfClusters:int,iterations:int):AsyncToken
 		{			
-			return servlet.invokeAsyncMethod("kMeansClustering", arguments);
+			return invokeAsyncMethod("kMeansClustering", arguments);
 		}
 		
-		// async result will be of type HierarchicalClusteringResult
+		/** async result will be of type HierarchicalClusteringResult */
 		public function HierarchicalClustering(dataX:Array, dataY:Array):AsyncToken
 		{
-			return servlet.invokeAsyncMethod("hierarchicalClustering", arguments);
+			return invokeAsyncMethod("hierarchicalClustering", arguments);
 		}
 		
 		// NEED TO INSTALL (fpc) PACKAGE FROM R 
 		
-		// async result will be of type DensityBasedClusteringResult
-		/*public function DensityBasedClustering(dataX:Array, dataY:Array):DelayedAsyncInvocation
+		/* * async result will be of type DensityBasedClusteringResult * /
+		public function DensityBasedClustering(dataX:Array, dataY:Array):AsyncToken
 		{
 			return servlet.invokeAsyncMethod("densityBasedClustering", arguments);
-		}*/		
+		}
+		*/
+		
 		public function linearRegression(method:String, dataX:Array, dataY:Array, polynomialDegree:int):AsyncToken
 		{
-			return servlet.invokeAsyncMethod("linearRegression", arguments);
+			return invokeAsyncMethod("linearRegression", arguments);
 		}
 
 		public function handlingMissingData(inputNames:Array, inputValues:Array, outputNames:Array,showIntermediateResults:Boolean, showWarningMessages:Boolean, completeProcess:Boolean ):AsyncToken
 		{
-			return servlet.invokeAsyncMethod("handlingMissingData", arguments);
+			return invokeAsyncMethod("handlingMissingData", arguments);
 			
 		}
 		
 		public function normalize(data:Array):AsyncToken
 		{
-			return servlet.invokeAsyncMethod("normalize", arguments);
+			return invokeAsyncMethod("normalize", arguments);
 			
-		}	
+		}
+		
+		public function doClassDiscrimination(dataX:Array, dataY:Array, flag:Boolean):AsyncToken
+		{
+			return invokeAsyncMethod("doClassDiscrimintation", arguments);
+		}
 	}
 }

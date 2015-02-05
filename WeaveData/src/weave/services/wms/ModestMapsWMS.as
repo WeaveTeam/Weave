@@ -39,15 +39,14 @@ package weave.services.wms
 	
 	import org.openscales.proj4as.ProjConstants;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.data.ProjectionManager;
 	import weave.primitives.Bounds2D;
-	import weave.utils.AsyncSort;
 
 	/**
 	 * This class is a wrapper around the ModestMaps library for both Microsoft and Yahoo
@@ -113,10 +112,6 @@ package weave.services.wms
 		
 		// the provider from the ModestMaps library used for  
 		private var _mapProvider:IMapProvider = null;
-		
-		// image dimensions
-		private var _imageWidth:int;
-		private var _imageHeight:int;
 		
 		// some parameters about the tiles
 		private const _worldBoundsMercator:IBounds2D = new Bounds2D();
@@ -215,22 +210,8 @@ package weave.services.wms
 				tiles = lowerQualTiles.concat(completedTiles);
 			else
 				tiles = completedTiles;
-			AsyncSort.sortImmediately(tiles, tileSortingComparison);
+			sortTiles(tiles);
 			return tiles;
-		}
-		
-		/**
-		 * This is a private method used for sorting an array of WMSTiles.
-		 */ 
-		private function tileSortingComparison(a:WMSTile, b:WMSTile):int
-		{
-			// if a is lower quality (lower zoomLevel), it goes before
-			if (a.zoomLevel < b.zoomLevel)
-				return -1;
-			else if (a.zoomLevel == b.zoomLevel)
-				return 0;
-			else
-				return 1;			
 		}
 		
 		/**
@@ -389,22 +370,6 @@ package weave.services.wms
 		override public function getAllowedBounds(output:IBounds2D):void
 		{
 			return output.copyFrom(_worldBoundsMercator);
-		}
-		
-		/**
-		 * The width of an image.
-		 */
-		public function get imageWidth():int
-		{
-			return _imageWidth;
-		}
-		
-		/**
-		 * The height of an image.
-		 */
-		public function get imageHeight():int
-		{
-			return _imageHeight;
 		}
 		
 		override public function getCreditInfo():String

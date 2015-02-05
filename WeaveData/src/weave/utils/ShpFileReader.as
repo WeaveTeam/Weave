@@ -29,7 +29,6 @@ package weave.utils
 	import org.vanrijkom.shp.ShpRecord;
 	import org.vanrijkom.shp.ShpTools;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.primitives.GeneralizedGeometry;
@@ -57,7 +56,8 @@ package weave.utils
 		{
 			shp	= new ShpHeader(shpData);
 			records = ShpTools.readRecords(shpData);
-			WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_PARSING, asyncComplete);
+			// high priority because not much can be done without data
+			WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete);
 		}
 		
 		private function iterate(stopTime:int):Number
@@ -83,6 +83,9 @@ package weave.utils
 					var poly:ShpPolygon = record.shape as ShpPolygon;
 					for(iring = 0; iring < poly.rings.length; iring++ )
 					{
+						// add part marker if this is not the first part
+						if (iring > 0)
+							points.push(NaN, NaN);
 						ring = poly.rings[iring] as Array;
 						for(ipoint = 0; ipoint < ring.length; ipoint++ )
 						{

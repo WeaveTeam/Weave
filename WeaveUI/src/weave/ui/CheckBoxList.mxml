@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<!---
+A public bindable "selection" property is provided which is an Array of Boolean
+values denoting the state of the checkboxes. The items in the selection Array
+correspond to the items in the dataProvider and the selection Array will
+automatically be updated to correspond to changes in dataProvider item order.
+-->
+<mx:List xmlns:mx="http://www.adobe.com/2006/mxml"
+		 width="100%"
+		 paddingLeft="0"
+		 paddingRight="0"
+		 backgroundAlpha="0"
+		 borderThickness="0"
+		 selectable="false"
+		 rowCount="{dataProvider.length || 1}"
+		 xmlns:ui="weave.ui.*">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ICollectionView;
+			
+			import weave.compiler.StandardLib;
+			import weave.utils.VectorUtils;
+			
+			private var _prevData:Array = [];
+			
+			/**
+			 * Setting this to true will set labelFunction = lang.
+			 */
+			public function set translate(value:Boolean):void
+			{
+				if (value)
+					labelFunction = lang;
+				else if (labelFunction == lang)
+					labelFunction = null;
+			}
+			
+			/**
+			 * This value will be used for each new CheckBox's "selected" state as they are
+			 * created when new items are added to the dataProvider.
+			 */
+			public var defaultSelectedState:Boolean = false;
+			
+			override protected function collectionChangeHandler(event:Event):void
+			{
+				super.collectionChangeHandler(event);
+				
+				// when data changes, reorder selection booleans to match the new order of the data items.
+				var newData:Array = VectorUtils.getArrayFromCollection(collection);
+				if (StandardLib.compare(_prevData, newData))
+				{
+					var newSelection:Array = new Array(newData.length);
+					for (var newIndex:int = 0; newIndex < newData.length; newIndex++)
+					{
+						var oldIndex:int = _prevData.indexOf(newData[newIndex]);
+						newSelection[newIndex] = getSelectedState(oldIndex);
+					}
+					_prevData = newData;
+					selection = newSelection;
+				}
+			}
+			
+			private var _selection:Array = [];
+			
+			/**
+			 * This array stores the list of Boolean values for the checkboxes.
+			 * If items in the selection Array are undefined, defaultSelectedState will be used.
+			 */
+			[Bindable] public function set selection(value:Array):void
+			{
+				_selection = value || [];
+				var n:int = _selection.length;
+				if (dataProvider is ICollectionView)
+					n = (dataProvider as ICollectionView).length;
+				for (var i:int = 0; i < n; i++)
+				{
+					var checkBox:CustomCheckBox = indexToItemRenderer(i) as CustomCheckBox;
+					if (checkBox)
+						checkBox.selected = getSelectedState(i);
+				}
+			}
+			
+			public function get selection():Array
+			{
+				return _selection;
+			}
+			
+			/**
+			 * Gets the selected state of a single CheckBox.
+			 */
+			public function getSelectedState(index:int):Boolean
+			{
+				var value:* = _selection[index];
+				if (value === undefined)
+					return defaultSelectedState;
+				return value;
+			}
+		]]>
+	</mx:Script>
+	<mx:itemRenderer>
+		<mx:Component>
+			<ui:CustomCheckBox change="handleSelectionChange()">
+				<mx:Script>
+					<![CDATA[
+						import weave.core.UIUtils;
+						
+						override public function set data(d:Object):void
+						{
+							super.data = d;
+							var index:int = outerDocument.itemRendererToIndex(this);
+							selected = outerDocument.getSelectedState(index);
+						}
+						private function handleSelectionChange():void
+						{
+							var newSelection:Array = outerDocument.selection.concat();
+							var index:int = outerDocument.itemRendererToIndex(this);
+							newSelection[index] = this.selected;
+							outerDocument.selection = newSelection;
+						}
+					]]>
+				</mx:Script>
+			</ui:CustomCheckBox>
+		</mx:Component>
+	</mx:itemRenderer>
+</mx:List>

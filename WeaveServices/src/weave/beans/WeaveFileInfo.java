@@ -19,14 +19,20 @@
 
 package weave.beans;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
+
+import org.postgresql.util.Base64;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import weave.utils.FileUtils;
+import weave.utils.Strings;
+import weave.utils.XMLUtils;
 
 public class WeaveFileInfo 
 {
@@ -35,49 +41,50 @@ public class WeaveFileInfo
 	public byte[] thumb 	 = null;
 	public String fileName 	 = null;
 
-	public WeaveFileInfo(String startingPath, String relativeFilePath)
+	public WeaveFileInfo(File file)
 	{
-		File weaveFile = new File(startingPath, relativeFilePath);
-		
-		this.fileName 		= relativeFilePath;
-		this.lastModified 	= weaveFile.lastModified();
-		this.fileSize 		= weaveFile.length();
-		if( getExtension(fileName).equals("weave") )
-		{
-			try
-			{
-				this.thumb = getArchiveThumbnail(weaveFile);
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-		}
+		init(file);
 	}
 	
-	private byte[] getArchiveThumbnail(File file) throws IOException
+	public WeaveFileInfo(String startingPath, String relativeFilePath)
 	{
-		ZipFile archive = null;
-		InputStream in = null;
-		ByteArrayOutputStream out = null;
+		init(new File(startingPath, relativeFilePath));
+		fileName = relativeFilePath;
+	}
+	
+	private void init(File file)
+	{
+		fileName = file.getName();
+		lastModified = file.lastModified();
+		fileSize = file.length();
 		try
 		{
-			archive = new ZipFile(file);
-			ZipEntry entry = archive.getEntry("weave-files/thumbnail.png");
-			in = archive.getInputStream(entry);
-			out = new ByteArrayOutputStream();
-			FileUtils.copy(in, out);
+			String ext = getExtension(fileName);
+			if (ext.equals("xml"))
+			{
+				Document doc = XMLUtils.getXMLFromFile(file);
+				XPath xpath = XPathFactory.newInstance().newXPath();
+				String ascii = XMLUtils.getStringFromXPath(doc, xpath, "//ByteArray[@name = \"thumbnail.png\" and @encoding = \"base64\"]");
+				if (!Strings.isEmpty(ascii))
+					this.thumb = Base64.decode(ascii);
+			}
+			else if (ext.equals("weave"))
+			{
+				this.thumb = FileUtils.extractFileFromArchive(file, "weave-files/thumbnail.png");
+			}
 		}
-		finally
+		catch (IOException e)
 		{
-			if (in != null)
-				in.close();
-			if (out != null)
-				out.close();
-			if (archive != null)
-				archive.close();
+			e.printStackTrace();
 		}
-		return out.toByteArray();
+		catch (ParserConfigurationException e)
+		{
+			e.printStackTrace();
+		}
+		catch (SAXException e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	private String getExtension(String fileName)

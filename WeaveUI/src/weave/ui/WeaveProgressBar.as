@@ -23,11 +23,8 @@ package weave.ui
 	
 	import mx.controls.ProgressBar;
 	import mx.controls.ProgressBarLabelPlacement;
-	import mx.managers.PopUpManager;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.getCallbackCollection;
-	import weave.api.reportError;
 
 	/**
 	 * This is a progress bar for Weave which updates on tasks added to the ProgressIndicator
@@ -37,6 +34,8 @@ package weave.ui
 	 */
 	public class WeaveProgressBar extends ProgressBar
 	{
+		public static var debug:Boolean = false;
+		
 		override protected function childrenCreated():void
 		{
 			super.childrenCreated();
@@ -78,6 +77,7 @@ package weave.ui
 		{
 			var pendingCount:int = WeaveAPI.ProgressIndicator.getTaskCount();
 			var tempString:String = pendingCount + " Background Task" + (pendingCount == 1 ? '' : 's');
+			//tempString += '\n' + (WeaveAPI.ProgressIndicator as ProgressIndicator).getDescriptions().join('\n');
 			
 			label = tempString;
 			
@@ -94,9 +94,13 @@ package weave.ui
 					_maxProgressBarValue = pendingCount;
 				
 				setProgress(WeaveAPI.ProgressIndicator.getNormalizedProgress(), 1); // progress between 0 and 1
+				
 				visible = true;
 				handleEnterFrame();
 			}
+			
+			if (debug)
+				trace('Progress:', WeaveAPI.ProgressIndicator.getNormalizedProgress());
 		}
 	}
 }

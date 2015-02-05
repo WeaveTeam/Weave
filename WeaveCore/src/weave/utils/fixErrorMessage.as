@@ -9,7 +9,7 @@ package weave.utils
 	public function fixErrorMessage(error:Error):void
 	{
 		if (!Capabilities.isDebugger && error.message == "Error #" + error.errorID && FlashErrorCodes[error.errorID])
-			error.message += ": " + FlashErrorCodes[error.errorID] + ". For better error messages, install the debugger version of Flash Player.";
+			error.message = FlashErrorCodes[error.errorID] + ". For better error messages, install the debugger version of Flash Player.";
 	}
 }
 
@@ -157,7 +157,7 @@ internal const FlashErrorCodes:Object = {
 	"2028": "Local-with-filesystem SWF file cannot access Internet URL",
 	"2029": "This URLStream object does not have a stream opened",
 	"2031": "Socket Error",
-	"2032": "Stream Error",
+	"2032": "Unable to download required resource", // Stream Error
 	"2033": "Key Generation Failed",
 	"2034": "An invalid digest was supplied",
 	"2035": "URL Not Found",

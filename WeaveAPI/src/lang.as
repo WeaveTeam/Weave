@@ -17,8 +17,6 @@ package
 {
 	import mx.utils.StringUtil;
 	
-	import weave.api.WeaveAPI;
-
 	/**
 	 * This is a convenient global function for retrieving localized text.
 	 * Sample syntax:

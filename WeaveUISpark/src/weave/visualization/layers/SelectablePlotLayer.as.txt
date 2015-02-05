@@ -30,7 +30,6 @@ package weave.visualization.layers
 	import mx.controls.Label;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IKeySet;
@@ -139,9 +138,7 @@ package weave.visualization.layers
 			_probeLayer.alpha = 1.0;
 		}
 		
-		{ /** begin static code block **/
-			WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, null, probeAnimator);
-		} /** end static code block **/
+		WeaveAPI.StageUtils.addEventCallback(Event.ENTER_FRAME, null, probeAnimator);
 		private static function probeAnimator():void
 		{
 			// only do animation if it is enabled

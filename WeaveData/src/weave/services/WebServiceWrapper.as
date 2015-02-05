@@ -38,8 +38,6 @@ package weave.services
 	import weave.api.services.IAsyncService;
 	
 	/**
-	 * WebServiceWrapper
-	 * 
 	 * @author adufilie
 	 */	
 	public class WebServiceWrapper extends AsyncInvocationQueue implements IAsyncService
@@ -65,7 +63,6 @@ package weave.services
 		}
 
 		/**
-		 * remoteProcedureCall
 		 * @param methodName The name of the method to call.
 		 * @param methodParameters The parameters to use when calling the method.
 		 * @return An AsyncToken generated for the call.
@@ -91,13 +88,11 @@ package weave.services
 		}
 		
 		/**
-		 * pendingAsyncTokens
 		 * This maps an AsyncToken to the name of the web method that was called.
 		 * Only AsyncTokens created before wsdlXML was downloaded are added here.
 		 */
 		private const pendingAsyncTokens:Dictionary = new Dictionary();
 		/**
-		 * clearPendingAsyncTokenRef
 		 * When an AsyncToken runs its responders, this function will be called to remove it from pendingAsyncTokens.
 		 */
 		private function clearPendingAsyncTokenRef(event:Event, token:Object = null):void
@@ -106,7 +101,6 @@ package weave.services
 		}
 
 		/**
-		 * handleMissingOperation
 		 * This is called when an operation does not exist.
 		 */
 		private function handleMissingOperation(token:AsyncToken, missingOperation:String):void
@@ -121,17 +115,14 @@ package weave.services
 		}
 		
 		/**
-		 * wsdlXML
 		 * This is the wsdl file, used to verify that an operation exists before trying to call it.
 		 */
 		private var wsdlXML:XML = null;
 		/**
-		 * operations
 		 * This is an array of operation names available in the WSDL.
 		 */
 		public const operations:Array = [];
 		/**
-		 * handleWSDLDownload
 		 * This function parses the WSDL once it is downloaded and fills in the operations array.
 		 */
 		private static const portTypeQName:QName = new QName("http://schemas.xmlsoap.org/wsdl/","portType");
@@ -150,7 +141,6 @@ package weave.services
 		}
 
 		/**
-		 * wsdl
 		 * This is the url of the wsdl.
 		 */
 		public function get wsdl():String
@@ -159,30 +149,23 @@ package weave.services
 		}
 
 		/**
-		 * webService
 		 * This is the WebService object where the web method calls are made.
 		 */		
 		public const webService:WebService = new WebService();
 
-		/**
-		 * useQueue
-		 */
 		private var useQueue:Boolean;
 
 		/**
-		 * globalQueue
 		 * This generic DownloadQueue takes care of all the calls associated with
 		 * all instances of the WebServiceQueue class with the same wsdl url.
 		 */
 		private var globalQueue:AsyncInvocationQueue = null;
 
 		/**
-		 * globalQueueMap
 		 * This object maps a wsdl url to a global queue for that wsdl.
 		 */		
 		private static const globalQueueMap:Object = new Object();
 		/**
-		 * getGlobalQueue
 		 * @param wsdl The url of the wsdl we want the global queue for
 		 * @return The global queue corresponding to the given wsdl.
 		 */
@@ -194,44 +177,41 @@ package weave.services
 		}
 		
 		/**
-		 * generateQuery
 		 * @param webMethod The name of the function to call on the WebService.
 		 * @param parameters The parameters to the WebService function.
-		 * @return A new DelayedAsyncCall object responsible for making the WebService call.
+		 * @return A new ProxyAsyncToken responsible for making the WebService call.
 		 */
-		public function generateQuery(webMethod:String, parameters:Array, resultCastFunction:Function = null):DelayedAsyncInvocation
+		public function generateQuery(webMethod:String, parameters:Array, resultCastFunction:Function = null):ProxyAsyncToken
 		{
 			if (wsdlXML != null && operations.indexOf(webMethod) < 0)
 				trace('"Warning!!! Operation "'+webMethod+'" not found in WSDL "'+wsdl+'"');
 
-			return new DelayedAsyncInvocation(this, webMethod, parameters, resultCastFunction);
+			return new ProxyAsyncToken(invokeAsyncMethod, [webMethod, parameters], resultCastFunction);
 		}
 
 		/**
-		 * generateAndPerformQuery
-		 * Generates a new DelayedAsyncCall and performs it immediately.
+		 * Generates a new ProxyAsyncToken and performs it immediately.
 		 * @param webMethod The name of the function to call on the WebService.
 		 * @param parameters The parameters to the WebService function.
-		 * @return A new DelayedAsyncCall object responsible for making the WebService call.
+		 * @return A new ProxyAsyncToken responsible for making the WebService call.
 		 */
-		public function generateAndPerformQuery(webMethod:String, parameters:Array, resultCastFunction:Function = null):DelayedAsyncInvocation
+		public function generateAndPerformQuery(webMethod:String, parameters:Array, resultCastFunction:Function = null):ProxyAsyncToken
 		{
-			var query:DelayedAsyncInvocation = generateQuery(webMethod, parameters, resultCastFunction);
+			var query:ProxyAsyncToken = generateQuery(webMethod, parameters, resultCastFunction);
 			performQuery(query);
 			return query;
 		}
 
 		/**
-		 * generateQueryAndAddToQueue
-		 * Generates a new DelayedAsyncCall and adds it to the queue.
+		 * Generates a new ProxyAsyncToken and adds it to the queue.
 		 * If useQueue is false, the query will be performed immediately.
 		 * @param webMethod The name of the function to call on the WebService.
 		 * @param parameters The parameters to the WebService function.
-		 * @return A new DelayedAsyncCall object responsible for making the WebService call.
+		 * @return A new ProxyAsyncToken responsible for making the WebService call.
 		 */
-		public function generateQueryAndAddToQueue(webMethod:String, parameters:Array, resultCastFunction:Function = null):DelayedAsyncInvocation
+		public function generateQueryAndAddToQueue(webMethod:String, parameters:Array, resultCastFunction:Function = null):ProxyAsyncToken
 		{
-			var query:DelayedAsyncInvocation = generateQuery(webMethod, parameters, resultCastFunction);
+			var query:ProxyAsyncToken = generateQuery(webMethod, parameters, resultCastFunction);
 			if (useQueue)
 				addToQueue(query);
 			else
@@ -239,10 +219,11 @@ package weave.services
 			return query;
 		}
 
-		override protected function performQuery(query:DelayedAsyncInvocation):void
+		override protected function performQuery(query:ProxyAsyncToken):void
 		{
 			// add fault listener to this operation to prevent errors from propagating to webService object
-			var abstractOperation:AbstractOperation = webService.getOperation(query.methodName);
+			var methodName:String = query._params[0]; // first parameter of invokeAsyncMethod
+			var abstractOperation:AbstractOperation = webService.getOperation(methodName);
 			if (!abstractOperation.hasEventListener(FaultEvent.FAULT))
 				abstractOperation.addEventListener(FaultEvent.FAULT, handleWebMethodFault);
 
@@ -257,7 +238,7 @@ package weave.services
 			query.invoke(); // temporary?  perform query now instead of using global queue
 		}
 		
-		override protected function handleQueryResultOrFault(event:Event, query:DelayedAsyncInvocation):void
+		override protected function handleQueryResultOrFault(event:Event, query:ProxyAsyncToken):void
 		{
 			//trace(token, (event is ResultEvent) ? "SUCCESS" : "FAIL");
 
@@ -268,12 +249,11 @@ package weave.services
 		protected var alertOnlyOnce:Boolean = false; // set this to true if you only want a maximum of one alert to show for this web service
 		
 		/**
-		 * handleDownloadFault
 		 * This function is called when a query produces a fault.
 		 * It will notify the user with an Alert box and set 'alerted' = true.
 		 * If 'alerted' is already true, it will not display an Alert box.
 		 */
-		protected function handleDownloadFault(event:FaultEvent, query:DelayedAsyncInvocation):void
+		protected function handleDownloadFault(event:FaultEvent, query:ProxyAsyncToken):void
 		{
 			//trace("###################### Web service fault:", query, event.toString());
 			if (alertEnabled)
@@ -292,7 +272,6 @@ package weave.services
 		}
 		
 		/**
-		 * handleWebServiceFault
 		 * Called when web service dispatches a fault event.
 		 */
 		protected function handleWebServiceFault(event:FaultEvent):void
@@ -304,7 +283,6 @@ package weave.services
 		}
 		
 		/**
-		 * handleWebMethodFault
 		 * Called when a web method dispatches a fault event. This is dummy method to
 		 * prevent fault events on web methods from bubbling up to the WebService object.
 		 */
@@ -314,7 +292,6 @@ package weave.services
 		}
 
 		/**
-		 * getFaultTitle
 		 * Get a short description of the error.
 		 */
 		private function getFaultTitle(event:FaultEvent):String
@@ -335,7 +312,6 @@ package weave.services
 		}
 		
 		/**
-		 * getFaultDetail
 		 * Get a detailed description of the error.
 		 */
 		private function getFaultDetail(event:FaultEvent):String

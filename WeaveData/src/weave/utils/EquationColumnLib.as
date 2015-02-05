@@ -22,13 +22,12 @@ package weave.utils
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
 	import weave.api.core.ILinkableVariable;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -49,14 +48,6 @@ package weave.utils
 		 * This value should be set before calling any of the functions below that get values from IAttributeColumns.
 		 */
 		public static var currentRecordKey:IQualifiedKey = null;
-		
-		/**
-		 * @return columnReference.getAttributeColumn()
-		 */
-		public static function getReferencedColumn(columnReference:IColumnReference):IAttributeColumn
-		{
-			return WeaveAPI.AttributeColumnCache.getColumn(columnReference);
-		}
 		
 		/**
 		 * This function calls column.getValueFromKey(currentRecordKey, IQualifiedKey)
@@ -80,35 +71,47 @@ package weave.utils
 		{
 			// remember current key
 			var key:IQualifiedKey = currentRecordKey;
-
-			if (dataType is String)
-				dataType = ClassUtils.getClassDefinition(dataType);
-			
-			var value:* = null; // the value that will be returned
-			
-			// get the value from the object
-			var column:IAttributeColumn = object as IAttributeColumn;
-			if (column != null)
+			try
 			{
-				value = column.getValueFromKey(key, dataType as Class);
-			}
-			else if (object is ILinkableVariable)
-			{
-				value = (object as ILinkableVariable).getSessionState();
-				// cast the value to the requested type
-				if (dataType != null)
+				if (dataType is String)
+					dataType = ClassUtils.getClassDefinition(dataType);
+				
+				var value:* = null; // the value that will be returned
+				
+				// get the value from the object
+				var column:IAttributeColumn = object as IAttributeColumn;
+				if (column != null)
+				{
+					if (dataType == null)
+					{
+						var dataTypeMetadata:String = column.getMetadata(ColumnMetadata.DATA_TYPE);
+						dataType = DataType.getClass(dataTypeMetadata);
+						if (dataType == String && dataTypeMetadata != DataType.STRING)
+							dataType = IQualifiedKey;
+					}
+					value = column.getValueFromKey(key, dataType as Class);
+				}
+				else if (object is ILinkableVariable)
+				{
+					value = (object as ILinkableVariable).getSessionState();
+					// cast the value to the requested type
+					if (dataType != null)
+						value = cast(value, dataType);
+				}
+				else if (dataType != null)
+				{
 					value = cast(value, dataType);
+				}
+				
+				if (debug)
+					debugTrace('getValue',object,key.localName,String(value));
+				return value;
 			}
-			else if (dataType != null)
+			finally
 			{
-				value = cast(value, dataType);
+				// revert to key that was set when entering the function (in case nested calls modified the static variables)
+				currentRecordKey = key;
 			}
-			
-			// revert to key that was set when entering the function (in case nested calls modified the static variables)
-			currentRecordKey = key;
-			if (debug)
-				debugTrace('getValue',object,key.localName,String(value));
-			return value;
 		}
 		/**
 		 * This function calls IAttributeColumn.getValueFromKey(key, dataType).
@@ -120,16 +123,19 @@ package weave.utils
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;
-			
-			currentRecordKey = key;
-			var value:* = getValue(column, dataType);
-			
-			// revert to key that was set when entering the function
-			currentRecordKey = previousKey;
-
-			if (debug)
-				debugTrace('getValueFromKey',column,key.localName,String(value));
-			return value;
+			try
+			{
+				currentRecordKey = key;
+				var value:* = getValue(column, dataType);
+				if (debug)
+					debugTrace('getValueFromKey',column,key.localName,String(value));
+				return value;
+			}
+			finally
+			{
+				// revert to key that was set when entering the function (in case nested calls modified the static variables)
+				currentRecordKey = previousKey;
+			}
 		}
 		
 		/**
@@ -139,24 +145,31 @@ package weave.utils
 		 * @param data An IAttributeColumn to get a value from
 		 * @param filterValue value in filtercolumn to use to filter data
 		 * @param filterDataType Class object of the desired filter value type
-		 * @param dataType Class object of the desired value type 
+		 * @param dataType Class object of the desired value type. If IQualifiedKey, this acts as a reverse lookup for the filter column, returning the key given a filterValue String.
 		 * @return the correct filtered value from the data column
 		 * @author kmanohar
 		 */		
 		public static function getValueFromFilterColumn(keyColumn:DynamicColumn, filter:IAttributeColumn, data:IAttributeColumn, filterValue:String, dataType:* = null):Object
 		{
 			var key:IQualifiedKey = getKey();
-			var cubekeys:Array = getAssociatedKeys(keyColumn, key);
+			var foreignKeyType:String = keyColumn.getMetadata(ColumnMetadata.DATA_TYPE);
+			var ignoreKeyType:Boolean = !foreignKeyType || foreignKeyType == DataType.STRING;
+			var cubekeys:Array = getAssociatedKeys(keyColumn, key, ignoreKeyType);
 			
-			for each (var cubekey:IQualifiedKey in cubekeys)
+			if (cubekeys && cubekeys.length == 1)
 			{
-				if (filter.getValueFromKey(cubekey, String) == filterValue)
+				for each (var cubekey:IQualifiedKey in cubekeys)
 				{
-					var val:Object = getValueFromKey(data, cubekey, dataType);
-					return val;
+					if (filter.getValueFromKey(cubekey, String) == filterValue)
+					{
+						if (dataType === IQualifiedKey)
+							return cubekey;
+						var val:Object = getValueFromKey(data, cubekey, dataType);
+						return val;
+					}
 				}
 			}
-			return cast(NaN, dataType);
+			return cast(undefined, dataType);
 		}
 		
 		private static var _reverseKeyLookupTriggerCounter:Dictionary = new Dictionary(true);
@@ -166,41 +179,26 @@ package weave.utils
 		 * This function returns a list of IQualifiedKey objects using a reverse lookup of value-key pairs 
 		 * @param column An attribute column
 		 * @param keyValue The value to look up
+		 * @param ignoreKeyType If true, ignores the dataType of the column (the column's foreign keyType) and the keyType of the keyValue
 		 * @return An array of record keys with the given value under the given column
 		 */
-		public static function getAssociatedKeys(column:IAttributeColumn, keyValue:IQualifiedKey):Array
+		public static function getAssociatedKeys(column:IAttributeColumn, keyValue:IQualifiedKey, ignoreKeyType:Boolean = false):Array
 		{
 			var lookup:Dictionary = _reverseKeyLookupCache[column] as Dictionary;
 			if (lookup == null || column.triggerCounter != _reverseKeyLookupTriggerCounter[column]) // if cache is invalid, validate it now
 			{
 				_reverseKeyLookupTriggerCounter[column] = column.triggerCounter;
-				
-				// make sure when the column changes, the cache gets invalidated.
-				if (_reverseKeyLookupCache[column] === undefined)
-					column.addImmediateCallback(null, function():void { clearReverseLookupCache(column); });
-				
-				_reverseKeyLookupCache[column] = lookup = new Dictionary();
+				_reverseKeyLookupCache[column] = lookup = new Dictionary(true);
 				for each (var recordKey:IQualifiedKey in column.keys)
 				{
-					var value:Object = column.getValueFromKey(recordKey, IQualifiedKey) as IQualifiedKey;
+					var value:IQualifiedKey = column.getValueFromKey(recordKey, IQualifiedKey) as IQualifiedKey;
 					if (value == null)
 						continue;
-					var keys:Array = lookup[value] as Array;
-					if (keys == null)
-						lookup[value] = keys = [];
-					keys.push(recordKey);
+					(lookup[value] as Array || (lookup[value] = []) as Array).push(recordKey);
+					(lookup[value.localName] as Array || (lookup[value.localName] = []) as Array).push(recordKey);
 				}
 			}
-			return lookup[keyValue] as Array;
-		}
-		
-		/**
-		 * This function invalidates the cached reverse key lookup for a column.
-		 * @param column The column that changed
-		 */		
-		private static function clearReverseLookupCache(column:IAttributeColumn):void
-		{
-			_reverseKeyLookupCache[column] = null; // set to null but not undefined because we don't want to re-add this callback
+			return lookup[ignoreKeyType ? keyValue.localName : keyValue] as Array;
 		}
 		
 		/**
@@ -213,27 +211,32 @@ package weave.utils
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;
-			
-			if (key == null)
-				key = currentRecordKey;
-			
-			var result:Number;
-			var column:IAttributeColumn = object as IAttributeColumn;
-			if (column != null)
+			try
 			{
-				result = (object as IAttributeColumn).getValueFromKey(key, Number);
+				if (key == null)
+					key = currentRecordKey;
+				
+				var result:Number;
+				var column:IAttributeColumn = object as IAttributeColumn;
+				if (column != null)
+				{
+					result = (object as IAttributeColumn).getValueFromKey(key, Number);
+				}
+				else if (object is ILinkableVariable)
+				{
+					result = StandardLib.asNumber((object as ILinkableVariable).getSessionState());
+				}
+				else
+					throw new Error('first parameter must be either an IAttributeColumn or an ILinkableVariable');
+				
+				if (debug)
+					debugTrace('getNumber',column,key.localName,String(result));
 			}
-			else if (object is ILinkableVariable)
+			finally
 			{
-				result = StandardLib.asNumber((object as ILinkableVariable).getSessionState());
+				// revert to key that was set when entering the function (in case nested calls modified the static variables)
+				currentRecordKey = previousKey;
 			}
-			else
-				throw new Error('first parameter must be either an IAttributeColumn or an ILinkableVariable');
-			
-			// revert to key that was set when entering the function (in case nested calls modified the static variables)
-			currentRecordKey = previousKey;
-			if (debug)
-				debugTrace('getNumber',column,key.localName,String(result));
 			return result;
 		}
 		/**
@@ -246,27 +249,32 @@ package weave.utils
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;
-			
-			if (key == null)
-				key = currentRecordKey;
-
-			var result:String = '';
-			var column:IAttributeColumn = object as IAttributeColumn;
-			if (column != null)
+			try
 			{
-				result = (object as IAttributeColumn).getValueFromKey(key, String);
+				if (key == null)
+					key = currentRecordKey;
+	
+				var result:String = '';
+				var column:IAttributeColumn = object as IAttributeColumn;
+				if (column != null)
+				{
+					result = (object as IAttributeColumn).getValueFromKey(key, String);
+				}
+				else if (object is ILinkableVariable)
+				{
+					result = StandardLib.asString((object as ILinkableVariable).getSessionState());
+				}
+				else
+					throw new Error('first parameter must be either an IAttributeColumn or an ILinkableVariable');
+	
+				if (debug)
+					debugTrace('getString',column,key.localName,String(result));
 			}
-			else if (object is ILinkableVariable)
+			finally
 			{
-				result = StandardLib.asString((object as ILinkableVariable).getSessionState());
+				// revert to key that was set when entering the function (in case nested calls modified the static variables)
+				currentRecordKey = previousKey;
 			}
-			else
-				throw new Error('first parameter must be either an IAttributeColumn or an ILinkableVariable');
-
-			// revert to key that was set when entering the function (in case nested calls modified the static variables)
-			currentRecordKey = previousKey;
-			if (debug)
-				debugTrace('getString',column,key.localName,String(result));
 			return result;
 		}
 		/**
@@ -279,27 +287,32 @@ package weave.utils
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;
-			
-			if (key == null)
-				key = currentRecordKey;
-
-			var result:Boolean = false;
-			var column:IAttributeColumn = object as IAttributeColumn;
-			if (column != null)
+			try
 			{
-				result = column.getValueFromKey(key, Boolean);
+				if (key == null)
+					key = currentRecordKey;
+	
+				var result:Boolean = false;
+				var column:IAttributeColumn = object as IAttributeColumn;
+				if (column != null)
+				{
+					result = StandardLib.asBoolean(column.getValueFromKey(key, Number));
+				}
+				else if (object is ILinkableVariable)
+				{
+					result = StandardLib.asBoolean((object as ILinkableVariable).getSessionState());
+				}
+				else
+					throw new Error('first parameter must be either an IAttributeColumn or an ILinkableVariable');
+	
+				if (debug)
+					debugTrace('getBoolean',column,key.localName,String(result));
 			}
-			else if (object is ILinkableVariable)
+			finally
 			{
-				result = StandardLib.asBoolean((object as ILinkableVariable).getSessionState());
+				// revert to key that was set when entering the function (in case nested calls modified the static variables)
+				currentRecordKey = previousKey;
 			}
-			else
-				throw new Error('first parameter must be either an IAttributeColumn or an ILinkableVariable');
-
-			// revert to key that was set when entering the function (in case nested calls modified the static variables)
-			currentRecordKey = previousKey;
-			if (debug)
-				debugTrace('getBoolean',column,key.localName,String(result));
 			return result;
 		}
 		/**
@@ -313,20 +326,25 @@ package weave.utils
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;
-			
-			if (key == null)
-				key = currentRecordKey;
-
-			var result:Number = NaN;
-			if (column != null)
-				result = WeaveAPI.StatisticsCache.getColumnStatistics(column).getNorm(key);
-			else
-				throw new Error('first parameter must be an IAttributeColumn');
-
-			// revert to key that was set when entering the function (in case nested calls modified the static variables)
-			currentRecordKey = previousKey;
-			if (debug)
-				debugTrace('getNorm',column,key.localName,String(result));
+			try
+			{
+				if (key == null)
+					key = currentRecordKey;
+	
+				var result:Number = NaN;
+				if (column != null)
+					result = WeaveAPI.StatisticsCache.getColumnStatistics(column).getNorm(key);
+				else
+					throw new Error('first parameter must be an IAttributeColumn');
+	
+				if (debug)
+					debugTrace('getNorm',column,key.localName,String(result));
+			}
+			finally
+			{
+				// revert to key that was set when entering the function (in case nested calls modified the static variables)
+				currentRecordKey = previousKey;
+			}
 			return result;
 		}
 		
@@ -340,22 +358,26 @@ package weave.utils
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;
-			
-			if (key == null)
-				key = currentRecordKey;
-			
-			var keySet:IKeySet = null;
-			for (var i:int = 0; i < keySets.length; i++)
+			try
 			{
-				keySet = keySets[i] as IKeySet;
-				if (keySet && keySet.containsKey(key))
-					break;
-				else
-					keySet = null;
+				if (key == null)
+					key = currentRecordKey;
+				
+				var keySet:IKeySet = null;
+				for (var i:int = 0; i < keySets.length; i++)
+				{
+					keySet = keySets[i] as IKeySet;
+					if (keySet && keySet.containsKey(key))
+						break;
+					else
+						keySet = null;
+				}
 			}
-			
-			// revert to key that was set when entering the function (in case nested calls modified the static variables)
-			currentRecordKey = previousKey;
+			finally
+			{
+				// revert to key that was set when entering the function (in case nested calls modified the static variables)
+				currentRecordKey = previousKey;
+			}
 			return keySet;
 		}
 		
@@ -398,20 +420,24 @@ package weave.utils
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;
-			
-			if (key == null)
-				key = currentRecordKey;
-
-			var result:Number = NaN;
-			if (column != null)
+			try
 			{
-				var runningTotals:Dictionary = (WeaveAPI.StatisticsCache as StatisticsCache).getRunningTotals(column);
-				if (runningTotals != null)
-					result = runningTotals[key];
+				if (key == null)
+					key = currentRecordKey;
+	
+				var result:Number = NaN;
+				if (column != null)
+				{
+					var runningTotals:Dictionary = (WeaveAPI.StatisticsCache as StatisticsCache).getRunningTotals(column);
+					if (runningTotals != null)
+						result = runningTotals[key];
+				}
 			}
-
-			// revert to key that was set when entering the function (in case nested calls modified the static variables)
-			currentRecordKey = previousKey;
+			finally
+			{
+				// revert to key that was set when entering the function (in case nested calls modified the static variables)
+				currentRecordKey = previousKey;
+			}
 			return result;
 		}
 		/**

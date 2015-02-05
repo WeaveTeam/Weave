@@ -19,13 +19,15 @@
 
 package weave.utils
 {
+	import mx.utils.ObjectUtil;
+	
 	import weave.api.primitives.IBounds2D;
+	import weave.compiler.StandardLib;
 	import weave.primitives.BLGTree;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.VertexChainLink;
 	
 	/**
-	 * BLGTreeUtils
 	 * This is an all-static class for building Binary Line Generalization Trees.
 	 * 
 	 * @author adufilie
@@ -48,13 +50,11 @@ package weave.utils
 		}
 		
 		/**
-		 * tempBounds
 		 * Reusable temporary object, helps reduce garbage collection activity.
 		 */
 		private static const tempBounds:IBounds2D = new Bounds2D();
 
 		/**
-		 * processVertexChain
 		 * Sorts points by importance value, removes least important points first.
 		 * @param firstVertex The first vertex in a chain.
 		 * @param outputCoordinates The BLGTree to store the processed points in.
@@ -99,7 +99,7 @@ package weave.utils
 					sortArray[index] = vertex;
 					vertex = vertex.next;
 				}
-				sortArray.sortOn("importance");
+				StandardLib.sortOn(sortArray, VertexChainLink.IMPORTANCE);
 				
 				// in sorted order, extract each point as long as its
 				// surrounding points have not been invalidated

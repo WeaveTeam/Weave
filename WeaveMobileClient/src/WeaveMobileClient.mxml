@@ -38,11 +38,10 @@
 			import spark.layouts.TileLayout;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.getCallbackCollection;
 			import weave.api.reportError;
+			import weave.core.ClassUtils;
 			import weave.core.ErrorManager;
-			import weave.core.LinkableHashMap;
 			import weave.core.UIUtils;
 			import weave.ui.WeavePodLayoutManager;
 			import weave.ui.WeaveProgressBar;
@@ -200,18 +199,18 @@
 				{
 					case Keyboard.MENU:
 						// menu button supports holding down for key repeat
-						historyNav(1);
+						console.visible = !console.visible
 						break;
 					
 					case Keyboard.BACK:
-						event.preventDefault();
 						// back button supports holding down for key repeat
-						historyNav(-1);
+						//event.preventDefault();
+						//historyNav(-1);
 						break;
 					
 					case Keyboard.SEARCH:
 						// search doesn't support holding down for key repeat
-						console.visible = !console.visible
+						//historyNav(1);
 						break;
 				}
 			}
@@ -254,9 +253,9 @@
 					'ThermometerTool'
 				];
 				for each (var oldToolName:String in oldToolNames)
-					LinkableHashMap.registerDeprecatedClassReplacement(
-						'weave.visualization.tools::' + oldToolName,
-						getQualifiedClassName(SimpleInteractiveVisualization)
+					ClassUtils.registerDeprecatedClass(
+						'weave.visualization.tools.' + oldToolName,
+						SimpleInteractiveVisualization
 					);
 			}
 		]]>

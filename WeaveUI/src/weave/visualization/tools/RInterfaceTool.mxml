@@ -28,7 +28,7 @@
 				layout="horizontal"
 				autoLayout="true"
 				creationComplete="draggablepanel1_creationCompleteHandler(event)"
-				implements="weave.api.ui.IVisTool" xmlns:tools="weave.visualization.tools.*" xmlns:controlBars="weave.ui.controlBars.*" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*">
+				implements="weave.api.ui.IVisTool_R" xmlns:tools="weave.visualization.tools.*" xmlns:controlBars="weave.ui.controlBars.*" xmlns:DataMiningEditors="weave.ui.DataMiningEditors.*">
 	
 	<mx:VBox paddingLeft="10" paddingRight="5" paddingTop="5" paddingBottom="20" width="100%" height="100%">
 		<mx:MenuBar id="ROptions" labelField="@label" fontWeight="bold" cornerRadius="8" itemClick="menuItemClickHandler(event)"
@@ -73,7 +73,7 @@
 		<!-- Data manipulation and value exhibit-->
 		<mx:VBox id="dataBox" width="50%" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
 			<mx:Label text="(1) Select data to send to R" fontWeight="bold"/>
-			<mx:TabNavigator width="100%" height="100%">
+			<ui:CustomTabNavigator width="100%" height="100%">
 				<mx:VBox label="Columns">
 					<mx:HBox paddingLeft="5" paddingRight="5">
 						<mx:CheckBox id="columnsasVectorCB" label="Send Columns to R as Vectors" enabled="false"/>
@@ -119,7 +119,7 @@
 				</mx:VBox>
 				
 				<mx:VBox id="misc" label="Miscellaneous">
-					<mx:TabNavigator width="100%" height="100%">
+					<ui:CustomTabNavigator width="100%" height="100%">
 						<mx:VBox id="sampling" label="Sampling">
 							
 							<mx:HBox width="100%" height="80%">
@@ -139,10 +139,10 @@
 								<mx:Button id="runSampleBUtton" label="Sample" />
 							
 						</mx:VBox>
-					</mx:TabNavigator>
+					</ui:CustomTabNavigator>
 					
 				</mx:VBox>
-			</mx:TabNavigator>
+			</ui:CustomTabNavigator>
 			<mx:Button id="assignmentButton" label="(2) Generate and assign Variables" click="updateVariableAssignment(event)"/>
 			
 			<mx:Label text="Orginal Columns" fontWeight="bold"/>
@@ -218,7 +218,7 @@
 			</mx:HBox>
 			<mx:Label text="(4) Enter your Rscript" fontWeight="bold"/>
 			<!--2-->
-			<mx:TabNavigator width="100%" height="50%">
+			<ui:CustomTabNavigator width="100%" height="50%">
 				<mx:VBox id="RscriptTab" label="R Script">
 					<mx:TextArea id="RScriptTA" width="100%" height="100%"/>
 					<!--ui:TextInputWithPrompt width="100%" height="100%" id="searchAttrTerms"
@@ -263,7 +263,7 @@
 					<mx:TextArea id="queryObjectTA" width="100%" height="100%"/>
 				</mx:VBox>
 				
-			</mx:TabNavigator>
+			</ui:CustomTabNavigator>
 			<mx:HBox>
 			<mx:Spacer width="75%"	/>
 			<!--mx:Button id="newScript" layoutDirection="rtl" label="New Script" click="newScript_clickHandler(event)"/-->
@@ -287,7 +287,7 @@
 			<!--7-->
 			<mx:TextArea id="RResultConsole" width="100%" height="40%"/>
 			<!--8-->
-			<LabelWithWordWrap text="{lang('(6) Export your script for later use')}" fontWeight="bold"/>
+			<Paragraph text="{lang('(6) Export your script for later use')}" fontWeight="bold"/>
 			<!--9-->
 			<mx:HBox>
 				<mx:Button id="exportBtn" label="{lang('Export')}" />
@@ -305,19 +305,15 @@
 			import mx.core.FlexGlobals;
 			import mx.events.CloseEvent;
 			import mx.events.FlexEvent;
-			import mx.events.ListEvent;
 			import mx.events.MenuEvent;
 			import mx.rpc.AsyncToken;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			import mx.utils.ObjectUtil;
 			
-			import org.igniterealtime.xiff.data.IQ;
-			
 			import spark.components.Image;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
@@ -326,10 +322,7 @@
 			import weave.api.reportError;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
-			import weave.data.AttributeColumns.CSVColumn;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.NumberColumn;
-			import weave.data.AttributeColumns.StringColumn;
 			import weave.data.DataSources.CSVDataSource;
 			import weave.services.WeaveRServlet;
 			import weave.services.addAsyncResponder;
@@ -341,9 +334,8 @@
 			import weave.ui.DataMiningEditors.PamClusteringEditor;
 			import weave.utils.ColumnUtils;
 			import weave.utils.ResultUtils;
-			import weave.utils.VectorUtils;
 
-			//WeaveAPI.registerImplementation(IVisTool, RInterfaceTool, lang("RInterface"));
+			//WeaveAPI.ClassRegistry.registerImplementation(IVisTool, RInterfaceTool, "RInterface");
 			
 			[Bindable]
 		    public var valueExhibitCollection:ArrayCollection = new ArrayCollection();
@@ -397,10 +389,10 @@
 			private var rPreload:DataPreloadInR = DataPreloadInR.getDataPreloadInRinstance(fillingResult);//used for calculating certain statistics as soon as data is loaded
 			private var normBinAndStatResult:Array = new Array();//object returned from R which contains stats, distributions 
 			
-			override protected function constructor():void
+			override protected function inConstructor():void
 			{
-				super.constructor();				
-				var columns:Array = SimpleVisTool.getDefaultColumnsOfMostCommonKeyType();
+				super.inConstructor();				
+				var columns:Array = ColumnUtils.getColumnsWithCommonKeyType();
 				for (var i:int = 0; i < columns.length; i++)
 					variables.requestObjectCopy(null, columns[i]);
 				
@@ -606,7 +598,7 @@
 					script = script.replace("\r","\n");
 				}				
 				//Script to get output from R
-				var outputNames:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(outputTA.text));
+				var outputNames:Array = WeaveAPI.CSVParser.parseCSVRow(outputTA.text) || [];
 				
 				//Query is created from runScript with same signature from Jave side
 				
@@ -724,34 +716,8 @@
 						imagePanel.panelWidth.value = "500";
 						imagePanel.panelHeight.value = "500";
 					}
-					if(RresultArray[p].value is Array){
-						if(keys){
-							if ((RresultArray[p].value).length == keys.length){
-								if (RresultArray[p].value[0] is String)	{
-									var testStringColumn:StringColumn = Weave.root.requestObject(RresultArray[p].name, StringColumn, false);
-									var keyVec:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(keys);
-									var dataVec:Vector.<String> = Vector.<String>(Robj[p].value);
-									testStringColumn.setRecords(keyVec, dataVec);
-									if (keys.length > 0)
-										testStringColumn.metadata.@keyType = (keys[0] as IQualifiedKey).keyType;
-									testStringColumn.metadata.@name = RresultArray[p].name;
-								}
-								else{
-									var table:Array = [];
-									for (var k:int = 0; k < keys.length; k++)
-										table.push([ (keys[k] as IQualifiedKey).localName, Robj[p].value[k] ]);
-									
-									//testColumn are named after respective Objects Name (i.e) object{name: , value:}
-									var testColumn:CSVColumn = Weave.root.requestObject(RresultArray[p].name, CSVColumn, false);
-									testColumn.keyType.value = keys.length > 0 ? (keys[0] as IQualifiedKey).keyType : null;
-									testColumn.numericMode.value = true;
-									testColumn.data.setSessionState(table);
-									testColumn.title.value = RresultArray[p].name;
-								}
-							}
-						}						
-					}										
 				}
+				ResultUtils.rResultToColumn(keys, RresultArray, Robj);
 			}
 			
 			private function handleRunScriptFault(event:FaultEvent, token:Object = null):void
@@ -795,16 +761,22 @@
 			private var _defaultsFilename:String = null;
 			protected function import_clickHandler(event:MouseEvent):void
 			{
-				var loadedXML:XML = new XML();
-				if(_sessionFileLoader == null)
+				try
 				{
-					_sessionFileLoader = new FileReference();
-					
-					_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { _sessionFileLoader.load(); _defaultsFilename = _sessionFileLoader.name; } );
-					_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {loadedXML = XML(e.target.data) ;loadIntoReditor(loadedXML);} );
+					var loadedXML:XML = new XML();
+					if(_sessionFileLoader == null)
+					{
+						_sessionFileLoader = new FileReference();
+						
+						_sessionFileLoader.addEventListener(Event.SELECT,   function (e:Event):void { _sessionFileLoader.load(); _defaultsFilename = _sessionFileLoader.name; } );
+						_sessionFileLoader.addEventListener(Event.COMPLETE, function (e:Event):void {loadedXML = XML(e.target.data) ;loadIntoReditor(loadedXML);} );
+					}
+					_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);			
 				}
-				_sessionFileLoader.browse([new FileFilter("XML", "*.xml")]);			
-				
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			
 			

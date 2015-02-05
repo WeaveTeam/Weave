@@ -27,7 +27,6 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
@@ -44,6 +43,8 @@ package weave.visualization.plotters
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
+	import weave.radviz.voronoi.VEdge;
+	import weave.radviz.voronoi.Voronoi;
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidFillStyle;
@@ -87,7 +88,7 @@ package weave.visualization.plotters
 		private const _bitmapText:BitmapText = new BitmapText();
 		private var coordinate:Point = new Point();//reusable object
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
-		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar")),fillColorMap);
+		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Paired")),fillColorMap);
 		public var anchorColorMap:Dictionary;
 		
 		
@@ -98,6 +99,7 @@ package weave.visualization.plotters
 
 		public var anchorThreshold:Number;
 		public var doCDLayout:Boolean = false;// this displays the tstat value with every dimensional anchor name (displayed only when CD layout is done)
+		public var doCDLayoutMetric:Boolean = true; // ToDo yenfu whether display metric info
 		
 		private function getClassFromAnchor(anchorName:String):String
 		{
@@ -121,6 +123,13 @@ package weave.visualization.plotters
 		public const anchorRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		
 		
+		public const showBarycenter:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const barycenterRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+		public const barycenterFillStyle:SolidFillStyle = registerLinkableChild(this, new SolidFillStyle());
+		public const barycenterLineStyle:SolidLineStyle = registerLinkableChild(this, new SolidLineStyle());
+		
+		public const showVoronoi:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const showConvexHull:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public function handleAnchorsChange():void
 		{
@@ -194,7 +203,7 @@ package weave.visualization.plotters
 					graphics.beginFill(anchorColorMap[key.localName]);
 				else if (doCDLayout)
 				{
-					//color the dimensional anchors according to the class hey belong to
+					//color the dimensional anchors according to the class they belong to
 					var classStr:String = getClassFromAnchor(key.localName);
 					var cc:ColorColumn = Weave.defaultColorColumn;
 					var binColumn:BinnedColumn = cc.getInternalColumn() as BinnedColumn;
@@ -212,7 +221,7 @@ package weave.visualization.plotters
 				_bitmapText.trim = false;
 				_bitmapText.text = " " + anchor.title.value + " ";
 				
-				if(doCDLayout)//displays the class discrimination metric used, either tstat or pvalue
+				if(doCDLayout && doCDLayoutMetric)//displays the class discrimination metric used, either tstat or pvalue
 					_bitmapText.text = _bitmapText.text + "\n"+ "  Metric : " + 
 						Math.round(anchor.classDiscriminationMetric.value *100)/100 +"\n" + "  Class :" + anchor.classType.value;
 				_bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_MIDDLE;
@@ -244,8 +253,19 @@ package weave.visualization.plotters
 				// draw bitmap text
 				_bitmapText.draw(destination);								
 			}
+			if(showBarycenter.value)
+			{
+				drawBarycenter(recordKeys, dataBounds, screenBounds, graphics, destination);
+			}
 			
-			
+			if(showVoronoi.value)
+			{
+				drawVoronoi(recordKeys, dataBounds, screenBounds, graphics, destination);
+			}
+			if(showConvexHull.value)
+			{
+				drawConvexHull(recordKeys, dataBounds, screenBounds, graphics, destination);
+			}
 			destination.draw(tempShape);							
 			
 			_currentScreenBounds.copyFrom(screenBounds);
@@ -343,6 +363,166 @@ package weave.visualization.plotters
 				_bitmapText.y = classLabelPoint.y;
 				
 				_bitmapText.draw(destination);*/
+			}
+		}
+		
+		public function drawBarycenter(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void
+		{
+			var graphics:Graphics = g;
+			
+			var barycenter:Point = new Point();
+			var counter:int = 0;
+			var anchor:AnchorPoint;
+			
+			// don't draw anything if there are no anchors.
+			if (!recordKeys || !recordKeys.length)
+				return;
+			
+			for each(var key:IQualifiedKey in recordKeys)
+			{
+				anchor = anchors.getObject(key.localName) as AnchorPoint;
+				if (key.keyType != ANCHOR_KEYTYPE || !anchor)
+					continue;
+				
+				barycenter.x += anchor.x.value;
+				barycenter.y += anchor.y.value;
+				counter++;
+			}
+			
+			barycenter.x = barycenter.x / counter;
+			barycenter.y = barycenter.y / counter;
+			
+			barycenterLineStyle.beginLineStyle(null, graphics);
+			barycenterFillStyle.beginFillStyle(null, graphics);
+			
+			dataBounds.projectPointTo(barycenter, screenBounds);
+			
+			graphics.drawCircle(barycenter.x, barycenter.y, barycenterRadius.value);
+			
+			graphics.endFill();
+			
+		}
+		
+		public function drawConvexHull(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void
+		{
+			var graphics:Graphics = g;
+			var anchor1:AnchorPoint;
+			var anchor2:AnchorPoint;
+			var anchor:AnchorPoint;
+			var _anchors:Array = [];
+			var index:int;
+			var p1:Point = new Point();
+			var p2:Point = new Point();0
+			
+			// don't draw anything if no anchors
+			if ( !recordKeys || recordKeys.length == 0)
+				return;
+			
+			// convert the array of record keys into array of anchors
+			for(index = 0; index < recordKeys.length; index++)
+			{
+				 anchor = anchors.getObject(recordKeys[index].localName) as AnchorPoint;
+				
+				if (recordKeys[index].keyType != ANCHOR_KEYTYPE || !anchor)
+					continue;
+				
+				_anchors.push(anchor);
+			}
+			
+			// sort by polar angle
+			_anchors.sort(anchorCompareFunctionByPolarAngle);
+			
+			// draw convex hull
+			for(index = 0; index < _anchors.length - 1; index++)
+			{
+				anchor1 = _anchors[index];
+				anchor2 = _anchors[index + 1];
+				p1.x = anchor1.x.value; p1.y = anchor1.y.value;
+				p2.x = anchor2.x.value;p2.y = anchor2.y.value;
+				dataBounds.projectPointTo(p1, screenBounds);
+				dataBounds.projectPointTo(p2, screenBounds);
+				circleLineStyle.beginLineStyle(null, graphics);
+				graphics.moveTo(p1.x, p1.y);
+				graphics.lineTo(p2.x, p2.y);				
+			}
+			
+			// draw the last connecting line between the last anchor and the first one.
+			p1.x = _anchors[_anchors.length - 1].x.value; p1.y = _anchors[_anchors.length - 1].y.value;
+			p2.x = _anchors[0].x.value; p2.y = _anchors[0].y.value;
+			
+			dataBounds.projectPointTo(p1, screenBounds);
+			dataBounds.projectPointTo(p2, screenBounds);
+			graphics.moveTo(p1.x, p1.y);
+			graphics.lineTo(p2.x, p2.y);
+			
+			graphics.endFill();
+			
+			function anchorCompareFunctionByPolarAngle(a1:AnchorPoint, a2:AnchorPoint):Number
+			{
+				if(a1.polarRadians.value < a2.polarRadians.value)
+				{
+					return -1;
+				} else if (a1.polarRadians.value > a2.polarRadians.value)
+				{
+					return 1;
+				} else {
+					return 0;
+				}
+			}
+			
+		}
+		
+		
+		
+		public function drawVoronoi(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void
+		{
+			// http://blog.ivank.net/voronoi-diagram-in-as3.html
+			var graphics:Graphics = g;
+			
+			var i:int;
+			var edges:Vector.<VEdge>; // vector  for edges
+			var v:Voronoi = new Voronoi();
+			var vertices:Vector.<Point> = new Vector.<Point>();
+			
+			var counter:int = 0;
+			
+			var barycenter:Point = new Point();
+			
+			var anchor:AnchorPoint;
+			
+			// don't draw anything if there are no anchors.
+			if (!recordKeys || !recordKeys.length)
+				return;
+			
+			for each(var key:IQualifiedKey in recordKeys)
+			{
+				anchor = anchors.getObject(key.localName) as AnchorPoint;
+				if (key.keyType != ANCHOR_KEYTYPE || !anchor)
+					continue;
+				
+				barycenter.x += anchor.x.value;
+				barycenter.y += anchor.y.value;
+				var p:Point = new Point(anchor.x.value, anchor.y.value);
+				dataBounds.projectPointTo(p, screenBounds);
+				vertices.push(p);
+				p.x += 0.0000001 * vertices.length;
+				p.y += 0.0000001 * vertices.length;
+				counter++;
+			}
+			
+			barycenter.x = barycenter.x / counter;
+			barycenter.y = barycenter.y / counter;
+			dataBounds.projectPointTo(barycenter, screenBounds);
+			
+			vertices.push(barycenter);
+
+			edges = v.GetEdges(vertices, screenBounds.getWidth(), screenBounds.getHeight());
+			
+			graphics.lineStyle(1, 0x888888);
+			for(i = 0; i< edges.length; i++)
+			{
+			   graphics.moveTo(edges[i].start.x, edges[i].start.y);
+			   graphics.lineTo(edges[i].end  .x, edges[i].end  .y);
 			}
 		}
 		

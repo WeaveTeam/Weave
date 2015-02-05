@@ -1,20 +1,20 @@
 /*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package weave.visualization.plotters
@@ -26,29 +26,34 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.text.TextFieldAutoSize;
 	import flash.utils.Dictionary;
+	import flash.utils.getTimer;
 	
-	import mx.controls.Alert;
 	import mx.core.UITextField;
 	import mx.graphics.ImageSnapshot;
 	
 	import weave.Weave;
-	import weave.api.WeaveAPI;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.disposeObjects;
+	import weave.api.detectLinkableObjectChange;
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CSVDataSource;
@@ -59,6 +64,7 @@ package weave.visualization.plotters
 	import weave.radviz.IncrementalLayoutAlgorithm;
 	import weave.radviz.NearestNeighborLayoutAlgorithm;
 	import weave.radviz.RandomLayoutAlgorithm;
+	import weave.utils.CachedBitmap;
 	import weave.utils.ColumnUtils;
 	import weave.utils.RadVizUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
@@ -69,7 +75,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author kmanohar
 	 */
-	public class RadVizPlotter extends AbstractPlotter
+	public class RadVizPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		public function RadVizPlotter()
 		{
@@ -85,6 +91,9 @@ package weave.visualization.plotters
 			getCallbackCollection(filteredKeySet).addGroupedCallback(this, handleColumnsChange, true);
 			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
 			columns.addGroupedCallback(this, handleColumnsChange);
+			absNorm.addGroupedCallback(this, handleColumnsChange);
+			normMin.addGroupedCallback(this, handleColumnsChange);
+			normMax.addGroupedCallback(this, handleColumnsChange);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -108,9 +117,31 @@ package weave.visualization.plotters
 			}
 		}
 		
+		public function getSelectableAttributeNames():Array
+		{
+			return ["Size", "Color", "Anchor Dimensions"];
+		}
+		
+		public function getSelectableAttributes():Array
+		{
+			return [radiusColumn, fillStyle.color, columns];
+		}
+		
 		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		
+		public const pointSensitivitySelection:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), updatePointSensitivityColumns);
+				
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0, verifyThresholdValue));
+		public const showValuesForAnchorProbeLines:LinkableBoolean= registerLinkableChild(this,new LinkableBoolean(false));
+		
+		private var pointSensitivityColumns:Array = [];
+		private var annCenterColumns:Array = [];
+		public const showAnnulusCenter:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		
+		public const absNorm:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const normMin:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
+		public const normMax:LinkableNumber = registerSpatialProperty(new LinkableNumber(1));
 		
 		private function verifyThresholdValue(value:*):Boolean
 		{
@@ -120,6 +151,23 @@ package weave.visualization.plotters
 				return false;
 		}
 		
+		private function updatePointSensitivityColumns():void
+		{
+			pointSensitivityColumns = [];
+			annCenterColumns = [];
+			var tempArray:Array = pointSensitivitySelection.getSessionState() as Array || [];
+			var cols:Array = columns.getObjects();
+			for( var i:int = 0; i < tempArray.length; i++)
+			{
+				if (tempArray[i])
+				{
+					pointSensitivityColumns.push(cols[i]);
+				} else
+				{
+					annCenterColumns.push(cols[i]);
+				}
+			}
+		}
 		/**
 		 * LinkableHashMap of RadViz dimension locations: 
 		 * <br/>contains the location of each column as an AnchorPoint object
@@ -128,6 +176,8 @@ package weave.visualization.plotters
 		private var coordinate:Point = new Point();//reusable object
 		private const tempPoint:Point = new Point();//reusable object
 		
+		//public const drawAnnuliCenter:LinkableBoolean = newLinkableChild(this, LinkableBoolean(true));
+		
 		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19));			
 		public const enableJitter:LinkableBoolean = 		registerSpatialProperty(new LinkableBoolean(false));
 		public const iterations:LinkableNumber = 			newLinkableChild(this,LinkableNumber);
@@ -135,10 +185,12 @@ package weave.visualization.plotters
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this,SolidFillStyle);
 		public function get alphaColumn():AlwaysDefinedColumn { return fillStyle.alpha; }
-		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Doppler Radar"))) ;		
+		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Paired"))) ;		
 		
 		public var LayoutClasses:Dictionary = null;//(Set via the editor) needed for setting the Cd layout dimensional anchor  locations
 		
+		private var minRadius:Number = 2;
+		private var maxRadius:Number = 10;
 		
 		/**
 		 * This is the radius of the circle, in screen coordinates.
@@ -152,9 +204,10 @@ package weave.visualization.plotters
 		private var keyNumberMap:Dictionary;		
 		private var keyNormMap:Dictionary;
 		private var keyGlobalNormMap:Dictionary;
-		private var columnTitleMap:Dictionary;
 		
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
+		
+		public var doCDLayoutFlag:Boolean = false; // ToDo yenfu temporary flag to fix the code
 		
 		private function handleColumnsChange():void
 		{
@@ -174,7 +227,6 @@ package weave.visualization.plotters
 			keyNormMap = 			new Dictionary(true);
 			keyGlobalNormMap = 		new Dictionary(true);
 			keyNumberMap = 			new Dictionary(true);
-			columnTitleMap = 		new Dictionary(true);
 			
 			
 			setAnchorLocations();//normal layout
@@ -183,7 +235,8 @@ package weave.visualization.plotters
 			if (keySources.length > 0) 
 			{
 				keySources.unshift(radiusColumn);
-				setColumnKeySources(keySources, [true]);
+				var sortDirections:Array = keySources.map(function(c:*, i:int, a:*):int { return i == 0 ? -1 : 1; });
+				setColumnKeySources(keySources, sortDirections);
 				
 				for each( var key:IQualifiedKey in filteredKeySet.keys)
 				{					
@@ -195,10 +248,7 @@ package weave.visualization.plotters
 					sum = 0;
 					for each( var column:IAttributeColumn in columns.getObjects())
 					{
-						if(i == 0)
-							columnTitleMap[column] = columns.getName(column);
-						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-						columnNormArray.push(stats.getNorm(key));
+						columnNormArray.push(getNorm(column, key));
 						columnNumberMap[column] = column.getValueFromKey(key, Number);
 						columnNumberArray.push(columnNumberMap[column]);
 					}
@@ -233,6 +283,28 @@ package weave.visualization.plotters
 			}
 			
 			setAnchorLocations();
+			
+			if (doCDLayoutFlag) setClassDiscriminationAnchorsLocations();
+		}
+		
+		private function getNorm(column:IAttributeColumn, key:IQualifiedKey):Number
+		{
+			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
+			var _absNorm:Boolean = absNorm.value;
+			var _normMin:Number = normMin.value;
+			var _normMax:Number = normMax.value;
+			
+			if (!_absNorm && _normMin == 0 && _normMax == 1)
+				return stats.getNorm(key);
+			
+			var value:Number = column.getValueFromKey(key, Number);
+			var statsMin:Number = stats.getMin();
+			var statsMax:Number = stats.getMax();
+			var absMax:Number = Math.max(Math.abs(statsMin), Math.abs(statsMax));
+			var min:Number = _absNorm ? -absMax : statsMin;
+			var max:Number = _absNorm ? absMax : statsMax;
+			
+			return StandardLib.scale(value, min, max, _normMin, _normMax);
 		}
 		
 		public function setclassDiscriminationMetric(tandpMapping:Dictionary,tandpValuesMapping:Dictionary):void
@@ -281,6 +353,8 @@ package weave.visualization.plotters
 			anchors.resumeCallbacks();
 		}
 		
+		public const anchorLabelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction("Class('weave.utils.ColumnUtils').getTitle(column)", true, false, ['column']), setClassDiscriminationAnchorsLocations);
+		
 		//this function sets the anchor locations for the Class Discrimination Layout algorithm and marks the Class locations
 		public function setClassDiscriminationAnchorsLocations():void
 		{
@@ -308,7 +382,7 @@ package weave.visualization.plotters
 					cdAnchor = anchors.getObject(colNames[g]) as AnchorPoint;
 					cdAnchor.x.value  = Math.cos(currentClassPos + (columnTheta * columnIncrementor));
 					cdAnchor.y.value = Math.sin(currentClassPos + (columnTheta * columnIncrementor));
-					cdAnchor.title.value = ColumnUtils.getTitle(columns.getObject(colNames[g]) as IAttributeColumn);
+					cdAnchor.title.value = anchorLabelFunction.apply(null, [columns.getObject(colNames[g]) as IAttributeColumn]);
 					columnIncrementor++;//change
 				}
 				
@@ -346,20 +420,17 @@ package weave.visualization.plotters
 			var anchorArray:Array = anchors.getObjects();			
 			
 			var value:Number = 0;			
-			var name:String;
 			var anchor:AnchorPoint;
 			var normArray:Array = (localNormalization.value) ? keyNormMap[recordKey] : keyGlobalNormMap[recordKey];
 			var _cols:Array = columns.getObjects();
 			for (var i:int = 0; i < _cols.length; i++)
 			{
 				var column:IAttributeColumn = _cols[i];
-				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-				value = normArray ? normArray[i] : stats.getNorm(recordKey);
+				value = normArray ? normArray[i] : getNorm(column, recordKey);
 				if (isNaN(value))
 					continue;
 				
-				name = normArray ? columnTitleMap[column] : columns.getName(column);
-				anchor = anchors.getObject(name) as AnchorPoint;
+				anchor = anchors.getObject(columns.getName(column)) as AnchorPoint;
 				numeratorX += value * anchor.x.value;
 				numeratorY += value * anchor.y.value;						
 				denominator += value;
@@ -412,52 +483,100 @@ package weave.visualization.plotters
 					return 1;
 				if (columns.getObjects().length != anchors.getObjects().length)
 					return 1;
+				if (detectLinkableObjectChange(drawPlotAsyncIteration, lineStyle, fillStyle, radiusConstant, radiusColumn))
+					keyToGlyph = new Dictionary(true);
+				task.asyncState = 0;
 			}
-			return super.drawPlotAsyncIteration(task);
+			for (var recordIndex:int = int(task.asyncState); recordIndex < task.recordKeys.length; task.asyncState = ++recordIndex)
+			{
+				// if time is up, report progress
+				if (getTimer() > task.iterationStopTime)
+					return recordIndex / task.recordKeys.length;
+				
+				var key:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
+				
+				getXYcoordinates(key);
+				// skip missing x,y
+				if (isFinite(coordinate.x) && isFinite(coordinate.y))
+				{
+					task.dataBounds.projectPointTo(coordinate, task.screenBounds);
+					var radius:Number;
+					if (useGlyphCache)
+					{
+						var glyph:CachedBitmap = keyToGlyph[key];
+						if (!glyph)
+						{
+							if (radiusColumn.getInternalColumn())
+								radius = minRadius + radiusColumnStats.getNorm(key) * (maxRadius - minRadius);
+							else
+								radius = radiusConstant.value;
+							
+							keyToGlyph[key] = glyph = getCachedGlyph(
+								lineStyle.getLineStyleParams(key),
+								fillStyle.getBeginFillParams(key),
+								StandardLib.roundSignificant(radius, 3),
+								radiusConstant.value
+							);
+						}
+						glyph.drawTo(task.buffer, Math.round(coordinate.x), Math.round(coordinate.y));
+					}
+					else
+					{
+						if (radiusColumn.getInternalColumn())
+							radius = minRadius + radiusColumnStats.getNorm(key) * (maxRadius - minRadius);
+						else
+							radius = radiusConstant.value;
+						var shape:Shape = drawGlyph(
+							lineStyle.getLineStyleParams(key),
+							fillStyle.getBeginFillParams(key),
+							StandardLib.roundSignificant(radius, 3),
+							radiusConstant.value
+						);
+						tempMatrix.identity();
+						tempMatrix.translate(coordinate.x, coordinate.y);
+						task.buffer.draw(shape, tempMatrix);
+					}
+				}
+			}
+			
+			// report progress
+			return 1; // avoids division by zero in case task.recordKeys.length == 0
 		}
+		
+		private var keyToGlyph:Dictionary = new Dictionary(true);
+		private const tempMatrix:Matrix = new Matrix();
+		public var useGlyphCache:Boolean = true;
+		
+		/**
+		 * A memoized version of drawGlyph() which returns a CachedBitmap object.
+		 */
+		private const getCachedGlyph:Function = Compiler.memoize(function(...args):* {
+			return registerDisposableChild(this, new CachedBitmap(this.drawGlyph.apply(this, args)));
+		}, this);
 		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
-		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
+		private function drawGlyph(lineParams:Array, fillParams:Array, radius:Number, radiusConstant:Number):Shape
 		{
 			var graphics:Graphics = tempShape.graphics;
-			var radius:Number = radiusColumnStats.getNorm(recordKey);
+			graphics.clear();
 			
-			// Get coordinates of record and add jitter (if specified)
-			getXYcoordinates(recordKey);
+			if (fillParams)
+				graphics.beginFill(fillParams[0], fillParams[1]);
+			else
+				graphics.endFill();
 			
-			if(radiusColumn.getInternalColumn() != null)
-			{
-				if(radius <= Infinity) radius = 2 + (radius *(10-2));
-				if(isNaN(radius))
-				{			
-					radius = radiusConstant.value;
-					
-					lineStyle.beginLineStyle(recordKey, graphics);
-					fillStyle.beginFillStyle(recordKey, graphics);
-					dataBounds.projectPointTo(coordinate, screenBounds);
-					
-					// draw a square of fixed size for missing size values				
-					graphics.drawRect(coordinate.x - radius/2, coordinate.y - radius/2, radius, radius);		
-					graphics.endFill();
-					return ;
-				}	
-			}
-			else if (isNaN(radius))
-			{
-				radius = radiusConstant.value ;
-			}
+			graphics.lineStyle.apply(graphics, lineParams);
+			if (isFinite(radius))
+				graphics.drawCircle(0, 0, radius);
+			else // draw a square of fixed size for missing size values
+				graphics.drawRect(0 - radiusConstant/2, 0 - radiusConstant/2, radiusConstant, radiusConstant);
 			
-			if(isNaN(coordinate.x) || isNaN(coordinate.y)) return; // missing values skipped
+			if (fillParams)
+				graphics.endFill();
 			
-			lineStyle.beginLineStyle(recordKey, graphics);
-			fillStyle.beginFillStyle(recordKey, graphics);
-			
-			dataBounds.projectPointTo(coordinate, screenBounds);
-			graphics.drawCircle(coordinate.x, coordinate.y, radius);
-			
-			graphics.endFill();
+			return tempShape;
 		}
 		
 		/**
@@ -540,28 +659,24 @@ package weave.visualization.plotters
 				/*if the keytype is different from the keytype of points visualized on Rad Vis than ignore*/
 				if(key.keyType != requiredKeyType)
 				{
-					return;
+					continue;
 				}
 				getXYcoordinates(key);
 				dataBounds.projectPointTo(coordinate, screenBounds);
 				var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
-				
 				var value:Number;
-				var name:String;
 				var anchor:AnchorPoint;
 				for (var i:int = 0; i < _cols.length; i++)
 				{
 					var column:IAttributeColumn = _cols[i];
-					var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-					value = normArray ? normArray[i] : stats.getNorm(key);
+					value = normArray ? normArray[i] : getNorm(column, key);
 					
 					/*only draw probe line if higher than threshold value*/
 					if (isNaN(value) || value <= probeLineNormalizedThreshold.value)
 						continue;
 					
 					/*draw the line from point to anchor*/
-					name = normArray ? columnTitleMap[column] : columns.getName(column);
-					anchor = anchors.getObject(name) as AnchorPoint;
+					anchor = anchors.getObject(columns.getName(column)) as AnchorPoint;
 					tempPoint.x = anchor.x.value;
 					tempPoint.y = anchor.y.value;
 					dataBounds.projectPointTo(tempPoint, screenBounds);
@@ -608,6 +723,210 @@ package weave.visualization.plotters
 			}
 		}
 		
+		public function drawProbeLinesForSelectedAnchors(anchorKeys:Array,dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
+		{
+			if(!drawProbe) return;
+			if(!anchorKeys) return;
+			
+			var graphics:Graphics = destination;
+			graphics.clear();
+			
+			if(filteredKeySet.keys.length == 0)
+				return;
+			var requiredKeyType:String = filteredKeySet.keys[0].keyType;
+			var keys:Array = filteredKeySet.keys;
+			var _cols:Array = columns.getObjects();
+			
+			for each( var anchorKey :IQualifiedKey in anchorKeys)
+			{
+				for each(var key:IQualifiedKey in keys)
+				{
+					
+					getXYcoordinates(key);
+					dataBounds.projectPointTo(coordinate, screenBounds);
+					var value:Number;
+					var anchor:AnchorPoint;
+					var column:IAttributeColumn = columns.getObject(anchorKey.localName) as IAttributeColumn;
+					value = getNorm(column, key);
+					
+					/*only draw probe line if higher than threshold value*/
+					if (isNaN(value) || value <= probeLineNormalizedThreshold.value)
+						continue;
+					
+					/*draw the line from point to anchor*/
+					anchor = anchors.getObject(columns.getName(column)) as AnchorPoint;
+					tempPoint.x = anchor.x.value;
+					tempPoint.y = anchor.y.value;
+					dataBounds.projectPointTo(tempPoint, screenBounds);
+					graphics.lineStyle(.5, 0xff0000);
+					graphics.moveTo(coordinate.x, coordinate.y);
+					graphics.lineTo(tempPoint.x, tempPoint.y);
+					
+					/*We  draw the value (upto to 1 decimal place) in the middle of the probe line. We use the solution as described here:
+					http://cookbooks.adobe.com/post_Adding_text_to_flash_display_Graphics_instance-14246.html
+					*/
+					if(showValuesForAnchorProbeLines.value)
+					{
+						graphics.lineStyle(0,0,0);
+						var uit:UITextField = new UITextField();
+						var numberValue:String = ColumnUtils.getNumber(column,key).toString();
+						numberValue = numberValue.substring(0,numberValue.indexOf('.')+2);
+						uit.text = numberValue;
+						uit.autoSize = TextFieldAutoSize.LEFT;
+						var textBitmapData:BitmapData = ImageSnapshot.captureBitmapData(uit);
+						
+						var sizeMatrix:Matrix = new Matrix();
+						var coef:Number =Math.min(uit.measuredWidth/textBitmapData.width,uit.measuredHeight/textBitmapData.height);
+						sizeMatrix.a = coef;
+						sizeMatrix.d = coef;
+						textBitmapData = ImageSnapshot.captureBitmapData(uit,sizeMatrix);
+						
+						var sm:Matrix = new Matrix();
+						sm.tx = (coordinate.x+tempPoint.x)/2;
+						sm.ty = (coordinate.y+tempPoint.y)/2;
+						
+						graphics.beginBitmapFill(textBitmapData, sm, false);
+						graphics.drawRect((coordinate.x+tempPoint.x)/2,(coordinate.y+tempPoint.y)/2,uit.measuredWidth,uit.measuredHeight);
+						graphics.endFill();
+					}
+					
+				}
+			}
+		}
+		
+		public var drawAnnuli:Boolean = false;
+		
+		public function drawAnnuliCircles(keys:Array,dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
+		{
+			if(!drawAnnuli) return;
+			if(!keys) return;
+			
+			var graphics:Graphics = destination;
+			graphics.clear();
+			
+			if(filteredKeySet.keys.length == 0)
+				return;
+			var requiredKeyType:String = filteredKeySet.keys[0].keyType;
+						var psCols:Array = pointSensitivityColumns;
+			var cols:Array = columns.getObjects();
+			var annCols:Array = annCenterColumns;
+			var normArray:Array = (localNormalization.value) ? keyNormMap[key] : keyGlobalNormMap[key];
+			var linkLengths:Array = [];
+			var innerRadius:Number = 0;
+			var outerRadius:Number = 0;
+			var temp:Number = 0;
+			var eta:Number = 0;
+			var annCenterX:Number = 0;
+			var annCenterY:Number = 0;
+			var anchor:AnchorPoint;
+			var i:int = 0;
+			var colorIncrementor:Number = 0x00f0f0;
+			var color:Number = 0xff0000;
+			
+			for each( var key:IQualifiedKey in keys)
+			{
+				
+				linkLengths = [];
+				eta = 0;
+				innerRadius = 0;
+				outerRadius = 0;
+				annCenterX = 0;
+				annCenterY = 0;
+
+				/*if the keytype is different from the keytype of points visualized on Rad Vis than ignore*/
+				if(key.keyType != requiredKeyType)
+				{
+					return;
+				}
+				getXYcoordinates(key);
+				dataBounds.projectPointTo(coordinate, screenBounds);
+				// compute the etta term for a record
+				for (i = 0; i < cols.length; i++)
+				{
+					var column:IAttributeColumn = cols[i];
+					var value:Number = normArray ? normArray[i] : getNorm(column, key);
+					if (isNaN(value))
+					{
+						value = 0;
+					}
+					eta += value;
+				}
+				
+				// compute the link lengths for a record
+				for (i = 0; i < psCols.length; i++)
+				{
+					column = psCols[i];
+					value = normArray ? normArray[i] : getNorm(column, key);
+					if(isNaN(value))
+					{
+						value = 0;	
+					}
+					linkLengths.push(value/eta);
+				}
+				
+				//trace(linkLengths);
+				// compute the annulus center for a record
+				for (i = 0; i < annCols.length; i++)
+				{
+					column = annCols[i];
+					value = normArray ? normArray[i] : getNorm(column, key);
+					if(isNaN(value))
+					{
+						value = 0
+					}
+					anchor = anchors.getObject(columns.getName(column)) as AnchorPoint;
+					annCenterX += (value * anchor.x.value)/eta;
+					annCenterY += (value * anchor.y.value)/eta;
+				}
+				
+				var maxLength:Number = Math.max.apply(null, linkLengths);
+
+				// the outer Radius is the sum of all the linkLengths
+				// the inner Radius is the difference between the longest arm
+				// and the remaining arms, and 0 if the difference is negative
+				for (i = 0; i < linkLengths.length; i++)
+				{
+					outerRadius += linkLengths[i];
+					if (linkLengths[i] != maxLength){
+						temp += linkLengths[i];
+					}
+				}
+			
+				innerRadius = maxLength - temp;
+				
+				if (innerRadius < 0) {
+					innerRadius = 0;
+				}
+				
+				var annCenter:Point = new Point(annCenterX, annCenterY);
+				dataBounds.projectPointTo(annCenter, screenBounds);
+				
+				// calculates the radViz radius in screenBounds
+				var center:Point = new Point(-1, -1);
+				dataBounds.projectPointTo(center, screenBounds);
+				var x:Number = center.x;
+				var y:Number = center.y;
+				center.x = 1;
+				center.y = 1;
+				dataBounds.projectPointTo(center, screenBounds);
+				var circleRadius:Number = (center.x - x) / 2;
+
+				dataBounds.projectPointTo(tempPoint, screenBounds);
+				graphics.lineStyle(1, color);
+				color += colorIncrementor;
+				//graphics.drawCircle(coordinate.x, coordinate.y, 30);
+				//trace(outerRadius, innerRadius);
+				graphics.drawCircle(annCenter.x, annCenter.y, outerRadius*circleRadius);
+				graphics.drawCircle(annCenter.x, annCenter.y, innerRadius*circleRadius);
+				
+				if(showAnnulusCenter.value) {
+					graphics.lineStyle(1, 0);
+					graphics.beginFill(0);
+					graphics.drawCircle(annCenter.x, annCenter.y, 3);
+				}
+				graphics.endFill();
+			}
+		}
 		
 		private function changeAlgorithm():void
 		{
@@ -617,7 +936,7 @@ package weave.visualization.plotters
 			if (newAlgorithm == null) 
 				return;
 			
-			disposeObjects(_algorithm); // clean up previous algorithm
+			disposeObject(_algorithm); // clean up previous algorithm
 			
 			_algorithm = newSpatialProperty(newAlgorithm);
 			var array:Array = _algorithm.run(columns.getObjects(IAttributeColumn), keyNumberMap);
@@ -652,13 +971,13 @@ package weave.visualization.plotters
 				} 
 				else
 				{
-					Alert.show(lang("No data found."))
+					trace(this, "No data found.");
 					return;
 				}
 				if (originalArray.length < sampleSizeRows.value)
 				{
 					sampledArray = originalArray; // sample size is bigger than the data set.
-					Alert.show(lang("Data sampled successfully."))
+					trace(this, "Data sampled successfully.");
 				}
 				else // sampling begins here
 				{
@@ -710,12 +1029,12 @@ package weave.visualization.plotters
 					// begin saving the CSVDataSource.
 					if (sampleTitle.value == "" || sampleTitle.value == "optional")
 					{
-						sampleTitle.value = Weave.root.generateUniqueName("Sampled " + WeaveAPI.globalHashMap.getName(originalCSVDataSource));
+						sampleTitle.value = WeaveAPI.globalHashMap.generateUniqueName("Sampled " + WeaveAPI.globalHashMap.getName(originalCSVDataSource));
 					}
 					var sampledCSVDataSource:CSVDataSource = WeaveAPI.globalHashMap.requestObject(sampleTitle.value, CSVDataSource, false);
 					sampledCSVDataSource.setCSVData(sampledArray);
 					sampledCSVDataSource.keyType.value = originalCSVDataSource.keyType.value;
-					Alert.show(lang("Data sampled successfully"));
+					trace(this, "Data sampled successfully");
 					sampleTitle.value = "";
 				} 
 			}

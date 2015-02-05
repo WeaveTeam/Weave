@@ -19,35 +19,41 @@
 
 package weave.data.BinClassifiers
 {
-	import weave.api.WeaveAPI;
 	import weave.api.data.IBinClassifier;
-	import weave.core.LinkableString;
-	import weave.utils.VectorUtils;
+	import weave.compiler.StandardLib;
+	import weave.core.LinkableVariable;
 
 	/**
 	 * A classifier that accepts a list of String values.
 	 * 
 	 * @author adufilie
 	 */
-	public class StringClassifier extends LinkableString implements IBinClassifier
+	public class StringClassifier extends LinkableVariable implements IBinClassifier
 	{
-		public function StringClassifier(values:Array = null)
+		public function StringClassifier()
 		{
-			super();
-			addImmediateCallback(this, invalidate);
-			setSessionState(values);
+			super(Array, isStringArray);
 		}
 		
-		private function invalidate():void
+		override public function setSessionState(value:Object):void
 		{
-			// clear _valueMap because the list of values has changed.
-			_valueMap = null;
+			// backwards compatibility
+			if (value is String)
+				value = WeaveAPI.CSVParser.parseCSVRow(value as String);
+			super.setSessionState(value);
 		}
-
+		
+		private function isStringArray(array:Array):Boolean
+		{
+			return StandardLib.getArrayType(array) == String;
+		}
+		
 		/**
 		 * This object maps the discrete values contained in this classifier to values of true.
 		 */
 		private var _valueMap:Object = null;
+		
+		private var _triggerCount:int = 0;
 
 		/**
 		 * @param value A value to test.
@@ -55,12 +61,11 @@ package weave.data.BinClassifiers
 		 */
 		public function contains(value:*):Boolean
 		{
-			// fill _valueMap if necessary
-			if (_valueMap == null)
+			if (_triggerCount != triggerCounter)
 			{
-				_valueMap = new Object();
-				var values:Array = VectorUtils.flatten(WeaveAPI.CSVParser.parseCSV(_sessionState));
-				for each (var str:String in values)
+				_triggerCount = triggerCounter;
+				_valueMap = {};
+				for each (var str:String in _sessionStateInternal)
 					_valueMap[str] = true;
 			}
 			

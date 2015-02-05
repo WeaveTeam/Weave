@@ -15,17 +15,12 @@
 
 package weave.api.ui
 {
-	import mx.core.IUIComponent;
-	
-	import weave.api.ui.ILinkableContainer;
 	import weave.api.core.ILinkableObject;
 
 	/**
-	 * A vis tool is a panel that a user would want to create an instance of at runtime.
-	 * 
-	 * @author adufilie
+	 * A visusalization tool that a user would want to create an instance of at runtime.
 	 */
-	public interface IVisTool extends IUIComponent, ILinkableObject
+	public interface IVisTool extends ILinkableObject
 	{
 	}
 }

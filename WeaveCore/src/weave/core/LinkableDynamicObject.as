@@ -21,18 +21,11 @@ package weave.core
 {
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.api.WeaveAPI;
-	import weave.api.core.IChildListCallbackInterface;
+	import weave.api.core.DynamicState;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableDynamicObject;
-	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.disposeObjects;
-	import weave.api.getLinkableDescendants;
-	import weave.api.getLinkableOwner;
-	import weave.api.objectWasDisposed;
-	import weave.api.registerDisposableChild;
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
+	import weave.api.core.ISessionManager;
 
 	/**
 	 * This object links to an internal ILinkableObject.
@@ -40,91 +33,291 @@ package weave.core
 	 * 
 	 * @author adufilie
 	 */
-	public class LinkableDynamicObject extends CallbackCollection implements ILinkableDynamicObject
+	public class LinkableDynamicObject extends LinkableWatcher implements ILinkableDynamicObject, ICallbackCollection
 	{
+		/**
+		 * @param typeRestriction If specified, this will limit the type of objects that can be added to this LinkableHashMap.
+		 */
 		public function LinkableDynamicObject(typeRestriction:Class = null)
 		{
-			if (!_globalHashMap)
-			{
-				_globalHashMap = WeaveAPI.getSingletonInstance(ILinkableHashMap);
-				_globalHashMap.childListCallbacks.addImmediateCallback(null, handleGlobalListChange);
-			}
-			// set up the local hash map which automatically enforces the type restriction
-			_localHashMap = registerDisposableChild(this, new LinkableHashMap(typeRestriction)); // won't trigger callbacks
-			_localHashMap.childListCallbacks.addImmediateCallback(this, childListCallback); // handle when internal object is added or removed
+			super(typeRestriction);
 			if (typeRestriction)
-			{
-				_typeRestrictionClass = typeRestriction;
 				_typeRestrictionClassName = getQualifiedClassName(typeRestriction);
-			}
+		}
+		
+		// the callback collection for this object
+		private const cc:CallbackCollection = WeaveAPI.SessionManager.newDisposableChild(this, CallbackCollection);
+		
+		// this is a constraint on the type of object that can be linked
+		private var _typeRestrictionClassName:String = null;
+		
+		// when this is true, the linked object cannot be changed
+		private var _locked:Boolean = false;
+		
+		private static const ARRAY_CLASS_NAME:String = 'Array';
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get internalObject():ILinkableObject
+		{
+			return target;
 		}
 		
 		/**
-		 * This function creates a local object using the given Class definition if it doesn't already exist.
-		 * If the existing object is locked, this function does nothing.
-		 * @param objectType The Class used to initialize the object.
-		 * @param lockObject If this is true, this object will be locked so the internal object cannot be removed or replaced.
-		 * @return The local object of the specified type, or null if the object could not be created.
+		 * @inheritDoc
+		 */
+		public function getSessionState():Array
+		{
+			var obj:Object = targetPath || target;
+			if (!obj)
+				return [];
+			
+			var className:String = getQualifiedClassName(obj);
+			var sessionState:Object = obj as Array || WeaveAPI.SessionManager.getSessionState(obj as ILinkableObject);
+			return [DynamicState.create(null, className, sessionState)];
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function setSessionState(newState:Array, removeMissingDynamicObjects:Boolean):void
+		{
+			//trace(debugId(this), removeMissingDynamicObjects ? 'diff' : 'state', Compiler.stringify(newState, null, '\t'));
+			
+			// special case - no change
+			if (newState == null)
+				return;
+			
+			try
+			{
+				// make sure callbacks only run once
+				cc.delayCallbacks();
+				
+				// stop if there are no items
+				if (!newState.length)
+				{
+					if (removeMissingDynamicObjects)
+						target = null;
+					return;
+				}
+				
+				// if it's not a dynamic state array, treat it as a path
+				if (!DynamicState.isDynamicStateArray(newState))
+				{
+					targetPath = newState;
+					return;
+				}
+				
+				// if there is more than one item, it's in a deprecated format
+				if (newState.length > 1)
+				{
+					handleDeprecatedSessionState(newState, removeMissingDynamicObjects);
+					return;
+				}
+				
+				var dynamicState:Object = newState[0];
+				var className:String = dynamicState[DynamicState.CLASS_NAME];
+				var objectName:String = dynamicState[DynamicState.OBJECT_NAME];
+				var sessionState:Object = dynamicState[DynamicState.SESSION_STATE];
+				
+				// backwards compatibility
+				if (className == 'weave.core::GlobalObjectReference' || className == 'GlobalObjectReference')
+				{
+					className = ARRAY_CLASS_NAME;
+					sessionState = [objectName];
+				}
+				
+				if (className == ARRAY_CLASS_NAME || (!className && targetPath))
+					targetPath = sessionState as Array;
+				else if (className == SessionManager.DIFF_DELETE)
+					target = null;
+				else
+				{
+					var prevTarget:ILinkableObject = target;
+					// if className is not specified, make no change unless removeMissingDynamicObjects is true
+					if (className || removeMissingDynamicObjects)
+						setLocalObjectType(className);
+					var classDef:Class = ClassUtils.getClassDefinition(className);
+					if ((!className && target) || (classDef && target is classDef))
+						WeaveAPI.SessionManager.setSessionState(target, sessionState, prevTarget != target || removeMissingDynamicObjects);
+				}
+			}
+			finally
+			{
+				// allow callbacks to run once now
+				cc.resumeCallbacks();
+			}
+		}
+		
+		override public function set target(newTarget:ILinkableObject):void
+		{
+			if (_locked)
+				return;
+			
+			if (!newTarget)
+			{
+				super.target = null;
+				return;
+			}
+			
+			cc.delayCallbacks();
+			
+			// if the target can be found by a path, use the path
+			var sm:ISessionManager = WeaveAPI.SessionManager;
+			var path:Array = sm.getPath(WeaveAPI.globalHashMap, newTarget);
+			if (path)
+			{
+				targetPath = path;
+			}
+			else
+			{
+				// it's ok to assign a local object that we own or that doesn't have an owner yet
+				// otherwise, unset the target
+				var owner:ILinkableObject = sm.getLinkableOwner(newTarget);
+				if (owner === this || !owner)
+					super.target = newTarget;
+				else
+					super.target = null;
+			}
+			
+			cc.resumeCallbacks();
+		}
+		
+		override protected function internalSetTarget(newTarget:ILinkableObject):void
+		{
+			// don't allow recursive linking
+			if (newTarget === this || WeaveAPI.SessionManager.getLinkableDescendants(newTarget, LinkableDynamicObject).indexOf(this) >= 0)
+				newTarget = null;
+			
+			super.internalSetTarget(newTarget);
+		}
+		
+		override public function set targetPath(path:Array):void
+		{
+			if (_locked)
+				return;
+			super.targetPath = path;
+		}
+		
+		private function setLocalObjectType(className:String):void
+		{
+			// stop if locked
+			if (_locked)
+				return;
+			
+			cc.delayCallbacks();
+			
+			targetPath = null;
+			
+			if ( ClassUtils.classImplements(className, SessionManager.ILinkableObjectQualifiedClassName)
+				&& (_typeRestriction == null || ClassUtils.classIs(className, _typeRestrictionClassName)) )
+			{
+				var classDef:Class = ClassUtils.getClassDefinition(className);
+				var obj:Object = target;
+				if (!obj || obj.constructor != classDef)
+					super.target = new classDef();
+			}
+			else
+			{
+				super.target = null;
+			}
+			
+			cc.resumeCallbacks();
+		}
+		
+		/**
+		 * @inheritDoc
 		 */
 		public function requestLocalObject(objectType:Class, lockObject:Boolean):*
 		{
-			initInternalObject(null, objectType, lockObject);
-			if (objectType != null)
-				return _internalObject as objectType;
-			return _internalObject;
+			cc.delayCallbacks();
+			
+			if (objectType)
+				setLocalObjectType(getQualifiedClassName(objectType));
+			else
+				target = null;
+			
+			if (lockObject)
+				_locked = true;
+			
+			cc.resumeCallbacks();
+			
+			if (objectType)
+				return target as objectType;
+			return target;
 		}
 		
 		/**
-		 * This function creates a global object using the given Class definition if it doesn't already exist.
-		 * If the object gets disposed of later, this object will still be linked to the global name.
-		 * If the existing object under the specified name is locked, this function does nothing.
-		 * @param name The name of the global object to link to.
-		 * @param objectType The Class used to initialize the object.
-		 * @param lockObject If this is true, this object will be locked so the internal object cannot be removed or replaced.
-		 * @return The global object of the specified name and type, or null if the object could not be created.
+		 * @inheritDoc
 		 */
 		public function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean):*
 		{
-			initInternalObject(name, objectType, lockObject);
-			if (objectType != null)
-				return _internalObject as objectType;
-			return _internalObject;
+			if (!name)
+				return requestLocalObject(objectType, lockObject);
+			
+			if (!_locked)
+			{
+				cc.delayCallbacks();
+				
+				targetPath = [name];
+				WeaveAPI.globalHashMap.requestObject(name, objectType, lockObject);
+				if (lockObject)
+					_locked = true;
+				
+				cc.resumeCallbacks();
+			}
+			
+			if (objectType)
+				return target as objectType;
+			return target;
 		}
 		
 		/**
-		 * This function will copy the session state of an ILinkableObject to a new local internalObject of the same type.
-		 * @param objectToCopy An object to copy the session state from.
+		 * @inheritDoc
 		 */
 		public function requestLocalObjectCopy(objectToCopy:ILinkableObject):void
 		{
-			delayCallbacks(); // make sure callbacks only trigger once
-			var classDef:Class = Object(objectToCopy).constructor//ClassUtils.getClassDefinition(getQualifiedClassName(objectToCopy));
+			cc.delayCallbacks(); // make sure callbacks only trigger once
+			var classDef:Class = objectToCopy ? Object(objectToCopy).constructor : null;
 			var object:ILinkableObject = requestLocalObject(classDef, false);
 			if (object != null && objectToCopy != null)
 			{
 				var state:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
 				WeaveAPI.SessionManager.setSessionState(object, state, true);
 			}
-			resumeCallbacks();
+			cc.resumeCallbacks();
 		}
 		
 		/**
-		 * This is the name of the linked global object.
+		 * This is the name of the linked global object, or null if the internal object is local.
 		 */
 		public function get globalName():String
 		{
-			return _globalName;
+			if (_targetPath && _targetPath.length == 1)
+				return _targetPath[0];
+			return null;
 		}
 
 		/**
-		 * This function will change the internalObject if the new globalName is different.
+		 * This function will change the internalObject if the new globalName is different, unless this object is locked.
 		 * If a new global name is given, the session state of the new global object will take precedence.
 		 * @param newGlobalName This is the name of the global object to link to, or null to unlink from the current global object.
 		 */
 		public function set globalName(newGlobalName:String):void
 		{
-			if (_globalName == newGlobalName || _locked)
+			if (_locked)
 				return;
+			
+			// change empty string to null
+			if (!newGlobalName)
+				newGlobalName = null;
+			
+			var oldGlobalName:String = globalName;
+			if (oldGlobalName == newGlobalName)
+				return;
+			
+			cc.delayCallbacks();
 			
 			if (newGlobalName == null)
 			{
@@ -133,394 +326,99 @@ package weave.core
 			}
 			else
 			{
-				// don't allow globalName on global objects
-				if (getLinkableOwner(this) === _globalHashMap)
-					return;
+				// when switcing from a local object to a global one that doesn't exist yet, copy the local object
+				if (target && !targetPath && !WeaveAPI.globalHashMap.getObject(newGlobalName))
+					WeaveAPI.globalHashMap.requestObjectCopy(newGlobalName, internalObject);
 				
-				var globalObject:ILinkableObject = _globalHashMap.getObject(newGlobalName);
-				if (globalObject)
-				{
-					// don't allow recursive linking
-					var descendants:Array = getLinkableDescendants(globalObject, Object(this).constructor);
-					if (descendants.indexOf(this) >= 0)
-						return;
-				}
-				// if there is no global object of this name, create it now
-				if (globalObject == null)
-					_globalHashMap.requestObjectCopy(newGlobalName, internalObject);
 				// link to new global name
-				initInternalObject(newGlobalName, GlobalObjectReference);
+				targetPath = [newGlobalName];
 			}
-		}
-
-		/**
-		 * This is the local or global internal object.
-		 */
-		public function get internalObject():ILinkableObject
-		{
-			return _internalObject;
-		}
-		
-		/**
-		 * This gets the session state of this object.
-		 * @return An Array of DynamicState objects which compose the session state for this object.
-		 */
-		public function getSessionState():Array
-		{
-			// handle global link
-			if (_globalName != null)
-				return [ new DynamicState(_globalName, GlobalObjectReference.qualifiedClassName, null) ];
 			
-			// handle local link or no link
-			var state:Array = _localHashMap.getSessionState();
-			if (state.length == 1)
-				(state[0] as DynamicState).objectName = null;
-			return state;
+			cc.resumeCallbacks();
 		}
 
 		/**
-		 * This sets the session state of this object.
-		 * @param newStateArray An Array of DynamicState objects containing the new values and types for child objects.
-		 * @param removeMissingDynamicObjects If true, this will remove any child objects that do not appear in the session state.
- 		 */
-		public function setSessionState(newState:Array, removeMissingDynamicObjects:Boolean):void
+		 * Handles backwards compatibility.
+		 * @param newState An Array with two or more items.
+		 * @param removeMissingDynamicObjects true when applying an absolute session state, false if applying a diff
+		 * @return An Array with one item.
+		 */
+		private function handleDeprecatedSessionState(newState:Array, removeMissingDynamicObjects:Boolean):void
 		{
-			try
+			// Loop backwards because when diffs are combined, most recent entries
+			// are added last and we want to use the most recently applied diff.
+			var i:int = newState.length;
+			while (i--)
 			{
-				// make sure callbacks only run once
-				delayCallbacks();
+				var item:Object = newState[i];
 				
-				var dynamicState:Object = null;
-				var objectName:String;
-				for each (var item:Object in newState)
-				{
-					if (DynamicState.objectHasProperties(item))
-					{
-						if (item[DynamicState.CLASS_NAME] == SessionManager.DIFF_DELETE)
-						{
-							// remove object if name matches
-							if (globalName == (item[DynamicState.OBJECT_NAME] || null)) // convert empty string to null
-								removeObject();
-						}
-						else
-						{
-							// set dynamicState to the first entry that isn't for a deleted object
-							dynamicState = item;
-							break;
-						}
-					}
-					else
-					{
-						// not a typed state
-						dynamicState = null;
-						break;
-					}
-				}
-				if (dynamicState == null)
-				{
-					if (removeMissingDynamicObjects)
-						removeObject();
-					return;
-				}
+				// handle item as a global Array
+				if (item is String)
+					item = DynamicState.create(null, ARRAY_CLASS_NAME, [item]);
 				
-				// keep only one object
-				if (newState.length > 1)
-					newState = [dynamicState];
+				// stop if it's not a typed state
+				if (!DynamicState.isDynamicState(item))
+					break;
 				
-				objectName = dynamicState[DynamicState.OBJECT_NAME];
-				if (objectName)
+				if (item[DynamicState.CLASS_NAME] == SessionManager.DIFF_DELETE)
 				{
-					globalName = objectName;
+					// remove object if name matches
+					if (globalName == (item[DynamicState.OBJECT_NAME] || null)) // convert empty string to null
+						target = null;
 				}
 				else
 				{
-					dynamicState[DynamicState.OBJECT_NAME] = LOCAL_OBJECT_NAME;
-					_localHashMap.setSessionState(newState, removeMissingDynamicObjects);
-					dynamicState[DynamicState.OBJECT_NAME] = null;
+					// use the first item we see that isn't a deleted object
+					setSessionState([item], removeMissingDynamicObjects);
+					return;
 				}
 			}
-			finally
-			{
-				// allow callbacks to run once now
-				resumeCallbacks();
-			}
+			if (removeMissingDynamicObjects)
+				target = null;
 		}
 		
 		/**
-		 * @private
-		 */
-		private function initInternalObject(newGlobalName:String, newClassNameOrDef:Object, lockObject:Boolean = false):void
-		{
-			// stop if locked
-			if (_locked)
-				return;
-			
-			// lock if necessary
-			if (lockObject)
-				_locked = true;
-			
-			// to avoid possible problems with String casting, don't support empty string
-			if (newGlobalName == '')
-				newGlobalName = null;
-
-			// make sure callbacks only run once when initializing the internal object
-			delayCallbacks();
-			
-			// handle both class definitions and class names
-			var newClassDef:Class = newClassNameOrDef as Class || ClassUtils.getClassDefinition(newClassNameOrDef as String);
-			
-			if (newGlobalName == null) // local object
-			{
-				// initialize the local object -- this may trigger childListCallback()
-				var result:ILinkableObject = _localHashMap.requestObject(LOCAL_OBJECT_NAME, newClassDef, lockObject);
-				// if the object fails to be created, remove any existing object (may be a global one).
-				if (!result)
-					removeObject();
-			}
-			else if (newClassDef) // global object
-			{
-				// initialize global object if class definition is specified
-				if (newClassDef != null && newClassDef != GlobalObjectReference)
-					_globalHashMap.requestObject(newGlobalName, newClassDef, lockObject);
-				
-				// if the new global name is different from the current one, create a new link
-				if (_globalName != newGlobalName)
-				{
-					// remove any existing link
-					removeObject();
-					// save the new global name
-					_globalName = newGlobalName;
-					// get the Array of links to the global object
-					var links:Array = _globalNameToLinksMap[newGlobalName] as Array;
-					// initialize the Array if necessary
-					if (links == null)
-						_globalNameToLinksMap[newGlobalName] = links = [];
-					// create a link to the new global name
-					links.push(this);
-					// save a pointer to the global object (as long as it fits the type restriction) and add a callback
-					_internalObject = _globalHashMap.getObject(_globalName);
-					if (_typeRestrictionClass != null)
-						_internalObject = (_internalObject as _typeRestrictionClass) as ILinkableObject;
-					if (_internalObject != null)
-						registerLinkableChild(this, _internalObject);
-					
-					// since the global name has changed, we need to make sure the callbacks run now
-					triggerCallbacks();
-				}
-			}
-			else // remove existing object
-			{
-				removeObject();
-			}
-
-			// allow callbacks to run once now
-			resumeCallbacks();
-		}
-
-		/**
-		 * This function manages pointers to linked global objects when those objects get added or removed from the global object map.
-		 */
-		private static function handleGlobalListChange():void
-		{
-			var name:String;
-			var links:Array;
-			var link:LinkableDynamicObject;
-			var linksThatChanged:Array = [];
-
-			// handle a global object being created
-			var newObject:ILinkableObject = _globalHashMap.childListCallbacks.lastObjectAdded;
-			if (newObject != null)
-			{
-				// point existing links having this global name to the newly created object
-				name = _globalHashMap.childListCallbacks.lastNameAdded;
-				links = _globalNameToLinksMap[name] as Array;
-				if (links != null)
-				{
-					for each (link in links)
-					{
-						// sanity checks
-						if (objectWasDisposed(link))
-						{
-							reportError('found disposed LinkableDynamicObject while handling global object creation');
-							continue;
-						}
-						if (link._globalName != name)
-							throw new Error("LinkableDynamicObject did not link to expected global name.");
-						if (link._internalObject != null)
-							throw new Error("LinkableDynamicObject was not pointing to a null global object as expected.");
-						
-						// enforce each link's type restriction separately
-						if (link._typeRestrictionClass == null || newObject is link._typeRestrictionClass)
-						{
-							link._internalObject = registerLinkableChild(link, newObject);
-							linksThatChanged.push(link);
-						}
-					}
-				}
-			}
-
-			// handle a global object being removed
-			var oldObject:ILinkableObject = _globalHashMap.childListCallbacks.lastObjectRemoved;
-			if (oldObject != null)
-			{
-				// point existing links having this global name to null
-				name = _globalHashMap.childListCallbacks.lastNameRemoved;
-				links = _globalNameToLinksMap[name] as Array;
-				if (links != null)
-				{
-					for each (link in links)
-					{
-						// sanity check
-						if (objectWasDisposed(link))
-						{
-							reportError('found disposed LinkableDynamicObject while handling global object removal');
-							continue;
-						}
-						if (link._globalName != name)
-							throw new Error("LinkableDynamicObject did not link to expected global name.");
-						
-						if (link._internalObject != null)
-						{
-							// sanity checks
-							if (link._locked)
-								throw new Error("LinkableDynamicObject was locked while referenced global object was disposed.");
-							if (link._internalObject != oldObject)
-								throw new Error("LinkableDynamicObject was pointing to the wrong global object.");
-							
-							// clean up pointers
-							link._internalObject = null;
-							linksThatChanged.push(link);
-						}
-					}
-				}
-			}
-
-			// run callbacks for each link after all links have been updated.
-			for each (link in linksThatChanged)
-			{
-				if (objectWasDisposed(link))
-				{
-					// this could possibly happen and is likely no cause for alarm - just a side-effect of triggering callbacks
-					//trace("LinkableDynamicObject was disposed while triggering another one's callbacks");
-					continue;
-				}
-				link.triggerCallbacks();
-			}
-		}
-
-		/**
-		 * This function will call lockObject() on the ILinkableHashMap that contains the internal object.
-		 * This object will also be locked so that no new objects can be requested.
+		 * @inheritDoc
 		 */
 		public function lock():void
 		{
 			_locked = true;
 		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get locked():Boolean
+		{
+			return _locked;
+		}
 
 		/**
-		 * If the internal object is local, this will remove the object (unless it is locked).
-		 * If the internal object is global, this will remove the link to it.
+		 * @inheritDoc
 		 */
 		public function removeObject():void
 		{
-			if (_locked)
-				return;
-			
-//			if (_globalName != null)
-//				trace("remove link:", _globalName, getQualifiedClassName(internalObject));
-			
-			if (_globalName == null)
-			{
-				// remove the local object -- this may trigger childListCallback()
-				_localHashMap.removeObject(LOCAL_OBJECT_NAME);
-			}
-			else
-			{
-				// undo registerLinkableChild()
-				var object:ILinkableObject = _internalObject;
-				if (object)
-					(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, object);
-	
-				var name:String = _globalName;
-				// clean up variables
-				_globalName = null;
-				_internalObject = null;
-				// remove this link to the object.
-				var links:Array = _globalNameToLinksMap[name];
-				links.splice(links.indexOf(this), 1);
-				if (links.length == 0)
-				{
-					delete _globalNameToLinksMap[name];
-				}
-				
-				// notify the listeners
-				triggerCallbacks();
-			}
+			if (!_locked)
+				super.target = null;
 		}
-
 		
-		/**
-		 * This function will be called when the _localHashMap runs its child list callbacks.
-		 * This callback is needed in case _localHashMap is manipulated directly via getLinkableOwner().
-		 */		
-		private function childListCallback():void
-		{
-			var childListCallbacks:IChildListCallbackInterface = _localHashMap.childListCallbacks;
-			if (childListCallbacks.lastNameAdded)
-			{
-				if (childListCallbacks.lastNameAdded != LOCAL_OBJECT_NAME)
-				{
-					// don't allow other object names
-					_localHashMap.removeObject(childListCallbacks.lastNameAdded);
-				}
-				else if (childListCallbacks.lastObjectAdded != _internalObject)
-				{
-					// handle new local object
-					// if the current object is global, remove the link
-					if (_globalName != null)
-						removeObject();
-					_internalObject = registerLinkableChild(this, childListCallbacks.lastObjectAdded);
-					triggerCallbacks();
-				}
-			}
-			if (childListCallbacks.lastNameRemoved == LOCAL_OBJECT_NAME)
-			{
-				// handle local object removed
-				_internalObject = null;
-				triggerCallbacks();
-			}
-		}
-
-		/**
-		 * This function gets called by SessionManager.dispose().
-		 */
 		override public function dispose():void
 		{
+			// explicitly dispose the CallbackCollection before anything else
+			cc.dispose();
 			super.dispose();
-			_locked = false;
-			removeObject();
-			disposeObjects(_localHashMap); // just in case this function is called directly
-			_locked = true;
 		}
 		
-		// this is a constraint on the type of object that can be linked
-		private var _typeRestrictionClass:Class = null;
-		private var _typeRestrictionClassName:String = null;
-		// when this is true, the linked object cannot be changed
-		private var _locked:Boolean = false;
-		// this is the linked internal object
-		private var _internalObject:ILinkableObject = null;
-
-		// this is the local object factory
-		private var _localHashMap:ILinkableHashMap = null;
-		// this is the name of the local object created inside _localHashMap
-		private static const LOCAL_OBJECT_NAME:String = 'localObject';
-
-		// this is the name of the linked global object
-		private var _globalName:String = null;
-		// this is the mapping from global names to objects.
-		private static var _globalHashMap:ILinkableHashMap = null;
-		// this maps a global name to an Array of LinkableDynamicObjects
-		private static const _globalNameToLinksMap:Object = new Object();
+		////////////////////////////////////////////////////////////////////////
+		// ICallbackCollection interface included for backwards compatibility
+		/** @inheritDoc */ public function addImmediateCallback(relevantContext:Object, callback:Function, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void { cc.addImmediateCallback(relevantContext, callback, runCallbackNow, alwaysCallLast); }
+		/** @inheritDoc */ public function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void { cc.addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow); }
+		/** @inheritDoc */ public function addDisposeCallback(relevantContext:Object, callback:Function):void { cc.addDisposeCallback(relevantContext, callback); }
+		/** @inheritDoc */ public function removeCallback(callback:Function):void { cc.removeCallback(callback); }
+		/** @inheritDoc */ public function get triggerCounter():uint { return cc.triggerCounter; }
+		/** @inheritDoc */ public function triggerCallbacks():void { cc.triggerCallbacks(); }
+		/** @inheritDoc */ public function get callbacksAreDelayed():Boolean { return cc.callbacksAreDelayed; }
+		/** @inheritDoc */ public function delayCallbacks():void { cc.delayCallbacks(); }
+		/** @inheritDoc */ public function resumeCallbacks():void { cc.resumeCallbacks(); }
 	}
 }

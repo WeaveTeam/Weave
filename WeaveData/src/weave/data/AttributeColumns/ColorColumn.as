@@ -21,7 +21,8 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.WeaveAPI;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataType;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
@@ -41,6 +42,14 @@ package weave.data.AttributeColumns
 		public function ColorColumn()
 		{
 			_internalColumnStats = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(internalDynamicColumn));
+		}
+		
+		override public function getMetadata(propertyName:String):String
+		{
+			if (propertyName == ColumnMetadata.DATA_TYPE)
+				return DataType.STRING;
+			
+			return super.getMetadata(propertyName);
 		}
 		
 		// color values depend on the min,max stats of the internal column
@@ -97,28 +106,29 @@ package weave.data.AttributeColumns
 				var dataMin:Number = _internalColumnStats.getMin();
 				var dataMax:Number = _internalColumnStats.getMax();
 				var value:Number = internalDynamicColumn.getValueFromKey(key, Number);
-				if (isNaN(value) || value < dataMin || value > dataMax)
-					return NaN;
-				
 				var norm:Number;
 				if (dataMin == dataMax)
-					norm = 0;
+					norm = isFinite(value) ? 0 : NaN;
 				else
 					norm = (value - dataMin) / (dataMax - dataMin);
 				color = ramp.getColorFromNorm(norm);
 			}
 			
+			if (dataType == Number)
+				return color;
+			
 			// return a 6-digit hex value for a String version of the color
-			if (dataType == String && isFinite(color))
-				return '0x' + StandardLib.numberToBase(color, 16, 6);
-			return color;
+			if (isFinite(color))
+				return '#' + StandardLib.numberToBase(color, 16, 6);
+			
+			return '';
 		}
 
 //		public function deriveStringFromNumber(value:Number):String
 //		{
 //			if (isNaN(value))
 //				return "NaN";
-//			return '0x' + StringLib.toBase(value, 16, 6);
+//			return '#' + StringLib.toBase(value, 16, 6);
 //		}
 	}
 }

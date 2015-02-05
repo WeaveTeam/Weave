@@ -39,32 +39,31 @@
 				  borderStyle="{innerBorderStyle}"
 				  enter="runCommand()"
 				  keyDown="handleConsoleKeyDown(event)"
+				  addedToStage="input.createTextField(-1); input.callLater(input.setFocus);"
 				  />
 	<mx:Script>
 		<![CDATA[
 			import avmplus.DescribeType;
 			
 			import mx.containers.VBox;
-			import mx.core.IToolTip;
 			import mx.core.UIComponent;
 			import mx.core.mx_internal;
 			import mx.utils.ObjectUtil;
 			import mx.utils.StringUtil;
 			
 			import weave.Weave;
-			import weave.api.WeaveAPI;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.reportError;
 			import weave.compiler.Compiler;
 			import weave.compiler.GlobalLib;
 			import weave.compiler.ICompiledObject;
+			import weave.compiler.ProxyObject;
 			import weave.compiler.StandardLib;
-			import weave.core.ExternalSessionStateInterface;
+			import weave.core.WeaveXMLDecoder;
+			import weave.primitives.MethodChainProxy;
 			import weave.utils.DebugUtils;
 			import weave.utils.Identify;
-			import weave.utils.MethodChainProxy;
-			import weave.utils.PopUpUtils;
 			use namespace mx_internal;
 			
 			[Bindable] public var padding:int = 5;
@@ -73,11 +72,7 @@
 			/**
 			 * This is the context in which expressions will be evaluated (The "this" argument passed to Function.apply).
 			 */
-			public function set context(value:Object):void
-			{
-				_context = value;
-			}
-			private var _context:Object = null;
+			public var context:Object;
 
 			override protected function childrenCreated():void
 			{
@@ -91,23 +86,32 @@
 			private const compiler:Compiler = new Compiler();
 			private function getObject(target:Object):ILinkableObject
 			{
-				if (target is String)
-					target = WeaveAPI.CSVParser.parseCSV(target as String)[0];
-				if (target is Array)
-					target = (WeaveAPI.ExternalSessionStateInterface as ExternalSessionStateInterface).getObject(target as Array);
-				return ILinkableObject(target);
+				if (target == null || target is ILinkableObject)
+					return target as ILinkableObject;
+				if (!(target is Array))
+					target = WeaveAPI.CSVParser.parseCSVRow(String(target));
+				return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, target as Array);
 			}
 			private const watchLookup:Dictionary = new Dictionary(true);
-			private function consoleWatch(target:Object = null, debugString:String = null):void
+			public function consoleWatch(target:Object = null, callbackReturnsString:Function = null):void
 			{
-				if (!target || !debugString)
+				if (!target)
 				{
-					consoleTrace('Usage: consoleWatch( target , "{ <CODE> }" )');
+					consoleTrace('Usage: consoleWatch(target, optional_callbackReturnsString)');
 					return;
 				}
+				
 				var linkableTarget:ILinkableObject = getObject(target);
 				consoleUnwatch(linkableTarget);
-				var callback:Function = function():void { consoleTraceEval(linkableTarget, debugString); };
+				var callback:Function = function():void {
+					var str:String = '';
+					var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, linkableTarget) || []
+					if (path.length)
+						str += " " + Compiler.stringify(path.pop());
+					if (callbackReturnsString != null)
+						str += ': ' + callbackReturnsString();
+					debugTrace(linkableTarget, str);
+				};
 				watchLookup[linkableTarget] = callback;
 				getCallbackCollection(linkableTarget).addImmediateCallback(null, callback);
 			}
@@ -137,26 +141,16 @@
 				log.validateNow();
 				log.verticalScrollPosition = log.maxVerticalScrollPosition;
 			}
-			private function consoleClear():String
+			public function consoleClear():String
 			{
 				return log.text = '';
 			}
 			
-			private const symbolTable:Object = {
-				'call': function(...args):*
-				{
-					var prev:Boolean = ExternalInterface.marshallExceptions;
-					var result:*;
-					try
-					{
-						ExternalInterface.marshallExceptions = true;
-						result = ExternalInterface.call.apply(this, args);
-					}
-					finally
-					{
-						ExternalInterface.marshallExceptions = prev;
-					}
-					return result;
+			private const symbolTable:Object = [{
+				'exec': JavaScript.exec,
+				'call': function(...args):* {
+					ExternalInterface.marshallExceptions = true;
+					return ExternalInterface.call.apply(ExternalInterface, args);
 				},
 				'application': WeaveAPI.topLevelApplication,
 				'visApp': getVisApp(),
@@ -167,11 +161,31 @@
 				'unwatch': consoleUnwatch,
 				'trace': consoleTrace,
 				'weaveTrace': weaveTrace,
-				'$': methodChainer,
-				'$$': debugHelper2,
+				'style': styleProxy,
+				'chain': methodChainer,
+				'display': debugDisplayList,
 				'identify': Identify.identify,
+				'debugCompiler': function(script:String):String { return ObjectUtil.toString(new Compiler().compileToObject(script), null, 'evaluatedMethod,evaluatedHost,evaluatedMethodName,evaluatedParams,evalIndex,originalTokens'.split(',')); },
 				'_': {}
-			};
+			}, new ProxyObject(getClassDef, getClassDef, null)];
+			
+			private function getClassDef(className:String):Object
+			{
+				className = WeaveXMLDecoder.getClassName(className);
+				try {
+					return getDefinitionByName(className);
+				} catch (e:Error) { }
+				return null;
+			}
+			
+			private function styleProxy(component:UIComponent):ProxyObject
+			{
+				return new ProxyObject(
+					function hasProp(name:*):Boolean { return component.getStyle(name) !== undefined; },
+					function getProp(name:*):* { return component.getStyle(name); },
+					function setProp(name:*, value:*):void { component.setStyle(name, value); }
+				);
+			}
 			
 			private function methodChainer(...args):*
 			{
@@ -186,7 +200,7 @@
 				return debugId(arg);
 			}
 			
-			private function debugHelper2(arg:* = null):*
+			private function debugDisplayList(arg:* = null):*
 			{
 				if (isFinite(StandardLib.asNumber(arg)))
 					arg = debugLookup(arg);
@@ -243,14 +257,15 @@
 					var obj:ICompiledObject = compiler.compileToObject(input.text);
 					//decompiled = compiler.decompileObject(obj);
 					var func:Function = compiler.compileObjectToFunction(obj, symbolTable, errorHandler, true);
-					result = func.apply(_context);
+					result = func.apply(context);
 					if (shouldReportError)
 						result = String(shouldReportError);
 				}
 				catch (e:*)
 				{
 					// if we get here it means the command could not be compiled
-					result = e.message;
+					result = "Compile error";
+					reportError(e);
 				}
 				
 				shouldReportError = true; // future errors should be reported
@@ -274,7 +289,14 @@
 				}
 				catch (e:*)
 				{
-					result = String(result)
+					try
+					{
+						result = String(result)
+					}
+					catch (ee:*)
+					{
+						result = debugId(result);
+					}
 				}
 				
 				// if the command runs successfully, clear the input area

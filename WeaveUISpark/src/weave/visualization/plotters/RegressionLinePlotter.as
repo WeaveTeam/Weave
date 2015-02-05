@@ -23,19 +23,14 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.geom.Point;
 	
-	import mx.collections.ArrayCollection;
-	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
-	import mx.utils.ArrayUtil;
 	
 	import weave.Weave;
 	import weave.api.core.IDisposableObject;
-	import weave.api.disposeObjects;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -45,7 +40,6 @@ package weave.visualization.plotters
 	import weave.services.WeaveRServlet;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.LinearRegressionResult;
-	import weave.services.beans.RResult;
 	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -66,7 +60,7 @@ package weave.visualization.plotters
 			// hack to fix old session states
 			_filteredKeySet.addImmediateCallback(this, function():void {
 				if (_filteredKeySet.keyFilter.internalObject == null)
-					_filteredKeySet.keyFilter.globalName = Weave.DEFAULT_SUBSET_KEYFILTER;
+					_filteredKeySet.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 			});
 		}
 		
