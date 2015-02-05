@@ -150,6 +150,9 @@
 		// weave external tool code (turns off when Weave is not connected)
 		if (opener && opener.WeaveExternalTools && opener.WeaveExternalTools[window.name])
 		{
+		    // add text area for copying html source
+			var srcText = d3.select("body").append('input')
+				.attr("type", "text");
 			var toolPath = opener.WeaveExternalTools[window.name].path;
 			// make it so double-clicking in the session editor will open a column list
 			toolPath.exec('WeaveAPI.EditorManager.registerEditor(this, Class("weave.ui.ColumnListComponent"))');
@@ -168,8 +171,8 @@
 					+ "var wd3sm_titles = " + JSON.stringify(wd3sm_titles);
 				// update vis
 				d3_scatter_matrix(div, wd3sm_data, wd3sm_titles);
+				srcText.attr("value", div.outerHTML);
 			}, true);
-			
 		}
 	</script>
 </div>
