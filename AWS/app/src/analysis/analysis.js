@@ -317,6 +317,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 				WeaveService.weaveWindow.close();
 				setTimeout(loadFlashContent, 0);
 				WeaveService.setWeaveWindow(WeaveService.analysisWindow);
+				if($scope.queryService.cache.weaveSessionState)//TODO check with sessionhistory instead
+					WeaveService.weave.path().state($scope.queryService.cache.weaveSessionState);
+				
 			}
 		} else {
 			WeaveService.setWeaveWindow($window.open("/weave.html?",
