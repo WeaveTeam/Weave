@@ -218,7 +218,7 @@ angular.module('ui.select2.sortable', []).directive('uiSelect2Sortable', ['$time
 
             // Set the view and model value and update the angular template manually for the ajax/multiple select2.
             element.bind("change", function (event) {
-                if (scope.$$phase) {
+                if (scope.$$phase || scope.$root.$$phase) {
                     return;
                 }
                 var e = event;

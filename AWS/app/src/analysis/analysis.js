@@ -508,17 +508,17 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	};
 
 	//  clear script options when script changes
-	$scope.$watchCollection(function() {
+	$scope.$watch(function() {
 		return [queryService.queryObject.scriptSelected,
                 queryService.queryObject.dataTable];
 	}, function(newVal, oldVal) {
 		
 			// this check is necessary because when angular changes tabs, it triggers changes
 			// for the script selected or data table even if the user may not have change them.
-			if(!angular.equals(newVal[0], oldVal[0]) && !angular.equals(newVal[1], oldVal[1])) {
+			if(angular.equals(newVal[0], oldVal[0]) || angular.equals(newVal[1], oldVal[1])) {
 				queryService.queryObject.scriptOptions = {};
 			}
-	});
+	}, true);
 	
 	
 	//**************************************select2 sortable options handlers*******************************
@@ -576,7 +576,6 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		return [queryService.cache.scriptMetadata, queryService.cache.columns];
 	}, function(newValue, oldValue) {
 		
-		if(newValue != oldValue) {
 			var scriptMetadata = newValue[0];
 			var columns = newValue[1];
 			
@@ -597,11 +596,10 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 						}
 					}
 				}
-			}
 		}
 	});
 	
-	//handles the indicator in the script options
+	//handles the indicators in the script options
 	$scope.$watch(function() {
 		return queryService.queryObject.scriptOptions;
 	}, function(newValue, oldValue) {
@@ -619,7 +617,6 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 						}
 					}
 				}
-				
 			}
 		}
 	}, true);
