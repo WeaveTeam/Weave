@@ -603,13 +603,13 @@ background-color: #4C4F53;
 }
 
 .unvalidatedUI{
-	border-radius: 10px;
+	border-radius: 5px;
 	border-color : #d43f3a;
 	background-color: #d9534f;	
 }
 
 .validatedUI{
-	border-radius: 8px;
+	border-radius: 5px;
 	background-color : #5bb75b
 }
 
