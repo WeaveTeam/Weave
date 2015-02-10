@@ -353,7 +353,7 @@ package weave
 		public const showKeyTypeInColumnTitle:LinkableBoolean = new LinkableBoolean(false);
 		
 		// cosmetic options
-		public const showCopyright:LinkableBoolean = new LinkableBoolean(true); // copyright at bottom of page
+		public const showCopyright:LinkableBoolean = new LinkableBoolean(true);
 
 		// probing and selection
 		public const selectionBlurringAmount:LinkableNumber = new LinkableNumber(4);

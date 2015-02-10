@@ -82,7 +82,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public var latestjoinedColumnKeys:Array = new Array();
 			
-			public const enableProbeLines:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
+			public const enableProbeLines:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false));
 			public const enabelAnnuliCircles:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
 			override protected function inConstructor():void
@@ -368,6 +368,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_probedAnchor.y.value = tempPoint.y;
 				
 				var theta:Number = _probedAnchor.polarRadians.value;
+				
+				if(_anchorPlotter.unrestrictAnchors.value)
+					return;
 				_probedAnchor.x.value = Math.cos(theta);
 				_probedAnchor.y.value = Math.sin(theta);
 			}

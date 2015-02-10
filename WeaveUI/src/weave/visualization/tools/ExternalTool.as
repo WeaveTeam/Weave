@@ -66,30 +66,37 @@ package weave.visualization.tools
 		
 		public function launch():Boolean
 		{
-			var success:Boolean = JavaScript.exec(
-				{
-					WEAVE_EXTERNAL_TOOLS: WEAVE_EXTERNAL_TOOLS,
-					"url": toolUrl.value,
-					"windowName": windowName,
-					"features": "menubar=no,status=no,toolbar=no",
-					"path": WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this)
-				},
-				'if (!window[WEAVE_EXTERNAL_TOOLS]) {',
-				'    window[WEAVE_EXTERNAL_TOOLS] = {};',
-				'    // when we close this window, close all popups',
-				'    if (window.addEventListener)',
-				'        window.addEventListener("unload", function(){',
-				'            for (var key in window[WEAVE_EXTERNAL_TOOLS])',
-				'                try { window[WEAVE_EXTERNAL_TOOLS][key].window.close(); } catch (e) { }',
-				'        });',
-				'}',
-				'var popup = window.open(url, windowName, features);',
-				'window[WEAVE_EXTERNAL_TOOLS][windowName] = {"path": this.path(path), "window": popup};',
-				'return !!popup;'
-			);
-			
-			if (!success)
-				reportError("External tool popup was blocked by the web browser.");
+			try
+			{
+				var success:Boolean = JavaScript.exec(
+					{
+						WEAVE_EXTERNAL_TOOLS: WEAVE_EXTERNAL_TOOLS,
+						"url": toolUrl.value,
+						"windowName": windowName,
+						"features": "menubar=no,status=no,toolbar=no",
+						"path": WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this)
+					},
+					'if (!window[WEAVE_EXTERNAL_TOOLS]) {',
+					'    window[WEAVE_EXTERNAL_TOOLS] = {};',
+					'    // when we close this window, close all popups',
+					'    if (window.addEventListener)',
+					'        window.addEventListener("unload", function(){',
+					'            for (var key in window[WEAVE_EXTERNAL_TOOLS])',
+					'                try { window[WEAVE_EXTERNAL_TOOLS][key].window.close(); } catch (e) { }',
+					'        });',
+					'}',
+					'var popup = window.open(url, windowName, features);',
+					'window[WEAVE_EXTERNAL_TOOLS][windowName] = {"path": this.path(path), "window": popup};',
+					'return !!popup;'
+				);
+				
+				if (!success)
+					reportError("External tool popup was blocked by the web browser.");
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 			
 			return success;
 		}

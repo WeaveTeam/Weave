@@ -207,9 +207,9 @@ package weave.data.DataSources
 		{
 			url.delayCallbacks();
 			
-			var deprecatedBaseURL:String = '/OpenIndicatorsDataService';
-			if (!url.value || url.value == deprecatedBaseURL || url.value == deprecatedBaseURL + DEFAULT_SERVLET_NAME)
-				url.value = WeaveDataServlet.DEFAULT_URL;
+			for each (var deprecatedBaseURL:String in ['/OpenIndicatorsDataServices', '/OpenIndicatorsDataService'])
+				if (!url.value || url.value == deprecatedBaseURL || url.value == deprecatedBaseURL + DEFAULT_SERVLET_NAME)
+					url.value = WeaveDataServlet.DEFAULT_URL;
 			
 			// backwards compatibility -- if url ends in default base url, append default servlet name
 			if (url.value.split('/').pop() == DEFAULT_BASE_URL.split('/').pop())
