@@ -94,6 +94,7 @@ package weave.visualization.plotters
 		
 		public var drawingClassLines:Boolean = false;//this divides the circle into sectors which represent classes (number of sectors = number of classes)
 
+
 		// anchorClasses key is String, value is array of AnchorPoint names
 		public var anchorClasses:Dictionary = null;//this tells us the classes to which dimensional anchors belong to
 
@@ -122,6 +123,7 @@ package weave.visualization.plotters
 		public const anchorFillStyle:SolidFillStyle = registerLinkableChild(this, new SolidFillStyle());
 		public const anchorRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		
+		public const unrestrictAnchors:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const showBarycenter:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const barycenterRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
@@ -298,6 +300,8 @@ package weave.visualization.plotters
 			dataBounds.projectPointTo(coordinate, screenBounds);
 			
 			// draw RadViz circle
+			if(unrestrictAnchors.value)
+					return;
 			try {
 				circleLineStyle.beginLineStyle(null,g);
 				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);

@@ -368,6 +368,9 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				_probedAnchor.y.value = tempPoint.y;
 				
 				var theta:Number = _probedAnchor.polarRadians.value;
+				
+				if(_anchorPlotter.unrestrictAnchors.value)
+					return;
 				_probedAnchor.x.value = Math.cos(theta);
 				_probedAnchor.y.value = Math.sin(theta);
 			}
