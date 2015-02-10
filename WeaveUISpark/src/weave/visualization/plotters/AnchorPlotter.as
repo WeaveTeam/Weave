@@ -302,6 +302,7 @@ package weave.visualization.plotters
 			// draw RadViz circle
 			if(unrestrictAnchors.value)
 					return;
+
 			try {
 				circleLineStyle.beginLineStyle(null,g);
 				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);

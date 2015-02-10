@@ -82,7 +82,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			public var latestjoinedColumnKeys:Array = new Array();
 			
-			public const enableProbeLines:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(true));
+			public const enableProbeLines:LinkableBoolean = registerLinkableChild(this,new LinkableBoolean(false));
 			public const enabelAnnuliCircles:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			
 			override protected function inConstructor():void

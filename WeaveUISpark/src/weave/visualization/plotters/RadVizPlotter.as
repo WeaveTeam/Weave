@@ -44,8 +44,8 @@ package weave.visualization.plotters
 	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -74,6 +74,7 @@ package weave.visualization.plotters
 	 * RadVizPlotter
 	 * 
 	 * @author kmanohar
+	 * @author fkamayou
 	 */
 	public class RadVizPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
@@ -134,6 +135,8 @@ package weave.visualization.plotters
 		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0, verifyThresholdValue));
 		public const showValuesForAnchorProbeLines:LinkableBoolean= registerLinkableChild(this,new LinkableBoolean(false));
+		
+		public const showAnchorProbeLines:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		private var pointSensitivityColumns:Array = [];
 		private var annCenterColumns:Array = [];
@@ -579,38 +582,6 @@ package weave.visualization.plotters
 			return tempShape;
 		}
 		
-		/**
-		 * This function draws the background graphics for this plotter, if applicable.
-		 * An example background would be the origin lines of an axis.
-		 * @param dataBounds The data coordinates that correspond to the given screenBounds.
-		 * @param screenBounds The coordinates on the given sprite that correspond to the given dataBounds.
-		 * @param destination The sprite to draw the graphics onto.
-		 */
-		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			var g:Graphics = tempShape.graphics;
-			g.clear();
-			
-			coordinate.x = -1;
-			coordinate.y = -1;
-			dataBounds.projectPointTo(coordinate, screenBounds);
-			var x:Number = coordinate.x;
-			var y:Number = coordinate.y;
-			coordinate.x = 1;
-			coordinate.y = 1;
-			dataBounds.projectPointTo(coordinate, screenBounds);
-			
-			// draw RadViz circle
-			try {
-				g.lineStyle(2, 0, .2);
-				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
-			} catch (e:Error) { }
-			
-			destination.draw(tempShape);
-			_destination = destination;
-			
-			_currentScreenBounds.copyFrom(screenBounds);
-		}
 		
 		/**
 		 * This function must be implemented by classes that extend AbstractPlotter.
@@ -754,13 +725,16 @@ package weave.visualization.plotters
 						continue;
 					
 					/*draw the line from point to anchor*/
-					anchor = anchors.getObject(columns.getName(column)) as AnchorPoint;
-					tempPoint.x = anchor.x.value;
-					tempPoint.y = anchor.y.value;
-					dataBounds.projectPointTo(tempPoint, screenBounds);
-					graphics.lineStyle(.5, 0xff0000);
-					graphics.moveTo(coordinate.x, coordinate.y);
-					graphics.lineTo(tempPoint.x, tempPoint.y);
+					if(showAnchorProbeLines.value) {
+						anchor = anchors.getObject(columns.getName(column)) as AnchorPoint;
+						tempPoint.x = anchor.x.value;
+						tempPoint.y = anchor.y.value;
+						dataBounds.projectPointTo(tempPoint, screenBounds);
+						graphics.lineStyle(.5, 0xff0000);
+						graphics.moveTo(coordinate.x, coordinate.y);
+						graphics.lineTo(tempPoint.x, tempPoint.y);
+					}
+					
 					
 					/*We  draw the value (upto to 1 decimal place) in the middle of the probe line. We use the solution as described here:
 					http://cookbooks.adobe.com/post_Adding_text_to_flash_display_Graphics_instance-14246.html
