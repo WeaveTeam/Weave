@@ -173,7 +173,7 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 		var filters = {and : []};
 
 		
-		if(queryService.crossTabQuery.filters[0])
+		if(queryService.crossTabQuery.filters[0] && queryService.crossTabQuery.filters[0].column && queryService.crossTabQuery.filters[0].option)
 			filters.and.push({
 				cond : {
 					f : queryService.crossTabQuery.filters[0].column.id,
@@ -181,7 +181,8 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 				}
 			});
 		
-		if(queryService.crossTabQuery.filters[1])
+		if(queryService.crossTabQuery.filters[1] && queryService.crossTabQuery.filters[1].column
+				&& queryService.crossTabQuery.filters[1].option)
 			filters.and.push({
 				cond : {
 					f : queryService.crossTabQuery.filters[1].column.id,
