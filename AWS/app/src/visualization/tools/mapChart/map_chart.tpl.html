@@ -5,7 +5,7 @@
 				<tr>	
 					<td>
 						<input  type="checkbox"
-							 	ng-model="toolProperties.enabled"/>
+							 	ng-model="tool.enabled"/>
 					</td>
 				
 					<td style="padding-left: 5px;">
@@ -16,7 +16,7 @@
 					 Title:
 				</td>
 				<td style="padding-left: 5px;">
-							<input style = "width : 100%" type="text" placeholder="Default" ng-model='toolProperties.title'>
+							<input style = "width : 100%" type="text" placeholder="Default" ng-model='tool.title'>
 
 				</td>
 			</tr>
@@ -29,22 +29,32 @@
 				</td>
 			
 				<td style="padding-left: 5px;">
-					<select style = "width : 100%" 
-									ui-select2="{allowClear : true}" 
-									ng-model="toolProperties.geometryLayer" 
-									data-placeholder="Choose Layer">
-							<option></option>
-							<option value="{{gt}}"  ng-repeat="gt in service.cache.geometryColumns">{{gt.title}}</option>
-					</select>
+				
+					<input type="hidden" popover="Select Geometry layer" ui-select2-sortable popover-trigger="mouseenter"
+					style="width: 90%;"
+					ng-model="tool.geometryLayer"
+					simple-query="getGeometryLayers"
+					data-placeholder="Select Geometry Layer"
+					allow-clear="true"
+					to-id="getItemId" to-text="getItemText">
+					</input>
+					
+<!-- 					<select style = "width : 100%"  -->
+<!-- 									ui-select2="{allowClear : true}"  -->
+<!-- 									ng-model="tool.geometryLayer"  -->
+<!-- 									data-placeholder="Choose Layer"> -->
+<!-- 							<option></option> -->
+<!-- 							<option value="{{gt}}"  ng-repeat="gt in service.cache.geometryColumns">{{gt.title}}</option> -->
+<!-- 					</select> -->
 				</td>
 			</tr>
 		
 		<tr>
 			<td>
 				<input   type="checkbox"
-						 ng-model="toolProperties.useKeyTypeForCSV" 
+						 ng-model="tool.useKeyTypeForCSV" 
 						 data-placeholder="Choose Label Column"
-						 ng-init="toolProperties.useKeyTypeForCSV = true"/>
+						 ng-init="tool.useKeyTypeForCSV = true"/>
 			</td>
 			
 			<td style="padding-left: 5px;">
@@ -58,14 +68,17 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
+			<!-- TODO change this to ui-select2-sortable -->
 				<select style = "width : 100%" 
 								ui-select2="{allowClear : true}" 
-								ng-model="toolProperties.labelLayer" 
+								ng-model="tool.labelLayer" 
 								data-placeholder="Choose Layer">
 					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
    						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
   					</optgroup>
 				</select>
+				
+				
 			</td>
 		</tr>	
 	</table>

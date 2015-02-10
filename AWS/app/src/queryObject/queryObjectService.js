@@ -88,7 +88,7 @@ QueryObject.service('runQueryService', ['errorLogService','$modal', function(err
 	 * @param {string|number=}queryId
 	 * @see aws.addBusyListener
 	 */
-	this.queryRequest = function(url, method, params, resultHandler, queryId)
+	this.queryRequest = function(url, method, params, resultHandler, errorHandler, queryId)
 	{
 	    var request = {
 	        jsonrpc: "2.0",
@@ -111,6 +111,8 @@ QueryObject.service('runQueryService', ['errorLogService','$modal', function(err
 	        	errorLogService.logInErrorLog(response.error.message);
 	        	//open the error log
 	        	$modal.open(errorLogService.errorLogModalOptions);
+	        	if(errorHandler)
+	        		return errorHandler(response.error, queryId);
 	        }
 	        else if (resultHandler){
 	            return resultHandler(response.result, queryId);
@@ -189,18 +191,40 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			TimePeriodFilter : {},
 			ByVariableFilters : [],
 			ByVariableColumns : [],
-			ColorColumn : {column : "",  showColorLegend : false},
-			keyColumn : {name : ""},
 			properties : {
 				validationStatus : "test",
 				isQueryValid : false
 			},
-			weaveToolsList : [MapTool,
-			                  BarChartTool,
-			                  DataTableTool,
-			                  ScatterPlotTool,
-			                  color_Column,
-			                  key_Column],
+			visualizations : {
+				MapTool : {
+					title : 'Map Tool',
+					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html',
+					enabled : false
+				},
+				BarChartTool : {
+					title : 'Bar Chart Tool',
+					template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html',
+					enabled : false
+				},
+				DataTableTool : {
+					title : 'Data Table Tool',
+					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html',
+					enabled : false
+				},
+				ScatterPlotTool : {
+					title : 'Scatter Plot Tool',
+					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html',
+					enabled : false
+				},
+				color_Column : {
+					title : "Color Column",
+					template_url : 'src/visualization/tools/color/color_Column.tpl.html'
+				},
+				key_Column : {
+					title : "Key Column",
+					template_url : 'src/visualization/tools/color/key_Column.tpl.html'
+				}
+			},
 			resultSet : {}
 	};    		
     
@@ -212,8 +236,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			numericalColumns : []
 	};
 
-
-
+	this.crossTabQuery = {};
 	
 	/**
      * This function wraps the async aws runScript function into an angular defer/promise
@@ -223,11 +246,20 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
         
     	var deferred = $q.defer();
 
-    	runQueryService.queryRequest(computationServiceURL, 'runScript', [scriptName], function(result){	
-    		scope.$safeApply(function() {
-				deferred.resolve(result);
-			});
-		});
+    	runQueryService.queryRequest(computationServiceURL, 
+    								 'runScript', 
+    								 [scriptName], 
+    								 function(result){	
+							    		scope.$safeApply(function() {
+											deferred.resolve(result);
+										});
+    								 },
+    								 function(error){
+    									scope.$safeApply(function() {
+    										deferred.reject(error);
+    									});
+    								 }
+    	);
     	
         return deferred.promise;
     };
@@ -242,11 +274,19 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	
     	var deferred = $q.defer();
 
-    	runQueryService.queryRequest(computationServiceURL, 'getDataFromServer', [inputs, reMaps], function(result){	
-    		scope.$safeApply(function() {
-				deferred.resolve(result);
-			});
-		});
+    	runQueryService.queryRequest(computationServiceURL, 
+    								'getDataFromServer', 
+    								[inputs, reMaps],
+    								function(result){	
+							    		scope.$safeApply(function() {
+											deferred.resolve(result);
+										});
+									 },
+									 function(error){
+										scope.$safeApply(function() {
+											deferred.reject(error);
+										});
+									 });
     	
         return deferred.promise;
     };
@@ -278,10 +318,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
    
     this.writeSessionState = function(base64String, params){
     	var projectName;
-    	var userName = "Awesome User";
+    	var userName;
     	var queryObjectTitles;
     	var projectDescription;
-    	//params.queryObjectJsons = angular.toJson(this.queryObject);
     	
     	if(angular.isDefined(params.projectEntered))
     		{
@@ -299,35 +338,40 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	}
     	else
     		 queryObjectTitles = this.queryObject.title;
+    	if(angular.isDefined(params.userName)){
+    		userName = params.userName;
+    		this.queryObject.author = userName;
+    	}
+    	else
+    		userName = "Awesome User";
     	
-    	
-    	var qo =this.queryObject;
-    	   	for(var key in qo.scriptOptions) {
-    	    		var input = qo.scriptOptions[key];
-    	    		//console.log(typeof input);
-    	    		switch(typeof input) {
-    	    			
-    	    			case 'string' :
-    	    				var inputVal = tryParseJSON(input);
-    	    				if(inputVal) {  // column input
-    	    					qo.scriptOptions[key] = inputVal;
-    	    				} else { // regular string
-    	    					qo.scriptOptions[key] = input;
-    	    				}
-    	    				break;
-    	    			
-    	    			default:
-    	    				console.log("unknown script input type");
-    	    		}
-    	    	}
-    	    	if (typeof(qo.Indicator) == 'string'){
-    	    		var inputVal = tryParseJSON(qo.Indicator);
-    				if(inputVal) {  // column input
-    					qo.Indicator = inputVal;
-    				} else { // regular string
-    					qo.Indicator = input;
-    				}
-    	    	}
+    	var qo = this.exportQueryObject();
+//    	   	for(var key in qo.scriptOptions) {
+//    	    		var input = qo.scriptOptions[key];
+//    	    		//console.log(typeof input);
+//    	    		switch(typeof input) {
+//    	    			
+//    	    			case 'string' :
+//    	    				var inputVal = tryParseJSON(input);
+//    	    				if(inputVal) {  // column input
+//    	    					qo.scriptOptions[key] = inputVal;
+//    	    				} else { // regular string
+//    	    					qo.scriptOptions[key] = input;
+//    	    				}
+//    	    				break;
+//    	    			
+//    	    			default:
+//    	    				console.log("unknown script input type");
+//    	    		}
+//    	    	}
+//    	    	if (typeof(qo.Indicator) == 'string'){
+//    	    		var inputVal = tryParseJSON(qo.Indicator);
+//    				if(inputVal) {  // column input
+//    					qo.Indicator = inputVal;
+//    				} else { // regular string
+//    					qo.Indicator = input;
+//    				}
+//    	    	}
     	var queryObjectJsons = angular.toJson(qo);
     	var resultVisualizations = base64String;
     	
@@ -350,12 +394,20 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     		return this.cache.scriptMetadata;
     	}
     	if(scriptName) {
-    		runQueryService.queryRequest(scriptManagementURL, 'getScriptMetadata', [scriptName], function(result){
-    			that.cache.scriptMetadata = result;
-    			scope.$safeApply(function() {
-    				deferred.resolve(that.cache.scriptMetadata);
-    			});
-    		});
+    		runQueryService.queryRequest(scriptManagementURL, 
+    									'getScriptMetadata', 
+    									[scriptName], 
+    									function(result){
+							    			that.cache.scriptMetadata = result;
+							    			scope.$safeApply(function() {
+							    				deferred.resolve(that.cache.scriptMetadata);
+							    			});
+    									},
+    									function(error){
+    										scope.$safeApply(function(error) {
+    											deferred.reject(error);
+    										});
+    									});
     	}
         return deferred.promise;
     };
@@ -431,6 +483,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 						scope.$safeApply(function() {
 							deferred.resolve(that.cache.columns);
 						});
+					},
+					function(error) {
+						scope.$safeApply(function() {
+							deffered.reject(error);
+						});
 					});
 				});
 				
@@ -453,6 +510,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 					
 					scope.$safeApply(function() {
 						deferred.resolve(that.cache.dataColumnEntities);
+					});
+				},
+				function(error) {
+					scope.$safeApply(function() {
+						deferred.reject(error);
 					});
 				});
 			}
@@ -485,9 +547,12 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 						keyType : entity.publicMetadata.keyType
 					};
 				});
-				
 				scope.$safeApply(function() {
 					deferred.resolve(that.cache.geometryColumns);
+				});
+			}, function(error) {
+				scope.$safeApply(function() {
+					deferred.reject(error);
 				});
 			});
 		});
@@ -510,6 +575,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     			scope.$safeApply(function() {
     				deferred.resolve(that.cache.dataTableList);
     			});
+    		 }, function(error){
+    			 scope.$safeApply(function() {
+    				 deferred.reject(error);
+    			 });
     		 });
     	}
         return deferred.promise;
@@ -541,6 +610,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
          			for (var i in columnData.keys) 
          				result[i] = {"value": columnData.keys[i], "label": columnData.data[i]};
          			callback(result);
+     			},
+     			function(error) {
+     				scope.$safeApply(function() {
+     					deferred.reject(error);
+     				});
      			}
      		);
 	        return deferred.promise;
@@ -561,6 +635,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
         				scope.$safeApply(function() {
             				deferred.resolve(that.cache.geographyMetadata);
             			});
+        			}, function(error){
+        				scope.$safeApply(function() {
+        					deferred.reject(error);
+        				});
         			});
         		});
         	}
@@ -577,18 +655,13 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
             	scope.$safeApply(function(){
                     deferred.resolve();
                 });
+            }, function(error) {
+            	scope.$safeApply(function() {
+            		deferred.reject(error);
+            	});
             });
             return deferred.promise;
         };
-        
-//        this.authenticate = function(user, password) {
-//
-//        	aws.queryService(adminServiceURL, 'authenticate', [user, password], function(result){
-//                this.authenticated = result;
-//                scope.$apply();
-//            }.bind(this));
-//        };
-        
         
          // Source: http://www.bennadel.com/blog/1504-Ask-Ben-Parsing-CSV-Strings-With-Javascript-Exec-Regular-Expression-Command.htm
          // This will parse a delimited string into an array of

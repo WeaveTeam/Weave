@@ -233,7 +233,7 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 	         backdropClick: true,
 	         dialogFade: true,
 	         keyboard: true,
-	         templateUrl: 'aws/configure/script/uploadNewScript.html',
+	         templateUrl: 'src/configure/script/uploadNewScript.html',
 	         controller: 'AddScriptDialogInstanceCtrl'
 		});
     };

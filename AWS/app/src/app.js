@@ -82,6 +82,13 @@ app.run(['$rootScope', function($rootScope){
 	    		activetab : 'project'
 	    	}
 	    })
+	    .state('cross_tab',{
+	    	url:'/cross_tab',
+	    	templateUrl: 'src/analysis/crosstab/cross_tab.tpl.html',
+	    	data :{
+    			activetab : 'cross_tab'
+    		}
+	    })
 	    .state('data_stats',{
 	    	url:'/dataStatistics',
 	    	templateUrl : 'src/dataStatistics/dataStatisticsMain.tpl.html',

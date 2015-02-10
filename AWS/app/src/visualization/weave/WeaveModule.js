@@ -1,5 +1,6 @@
 var weave_mod = angular.module('aws.WeaveModule', []);
-weave_mod.service("WeaveService", ['$rootScope', function(rootScope) {
+//TODO figure out whici module this service belongs to
+AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	
 	this.weave;
 	var ws = this;
@@ -49,7 +50,11 @@ weave_mod.service("WeaveService", ['$rootScope', function(rootScope) {
 	this.setWeaveWindow(window);
 	
 	this.addCSVData = function(csvData, aDataSourceName, queryObject) {
-		var dataSourceName = ws.generateUniqueName(aDataSourceName);
+		var dataSourceName = "";
+		if(!aDataSourceName)
+			dataSourceName = ws.generateUniqueName("CSVDataSource");
+		else
+			dataSourceName = ws.generateUniqueName(aDataSourceName);
 	
 		ws.weave.path(dataSourceName)
 			.request('CSVDataSource')
@@ -60,6 +65,7 @@ weave_mod.service("WeaveService", ['$rootScope', function(rootScope) {
 		{
 			queryObject.resultSet[dataSourceName][i] = { name : csvData[0][i], dataSourceName : dataSourceName};
 		}
+		queryObject.resultSet[dataSourceName]["data"] = csvData;
 	};
 	
 	// weave path func
@@ -77,31 +83,32 @@ weave_mod.service("WeaveService", ['$rootScope', function(rootScope) {
 	this.BarChartTool =  function (state, aToolName) {
 		var toolName = aToolName || ws.generateUniqueName("BarChartTool");
 		
+		if(state == null)
+			return toolName;
+		
 		if(ws.weave && ws.weave.path && state) {
 			
 			try{
-				if(!state.enabled)
+				if(state.enabled)
 				{
+					ws.weave.path(toolName)
+					.request('CompoundBarChartTool')
+					.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
+					.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
+					.forEach({sortColumn : state.sort, labelColumn : state.label}, setCSVColumn)
+					.forEach(
+							{ heightColumns : state.heights, positiveErrorColumns : state.posErr, negativeErrorColumns : state.negErr}, 
+							function(heights, name) {
+								var child = this.push(name);
+								child.getNames().forEach(function(n, i){
+									if (!heights || i >= heights.length) child.remove(n);
+								});
+								child.forEach(heights, setCSVColumn);
+							}
+					);
+				} else {
 					ws.weave.path(toolName).remove();
-					return "";
 				}
-				
-				ws.weave.path(toolName)
-				.request('CompoundBarChartTool')
-				.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
-				.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
-				.forEach({sortColumn : state.sort, labelColumn : state.label}, setCSVColumn)
-				.forEach(
-						{ heightColumns : state.heights, positiveErrorColumns : state.posErr, negativeErrorColumns : state.negErr}, 
-						function(heights, name) {
-							var child = this.push(name);
-							child.getNames().forEach(function(n, i){
-								if (!heights || i >= heights.length) child.remove(n);
-							});
-							child.forEach(heights, setCSVColumn);
-						}
-				);
-				;
 			} catch(e)
 			{
 				console.log(e);
@@ -253,7 +260,7 @@ weave_mod.service("WeaveService", ['$rootScope', function(rootScope) {
 	
 	this.keyColumn = function(akeyColumn) {
 		var keyColumn = angular.fromJson(akeyColumn);
-		if(ws.weave && ws.weave.path && state) {
+		if(ws.weave && ws.weave.path && keyColumn) {
 			if(keyColumn.name) {
 				ws.weave.setSessionState([keyColumn.dataSourceName], {keyColName : keyColumn.name});
 			}

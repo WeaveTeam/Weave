@@ -2,8 +2,8 @@
  * contains all the functions required for project management 
  */
 angular.module('aws.project')
-.service('projectService', ['$q', '$rootScope', 'WeaveService', 'QueryHandlerService', 'runQueryService', 'projectManagementURL',
-                            function($q, scope, WeaveService, QueryHandlerService, runQueryService, projectManagementURL){
+.service('projectService', ['$q', '$rootScope', 'WeaveService', 'runQueryService', 'projectManagementURL',
+                            function($q, scope, WeaveService, runQueryService, projectManagementURL){
 	
 	var that = this;
 	
@@ -92,34 +92,19 @@ angular.module('aws.project')
     	return deferred.promise;
     };
     
-    var newWeave;
+  
     
     /**
-     * this function returns the session state corresponding to the thumbnail that was clicked
+     * this function returns the session state corresponding to the thumbnail of a query object that was clicked
      */
     this.returnSessionState = function(queryObject){
    	 var deferred = $q.defer();
    	 queryObject = angular.toJson(queryObject);
    	 console.log("stringified queryObject", queryObject);
+   	 
    	 runQueryService.queryRequest(projectManagementURL, 'getSessionState', [queryObject], function(result){
     		
    		 that.cache.weaveSessionState = result;
-   		 
-   		if(!(angular.isUndefined(that.data.weaveSessionState))){
-   		 if (!newWeave || newWeave.closed) {
-				newWeave = window
-						.open("/weave.html?",
-								"abc",
-								"toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
-				//WeaveService.setSessionHistory(that.data.weaveSessionState);
-			}
-   		 
-   		QueryHandlerService.waitForWeave(newWeave, function(weave) {
-			WeaveService.weave = weave;
-			WeaveService.setSessionHistory(that.data.weaveSessionState);
-		});
-   		 //newWeave.logvar = "Displaying Visualizations";
-   		}
    		 
         	scope.$safeApply(function() {
                 deferred.resolve(result);

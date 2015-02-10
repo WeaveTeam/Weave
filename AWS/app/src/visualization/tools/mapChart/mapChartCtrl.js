@@ -1,43 +1,27 @@
-AnalysisModule.controller("MapCtrl", function($scope, queryService, WeaveService){
+AnalysisModule.controller("MapCtrl", function($scope,$filter, AnalysisService, queryService, WeaveService){
 	
 	$scope.service = queryService;
-	$scope.WeaveService = WeaveService;
 	
-	queryService.getGeometryDataColumnsEntities(true);
-	$scope.toolName = "";
+	$scope.service.getGeometryDataColumnsEntities(true);
 	
-	$scope.toolProperties = {
-		enabled : false,
-		geometryLayer : {},
-		title : "",
-		useKeyTypeForCSV : true,
-		labelLayer : ""
+	//select2-sortable handlers
+	$scope.getItemId = function(item) {
+		return item.id;
 	};
 	
-	// watches for toolName changes and update the weaveToolsList id
-	// delete it from the queryobject if tool is deleted
-	$scope.$watch('toolName', function(newVal, oldVal) {
-		if(newVal != oldVal) {
-			if(!newVal) {
-				delete queryService.queryObject[oldVal];
-			} else {
-				$scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id = $scope.toolName;
-			}
-		}
-	});
+	$scope.getItemText = function(item) {
+		return item.title;
+	};
 	
-	$scope.$watch('service.queryObject[service.queryObject.weaveToolsList[$parent.$index].id]', function() {
-		if($scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id) {
-			$scope.toolName = $scope.service.queryObject.weaveToolsList[$scope.$parent.$index].id;
-			$scope.toolProperties = queryService.queryObject[$scope.toolName];
-		}
+	//geometry layers
+	$scope.getGeometryLayers = function(term, done) {
+		var values = $scope.service.cache.geometryColumns;
+		done($filter('filter')(values, {title:term}, 'title'));
+	};
+	
+	$scope.$watch('tool', function() {
+		if($scope.toolId) // this gets triggered twice, the second time toolId with a undefined value.
+			WeaveService.MapTool($scope.tool, $scope.toolId);
 	}, true);
 	
-	$scope.$watch( 'toolProperties', function(newVal, oldVal){
-		$scope.toolName = WeaveService.MapTool($scope.toolProperties, $scope.toolName);
-		
-		if($scope.toolName)	{
-			queryService.queryObject[$scope.toolName] = $scope.toolProperties;
-		}
-	}, true);
 });

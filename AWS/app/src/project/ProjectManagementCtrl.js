@@ -1,5 +1,5 @@
 angular.module('aws.project', [])
-.controller("ProjectManagementCtrl", function($scope, $filter, queryService,projectService, QueryHandlerService){
+.controller("ProjectManagementCtrl", function($scope,$rootScope, $filter, queryService, projectService, QueryHandlerService, WeaveService, $location){
 	$scope.projectService = projectService;
 	
 	//retrives project list
@@ -19,6 +19,7 @@ angular.module('aws.project', [])
 		done($filter('filter')(values,term));
 	};
 	
+	//when a datatable is selected or changed
 	$scope.$watch('projectService.cache.dataTable', function(){
 		if($scope.projectService.cache.dataTable){
 			console.log("project Selected", $scope.projectService.cache.dataTable);
@@ -98,22 +99,64 @@ angular.module('aws.project', [])
 	
 	//deletes a single queryObject within the currently selected Project
 	$scope.deleteSpecificQueryObject = function(item){
-		console.log("item", item);
 		nameOfQueryObjectToDelete = item.queryObjectName; 
 		$scope.deleteQueryConfirmation($scope.projectService.cache.dataTable, nameOfQueryObjectToDelete);
 	};
 	
 	$scope.runQueryInAnalysisBuilder = function(item){
-		//queryService.queryObject = item;//setting the queryObject to be handled by the QueryHandlerService
 		//TODO validate the query before running
-		
-		QueryHandlerService.run(item);
-		console.log("Running query");
+		//TODO handle query running executin vs non executing for now
+		//QueryHandlerService.run(item);
 	};
 	
-	$scope.returnSessionState = function(queryObject){
-		projectService.returnSessionState(queryObject);
+	$scope.openInAnalysis = function(queryObject) {
+		queryService.queryObject = queryObject;
+		console.log("in prjt ctrl", queryService.queryObject );
+		//TODO dont use rootscope
+		$rootScope.$broadcast('queryObjectloaded', 'hello');
+		$location.path('/analysis'); 
 	};
+	
+	$rootScope.$on('queryObjectloaded', function(event,data){
+		//TODO dont use rootscope
+		$rootScope.$watch(function(){
+			 return WeaveService.weave;
+		}, function(){
+			if(WeaveService.weave){
+				WeaveService.weave.path().state(queryService.queryObject.sessionState);
+				delete queryService.queryObject.sessionState;
+			}
+		});
+			
+	});
+	
+	$scope.returnSessionState = function(queryObject){
+		projectService.returnSessionState(queryObject).then(function(weaveSessionState){
+			var newWeave;
+			if(!(angular.isUndefined(weaveSessionState))){
+				
+		   		 if (!newWeave || newWeave.closed) {
+						newWeave = window
+								.open("/weave.html?",
+										"abc",
+										"toolbar=no, fullscreen = no, scrollbars=yes, addressbar=no, resizable=yes");
+					}
+		   		 
+			   		WeaveService.setWeaveWindow(newWeave);
+			   		
+			   		$scope.$watch(function(){
+			   			return WeaveService.weave;
+			   		},function(){
+			   			if(WeaveService.weave && WeaveService.weave.WeavePath) 
+		   					WeaveService.setSessionHistory(weaveSessionState);
+			   		});
+		   		}
+			else{
+				console.log("Session state was not returned");
+			}
+		});
+	};
+	
 	
 	$scope.loadInAnalysis = function(queryObject){
 		console.log("setting queryObject");

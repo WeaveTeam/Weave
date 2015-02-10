@@ -2,14 +2,11 @@
 	<div >
 		<div class="prj-contents" style="width: 100%; padding-left: 40px;">
 
-			<div class="project-username">
-				<span class="user-label">Username: </span>
+<!-- 			<div class="project-username"> -->
+<!-- 				<span class="user-label">Username: </span> -->
+<!-- 				<input class="user-input" ng-model = "projectService.cache.userName" type = "text" placeholder = "Enter a username for the project" /> -->
 
-				<input class="user-input" ng-model = "projectService.projectBundle.userName" type = "text" placeholder = "Enter a username for the project" />
-
-			</div>
-
-			<br>
+<!-- 			</div> -->
 
 			<div style="width: 90%;  height: 100%;" class="panel panel-default">
 
@@ -22,7 +19,6 @@
 							style="width: 100%" ng-model="projectService.cache.dataTable"
 							simple-query="getProjectsList"
 							data-placeholder="Select Project"
-							allow-clear="true"
 							to-id="getItemId" to-text="getItemText">
 						</input> 
 
@@ -47,19 +43,21 @@
 
 				</div>
 				<div style="width: 100%; height: 40px;">
-					<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{projectService.data.projectDescription}}</h5>
+					<h5 class="widget-description "><i style="font-size: 14px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i> {{projectService.cache.projectDescription}}</h5>
 
 				</div>
 
 				<div class="dd" id="nestable3">
-					<ol ui-sortable class="dd-list" ng-model="listItems" id="queryObjectChoicesUI">
+					<ol ui-sortable class="dd-list" ng-model="projectService.cache.returnedQueryObjects" id="queryObjectChoicesUI">
 							<li class="dd-item dd3-item" data-id = "15"  ng-repeat="item in projectService.cache.returnedQueryObjects">
 							<div class="dd-handle dd3-handle">
 								<!--Drag-->
 							</div>
 							<div class= "dd3-content d-list-content">
 								<div style='display : table'; inline-block; >
-	<!---Contains the list	-->		<div style="width : 85%; display : table-cell">
+								
+<!---Contains the list of query Objects in a project	-->	
+									<div style="width : 85%; display : table-cell">
 										<ul style="list-style:initial">
 											<li>
 												<span class="prj-txt-lbl">Title: </span> 
@@ -86,7 +84,7 @@
  <!-- Contains the picture -->		<!-- div style="display : table-cell" ng-repeat = "pic in thumbnailsToDisplay"-->
 										<div style="display : table-cell">
 											<img width = "150" height = "100" 
-												 ng-src= "{{item.thumbnail || '/css/img/ImageUnavailable.png'}}" 
+												 ng-src= "{{item.thumbnail || 'css/img/ImageUnavailable.png'}}" 
 												 style="border: 1px solid #000000;"
 												 ng-click = "returnSessionState(item.queryObject)">
 											 </img>
@@ -94,26 +92,31 @@
 								</div>
 								<div class="query-btn-holder">
 								
-										<div class= "btn-group" dropdown is-open= "status.isopen">
-											<button  id = "openQueryObjectButton" type="button" class="btn btn-sm dropdown-toggle">
-												Open <span class="caret"></span>
-											</button>
+										
+								
+<!-- 										<div class= "btn-group" dropdown is-open= "status.isopen"> -->
+<!-- 											<button  id = "openQueryObjectButton" type="button" class="btn btn-sm dropdown-toggle"> -->
+<!-- 												Open <span class="caret"></span> -->
+<!-- 											</button> -->
 											
-											<ul class="dropdown-menu" role="menu">
-										        <li style= "padding-left : 5px"> <button>in analysis builder</button>  </li>
-										        <li class="divider"></li>
-										        <li style= "padding-left : 5px"> <button>in editor</button></li>
-										      </ul>
-										</div>
+<!-- 											<ul class="dropdown-menu" role="menu"> -->
+<!-- 										        <li style= "padding-left : 5px"> <button ng-click="openInAnalysis(item.queryObject)" style="width:100%">in analysis builder</button>  </li> -->
+<!-- 										        <li class="divider"></li> -->
+<!-- 										        <li style= "padding-left : 5px"> <button>in editor</button></li> -->
+<!-- 										      </ul> -->
+<!-- 										</div> -->
 									
-										<button ng-click = "runQueryInAnalysisBuilder(item.queryObject)" class ="btn btn-sm query-button">
-											Run Query
-										</button>
+<!-- 										<button ng-click = "runQueryInAnalysisBuilder(item.queryObject)" class ="btn btn-sm query-button"> -->
+<!-- 											Run Query -->
+<!-- 										</button> -->
 										
 										<button ng-click = "deleteSpecificQueryObject(item)" class="btn btn-sm query-button">
-											Delete the query
+											Delete
 										</button>
 									
+										<button ng-click = "openInAnalysis(item.queryObject)" class ="btn btn-sm query-button">
+											Open
+										</button>
 									
 <!-- 									<button  id = "openInAnalysis" ng-click = "loadInAnalysis(item.queryObject)" type="button" class="btn btn-sm query-button"> -->
 <!-- 										Open in Analysis Builder -->

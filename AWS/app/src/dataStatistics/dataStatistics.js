@@ -50,9 +50,16 @@ dataStatsModule.service('statisticsService', ['$q','$rootScope', 'runQueryServic
 	 */
 	this.calculateStats = function(scriptName, numericalColumns, statToCalculate, forceUpdate){
 		
-		if(!forceUpdate){
-			return this.cache.summaryStats;
-		}
+		//empty the cache of previously calculated stats
+		//TODO confirm if better way to do this
+		this.cache.summaryStats.statsData = [];
+		this.cache.summaryStats.columnDefinitions = [];
+		this.cache.correlationMatrix = [];
+		this.cache.columnTitles= [];
+		this.sparklineData.breaks = [];
+		this.sparklineData.counts = {};
+		
+		
 		var statsInputs = QueryHandlerService.handleScriptOptions(numericalColumns);//will return int[] ids
 		if(statsInputs){
 			//hack fix this
@@ -155,7 +162,7 @@ dataStatsModule.service('statisticsService', ['$q','$rootScope', 'runQueryServic
 				
 				data.push(oneStatsGridObject);
 				
-				//during the last iteration TODO confirm if this is the right place for the loop
+				//during the last iteration
 				if(x == (resultData.length - 1)){
 					this.cache.summaryStats.columnDefinitions = [];
 					for(var z = 0; z < metadata.length; z++){

@@ -7,17 +7,21 @@
 
 <div class="modal-body">
          <p>
-	    Enter the project name to store the <code>query object</code>
+	    Enter the project name for the <code>query object</code>
 	    <input ng-model="projectEntered">
 	    
 	    <br> <br>
 	    Enter the title of the <code>query object</code>
 	    <input ng-model="queryTitleEntered">
+	    
+	    <br> <br>
+	    Enter the author of the <code>query object</code>
+	    <input ng-model="userName">
 	  </p>
 </div>
 
 <div class="modal-footer">
-			<button ng-click="close(projectEntered, queryTitleEntered)" class="btn btn-primary" >Save</button>
+			<button ng-click="close(projectEntered, queryTitleEntered, userName)" class="btn btn-primary" >Save</button>
 			<button ng-click="$dismiss()" class="btn btn-primary" >Cancel</button>
 </div>
 

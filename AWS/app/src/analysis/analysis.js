@@ -21,7 +21,6 @@ var tryParseJSON = function(jsonString){
 
 var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider', 'ui.bootstrap']);
 
-
 //analysis service
 AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', 'queryService',
                                            function(geoFilter_tool, timeFilter_tool, queryService ) {
@@ -31,7 +30,7 @@ AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', '
 	};
 	//getting the list of datatables
 	queryService.getDataTableList(true);
-//	queryService.queryObject.weaveToolsList = [MapTool,
+//	queryService.queryObject.visualizations = [MapTool,
 //	                              BarChartTool,
 //	                              DataTableTool,
 //	                              ScatterPlotTool,
@@ -206,6 +205,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	 $("#queryObjectPanel" ).draggable().resizable();
 	 $("#queryObjectPanel" ).css({'top' : -1020, 'left' : 265});
 	
+	 $scope.$watch('queryService.queryObject.resultSet', function() {
+		 console.log($scope.queryService.queryObject.resultSet);
+	 });
 	//**********************************************************REMAPPING**************************************
 	 queryService.cache.shouldRemap = [];
 	 $scope.newValue= "";
@@ -265,6 +267,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	};
 	
 	$scope.getItemText = function(item) {
+		if(queryService.queryObject.properties.displayAsQuestions)
+			return item.description || item.title;
 		return item.title;
 	};
 	
@@ -275,7 +279,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	};
 	
 	$scope.$watch("queryService.queryObject.dataTable.id", function() {
-		queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
+		if($scope.queryService.queryObject.dataTable)
+			queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
 	});
 	
 	//Indicator
@@ -284,6 +289,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
 	};
 	
+	//*************************watch for Weave in different Weave windows*********************************************
 	$scope.$watch(function() {
 		return WeaveService.weave;
 	}, function() {
@@ -311,6 +317,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 				WeaveService.weaveWindow.close();
 				setTimeout(loadFlashContent, 0);
 				WeaveService.setWeaveWindow(WeaveService.analysisWindow);
+				if($scope.queryService.cache.weaveSessionState)//TODO check with sessionhistory instead
+					WeaveService.weave.path().state($scope.queryService.cache.weaveSessionState);
+				
 			}
 		} else {
 			WeaveService.setWeaveWindow($window.open("/weave.html?",
@@ -463,36 +472,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	}, true);
 	/************** watches for query validation******************/
-	$scope.tool_options = ["MapTool", "BarChartTool", "ScatterPlotTool", "DataTable"];
 	
-	$scope.addTool = function(name) {
-		switch(name) {
-			case "MapTool":
-				queryService.queryObject.weaveToolsList.push({
-					title : 'Map Tool',
-					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
-				});
-				break;
-			case "BarChartTool":
-				queryService.queryObject.weaveToolsList.push({
-					title : 'Bar Chart Tool',
-					template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html'
-				});
-				break;
-			case "ScatterPlotTool":
-				queryService.queryObject.weaveToolsList.push({
-					title : 'Scatter Plot Tool',
-					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html'
-				});
-				break;
-			case "DataTable":
-				queryService.queryObject.weaveToolsList.push({
-					title : 'Data Table Tool',
-					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html'
-				});
-				break;
-		}
-	};
 });
 
 
@@ -528,17 +508,17 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	};
 
 	//  clear script options when script changes
-	$scope.$watchCollection(function() {
+	$scope.$watch(function() {
 		return [queryService.queryObject.scriptSelected,
                 queryService.queryObject.dataTable];
 	}, function(newVal, oldVal) {
 		
 			// this check is necessary because when angular changes tabs, it triggers changes
 			// for the script selected or data table even if the user may not have change them.
-			if(!angular.equals(newVal[0], oldVal[0]) && !angular.equals(newVal[1], oldVal[1])) {
+			if(angular.equals(newVal[0], oldVal[0]) || angular.equals(newVal[1], oldVal[1])) {
 				queryService.queryObject.scriptOptions = {};
 			}
-	});
+	}, true);
 	
 	
 	//**************************************select2 sortable options handlers*******************************
@@ -552,6 +532,15 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	$scope.getTimeInputOptions = function(term, done){
 		var values = queryService.cache.columns;
 		done($filter('filter')(values,{columnType : 'time',title:term},'title'));
+	};
+	
+	var options = [];
+	$scope.test = function(index) {
+		options = queryService.cache.scriptMetadata.inputs[index].options;
+	};
+	
+	$scope.getOptInputOptions = function(term, done) {
+		done($filter('filter')(options, term));
 	};
 	
 	$scope.getGeographyInputOptions = function(term, done){
@@ -575,6 +564,8 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	};
 	
 	$scope.getItemText = function(item) {
+		if(queryService.queryObject.properties.displayAsQuestions)
+				return item.description || item.title;
 		return item.title;
 	};
 	//**************************************select2 sortable options handlers END*******************************
@@ -585,7 +576,6 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		return [queryService.cache.scriptMetadata, queryService.cache.columns];
 	}, function(newValue, oldValue) {
 		
-		if(newValue != oldValue) {
 			var scriptMetadata = newValue[0];
 			var columns = newValue[1];
 			
@@ -606,33 +596,35 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 						}
 					}
 				}
-			}
 		}
 	});
 	
-	//handles the indicator in the script options
+	//handles the indicators in the script options
 	$scope.$watch(function() {
 		return queryService.queryObject.scriptOptions;
 	}, function(newValue, oldValue) {
-		if(newValue != oldValue) {
-			var scriptOptions = newValue;
-			for(var key in scriptOptions) { 
-				var option = scriptOptions[key];
-				if(option) {
-					if(option.hasOwnProperty("columnType")) {
-						if(option.columnType.toLowerCase() == "indicator") {
-							queryService.queryObject.Indicator = option;
+		// run this only if the user chooses to link the indicator
+		if($scope.service.queryObject.properties.linkedIndicator) {
+			if(newValue != oldValue) {
+				var scriptOptions = newValue;
+				for(var key in scriptOptions) { 
+					var option = scriptOptions[key];
+					if(option) {
+						if(option.hasOwnProperty("columnType")) {
+							if(option.columnType.toLowerCase() == "indicator") {
+								queryService.queryObject.Indicator = option;
+							}
 						}
 					}
 				}
 			}
-			
 		}
 	}, true);
 
 	$scope.$watchCollection(function() {
 		return [queryService.queryObject.Indicator, queryService.queryObject.scriptSelected, queryService.cache.scriptMetadata];
 	}, function(newVal, oldVal) {
+		console.log(queryService.cache.scriptMetadata);
 		if(newVal != oldVal) {
 			var indicator = newVal[0];
 			var scriptSelected = newVal[1];
@@ -648,16 +640,19 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 			$scope.$watch(function() {
 				return queryService.cache.scriptMetadata;
 			}, function(newValue, oldValue) {
-				if(newValue) {
-					scriptMetadata = newValue;
-					if(indicator && scriptMetadata) {
-						for(var i in queryService.cache.scriptMetadata.inputs) {
-							var metadata = queryService.cache.scriptMetadata.inputs[i];
-							if(metadata.hasOwnProperty('type')) {
-								if(metadata.type == 'column') {
-									if(metadata.hasOwnProperty('columnType')) {
-										if(metadata.columnType.toLowerCase() == "indicator") {
-											queryService.queryObject.scriptOptions[metadata.param] = indicator;
+				// run this only if the user chooses to link the indicator
+				if($scope.service.queryObject.properties.linkedIndicator) {
+					if(newValue) {
+						scriptMetadata = newValue;
+						if(indicator && scriptMetadata) {
+							for(var i in queryService.cache.scriptMetadata.inputs) {
+								var metadata = queryService.cache.scriptMetadata.inputs[i];
+								if(metadata.hasOwnProperty('type')) {
+									if(metadata.type == 'column') {
+										if(metadata.hasOwnProperty('columnType')) {
+											if(metadata.columnType.toLowerCase() == "indicator") {
+												queryService.queryObject.scriptOptions[metadata.param] = indicator;
+											}
 										}
 									}
 								}
@@ -681,7 +676,6 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 });
 
 AnalysisModule.controller('DialogController', function ($scope, $modal, queryService, WeaveService) {
-	$scope.projectEntered2 = "Hello";
 	$scope.opts = {
 		 backdrop: false,
           backdropClick: true,
@@ -692,11 +686,12 @@ AnalysisModule.controller('DialogController', function ($scope, $modal, querySer
           resolve:
           {
                       projectEntered: function() {return $scope.projectEntered;},
-                      queryTitleEntered : function(){return $scope.queryTitleEntered;}
+                      queryTitleEntered : function(){return $scope.queryTitleEntered;},
+                      userName : function(){return $scope.userName;}
           }
 	};
 
-    $scope.saveVisualizations = function (projectEntered, queryTitleEntered) {
+    $scope.saveVisualizations = function (projectEntered, queryTitleEntered, userName) {
     	
     	var saveQueryObjectInstance = $modal.open($scope.opts);
     	saveQueryObjectInstance.result.then(function(params){//this takes only a single object
@@ -714,11 +709,12 @@ AnalysisModule.controller('DialogController', function ($scope, $modal, querySer
     
   });
 
-AnalysisModule.controller('DialogInstanceCtrl', function ($scope, $modalInstance, projectEntered, queryTitleEntered) {
-	  $scope.close = function (projectEntered, queryTitleEntered) {
+AnalysisModule.controller('DialogInstanceCtrl', function ($scope, $modalInstance, projectEntered, queryTitleEntered, userName) {
+	  $scope.close = function (projectEntered, queryTitleEntered, userName) {
 		  var params = {
 				  projectEntered : projectEntered,
-				  queryTitleEntered : queryTitleEntered
+				  queryTitleEntered : queryTitleEntered,
+				  userName :userName
 		  };
 		  $modalInstance.close(params);
   };

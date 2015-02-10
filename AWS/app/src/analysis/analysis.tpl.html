@@ -29,12 +29,12 @@
 						</a>
 				
 				<!-- RUN button -->		
-						<button class="btn" 
+						<button class="btn btn-primary" 
 							style="width: 10%; float:right; margin-top: 10px; margin-right : 5px"
 							ng-click="QueryHandlerService.run(queryService.queryObject)" 
 							popover="{{queryService.queryObject.properties.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
 							ng-controller="QueryHandlerCtrl"
-							ng-class="{'validateB' : queryService.queryObject.properties.isQueryValid, 'invalidateB' : !queryService.queryObject.properties.isQueryValid}">
+							ng-Disabled = "!service.queryObject.properties.isQueryValid">
 							 <span style="vertical-align: right">Run</span>
 						 </button>
 		</div>
@@ -54,22 +54,30 @@
 						<h2>Indicator</h2>
 					</div>
 					<div class="body" style="width: 100%">
-						<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
-							style="width: 100%" ng-model="queryService.queryObject.dataTable"
-							simple-query="getDataTable"
-							data-placeholder="Select Datatable"
-							allow-clear="true"
-							to-id="getItemId" to-text="getItemText"
-						>
-						</input> 
+						<div ng-class="{'unvalidatedUI' : !queryService.queryObject.dataTable, 'validatedUI' : queryService.queryObject.dataTable}"
+							 title = "Red flags indicate required selections for query validation">
+						
+								<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
+								style="width: 97%;"
+								ng-model="queryService.queryObject.dataTable"
+								simple-query="getDataTable"
+								data-placeholder="Select Datatable"
+								allow-clear="true"
+								to-id="getItemId" to-text="getItemText">
+								</input>
+								 
+						</div>
+						
 						
 						<input type="checkbox"
 							ng-model="queryService.queryObject.properties.displayAsQuestions">
 						Display As Questions</input>
 	
-<!-- INDICATOR -->		<div style="width: 100%; margin-top: 10px;">
+<!-- INDICATOR -->		<div style="width: 100%;" title = "Red flags indicate required selections for query validation"
+							 ng-class="{'unvalidatedUI' : !queryService.queryObject.Indicator, 'validatedUI' : queryService.queryObject.Indicator}">
 							<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
-								style="width: 100%" ng-model="queryService.queryObject.Indicator"
+								style="width: 97%" 
+								ng-model="queryService.queryObject.Indicator"
 								simple-query="getIndicators"
 								data-placeholder="Select Indicator"
 								allow-clear="true"
@@ -116,14 +124,18 @@
 					<div class="header panel-heading">
 						<h2>Calculations</h2>
 					</div>
-<!-- Script Select--><div class="body" ng-controller="ScriptsSettingsCtrl">
+				<div class="body" ng-controller="ScriptsSettingsCtrl">
+<!-- Script Select-->	<div ng-class="{'unvalidatedUI' : !queryService.queryObject.scriptSelected, 'validatedUI' : queryService.queryObject.scriptSelected}"
+						title = "Red flags indicate required selections for query validation">
 							<input type="hidden" popover="Select Script" ui-select2-sortable popover-trigger="mouseenter"
-								style="width: 100%" ng-model="queryService.queryObject.scriptSelected"
+								style="width: 97%" 
+								ng-model="queryService.queryObject.scriptSelected"
 								simple-query="getScriptList"
 								data-placeholder="Select Script"
-								allow-clear="true"
-								>
+								allow-clear="true">
 							</input> 
+						</div>
+					
 						
 						<h6 class='tool-category'>Script parameters</h6>
 <!-- Script options -->	<div class= "tool-bar">
@@ -136,6 +148,7 @@
 									<td style="padding-left: 10px;">
 									
 										<!-- Handling column types -->
+										<!-- TIME -->
 										<input ng-if="input.type == 'column' && input.columnType == 'time'" 
 											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
 											style="width: 100%" 
@@ -147,6 +160,7 @@
 											>
 										</input> 
 										
+										<!-- ANALYTIC -->
 										<input ng-if="input.type == 'column' && input.columnType == 'analytic'" 
 											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
 											style="width: 100%" 
@@ -158,6 +172,7 @@
 											>
 										</input> 
 										
+										<!-- GEOGRAPHY -->
 										<input ng-if="input.type == 'column' && input.columnType == 'geography'" 
 											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
 											style="width: 100%" 
@@ -168,6 +183,7 @@
 											to-id = "getItemDefault" to-text= "getItemText">
 										</input> 
 										
+										<!-- INDICATOR -->
 										<input ng-if="input.type == 'column' && input.columnType == 'indicator'" 
 											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
 											style="width: 100%" 
@@ -227,10 +243,11 @@
 						
 						
 <!-- Validation -->	
-						<!-- Tell us the validation status of a query object -->
-						<div style = "display :table" ng-model = "runService.isValidated" ng-controller="QueryHandlerCtrl">
-							 <div style = "display : table-cell" 
-							 ng-class="{'validate' : service.queryObject.properties.queryDone, 'invalidate' : !service.queryObject.properties.queryDone}">
+						<!-- Tell us status of the execution of query object --><!-- Different from validation status -->
+						<div style = "display :table" ng-model = "runService.isValidated">
+							 <div style = "display : table-cell; border-radius:5px " 
+							 ng-class="{'validate' : service.queryObject.properties.queryDone, 'invalidate' : !service.queryObject.properties.queryDone}"
+							 title= "A green signal indiactes the query has been executed successfully">
 							 </div>
 							 <div style= "display : table-cell; padding-left : 5px">{{service.queryObject.properties.queryStatus}}</div>
 						 </div> 
@@ -319,7 +336,7 @@
 		
 		
 		
-<!-- VIZ TOOLS -->	
+<!-- VIZ TOOL WIDGETS -->	
 		<div ng-controller= "toolsCtrl">
 				<div class="row " style="height: 50%; clear:both" ng-if="!queryService.queryObject.properties.openInNewWindow">
 					<div class="databox" style="width: 20%;" ng-if="!showToolMenu">
@@ -341,13 +358,13 @@
 							
 							<accordion close-others="true" class="tool-list"> 
 							
-								<accordion-group ng-repeat="tool in queryService.queryObject.weaveToolsList" style="font-family: 'Open Sans', Arial, sans-serif; font-size: 14px;">
+								<accordion-group ng-repeat="(toolId, tool) in queryService.queryObject.visualizations" style="font-family: 'Open Sans', Arial, sans-serif; font-size: 14px;">
 									<accordion-heading>
-											{{tool.title}}
+											{{tool.title || toolId}}
 											<!--hack to disable the close button on the first tools -->
- 											<a ng-show="$index > 5" href="javascript: void(0)"  
+ 											<a ng-show="fixed_ids.indexOf(toolId) < 0" href="javascript: void(0)"  
 												class="close-button" data-trigger="hover" placement="right" title="Remove"  
-												ng-click="removeTool($index)"> 
+												ng-click="removeTool(toolId)"> 
 												<i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> 
 											</a>
 									</accordion-heading>
@@ -363,7 +380,7 @@
 				<!-- individual tool widgets when Weave is opened in a new window -->
 				<div class="row " style="height: 50%; clear:both" ng-show="queryService.queryObject.properties.openInNewWindow">
 					<div style="height:100%; width: 100%;">
-							<div style="width: 20%; float : left; margin-right : 20px" ng-repeat="tool in queryService.queryObject.weaveToolsList" class="panel panel-default">
+							<div style="width: 20%; float : left; margin-right : 20px" ng-repeat="tool in queryService.queryObject.visualizations" class="panel panel-default">
 									<div class="panel-heading">
 										<h2>{{tool.title}}</h2>
 											<a ng-show="$index > 5" href="javascript: void(0)"  
