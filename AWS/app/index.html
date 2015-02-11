@@ -7,10 +7,9 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Analyst Work Station</title>
-
+		
 		<link href="lib/bootstrap/bootstrap.min.css" rel="stylesheet">
 
-		<link rel='stylesheet' href="lib/jsoneditor/jsoneditor.css"/>
 		<link rel="stylesheet" href="lib/angular-motion/angular-motion.min.css">
 		<link href="lib/ng-grid/ng-grid.css" rel="stylesheet" type="text/css"/>
 		<link rel="stylesheet" href="css/bootstrap-duallistbox.css"/>
@@ -23,112 +22,13 @@
 		<link rel="stylesheet" href="lib/jquery-ui/ui-lightness/jquery-ui-1.10.3.custom.css" />
 		<link rel="stylesheet" href="css/projects.css"/>
 		<link rel="stylesheet" href="css/script_managemnt.css" />
-		<link rel="stylesheet" href="css/app-old.css" />
-		<link rel="stylesheet" href="css/modal.css"/>
-		
 	</head>
 
 	<body>
 
 
 		<div style="height: 100%;" ng-controller="AWSController">
-
-					<header id ="header">
-				<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-					<div class="collapse navbar-collapse navbar-ex1-collapse">
-
-						<a class="navbar-brand" ui-sref="index"> <i class="glyphicon glyphicon glyphicon-tasks"></i> <span class = "logo">Weave Analyst </span> </a>
-
-						<button type="button" class="navbar-toggle btn-danger" data-toggle="collapse" data-target="#navbar-to-collapse">
-							<span class="sr-only">Toggle right menu</span>
-
-						</button>
-
-
-						<!--The main navbar-->
-						 <ul class="nev">
-       						 <li ng-class="{active: state.current.data.activetab == 'metadata'}"><a ui-sref="metadata">Metadata</a></li>
-       						 <li ng-class="{active: state.current.data.activetab == 'script_management'}"><a ui-sref="script_management">Scripts</a></li>
-       						 <li ng-class="{active: state.current.data.activetab == 'analysis'}" ><a ui-sref="analysis">Analysis</a></li>
-       						 <li ng-class="{active: state.current.data.activetab == 'cross_tab'}"><a ui-sref="cross_tab">Cross Tabulation</a></li>
-       						 <li ng-class="{active: state.current.data.activetab == 'data_stats'}"><a ui-sref="data_stats">Data Stats</a></li>
-       						 <li ng-class="{active: state.current.data.activetab == 'project'}"><a ui-sref="project">Project</a></li>
-   						 </ul>
-					
-<!--**********************Using ng-route***************************************/  -->
-<!-- 						<ul class="nev" > -->
-<!-- 							<li ng-class="{active: $route.current.activetab == 'metadata'}"> -->
-<!-- 								<a href="#/metadata">Metadata</a> -->
-<!-- 							</li> -->
-<!-- 							<li ng-class="{active: $route.current.activetab == 'script_management'}"> -->
-<!-- 								<a href="#/script_management">Scripts</a> -->
-<!-- 							</li> -->
-<!-- 							<li ng-class="{active: $route.current.activetab == 'analysis'}"> -->
-<!-- 								<a href="#/analysis">Analysis</a> -->
-<!-- 							</li> -->
-<!-- 							<li ng-class = "{active : $route.current.activetab == 'data_stats'}"> -->
-<!-- 							<a href="#/data_stats">Data Stats</a> -->
-<!-- 							</li> -->
-<!-- 							<li ng-class="{active: $route.current.activetab == 'project_management'}"> -->
-<!-- 								<a href="#/project_management">Projects</a> -->
-<!-- 							</li> -->
-
-<!-- 							</ul> -->
-<!--**********************Using ng-route***************************************/  -->						
-
-						<font color="white">Release Version 0.8 - 02/5/2015</font>
-						
-						
-<!-- 						 <div ng-controller = DialogController> -->
-<!-- 							<a href="javascript:void(0);" class="btn btn-primary run-btn" style="font-size: 17px; padding: 2px 5px; width: 10%; margin-top: 10px;" ng-click="saveVisualizations()"> <span style="vertical-align: middle">Save output visuals</span> </a> -->
-<!-- 						</div> -->
-<!-- 						<div style="display: table ; width : 10%; padding-top : 5px"> -->
-<!-- 							<a href="javascript:void(0);" class="btn btn-default" style="display : table-cell;font-size: 17px; padding: 2px 5px; width : 33.3%; margin-top: 10px;"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear</span></a> -->
-<!-- 						</div> -->
-						
-						<div ng-if="authenticationService.authenticated">
-							<font color="white">Signed in as: {{authenticationService.user}}</font>
-						</div>
-					</div><!-- /.navbar-collapse -->
-					
-				</nav>
-			</header>
-			
-			
-<!-- PAGE CONTAINER -->
-			<div style = "width:100%; height: 100%" >
-
-				    <div style = "width:100%; height: 100%" ui-view></div>
-
-			</div>
-<!--**********************Using ng-route***************************************/  -->
-<!-- 			<div style="height: 100%" class = "tab-container" > -->
-<!-- 				<div ng-view style="height: 100%"> -->
-
-<!-- 				</div> -->
-
-<!-- 			</div> -->
-<!--**********************Using ng-route***************************************/  -->	
-		
-<!-- FOOTER -->			
-			<footer>
-			<!-- modal error log -->
-			<div style = "margin-left: 50%; position: fixed; bottom: 0; width: 100%;" ng-controller = "analystErrorLogCtrl">
-					<button id = "errorLog" type="button" class="btn btn-sm new-project-button" data-animation="am-slide-bottom"
-					 ng-click = "openErrorLog()">
-							Open Error Log
-					</button>
-			</div>
-			<!-- panel error log -->
-<!-- 				<div style = "margin-left: 50%; position: fixed; bottom: 0; width: 100%;" ng-controller = "analystErrorLogCtrl" > -->
-<!-- 					<button id = "errorLog" type="button" class="btn btn-sm new-project-button" data-animation="am-slide-bottom" -->
-<!-- 					 ng-click = "errorLogService.showErrorLog = true"> -->
-<!-- 							Open Error Log -->
-<!-- 					</button> -->
-<!-- 				</div> -->
-<!-- 				<div ng-include src="'src/errorLog/analystErrorLog.html'"></div> -->
-				
-			</footer>
+		{{shweta}}
 		</div>
 
 		<!-- JQuery Libraries -->
@@ -138,23 +38,20 @@
 		<script src='lib/dynatree/jquery.dynatree.js'></script>
 		<script src="lib/file-reader/jquery.FileReader.js" type="text/javascript"></script>
 
-		<!--        Third Party Libraries-->
-<!-- 		<script src="lib/jsoneditor/jsoneditor.js"></script> -->
+<!--        Third Party Libraries-->
 		<script src='lib/swfobject.js'></script>
 		<script src="lib/FileSaver.min.js" type="text/javascript"></script>
 		<script src="lib/bootstrap/bootstrap.min.js"></script>
+		<!-- TODO monitor for compatibility with angular1.3 -->
+<!-- 		<script src="lib/ui.bootstrap/ui-bootstrap-tpls-0.12.0.js"></script> -->
 		<!-- D3 -->
 		<script src="lib/d3/d3.min.js"></script>
-		<!-- Libraries not listed in Amith's code -->
-		<!--<script src='lib/jquery/jquery.bootstrap-duallistbox.js'></script>-->
+
 		<!--Angular Libraries-->
-		<script src="lib/angular/1.2/angular.min.js"></script>
-		<script src="lib/ui.bootstrap/ui-bootstrap-tpls-0.11.0.js"></script>
-		<!--Unsure if we use this-->
-<!-- 		<script src='lib/angular/1.2/angular-resource.min.js'></script> -->
-<!-- 		<script src="lib/angular/1.2/angular-route.min.js" type="text/javascript"></script> -->
-		<script src="lib/angular/1.2/angular-sanitize.min.js" type="text/javascript"></script>
-		<script src="lib/angular/1.2/angular-animate.min.js" type="text/javascript"></script>
+		<script src="lib/angular/1.3.10/angular.min.js"></script>
+		
+		<script src="lib/angular/1.3.10/angular-sanitize.min.js" type="text/javascript"></script>
+		<script src="lib/angular/1.3.10/angular-animate.min.js" type="text/javascript"></script>
 		
 		<script src="lib/angularstrap/angular-strap-2-0-0-rc4.js" type="text/javascript"></script>
 		<script src="lib/angularstrap//angular-strap.tpl.min.js"></script>
@@ -174,75 +71,6 @@
 		<script src="lib/ui-select2-sortable/select2sortable.js"></script>
 		<script src='src/app.js'></script>
 
-		<!--<script src='src/app/router.js'></script>-->
-
-		<script src='src/directive/dual-list-box-directive.js'></script>
-		<script src='src/directive/file-upload-directive.js'></script>
-		<script src='src/directive/popover-directive.js'></script>
-
-		<!--<script src='src/app/panel-directive.js'></script>-->
-
-		<script src="src/analysis/analysis.js"></script>
-		<script src="src/analysis/crosstab/CrossTabCtrl.js"></script>
-		<script src='src/configure/auth/authenticationService.js'></script>
-		<script src='src/configure/metadata/MetadataManagerCtrl.js'></script>
-		<script src='src/configure/metadata/metadataManagerService.js'></script>
-		<script src='src/configure/script/ScriptManagerCtrl.js'></script>
-		<script src='src/configure/script/scriptManagerService.js'></script>
-		<script src='src/dataStatistics/dataStatistics.js'></script>
-		<script src='src/dataStatistics/d3Service.js'></script>
-		<script src='src/dataStatistics/correlationMatrix-directive.js'></script>
-		<script src='src/dataStatistics/sparklines-directive.js'></script>
-		<script src='src/queryObjectEditor/QueryObjectEditorCtrl.js'></script>
-		<script src='src/queryObjectEditor/query-Object-Editor-directive.js'></script>
-		<script src='src/queryObject/QueryImportExportCtrl.js'></script>
-		<script src='src/queryObject/queryObjectService.js'></script>
-		<script src='src/errorLog/errorLogCtrl.js'></script>
-		<script src='src/project/ProjectManagementCtrl.js'></script>
-		<script src='src/project/projectAdditionController.js'></script>
-		<script src='src/project/project-query-button-directive.js'></script>
-		<script src='src/project/projectService.js'></script>
-		<script src="src/analysis/data_filters/dataFilterCtrl.js"></script>
-		<script src="src/analysis/data_filters/geographyCtrl.js"></script>
-		<script src="src/analysis/data_filters/timePeriodCtrl.js"></script>
-		<script src="src/analysis/data_filters/byVariableCtrl.js"></script>
-		<script src="src/visualization/weave/QueryHandler.js"></script>
-		<script src="src/visualization/weave/WeaveModule.js"></script>
-		<script src="src/visualization/tools/toolsCtrl.js"></script>
-		<script src="src/visualization/tools/barChart/barChartCtrl.js"></script>
-		<script src="src/visualization/tools/dataTable/dataTableCtrl.js"></script>
-		<script src="src/visualization/tools/mapChart/mapChartCtrl.js"></script>
-		<script src="src/visualization/tools/scatterPlot/scatterPlotCtrl.js"></script>
-		<script src="src/visualization/tools/color/colorCtrl.js"></script>
-		<script type="text/javascript" src="/swfobject.js"></script>
-        <script type="text/javascript">
-        		var loadFlashContent = function() {
-        			var swfVersionStr = "10.2.0";
-		            // To use express install, set to playerProductInstall.swf, otherwise the empty string. 
-		            var xiSwfUrlStr = "playerProductInstall.swf";
-		            var flashvars = {};
-		            var params = {};
-		            params.quality = "high";
-		            params.bgcolor = "#869ca7";
-		            params.allowscriptaccess = "sameDomain";
-		            params.allowfullscreen = "true";
-		            params.base = window.location.protocol+"//"+window.location.host;
-		            var attributes = {};
-		            attributes.id = "weave";
-		            attributes.name = "weave";
-		            attributes.align = "middle";
-		            swfobject.embedSWF(
-		                "/weave.swf", "flashContent", 
-		                "79%", "800px", 
-		                swfVersionStr, xiSwfUrlStr, 
-		                flashvars, params, attributes);
-		            // JavaScript enabled so display the flashContent div in case it is not replaced with a swf object.
-		            swfobject.createCSS("#flashContent", "display:block;text-align:left;");
-        		};
-	            $('#flashContent').ready(function() {
-	            	setTimeout(loadFlashContent, 100);
-	            });
-        </script>
 	</body>
 
 </html>
