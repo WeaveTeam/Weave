@@ -32,6 +32,7 @@
 					unlinkBindableProperty(target.colorBySize, colorBySizeCheckBox, 'selected');
 					unlinkBindableProperty(target.sourceProjection, sourceProjection, 'text');
 					unlinkBindableProperty(target.destinationProjection, destinationProjection, 'text');
+					unlinkBindableProperty(target.thresholdNumber, topicThresholdValue, "value");
 					target.sourceProjection.removeCallback(handleProjections);
 					target.destinationProjection.removeCallback(handleProjections);
 					target.fill.color.removeCallback(handleColorColumnChange);
@@ -58,6 +59,7 @@
 					linkBindableProperty(target.colorBySize, colorBySizeCheckBox, 'selected');
 					linkBindableProperty(target.sourceProjection, sourceProjection, 'text');
 					linkBindableProperty(target.destinationProjection, destinationProjection, 'text');
+					linkBindableProperty(target.thresholdNumber, topicThresholdValue, "value");
 					target.sourceProjection.addGroupedCallback(this, handleProjections, true);
 					target.destinationProjection.addGroupedCallback(this, handleProjections, true);
 					target.fill.color.addImmediateCallback(this, handleColorColumnChange, true);
@@ -165,6 +167,10 @@
 	<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}" showLinkControl="false"/>
 	<ui:DynamicColumnComponent id="sizeCol" label="{lang('Size')}"/>
 	<ui:ColumnListComponent id="topicCols" label="{lang('Topics')}" minHeight="200" width="100%"/>
+	<mx:HBox>
+		<mx:Label text="{lang('Topic Thresholding Value')}"/>
+		<mx:NumericStepper id="topicThresholdValue" stepSize=".01" minimum="0" maximum="1" value="0.25" />
+	</mx:HBox>
 	<ui:Indent label="{lang('Point size')}">
 		<mx:HSlider id="sizeBySlider" width="100%" change="handleSizeSliderChange(event)"
 					liveDragging="true" maximum="60" minimum="1"
