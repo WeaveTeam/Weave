@@ -10,23 +10,14 @@ weave_mod.directive('bar-Chart', ['queryService', function factory(queryService,
 					
 			},
 			templateUrl: 'src/visualization/tools/barChart/bar_chart.tpl.html',
-			controller : function($scope, queryService, WeaveService){
+			controller : function($scope, WeaveService){
 				
-				$scope.queryService = queryService;
 				$scope.WeaveService = WeaveService;
 				
-				$scope.toolName = "";
-				
-				$scope.toolProperties = {
-					enabled : false,
-					title : "",
-					showAllLabels : false,
-					sort : "",
-					label : "",
-					negErr : "",
-					posErr :"",
-					heights: ""
-				};
+				$scope.$watch('tool', function() {
+					if($scope.toolId) // this gets triggered twice, the second time toolId with a undefined value.
+						WeaveService.BarChartTool($scope.tool, $scope.toolId);
+				}, true);
 			},
 			link: function(scope, elem, attrs){
 								

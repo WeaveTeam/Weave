@@ -1,4 +1,4 @@
-AnalysisModule.controller("MapCtrl", function($scope,$filter, AnalysisService, queryService, WeaveService){
+AnalysisModule.controller("MapCtrl", function($scope,$filter, queryService, WeaveService){
 	
 	$scope.service = queryService;
 	

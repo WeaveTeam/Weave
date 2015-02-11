@@ -1,7 +1,7 @@
 /**
  * directive for addition of a datatable visualization widget which communicates with the datatable tool in Weave
  */
-weave_mod.directive('data-Table', ['queryService', 'WeaveService',  function(queryService, WeaveService){
+weave_mod.directive('data-Table', ['queryService', 'WeaveService',  function(WeaveService){
 	
 	var directiveDefnObject = {
 			
@@ -12,16 +12,12 @@ weave_mod.directive('data-Table', ['queryService', 'WeaveService',  function(que
 			},
 			
 			controller : function(){
-				$scope.queryService = queryService;
 				$scope.WeaveService = WeaveService;
 				
-				$scope.toolName = "";
-				
-				$scope.toolProperties = {
-					enabled : false,
-					columns : []
-				};
-				
+				$scope.$watch('tool', function() {
+					if($scope.toolId) // this gets triggered twice, the second time toolId with a undefined value.
+						WeaveService.DataTableTool($scope.tool, $scope.toolId);
+				}, true);
 			},
 			
 			link : function(scope, elem, attrs){
