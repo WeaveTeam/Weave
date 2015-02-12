@@ -438,7 +438,7 @@
 				var data:Array = ColumnUtils.joinColumns([plotter.dataX, plotter.dataY], Number);
 
 				// quick hack to avoid null columns
-				if(data[1].length && data[2].length)
+				if(!data[1].length && !data[2].length)
 					return;
 				
 				// try linear regression

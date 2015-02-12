@@ -81,7 +81,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 		
 		<mx:VBox>
-			<mx:RadioButtonGroup id="textOption" itemClick="updateToolDescription()"/>
+			<mx:RadioButtonGroup id="textOption" itemClick="updateToolDescription()" selectedValue="Automatic"/>
 			<mx:RadioButton paddingLeft="10" groupName="textOption" label="Custom" id="customDescriptionRadioButton"/>
 			<mx:RadioButton paddingLeft="10" groupName="textOption" label="Automatic" id="automaticDescriptionRadioButton"/>
 			
