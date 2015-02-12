@@ -464,7 +464,7 @@
 					{
 						temp += lang("The chart has a decreasing trend\n");	
 					}
-				AltTextEditor;
+				//AltTextEditor;
 				//altTextEditor.automaticDescription.value = temp;
 				altTextEditor.automaticDescription.value = temp;
 				getCallbackCollection(this).triggerCallbacks();
