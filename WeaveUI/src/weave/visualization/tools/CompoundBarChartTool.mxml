@@ -23,7 +23,7 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 		 xmlns:userControls="weave.ui.userControls.*"
-		 implements="weave.api.ui.IVisTool_Basic"
+		 implements="weave.api.ui.IVisTool_Basic, weave.api.ui.IAltText"
 	     layout="absolute" xmlns:settings="weave.ui.settings.*">
 	<mx:Script>
 		<![CDATA[
@@ -352,6 +352,23 @@
 			{
 				var barChartLegendTool:BarChartLegendTool = Weave.root.requestObject(null, BarChartLegendTool, false);
 				barChartLegendTool.dynamicBarChartTool.globalName = Weave.root.getName(this);
+			}
+			
+			public function updateAltText():void
+			{
+				var temp:String = lang("Bar Chart showing ");
+				
+				for(var i:int; i < _plotter.heightColumns.getObjects().length; i++)
+				{
+					temp += ColumnUtils.getTitle(_plotter.heightColumns.getObjects()[i] as IAttributeColumn) + ", ";
+				}
+				
+				temp += "sorted by ";
+				
+				temp += ColumnUtils.getTitle(_plotter.sortColumn);
+				
+				altTextEditor.automaticDescription.value = temp;
+				getCallbackCollection(this).triggerCallbacks();
 			}
 			
 			// backwards compatibility
