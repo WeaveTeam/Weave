@@ -27,6 +27,7 @@ package weave.visualization.plotters
 	
 	import weave.Weave;
 	import weave.api.core.DynamicState;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -194,11 +195,19 @@ package weave.visualization.plotters
 				bounds.setYRange(-Infinity, Infinity);
 		}
 		
+		private var topicPointsDict:Dictionary = new Dictionary();
+		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
+			/*
+			var testArray:Array = topicColumns.getObjects();
+			for(var i:int = 0; i < testArray.length; i++ )
+			trace((testArray[i] as IAttributeColumn).getMetadata(ColumnMetadata.TITLE));
+			*/
+			
 			tempDictionary = movedDataPoints.getSessionState() as Dictionary;
 			
 			var graphics:Graphics = tempShape.graphics;
@@ -213,7 +222,10 @@ package weave.visualization.plotters
 				tempPoint.y = (tempDictionary[recordKey.localName] as Object).y;
 			}
 			
+			//If there is a topic save its screenbounds point for useage with other record keys.
 			dataBounds.projectPointTo(tempPoint, screenBounds);
+			if( recordKey.localName.search("T") != -1 )
+				topicPointsDict[recordKey.localName] = tempPoint.clone();
 			
 			line.beginLineStyle(recordKey, graphics);
 			fill.beginFillStyle(recordKey, graphics);
@@ -270,7 +282,43 @@ package weave.visualization.plotters
 				else
 				{
 					//trace('circle',tempPoint);
-					graphics.drawCircle(tempPoint.x, tempPoint.y, radius);
+					//Draw a point in each topic cluster that it meets the threshold for.
+					if( recordKey.localName.search("T") == -1 )
+					{
+						var loopThresholdNumber:Number;
+						var numAppearances:int;
+						var testArray:Array = topicColumns.getObjects();
+						
+						//Calculate the number of appearances over the threshold in other Topics. Purely used for now as the Y-Axis, no real meaning.
+						numAppearances = 0;
+						for( var j:int = 0; j < testArray.length; j++ )
+							if( (testArray[j] as IAttributeColumn).getValueFromKey(recordKey) > thresholdNumber.value )
+								numAppearances++;
+						
+						for(var i:int = 0; i < testArray.length; i++ )
+						{							
+							loopThresholdNumber = (testArray[i] as IAttributeColumn).getValueFromKey(recordKey);
+							if( loopThresholdNumber > thresholdNumber.value )
+							{
+								//Last calculation part is messy because of normalization. To be cleaned up later.
+								if( loopThresholdNumber < ((1 + thresholdNumber.value)/2))
+								{
+									//Negative coords.
+									tempPoint.x = (topicPointsDict[(testArray[i] as IAttributeColumn).getMetadata(ColumnMetadata.TITLE)] as Point).x - ( 100 * ((loopThresholdNumber-thresholdNumber.value)/(((1 + thresholdNumber.value)/2) - thresholdNumber.value)));
+								}
+								else
+								{
+									//Positive coords.
+									tempPoint.x = (topicPointsDict[(testArray[i] as IAttributeColumn).getMetadata(ColumnMetadata.TITLE)] as Point).x + ( 100 * ((loopThresholdNumber-((1 + thresholdNumber.value)/2))/(1-((1 + thresholdNumber.value)/2))));
+								}
+								tempPoint.y = (topicPointsDict[(testArray[i] as IAttributeColumn).getMetadata(ColumnMetadata.TITLE)] as Point).y - (30 * (numAppearances-1));
+								graphics.drawCircle(tempPoint.x, tempPoint.y, radius);
+							}
+						}
+					}
+					//Draw the Topic nodes.
+					else
+						graphics.drawCircle(tempPoint.x, tempPoint.y, radius);
 				}
 			}
 			graphics.endFill();
