@@ -62,10 +62,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					 wordWrap="true" 
 					 creationComplete="linkBindableProperty(automaticDescription, event.target, 'text')"/>
 		
-		<mx:Button label="Refresh"
-				   id="automaticDescRefreshButton" 
-				   click="updateAutomaticDescription();"
-				   />
 	</mx:HBox>
 	
 	<mx:Label text="Tool description:"

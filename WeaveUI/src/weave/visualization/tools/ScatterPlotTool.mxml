@@ -97,6 +97,9 @@
 				
 				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange, true);
 				
+				getCallbackCollection(plotter).addGroupedCallback(this, updateAltText, true);
+				
+				
 				visualization.plotManager.marginBottom.value = "80";
 				visualization.plotManager.marginTop.value    = "30";
 				visualization.plotManager.marginLeft.value   = "80";
@@ -433,6 +436,11 @@
 			public function updateAltText():void
 			{
 				var data:Array = ColumnUtils.joinColumns([plotter.dataX, plotter.dataY], Number);
+
+				// quick hack to avoid null columns
+				if(data[1].length && data[2].length)
+					return;
+				
 				// try linear regression
 				addAsyncResponder(
 					rService.linearRegression("Linear", data[1], data[2], 1),
@@ -451,7 +459,7 @@
 					return;
 				}
 				
-				var temp:String = lang("Scatter plot showing {0} and {1} \n", ColumnUtils.getTitle(plotter.dataX), ColumnUtils.getTitle(plotter.dataY));
+				var temp:String = lang("Scatter plot showing {0} by {1} \n", ColumnUtils.getTitle(plotter.dataY), ColumnUtils.getTitle(plotter.dataX));
 
 				var result:LinearRegressionResult = new LinearRegressionResult(event.result);
 				// do stuff
@@ -464,8 +472,6 @@
 					{
 						temp += lang("The chart has a decreasing trend\n");	
 					}
-				AltTextEditor;
-				//altTextEditor.automaticDescription.value = temp;
 				altTextEditor.automaticDescription.value = temp;
 				getCallbackCollection(this).triggerCallbacks();
 			}
