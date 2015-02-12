@@ -3,6 +3,7 @@ package weave.servlets;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
@@ -29,30 +30,28 @@ public class DocumentMapService extends WeaveServlet
 		ServletContext application = config.getServletContext();
 		return new DocumentCollection(Paths.get(application.getInitParameter("collectionsPath"), name));
 	}
-	public boolean createCollection(String name) throws RemoteException
+	public void createCollection(String name) throws RemoteException
 	{
 		try 
 		{
-			return getCollection(name).create();
+			getCollection(name).create();
 		}
-		catch (Exception e)
+		catch (IOException e)
 		{
-			throw new RemoteException("", e);
+			throw new RemoteException("Failed to create collection.", e);
 		}
-		return false;
 	}
 
-	public boolean deleteCollection(String name) throws RemoteException
+	public void deleteCollection(String name) throws RemoteException
 	{
 		try
 		{
-			return getCollection(name).remove();
+			getCollection(name).remove();
 		}
-		catch (Exception e)
+		catch (IOException e)
 		{
-			throw new RemoteException("", e);
+			throw new RemoteException("Failed to delete collection.", e);
 		}
-		return false;
 	}
 
 	public String[] listCollections() throws RemoteException
@@ -74,52 +73,60 @@ public class DocumentMapService extends WeaveServlet
 		}
 		catch (Exception e)
 		{
-			throw new RemoteException("", e);
+			throw new RemoteException("Failed to list collections:", e);
 		}
 
 	}
 
-	private byte[] getMagicBytes(InputStream stream)
+	private byte[] getMagicBytes(InputStream stream) throws IOException
 	{
-		stream.mark();
+		stream.mark(5);
 		byte[] magic = new byte[4];
 		stream.reset();
 
 		return magic;
 	}
-	private const byte[] PDF_BYTES = {(byte)0x25, (byte)0x50, (byte)0x44, (byte)0x46};
-	private const byte[] ZIP_BYTES = {(byte)0x50, (byte)0x4B, (byte)0x03, (byte)0x04};
+	private final byte[] PDF_BYTES = {(byte)0x25, (byte)0x50, (byte)0x44, (byte)0x46};
+	private final byte[] ZIP_BYTES = {(byte)0x50, (byte)0x4B, (byte)0x03, (byte)0x04};
 
-	public int addDocuments(String collectionName, String fileName, InputStream fileStream) throws RemoteException
+	public void addDocuments(String collectionName, String fileName, InputStream fileStream) throws RemoteException
 	{
-
-		if (Array.equals(getMagicBytes(fileStream), PDF_BYTES))
-			return getCollection(collectionName).addDocument(fileName, fileStream);
-		else if (Array.equals(getMagicBytes(fileStream), ZIP_BYTES))
-			return getCollection(collectionName).addZip(fileName, fileStream);
-		return 0;
+		try 
+		{
+			if (Arrays.equals(getMagicBytes(fileStream), PDF_BYTES))
+				getCollection(collectionName).addDocument(fileName, fileStream);
+			else if (Arrays.equals(getMagicBytes(fileStream), ZIP_BYTES))
+				getCollection(collectionName).addZip(fileName, fileStream);
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException("Failed to add document:", e);
+		}
 	}
 
-	public boolean extractText(String collectionName, boolean force) throws RemoteException
+	public void extractText(String collectionName, boolean force) throws RemoteException
 	{
-		return getCollection(collectionName).extractText(force);
+		try
+		{
+			getCollection(collectionName).extractText(force);
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException("Failed to extract text:", e);
+		}
 	}
 
 
 
-	public boolean buildTopicModel(String collectionName, int topicCount) throws RemoteException
+	public void buildTopicModel(String collectionName, int topicCount) throws RemoteException
 	{
 	}
 
-	public boolean buildTopicWeights(String collectionName) throws RemoteException
+	public void buildTopicWeights(String collectionName) throws RemoteException
 	{
 	}
 
-	public boolean buildThumbnails(String collectionName, boolean force)
-	{
-	}
-
-	public boolean buildTopicWeights(String collectionName)
+	public void buildThumbnails(String collectionName, boolean force)
 	{
 	}
 
@@ -133,5 +140,4 @@ public class DocumentMapService extends WeaveServlet
 		return null;
 	}
 
-	private static 
 }

@@ -16,13 +16,13 @@ public class PathUtils
 		return true;
 	}
 
-	public static boolean isChildOf(Path parent, Path child)
+	public static Path replaceExtension(Path path, String newExtension)
 	{
+		Path newPath = path.getParent();
+		String fileName = path.getFileName().toString();
 
-	}
 
-	public static Path getAnalogous(Path a, Path b)
-	{
 
+		return newPath.resolve(fileName);
 	}
 }
