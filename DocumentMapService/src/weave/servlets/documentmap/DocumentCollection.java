@@ -4,20 +4,14 @@ import weave.servlets.PathUtils;
 import org.apache.tika.Tika;
 import java.nio.charset.Charset;
 import java.lang.Math;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Vector;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 import java.util.zip.*;
-import java.util.Enumeration;
 import java.util.regex.Pattern;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.channels.FileChannel;
 import java.nio.file.attribute.*;
+import java.net.URI;
 import org.apache.commons.io.input.ReaderInputStream;
 import java.awt.geom.Point2D;
 
@@ -325,19 +319,29 @@ public class DocumentCollection
 		return topics;
 	}
 
-	public Map<String, Map<String,Double>> getTopicWeights()
+	public Map<String, Map<String,Double>> getTopicWeights() throws Exception
 	{
+		Path dbPath = path.resolve(MALLET_PATH).resolve(MALLET_DB);
 		Path modelPath = path.resolve(MALLET_PATH).resolve(MALLET_TOPIC_MODEL);
 		ParallelTopicModel model = ParallelTopicModel.read(modelPath.toFile());
-	}
 
-/* R/qgraph force-directed layout */
-	public void buildLayout(Map<String, Point2D.Double> initial, List<String> overridden)
-	{
+		Map<String, Map<String,Double>> result = new HashMap<String,Map<String,Double>>();
+		/* TODO: Infer for documents which are not in the model. */
+		for (TopicAssignment assignment : model.getData())
+		{
+			Instance instance = assignment.instance;
+			LabelSequence topics = assignment.topicSequence;
+			String name = (String)instance.getName();
+			double[] probabilities = model.getTopicProbabilities(topics);
+			Map<String,Double> topicWeights = new HashMap<String,Double>();
+			for (int topic_idx = 0; topic_idx < probabilities.length; topic_idx++)
+			{
+				topicWeights.put("T"+Integer.toString(topic_idx), probabilities[topic_idx]);
+			}
+			name = PathUtils.replaceExtension(Paths.get(new URI(name)).relativize(path.resolve(TXT_PATH)), "pdf").toString();
 
-	}
-	public Map<String, Point2D.Double> getLayout()
-	{
-		return null;
+			result.put(name, topicWeights);
+		}
+		return result;
 	}
 }
