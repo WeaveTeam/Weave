@@ -5,15 +5,18 @@ import org.apache.tika.Tika;
 import java.nio.charset.Charset;
 import java.lang.Math;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Vector;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.zip.*;
 import java.util.Enumeration;
+import java.util.regex.Pattern;
 import java.io.*;
 import java.nio.file.*;
-import java.nio.channels.*;
+import java.nio.channels.FileChannel;
 import java.nio.file.attribute.*;
 import org.apache.commons.io.input.ReaderInputStream;
 import java.awt.geom.Point2D;
@@ -26,11 +29,19 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import javax.imageio.ImageIO;
 
+/* MALLET */
+import cc.mallet.util.*;
+import cc.mallet.types.*;
+import cc.mallet.pipe.*;
+import cc.mallet.pipe.iterator.*;
+import cc.mallet.topics.*;
 
 public class DocumentCollection
 {
 	private static final String UPLOAD_PATH = "uploads";
-	private static final String MALLET_MODEL_PATH = "mallet";
+	private static final String MALLET_PATH = "mallet";
+	private static final String MALLET_TOPIC_MODEL = "topics.model";
+	private static final String MALLET_DB = "content.mallet";
 	private static final String DOCUMENT_PATH = "documents";
 	private static final String THUMBNAIL_PATH = "thumbnails";
 	private static final String TXT_PATH = "txt";
@@ -92,7 +103,7 @@ public class DocumentCollection
 		if (Files.exists(path)) throw new IOException("Collection by that name already exists.");
 
 		Files.createDirectories(path.resolve(UPLOAD_PATH));
-		Files.createDirectories(path.resolve(MALLET_MODEL_PATH));
+		Files.createDirectories(path.resolve(MALLET_PATH));
 		Files.createDirectories(path.resolve(DOCUMENT_PATH));
 		Files.createDirectories(path.resolve(TXT_PATH));
 		Files.createDirectories(path.resolve(META_PATH));
@@ -129,7 +140,7 @@ public class DocumentCollection
 	public void extractText(Path document, boolean overwrite) throws IOException
 	{		
 		Path inputPath = path.resolve(DOCUMENT_PATH).resolve(document);
-		Path outputPath = path.resolve(TXT_PATH).resolve(document);
+		Path outputPath = PathUtils.replaceExtension(path.resolve(TXT_PATH).resolve(document), "txt");
 		if (overwrite || !Files.exists(outputPath))
 		{
 			if (tika == null) tika = new Tika();
@@ -195,12 +206,11 @@ public class DocumentCollection
 				}
 				catch (IOException e)
 				{
-					System.err.println("Failed to render PDF.");
+					System.err.println("Failed to render PDF: " + e.toString());
 				}
 				return FileVisitResult.CONTINUE;
 			}
 		});
-
 	}
 
 /* docears heuristic metadata extraction. */
@@ -217,33 +227,117 @@ public class DocumentCollection
 
 /* MALLET topic modelling and weighting */
 
-	public void buildTopicModel(int num_topics)
+	public void updateMalletDb(boolean new_db) throws IOException
 	{
+		Path dbPath = path.resolve(MALLET_PATH).resolve(MALLET_DB);
+		Path txtPath = path.resolve(TXT_PATH);
 
+		InstanceList instances;
+		ArrayList<Pipe> pipeList = new ArrayList<Pipe>();
+		final Set<File> alreadyAdded = new HashSet<File>();
+
+		if (!new_db)
+		{
+			instances = InstanceList.load(dbPath.toFile());
+			for (Instance instance : instances)
+			{
+				Object obj_name = instance.getName();
+				if (obj_name instanceof File)
+				{
+					File name = (File)obj_name;
+					alreadyAdded.add(name);
+				}
+				else
+				{
+					throw new IOException("Instance did not have a File name.");
+				}
+			}
+		}
+		else
+		{
+			instances = new InstanceList();
+		}
+
+		// Pipes: lowercase, tokenize, remove stopwords, map to features
+        pipeList.add( new CharSequenceLowercase() );
+        pipeList.add( new CharSequence2TokenSequence(Pattern.compile("\\p{L}[\\p{L}\\p{P}]+\\p{L}")) );
+        pipeList.add( new TokenSequenceRemoveStopwords(new File("stoplists/en.txt"), "UTF-8", false, false, false) );
+        pipeList.add( new TokenSequence2FeatureSequence() );
+
+        instances.setPipe(new SerialPipes(pipeList));
+
+		class AddedFilter implements FileFilter {
+			public boolean accept(File file)
+			{
+				return !alreadyAdded.contains(file);
+			}
+		}
+
+		FileIterator iterator = new FileIterator(new File[] {txtPath.toFile()}, new AddedFilter(), FileIterator.ALL_DIRECTORIES);
+		instances.addThruPipe(iterator);
+
+		ObjectOutputStream oos;
+		oos = new ObjectOutputStream(new FileOutputStream(dbPath.toFile()));
+		oos.writeObject(instances);
+		oos.close();
 	}
 
-	public void buildTopicWeights(boolean overwrite)
+	public void buildTopicModel(int numTopics) throws IOException
 	{
+		Path dbPath = path.resolve(MALLET_PATH).resolve(MALLET_DB);
+		Path modelPath = path.resolve(MALLET_PATH).resolve(MALLET_TOPIC_MODEL);
 
+		InstanceList instances = InstanceList.load(dbPath.toFile());
+
+		ParallelTopicModel model = new ParallelTopicModel(numTopics, 1.0, 0.01);
+		model.addInstances(instances);
+
+		model.setNumThreads(4);
+		model.setNumIterations(1000);
+		model.setOptimizeInterval(10);
+		model.estimate();
+
+		ObjectOutputStream oos;
+		oos = new ObjectOutputStream(new FileOutputStream(modelPath.toFile()));
+		oos.writeObject(model);
+		oos.close();
 	}
 
-	public Map<String, List<Double>> getTopicWeights()
+	public Map<String,List<String>> getTopics(int wordCount) throws Exception
 	{
-		return null;
+		Path modelPath = path.resolve(MALLET_PATH).resolve(MALLET_TOPIC_MODEL);
+		ParallelTopicModel model = ParallelTopicModel.read(modelPath.toFile());
+		Object[][] topWords = model.getTopWords(wordCount);
+		Map<String,List<String>> topics = new HashMap<String,List<String>>();
+		for (int topic_idx = 0; topic_idx < topWords.length; topic_idx++)
+		{
+			String topicName = "T"+Integer.toString(topic_idx);
+			List<String> topWordsForTopic = new ArrayList<String>(wordCount);
+
+			for (int word_idx = 0; word_idx < wordCount; word_idx++)
+			{
+				String word = (String)topWords[topic_idx][word_idx];
+				topWordsForTopic.add(word);
+			}
+
+			topics.put(topicName, topWordsForTopic);
+		}
+		return topics;
+	}
+
+	public Map<String, Map<String,Double>> getTopicWeights()
+	{
+		Path modelPath = path.resolve(MALLET_PATH).resolve(MALLET_TOPIC_MODEL);
+		ParallelTopicModel model = ParallelTopicModel.read(modelPath.toFile());
 	}
 
 /* R/qgraph force-directed layout */
-
-	public void buildLayout(Map<String, Point2D.Double> initial, Set<String> overridden)
+	public void buildLayout(Map<String, Point2D.Double> initial, List<String> overridden)
 	{
 
 	}
-
 	public Map<String, Point2D.Double> getLayout()
 	{
 		return null;
 	}
- 
-
-
 }
