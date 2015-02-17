@@ -266,6 +266,7 @@ package weave.visualization.plotters
 					// draw square
 					radius = defaultScreenRadius.value;
 					graphics.drawRect(tempPoint.x - radius, tempPoint.y - radius, radius * 2, radius * 2);
+					graphics.drawRect(tempPoint.x-100, tempPoint.y-90, 200, 90);
 				}
 				else
 				{
@@ -318,7 +319,10 @@ package weave.visualization.plotters
 					}
 					//Draw the Topic nodes.
 					else
+					{
 						graphics.drawCircle(tempPoint.x, tempPoint.y, radius);
+						graphics.drawRect(tempPoint.x-100, tempPoint.y-90, 200, 90);
+					}
 				}
 			}
 			graphics.endFill();
