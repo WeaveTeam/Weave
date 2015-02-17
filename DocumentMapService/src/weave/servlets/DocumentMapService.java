@@ -116,28 +116,63 @@ public class DocumentMapService extends WeaveServlet
 		}
 	}
 
-
+	public void updateMalletDb(String collectionName, boolean force) throws RemoteException
+	{
+		try
+		{
+			getCollection(collectionName).updateMalletDb(force);
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Failed to import content into mallet database.", e);
+		}
+	}
 
 	public void buildTopicModel(String collectionName, int topicCount) throws RemoteException
 	{
+		try
+		{
+			getCollection(collectionName).buildTopicModel(topicCount);
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Failed to build topic model:", e);
+		}
 	}
 
-	public void buildTopicWeights(String collectionName) throws RemoteException
+	public void buildThumbnails(String collectionName, boolean force) throws RemoteException
 	{
+		try
+		{
+			getCollection(collectionName).renderThumbnails(force);
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Failed to render thumbnails:", e);
+		}
 	}
 
-	public void buildThumbnails(String collectionName, boolean force)
+	public Map<String,List<String>> getTopics(String collectionName) throws RemoteException
 	{
+		try
+		{
+			return getCollection(collectionName).getTopics(10);
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Failed to get topics.");
+		}
 	}
 
-	public List<Map<String,Number>> getTopicLayout(String collectionName)
+	public Map<String,Map<String,Double>> getTopicWeights(String collectionName) throws RemoteException
 	{
-		return null;
+		try
+		{
+			return getCollection(collectionName).getTopicWeights();
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Failed to get topic weights.");
+		}
 	}
-
-	public List<Map<String,Number>> getDocumentTopics(String collectionName)
-	{
-		return null;
-	}
-
 }

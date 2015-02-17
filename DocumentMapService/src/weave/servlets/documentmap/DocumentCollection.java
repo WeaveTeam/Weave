@@ -30,6 +30,9 @@ import cc.mallet.pipe.*;
 import cc.mallet.pipe.iterator.*;
 import cc.mallet.topics.*;
 
+/* Dependencies for PDF title extraction */
+import org.docear.pdf.*;
+
 public class DocumentCollection
 {
 	private static final String UPLOAD_PATH = "uploads";
@@ -209,14 +212,33 @@ public class DocumentCollection
 
 /* docears heuristic metadata extraction. */
 
-	public void extractMeta(Path document, boolean overwrite)
+	public Map<String,Map<String,String>> getTitles()
 	{
-
+		return null;		
 	}
 
-	public void extractMeta(boolean overwrite)
+	public void extractMeta(Path document, boolean overwrite)
 	{
+		Path inputPath = path.resolve(DOCUMENT_PATH).resolve(document);
+		return;
+	}
 
+	public void extractMeta(final boolean overwrite) throws IOException
+	{
+		Files.walkFileTree(path.resolve(DOCUMENT_PATH), new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+			{
+				try {
+					extractMeta(path.resolve(DOCUMENT_PATH).relativize(file), overwrite);
+				}
+				catch (Exception e)
+				{
+					System.err.println("Failed to render PDF: " + e.toString());
+				}
+				return FileVisitResult.CONTINUE;
+			}
+		});
 	}
 
 /* MALLET topic modelling and weighting */
