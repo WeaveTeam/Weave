@@ -1,7 +1,8 @@
 package weave.servlets.documentmap;
+import weave.utils.Strings;
 
 import weave.servlets.PathUtils;
-import org.apache.tika.Tika;
+
 import java.nio.charset.Charset;
 import java.lang.Math;
 import java.util.*;
@@ -29,6 +30,9 @@ import cc.mallet.types.*;
 import cc.mallet.pipe.*;
 import cc.mallet.pipe.iterator.*;
 import cc.mallet.topics.*;
+
+/* PDF text extraction */
+import org.apache.tika.Tika;
 
 /* Dependencies for PDF title extraction */
 import org.docear.pdf.*;
@@ -211,15 +215,41 @@ public class DocumentCollection
 	}
 
 /* docears heuristic metadata extraction. */
-
-	public Map<String,Map<String,String>> getTitles()
+/* TODO: This belongs in a database. */
+	public Map<String,String> getTitles() throws IOException
 	{
-		return null;		
+	
+		final Map<String,String> titles = new HashMap<String,String>();
+		Files.walkFileTree(path.resolve(DOCUMENT_PATH), new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+			{
+				try {
+					Path relativePath = path.resolve(DOCUMENT_PATH).relativize(file);
+					Path metaPath = PathUtils.replaceExtension(
+						path.resolve(META_PATH).resolve(relativePath),
+						"txt");
+					List<String> lines = Files.readAllLines(metaPath, Charset.defaultCharset());
+					String title = Strings.join("\n", lines);
+					titles.put(relativePath.toString(), title);
+				}
+				catch (Exception e)
+				{
+					System.err.println("Failed to extract title from PDF: " + e.toString());
+				}
+				return FileVisitResult.CONTINUE;
+			}
+		});
+		return titles;
 	}
 
-	public void extractMeta(Path document, boolean overwrite)
+	public void extractMeta(Path document, boolean overwrite) throws IOException
 	{
 		Path inputPath = path.resolve(DOCUMENT_PATH).resolve(document);
+		Path outputPath = PathUtils.replaceExtension(path.resolve(META_PATH).resolve(document), "txt");
+		PdfDataExtractor pdfExtractor = new PdfDataExtractor(inputPath.toFile());
+		String title = pdfExtractor.extractTitle();
+		Files.write(outputPath, title.getBytes(), StandardOpenOption.CREATE);
 		return;
 	}
 
@@ -234,7 +264,7 @@ public class DocumentCollection
 				}
 				catch (Exception e)
 				{
-					System.err.println("Failed to render PDF: " + e.toString());
+					System.err.println("Failed to extract title from PDF: " + e.toString());
 				}
 				return FileVisitResult.CONTINUE;
 			}
