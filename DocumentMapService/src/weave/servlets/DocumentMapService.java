@@ -152,6 +152,20 @@ public class DocumentMapService extends WeaveServlet
 		}
 	}
 
+	// docID -> title
+	public Map<String,String> getTitles(String collectionName) throws RemoteException
+	{
+		try
+		{
+			return getCollection(collectionName).getTitles();
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Failed to get titles.");
+		}
+	}
+	
+	// topicID -> list of words for that topic
 	public Map<String,List<String>> getTopics(String collectionName) throws RemoteException
 	{
 		try
@@ -164,6 +178,7 @@ public class DocumentMapService extends WeaveServlet
 		}
 	}
 
+	// docID -> (topicID -> Double)
 	public Map<String,Map<String,Double>> getTopicWeights(String collectionName) throws RemoteException
 	{
 		try
