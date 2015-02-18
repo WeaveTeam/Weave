@@ -77,8 +77,16 @@ package weave.menus
 			}
 			function onClick(item:WeaveMenuItem):void
 			{
-				var adsp:AddDataSourcePanel = DraggablePanel.openStaticInstance(AddDataSourcePanel);
-				adsp.dataSourceType = item.data as Class;
+				if (WeaveAPI.EditorManager.getEditorClass(item.data))
+				{
+					var adsp:AddDataSourcePanel = DraggablePanel.openStaticInstance(AddDataSourcePanel);
+					adsp.dataSourceType = item.data as Class;
+				}
+				else
+				{
+					var dsm:DataSourceManager = DraggablePanel.openStaticInstance(DataSourceManager) as DataSourceManager;
+					dsm.selectDataSource(WeaveAPI.globalHashMap.requestObject(null, item.data as Class, false));
+				}
 			}
 			return createItems(
 				ClassUtils.partitionClassList(
