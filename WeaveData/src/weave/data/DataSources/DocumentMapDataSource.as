@@ -80,7 +80,7 @@ package weave.data.DataSources
 		}
 		
 		private var _service:AMF3Servlet = null;
-		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/DocumentMapService'));
+		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/DocumentMapService/'));
 		
 		override public function refreshHierarchy():void
 		{

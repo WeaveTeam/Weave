@@ -16,7 +16,6 @@
 	<classpathentry kind="lib" path="lib/mallet.jar"/>
 	<classpathentry kind="lib" path="lib/PDFRenderer.jar"/>
 	<classpathentry kind="lib" path="lib/tika-app.jar"/>
-	<classpathentry kind="lib" path="lib/tika-server.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jre">
 		<attributes>
 			<attribute name="owner.project.facets" value="java"/>
