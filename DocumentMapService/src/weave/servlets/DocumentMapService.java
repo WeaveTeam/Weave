@@ -1,23 +1,33 @@
 package weave.servlets;
 
-import java.util.Map;
-import java.util.List;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.DirectoryIteratorException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.io.*;
-import java.nio.file.*;
-import java.nio.file.attribute.*;
-import java.nio.charset.Charset;
-import javax.servlet.*;
-import javax.servlet.http.*;
-import java.rmi.RemoteException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+
 import weave.servlets.documentmap.DocumentCollection;
+import weave.utils.Strings;
 
 
 public class DocumentMapService extends WeaveServlet
 {
-
-
+	private static final long serialVersionUID = 1L;
+	
 	private ServletConfig config;
 
 	public void init(ServletConfig config) throws ServletException 
@@ -152,21 +162,8 @@ public class DocumentMapService extends WeaveServlet
 		}
 	}
 
-	// docID -> title
-	public Map<String,String> getTitles(String collectionName) throws RemoteException
-	{
-		try
-		{
-			return getCollection(collectionName).getTitles();
-		}
-		catch (Exception e)
-		{
-			throw new RemoteException("Failed to get titles.");
-		}
-	}
-	
 	// topicID -> list of words for that topic
-	public Map<String,List<String>> getTopics(String collectionName) throws RemoteException
+	public Map<String,List<String>> getTopicWords(String collectionName) throws RemoteException
 	{
 		try
 		{
@@ -177,17 +174,60 @@ public class DocumentMapService extends WeaveServlet
 			throw new RemoteException("Failed to get topics.");
 		}
 	}
-
-	// docID -> (topicID -> Double)
-	public Map<String,Map<String,Double>> getTopicWeights(String collectionName) throws RemoteException
+	
+	// docID -> title
+	public Map<String,String> getDocMetadata(String collectionName, String property) throws RemoteException
 	{
 		try
 		{
-			return getCollection(collectionName).getTopicWeights();
+			if (Strings.equal(property, "title"))
+				return getCollection(collectionName).getTitles();
+			
+			return Collections.emptyMap();
 		}
 		catch (Exception e)
 		{
-			throw new RemoteException("Failed to get topic weights.");
+			throw new RemoteException("Failed to get titles.");
+		}
+	}
+	
+	// docID -> (topicID -> Double)
+	public Map<String,Map<String,Double>> getDocTopicWeights(String collectionName) throws RemoteException
+	{
+		try
+		{
+			Map<String,Map<String,Double>> docTopicWeights = getCollection(collectionName).getTopicWeights();
+			return docTopicWeights;
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Failed to get doc topic weights.");
+		}
+	}
+
+	// topicID -> (docID -> Double)
+	public Map<String,Map<String,Double>> getTopicDocWeights(String collectionName) throws RemoteException
+	{
+		try
+		{
+			Map<String,Map<String,Double>> docTopicWeights = getCollection(collectionName).getTopicWeights();
+			Map<String,Map<String,Double>> topicDocWeights = new HashMap<String,Map<String,Double>>();
+			for (Entry<String,Map<String,Double>> docEntry : docTopicWeights.entrySet())
+			{
+				String docID = docEntry.getKey();
+				for (Entry<String,Double> topicEntry : docEntry.getValue().entrySet())
+				{
+					String topicID = topicEntry.getKey();
+					if (!topicDocWeights.containsKey(topicID))
+						topicDocWeights.put(topicID, new HashMap<String,Double>());
+					topicDocWeights.get(topicID).put(docID, topicEntry.getValue());
+				}
+			}
+			return topicDocWeights;
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Failed to get topic doc weights.");
 		}
 	}
 }

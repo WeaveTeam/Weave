@@ -23,7 +23,7 @@ Whenever you build WeaveServices, this will automatically export the WAR file.
  		<copy todir="bin/classes">
 		    <fileset dir="../WeaveServletUtils/bin/classes"/>
 		</copy>
-		<war destfile="${TOMCAT_HOME}/webapps/WeaveServices.war" webxml="WebContent/WEB-INF/web.xml" duplicate="preserve">
+		<war destfile="${TOMCAT_HOME}/webapps/DocumentMapService.war" webxml="WebContent/WEB-INF/web.xml" duplicate="preserve">
 			<lib dir="bin/lib"/>
 			<classes dir="bin/classes"/>
 			<webinf dir="WebContent/WEB-INF"/>
