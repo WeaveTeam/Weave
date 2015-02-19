@@ -439,14 +439,13 @@ public class RServiceUsingRserve
 	}
 
 private static final String FORCE_DIRECTION_SCRIPT =
-"library(qgraph)\n"+
 "named_to_unnamed <- function (frame, names, value)\n"+
 "{\n"+
 "	env = new.env()\n"+
 "	env$new_matrix = matrix(value, nrow=length(names), ncol=2)\n"+
 "	mapping <- match(frame[,1], names)\n"+
-"	env$new_matrix[mapping,1:2] <- frame[,2:3]\n"+
-"	env$new_matrix\n"+
+"	env$new_matrix[mapping,1:2] <- as.numeric(frame[,2:3])\n"+
+"	env$new_matrix[,1:2]\n"+
 "}\n"+
 "get_ordered_node_names <- function (edgelist)\n"+
 "{\n"+
@@ -458,7 +457,8 @@ private static final String FORCE_DIRECTION_SCRIPT =
 "	nodeNames <- get_ordered_node_names(edges)\n"+
 "	if (!is.null(initial) && !is.null(overrides))\n"+
 "	{\n"+
-"		params <- list(init=named_to_unnamed(initial, nodeNames, NA), constraints=named_to_unnamed(overrides, nodeNames, NA))\n"+
+"		params <- list(	init=named_to_unnamed(initial, nodeNames, NA), \n"+
+"						constraints=named_to_unnamed(overrides, nodeNames, NA))\n"+
 "	}\n"+
 "	else\n"+
 "	{\n"+
@@ -466,10 +466,11 @@ private static final String FORCE_DIRECTION_SCRIPT =
 "	}\n"+
 "	Q <- qgraph(edges, layout.par=params)#, DoNotPlot=TRUE)\n"+
 "	layout <- Q$layout.orig\n"+
-"	layout <- cbind(Q$graphAttributes$Nodes$names, layout)\n"+
+"	layout <- data.frame(Q$graphAttributes$Nodes$names, layout)\n"+
 "	colnames(layout) <- c(\"id\", \"X\", \"Y\")\n"+
 "	layout\n"+
-"}";
+"}\n";
+
 	public static Map<String,double[]> doForceDirectedLayout(String[] source, String[] target, double[] weights, 
 																 String[] nodes, double[] x_a, double[] y_a, 
 																 String[] locked) throws RemoteException
@@ -491,9 +492,9 @@ private static final String FORCE_DIRECTION_SCRIPT =
 			rConnection.eval(FORCE_DIRECTION_SCRIPT);
 			rConnection.eval("layout <- layoutGraph(edges, initial, overrides)");
 
-			REXP name_vector = rConnection.eval("layout[,1]");
-			REXP x_vector = rConnection.eval("layout[,2]");
-			REXP y_vector = rConnection.eval("layout[,3]");
+			REXP name_vector = rConnection.eval("layout$id");
+			REXP x_vector = rConnection.eval("layout$X");
+			REXP y_vector = rConnection.eval("layout$Y");
 
 			String[] node_results = name_vector.asStrings();
 			double[] x_primitive = x_vector.asDoubles();
