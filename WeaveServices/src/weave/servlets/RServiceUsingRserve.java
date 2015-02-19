@@ -155,7 +155,7 @@ public class RServiceUsingRserve
 	/**
 	 * This will wrap an object in an REXP object.
 	 * @param object
-	 * @returnV
+	 * @return
 	 * @throws RemoteException if the object type is unsupported
 	 */
 	private static REXP getREXP(Object object) throws RemoteException
@@ -390,7 +390,7 @@ public class RServiceUsingRserve
 		return result;
 	}
 
-	private static REXP buildEdgeList(String[] source, String[] target, double[] weights)
+	private static REXP buildEdgeList(String[] source, String[] target, double[] weights) throws RemoteException
 	{
 		if (source.length != target.length || target.length != weights.length)
 		{
@@ -403,7 +403,7 @@ public class RServiceUsingRserve
 		}
 		return getREXP(result);
 	}
-	private static REXP buildNodeCoords(String[] nodes, double[] x_a, double[] y_a, String[] locked)
+	private static REXP buildNodeCoords(String[] nodes, double[] x_a, double[] y_a, String[] locked) throws RemoteException
 	{
 		if (nodes == null && x_a == null && y_a == null && locked == null)
 		{
