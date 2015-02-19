@@ -51,6 +51,7 @@ package weave.visualization.layers
 	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
+	import weave.utils.DocumentSummaryEvent;
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.VectorUtils;
 	import weave.utils.ZoomUtils;
@@ -998,12 +999,18 @@ package weave.visualization.layers
 				
 				if (keys.length == 0)
 				{
-					ProbeTextUtils.hideProbeToolTip();
+					if( plotManager.getPlotter(layerName) is DraggableScatterPlotPlotter )
+						dispatchEvent(new DocumentSummaryEvent(DocumentSummaryEvent.HIDE_DOCUMENT));
+					else
+						ProbeTextUtils.hideProbeToolTip();
 				}
 				else
 				{
 					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
-					ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
+					if( plotManager.getPlotter(layerName) is DraggableScatterPlotPlotter )
+						dispatchEvent(new DocumentSummaryEvent(DocumentSummaryEvent.DISPLAY_DOCUMENT, stage.mouseX, stage.mouseY, text, keySet.keys[0]));
+					else
+						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
 				}
 			}
 		}

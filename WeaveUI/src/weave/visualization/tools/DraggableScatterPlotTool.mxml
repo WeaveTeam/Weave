@@ -43,9 +43,11 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			import weave.primitives.Bounds2D;
 			import weave.ui.AttributeMenuTool;
 			import weave.ui.AttributeSelectorPanel;
+			import weave.ui.DocumentSummaryComponent;
 			import weave.ui.SelectableAttributesCheckBoxList;
 			import weave.utils.BitmapText;
 			import weave.utils.ColumnUtils;
+			import weave.utils.DocumentSummaryEvent;
 			import weave.utils.LinkableTextFormat;
 			import weave.visualization.layers.LayerSettings;
 			import weave.visualization.layers.SimpleInteractiveVisualization;
@@ -98,6 +100,20 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				initRegressionLayer();
 				
 				children.childListCallbacks.addGroupedCallback(this, handleChildrenChildList);
+				
+				visualization.addEventListener(DocumentSummaryEvent.DISPLAY_DOCUMENT, showDocumentToolTip);
+				visualization.addEventListener(DocumentSummaryEvent.HIDE_DOCUMENT, hideDocumentToolTip);
+			}
+			
+			private function showDocumentToolTip(e:DocumentSummaryEvent):void
+			{
+				var imageURL:String = plotter.thumbnails.getValueFromKey(e.imageKey);
+				DocumentSummaryComponent.show(e.xPos,e.yPos,e.docTitle,this,imageURL);
+			}
+			
+			private function hideDocumentToolTip(e:DocumentSummaryEvent):void
+			{
+				DocumentSummaryComponent.hide();
 			}
 			
 			override public function initSelectableAttributes(input:Array):void
