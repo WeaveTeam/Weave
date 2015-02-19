@@ -20,6 +20,7 @@ import java.awt.geom.Point2D;
 import java.nio.ByteBuffer;
 import com.sun.pdfview.*;
 import java.awt.image.BufferedImage;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 import javax.imageio.ImageIO;
@@ -59,11 +60,11 @@ public class DocumentCollection
 		return Files.exists(path);
 	}
 
-	public int addZip(String fileName, InputStream stream) throws IOException, ZipException, IllegalStateException
+	public void addZip(String fileName, InputStream stream) throws IOException, ZipException, IllegalStateException
 	{
 		int file_count = 0;
 		Path zipPath = path.resolve(UPLOAD_PATH).resolve(fileName);
-		Files.copy(stream, zipPath);
+		if (stream != null) Files.copy(stream, zipPath); /* For the case where it's a local zip file. */
 		ZipFile zip = new ZipFile(zipPath.toFile());
 		try
 		{
@@ -85,7 +86,7 @@ public class DocumentCollection
 		{
 			zip.close();
 		}
-		return file_count;
+		return;
 	}
 
 	public void addDocument(String fileName, InputStream stream) throws IOException
@@ -108,6 +109,8 @@ public class DocumentCollection
 		Files.createDirectories(path.resolve(DOCUMENT_PATH));
 		Files.createDirectories(path.resolve(TXT_PATH));
 		Files.createDirectories(path.resolve(META_PATH));
+
+		/*TODO: Add DOCUMENT_PATH->static/ symlinks where supported.*/
 	}
 
 	public void remove() throws IOException
@@ -191,9 +194,17 @@ public class DocumentCollection
 
 			int scaled_width = 200;
 			int scaled_height = (int)(((float)rect.height / (float)rect.width) * (float)scaled_width);
-			
+
 			Image small_image = full_image.getScaledInstance(scaled_width, scaled_height, Image.SCALE_DEFAULT);
-			ImageIO.write((BufferedImage)small_image, "jpg" , outputPath.toFile());
+			/* http://stackoverflow.com/questions/13605248/java-converting-image-to-bufferedimage */
+			BufferedImage bimage = new BufferedImage(small_image.getWidth(null), small_image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+		    // Draw the image on to the buffered image
+		    Graphics2D bGr = bimage.createGraphics();
+		    bGr.drawImage(small_image, 0, 0, null);
+		    bGr.dispose();
+
+			ImageIO.write(bimage, "jpg" , outputPath.toFile());
 		}
 	}
 	public void renderThumbnails(final boolean overwrite) throws IOException
@@ -218,7 +229,7 @@ public class DocumentCollection
 /* TODO: This belongs in a database. */
 	public Map<String,String> getTitles() throws IOException
 	{
-	
+
 		final Map<String,String> titles = new HashMap<String,String>();
 		Files.walkFileTree(path.resolve(DOCUMENT_PATH), new SimpleFileVisitor<Path>() {
 			@Override
@@ -235,7 +246,7 @@ public class DocumentCollection
 				}
 				catch (Exception e)
 				{
-					System.err.println("Failed to extract title from PDF: " + e.toString());
+					System.err.println("Failed to retrieve stored metadata: " + e.toString());
 				}
 				return FileVisitResult.CONTINUE;
 			}
@@ -245,10 +256,13 @@ public class DocumentCollection
 
 	public void extractMeta(Path document, boolean overwrite) throws IOException
 	{
+		/* TODO check if it already exists when overwrite is false before doing the extraction */
 		Path inputPath = path.resolve(DOCUMENT_PATH).resolve(document);
 		Path outputPath = PathUtils.replaceExtension(path.resolve(META_PATH).resolve(document), "txt");
 		PdfDataExtractor pdfExtractor = new PdfDataExtractor(inputPath.toFile());
 		String title = pdfExtractor.extractTitle();
+		Files.createDirectories(outputPath.getParent());
+		Files.deleteIfExists(outputPath);
 		Files.write(outputPath, title.getBytes(), StandardOpenOption.CREATE);
 		return;
 	}
@@ -303,11 +317,12 @@ public class DocumentCollection
 		{
 			instances = new InstanceList();
 		}
-
+		// Read from file
+		pipeList.add( new Input2CharSequence("UTF-8") );
 		// Pipes: lowercase, tokenize, remove stopwords, map to features
-        pipeList.add( new CharSequenceLowercase() );
-        pipeList.add( new CharSequence2TokenSequence(Pattern.compile("\\p{L}[\\p{L}\\p{P}]+\\p{L}")) );
-        pipeList.add( new TokenSequenceRemoveStopwords(new File("stoplists/en.txt"), "UTF-8", false, false, false) );
+		pipeList.add( new CharSequence2TokenSequence(Pattern.compile("\\p{L}[\\p{L}\\p{P}]+\\p{L}")) );
+        pipeList.add( new TokenSequenceLowercase() );
+        pipeList.add( new TokenSequenceRemoveStopwords(path.resolve("../stoplists/en.txt").toFile(), "UTF-8", false, false, false) );
         pipeList.add( new TokenSequence2FeatureSequence() );
 
         instances.setPipe(new SerialPipes(pipeList));
@@ -383,16 +398,20 @@ public class DocumentCollection
 		{
 			Instance instance = assignment.instance;
 			LabelSequence topics = assignment.topicSequence;
-			String name = (String)instance.getName();
+			URI name = (URI)instance.getName();
 			double[] probabilities = model.getTopicProbabilities(topics);
 			Map<String,Double> topicWeights = new HashMap<String,Double>();
 			for (int topic_idx = 0; topic_idx < probabilities.length; topic_idx++)
 			{
 				topicWeights.put("T"+Integer.toString(topic_idx), probabilities[topic_idx]);
 			}
-			name = PathUtils.replaceExtension(Paths.get(new URI(name)).relativize(path.resolve(TXT_PATH)), "pdf").toString();
+			/* Hackery to deal with the fact the result from Paths.get(URI) is not the same Filesystem as everything else. */
+			Path localPath = Paths.get(Paths.get(name).toString());
+			Path relativePath = path.resolve(TXT_PATH).toAbsolutePath().relativize(localPath);
 
-			result.put(name, topicWeights);
+			String str_name = PathUtils.replaceExtension(relativePath, "pdf").toString();
+
+			result.put(str_name, topicWeights);
 		}
 		return result;
 	}

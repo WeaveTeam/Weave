@@ -114,6 +114,18 @@ public class DocumentMapService extends WeaveServlet
 		}
 	}
 
+	public void addLocalZip(String collectionName, String fileName) throws RemoteException
+	{
+		try
+		{
+			getCollection(collectionName).addZip(fileName, null); /* Null specifies to just look for an existing upload. */
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException("Failed to add local zip:", e);
+		}
+	}
+
 	public void extractText(String collectionName, boolean force) throws RemoteException
 	{
 		try
@@ -123,6 +135,18 @@ public class DocumentMapService extends WeaveServlet
 		catch (IOException e)
 		{
 			throw new RemoteException("Failed to extract text:", e);
+		}
+	}
+
+	public void extractMeta(String collectionName, boolean force) throws RemoteException
+	{
+		try
+		{
+			getCollection(collectionName).extractMeta(force);
+		}
+		catch (IOException e)
+		{
+			throw new RemoteException("Failed to extract meta:", e);
 		}
 	}
 
@@ -201,7 +225,7 @@ public class DocumentMapService extends WeaveServlet
 		}
 		catch (Exception e)
 		{
-			throw new RemoteException("Failed to get doc topic weights.");
+			throw new RemoteException("Failed to get doc topic weights.", e);
 		}
 	}
 
@@ -227,7 +251,7 @@ public class DocumentMapService extends WeaveServlet
 		}
 		catch (Exception e)
 		{
-			throw new RemoteException("Failed to get topic doc weights.");
+			throw new RemoteException("Failed to get topic doc weights.", e);
 		}
 	}
 }
