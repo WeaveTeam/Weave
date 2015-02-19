@@ -109,6 +109,7 @@ public class DocumentCollection
 		Files.createDirectories(path.resolve(DOCUMENT_PATH));
 		Files.createDirectories(path.resolve(TXT_PATH));
 		Files.createDirectories(path.resolve(META_PATH));
+		Files.createDirectories(path.resolve(THUMBNAIL_PATH));
 
 		/*TODO: Add DOCUMENT_PATH->static/ symlinks where supported.*/
 	}
@@ -195,15 +196,16 @@ public class DocumentCollection
 			int scaled_width = 200;
 			int scaled_height = (int)(((float)rect.height / (float)rect.width) * (float)scaled_width);
 
-			Image small_image = full_image.getScaledInstance(scaled_width, scaled_height, Image.SCALE_DEFAULT);
+			Image small_image = full_image.getScaledInstance(scaled_width, scaled_height, Image.SCALE_SMOOTH);
 			/* http://stackoverflow.com/questions/13605248/java-converting-image-to-bufferedimage */
-			BufferedImage bimage = new BufferedImage(small_image.getWidth(null), small_image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+			BufferedImage bimage = new BufferedImage(small_image.getWidth(null), small_image.getHeight(null), BufferedImage.TYPE_3BYTE_BGR);
 
 		    // Draw the image on to the buffered image
 		    Graphics2D bGr = bimage.createGraphics();
 		    bGr.drawImage(small_image, 0, 0, null);
 		    bGr.dispose();
-
+		    Files.createDirectories(outputPath.getParent());
+		    System.err.println("Rendering to " + outputPath.toString());
 			ImageIO.write(bimage, "jpg" , outputPath.toFile());
 		}
 	}
@@ -214,6 +216,7 @@ public class DocumentCollection
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
 			{
 				try {
+					System.err.println("Rendering " + path.resolve(DOCUMENT_PATH).relativize(file).toString());
 					renderThumbnail(path.resolve(DOCUMENT_PATH).relativize(file), overwrite);
 				}
 				catch (IOException e)
