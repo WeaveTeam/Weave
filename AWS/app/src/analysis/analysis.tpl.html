@@ -308,23 +308,9 @@
 <!-- 					</div> -->
 	
 <!-- 				</div> -->
-				<div ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.cache.filters">
-					<div class="databox" style="width: 15%;">
-						<!-- <div class="databox" style="width: 160px;"> -->
-						<div class="panel-heading">
-							<h2>{{filter.title}}</h2>
-							<a href="javascript: void(0)" class="close-button" data-trigger="hover" placement="right" title="Remove"  ng-click="removeFilter($index)"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
-						</div>
-						<div class="body">
-							<div style="height: 100%"
-								ng-include="filter.template_url"></div>
-						</div>
-					</div>
-					<div class="databox" style="width: 2%;">
-						<div style="position: relative; top: 50%;transform: translateY(-50%);">
-							OR
-						</div>
-					</div>
+				<div ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.queryObject.filters">
+					<div style="height: 100%" ng-include="filter.template_url"></div>
+					<br>
 				</div>
 			</div>
 		</div>

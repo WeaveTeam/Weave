@@ -3,35 +3,37 @@ AnalysisModule.controller('dataFilterCtrl', function($scope, queryService){
 	$scope.queryService = queryService;
 	$scope.filterType;
 	
+	$scope.uiFilterOptions = ["combo box", "slider", "multi select"];
+	
+	$scope.$watchCollection('queryService.queryObject.filters', function() {
+		console.log($scope.$index); 
+	});
+	
+	// this makes the panel draggable upon initialization
+	// there might be a better way to do this
+	$scope.$watchCollection(function() {
+		return $(".draggable_filter");
+	}, function() {
+		 $(".draggable_filter" ).draggable();
+	});
+	
 	$scope.add = function () {
-		if(queryService.cache.filters.length < 3) {
-			queryService.cache.filters.push({
-				title :	"Custom Filter",
-				addSecond : false,
-				filter1 : {},
-				filter2 : {},
-				template_url : "src/analysis/data_filters/generic_filter.html"
-			});
-			queryService.queryObject.filters.or.push(
-				{ 
-					columns : ["", ""],
-					filters : {}
-				}
-			);
-		};
+		queryService.queryObject.filters.push({
+			title :	"Generic Filter",
+			template_url : "src/analysis/data_filters/generic_filter.html"
+		});
 	};
 	
 	$scope.removeFilter = function(index){
-		queryService.cache.filters.splice(index, 1);
-		queryService.queryObject.filters.or.splice(index, 1); // clear both the queryObject and cache
 	};
 	
 	$scope.removeSecond = function(index) {
-		if(!queryService.cache.filters.addSecond) {
-			queryService.queryObject.filters.or[index].columns[1] = "";
-		};
 	};
 	
+	$scope.initialize = function() {
+		 $('#generic_filter').draggable().resizable();
+		 console.log("we get here: ", $('#generic_filter'));
+	};
 	
 	$scope.updateFilterView = function(index) {
 		

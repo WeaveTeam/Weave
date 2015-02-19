@@ -177,9 +177,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			ComputationEngine : "R",
 			Indicator : "",
 			IndicatorRemap : [],
-			filters : {
-				or : []
-			},
+			filters : [],
 			GeographyFilter : {
 				stateColumn:{},
 				countyColumn:{},

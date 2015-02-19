@@ -1,37 +1,50 @@
-<div class="panel-body">
-	
-	<ul class="input-controls" style="height:100%">
-		<div>
-			<input type="checkbox" ng-model="queryService.cache.filters[$parent.$index].addSecond"
-								   ng-change="removeSecond($parent.$index)">Second Level</input>
-		</div>
-		<select style="width: 100%" ui-select2="{allowClear:true}"
-				ng-model="queryService.queryObject.filters.or[$parent.$index].columns[0]"
-				data-placeholder="Column"
-				ng-change="updateFilterView($parent.$index)">
-				<option></option>
-				<option value="{{col}}" ng-repeat="col in queryService.cache.columns"> {{col.title}}</option>
-		</select>
-		<div ng-show="queryService.cache.filters[$parent.$index].filter1.type == 'continuous'">
-			{{ }} - {{ }}
-			<div ui-slider ng-model="service.queryObject.ByVariableFilters[$index]"></div>
-		</div>
+<div class="databox draggable_filter" style="width: 300px; height: 100px;">
+	<!-- <div class="databox" style="width: 200px;"> -->
+	<div class=" header panel-heading" style="margin-bottom: 0px">
 		
-		<select ng-if="queryService.cache.filters[$parent.$index].addSecond" style="width: 100%" ui-select2="{allowClear : true, dropdownAutoWidth : true}"
-				ng-model="queryService.queryObject.filters.or[$parent.$index].columns[1]"
-				data-placeholder="Column"
-				ng-change="updateFilterView($parent.$index)">
+<!-- 	   <span class="dropdown" dropdown> -->
+<!-- 	 			      <a href class="dropdown-toggle" dropdown-toggle> -->
+<!-- 					  <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> -->
+<!-- 	 				  </a> -->
+<!-- 	    			<ul class="dropdown-menu"> -->
+<!-- 	   				 <li ng-repeat="choice in uiFilterOptions"> -->
+<!-- 	       				 <a href>{{choice}}</a> -->
+<!-- 	      			</li> -->
+<!-- 	    			</ul> -->
+<!-- 			</span>	 -->
+		
+		<h2>Generic Filter</h2>
+		
+		
+		<a href="javascript: void(0)" 
+			class="close-button" data-trigger="hover" placement="right" title="Remove"  
+			ng-click="close_filter()"> 
+			<i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> 
+		</a>
+	</div>
+	
+	<div class="body" style="width: 100%; height:100%; border: solid 2px; border-color: #4C4F53">
+			<select ng-model = "filterType" ng-options = "option as option for option in uiFilterOptions"></select>
+		<select style="width: 100%" ui-select2="{allowClear : true}" data-placeholder="Choose column to filter"  ng-model="queryService.queryObject.filters[$index].column"
 				<option></option>
-				<option value="{{col}}" ng-repeat="col in queryService.cache.columns"> {{col.title}}</option>
+				 <option ng-repeat="column in queryService.cache.columns" value="{{column}}">{{column.title}}</option>
 		</select>
-		<div ng-show="queryService.cache.filters[$parent.$index].filter2.type == 'continuous'">
-			{{ }} - {{ }}
-			<div ui-slider ng-model="service.queryObject.ByVariableFilters[$index]"></div>	
+		<div>
+			<!-- multi select picker -->
+			<select ng-if="filterType == 'multi select'" style=width:100%" ui-select2="{allowClear : true}" multiple data-placeholder="Choose filters" ng-model="queryService.queryObject.filters[$index].value">
+				<option ng-repeat="filter in filterOptions">filter.title</option>
+			</select>
+			
+			<!-- combo box picker -->
+			<div ng-f="filterType == 'combox box" ng-repeat="filter in filterOptions">
+				<input type="checkbox" ng-model="queryService.queryObject.filters[$parent.$index].value[$index]"/> filter.title </option> 
+			</div>
+			
+			<!-- slider picker  -->
+			<div ng-if="filterType == 'slider'">
+				{{ }} - {{ }}
+				<div  ui-slider ng-model="queryService.queryObject.filters[$parent.$index].value[$index]"/>
+			</div>
 		</div>
-
-   		<div ng-show="queryService.cache.filters[$parent.$index].filter1.type == 'categorical' ||
-   					  queryService.cache.filters[$parent.$index].filter2.type == 'categorical'" 
-   					  id="tree" dynatree style="width: 100%; height: 175px; overflow: hidden">
-   		</div>
-	</ul>
+	</div>
 </div>

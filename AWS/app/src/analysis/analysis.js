@@ -201,8 +201,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			}
 		}
 	});
-
-	 $("#queryObjectPanel" ).draggable().resizable();
 	 $("#queryObjectPanel" ).css({'top' : -1020, 'left' : 265});
 	
 	 $scope.$watch('queryService.queryObject.resultSet', function() {
