@@ -396,16 +396,19 @@ public class RServiceUsingRserve
 		{
 			throw new IllegalArgumentException("Mismatched lengths of edgelist arrays.");
 		}
-		Object[][] result = new Object[source.length][];
-		for (int idx = 0; idx < result.length; idx++)
+		Object[][] result = new Object[3][];
+		result[0] = (Object[])source;
+		result[1] = (Object[])target;
+		result[2] = new Double[weights.length];
+		for (int idx = 0; idx < weights.length; idx++)
 		{
-			result[idx] = new Object[] {source[idx], target[idx], new Double(weights[idx])};
+			result[2][idx] = new Double(weights[idx]);
 		}
 		return getREXP(result);
 	}
 	private static REXP buildNodeCoords(String[] nodes, double[] x_a, double[] y_a, String[] locked) throws RemoteException
 	{
-		if (nodes == null && x_a == null && y_a == null && locked == null)
+		if (nodes == null || x_a == null || y_a == null)
 		{
 			return new REXPNull();
 		}
@@ -414,7 +417,7 @@ public class RServiceUsingRserve
 			throw new IllegalArgumentException("Mismatched lengths of node name and coordinate arrays");
 		}
 		
-		Object[][] result = new Object[nodes.length][];
+		Object[][] result = new Object[3][];
 		Set<String> lockedSet = null;
 		if (locked != null)
 		{
@@ -422,8 +425,12 @@ public class RServiceUsingRserve
 			lockedSet = new HashSet<String>(locked.length);
 			for (int idx = 0; idx < locked.length; idx++) lockedSet.add(locked[idx]);	
 		}
-		
-		for (int idx = 0; idx < result.length; idx++)
+
+		result[0] = nodes;
+		result[1] = new Double[x_a.length];
+		result[2] = new Double[y_a.length];
+
+		for (int idx = 0; idx < x_a.length; idx++)
 		{
 			Double x = new Double(x_a[idx]);
 			Double y = new Double(y_a[idx]);
@@ -433,7 +440,8 @@ public class RServiceUsingRserve
 				x = new Double(REXPDouble.NA);
 				y = new Double(REXPDouble.NA);
 			}
-			result[idx] = new Object[] {nodes[idx], x, y};
+			result[1][idx] = x;
+			result[2][idx] = y;
 		}
 		return getREXP(result);
 	}
@@ -464,7 +472,7 @@ private static final String FORCE_DIRECTION_SCRIPT =
 "	{\n"+
 "		params <- list()\n"+
 "	}\n"+
-"	Q <- qgraph(edges, layout.par=params)#, DoNotPlot=TRUE)\n"+
+"	Q <- qgraph(edges, layout.par=params, DoNotPlot=TRUE)\n"+
 "	layout <- Q$layout.orig\n"+
 "	layout <- data.frame(Q$graphAttributes$Nodes$names, layout)\n"+
 "	colnames(layout) <- c(\"id\", \"X\", \"Y\")\n"+
@@ -489,6 +497,7 @@ private static final String FORCE_DIRECTION_SCRIPT =
 			rConnection.assign("edges", edges);
 			rConnection.assign("initial", initial);
 			rConnection.assign("overrides", overrides);
+			rConnection.eval("require(qgraph)");
 			rConnection.eval(FORCE_DIRECTION_SCRIPT);
 			rConnection.eval("layout <- layoutGraph(edges, initial, overrides)");
 
