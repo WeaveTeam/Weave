@@ -19,6 +19,8 @@
 
 package weave.data.DataSources
 {
+	import avmplus.getQualifiedClassName;
+	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
@@ -78,6 +80,7 @@ package weave.data.DataSources
 		public static const TABLE_NODES:String = 'nodes';
 		
 		public static const COLUMN_TOPIC_WORDS:String = 'topic_words';
+		public static const COLUMN_NODE_TYPE:String = 'node_type';
 		public static const COLUMN_NODE_X:String = 'node_x';
 		public static const COLUMN_NODE_Y:String = 'node_y';
 		
@@ -181,6 +184,33 @@ package weave.data.DataSources
 			});
 		}
 		
+		private function getTopicIDs(collectionName:String):Array
+		{
+			var column:IAttributeColumn = getTopicWordsColumn(collectionName);
+			return column ? (VectorUtils.pluck(column.keys, 'localName') as Array).sort() : [];
+		}
+		
+		private function getTopicDocWeightsColumnMetadata(collectionName:String, topicID:String):Object
+		{
+			var topicWordsColumn:IAttributeColumn = getTopicWordsColumn(collectionName);
+			if (!topicWordsColumn)
+				return null;
+			var keyType:String = getKeyType(collectionName);
+			var words:String = topicWordsColumn.getValueFromKey(WeaveAPI.QKeyManager.getQKey(keyType, topicID), String);
+			var title:String = words
+				? lang('{0}: {1}', topicID, words)
+				: topicID;
+			var meta:Object = {
+				title: title,
+				keyType: keyType,
+				dataType: DataType.NUMBER
+			};
+			meta[META_COLLECTION] = collectionName;
+			meta[META_TABLE] = TABLE_DOC_WEIGHTS;
+			meta[META_COLUMN] = topicID;
+			return meta;
+		}
+			
 		private function getTopicDocWeights(collectionName:String):Object
 		{
 			return rpc('getTopicDocWeights', [collectionName], function(topicDocWeights:Object):Object {
@@ -191,18 +221,31 @@ package weave.data.DataSources
 					for (var docID:String in topicDocWeights[topicID])
 						docIDs.push(docID), topicIDs.push(topicID), weights.push(topicDocWeights[topicID][docID]);
 				
-				var tok:AsyncToken = _rService.invokeAsyncMethod('doForceDirectedLayout', [docIDs, topicIDs, weights, null, null, null, null]);
-				addAsyncResponder(tok, function(event:ResultEvent, token:Object = null):void {
-					// returns nodeId -> [x, y]
-					var nodeIdToXY:Object = event.result;
-					var keys:Array = VectorUtils.getKeys(nodeIdToXY);
-					var outputKeys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-					(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(_rService, getKeyType(collectionName), keys, function():void {
-						var values:Array = VectorUtils.getItems(nodeIdToXY, keys, []);
-						getNodeColumn(collectionName, COLUMN_NODE_X).setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '0')));
-						getNodeColumn(collectionName, COLUMN_NODE_Y).setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '1')));
-					}, outputKeys);
+				topicIDs.forEach(function(topicID:String, i:int, a:Array):void {
+					var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+					var docIdsForTopic:Array = VectorUtils.getKeys(topicDocWeights[topicID]);
+					var meta:Object = getTopicDocWeightsColumnMetadata(collectionName, topicID);
+					var numberColumn:NumberColumn = getCachedColumn(collectionName, TABLE_DOC_WEIGHTS, topicID, NumberColumn, meta);
+					(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(numberColumn, getKeyType(collectionName), docIdsForTopic, function():void {
+						var dataVector:Vector.<Number> = Vector.<Number>(VectorUtils.getItems(topicDocWeights[topicID], docIdsForTopic, []));
+						numberColumn.setRecords(keysVector, dataVector);
+					}, keysVector);
 				});
+				
+				addAsyncResponder(
+					_rService.invokeAsyncMethod('doForceDirectedLayout', [docIDs, topicIDs, weights, null, null, null, null]),
+					function(event:ResultEvent, token:Object = null):void {
+						// returns nodeId -> [x, y]
+						var nodeIdToXY:Object = event.result;
+						var keys:Array = VectorUtils.getKeys(nodeIdToXY);
+						var outputKeys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+						(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(_rService, getKeyType(collectionName), keys, function():void {
+							var values:Array = VectorUtils.getItems(nodeIdToXY, keys, []);
+							getNodeColumn(collectionName, COLUMN_NODE_X).setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '0')));
+							getNodeColumn(collectionName, COLUMN_NODE_Y).setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '1')));
+						}, outputKeys);
+					}
+				);
 				return topicDocWeights;
 			});
 		}
@@ -271,7 +314,7 @@ package weave.data.DataSources
 											children: function():Array {
 												var docPropertyColumns:Array = ['title', 'modifiedTime'].map(function(docProperty:String, i:int, a:Array):Object {
 													var meta:Object = {
-														title: lang('Document {0}', docProperty),
+														title: docProperty,
 														keyType: keyType,
 														dataType: docProperty == 'modifiedTime' ? DataType.DATE : DataType.STRING
 													};
@@ -285,31 +328,13 @@ package weave.data.DataSources
 													};
 												});
 												
-												var topicWordsColumn:StringColumn = getTopicWordsColumn(collectionName);
-												var topicColumns:Array = [];
-												if (topicWordsColumn)
-												{
-													var sortedKeys:Array = topicWordsColumn.keys.concat().sortOn('localName');
-													topicColumns = sortedKeys.map(function(key:IQualifiedKey, i:int, a:Array):Object {
-														var words:String = topicWordsColumn.getValueFromKey(key, String);
-														var title:String = words
-															? lang('Topic Weights ({0}: {1})', key.localName, words)
-															: lang('Topic Weights ({0})', key.localName);
-														var meta:Object = {
-															title: title,
-															keyType: keyType,
-															dataType: DataType.NUMBER
-														};
-														meta[META_COLLECTION] = collectionName;
-														meta[META_TABLE] = TABLE_DOC_WEIGHTS;
-														meta[META_COLUMN] = key.localName;
-														return {
-															source: source,
-															idFields: META_ID_FIELDS,
-															columnMetadata: meta
-														};
-													});
-												}
+												var topicColumns:Array = getTopicIDs(collectionName).map(function(topicID:String, i:int, a:Array):Object {
+													return {
+														source: source,
+														idFields: META_ID_FIELDS,
+														columnMetadata: getTopicDocWeightsColumnMetadata(collectionName, topicID)
+													};
+												});
 												
 												return docPropertyColumns.concat(topicColumns);
 											}
@@ -372,80 +397,55 @@ package weave.data.DataSources
 			var table:String = metadata[META_TABLE];
 			var column:String = metadata[META_COLUMN];
 
-			var data:Object;
-			var dataType:String;
-			
 			if (table == TABLE_TOPICS)
 			{
 				proxyColumn.setInternalColumn(getTopicWordsColumn(collection));
-				return;
 			}
 			else if (table == TABLE_DOC_METADATA)
 			{
-				data = rpc('getDocMetadata', [collection, column]);
-				dataType = DataType.STRING;
+				var columnClass:Class = column == 'modifiedTime' ? DateColumn : StringColumn;
+				var cachedColumn:IAttributeColumn = getCachedColumn(collection, table, column, columnClass, metadata);
+				
+				rpc('getDocMetadata', [collection, column], function(data:Object):Object {
+					var keyType:String = getKeyType(collection);
+					var keyStrings:Array = VectorUtils.getKeys(data);
+					var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+					(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, keyType, keyStrings, function():void {
+						var dataVector:Vector.<String> = Vector.<String>(VectorUtils.getItems(data, keyStrings, []));
+						setRecords(cachedColumn, keysVector, dataVector);
+					}, keysVector);
+					return data;
+				});
+				
+				proxyColumn.setInternalColumn(cachedColumn);
 			}
 			else if (table == TABLE_DOC_WEIGHTS)
 			{
-				var topicDocWeights:Object = getTopicDocWeights(collection);
-				data = topicDocWeights && topicDocWeights[column];
-				dataType = DataType.NUMBER;
+				// make sure rpc gets called and columns get filled
+				getTopicDocWeights(collection);
+				
+				proxyColumn.setInternalColumn(getCachedColumn(collection, table, column, NumberColumn, metadata));
 			}
 			else if (table == TABLE_NODES)
 			{
 				proxyColumn.setInternalColumn(getNodeColumn(collection, column));
-				return;
 			}
-			
-			if (!data)
+			else
 			{
 				proxyColumn.dataUnavailable();
-				return;
 			}
-			
-			try
-			{
-				var keyType:String = getKeyType(collection);
-				var keyStrings:Array = VectorUtils.getKeys(data);
-				var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-				var setRecords:Function = function():void
-				{
-					if (ObjectUtil.stringCompare(dataType, DataType.NUMBER, true) == 0)
-					{
-						var values:Array = keyStrings.map(function(keyString:String, i:int, a:Array):Number {
-							return data[keyString];
-						});
-						var newNumericColumn:NumberColumn = getCachedColumn(collection, table, column, NumberColumn, metadata);
-						newNumericColumn.setRecords(keysVector, Vector.<Number>(values));
-						proxyColumn.setInternalColumn(newNumericColumn);
-					}
-					else if (ObjectUtil.stringCompare(dataType, DataType.DATE, true) == 0)
-					{
-						var values:Array = keyStrings.map(function(keyString:String, i:int, a:Array):String {
-							return data[keyString];
-						});
-						var newDateColumn:DateColumn = getCachedColumn(collection, table, column, DateColumn, metadata);
-						newDateColumn.setRecords(keysVector, Vector.<String>(values));
-						proxyColumn.setInternalColumn(newDateColumn);
-					}
-					else
-					{
-						var values:Array = keyStrings.map(function(keyString:String, i:int, a:Array):String {
-							return data[keyString];
-						});
-						var newStringColumn:StringColumn = getCachedColumn(collection, table, column, StringColumn, metadata);
-						newStringColumn.setRecords(keysVector, Vector.<String>(values));
-						proxyColumn.setInternalColumn(newStringColumn);
-					} 
-				};
-				
-				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, keyType, VectorUtils.getKeys(data), setRecords, keysVector);
-			}
-			catch (e:Error)
-			{
-				reportError(e);
-				trace(this,"handleGetAttributeColumn",Compiler.stringify(metadata),e.getStackTrace());
-			}
+		}
+		
+		private function setRecords(column:IAttributeColumn, keysVector:Vector.<IQualifiedKey>, dataVector:*):void
+		{
+			if (column is NumberColumn)
+				(column as NumberColumn).setRecords(keysVector, dataVector);
+			else if (column is DateColumn)
+				(column as DateColumn).setRecords(keysVector, dataVector);
+			else if (column is StringColumn)
+				(column as StringColumn).setRecords(keysVector, dataVector);
+			else
+				throw new Error("Unsupported column type " + getQualifiedClassName(column));
 		}
 	}
 }
