@@ -40,6 +40,11 @@ import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
 
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
+
 import weave.beans.ClassDiscriminationResult;
 import weave.beans.HierarchicalClusteringResult;
 import weave.beans.LinearRegressionResult;
@@ -383,6 +388,140 @@ public class RServiceUsingRserve
 				rConnection.close();
 		}
 		return result;
+	}
+
+	private static REXP buildEdgeList(String[] source, String[] target, double[] weights) throws RemoteException
+	{
+		if (source.length != target.length || target.length != weights.length)
+		{
+			throw new IllegalArgumentException("Mismatched lengths of edgelist arrays.");
+		}
+		Object[][] result = new Object[source.length][];
+		for (int idx = 0; idx < result.length; idx++)
+		{
+			result[idx] = new Object[] {source[idx], target[idx], new Double(weights[idx])};
+		}
+		return getREXP(result);
+	}
+	private static REXP buildNodeCoords(String[] nodes, double[] x_a, double[] y_a, String[] locked) throws RemoteException
+	{
+		if (nodes == null && x_a == null && y_a == null && locked == null)
+		{
+			return new REXPNull();
+		}
+		if (nodes.length != x_a.length || x_a.length != y_a.length)
+		{
+			throw new IllegalArgumentException("Mismatched lengths of node name and coordinate arrays");
+		}
+		
+		Object[][] result = new Object[nodes.length][];
+		Set<String> lockedSet = null;
+		if (locked != null)
+		{
+			if (locked.length == 0) return new REXPNull();
+			lockedSet = new HashSet<String>(locked.length);
+			for (int idx = 0; idx < locked.length; idx++) lockedSet.add(locked[idx]);	
+		}
+		
+		for (int idx = 0; idx < result.length; idx++)
+		{
+			Double x = new Double(x_a[idx]);
+			Double y = new Double(y_a[idx]);
+
+			if (lockedSet != null && !lockedSet.contains(nodes[idx]))
+			{
+				x = new Double(REXPDouble.NA);
+				y = new Double(REXPDouble.NA);
+			}
+			result[idx] = new Object[] {nodes[idx], x, y};
+		}
+		return getREXP(result);
+	}
+
+private static final String FORCE_DIRECTION_SCRIPT =
+"named_to_unnamed <- function (frame, names, value)\n"+
+"{\n"+
+"	env = new.env()\n"+
+"	env$new_matrix = matrix(value, nrow=length(names), ncol=2)\n"+
+"	mapping <- match(frame[,1], names)\n"+
+"	env$new_matrix[mapping,1:2] <- as.numeric(frame[,2:3])\n"+
+"	env$new_matrix[,1:2]\n"+
+"}\n"+
+"get_ordered_node_names <- function (edgelist)\n"+
+"{\n"+
+"	Q <- qgraph(edgelist, layout=\"circle\", DoNotPlot=TRUE)\n"+
+"	Q$graphAttributes$Nodes$names\n"+
+"}\n"+
+"layoutGraph <- function(edges, initial=NULL, overrides=NULL)\n"+
+"{\n"+
+"	nodeNames <- get_ordered_node_names(edges)\n"+
+"	if (!is.null(initial) && !is.null(overrides))\n"+
+"	{\n"+
+"		params <- list(	init=named_to_unnamed(initial, nodeNames, NA), \n"+
+"						constraints=named_to_unnamed(overrides, nodeNames, NA))\n"+
+"	}\n"+
+"	else\n"+
+"	{\n"+
+"		params <- list()\n"+
+"	}\n"+
+"	Q <- qgraph(edges, layout.par=params)#, DoNotPlot=TRUE)\n"+
+"	layout <- Q$layout.orig\n"+
+"	layout <- data.frame(Q$graphAttributes$Nodes$names, layout)\n"+
+"	colnames(layout) <- c(\"id\", \"X\", \"Y\")\n"+
+"	layout\n"+
+"}\n";
+
+	public static Map<String,double[]> doForceDirectedLayout(String[] source, String[] target, double[] weights, 
+																 String[] nodes, double[] x_a, double[] y_a, 
+																 String[] locked) throws RemoteException
+	{
+		RConnection rConnection = null;
+		locked = locked != null ? locked : new String[0];
+		Map<String,double[]> results = new HashMap<String,double[]>();
+		try
+		{
+			rConnection = getRConnection();
+
+			REXP edges = buildEdgeList(source, target, weights);
+			REXP initial = buildNodeCoords(nodes, x_a, y_a, null);
+			REXP overrides = buildNodeCoords(nodes, x_a, y_a, locked);
+
+			rConnection.assign("edges", edges);
+			rConnection.assign("initial", initial);
+			rConnection.assign("overrides", overrides);
+			rConnection.eval(FORCE_DIRECTION_SCRIPT);
+			rConnection.eval("layout <- layoutGraph(edges, initial, overrides)");
+
+			REXP name_vector = rConnection.eval("layout$id");
+			REXP x_vector = rConnection.eval("layout$X");
+			REXP y_vector = rConnection.eval("layout$Y");
+
+			String[] node_results = name_vector.asStrings();
+			double[] x_primitive = x_vector.asDoubles();
+			double[] y_primitive = y_vector.asDoubles();
+			
+
+			for (int idx = 0; idx < node_results.length; idx++)
+			{
+				double[] xy = new double[2];
+				String name = node_results[idx];
+
+				xy[0] = x_primitive[idx];
+				xy[1] = y_primitive[idx];
+				results.put(name, xy);
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			throw new RemoteException("Unable to perform qgraph force directed layout", e);
+		}
+		finally
+		{
+			if (rConnection != null)
+				rConnection.close();
+		}
+		return results;
 	}
 	
 	public static ClassDiscriminationResult doClassDiscrimination(String docrootPath, double[] dataX, double[] dataY, boolean flag) throws RemoteException

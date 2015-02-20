@@ -20,6 +20,7 @@
 package weave.servlets;
 
 import java.rmi.RemoteException;
+import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -195,6 +196,13 @@ public class RService extends WeaveServlet
 	public ClassDiscriminationResult doClassDiscrimintation(double[] dataX, double[] dataY, boolean flag) throws RemoteException
 	{
 		return RServiceUsingRserve.doClassDiscrimination(docrootPath, dataX, dataY, flag);
+	}
+
+	public Map<String,double[]> doForceDirectedLayout(String[] source, String[] target, double[] weights, 
+																 String[] nodes, double[] x_a, double[] y_a, 
+																 String[] locked) throws RemoteException
+	{
+		return RServiceUsingRserve.doForceDirectedLayout(source, target, weights, nodes, x_a, y_a, locked);
 	}
 	
 	public Object normalize(Object[][] data) throws RemoteException

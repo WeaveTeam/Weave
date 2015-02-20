@@ -1,0 +1,42 @@
+<project name="DocumentMapService" basedir=".">
+    <path id="classpath">
+        <fileset dir="lib" includes="**/*.jar"/>
+        <fileset dir="../WeaveServletUtils/lib/" includes="**/*.jar"/>
+        <pathelement path="../WeaveServletUtils/bin/classes"/>
+        <fileset dir="/usr/share/java/" includes="junit4.jar"/>
+        <fileset dir="/usr/share/java/" includes="servlet-api-2.5.jar"/>
+    </path>
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target name="build" depends="clean">
+		<echo message="Compiling ${ant.project.name}..."/>
+        <mkdir dir="bin/classes"/>
+        <javac srcdir="src" destdir="bin/classes" classpathref="classpath"
+                debug="true"
+                debuglevel="lines,vars,source"/>
+    </target>
+    <target name="dist" depends="build">
+        <mkdir dir="bin"/>
+        <war destfile="bin/DocumentMapService.war" webxml="WebContent/WEB-INF/web.xml">
+            <lib dir="lib/"/>
+            <lib dir="../WeaveServletUtils/lib"/>
+            <classes dir="bin/classes"/>
+            <classes dir="../WeaveServletUtils/bin/classes"/>
+            <webinf dir="WebContent/WEB-INF"/>
+            <metainf dir="WebContent/META-INF"/>
+            <fileset dir="WebContent/">
+                <include name="static/**/*"/>
+            </fileset>
+        </war>
+    </target>
+    <target name="doc">
+        <echo message="Building docs for ${ant.project.name}..."/>
+        <mkdir dir="${basedir}/javadoc/"/>
+        <javadoc destdir="${basedir}/javadoc/"
+            classpathref="classpath">
+            <fileset dir="${basedir}/" includes="**/*.java"/>
+            <fileset dir="${basedir}/../WeaveServletUtils/" includes="**/*.java"/>
+        </javadoc>
+    </target>
+</project>

@@ -91,7 +91,7 @@
 		}
 	</mx:Style>
 	 <mx:HBox  id="logoParentHBox" verticalAlign="middle" right="{menubar.getStyle('cornerRadius') + 3}" top="{(menubar.height) / 2}">
-	 	<ui:OICLogoPane id="oicLogo"/>
+	 	<ui:WeaveCopyrightPane id="oicLogo"/>
 	 </mx:HBox>       
 	
 
@@ -109,7 +109,7 @@
 			import weave.menus.ToolsMenu;
 			import weave.menus.WeaveMenuItem;
 			import weave.menus.WindowMenu;
-			import weave.ui.OICLogoPane;
+			import weave.ui.WeaveCopyrightPane;
 			
 			use namespace mx_internal;
 			

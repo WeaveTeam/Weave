@@ -1,0 +1,47 @@
+<html>
+<head>
+	<title>Document Map Test Page</title>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
+	<script src="http://demo.oicweave.org/weave-tools.js"></script>
+</head>
+<body>
+
+<p><h1>Create collection</h1>
+<input type="text" id="create_collection_name"/><input type="submit" id="createbutton"/>
+</p>
+
+<p><h1>Delete collection</h1>
+<input type="text" id="delete_collection_name"/><input type="submit" id="deletebutton"/>
+</p>
+
+<p><h1>List Collections</h1>
+<input type="submit" id="listbutton"/>
+<pre id="collection_list"/>
+</p>
+
+<p><h1>Add to collection</h1>
+<input type="file" id="add_file"/><input type="submit" id="adddocsbutton"/>
+</p>
+
+<p><h1>Remove from collection</h1>
+<input type="text" id="document_path"/><input type="submit" id="removedocsbutton"/>
+</p>
+<p><h1>List Documents in collection</h1>
+<input type="text" id="collection_name"/><input type="submit" id="listdocsbutton"/>
+
+<p><h1>Run topic discovery</h1>
+<input type="text" id="topic_count"/><input type="submit" id="topicbutton"/>
+</p>
+
+<p><h1>Run topic layout</h1>
+<input type="submit" id="layoutbutton"/>
+</p>
+
+
+<script>
+queryService("http://localhost:8080/DocumentMapService/", "listCollections", [], function (result, id) { console.log(result)}, 0);
+</script>
+</body>
+</html>
+

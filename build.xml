@@ -51,13 +51,14 @@
 		<copy todir="${WEAVE_DOCROOT}/../">
 			<fileset dir="${basedir}">
 			<include name="WeaveServices.war"/>
+			<include name="DocumentMapService.war"/>
 			</fileset>
 		</copy> 
 	</target>
 
 	<!-- This target will extract the swf files from the swc archives
 		and extract them to the WEAVE_DESTROOT -->
-	<target name="build" depends="client, admin, uispark, ui, data, core, api, services, exampleplugin">
+	<target name="build" depends="client, admin, uispark, ui, data, core, api, services, exampleplugin, documentmaps">
 		<mkdir dir="${WEAVE_DESTROOT}"/>
 		<build-html-wrapper project="${CLIENT}" swf="weave" title="Weave"/>
 		<build-html-wrapper project="${ADMIN}" swf="AdminConsole" title="Weave Admin Console"/>
@@ -74,6 +75,7 @@
 		<copy file="${basedir}/${ADMIN}/bin/AdminConsole.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf"/>
 		<copy file="${basedir}/${UI}/src/weave/visualization/tools/CytoscapeWebPopout.html" tofile="${WEAVE_DESTROOT}/CytoscapeWebPopout.html"/>
 		<copy file="${basedir}/${SERVICES}/bin/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
+		<copy file="${basedir}/${DOCMAPSERVICE}/bin/${DOCMAPSERVICE}.war" tofile="${basedir}/${DOCMAPSERVICE}.war"/>
 		<copy failonerror="false" file="${basedir}/${EXAMPLEPLUGIN}/bin/${EXAMPLEPLUGIN}.swc" tofile="${WEAVE_DESTROOT}/${EXAMPLEPLUGIN}.swc"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${FRAMEWORK_SWF}" tofile="${WEAVE_DESTROOT}/framework.swf"/>
 		<copy file="${FLEX_HOME}/frameworks/rsls/${RPC_SWF}" tofile="${WEAVE_DESTROOT}/rpc.swf"/>
@@ -113,6 +115,9 @@
 	<target name="services" depends="servletutils">
 		<ant dir="${basedir}/${SERVICES}" target="dist"/>
 	</target>
+	<target name="documentmaps" depends="servletutils">
+		<ant dir="${basedir}/${DOCMAPSERVICE}" target="dist"/>
+	</target>
 
 	<!-- This target calls the clean targets of each project's build file -->
 	<target name="clean">
@@ -131,6 +136,7 @@
 		<ant dir="${basedir}/${SERVICES}" target="clean" />
 		<ant dir="${basedir}/${EXAMPLEPLUGIN}" target="clean" />
 		<ant dir="${basedir}/${SERVLETUTILS}" target="clean" />
+		<ant dir="${basedir}/${DOCMAPSERVICE}" target="clean" />
 	</target>
 
 	<macrodef name="build-html-wrapper">
