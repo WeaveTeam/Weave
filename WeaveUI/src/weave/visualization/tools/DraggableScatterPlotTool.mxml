@@ -108,7 +108,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function showDocumentToolTip(e:DocumentSummaryEvent):void
 			{
-				var imageURL:String = plotter.thumbnails.getValueFromKey(e.imageKey, String);
+				var imageURL:String = String(plotter.thumbnails.getValueFromKey(e.imageKey, String));
 				DocumentSummaryComponent.show(e.xPos,e.yPos,e.docTitle,this,imageURL);
 			}
 			
@@ -123,7 +123,14 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				if( docLink == null )
 					return;
 				if( ExternalInterface.available )
-					ExternalInterface.call("open", docLink, "_blank", "width=300,height=400,left=100,top=200");
+				{
+					try{
+						ExternalInterface.call("open", docLink, "_blank", "width=800,height=800,left=100,top=200");
+					}
+					catch(e:Error) 
+					{
+					}
+				}
 			}
 			
 			override public function initSelectableAttributes(input:Array):void
