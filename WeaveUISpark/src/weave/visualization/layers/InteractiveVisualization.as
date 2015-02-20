@@ -235,10 +235,12 @@ package weave.visualization.layers
 			handleMouseEvent(event);
 		}
 		
-		
+		private var doubleClicked:Boolean = false;
 		protected function handleDoubleClick(event:MouseEvent):void
 		{
+			doubleClicked = true;
 			handleMouseEvent(event);
+			doubleClicked = false;
 		}
 		
 		private var hack_mouseDownSelectionState:Object = null;
@@ -333,7 +335,6 @@ package weave.visualization.layers
 				{
 					if (!mouseIsRolledOver)
 						return;
-					
 					inputType = InteractionController.INPUT_DCLICK;
 					break;
 				}
@@ -391,9 +392,15 @@ package weave.visualization.layers
 			else
 			{
 				// not dragging -- ok to update mouse mode
-				updateMouseMode(inputType);
+				if( !doubleClicked )
+					updateMouseMode(inputType);
+				else
+				{
+					_mouseMode = InteractionController.SELECT;
+					mouseDragActive = true;
+				}
+					
 			}
-			
 			var dragReleased:Boolean = mouseDragActive && !mouseEvent.buttonDown;
 			switch (_mouseMode)
 			{
@@ -406,7 +413,9 @@ package weave.visualization.layers
 				case InteractionController.SELECT:
 				{
 				   	if (mouseDragActive)
+					{
 						handleSelectionEvent(event, _mouseMode);
+					}
 					break;
 				}
 				case InteractionController.SELECT_REMOVE:
@@ -533,6 +542,7 @@ package weave.visualization.layers
 			}
 			
 			updateSelectionRectangleGraphics();
+			doubleClicked = false;
 		}
 		
 		private function selectAllVisibleRecords():void
@@ -869,6 +879,8 @@ package weave.visualization.layers
 					setSelectionKeys(name, keys);
 				if( draggingPlotter != null )
 				{
+					if( doubleClicked )
+						dispatchEvent(new DocumentSummaryEvent(DocumentSummaryEvent.OPEN_DOCUMENT,0,0,"",keys[0]));
 					if( mouseDown && !selectionRectangleExists)
 					{
 						if( keys.length == 1 && !draggingPlotter.isDragging)

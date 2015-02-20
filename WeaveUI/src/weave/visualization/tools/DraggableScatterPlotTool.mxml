@@ -103,6 +103,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				visualization.addEventListener(DocumentSummaryEvent.DISPLAY_DOCUMENT, showDocumentToolTip);
 				visualization.addEventListener(DocumentSummaryEvent.HIDE_DOCUMENT, hideDocumentToolTip);
+				visualization.addEventListener(DocumentSummaryEvent.OPEN_DOCUMENT, openExternalDocument);
 			}
 			
 			private function showDocumentToolTip(e:DocumentSummaryEvent):void
@@ -114,6 +115,15 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private function hideDocumentToolTip(e:DocumentSummaryEvent):void
 			{
 				DocumentSummaryComponent.hide();
+			}
+			
+			private function openExternalDocument(e:DocumentSummaryEvent):void
+			{
+				var docLink:String = plotter.docLinks.getValueFromKey(e.imageKey);
+				if( docLink == null )
+					return;
+				if( ExternalInterface.available )
+					ExternalInterface.call("open", docLink, "_blank", "width=300,height=400,left=100,top=200");
 			}
 			
 			override public function initSelectableAttributes(input:Array):void

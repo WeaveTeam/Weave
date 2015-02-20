@@ -43,6 +43,7 @@
 					colorCol.columnWrapper = null;
 					sizeCol.dynamicObject = null;
 					thumbnailCol.dynamicObject = null;
+					docLinksCol.dynamicObject = null;
 				}
 				
 				target = object as DraggableScatterPlotPlotter;
@@ -69,6 +70,7 @@
 					colorCol.columnWrapper = target.fill.color;
 					sizeCol.dynamicObject = target.sizeBy;
 					thumbnailCol.dynamicObject = target.thumbnails;
+					docLinksCol.dynamicObject = target.docLinks;
 				}
 			}
 			
@@ -165,6 +167,7 @@
 	<ui:DynamicColumnComponent id="colorCol" label="{lang('Color')}" showLinkControl="false"/>
 	<ui:DynamicColumnComponent id="sizeCol" label="{lang('Size')}"/>
 	<ui:DynamicColumnComponent id="thumbnailCol" label="{lang('Thumbnails')}"/>
+	<ui:DynamicColumnComponent id="docLinksCol" label="{lang('Document Links')}"/>
 	<ui:Indent label="{lang('Point size')}">
 		<mx:HSlider id="sizeBySlider" width="100%" change="handleSizeSliderChange(event)"
 					liveDragging="true" maximum="60" minimum="1"

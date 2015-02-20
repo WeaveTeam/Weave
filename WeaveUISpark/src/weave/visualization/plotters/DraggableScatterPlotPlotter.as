@@ -70,13 +70,14 @@ package weave.visualization.plotters
 		
 		public function getSelectableAttributeNames():Array
 		{
-			return ["X", "Y", "Color", "Size", "Thumbnails"];
+			return ["X", "Y", "Color", "Size", "Thumbnails", "Document Links"];
 		}
 		public function getSelectableAttributes():Array
 		{
-			return [dataX, dataY, fill.color, sizeBy, thumbnails];
+			return [dataX, dataY, fill.color, sizeBy, thumbnails, docLinks];
 		}
 		
+		public const docLinks:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const thumbnails:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const sizeBy:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));

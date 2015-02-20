@@ -8,6 +8,7 @@ package weave.utils
 	{
 		public static const DISPLAY_DOCUMENT:String = "displayDocument";
 		public static const HIDE_DOCUMENT:String = "hideDocument";
+		public static const OPEN_DOCUMENT:String = "openDocument";
 		
 		public var xPos:Number;
 		public var yPos:Number;
