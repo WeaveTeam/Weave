@@ -118,10 +118,10 @@ package weave.data.DataSources
 		private function getTopicWordsColumn(collectionName:String):StringColumn
 		{
 			// rpc returns topicID -> wordsArray
-			return rpc('getTopics', [collectionName], function(topicIdToWords:Object):StringColumn {
+			return rpc('getTopicWords', [collectionName], function(topicIdToWords:Object):StringColumn {
 				var topicIDs:Array = VectorUtils.getKeys(topicIdToWords);
 				var topicWords:Array = topicIDs.map(function(topicID:String, i:int, a:Array):Array {
-					return topicIdToWords[topicID];
+					return topicIdToWords[topicID].source;
 				});
  				var sc:StringColumn = registerDisposableChild(_service, new StringColumn({title: lang('Topic Words')}));
 				var keys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
@@ -172,7 +172,7 @@ package weave.data.DataSources
 											source: source,
 											label: lang('Documents'),
 											children: function():Array {
-												var docPropertyColumns:Array = ['title'].map(function(docProperty:String, i:int, a:Array):Object {
+												var docPropertyColumns:Array = ['title', 'modifiedTime'].map(function(docProperty:String, i:int, a:Array):Object {
 													var meta:Object = {
 														title: lang('Document {0}', docProperty),
 														keyType: keyType,
@@ -262,6 +262,7 @@ package weave.data.DataSources
 
 			var data:Object;
 			var dataType:String;
+			//weaveTrace(debugId(proxyColumn), collectionName, docProperty, topic);
 			if (docProperty)
 			{
 				data = rpc('getDocMetadata', [collectionName, docProperty]);
@@ -284,26 +285,32 @@ package weave.data.DataSources
 			{
 				var keyType:String = getKeyType(collectionName);
 				var keyStrings:Array = VectorUtils.getKeys(data);
-				var values:Array = keyStrings.map(function(keyString:String, i:int, a:Array):Array {
-					return data[keyString];
-				});
 				var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 				var setRecords:Function = function():void
 				{
 					if (ObjectUtil.stringCompare(dataType, DataType.NUMBER, true) == 0)
 					{
+						var values:Array = keyStrings.map(function(keyString:String, i:int, a:Array):Number {
+							return data[keyString];
+						});
 						var newNumericColumn:NumberColumn = new NumberColumn(metadata);
 						newNumericColumn.setRecords(keysVector, Vector.<Number>(values));
 						proxyColumn.setInternalColumn(newNumericColumn);
 					}
 					else if (ObjectUtil.stringCompare(dataType, DataType.DATE, true) == 0)
 					{
+						var values:Array = keyStrings.map(function(keyString:String, i:int, a:Array):String {
+							return data[keyString];
+						});
 						var newDateColumn:DateColumn = new DateColumn(metadata);
 						newDateColumn.setRecords(keysVector, Vector.<String>(values));
 						proxyColumn.setInternalColumn(newDateColumn);
 					}
 					else
 					{
+						var values:Array = keyStrings.map(function(keyString:String, i:int, a:Array):String {
+							return data[keyString];
+						});
 						var newStringColumn:StringColumn = new StringColumn(metadata);
 						newStringColumn.setRecords(keysVector, Vector.<String>(values));
 						proxyColumn.setInternalColumn(newStringColumn);

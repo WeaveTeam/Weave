@@ -38,7 +38,9 @@ public class DocumentMapService extends WeaveServlet
 	private DocumentCollection getCollection(String name)
 	{
 		ServletContext application = config.getServletContext();
-		return new DocumentCollection(Paths.get(application.getInitParameter("collectionsPath"), name));
+		/* TODO: Figure out the 'right way' to get the deployment directory. */
+		Path servletPath = Paths.get("webapps", application.getServletContextName());
+		return new DocumentCollection(Paths.get(application.getInitParameter("collectionsPath"), name), servletPath.toAbsolutePath());
 	}
 	public void createCollection(String name) throws RemoteException
 	{
@@ -205,9 +207,17 @@ public class DocumentMapService extends WeaveServlet
 		try
 		{
 			if (Strings.equal(property, "title"))
+			{
 				return getCollection(collectionName).getTitles();
-			
-			return Collections.emptyMap();
+			}
+			else if (Strings.equal(property, "modifiedTime"))
+			{
+				return getCollection(collectionName).getModifiedTimes();
+			}
+			else
+			{
+				return Collections.emptyMap();
+			}
 		}
 		catch (Exception e)
 		{

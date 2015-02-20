@@ -50,9 +50,11 @@ public class DocumentCollection
 	private static final String META_PATH = "meta";
 
 	private Path path;
-	public DocumentCollection(Path path)
+	private Path servletPath;
+	public DocumentCollection(Path path, Path servletPath)
 	{
 		this.path = path;
+		this.servletPath = servletPath;
 	}
 
 	public boolean exists()
@@ -230,9 +232,29 @@ public class DocumentCollection
 
 /* docears heuristic metadata extraction. */
 /* TODO: This belongs in a database. */
+	public Map<String,String> getModifiedTimes() throws IOException
+	{
+		final Map<String,String> times = new HashMap<String,String>();
+		Files.walkFileTree(path.resolve(DOCUMENT_PATH), new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+			{
+				try {
+					Path relativePath = path.resolve(DOCUMENT_PATH).relativize(file);
+					FileTime time = Files.getLastModifiedTime(file);
+					times.put(relativePath.toString(), time.toString());
+				}
+				catch (Exception e)
+				{
+					System.err.println("Failed to retrieve modification datestamp: " + e.toString());
+				}
+				return FileVisitResult.CONTINUE;
+			}
+		});
+		return times;
+	}
 	public Map<String,String> getTitles() throws IOException
 	{
-
 		final Map<String,String> titles = new HashMap<String,String>();
 		Files.walkFileTree(path.resolve(DOCUMENT_PATH), new SimpleFileVisitor<Path>() {
 			@Override
@@ -325,7 +347,7 @@ public class DocumentCollection
 		// Pipes: lowercase, tokenize, remove stopwords, map to features
 		pipeList.add( new CharSequence2TokenSequence(Pattern.compile("\\p{L}[\\p{L}\\p{P}]+\\p{L}")) );
         pipeList.add( new TokenSequenceLowercase() );
-        pipeList.add( new TokenSequenceRemoveStopwords(path.resolve("../stoplists/en.txt").toFile(), "UTF-8", false, false, false) );
+        pipeList.add( new TokenSequenceRemoveStopwords(servletPath.resolve("static").resolve("en.txt").toFile(), "UTF-8", false, false, false) );
         pipeList.add( new TokenSequence2FeatureSequence() );
 
         instances.setPipe(new SerialPipes(pipeList));
