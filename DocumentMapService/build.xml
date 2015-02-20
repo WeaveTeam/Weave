@@ -17,6 +17,7 @@
                 debuglevel="lines,vars,source"/>
     </target>
     <target name="dist" depends="build">
+		<echo message="Deploying DocumentMapService..."/>
         <mkdir dir="bin"/>
         <war destfile="bin/DocumentMapService.war" webxml="WebContent/WEB-INF/web.xml">
             <lib dir="lib/"/>

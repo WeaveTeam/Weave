@@ -198,6 +198,8 @@ public class RService extends WeaveServlet
 		return RServiceUsingRserve.doClassDiscrimination(docrootPath, dataX, dataY, flag);
 	}
 
+	// docId, topicId, weight, null, null, null, null
+	// returns nodeId -> [x, y]
 	public Map<String,double[]> doForceDirectedLayout(String[] source, String[] target, double[] weights, 
 																 String[] nodes, double[] x_a, double[] y_a, 
 																 String[] locked) throws RemoteException
