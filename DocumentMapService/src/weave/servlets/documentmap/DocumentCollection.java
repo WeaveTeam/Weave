@@ -38,6 +38,11 @@ import org.apache.tika.Tika;
 /* Dependencies for PDF title extraction */
 import org.docear.pdf.*;
 
+import javax.servlet.*;
+import javax.servlet.http.*;
+import weave.servlets.WeaveServlet;
+import weave.servlets.WeaveServlet.ServletRequestInfo;
+
 public class DocumentCollection
 {
 	private static final String UPLOAD_PATH = "uploads";
@@ -61,7 +66,7 @@ public class DocumentCollection
 	{
 		return Files.exists(path);
 	}
-
+/*TODO: only walk filetree once and cache list of documents */
 	public void addZip(String fileName, InputStream stream) throws IOException, ZipException, IllegalStateException
 	{
 		int file_count = 0;
@@ -228,6 +233,49 @@ public class DocumentCollection
 				return FileVisitResult.CONTINUE;
 			}
 		});
+	}
+
+	private final int STREAM_CHUNK_SIZE = 2048;
+	private int copyStream(InputStream in, OutputStream out) throws IOException
+	{
+		byte b[] = new byte[STREAM_CHUNK_SIZE];
+		int total_length = 0;
+		int read_length = -1;
+		while ((read_length = in.read(b, 0, STREAM_CHUNK_SIZE)) != -1)
+		{
+			out.write(b, 0, read_length);
+			total_length += read_length;
+		}
+		return total_length;
+	}
+
+/* Thumbnail and document column requests */
+/* TODO: verify that document does not walk outside the collection folder. */
+
+	private void serveFile(Path inputPath, String mime, ServletRequestInfo info) throws IOException
+	{
+		ServletOutputStream outputStream = info.getOutputStream();
+		HttpServletResponse response = info.response;
+		response.setContentType(mime);		
+		InputStream inputStream = Files.newInputStream(inputPath);
+		int length = copyStream(inputStream, outputStream);
+		response.setContentLength(length);
+		inputStream.close();
+		outputStream.flush();
+	}
+
+	public void getThumbnail(Path document, ServletRequestInfo info) throws IOException
+	{	
+		Path inputPath = PathUtils.replaceExtension(path.resolve(THUMBNAIL_PATH).resolve(document), "jpg");
+		serveFile(inputPath, "image/jpeg", info);
+		return;
+	}
+
+	public void getDocument(Path document, ServletRequestInfo info) throws IOException
+	{
+		Path inputPath = path.resolve(DOCUMENT_PATH).resolve(document);
+		serveFile(inputPath, "application/pdf", info);
+		return;
 	}
 
 /* docears heuristic metadata extraction. */

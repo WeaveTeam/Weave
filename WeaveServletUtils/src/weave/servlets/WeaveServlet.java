@@ -243,7 +243,7 @@ public class WeaveServlet extends HttpServlet
 		}
 	}
 	
-	private static class ServletRequestInfo
+	public static class ServletRequestInfo
 	{
 		public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response) throws IOException
 		{
@@ -285,7 +285,7 @@ public class WeaveServlet extends HttpServlet
 		return getServletRequestInfo().getOutputStream();
 	}
 	
-	private ServletRequestInfo getServletRequestInfo()
+	protected ServletRequestInfo getServletRequestInfo()
 	{
 		synchronized (_servletRequestInfo)
 		{

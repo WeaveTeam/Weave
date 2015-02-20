@@ -188,6 +188,30 @@ public class DocumentMapService extends WeaveServlet
 		}
 	}
 
+	public void getThumbnail(String collectionName, String document) throws RemoteException
+	{
+		try
+		{
+			getCollection(collectionName).getThumbnail(Paths.get(document), getServletRequestInfo());
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Failed to retrieve thumbnail.", e);
+		}
+	}
+
+	public void getDocument(String collectionName, String document) throws RemoteException
+	{
+		try
+		{
+			getCollection(collectionName).getDocument(Paths.get(document), getServletRequestInfo());
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Failed to retrieve document.", e);
+		}
+	}
+
 	// topicID -> list of words for that topic
 	public Map<String,List<String>> getTopicWords(String collectionName) throws RemoteException
 	{
