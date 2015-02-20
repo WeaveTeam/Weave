@@ -2,6 +2,7 @@ package weave.servlets;
 
 import java.nio.file.*;
 import java.nio.file.attribute.*;
+import java.io.*;
 
 public class PathUtils
 {
@@ -13,7 +14,14 @@ public class PathUtils
 		{
 			if (name.lastIndexOf(ILLEGAL_CHARACTERS[idx]) != -1) return false;
 		}
-		return true;
+
+		return !name.equals("..") && true;
+	}
+	public static boolean isChildOf(Path parent, Path child) throws IOException
+	{
+		parent = parent.toAbsolutePath(); /* Get the full, actual path of both arguments */
+		child = child.toAbsolutePath();
+		return child.startsWith(parent);
 	}
 
 	public static Path replaceExtension(Path path, String newExtension)

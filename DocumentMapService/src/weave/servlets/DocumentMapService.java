@@ -35,12 +35,12 @@ public class DocumentMapService extends WeaveServlet
 		this.config = config;
 		super.init(config);
 	}
-	private DocumentCollection getCollection(String name)
+	private DocumentCollection getCollection(String name) throws IOException
 	{
 		ServletContext application = config.getServletContext();
 		/* TODO: Figure out the 'right way' to get the deployment directory. */
 		Path servletPath = Paths.get("webapps", application.getServletContextName());
-		return new DocumentCollection(Paths.get(application.getInitParameter("collectionsPath"), name), servletPath.toAbsolutePath());
+		return new DocumentCollection(Paths.get(application.getInitParameter("collectionsPath")), name, servletPath.toAbsolutePath());
 	}
 	public void createCollection(String name) throws RemoteException
 	{

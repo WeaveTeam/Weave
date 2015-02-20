@@ -56,9 +56,10 @@ public class DocumentCollection
 
 	private Path path;
 	private Path servletPath;
-	public DocumentCollection(Path path, Path servletPath)
+	public DocumentCollection(Path basePath, String name, Path servletPath) throws IOException
 	{
-		this.path = path;
+		if (!PathUtils.filenameIsLegal(name)) throw new IOException("Collection name contains unsafe or invalid characters.");
+		this.path = basePath.resolve(name);
 		this.servletPath = servletPath;
 	}
 
@@ -71,6 +72,8 @@ public class DocumentCollection
 	{
 		int file_count = 0;
 		Path zipPath = path.resolve(UPLOAD_PATH).resolve(fileName);
+		if (!PathUtils.filenameIsLegal(fileName) || !PathUtils.isChildOf(path.resolve(UPLOAD_PATH), zipPath))
+			throw new IOException("Filename contains unsafe or invalid characters or path elements.");
 		if (stream != null) Files.copy(stream, zipPath); /* For the case where it's a local zip file. */
 		ZipFile zip = new ZipFile(zipPath.toFile());
 		try
@@ -103,12 +106,13 @@ public class DocumentCollection
 	public void addDocument(Path file, InputStream stream) throws IOException
 	{
 		Path filePath = path.resolve(DOCUMENT_PATH).resolve(file);
+		if (!PathUtils.isChildOf(path.resolve(DOCUMENT_PATH), filePath))
+			throw new IOException("File path "+filePath.toString()+" refers to a location above the parent directory.");
 		Files.copy(stream, filePath);
 	}
 
 	public void create() throws IOException
 	{
-		if (!PathUtils.filenameIsLegal(path.getFileName().toString())) throw new IOException("Filename contains unsafe or invalid characters.");
 		if (Files.exists(path)) throw new IOException("Collection by that name already exists.");
 
 		Files.createDirectories(path.resolve(UPLOAD_PATH));
@@ -117,33 +121,30 @@ public class DocumentCollection
 		Files.createDirectories(path.resolve(TXT_PATH));
 		Files.createDirectories(path.resolve(META_PATH));
 		Files.createDirectories(path.resolve(THUMBNAIL_PATH));
-
-		/*TODO: Add DOCUMENT_PATH->static/ symlinks where supported.*/
 	}
 
 	public void remove() throws IOException
 	{
-			if (!PathUtils.filenameIsLegal(path.getFileName().toString())) throw new IOException("Filename contains unsafe or invalid characters.");
-			if (!Files.exists(path)) throw new FileNotFoundException();
-			Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
-				{
-					Files.delete(file);
-					return FileVisitResult.CONTINUE;
+		if (!Files.exists(path)) throw new FileNotFoundException();
+		Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+			{
+				Files.delete(file);
+				return FileVisitResult.CONTINUE;
+			}
+			@Override
+			public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException
+			{
+				if (e == null) {
+				    Files.delete(dir);
+				    return FileVisitResult.CONTINUE;
+				} else {
+				    // directory iteration failed
+				    throw e;
 				}
-				@Override
-				public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException
-				{
-					if (e == null) {
-					    Files.delete(dir);
-					    return FileVisitResult.CONTINUE;
-					} else {
-					    // directory iteration failed
-					    throw e;
-					}
-				}
-			});
+			}
+		});
 	}
 
 /* TIKA text extraction */
@@ -332,8 +333,12 @@ public class DocumentCollection
 		/* TODO check if it already exists when overwrite is false before doing the extraction */
 		Path inputPath = path.resolve(DOCUMENT_PATH).resolve(document);
 		Path outputPath = PathUtils.replaceExtension(path.resolve(META_PATH).resolve(document), "txt");
+
+		if (!overwrite && Files.exists(outputPath)) return;
+
 		PdfDataExtractor pdfExtractor = new PdfDataExtractor(inputPath.toFile());
 		String title = pdfExtractor.extractTitle();
+
 		Files.createDirectories(outputPath.getParent());
 		Files.deleteIfExists(outputPath);
 		Files.write(outputPath, title.getBytes(), StandardOpenOption.CREATE);
@@ -369,7 +374,11 @@ public class DocumentCollection
 		ArrayList<Pipe> pipeList = new ArrayList<Pipe>();
 		final Set<File> alreadyAdded = new HashSet<File>();
 
-		if (!new_db)
+		if (new_db || !Files.exists(dbPath))
+		{
+			instances = new InstanceList();	
+		}
+		else
 		{
 			instances = InstanceList.load(dbPath.toFile());
 			for (Instance instance : instances)
@@ -385,10 +394,6 @@ public class DocumentCollection
 					throw new IOException("Instance did not have a File name.");
 				}
 			}
-		}
-		else
-		{
-			instances = new InstanceList();
 		}
 		// Read from file
 		pipeList.add( new Input2CharSequence("UTF-8") );
