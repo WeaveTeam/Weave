@@ -21,5 +21,8 @@
 			<attribute name="owner.project.facets" value="java"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/isrt-4.10.jar"/>
+	<classpathentry kind="lib" path="lib/jpod-5.3.jar"/>
+	<classpathentry kind="lib" path="lib/iscwt-5.5.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
