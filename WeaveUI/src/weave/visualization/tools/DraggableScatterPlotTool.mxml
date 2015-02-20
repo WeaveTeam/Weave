@@ -108,7 +108,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function showDocumentToolTip(e:DocumentSummaryEvent):void
 			{
-				var imageURL:String = plotter.thumbnails.getValueFromKey(e.imageKey);
+				var imageURL:String = plotter.thumbnails.getValueFromKey(e.imageKey, String);
 				DocumentSummaryComponent.show(e.xPos,e.yPos,e.docTitle,this,imageURL);
 			}
 			
@@ -119,7 +119,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			
 			private function openExternalDocument(e:DocumentSummaryEvent):void
 			{
-				var docLink:String = plotter.docLinks.getValueFromKey(e.imageKey);
+				var docLink:String = plotter.docLinks.getValueFromKey(e.imageKey, String);
 				if( docLink == null )
 					return;
 				if( ExternalInterface.available )
