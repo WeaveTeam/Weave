@@ -504,7 +504,13 @@ package weave.data.DataSources
 
 			var cachedColumn:IAttributeColumn = getCachedColumn(collection, table, column);
 			if (cachedColumn)
+			{
 				proxyColumn.setInternalColumn(cachedColumn);
+				var newMeta:Object = {};
+				for each (var prop:String in META_ID_FIELDS)
+					newMeta[prop] = metadata[prop];
+				proxyColumn.setMetadata(newMeta);
+			}
 			else
 				proxyColumn.dataUnavailable();
 		}
