@@ -800,8 +800,8 @@ package weave.core
 					var triggerCount:int = _dUnbusyTriggerCounts[owner];
 					delete _dUnbusyTriggerCounts[owner]; // affects next for loop iteration - mitigated by outer loop
 					
-					var cc:CallbackCollection = CallbackCollection(getCallbackCollection(owner));
-					if (cc.wasDisposed)
+					var cc:ICallbackCollection = getCallbackCollection(owner);
+					if (cc is CallbackCollection ? (cc as CallbackCollection).wasDisposed : objectWasDisposed(owner))
 						continue; // already disposed
 					
 					if (cc.triggerCounter != triggerCount)
