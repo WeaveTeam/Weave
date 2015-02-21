@@ -88,6 +88,12 @@ public class DocumentCollection
 				}
 				else
 				{
+					String lcFileName = entryPath.getFileName().toString().toLowerCase();
+					if (!lcFileName.endsWith(".pdf"))
+					{
+						System.err.println("Zip entry \"" + entryPath.toString() + "\" is not a PDF; skipping extraction.");
+						continue;
+					}
 					addDocument(entryPath, zip.getInputStream(entry));
 				}
 			}
