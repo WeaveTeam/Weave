@@ -248,6 +248,8 @@ package weave.data.DataSources
 						var keys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 						(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(cachedColumn, getKeyType(collection), topicIDs, function():void {
 							setRecords(cachedColumn, keys, Vector.<String>(topicWords));
+							for each (var topicID:String in topicIDs)
+								getCachedColumn(collection, TABLE_DOC_WEIGHTS, topicID);
 						}, keys);
 						return topicIdToWords;
 					});
