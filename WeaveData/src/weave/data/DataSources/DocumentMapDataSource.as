@@ -340,8 +340,12 @@ package weave.data.DataSources
 					var y:Array;
 					var locked:Array;
 					
+					// wait until not busy
+					if (linkableObjectIsBusy(xColumn) || linkableObjectIsBusy(yColumn))
+						return;
+					
 					var lv:LinkableVariable = fixedNodePositions.getObject(collection) as LinkableVariable;
-					if (lv && !linkableObjectIsBusy(xColumn) && !linkableObjectIsBusy(yColumn) && xColumn.keys)
+					if (lv && xColumn.keys)
 					{
 						nodes = [];
 						x = [];
@@ -378,6 +382,8 @@ package weave.data.DataSources
 							var outputKeys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 							(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(_rService, getKeyType(collection), keys, function():void {
 								var values:Array = VectorUtils.getItems(nodeIdToXY, keys, []);
+								xColumn.removeCallback(updateNodes);
+								yColumn.removeCallback(updateNodes);
 								xColumn.setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '0')));
 								yColumn.setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '1')));
 							}, outputKeys);
