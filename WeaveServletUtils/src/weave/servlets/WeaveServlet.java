@@ -243,7 +243,7 @@ public class WeaveServlet extends HttpServlet
 		}
 	}
 	
-	protected static class ServletRequestInfo
+	public static class ServletRequestInfo
 	{
 		public ServletRequestInfo(HttpServletRequest request, HttpServletResponse response) throws IOException
 		{
