@@ -333,7 +333,7 @@ package weave.visualization.plotters
 			{
 				//trace("Dragging happening  " + keyBeingDragged.localName);
 				tempDictionary = movedDataPoints.getSessionState();
-				tempDictionary[keyBeingDragged.localName] = tempDragPoint;
+				tempDictionary[keyBeingDragged.localName] = {x: tempDragPoint.x, y: tempDragPoint.y};
 				movedDataPoints.setSessionState(tempDictionary);
 			}
 		}
@@ -345,7 +345,7 @@ package weave.visualization.plotters
 			if(keyBeingDragged != null )
 			{
 				tempDictionary = movedDataPoints.getSessionState();
-				tempDictionary[keyBeingDragged.localName] = endPoint;
+				tempDictionary[keyBeingDragged.localName] = {x: endPoint.x, y: endPoint.y};
 				movedDataPoints.setSessionState(tempDictionary);
 			}
 			keyBeingDragged = null;

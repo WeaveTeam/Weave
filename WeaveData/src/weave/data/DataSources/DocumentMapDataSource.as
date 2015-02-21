@@ -38,6 +38,7 @@ package weave.data.DataSources
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerDisposableChild;
@@ -334,7 +335,7 @@ package weave.data.DataSources
 					var xColumn:NumberColumn = NumberColumn(getCachedColumn(collection, TABLE_NODES, COLUMN_NODE_X));
 					var yColumn:NumberColumn = NumberColumn(getCachedColumn(collection, TABLE_NODES, COLUMN_NODE_Y));
 					var lv:LinkableVariable = fixedNodePositions.getObject(collection) as LinkableVariable;
-					if (lv)
+					if (lv && !linkableObjectIsBusy(xColumn) && !linkableObjectIsBusy(yColumn) && xColumn.keys)
 					{
 						nodes = [];
 						x = [];
@@ -343,7 +344,7 @@ package weave.data.DataSources
 						
 						var finalPositions:Object = {};
 						for each (var k:IQualifiedKey in xColumn.keys)
-							finalPositions[k.localName] = new Point(xColumn.getValueFromKey(k, Number), yColumn.getValueFromKey(k, Number));
+							finalPositions[k.localName] = {x: xColumn.getValueFromKey(k, Number), y: yColumn.getValueFromKey(k, Number)};
 						var state:Object = lv.getSessionState(); // nodeID -> Point
 						for (var ln:String in state)
 						{
@@ -356,7 +357,7 @@ package weave.data.DataSources
 							x.push(finalPositions[f].x);
 							y.push(finalPositions[f].y);
 						}
-						for each (var topicID:String in topicIDs)
+						for each (var topicID:String in VectorUtils.union(topicIDs))
 							locked.push(topicID);
 					}
 					
