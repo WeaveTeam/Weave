@@ -21,7 +21,8 @@ package weave.data.DataSources
 {
 	import avmplus.getQualifiedClassName;
 	
-	import mx.rpc.AsyncToken;
+	import flash.geom.Point;
+	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
@@ -43,8 +44,8 @@ package weave.data.DataSources
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
-	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
+	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.AbstractAttributeColumn;
@@ -98,7 +99,12 @@ package weave.data.DataSources
 		private var _rService:AMF3Servlet = null;
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/DocumentMapService/'));
 		public const rServiceUrl:LinkableString = registerLinkableChild(this, new LinkableString('http://corsac.binaryden.net:8080/WeaveServices/RService'));
-		public const fixedNodePositions:LinkableVariable = newLinkableChild(this, LinkableVariable, updateNodePositions, true);
+		private var _cache:Object = {};
+		
+		/**
+		 * collectionName -> LinkableVariable( Object mapping nodeID -> {x: ?, y: ?} )
+		 */
+		public const fixedNodePositions:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableVariable), updateNodePositions, true);
 		
 		private function handleURLChange():void
 		{
@@ -139,11 +145,10 @@ package weave.data.DataSources
 		
 		override public function refreshHierarchy():void
 		{
-			super.refreshHierarchy();
 			_cache = {};
+			super.refreshHierarchy();
 		}
 		
-		private var _cache:Object = {};
 		/**
 		 * @param resultCastFunction A function like function(result:Object):Object which converts the raw servlet result to another format.
 		 */
@@ -174,7 +179,6 @@ package weave.data.DataSources
 		{
 			return columnNames.map(function(column:String, i:int, a:Array):Object {
 				return {
-					//label: function():String { return getColumnMetadata(collection, table, column)[ColumnMetadata.TITLE]; },
 					source: this,
 					idFields: META_ID_FIELDS,
 					columnMetadata: getColumnMetadata(collection, table, column)
@@ -246,7 +250,7 @@ package weave.data.DataSources
 					rpc('getTopicWords', [collection], function(topicIdToWords:Object):Object {
 						var topicIDs:Array = VectorUtils.getKeys(topicIdToWords);
 						var topicWords:Array = topicIDs.map(function(topicID:String, i:int, a:Array):String {
-							return lang('{0}: {1}', topicID, topicIdToWords[topicID].source);
+							return lang('{0}: {1}', topicID, topicIdToWords[topicID].source.join(' '));
 						});
 						var keys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 						(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(cachedColumn, getKeyType(collection), topicIDs, function():void {
@@ -321,31 +325,74 @@ package weave.data.DataSources
 					}, keysVector);
 				});
 				
-				addAsyncResponder(
-					_rService.invokeAsyncMethod('doForceDirectedLayout', [docIDs, topicIDs, weights, null, null, null, null]),
-					function(event:ResultEvent, triggerCount:int):void {
-//						if (fixedNodePositions.triggerCounter != triggerCount)
-//							return;
-						// returns nodeId -> [x, y]
-						var nodeIdToXY:Object = event.result;
-						var keys:Array = VectorUtils.getKeys(nodeIdToXY);
-						var outputKeys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-						(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(_rService, getKeyType(collection), keys, function():void {
-							var values:Array = VectorUtils.getItems(nodeIdToXY, keys, []);
-							NumberColumn(getCachedColumn(collection, TABLE_NODES, COLUMN_NODE_X)).setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '0')));
-							NumberColumn(getCachedColumn(collection, TABLE_NODES, COLUMN_NODE_Y)).setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '1')));
-						}, outputKeys);
-					},
-					null,
-					fixedNodePositions.triggerCounter
-				);
-				updateNodePositions();
+				function updateNodes():void {
+					var nodes:Array;
+					var x:Array;
+					var y:Array;
+					var locked:Array;
+					
+					var xColumn:NumberColumn = NumberColumn(getCachedColumn(collection, TABLE_NODES, COLUMN_NODE_X));
+					var yColumn:NumberColumn = NumberColumn(getCachedColumn(collection, TABLE_NODES, COLUMN_NODE_Y));
+					var lv:LinkableVariable = fixedNodePositions.getObject(collection) as LinkableVariable;
+					if (lv)
+					{
+						nodes = [];
+						x = [];
+						y = [];
+						locked = [];
+						
+						var finalPositions:Object = {};
+						for each (var k:IQualifiedKey in xColumn.keys)
+							finalPositions[k.localName] = new Point(xColumn.getValueFromKey(k, Number), yColumn.getValueFromKey(k, Number));
+						var state:Object = lv.getSessionState(); // nodeID -> Point
+						for (var ln:String in state)
+						{
+							finalPositions[ln] = state[ln];
+							locked.push(ln);
+						}
+						for (var f:String in finalPositions)
+						{
+							nodes.push(f);
+							x.push(finalPositions[f].x);
+							y.push(finalPositions[f].y);
+						}
+						for each (var topicID:String in topicIDs)
+							locked.push(topicID);
+					}
+					
+					addAsyncResponder(
+						_rService.invokeAsyncMethod('doForceDirectedLayout', [docIDs, topicIDs, weights, nodes, x, y, locked]),
+						function(event:ResultEvent, triggerCount:int):void {
+							// returns nodeId -> [x, y]
+							var nodeIdToXY:Object = event.result;
+							var keys:Array = VectorUtils.getKeys(nodeIdToXY);
+							var outputKeys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+							(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(_rService, getKeyType(collection), keys, function():void {
+								var values:Array = VectorUtils.getItems(nodeIdToXY, keys, []);
+								xColumn.setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '0')));
+								yColumn.setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '1')));
+							}, outputKeys);
+						},
+						null,
+						fixedNodePositions.triggerCounter
+					);
+				}
+				_cache[updateNodes_cacheName(collection)] = updateNodes;
+				updateNodes();
 				return topicDocWeights;
 			});
 		}
 		
+		private function updateNodes_cacheName(collection:String):String { return Compiler.stringify(['updateNodes', collection]); }
+		
 		private function updateNodePositions():void
 		{
+			for each (var collection:String in fixedNodePositions.getNames())
+			{
+				var updateNodes:Function = _cache[updateNodes_cacheName(collection)] as Function;
+				if (updateNodes != null && detectLinkableObjectChange(updateNodes, fixedNodePositions.getObject(collection)))
+					updateNodes();
+			}
 		}
 		
 		// avoids recreating collection categories (tree collapse bug)
@@ -473,4 +520,9 @@ package weave.data.DataSources
 				throw new Error("Unsupported column type " + getQualifiedClassName(column));
 		}
 	}
+}
+
+internal class DocumentCollection
+{
+	
 }
