@@ -4,13 +4,13 @@ Use the static functions to show this as a popup.
 -->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 xmlns:infomap="weave.ui.infomap.*" 
-		 width="400" height="400" 
+		 width="200" height="250" 
 		 verticalScrollPolicy="off" 
 		 horizontalScrollPolicy="off" 
 		 paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5"
 		 visible="true"
 		 mouseChildren="false">
-	<mx:Fade target="{this}" id="fadeIn" alphaFrom="0.0" alphaTo="1.0" duration="700"/>
+	<mx:Fade target="{this}" id="fadeIn" alphaFrom="0.0" alphaTo="1.0" duration="1500"/>
 	<mx:Fade target="{this}" id="fadeOut" alphaFrom="1.0" alphaTo="0.0" duration="700"/>
 	
 	<mx:Script >
