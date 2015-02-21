@@ -51,6 +51,12 @@
 			Only embedded fonts are supported at this time.
 		</ui:HelpComponent>
 	</ui:Indent>
+	<ui:Indent label="{lang('Mouseover font:')}" group="{fontIndent}">
+		<ui:FontControl id="mouseoverFontControl"/>
+		<ui:HelpComponent>
+			These font settings are used for mouseover info.
+		</ui:HelpComponent>
+	</ui:Indent>
 	<ui:Indent label="{lang('Background color:')}" group="{fontIndent}">
 		<ui:CustomColorPicker creationComplete="linkBindableProperty(Weave.properties.backgroundColor, event.target, 'selectedColor')"/>
 	</ui:Indent>
@@ -101,6 +107,7 @@
 				visTitleFontControl.setTarget(Weave.properties.visTitleTextFormat);
 				axisTitleFontControl.setTarget(Weave.properties.axisTitleTextFormat);
 				visFontControl.setTarget(Weave.properties.visTextFormat);
+				mouseoverFontControl.setTarget(Weave.properties.mouseoverTextFormat);
 			}			
 		]]>
 	</mx:Script>

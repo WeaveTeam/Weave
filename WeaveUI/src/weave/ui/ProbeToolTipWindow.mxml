@@ -44,7 +44,7 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				Weave.properties.visTextFormat.bindStyle(this, this);
+				Weave.properties.mouseoverTextFormat.bindStyle(this, this);
 				WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, function():void {
 					keySetCombo.dataProvider = WeaveAPI.globalHashMap.getNames(KeySet);
 					keySetCombo.selectedItem = dynamicKeySet.globalName;

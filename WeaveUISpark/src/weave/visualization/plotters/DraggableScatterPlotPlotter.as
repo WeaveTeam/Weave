@@ -23,7 +23,6 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Point;
-	import flash.utils.Dictionary;
 	
 	import weave.Weave;
 	import weave.api.core.DynamicState;
@@ -55,8 +54,8 @@ package weave.visualization.plotters
 	 */
 	public class DraggableScatterPlotPlotter extends AbstractGlyphPlotter implements ISelectableAttributes
 	{
-		public const movedDataPoints:LinkableVariable = registerSpatialProperty(new LinkableVariable(Dictionary, null, new Dictionary()));		
-		private var tempDictionary:Dictionary;
+		public const movedDataPoints:LinkableVariable = newSpatialProperty(LinkableVariable);
+		private var tempDictionary:Object;
 		
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, DraggableScatterPlotPlotter, "Draggable Scatterplot");
 		
@@ -155,7 +154,7 @@ package weave.visualization.plotters
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
 		{
-			tempDictionary = movedDataPoints.getSessionState() as Dictionary;
+			tempDictionary = movedDataPoints.getSessionState();
 			
 			if( !(tempDictionary[recordKey.localName] != null) )
 				getCoordsFromRecordKey(recordKey, tempPoint);
@@ -178,7 +177,7 @@ package weave.visualization.plotters
 		 */
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
-			tempDictionary = movedDataPoints.getSessionState() as Dictionary;
+			tempDictionary = movedDataPoints.getSessionState();
 			
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
@@ -272,7 +271,7 @@ package weave.visualization.plotters
 			if( keyBeingDragged != null )
 			{
 				//trace("Dragging happening  " + keyBeingDragged.localName);
-				tempDictionary = movedDataPoints.getSessionState() as Dictionary;
+				tempDictionary = movedDataPoints.getSessionState();
 				tempDictionary[keyBeingDragged.localName] = tempDragPoint;
 				movedDataPoints.setSessionState(tempDictionary);
 			}
@@ -284,7 +283,7 @@ package weave.visualization.plotters
 			isDragging = false;
 			if(keyBeingDragged != null )
 			{
-				tempDictionary = movedDataPoints.getSessionState() as Dictionary;
+				tempDictionary = movedDataPoints.getSessionState();
 				tempDictionary[keyBeingDragged.localName] = endPoint;
 				movedDataPoints.setSessionState(tempDictionary);
 			}
@@ -295,7 +294,7 @@ package weave.visualization.plotters
 		
 		public function resetMovedDataPoints():void
 		{
-			movedDataPoints.setSessionState(new Dictionary());
+			movedDataPoints.setSessionState({});
 		}
 		
 		// backwards compatibility

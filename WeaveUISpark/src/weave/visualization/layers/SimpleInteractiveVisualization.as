@@ -418,7 +418,7 @@ package weave.visualization.layers
 							var ttPoint:Point = localToGlobal( new Point(queryBounds.getXCenter(), queryBounds.getYCenter()) );
 							_axisToolTip = ToolTipManager.createToolTip('', ttPoint.x, ttPoint.y);
 							_axisToolTip.text = marginToolTip;
-							Weave.properties.visTextFormat.copyToStyle(_axisToolTip as UIComponent);
+							Weave.properties.mouseoverTextFormat.copyToStyle(_axisToolTip as UIComponent);
 							(_axisToolTip as UIComponent).validateNow();
 							
 							// constrain the tooltip to fall within the bounds of the application											
@@ -605,7 +605,7 @@ package weave.visualization.layers
 					(tooltip as UIComponent).setStyle("backgroundAlpha", Weave.properties.probeToolTipBackgroundAlpha.value);
 					if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
 						(tooltip as UIComponent).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
-					Weave.properties.visTextFormat.copyToStyle(tooltip as UIComponent);
+					Weave.properties.mouseoverTextFormat.copyToStyle(tooltip as UIComponent);
 					(tooltip as UIComponent).validateNow();
 				}
 		}

@@ -69,8 +69,11 @@ package weave.core
 			}, true);
 		}
 		
+		private static var recursiveHasFocus:Dictionary = new Dictionary(true);
+		
 		/**
 		 * This function determines if a particular component or one of its children has input focus.
+		 * Supports a "hasFocus" property on the component if present.
 		 * @param component The component to test.
 		 * @return true if the component has focus.
 		 */
@@ -78,8 +81,20 @@ package weave.core
 		{
 			if (!component)
 				return false;
-			var focus:DisplayObject = component.getFocus();
-			return focus && component.contains(focus);
+			var obj:DisplayObject = component.getFocus();
+			if (obj && component.contains(obj))
+				return true;
+			
+			if (!recursiveHasFocus[component] && component.hasOwnProperty('hasFocus'))
+			{
+				recursiveHasFocus[component] = true;
+				var result:Boolean = component['hasFocus'];
+				recursiveHasFocus[component] = false;
+				if (result)
+					return true;
+			}
+			
+			return false;
 		}
 		
 		/**

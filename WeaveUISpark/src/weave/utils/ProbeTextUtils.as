@@ -182,7 +182,7 @@ package weave.utils
 			(probeToolTip as UIComponent).setStyle("backgroundAlpha", Weave.properties.probeToolTipBackgroundAlpha.value);
 			if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
 				(probeToolTip as UIComponent).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
-			Weave.properties.visTextFormat.copyToStyle(probeToolTip as UIComponent);
+			Weave.properties.mouseoverTextFormat.copyToStyle(probeToolTip as UIComponent);
 		}
 
 		public static var yAxisToolTip:IToolTip;
