@@ -29,6 +29,9 @@ public class PathUtils
 		Path newPath = path.getParent();
 		String fileName = path.getFileName().toString();
 		fileName = fileName.replaceAll("\\.([a-zA-Z0-9])*$", "." + newExtension);
-		return newPath.resolve(fileName);
+		if (newPath != null)
+			return newPath.resolve(fileName);
+		else
+			return Paths.get(fileName);
 	}
 }

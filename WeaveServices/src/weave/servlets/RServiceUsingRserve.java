@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Arrays;
 
 import weave.beans.ClassDiscriminationResult;
 import weave.beans.HierarchicalClusteringResult;
@@ -447,12 +448,18 @@ public class RServiceUsingRserve
 	}
 
 private static final String FORCE_DIRECTION_SCRIPT =
+"options(error=traceback)\n"+
 "named_to_unnamed <- function (frame, names, value)\n"+
 "{\n"+
 "	env = new.env()\n"+
 "	env$new_matrix = matrix(value, nrow=length(names), ncol=2)\n"+
+"	colnames(frame) <- c(\"id\", \"X\", \"Y\")\n"+
+"#	print(names)\n"+
+"#	print(frame)\n"+
 "	mapping <- match(frame[,1], names)\n"+
-"	env$new_matrix[mapping,1:2] <- as.numeric(frame[,2:3])\n"+
+"#	print(frame[,2:3])\n"+
+"	env$new_matrix[mapping,1:2] <- as.numeric(as.matrix(frame[,2:3]))\n"+
+"#	print(\"c\")\n"+
 "	env$new_matrix[,1:2]\n"+
 "}\n"+
 "get_ordered_node_names <- function (edgelist)\n"+
@@ -465,8 +472,11 @@ private static final String FORCE_DIRECTION_SCRIPT =
 "	nodeNames <- get_ordered_node_names(edges)\n"+
 "	if (!is.null(initial) && !is.null(overrides))\n"+
 "	{\n"+
-"		params <- list(	init=named_to_unnamed(initial, nodeNames, NA), \n"+
-"						constraints=named_to_unnamed(overrides, nodeNames, NA))\n"+
+"		init=named_to_unnamed(initial, nodeNames, 0)\n"+
+"#		print(\"init\")\n"+
+"		constraints=named_to_unnamed(overrides, nodeNames, NA)\n"+
+"#		print(\"constraints\")\n"+
+"		params <- list(	init=init, constraints=constraints)\n"+
 "	}\n"+
 "	else\n"+
 "	{\n"+
@@ -489,6 +499,19 @@ private static final String FORCE_DIRECTION_SCRIPT =
 		try
 		{
 			rConnection = getRConnection();
+/*
+			if (nodes != null)
+			{
+				Set<String> edgelist_nodes = new HashSet<String>();
+				Set<String> initial_nodes = new HashSet<String>();
+				edgelist_nodes.addAll(Arrays.asList(source));
+				edgelist_nodes.addAll(Arrays.asList(target));
+				initial_nodes.addAll(Arrays.asList(nodes));
+				System.err.println(String.format("Edgelist nodes: %d Init nodes: %d", edgelist_nodes.size(), initial_nodes.size()));
+				edgelist_nodes.retainAll(initial_nodes);
+				System.err.println(String.format("Edgelist ^ Init: %d", edgelist_nodes.size()));
+			}
+*/
 
 			REXP edges = buildEdgeList(source, target, weights);
 			REXP initial = buildNodeCoords(nodes, x_a, y_a, null);
