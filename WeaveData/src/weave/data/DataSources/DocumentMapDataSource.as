@@ -99,7 +99,7 @@ package weave.data.DataSources
 		private var _service:AMF3Servlet = null;
 		private var _rService:AMF3Servlet = null;
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/DocumentMapService/'));
-		public const rServiceUrl:LinkableString = registerLinkableChild(this, new LinkableString('http://corsac.binaryden.net:8080/WeaveServices/RService'));
+		public const rServiceUrl:LinkableString = registerLinkableChild(this, new LinkableString('http://docmaps.binaryden.net:8080/WeaveServices/RService'));
 		private var _cache:Object = {};
 		
 		/**
@@ -194,8 +194,12 @@ package weave.data.DataSources
 				dataType = DataType.DATE;
 			if (table == TABLE_DOC_WEIGHTS)
 				dataType = DataType.NUMBER;
-			else if (table == TABLE_NODES && column != COLUMN_NODE_TYPE)
+			if (table == TABLE_NODES && column != COLUMN_NODE_TYPE)
 				dataType = DataType.NUMBER;
+			
+			var string:String;
+			if (table == TABLE_DOC_WEIGHTS)
+				string = 'formatNumber(number, 3)';
 			
 			var title:String = column;
 			if (table == TABLE_DOC_WEIGHTS)
@@ -210,6 +214,8 @@ package weave.data.DataSources
 			
 			var meta:Object = {};
 			meta[ColumnMetadata.TITLE] = title;
+			if (string)
+				meta[ColumnMetadata.STRING] = string;
 			meta[ColumnMetadata.KEY_TYPE] = getKeyType(collection);
 			meta[ColumnMetadata.DATA_TYPE] = dataType;
 			meta[META_COLLECTION] = collection;
@@ -326,14 +332,14 @@ package weave.data.DataSources
 					}, keysVector);
 				});
 				
+				var xColumn:NumberColumn = NumberColumn(getCachedColumn(collection, TABLE_NODES, COLUMN_NODE_X));
+				var yColumn:NumberColumn = NumberColumn(getCachedColumn(collection, TABLE_NODES, COLUMN_NODE_Y));
 				function updateNodes():void {
 					var nodes:Array;
 					var x:Array;
 					var y:Array;
 					var locked:Array;
 					
-					var xColumn:NumberColumn = NumberColumn(getCachedColumn(collection, TABLE_NODES, COLUMN_NODE_X));
-					var yColumn:NumberColumn = NumberColumn(getCachedColumn(collection, TABLE_NODES, COLUMN_NODE_Y));
 					var lv:LinkableVariable = fixedNodePositions.getObject(collection) as LinkableVariable;
 					if (lv && !linkableObjectIsBusy(xColumn) && !linkableObjectIsBusy(yColumn) && xColumn.keys)
 					{
@@ -359,6 +365,8 @@ package weave.data.DataSources
 						}
 						for each (var topicID:String in VectorUtils.union(topicIDs))
 							locked.push(topicID);
+						if (nodes.length == 0)
+							nodes = x = y = locked = null;
 					}
 					
 					addAsyncResponder(
@@ -378,6 +386,8 @@ package weave.data.DataSources
 						fixedNodePositions.triggerCounter
 					);
 				}
+				xColumn.addGroupedCallback(null, updateNodes);
+				yColumn.addGroupedCallback(null, updateNodes);
 				_cache[updateNodes_cacheName(collection)] = updateNodes;
 				updateNodes();
 				return topicDocWeights;
@@ -388,16 +398,22 @@ package weave.data.DataSources
 		
 		private function updateNodePositions():void
 		{
-			for each (var collection:String in fixedNodePositions.getNames())
+			for each (var collection:String in _collections)
 			{
 				var updateNodes:Function = _cache[updateNodes_cacheName(collection)] as Function;
-				if (updateNodes != null && detectLinkableObjectChange(updateNodes, fixedNodePositions.getObject(collection)))
+				if (updateNodes == null)
+					continue;
+				var lv:LinkableVariable = fixedNodePositions.getObject(collection) as LinkableVariable;
+				const PREV:String = 'prevLinkableVariable';
+				if (lv != updateNodes[PREV] || detectLinkableObjectChange(updateNodes, lv))
 					updateNodes();
+				updateNodes[PREV] = lv;
 			}
 		}
 		
 		// avoids recreating collection categories (tree collapse bug)
 		private const _listCollectionsCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
+		private var _collections:Array;
 		
 		/**
 		 * Gets the root node of the attribute hierarchy.
@@ -413,6 +429,7 @@ package weave.data.DataSources
 					isBranch: true,
 					children: function():Array {
 						return rpc('listCollections', [], function(collections:Array):Array {
+							_collections = collections;
 							_listCollectionsCallbacks.triggerCallbacks(); // avoids recreating collection categories (tree collapse bug)
 							return collections.map(function(collection:String, i:int, a:Array):* {
 								var keyType:String = getKeyType(collection);

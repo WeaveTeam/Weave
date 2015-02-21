@@ -26,6 +26,7 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.copySessionState;
 	import weave.api.core.DynamicState;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
@@ -49,6 +50,8 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.DataSources.DocumentMapDataSource;
+	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -57,8 +60,6 @@ package weave.visualization.plotters
 	 */
 	public class DraggableScatterPlotPlotter extends AbstractGlyphPlotter implements ISelectableAttributes
 	{
-		public const movedDataPoints:LinkableVariable = newSpatialProperty(LinkableVariable);
-		private var tempDictionary:Object;
 		private var _columns:Array = [];
 		private var _stats:Dictionary = new Dictionary(true);
 		private var topicPoints:Dictionary = new Dictionary();
@@ -72,7 +73,7 @@ package weave.visualization.plotters
 			fill.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
 			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
 			
-			topicColumns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);			
+			topicColumns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
 		}
 		
 		private function handleColumnsListChange():void
@@ -176,26 +177,6 @@ package weave.visualization.plotters
 			}
 		}
 		
-		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
-		{
-			tempDictionary = movedDataPoints.getSessionState();
-			
-			if( !(tempDictionary[recordKey.localName] != null) )
-				getCoordsFromRecordKey(recordKey, tempPoint);
-			else
-			{
-				tempPoint.x = (tempDictionary[recordKey.localName] as Object).x;
-				tempPoint.y = (tempDictionary[recordKey.localName] as Object).y;
-			}
-			
-			var bounds:IBounds2D = initBoundsArray(output);
-			bounds.includePoint(tempPoint);
-			if (isNaN(tempPoint.x))
-				bounds.setXRange(-Infinity, Infinity);
-			if (isNaN(tempPoint.y))
-				bounds.setYRange(-Infinity, Infinity);
-		}
-		
 		//temp variable for probing purposes.
 		private var topicTitle:String;
 		private var topicPoint:Point;
@@ -207,19 +188,11 @@ package weave.visualization.plotters
 		 */
 		override protected function addRecordGraphicsToTempShape(recordKey:IQualifiedKey, dataBounds:IBounds2D, screenBounds:IBounds2D, tempShape:Shape):void
 		{
-			tempDictionary = movedDataPoints.getSessionState();
-			
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
 			
 			// project data coordinates to screen coordinates and draw graphics
-			if( !(tempDictionary[recordKey.localName] != null) )
-				getCoordsFromRecordKey(recordKey, tempPoint);
-			else
-			{
-				tempPoint.x = (tempDictionary[recordKey.localName] as Object).x;
-				tempPoint.y = (tempDictionary[recordKey.localName] as Object).y;
-			}
+			getCoordsFromRecordKey(recordKey, tempPoint);
 			
 			dataBounds.projectPointTo(tempPoint, screenBounds);
 			
@@ -297,13 +270,7 @@ package weave.visualization.plotters
 							topicTitle = (_columns[i] as IAttributeColumn).getMetadata(topicColumnMetadataString);
 														
 							//Move to point's origin.
-							if( !(tempDictionary[probedKey.localName] != null) )
-								getCoordsFromRecordKey(probedKey, tempPoint);
-							else
-							{
-								tempPoint.x = (tempDictionary[probedKey.localName] as Object).x;
-								tempPoint.y = (tempDictionary[probedKey.localName] as Object).y;
-							}
+							getCoordsFromRecordKey(probedKey, tempPoint);
 							dataBounds.projectPointTo(tempPoint, screenBounds);
 							graphics.moveTo(tempPoint.x, tempPoint.y);
 							//Find point to draw a line to and draw it.
@@ -329,25 +296,16 @@ package weave.visualization.plotters
 		
 		public function updatePointDrag(tempDragPoint:Point):void
 		{
-			if( keyBeingDragged != null )
-			{
-				//trace("Dragging happening  " + keyBeingDragged.localName);
-				tempDictionary = movedDataPoints.getSessionState();
-				tempDictionary[keyBeingDragged.localName] = {x: tempDragPoint.x, y: tempDragPoint.y};
-				movedDataPoints.setSessionState(tempDictionary);
-			}
+			if (keyBeingDragged != null)
+				moveDataPoint(keyBeingDragged, tempDragPoint);
 		}
 		
 		public function stopPointDrag(endPoint:Point):void
 		{
 			//trace("Dragging End  " + keyBeingDragged.localName);
 			isDragging = false;
-			if(keyBeingDragged != null )
-			{
-				tempDictionary = movedDataPoints.getSessionState();
-				tempDictionary[keyBeingDragged.localName] = {x: endPoint.x, y: endPoint.y};
-				movedDataPoints.setSessionState(tempDictionary);
-			}
+			if (keyBeingDragged != null)
+				moveDataPoint(keyBeingDragged, endPoint);
 			keyBeingDragged = null;
 			
 			//Insert send points to R code here.
@@ -355,55 +313,52 @@ package weave.visualization.plotters
 		
 		public function resetMovedDataPoints():void
 		{
-			movedDataPoints.setSessionState({});
+			var lv:LinkableVariable = getMovedDataPointsVariable();
+			if (lv)
+				lv.setSessionState(null);
 		}
 		
-		// backwards compatibility
-		[Deprecated] public function set absoluteValueColorEnabled(value:Boolean):void { colorBySize.value = value; }
-		[Deprecated] public function set absoluteValueColorMin(value:Number):void { colorNegative.value = value; }
-		[Deprecated] public function set absoluteValueColorMax(value:Number):void { colorPositive.value = value; }
-		[Deprecated] public function set circlePlotter(value:Object):void { setSessionState(this, value); }
-		[Deprecated] public function set xColumn(value:Object):void { setSessionState(dataX, value); }
-		[Deprecated] public function set yColumn(value:Object):void { setSessionState(dataY, value); }
-		[Deprecated] public function set alphaColumn(value:Object):void { setSessionState(fill.alpha, value); }
-		[Deprecated] public function set colorColumn(value:Object):void { setSessionState(fill.color, value); }
-		[Deprecated] public function set radiusColumn(value:Object):void { setSessionState(sizeBy, value); }
-		[Deprecated] public function set fillStyle(value:Object):void
+		private function getMovedDataPoint(key:IQualifiedKey):Object
 		{
-			try
-			{
-				setSessionState(fill, value[0][DynamicState.SESSION_STATE]);
-			}
-			catch (e:Error)
-			{
-				reportError(e);
-			}
+			var lv:LinkableVariable = getMovedDataPointsVariable();
+			if (!lv)
+				return null;
+			var ss:Object = lv.getSessionState();
+			return ss && ss[key.localName];
 		}
-		[Deprecated] public function set lineStyle(value:Object):void
+		
+		private function getMovedDataPointsVariable():LinkableVariable
 		{
-			try
-			{
-				setSessionState(line, value[0][DynamicState.SESSION_STATE]);
-			}
-			catch (e:Error)
-			{
-				reportError(e);
-			}
+			var dmds:DocumentMapDataSource = ColumnUtils.getDataSources(dataX)[0] as DocumentMapDataSource;
+			if (!dmds)
+				return null;
+			var collection:String = dataX.getMetadata(DocumentMapDataSource.META_COLLECTION);
+			if (!collection)
+				return null;
+			var lv:LinkableVariable = dmds.fixedNodePositions.requestObject(collection, LinkableVariable, false);
+			return registerSpatialProperty(lv);
 		}
-		[Deprecated(replacement="sizeBy")] public function set screenRadius(value:Object):void
+		
+		private function moveDataPoint(key:IQualifiedKey, point:Point):void
 		{
-			if (_deprecatedEnabledSizeBy)
-				setSessionState(sizeBy, value);
-			else
-				sizeBy.removeObject();
-			_deprecatedEnabledSizeBy = true;
+			var lv:LinkableVariable = getMovedDataPointsVariable();
+			if (!lv)
+				return;
+			var ss:Object = lv.getSessionState() || {};
+			ss[key.localName] = {x: point.x, y: point.y};
+			lv.setSessionState(ss);
 		}
-		[Deprecated(replacement="sizeBy")] public function set enabledSizeBy(value:Boolean):void
+		
+		override public function getCoordsFromRecordKey(recordKey:IQualifiedKey, output:Point):void
 		{
-			_deprecatedEnabledSizeBy = value;
-			if (!value)
-				sizeBy.removeObject();
+			var movedPoint:Object = getMovedDataPoint(recordKey);
+			if (movedPoint)
+			{
+				output.x = movedPoint.x;
+				output.y = movedPoint.y;
+				return;
+			}
+			return super.getCoordsFromRecordKey(recordKey, output);
 		}
-		private var _deprecatedEnabledSizeBy:Boolean = true;
 	}
 }
