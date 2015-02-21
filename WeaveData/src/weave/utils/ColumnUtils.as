@@ -110,9 +110,10 @@ package weave.utils
 		 * Temporary solution
 		 * @param column
 		 * @return 
-		 */		
-		public static function getDataSource(column:IAttributeColumn):String
+		 */
+		public static function getDataSources(column:IAttributeColumn):Array
 		{
+			var sources:Array = [];
 			var name:String;
 			var nameMap:Object = {};
 			var cols:Array;
@@ -121,19 +122,8 @@ package weave.utils
 			else
 				cols = getLinkableDescendants(column, ReferencedColumn);
 			for (var i:int = 0; i < cols.length; i++)
-			{
-				var col:ReferencedColumn = cols[i];
-				var source:IDataSource = col.getDataSource();
-				var sourceOwner:ILinkableHashMap = getLinkableOwner(source) as ILinkableHashMap;
-				if (!sourceOwner)
-					continue;
-				name = sourceOwner.getName(source);
-				nameMap[name] = true;
-			}
-			var names:Array = [];
-			for (name in nameMap)
-				names.push(name);
-			return names.join(', ');
+				sources.push((cols[i] as ReferencedColumn).getDataSource());
+			return VectorUtils.union(sources);
 		}
 
 		/**
