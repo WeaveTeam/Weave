@@ -45,6 +45,7 @@ package weave.data.DataSources
 	import weave.compiler.Compiler;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableString;
+	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -211,10 +212,11 @@ package weave.data.DataSources
 		
 		private function getCachedColumn(collection:String, table:String, column:String):IAttributeColumn
 		{
+			var meta:Object = getColumnMetadata(collection, table, column);
 			var stringified:String = Compiler.stringify(['getColumn', collection, table, column]);
-			if (!_cache[stringified])
+			var cachedColumn:IAttributeColumn = _cache[stringified];
+			if (!cachedColumn)
 			{
-				var meta:Object = getColumnMetadata(collection, table, column);
 				var ColumnType:Class = StringColumn;
 				if (meta[ColumnMetadata.DATA_TYPE] == DataType.DATE)
 					ColumnType = DateColumn;
@@ -222,7 +224,7 @@ package weave.data.DataSources
 					ColumnType = NumberColumn;
 				if (table == TABLE_DOC_FILES)
 					ColumnType = EquationColumn;
-				var cachedColumn:IAttributeColumn = registerDisposableChild(_service, ColumnType == EquationColumn ? new EquationColumn() : new ColumnType(meta));
+				cachedColumn = registerDisposableChild(_service, new ColumnType());
 				_cache[stringified] = cachedColumn;
 				
 				// special case dependencies
@@ -230,7 +232,6 @@ package weave.data.DataSources
 				if (table == TABLE_DOC_FILES)
 				{
 					var eq:EquationColumn = cachedColumn as EquationColumn;
-					eq.metadata.setSessionState(meta);
 					(eq.requestVariable('title', ProxyColumn, true) as ProxyColumn).setInternalColumn(getCachedColumn(collection, TABLE_DOC_METADATA, COLUMN_DOC_TITLE));
 					(eq.requestVariable('url', LinkableString, true) as LinkableString).value = url.value;
 					(eq.requestVariable('method', LinkableString, true) as LinkableString).value = column == COLUMN_DOC_THUMBNAIL ? 'getThumbnail' : 'getDocument';
@@ -266,7 +267,9 @@ package weave.data.DataSources
 						return data;
 					});
 			}
-			return _cache[stringified];
+			
+			(cachedColumn as AbstractAttributeColumn).setMetadata(meta);
+			return cachedColumn;
 		}
 		
 		private function getTopicIDs(collection:String):Array
