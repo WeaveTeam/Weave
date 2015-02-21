@@ -43,8 +43,10 @@ package weave.data.DataSources
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
+	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.EquationColumn;
@@ -96,6 +98,7 @@ package weave.data.DataSources
 		private var _rService:AMF3Servlet = null;
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/DocumentMapService/'));
 		public const rServiceUrl:LinkableString = registerLinkableChild(this, new LinkableString('http://corsac.binaryden.net:8080/WeaveServices/RService'));
+		public const fixedNodePositions:LinkableVariable = newLinkableChild(this, LinkableVariable, updateNodePositions, true);
 		
 		private function handleURLChange():void
 		{
@@ -247,9 +250,11 @@ package weave.data.DataSources
 						});
 						var keys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
 						(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(cachedColumn, getKeyType(collection), topicIDs, function():void {
+							cachedColumn.addImmediateCallback(null, function():void {
+								for each (var topicID:String in topicIDs)
+									getCachedColumn(collection, TABLE_DOC_WEIGHTS, topicID);
+							});
 							setRecords(cachedColumn, keys, Vector.<String>(topicWords));
-							for each (var topicID:String in topicIDs)
-								getCachedColumn(collection, TABLE_DOC_WEIGHTS, topicID);
 						}, keys);
 						return topicIdToWords;
 					});
@@ -318,7 +323,9 @@ package weave.data.DataSources
 				
 				addAsyncResponder(
 					_rService.invokeAsyncMethod('doForceDirectedLayout', [docIDs, topicIDs, weights, null, null, null, null]),
-					function(event:ResultEvent, token:Object = null):void {
+					function(event:ResultEvent, triggerCount:int):void {
+//						if (fixedNodePositions.triggerCounter != triggerCount)
+//							return;
 						// returns nodeId -> [x, y]
 						var nodeIdToXY:Object = event.result;
 						var keys:Array = VectorUtils.getKeys(nodeIdToXY);
@@ -328,10 +335,17 @@ package weave.data.DataSources
 							NumberColumn(getCachedColumn(collection, TABLE_NODES, COLUMN_NODE_X)).setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '0')));
 							NumberColumn(getCachedColumn(collection, TABLE_NODES, COLUMN_NODE_Y)).setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '1')));
 						}, outputKeys);
-					}
+					},
+					null,
+					fixedNodePositions.triggerCounter
 				);
+				updateNodePositions();
 				return topicDocWeights;
 			});
+		}
+		
+		private function updateNodePositions():void
+		{
 		}
 		
 		// avoids recreating collection categories (tree collapse bug)
@@ -442,10 +456,7 @@ package weave.data.DataSources
 
 			var cachedColumn:IAttributeColumn = getCachedColumn(collection, table, column);
 			if (cachedColumn)
-			{
 				proxyColumn.setInternalColumn(cachedColumn);
-				proxyColumn.setMetadata(getColumnMetadata(collection, table, column));
-			}
 			else
 				proxyColumn.dataUnavailable();
 		}
