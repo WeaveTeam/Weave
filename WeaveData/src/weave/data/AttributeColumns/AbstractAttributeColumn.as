@@ -23,6 +23,7 @@ package weave.data.AttributeColumns
 	
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.primitives.Dictionary2D;
 	import weave.utils.ColumnUtils;
@@ -50,10 +51,14 @@ package weave.data.AttributeColumns
 		 */
 		public function setMetadata(metadata:Object):void
 		{
-			if (_metadata !== null)
-				throw new Error("Cannot call setMetadata() if already set");
-			// make a copy because we don't want any surprises (metadata being set afterwards)
-			_metadata = copyValues(metadata);
+			if (StandardLib.compare(metadata, _metadata) != 0)
+			{
+				if (_metadata !== null)
+					trace('WARNING: Certain features may not work correctly when setting metadata more than once.');
+				// make a copy because we don't want any surprises (metadata being set afterwards)
+				_metadata = copyValues(metadata);
+				triggerCallbacks();
+			}
 		}
 		
 		/**
