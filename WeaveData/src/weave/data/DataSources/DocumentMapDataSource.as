@@ -435,7 +435,7 @@ package weave.data.DataSources
 					label: WeaveAPI.globalHashMap.getName(this),
 					isBranch: true,
 					children: function():Array {
-						return rpc('listCollections', [], function(collections:Array):Array {
+						var children:Array = rpc('listCollections', [], function(collections:Array):Array {
 							_collections = collections;
 							_listCollectionsCallbacks.triggerCallbacks(); // avoids recreating collection categories (tree collapse bug)
 							updateNodePositions();
@@ -495,6 +495,9 @@ package weave.data.DataSources
 								};
 							});
 						});
+						if (!children)
+							WeaveAPI.StageUtils.callLater(source, _listCollectionsCallbacks.triggerCallbacks);
+						return children;
 					}
 				});
 			
