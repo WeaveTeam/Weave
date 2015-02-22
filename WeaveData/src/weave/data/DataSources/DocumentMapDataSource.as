@@ -388,7 +388,7 @@ package weave.data.DataSources
 								yColumn.setRecords(outputKeys, Vector.<Number>(VectorUtils.pluck(values, '1')));
 							}, outputKeys);
 						},
-						null,
+						handleFault,
 						fixedNodePositions.triggerCounter
 					);
 				}
@@ -404,6 +404,7 @@ package weave.data.DataSources
 		
 		private function updateNodePositions():void
 		{
+			getHierarchyRoot().getChildren();
 			for each (var collection:String in _collections)
 			{
 				var updateNodes:Function = _cache[updateNodes_cacheName(collection)] as Function;
@@ -437,6 +438,7 @@ package weave.data.DataSources
 						return rpc('listCollections', [], function(collections:Array):Array {
 							_collections = collections;
 							_listCollectionsCallbacks.triggerCallbacks(); // avoids recreating collection categories (tree collapse bug)
+							updateNodePositions();
 							return collections.map(function(collection:String, i:int, a:Array):* {
 								var keyType:String = getKeyType(collection);
 
