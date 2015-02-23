@@ -57,6 +57,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	
 	$scope.showToolMenu = false;
 	
+	
+	$("#queryObjectPanel" ).draggable().resizable();
+	
 	$scope.$watch(function() {
 		return WeaveService.weave;
 	}, function () {
