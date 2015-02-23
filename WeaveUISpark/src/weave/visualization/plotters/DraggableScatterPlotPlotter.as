@@ -19,15 +19,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 package weave.visualization.plotters
 {
-	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.copySessionState;
-	import weave.api.core.DynamicState;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -36,8 +33,6 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
-	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISelectableAttributes;
@@ -62,8 +57,6 @@ package weave.visualization.plotters
 	 */
 	public class DraggableScatterPlotPlotter extends AbstractGlyphPlotter implements ISelectableAttributes
 	{
-		private var _columns:Array = [];
-		private var _stats:Dictionary = new Dictionary(true);
 		private var topicPoints:Dictionary = new Dictionary();
 		public var probedKey:IQualifiedKey = null;
 		
@@ -74,22 +67,6 @@ package weave.visualization.plotters
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			fill.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
 			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
-			
-			topicColumns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
-		}
-		
-		private function handleColumnsListChange():void
-		{
-			// When a new column is created, register the stats to trigger callbacks and affect busy status.
-			// This will be cleaned up automatically when the column is disposed.
-			var newColumn:IAttributeColumn = topicColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
-			if (newColumn)
-			{
-				_stats[newColumn] = WeaveAPI.StatisticsCache.getColumnStatistics(newColumn);
-				registerLinkableChild(spatialCallbacks, _stats[newColumn]);
-			}
-			_columns = topicColumns.getObjects();
-			setColumnKeySources([dataX].concat(_columns));
 		}
 		
 		public function getSelectableAttributeNames():Array
@@ -101,7 +78,7 @@ package weave.visualization.plotters
 			return [dataX, dataY, fill.color, sizeBy, thumbnails, docLinks, topicColumns];
 		}
 		
-		public const topicColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		public const topicColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 		public const docLinks:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const thumbnails:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const sizeBy:DynamicColumn = newLinkableChild(this, DynamicColumn);
@@ -118,20 +95,11 @@ package weave.visualization.plotters
 		
 		// delare dependency on statistics (for norm values)
 		private const _sizeByStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(sizeBy));
-		public var hack_horizontalBackgroundLineStyle:Array;
-		public var hack_verticalBackgroundLineStyle:Array;
 		
 		private const colorDataWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
 		
 		private var _extraKeyDependencies:Array;
 		private var _keyInclusionLogic:Function;
-		
-		public function hack_setKeyInclusionLogic(keyInclusionLogic:Function, extraColumnDependencies:Array):void
-		{
-			_extraKeyDependencies = extraColumnDependencies;
-			_keyInclusionLogic = keyInclusionLogic;
-			updateKeySources();
-		}
 		
 		private function handleColor():void
 		{
@@ -155,28 +123,6 @@ package weave.visualization.plotters
 			var sortDirections:Array = columns.map(function(c:*, i:int, a:*):int { return i == 0 ? -1 : 1; });
 			
 			_filteredKeySet.setColumnKeySources(columns, sortDirections, null, _keyInclusionLogic);
-		}
-		
-		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
-			if (!filteredKeySet.keys.length)
-				return;
-			if (hack_horizontalBackgroundLineStyle)
-			{
-				tempShape.graphics.clear();
-				tempShape.graphics.lineStyle.apply(null, hack_horizontalBackgroundLineStyle);
-				tempShape.graphics.moveTo(screenBounds.getXMin(), screenBounds.getYCenter());
-				tempShape.graphics.lineTo(screenBounds.getXMax(), screenBounds.getYCenter());
-				destination.draw(tempShape);
-			}
-			if (hack_verticalBackgroundLineStyle)
-			{
-				tempShape.graphics.clear();
-				tempShape.graphics.lineStyle.apply(null, hack_verticalBackgroundLineStyle);
-				tempShape.graphics.moveTo(screenBounds.getXCenter(), screenBounds.getYMin());
-				tempShape.graphics.lineTo(screenBounds.getXCenter(), screenBounds.getYMax());
-				destination.draw(tempShape);
-			}
 		}
 		
 		private var _plotTask:PlotTask;
@@ -264,13 +210,13 @@ package weave.visualization.plotters
 			
 			//Assumptions made about the topic column titles
 			if( probedKey != null && _plotTask.taskType == PlotTask.TASK_TYPE_PROBE )
-					for( var i:int = 0; i < _columns.length; i++ )
+					for each (var topicColumn:IAttributeColumn in topicColumns.getObjects())
 					{
-						var tempColumnValue:Number = (_columns[i] as IAttributeColumn).getValueFromKey(probedKey, Number);
+						var tempColumnValue:Number = topicColumn.getValueFromKey(probedKey, Number);
 						if( tempColumnValue > thresholdNumber.value )
 						{
 							//Get topic id for table lookup.
-							var topicID:String = (_columns[i] as IAttributeColumn).getMetadata(DocumentMapDataSource.META_COLUMN);
+							var topicID:String = topicColumn.getMetadata(DocumentMapDataSource.META_COLUMN);
 							var topicPoint:Point = topicPoints[topicID] as Point;
 							if (topicPoint)
 							{
