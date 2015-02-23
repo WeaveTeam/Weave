@@ -52,7 +52,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				// lock dynamic objects into place
 				plotter = initializePlotters(DraggableScatterPlotPlotter, false);
-				visualization.plotManager.enableFixedAspectRatio.value = true;
+				visualization.plotManager.enableFixedAspectRatio.value = false;
 				
 				visualization.enableZoomAndPan.value = false;
 				
@@ -61,10 +61,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				
 				getCallbackCollection(plotter).addGroupedCallback(this, handlePanelTitleChange, true);
 				
-				visualization.plotManager.marginBottom.value = "0";
-				visualization.plotManager.marginTop.value    = "0";
-				visualization.plotManager.marginLeft.value   = "0";
-				visualization.plotManager.marginRight.value  = "0";
+				visualization.plotManager.marginBottom.value = "10";
+				visualization.plotManager.marginTop.value    = "10";
+				visualization.plotManager.marginLeft.value   = "10";
+				visualization.plotManager.marginRight.value  = "10";
 				
 				visualization.addEventListener(DocumentSummaryEvent.DISPLAY_DOCUMENT, showDocumentToolTip);
 				visualization.addEventListener(DocumentSummaryEvent.HIDE_DOCUMENT, hideDocumentToolTip);
