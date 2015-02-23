@@ -38,6 +38,7 @@ package weave.visualization.plotters
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
@@ -52,6 +53,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.DataSources.DocumentMapDataSource;
 	import weave.utils.ColumnUtils;
+	import weave.visualization.layers.PlotTask;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -177,11 +179,12 @@ package weave.visualization.plotters
 			}
 		}
 		
-		//temp variable for probing purposes.
-		private var topicTitle:String;
-		private var topicPoint:Point;
-		private var topicColumnMetadataString:String = "DocumentMapDataSource_column";
-		private var tempColumnValue:Number;
+		private var _plotTask:PlotTask;
+		override public function drawPlotAsyncIteration(task:IPlotTask):Number
+		{
+			_plotTask = task as PlotTask;
+			return super.drawPlotAsyncIteration(task);
+		}
 		
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
@@ -260,22 +263,22 @@ package weave.visualization.plotters
 			}
 			
 			//Assumptions made about the topic column titles
-			if( probedKey != null )
+			if( probedKey != null && _plotTask.taskType == PlotTask.TASK_TYPE_PROBE )
 					for( var i:int = 0; i < _columns.length; i++ )
 					{
-						tempColumnValue = (_columns[i] as IAttributeColumn).getValueFromKey(probedKey, Number);
+						var tempColumnValue:Number = (_columns[i] as IAttributeColumn).getValueFromKey(probedKey, Number);
 						if( tempColumnValue > thresholdNumber.value )
 						{
 							//Get topic id for table lookup.
-							topicTitle = (_columns[i] as IAttributeColumn).getMetadata(topicColumnMetadataString);
-														
-							//Move to point's origin.
-							getCoordsFromRecordKey(probedKey, tempPoint);
-							dataBounds.projectPointTo(tempPoint, screenBounds);
-							graphics.moveTo(tempPoint.x, tempPoint.y);
-							//Find point to draw a line to and draw it.
-							topicPoint = new Point((topicPoints[topicTitle] as Point).x, (topicPoints[topicTitle] as Point).y);
-							graphics.lineTo(topicPoint.x, topicPoint.y);
+							var topicID:String = (_columns[i] as IAttributeColumn).getMetadata(DocumentMapDataSource.META_COLUMN);
+							var topicPoint:Point = topicPoints[topicID] as Point;
+							if (topicPoint)
+							{
+								getCoordsFromRecordKey(probedKey, tempPoint);
+								dataBounds.projectPointTo(tempPoint, screenBounds);
+								graphics.moveTo(tempPoint.x, tempPoint.y);
+								graphics.lineTo(topicPoint.x, topicPoint.y);
+							}
 						}
 					}
 			
