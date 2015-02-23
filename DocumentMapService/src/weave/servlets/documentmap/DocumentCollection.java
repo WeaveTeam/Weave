@@ -177,7 +177,14 @@ public class DocumentCollection
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
 			{
-				extractText(path.resolve(DOCUMENT_PATH).relativize(file), overwrite);
+                try {
+                    extractText(path.resolve(DOCUMENT_PATH).relativize(file), overwrite);
+                }
+                catch (Exception e)
+                {
+                    System.err.println("Failed to extract text from PDF "+file.toString()+":"
+                                        + e.toString());
+                }
 				return FileVisitResult.CONTINUE;
 			}
 		});
@@ -233,7 +240,7 @@ public class DocumentCollection
 					System.err.println("Rendering " + path.resolve(DOCUMENT_PATH).relativize(file).toString());
 					renderThumbnail(path.resolve(DOCUMENT_PATH).relativize(file), overwrite);
 				}
-				catch (IOException e)
+				catch (Exception e)
 				{
 					System.err.println("Failed to render PDF: " + e.toString());
 				}
