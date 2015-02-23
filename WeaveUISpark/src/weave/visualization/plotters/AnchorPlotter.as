@@ -26,6 +26,9 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
+	import net.ivank.voronoi.VEdge;
+	import net.ivank.voronoi.Voronoi;
+	
 	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
@@ -44,8 +47,6 @@ package weave.visualization.plotters
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
-	import weave.radviz.voronoi.VEdge;
-	import weave.radviz.voronoi.Voronoi;
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidFillStyle;
