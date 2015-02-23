@@ -293,7 +293,7 @@
 				{
 					updateBorders();
 				}
-				if (detectLinkableObjectChange(groupedUpdate, columnWidths, maxHeaderHeight))
+				if (detectLinkableObjectChange(groupedUpdate, columnWidths, maxHeaderHeight) || columnsChanged)
 				{
 					updateColumnWidths();
 				}
