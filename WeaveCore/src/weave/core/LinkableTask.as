@@ -228,7 +228,7 @@ package weave.core
 		public function dispose():void
 		{
 			_lazy = true;
-			_invalidated = false;
+			_invalidated = true;
 			_asyncToken = null;
 			_result = null;
 			_error = null;
