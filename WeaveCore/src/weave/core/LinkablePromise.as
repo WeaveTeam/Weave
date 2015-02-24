@@ -27,6 +27,7 @@ package weave.core
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
+	import weave.api.getCallbackCollection;
 	
 	/**
 	 * @author adufilie
@@ -35,74 +36,110 @@ package weave.core
 	{
 		public function LinkablePromise(invoke:Function, invokeParams:Array = null)
 		{
-			this.invoke = invoke;
-			this.invokeParams = invokeParams;
-			this.callbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
-			
-			callbackCollection.addGroupedCallback(null, groupedCallback);
+			_invoke = invoke;
+			_invokeParams = invokeParams;
+			_callbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+			_callbackCollection.addImmediateCallback(null, _immediateCallback);
+			_callbackCollection.addGroupedCallback(null, _groupedCallback);
+			_callbackCollection.triggerCallbacks();
 		}
 		
-		private var callbackCollection:ICallbackCollection;
-		private var invoke:Function;
-		private var invokeParams:Array;
-		private var asyncToken:AsyncToken;
-		private var resultTriggerCount:int = 0;
+		private var _callbackCollection:ICallbackCollection;
+		private var _invoke:Function;
+		private var _invokeParams:Array;
 		
-		public var result:Object;
-		public var error:Error;
+		private var _pendingInvoke:Boolean;
+		private var _asyncToken:AsyncToken;
+		private var _selfTriggeredCount:uint = 0;
+		private var _result:Object;
+		private var _error:Object;
 		
-		private function groupedCallback():void
+		public function get result():Object { return _result; }
+		public function get error():Object { return _error; }
+		
+		private function _immediateCallback():void
 		{
-			if (callbackCollection.triggerCounter == resultTriggerCount)
+			// stop if self-triggered
+			if (_callbackCollection.triggerCounter == _selfTriggeredCount)
 				return;
 			
-			this.result = null;
-			this.error = null;
+			// reset variables and mark as busy
+			_pendingInvoke = true;
+			_asyncToken = null;
+			_result = null;
+			_error = null;
+			WeaveAPI.ProgressIndicator.addTask(_groupedCallback, this);
+		}
+		
+		private function _groupedCallback():void
+		{
+			if (!_pendingInvoke)
+				return;
 			
-			WeaveAPI.ProgressIndicator.addTask(groupedCallback, this);
+			_pendingInvoke = false;
 			
-			asyncToken = invoke.apply(null, invokeParams) as AsyncToken;
-			if (asyncToken)
+			try
 			{
-				asyncToken.addResponder(new AsyncResponder(handleResult, handleFault, asyncToken));
+				var invokeResult:Object = _invoke.apply(null, _invokeParams);
+				_asyncToken = invokeResult as AsyncToken;
+				if (_asyncToken)
+				{
+					_asyncToken.addResponder(new AsyncResponder(_handleResult, _handleFault, _asyncToken));
+				}
+				else
+				{
+					_result = invokeResult;
+					WeaveAPI.StageUtils.callLater(this, _handleResult);
+				}
 			}
-			else
+			catch (invokeError:Error)
 			{
-				asyncToken = null;
-				WeaveAPI.StageUtils.callLater(this, handleResult);
+				_asyncToken = null;
+				_error = invokeError;
+				WeaveAPI.StageUtils.callLater(this, _handleFault);
 			}
 		}
 		
-		private function handleResult(event:ResultEvent = null, asyncToken:AsyncToken = null):void
+		private function _handleResult(event:ResultEvent = null, asyncToken:AsyncToken = null):void
 		{
-			if (this.asyncToken != asyncToken)
+			// stop if asyncToken is no longer relevant
+			if (_pendingInvoke || _asyncToken != asyncToken)
 				return;
 			
-			WeaveAPI.ProgressIndicator.removeTask(groupedCallback);
+			// no longer busy
+			WeaveAPI.ProgressIndicator.removeTask(_groupedCallback);
 			
-			this.result = event && event.result;
-			this.error = null;
+			// if there is an event, save the result
+			if (event)
+				_result = event.result;
 			
-			resultTriggerCount = callbackCollection.triggerCounter + 1;
-			callbackCollection.triggerCallbacks();
+			_selfTriggeredCount = _callbackCollection.triggerCounter + 1;
+			_callbackCollection.triggerCallbacks();
 		}
 		
-		private function handleFault(event:FaultEvent, asyncToken:AsyncToken):void
+		private function _handleFault(event:FaultEvent = null, asyncToken:AsyncToken = null):void
 		{
-			if (this.asyncToken != asyncToken)
+			// stop if asyncToken is no longer relevant
+			if (_pendingInvoke || _asyncToken != asyncToken)
 				return;
 			
-			WeaveAPI.ProgressIndicator.removeTask(groupedCallback);
+			// no longer busy
+			WeaveAPI.ProgressIndicator.removeTask(_groupedCallback);
 			
-			this.result = null;
-			this.error = event.fault;
+			// if there is an event, save the error
+			if (event)
+				_error = event.fault;
 			
-			resultTriggerCount = callbackCollection.triggerCounter + 1;
-			callbackCollection.triggerCallbacks();
+			_selfTriggeredCount = _callbackCollection.triggerCounter + 1;
+			_callbackCollection.triggerCallbacks();
 		}
 		
 		public function dispose():void
 		{
+			_pendingInvoke = false;
+			_asyncToken = null;
+			_result = null;
+			_error = null;
 		}
 	}
 }
