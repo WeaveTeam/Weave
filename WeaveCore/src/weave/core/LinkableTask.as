@@ -31,26 +31,26 @@ package weave.core
 	
 	/**
 	 * Use this class to build dependency trees involving asynchronous calls.
-	 * When the callbacks of a LinkablePromise are triggered, a function will be invoked.
-	 * If the function returns an AsyncToken, LinkablePromise's callbacks will be triggered again when a ResultEvent or FaultEvent is received from the AsyncToken.
+	 * When the callbacks of a LinkableTask are triggered, a function will be invoked.
+	 * If the function returns an AsyncToken, LinkableTask's callbacks will be triggered again when a ResultEvent or FaultEvent is received from the AsyncToken.
 	 * Dependency trees can be built using newLinkableChild() and registerLinkableChild().
 	 * 
 	 * @see weave.api.core.ISessionManager#newLinkableChild()
 	 * @see weave.api.core.ISessionManager#registerLinkableChild()
 	 * @author adufilie
 	 */
-	public class LinkablePromise implements ILinkableObject, IDisposableObject
+	public class LinkableTask implements ILinkableObject, IDisposableObject
 	{
 		/**
-		 * Creates a LinkablePromise from an iterative task function.
+		 * Creates a LinkableTask from an iterative task function.
 		 * @param asyncTask A function which is designed to be called repeatedly across multiple frames until it returns a value of 1.
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 * @param description A description of the task.
 		 * @see weave.api.core.IStageUtils#startTask()
 		 */
-		public static function fromIterativeTask(iterativeTask:Function, priority:uint, description:String = null, validateNow:Boolean = false):LinkablePromise
+		public static function fromIterativeTask(iterativeTask:Function, priority:uint, description:String = null, validateNow:Boolean = false):LinkableTask
 		{
-			var promise:LinkablePromise;
+			var promise:LinkableTask;
 			var asyncToken:AsyncToken;
 			
 			function asyncStart():AsyncToken
@@ -64,7 +64,7 @@ package weave.core
 				asyncToken.mx_internal::applyResult(ResultEvent.createEvent(null, asyncToken));
 			}
 			
-			return promise = new LinkablePromise(asyncStart, null, description, validateNow);
+			return promise = new LinkableTask(asyncStart, null, description, validateNow);
 		}
 		
 		/**
@@ -72,7 +72,7 @@ package weave.core
 		 * @param taskParams Parameters to pass to the task function.
 		 * @param description A description of the task.
 		 */
-		public function LinkablePromise(task:Function, taskParams:Array = null, description:String = null, validateNow:Boolean = false)
+		public function LinkableTask(task:Function, taskParams:Array = null, description:String = null, validateNow:Boolean = false)
 		{
 			_task = task;
 			_taskParams = taskParams;
@@ -117,7 +117,7 @@ package weave.core
 		}
 		
 		/**
-		 * If this LinkablePromise is set to lazy mode, this will switch it to non-lazy mode and automatically invoke the async task when necessary.
+		 * If this LinkableTask is set to lazy mode, this will switch it to non-lazy mode and automatically invoke the async task when necessary.
 		 */
 		public function validate():void
 		{
