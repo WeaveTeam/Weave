@@ -45,13 +45,16 @@ void createCSV()
 		out.position = 0;\
 		for each (var row:* in rows)\
 		{\
+			if (!row)\
+				continue;\
 			if (firstRow)\
 				firstRow = false;\
 			else\
 				out.writeByte(%0);\
 			var firstItem:Boolean = true;\
-			for each (var item:String in row)\
+			for (var i:int = 0; i < row.length; i++)\
 			{\
+				var item:String = row[i];\
 				if (firstItem)\
 					firstItem = false;\
 				else\
