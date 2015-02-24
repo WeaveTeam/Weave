@@ -19,6 +19,7 @@
 
 package weave.core
 {
+	import mx.core.mx_internal;
 	import mx.rpc.AsyncResponder;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -27,35 +28,107 @@ package weave.core
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
-	import weave.api.getCallbackCollection;
 	
 	/**
+	 * Use this class to build dependency trees involving asynchronous calls.
+	 * When the callbacks of a LinkablePromise are triggered, a function will be invoked.
+	 * If the function returns an AsyncToken, LinkablePromise's callbacks will be triggered again when a ResultEvent or FaultEvent is received from the AsyncToken.
+	 * Dependency trees can be built using newLinkableChild() and registerLinkableChild().
+	 * 
+	 * @see weave.api.core.ISessionManager#newLinkableChild()
+	 * @see weave.api.core.ISessionManager#registerLinkableChild()
 	 * @author adufilie
 	 */
 	public class LinkablePromise implements ILinkableObject, IDisposableObject
 	{
-		public function LinkablePromise(invoke:Function, invokeParams:Array = null)
+		/**
+		 * Creates a LinkablePromise from an iterative task function.
+		 * @param asyncTask A function which is designed to be called repeatedly across multiple frames until it returns a value of 1.
+		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
+		 * @param description A description of the task.
+		 * @see weave.api.core.IStageUtils#startTask()
+		 */
+		public static function fromIterativeTask(iterativeTask:Function, priority:uint, description:String = null, validateNow:Boolean = false):LinkablePromise
 		{
-			_invoke = invoke;
-			_invokeParams = invokeParams;
+			var promise:LinkablePromise;
+			var asyncToken:AsyncToken;
+			
+			function asyncStart():AsyncToken
+			{
+				WeaveAPI.StageUtils.startTask(promise, iterativeTask, priority, asyncComplete);
+				return asyncToken = new AsyncToken();
+			}
+			
+			function asyncComplete():void
+			{
+				asyncToken.mx_internal::applyResult(ResultEvent.createEvent(null, asyncToken));
+			}
+			
+			return promise = new LinkablePromise(asyncStart, null, description, validateNow);
+		}
+		
+		/**
+		 * @param task A function to invoke, which may return an AsyncToken.
+		 * @param taskParams Parameters to pass to the task function.
+		 * @param description A description of the task.
+		 */
+		public function LinkablePromise(task:Function, taskParams:Array = null, description:String = null, validateNow:Boolean = false)
+		{
+			_task = task;
+			_taskParams = taskParams;
+			_description = description;
 			_callbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
 			_callbackCollection.addImmediateCallback(null, _immediateCallback);
 			_callbackCollection.addGroupedCallback(null, _groupedCallback);
-			_callbackCollection.triggerCallbacks();
+			if (validateNow)
+				validate();
 		}
 		
-		private var _callbackCollection:ICallbackCollection;
-		private var _invoke:Function;
-		private var _invokeParams:Array;
+		private var _task:Function;
+		private var _taskParams:Array;
+		private var _description:String;
 		
-		private var _pendingInvoke:Boolean;
+		private var _callbackCollection:ICallbackCollection;
+		private var _lazy:Boolean = true;
+		private var _invalidated:Boolean = true;
 		private var _asyncToken:AsyncToken;
 		private var _selfTriggeredCount:uint = 0;
 		private var _result:Object;
 		private var _error:Object;
 		
-		public function get result():Object { return _result; }
-		public function get error():Object { return _error; }
+		/**
+		 * The result of calling the invoke function.
+		 * When this value is accessed, validate() will be called.
+		 */
+		public function get result():Object
+		{
+			validate();
+			return _result;
+		}
+		
+		/**
+		 * The error that occurred calling the invoke function.
+		 * When this value is accessed, validate() will be called.
+		 */
+		public function get error():Object
+		{
+			validate();
+			return _error;
+		}
+		
+		/**
+		 * If this LinkablePromise is set to lazy mode, this will switch it to non-lazy mode and automatically invoke the async task when necessary.
+		 */
+		public function validate():void
+		{
+			if (!_lazy)
+				return;
+			
+			_lazy = false;
+			
+			if (_invalidated)
+				_callbackCollection.triggerCallbacks();
+		}
 		
 		private function _immediateCallback():void
 		{
@@ -63,24 +136,42 @@ package weave.core
 			if (_callbackCollection.triggerCounter == _selfTriggeredCount)
 				return;
 			
-			// reset variables and mark as busy
-			_pendingInvoke = true;
+			// reset variables
+			_invalidated = true;
 			_asyncToken = null;
 			_result = null;
 			_error = null;
-			WeaveAPI.ProgressIndicator.addTask(_groupedCallback, this);
+			
+			// we are no longer waiting for the async task
+			WeaveAPI.ProgressIndicator.removeTask(_groupedCallback);
+			
+			// stop if lazy
+			if (_lazy)
+				return;
+			
+			// stop if still busy because we don't want to invoke the task if an external dependency is not ready
+			if (WeaveAPI.SessionManager.linkableObjectIsBusy(this))
+			{
+				// make sure _groupedCallback() will not invoke the task.
+				// this is ok to do since callbacks will be triggered again when the dependencies are no longer busy.
+				_invalidated = false;
+				return;
+			}
+			
+			// mark as busy starting now because we plan to start the task inside _groupedCallback()
+			WeaveAPI.ProgressIndicator.addTask(_groupedCallback, this, _description);
 		}
 		
 		private function _groupedCallback():void
 		{
-			if (!_pendingInvoke)
+			if (_lazy || !_invalidated)
 				return;
 			
-			_pendingInvoke = false;
+			_invalidated = false;
 			
 			try
 			{
-				var invokeResult:Object = _invoke.apply(null, _invokeParams);
+				var invokeResult:Object = _task.apply(null, _taskParams);
 				_asyncToken = invokeResult as AsyncToken;
 				if (_asyncToken)
 				{
@@ -103,7 +194,7 @@ package weave.core
 		private function _handleResult(event:ResultEvent = null, asyncToken:AsyncToken = null):void
 		{
 			// stop if asyncToken is no longer relevant
-			if (_pendingInvoke || _asyncToken != asyncToken)
+			if (_invalidated || _asyncToken != asyncToken)
 				return;
 			
 			// no longer busy
@@ -120,7 +211,7 @@ package weave.core
 		private function _handleFault(event:FaultEvent = null, asyncToken:AsyncToken = null):void
 		{
 			// stop if asyncToken is no longer relevant
-			if (_pendingInvoke || _asyncToken != asyncToken)
+			if (_invalidated || _asyncToken != asyncToken)
 				return;
 			
 			// no longer busy
@@ -136,7 +227,8 @@ package weave.core
 		
 		public function dispose():void
 		{
-			_pendingInvoke = false;
+			_lazy = true;
+			_invalidated = false;
 			_asyncToken = null;
 			_result = null;
 			_error = null;
