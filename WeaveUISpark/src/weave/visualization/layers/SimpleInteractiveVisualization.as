@@ -28,9 +28,12 @@ package weave.visualization.layers
 	
 	import weave.Weave;
 	import weave.api.core.ICallbackCollection;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IDataSource;
 	import weave.api.data.IKeySet;
 	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableOwner;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
@@ -50,6 +53,7 @@ package weave.visualization.layers
 	import weave.utils.ColumnUtils;
 	import weave.utils.CustomCursorManager;
 	import weave.utils.ProbeTextUtils;
+	import weave.utils.VectorUtils;
 	import weave.visualization.plotters.ProbeLinePlotter;
 	import weave.visualization.plotters.SimpleAxisPlotter;
 
@@ -406,7 +410,7 @@ package weave.visualization.layers
 							marginToolTip += "\n Key type: "   + ColumnUtils.getKeyType(axisColumn);
 							marginToolTip += "\n Data type: "   + ColumnUtils.getDataType(axisColumn);
 							marginToolTip += "\n Number of records: " + WeaveAPI.StatisticsCache.getColumnStatistics(axisColumn).getCount();
-							marginToolTip += "\n Data source: " + ColumnUtils.getDataSource(axisColumn);
+							marginToolTip += "\n Data source: " + getDataSourceNames(axisColumn);
 							if (Weave.properties.enableToolControls.value)
 								marginToolTip += "\n Click to select a different attribute.";
 						}
@@ -418,7 +422,7 @@ package weave.visualization.layers
 							var ttPoint:Point = localToGlobal( new Point(queryBounds.getXCenter(), queryBounds.getYCenter()) );
 							_axisToolTip = ToolTipManager.createToolTip('', ttPoint.x, ttPoint.y);
 							_axisToolTip.text = marginToolTip;
-							Weave.properties.visTextFormat.copyToStyle(_axisToolTip as UIComponent);
+							Weave.properties.mouseoverTextFormat.copyToStyle(_axisToolTip as UIComponent);
 							(_axisToolTip as UIComponent).validateNow();
 							
 							// constrain the tooltip to fall within the bounds of the application											
@@ -428,6 +432,18 @@ package weave.visualization.layers
 					}
 				}
 			}
+		}
+		
+		private function getDataSourceNames(column:IAttributeColumn):String
+		{
+			var names:Array = [];
+			for each (var source:IDataSource in ColumnUtils.getDataSources(column))
+			{
+				var sourceOwner:ILinkableHashMap = getLinkableOwner(source) as ILinkableHashMap;
+				if (sourceOwner)
+					names.push(sourceOwner.getName(source));
+			}
+			return VectorUtils.union(names).join(', ');
 		}
 		
 		
@@ -605,7 +621,7 @@ package weave.visualization.layers
 					(tooltip as UIComponent).setStyle("backgroundAlpha", Weave.properties.probeToolTipBackgroundAlpha.value);
 					if (isFinite(Weave.properties.probeToolTipBackgroundColor.value))
 						(tooltip as UIComponent).setStyle("backgroundColor", Weave.properties.probeToolTipBackgroundColor.value);
-					Weave.properties.visTextFormat.copyToStyle(tooltip as UIComponent);
+					Weave.properties.mouseoverTextFormat.copyToStyle(tooltip as UIComponent);
 					(tooltip as UIComponent).validateNow();
 				}
 		}

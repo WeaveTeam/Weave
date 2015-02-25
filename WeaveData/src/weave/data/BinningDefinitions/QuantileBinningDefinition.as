@@ -65,20 +65,20 @@ package weave.data.BinningDefinitions
 			var refBinSize:Number = Math.ceil(stats.getCount() * refQuantile.value);//how many records in a bin
 			var numberOfBins:int = Math.ceil(stats.getCount()/ refBinSize);
 			var binRecordCount:uint = refBinSize;
-				
+			
 			for (var iBin:int = 0; iBin < numberOfBins; iBin++)
 			{
-				binRecordCount = (iBin +1) * refBinSize;
+				binRecordCount = (iBin + 1) * refBinSize;
 				binMin = binMax;
 				if (iBin == numberOfBins - 1)
 				{
 					binMax = sortedColumn[sortedColumn.length -1];
 					maxInclusive = true;
 				}
-				else{					
+				else {
 					binMax = sortedColumn[binRecordCount -1];
-					maxInclusive = false;
-				}								
+					maxInclusive = binMax == binMin;
+				}
 				tempNumberClassifier.min.value = binMin;
 				tempNumberClassifier.max.value = binMax;
 				tempNumberClassifier.minInclusive.value = true;

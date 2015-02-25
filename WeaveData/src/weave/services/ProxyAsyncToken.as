@@ -104,7 +104,7 @@ package weave.services
 			}
 			catch (e:Error)
 			{
-				reportError(e);
+				reportError(e, null, event.result);
 				fault = new Fault(e.name, "Unable to parse result from server", e.message);
 				handleFault(FaultEvent.createEvent(fault, this));
 				return;

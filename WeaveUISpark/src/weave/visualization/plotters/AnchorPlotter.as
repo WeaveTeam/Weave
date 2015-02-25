@@ -26,6 +26,9 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
 	
+	import net.ivank.voronoi.VEdge;
+	import net.ivank.voronoi.Voronoi;
+	
 	import weave.Weave;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
@@ -43,8 +46,6 @@ package weave.visualization.plotters
 	import weave.data.KeySets.KeySet;
 	import weave.primitives.Bounds2D;
 	import weave.primitives.ColorRamp;
-	import weave.radviz.voronoi.VEdge;
-	import weave.radviz.voronoi.Voronoi;
 	import weave.utils.BitmapText;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidFillStyle;
@@ -90,6 +91,7 @@ package weave.visualization.plotters
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), fillColorMap);
 		public const colorMap:ColorRamp = registerLinkableChild(this, new ColorRamp(ColorRamp.getColorRampXMLByName("Paired")),fillColorMap);
 		public var anchorColorMap:Dictionary;
+		public const wordWrap:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200));
 		
 		
 		public var drawingClassLines:Boolean = false;//this divides the circle into sectors which represent classes (number of sectors = number of classes)
@@ -246,6 +248,7 @@ package weave.visualization.plotters
 				LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);				
 				_bitmapText.x = tempPoint.x;
 				_bitmapText.y = tempPoint.y;
+				_bitmapText.maxWidth = wordWrap.value;
 				
 				// draw almost-invisible rectangle behind text
 				/*_bitmapText.getUnrotatedBounds(_tempBounds);

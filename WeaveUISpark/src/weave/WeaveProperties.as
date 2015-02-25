@@ -39,9 +39,11 @@ package weave
 	
 	import ru.etcs.utils.FontLoader;
 	
+	import weave.api.copySessionState;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.core.ILinkableObjectWithNewProperties;
 	import weave.api.linkBindableProperty;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
@@ -71,7 +73,7 @@ package weave
 	/**
 	 * A list of global settings for a Weave instance.
 	 */
-	public class WeaveProperties implements ILinkableObject
+	public class WeaveProperties implements ILinkableObject, ILinkableObjectWithNewProperties
 	{
 		[Embed(source="/weave/weave_version.txt", mimeType="application/octet-stream")]
 		private static const WeaveVersion:Class;
@@ -420,6 +422,7 @@ package weave
 		public function get visTextFormat():LinkableTextFormat { return LinkableTextFormat.defaultTextFormat; }
 		public const visTitleTextFormat:LinkableTextFormat = new LinkableTextFormat();
 		public const axisTitleTextFormat:LinkableTextFormat = new LinkableTextFormat();
+		public const mouseoverTextFormat:LinkableTextFormat = new LinkableTextFormat();
 		
 		public function get probeLineFormatter():LinkableFunction { return ProbeTextUtils.probeLineFormatter; }
 		
@@ -629,5 +632,11 @@ package weave
 		[Deprecated(replacement="getToolToggle")] public function set enableAddRamachandranPlot(value:Boolean):void { _toggleToolsMenuItem("RamachandranPlotTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddDataStatisticsTool(value:Boolean):void { _toggleToolsMenuItem("DataStatisticsTool", value); }
 		//--------------------------------------------
+		
+		public function handleMissingSessionStateProperty(newState:Object, missingProperty:String):void
+		{
+			if (newState.hasOwnProperty('version') && missingProperty == 'mouseoverTextFormat')
+				copySessionState(visTextFormat, mouseoverTextFormat);
+		}
 	}
 }
