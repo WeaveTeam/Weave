@@ -40,9 +40,7 @@ package weave.data.BinningDefinitions
 	{
 		public function CategoryBinningDefinition()
 		{
-			// no bin names allowed
-			overrideBinNames.lock();
-			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, overrideBinNames);
+			super(false, false);
 		}
 		
 		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void

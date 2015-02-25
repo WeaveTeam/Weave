@@ -22,7 +22,6 @@ package weave.data.BinningDefinitions
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
@@ -39,6 +38,7 @@ package weave.data.BinningDefinitions
 	{
 		public function QuantileBinningDefinition()
 		{
+			super(true, false);
 		}
 		
 		public const refQuantile:LinkableNumber = registerLinkableChild(this, new LinkableNumber(.3));
@@ -55,8 +55,6 @@ package weave.data.BinningDefinitions
 			output.removeAllObjects();
 			
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-			var dataMin:Number = stats.getMin();
-			var dataMax:Number = stats.getMax();
 			var sortedColumn:Array = getSortedColumn(column); 
 			var binMin:Number;
 			var binMax:Number = sortedColumn[0]; 

@@ -95,7 +95,7 @@
 			<mx:HRule width="100%"/>
 			
 			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:RadioButton id="jenksRadio" label="{lang('Natural Jenks Classification')}" groupName="typeGroup" selected="true" width="100%" data="{_jenks}"/>
+				<mx:RadioButton id="jenksRadio" label="{lang('Natural breaks')}" groupName="typeGroup" selected="true" width="100%" data="{_jenks}"/>
 				<ui:Indent enabled="{jenksRadio.selected}" label="{lang('Number of bins:')}" percentWidth="NaN">
 					<mx:NumericStepper minimum="1" maximum="100" stepSize="1" id="numOfJenksClass" width="{inputWidth}"/>
 				</ui:Indent>
@@ -125,6 +125,11 @@
 			</mx:HBox>
 		</mx:VBox>
 		<mx:VBox width="100%" height="100%">
+			<mx:HBox id="overrideInputRangeBox" width="100%">
+				<mx:Label text="{lang('Override data range:')}"/>
+				<ui:TextInputWithPrompt id="overrideInputMin" prompt="{lang('min')}" width="100%"/>
+				<ui:TextInputWithPrompt id="overrideInputMax" prompt="{lang('max')}" width="100%"/>
+			</mx:HBox>
 			<mx:DataGrid id="binNameEditor"
 						 width="100%" height="100%" minWidth="0"
 						 draggableColumns="false" sortableColumns="false"
@@ -133,7 +138,7 @@
 						 itemEditEnd="handleItemEdited(event)"
 						 dataProvider="{gridSource}">
 				<mx:columns>
-					<mx:DataGridColumn headerText="{lang('Bin Names')}"/>
+					<mx:DataGridColumn headerText="{lang('Bin names')}"/>
 				</mx:columns>
 			</mx:DataGrid>
 			<mx:CheckBox id="overrideNamesCheckBox" label="{lang('Edit and override names')}" change="handleOverrideCheckbox()"/>
@@ -183,7 +188,7 @@
 			private const _equalInterval:EqualIntervalBinningDefinition = newLinkableChild(this, EqualIntervalBinningDefinition);
 			private const _stdDev:StandardDeviationBinningDefinition = newLinkableChild(this, StandardDeviationBinningDefinition);
 			private const _category:CategoryBinningDefinition = newLinkableChild(this, CategoryBinningDefinition);
-			private const _jenks:NaturalJenksBinningDefinition = newLinkableChild(this,NaturalJenksBinningDefinition);
+			private const _jenks:NaturalJenksBinningDefinition = newLinkableChild(this, NaturalJenksBinningDefinition);
 			
 			private function get overrideBinNames():LinkableString
 			{
@@ -204,7 +209,17 @@
 				linkBindableProperty(_customSplit.splitValues, splitValues, 'text', delay);
 				linkBindableProperty(_quantile.refQuantile, refQuantile, 'text', delay);
 				linkBindableProperty(_equalInterval.dataInterval, dataInterval, 'text', delay);
-				linkBindableProperty(_jenks.numOfBins,numOfJenksClass,'value',delay);
+				linkBindableProperty(_jenks.numOfBins, numOfJenksClass, 'value', delay);
+				
+				for each (var def:IBinningDefinition in [_simple, _customSplit, _quantile, _equalInterval, _stdDev, _category, _jenks])
+				{
+					var abd:AbstractBinningDefinition = def as AbstractBinningDefinition;
+					if (abd && abd.overrideInputMin)
+					{
+						linkBindableProperty(abd.overrideInputMin, overrideInputMin, 'text', delay);
+						linkBindableProperty(abd.overrideInputMax, overrideInputMax, 'text', delay);
+					}
+				}
 			}
 			
 			private function handleCreationComplete():void
@@ -254,7 +269,9 @@
 				}
 				radioVBox.enabled = foundType;
 				binNameEditor.alpha = foundType && localDef ? 1 : .5;
-				overrideNamesCheckBox.includeInLayout = overrideNamesCheckBox.visible = def is AbstractBinningDefinition && !(def is CategoryBinningDefinition);
+				var abd:AbstractBinningDefinition = def as AbstractBinningDefinition;
+				overrideNamesCheckBox.includeInLayout = overrideNamesCheckBox.visible = abd && abd.overrideBinNames;
+				overrideInputRangeBox.includeInLayout = overrideInputRangeBox.visible = abd && abd.overrideInputMin;
 				
 				// update bin names
 				gridSource.source = binnedColumn.binningDefinition.getBinNames();

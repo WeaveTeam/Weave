@@ -34,6 +34,7 @@ package weave.data.BinningDefinitions
 	{
 		public function StandardDeviationBinningDefinition()
 		{
+			super(true, false);
 		}
 		
 		/**
