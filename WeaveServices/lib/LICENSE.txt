@@ -9,6 +9,7 @@ LGPL 3.0
 	BlazeDS - http://opensource.adobe.com/wiki/display/blazeds/License
 		flex-messaging-common.jar
 		flex-messaging-core.jar
+	org.heatonresearch.httprecipes.html.PeekableInputStream
 	
 GPL 3.0
 	GeometryStreamConverter.jar
@@ -32,8 +33,9 @@ BSD-style
 
 GPL 2.0
 	mysql-connector-java-5.1.14-bin.jar - http://www.mysql.com/about/legal/licensing/foss-exception/
+	postgis-jdbc-2.0.1SVN.jar - http://postgis.net/
 	vecmath.jar (version 1.5.2) - http://download.java.net/media/java3d/builds/release/1.5.2/LICENSE-GPLv2.txt
-
+	
 Other
 	GeoAPI - http://www.opengeospatial.org/ogc/legal
 		geoapi-2.3-M1.jar
