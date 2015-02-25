@@ -91,10 +91,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					import weave.ui.SessionStateEditor;
 					import weave.visualization.tools.SimpleVisTool;							
 					
-					public const altText:LinkableString = registerLinkableChild(this, new LinkableString());
-					
 					private const padding:int = 10;
-					public const visTools:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), updateAltText);
 					
 					override protected function inConstructor():void
 					{
@@ -111,7 +108,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						super.childrenCreated();
 						Weave.properties.altTextOptions.shortDescription.addImmediateCallback(this, updateAltText);
-						altText.addImmediateCallback(this, updateAltText);
+						Weave.properties.altTextOptions.visTools.addImmediateCallback(this, updateAltText);
 						targets = [Weave.properties.altTextOptions];
 					}
 				
@@ -122,7 +119,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					
 					public function updateAltText():void
 					{
-					Weave.properties.altTextOptions.altText.value = Weave.properties.altTextOptions.shortDescription.value + "\n\n";
+						Weave.properties.altTextOptions.altText.value = Weave.properties.altTextOptions.shortDescription.value + "\n\n";
 						for each(var toolName:String in Weave.properties.altTextOptions.visTools.getSessionState() as Array)
 						{
 							var tool:SimpleVisTool = WeaveAPI.globalHashMap.getObject(toolName) as SimpleVisTool;
