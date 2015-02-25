@@ -241,8 +241,6 @@ package weave
 		public const showCollaborationMenuItem:LinkableBoolean = new LinkableBoolean(true); // menu item
 		
 		public const showAccessibilityOptions:LinkableBoolean = new LinkableBoolean(true)// Show Accessibility Options tools menu
-		public const accessibilityAltText:LinkableString = new LinkableString("Weave Visualization."); // text used for the Alt property in html for accessibility.
-		public const accessibilityHashMap:Dictionary = new Dictionary(); // Dictionary used to save each vis message at top level.          
 
 		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // tools menu
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
