@@ -81,11 +81,15 @@ automatically be updated to correspond to changes in dataProvider item order.
 			
 			private var _selection:Array = [];
 			
+			[Bindable("change")]
+			[Bindable("valueCommit")]
+			[Inspectable(category="General")]
+			
 			/**
 			 * This array stores the list of Boolean values for the checkboxes.
 			 * If items in the selection Array are undefined, defaultSelectedState will be used.
 			 */
-			[Bindable] public function set selection(value:Array):void
+			public function set selection(value:Array):void
 			{
 				_selection = value || [];
 				var n:int = _selection.length;
@@ -97,11 +101,31 @@ automatically be updated to correspond to changes in dataProvider item order.
 					if (checkBox)
 						checkBox.selected = getSelectedState(i);
 				}
+				
+				super.selectedItems = []; // causes event dispatch
 			}
 			
 			public function get selection():Array
 			{
 				return _selection;
+			}
+			
+			[Bindable("change")]
+			[Bindable("valueCommit")]
+			[Inspectable(category="General")]
+			
+			override public function get selectedItems():Array
+			{
+				var items:Array = VectorUtils.getArrayFromCollection(collection, false);
+				return items.filter(function(item:Object, i:int, a:Array):Boolean { return getSelectedState(i); }); 
+			}
+			
+			override public function set selectedItems(items:Array):void
+			{
+				var allItems:Array = VectorUtils.getArrayFromCollection(collection, false);
+				selection = allItems.map(function(item:Object, i:int, a:Array):Boolean { return items.indexOf(item) >= 0; });
+				
+				super.selectedItems = []; // causes event dispatch
 			}
 			
 			/**
