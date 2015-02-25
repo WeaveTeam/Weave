@@ -61,6 +61,7 @@ package weave
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
+	import weave.ui.AltTextOptions;
 	import weave.utils.CSSUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.NumberUtils;
@@ -241,7 +242,8 @@ package weave
 		public const showCollaborationMenuItem:LinkableBoolean = new LinkableBoolean(true); // menu item
 		
 		public const showAccessibilityOptions:LinkableBoolean = new LinkableBoolean(true)// Show Accessibility Options tools menu
-
+		public const altTextOptions:AltTextOptions = new AltTextOptions();
+			
 		public const enableDynamicTools:LinkableBoolean = new LinkableBoolean(true); // tools menu
 		public const showColorController:LinkableBoolean = new LinkableBoolean(true); // Show Color Controller option tools menu
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu

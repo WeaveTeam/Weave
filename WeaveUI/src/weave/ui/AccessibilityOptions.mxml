@@ -28,9 +28,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 <ControlPanel xmlns="weave.ui.*"
 			  xmlns:mx="http://www.adobe.com/2006/mxml"
-			  xmlns:LinkableObjectList="weave.ui.LinkableObjectList.*"
 			  width="400" height="400" backgroundColor="#EFF4BC" horizontalScrollPolicy="off"
-			  implements="weave.api.core.ILinkableObject"
 			  title="Accessibility Options" verticalScrollPolicy="off">
 	<mx:HDividedBox id="accessibilityOptions" width="100%" height="100%">
 		<mx:TabNavigator width="100%" height="100%" borderStyle="inset">
@@ -40,52 +38,22 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					<mx:Label text="Short Description:"/>
 					<mx:TextArea id="generalDescriptionTextArea" width="100%" height="20%"
 								 editable="true" 
-								 creationComplete="linkBindableProperty(generalDescription, event.target, 'text')"
+								 creationComplete="linkBindableProperty(Weave.properties.altTextOptions.shortDescription, event.target, 'text')"
 								 toolTip="Short description for the dashboard."/>
-					<mx:List id="VisCheckboxes" width="100%" height="100%">
-						<mx:itemRenderer>
-							<mx:Component>
-								<mx:CheckBox
-									change="outerDocument.updateAltText()">
-									<mx:Script>
-										<![CDATA[
-											import weave.api.linkBindableProperty;
-											import weave.api.unlinkBindableProperty;
-											import weave.visualization.tools.SimpleVisTool;
-											
-											private function get tool():SimpleVisTool
-											{
-												return data as SimpleVisTool;
-											}
-											
-											override public function set data(value:Object):void
-											{
-												if (tool)
-													unlinkBindableProperty(tool.altTextEditor.includeInDesc, this, 'selected');
-												super.data = value;
-												if (tool)
-													linkBindableProperty(tool.altTextEditor.includeInDesc, this, 'selected');
-												this.label = WeaveAPI.globalHashMap.getName(tool);
-											}
-										]]>
-									</mx:Script>
-								</mx:CheckBox>
-							</mx:Component>
-						</mx:itemRenderer>
-					</mx:List>
+					<CheckBoxList id="VisCheckboxes" width="100%" height="100%"
+								  creationComplete="linkBindableProperty(Weave.properties.altTextOptions.visTools, event.target, 'selectedItems')"/>
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" horizontalAlign="left">
 					<mx:Label text="Complete Alt Text:"/>
 					<mx:TextArea id="AltTextTextArea" width="100%" height="100%"
 								 backgroundColor="#EEEEEE" editable="false" 
-								 creationComplete="linkBindableProperty(altText, event.target, 'text')"
+								 creationComplete="linkBindableProperty(Weave.properties.altTextOptions.altText, event.target, 'text')"
 								 toolTip="This is the text that will be available for accessibility."/>
 				</mx:VBox>
 			</mx:HBox>
 			
 			<mx:Script>
 				<![CDATA[
-					import weave.api.ui.IAltText;
 					import flash.external.ExternalInterface;
 					
 					import mx.accessibility.CheckBoxAccImpl;
@@ -101,6 +69,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					import mx.managers.DragManager;
 					
 					import weave.Weave;
+					import weave.WeaveProperties;
 					import weave.api.core.IDisposableObject;
 					import weave.api.core.ILinkableObject;
 					import weave.api.detectLinkableObjectChange;
@@ -110,22 +79,23 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					import weave.api.newLinkableChild;
 					import weave.api.registerLinkableChild;
 					import weave.api.reportError;
+					import weave.api.ui.IAltText;
 					import weave.api.ui.ILinkableObjectEditor;
 					import weave.core.LinkableBoolean;
 					import weave.core.LinkableHashMap;
 					import weave.core.LinkableString;
+					import weave.core.LinkableVariable;
 					import weave.core.SessionManager;
 					import weave.editors.AltTextEditor;
 					import weave.ui.ControlPanel;
 					import weave.ui.SessionStateEditor;
 					import weave.visualization.tools.SimpleVisTool;							
 					
-					public const generalDescription:LinkableString = registerLinkableChild(this, new LinkableString("Weave visualization"));
 					public const altText:LinkableString = registerLinkableChild(this, new LinkableString());
 					
 					private const padding:int = 10;
-					private var _visTools:Array = null;	
-				
+					public const visTools:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), updateAltText);
+					
 					override protected function inConstructor():void
 					{
 						super.inConstructor();
@@ -140,29 +110,32 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					override protected function childrenCreated():void
 					{
 						super.childrenCreated();
-						generalDescription.addImmediateCallback(this, updateAltText);
+						Weave.properties.altTextOptions.shortDescription.addImmediateCallback(this, updateAltText);
 						altText.addImmediateCallback(this, updateAltText);
+						targets = [Weave.properties.altTextOptions];
 					}
 				
 					private function setVisTools() : void
 					{
-						VisCheckboxes.dataProvider = _visTools = WeaveAPI.globalHashMap.getObjects(IAltText);
+						VisCheckboxes.dataProvider = WeaveAPI.globalHashMap.getNames(IAltText);
 					}
 					
 					public function updateAltText():void
 					{
-						altText.value = generalDescription.value + "\n";
-						
-						for each (var visTool:SimpleVisTool in _visTools)
-							if (visTool.altTextEditor.includeInDesc.value)
-								altText.value += visTool.altTextEditor.toolDescription.value  + "\n";
-							
+					Weave.properties.altTextOptions.altText.value = Weave.properties.altTextOptions.shortDescription.value + "\n\n";
+						for each(var toolName:String in Weave.properties.altTextOptions.visTools.getSessionState() as Array)
+						{
+							var tool:SimpleVisTool = WeaveAPI.globalHashMap.getObject(toolName) as SimpleVisTool;
+							if(tool)
+								Weave.properties.altTextOptions.altText.value += tool.altTextEditor.toolDescription.value + "\n";
+						}
+
 						ExternalInterface.call("function(altText) { " +
 							"var weaveAltImg = document.getElementById(\"weaveAltImg\"); " +
 							"if(weaveAltImg) " +
 							"weaveAltImg.alt = altText;" +
 							"}",
-							altText.value
+							Weave.properties.altTextOptions.altText.value
 						);
 					}
 				]]>
