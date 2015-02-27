@@ -35,7 +35,7 @@
 			<ui:HelpComponent>
 				Enter a series of numbers separated by commas to be used as alternating line length and gap values.
 			</ui:HelpComponent>
-			<mx:TextInput creationComplete="linkBindableProperty(Weave.properties.dashedSelectionBox, event.target, 'text');"/>
+			<mx:TextInput creationComplete="linkBindableProperty(Weave.properties.dashedLengths, event.target, 'text');"/>
 			<ui:CustomColorPicker creationComplete="linkBindableProperty(Weave.properties.dashedSelectionColor, event.target, 'selectedColor');"/>
 			<mx:Canvas id="dashedCanvas"
 					   height="100%"
@@ -85,10 +85,9 @@
 	
 	<mx:Script>
 		<![CDATA[
-			import com.cartogrammar.drawing.DashedLine;
-			
 			import weave.Weave;
 			import weave.api.linkBindableProperty;
+			import weave.utils.DrawUtils;
 			import weave.visualization.layers.InteractionController;
 			
 			override protected function childrenCreated():void
@@ -96,23 +95,18 @@
 				super.childrenCreated();
 				
 				Weave.properties.dashedSelectionColor.addGroupedCallback(this, drawDashedLinePreview, true);
-				Weave.properties.dashedSelectionBox.addGroupedCallback(this, drawDashedLinePreview, true);
+				Weave.properties.dashedLengths.addGroupedCallback(this, drawDashedLinePreview, true);
 			}
 			
-			private const _dashedLine:DashedLine = new DashedLine();
 			private function drawDashedLinePreview():void
 			{
-				_dashedLine.graphics = dashedCanvas.graphics;
-				_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
-				_dashedLine.clear();
-				_dashedLine.lineStyle(4, Weave.properties.dashedSelectionColor.value, 1);
-
-				var xStart:Number = 5;
-				var yStart:Number = 10;
-				var xEnd:Number = dashedCanvas.width - 5;
-				var yEnd:Number = yStart;
-				_dashedLine.moveTo(xStart, yStart);
-				_dashedLine.lineTo(xEnd, yEnd);
+				dashedCanvas.graphics.clear();
+				dashedCanvas.graphics.lineStyle(2, Weave.properties.dashedSelectionColor.value, 1, false, 'normal', CapsStyle.NONE);
+				DrawUtils.drawDashedLine(
+					dashedCanvas.graphics,
+					[new Point(5, 10), new Point(dashedCanvas.width - 5, 10)],
+					Weave.properties.dashedLengths.getSessionState() as Array
+				);
 			}
 		]]>
 	</mx:Script>
