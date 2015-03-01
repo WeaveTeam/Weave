@@ -605,7 +605,7 @@ internal class CustomAsyncResponder extends AsyncResponder implements IURLReques
 		if (loader)
 			loader.addResponder(this);
 		
-		WeaveAPI.ProgressIndicator.addTask(loader.asyncToken, relevantContext as ILinkableObject);
+		WeaveAPI.ProgressIndicator.addTask(loader ? loader.asyncToken : this, relevantContext as ILinkableObject);
 	}
 	
 	private static function noOp(..._):void {} // does nothing
@@ -615,7 +615,7 @@ internal class CustomAsyncResponder extends AsyncResponder implements IURLReques
 	
 	public function cancelRequest():void
 	{
-		WeaveAPI.ProgressIndicator.removeTask(loader.asyncToken);
+		WeaveAPI.ProgressIndicator.removeTask(this);
 		if (loader && !WeaveAPI.SessionManager.objectWasDisposed(this))
 			loader.removeResponder(this);
 		WeaveAPI.SessionManager.disposeObject(this);
@@ -623,14 +623,14 @@ internal class CustomAsyncResponder extends AsyncResponder implements IURLReques
 	
 	override public function result(data:Object):void
 	{
-		WeaveAPI.ProgressIndicator.removeTask(loader.asyncToken);
+		WeaveAPI.ProgressIndicator.removeTask(this);
 		if (!WeaveAPI.SessionManager.objectWasDisposed(this) && !WeaveAPI.SessionManager.objectWasDisposed(relevantContext))
 			super.result(data);
 	}
 	
 	override public function fault(data:Object):void
 	{
-		WeaveAPI.ProgressIndicator.removeTask(loader.asyncToken);
+		WeaveAPI.ProgressIndicator.removeTask(this);
 		if (!WeaveAPI.SessionManager.objectWasDisposed(this) && !WeaveAPI.SessionManager.objectWasDisposed(relevantContext))
 			super.fault(data);
 	}
