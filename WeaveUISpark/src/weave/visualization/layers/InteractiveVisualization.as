@@ -618,8 +618,9 @@ package weave.visualization.layers
 			}
 			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
 			{
-				DrawUtils.drawDashedLine(g, _lassoScreenPoints, dashedLengths);
-				fillPolygon(g, lineColor, 0.05, _lassoScreenPoints);
+				var lassoPolygon:Array = _lassoScreenPoints.concat(_lassoScreenPoints[0]);
+				DrawUtils.drawDashedLine(g, lassoPolygon, dashedLengths);
+				fillPolygon(g, lineColor, 0.05, lassoPolygon);
 			}
 		}
 		
