@@ -6,7 +6,7 @@
 		 implements="weave.api.ui.ILinkableObjectEditor">
 	<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
 	<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}" errorStringFunction="{getGeometryErrorString}"/>
-	<ui:Indent label="{lang('Label Text Size')}">
+	<ui:Indent label="{lang('Label text size')}">
 		<mx:HSlider id="labelSizeSlider"
 					width="100%"
 					alpha="1.0"
@@ -16,9 +16,12 @@
 					liveDragging="true" mouseDown="event.stopPropagation()"
 					creationComplete="linkBindableProperty(_plotter.size.defaultValue,event.target,'value')"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Label Text Color')}">
+	<ui:Indent label="{lang('Label text color')}">
 		<ui:CustomColorPicker id="colorPicker"
 						creationComplete="linkBindableProperty(_plotter.color.defaultValue, event.target, 'selectedColor')"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Text alignment')}">
+		<ui:AlignmentControl id="labelAlign"/>
 	</ui:Indent>
 	
 	<mx:Script>
@@ -56,6 +59,8 @@
 			{
 				labelComponent.dynamicObject = _plotter.text;
 				geometryComponent.dynamicObject = _plotter.geometryColumn.internalDynamicColumn;
+				linkBindableProperty(_plotter.hAlign.defaultValue, labelAlign, 'horizontalAlign');
+				linkBindableProperty(_plotter.vAlign.defaultValue, labelAlign, 'verticalAlign');
 			}
 			
 			
