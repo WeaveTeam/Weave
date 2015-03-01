@@ -25,6 +25,7 @@ package weave.application
 	import flash.events.KeyboardEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.events.TimerEvent;
+	import flash.net.FileFilter;
 	import flash.net.FileReference;
 	import flash.net.SharedObject;
 	import flash.net.URLRequest;
@@ -65,12 +66,14 @@ package weave.application
 	import weave.compiler.StandardLib;
 	import weave.core.WeaveArchive;
 	import weave.data.DataSources.CSVDataSource;
+	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.GeoJSONDataSource;
 	import weave.data.DataSources.GraphMLDataSource;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.DataSources.XLSDataSource;
 	import weave.data.KeySets.KeySet;
 	import weave.editors.CSVDataSourceEditor;
+	import weave.editors.DBFDataSourceEditor;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.managers.AddDataSourcePanel;
@@ -718,6 +721,18 @@ package weave.application
 			}
 		}
 
+		/**
+		 * @return An Array of FileFilter objects
+		 */
+		public function getSupportedFileTypes():Array
+		{
+			return [
+				new FileFilter("Weave files", "*.weave"),
+				new FileFilter("Data files", "*.csv;*.tsv;*.txt;*.xls;*.shp;*.dbf;*.geojson;*.graphml"),
+				new FileFilter("All files", "*")
+			]
+		}
+		
 		public function handleDraggedFile(fileName:String, fileContent:ByteArray):void
 		{
 			var ext:String = String(fileName.split('.').pop()).toLowerCase();
@@ -737,9 +752,11 @@ package weave.application
 				return WeaveAPI.URLRequestUtils.saveLocalFile(fileName, fileContent);
 			}
 			
+			var adsp:AddDataSourcePanel;
+			
 			if (ext == 'tsv' || ext == 'txt')
 			{
-				var adsp:AddDataSourcePanel = DraggablePanel.openStaticInstance(AddDataSourcePanel);
+				adsp = DraggablePanel.openStaticInstance(AddDataSourcePanel);
 				adsp.dataSourceType = CSVDataSource;
 				var csvEditor:CSVDataSourceEditor = adsp.editor as CSVDataSourceEditor;
 				csvEditor.sourceName.text = fileName;
@@ -757,6 +774,19 @@ package weave.application
 				var xls:XLSDataSource = newDataSource(XLSDataSource);
 				xls.url.value = getFileUrl();
 				xls.keyType.value = fileName;
+			}
+			else if (ext == 'shp' || ext == 'dbf')
+			{
+				adsp = DraggablePanel.openStaticInstance(AddDataSourcePanel);
+				adsp.dataSourceType = DBFDataSource;
+				var dbfEditor:DBFDataSourceEditor = adsp.editor as DBFDataSourceEditor;
+				var fileNameWithoutExt:String = fileName.substr(0, -4);
+				dbfEditor.sourceName.text = fileNameWithoutExt;
+				dbfEditor.keyTypeSelector.selectedKeyType = fileNameWithoutExt;
+				if (ext == 'shp')
+					dbfEditor.shpURL.text = getFileUrl();
+				else
+					dbfEditor.dbfURL.text = getFileUrl();
 			}
 			else if (ext == 'geojson')
 			{
