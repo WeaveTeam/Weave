@@ -21,7 +21,6 @@ package weave.data.DataSources
 {
 	import com.as3xls.xls.ExcelFile;
 	
-	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
 	
@@ -41,6 +40,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
+	import weave.services.addAsyncResponder;
 	import weave.utils.VectorUtils;
 
 	/**
@@ -70,7 +70,12 @@ package weave.data.DataSources
 			{
 				var urlRequest:URLRequest = new URLRequest(url.value);
 				urlRequest.contentType = "application/vnd.ms-excel";
-				WeaveAPI.URLRequestUtils.getURL(this, urlRequest, handleXLSDownload, handleXLSDownloadError, url.value, URLLoaderDataFormat.BINARY);
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(this, urlRequest),
+					handleXLSDownload,
+					handleXLSDownloadError,
+					url.value
+				);
 			}
 		}
 

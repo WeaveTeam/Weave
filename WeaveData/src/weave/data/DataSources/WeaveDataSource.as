@@ -308,7 +308,12 @@ package weave.data.DataSources
 			{
 				if (hierarchyURL.value)
 				{
-					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(hierarchyURL.value), handleHierarchyURLDownload, handleHierarchyURLDownloadError, hierarchyURL.value);
+					addAsyncResponder(
+						WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(hierarchyURL.value)),
+						handleHierarchyURLDownload,
+						handleHierarchyURLDownloadError,
+						hierarchyURL.value
+					);
 					trace("hierarchy url "+hierarchyURL.value);
 				}
 				return;

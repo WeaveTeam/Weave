@@ -60,6 +60,7 @@ package weave
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
+	import weave.services.addAsyncResponder;
 	import weave.utils.CSSUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.NumberUtils;
@@ -182,9 +183,8 @@ package weave
 			}
 			else
 			{
-				WeaveAPI.URLRequestUtils.getURL(
-					null,
-					new URLRequest('WeaveFonts.swf'),
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(null, new URLRequest('WeaveFonts.swf')),
 					function(event:ResultEvent, token:Object = null):void
 					{
 						var bytes:ByteArray = ByteArray(event.result);

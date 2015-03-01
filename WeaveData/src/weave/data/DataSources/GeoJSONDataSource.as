@@ -46,6 +46,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ProjectionManager;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.services.addAsyncResponder;
 	import weave.utils.GeoJSON;
 	import weave.utils.VectorUtils;
 	
@@ -113,7 +114,12 @@ package weave.data.DataSources
 			{
 				jsonData = null;
 				if (url.value)
-					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), handleDownload, handleDownloadError, url.value, URLLoaderDataFormat.TEXT);
+					addAsyncResponder(
+						WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), URLLoaderDataFormat.TEXT),
+						handleDownload,
+						handleDownloadError,
+						url.value
+					);
 			}
 			
 			if (detectLinkableObjectChange(initialize, keyType, keyProperty))

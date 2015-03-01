@@ -250,6 +250,7 @@ import weave.core.ClassUtils;
 import weave.data.DataSources.CKANDataSource;
 import weave.data.DataSources.CSVDataSource;
 import weave.services.URLRequestUtils;
+import weave.services.addAsyncResponder;
 import weave.utils.VectorUtils;
 
 internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTreeNodeWithPathFinding
@@ -301,7 +302,12 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			{
 				// make CKAN API request
 				_result = {};
-				WeaveAPI.URLRequestUtils.getURL(source, getURLRequest(), handleResponse, handleResponse, _result, URLRequestUtils.DATA_FORMAT_TEXT);
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(source, getURLRequest(), URLRequestUtils.DATA_FORMAT_TEXT),
+					handleResponse,
+					handleResponse,
+					_result
+				);
 			}
 		}
 		return _result || {};

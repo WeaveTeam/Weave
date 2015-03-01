@@ -2,7 +2,6 @@ package weave.data.DataSources
 {
     import flare.data.converters.GraphMLConverter;
     
-    import flash.net.URLLoaderDataFormat;
     import flash.net.URLRequest;
     
     import mx.rpc.events.FaultEvent;
@@ -11,7 +10,6 @@ package weave.data.DataSources
     import weave.api.data.ColumnMetadata;
     import weave.api.data.DataType;
     import weave.api.data.IAttributeColumn;
-    import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IDataSource_File;
     import weave.api.data.IQualifiedKey;
@@ -24,6 +22,8 @@ package weave.data.DataSources
     import weave.data.AttributeColumns.StringColumn;
     import weave.data.QKeyManager;
     import weave.data.hierarchy.ColumnTreeNode;
+    import weave.services.URLRequestUtils;
+    import weave.services.addAsyncResponder;
     import weave.utils.VectorUtils;
 
     public class GraphMLDataSource extends AbstractDataSource implements IDataSource_File
@@ -77,7 +77,12 @@ package weave.data.DataSources
         private function handleURLChange():void
         {
 			if (sourceUrl.value)
-	            WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(sourceUrl.value), handleGraphMLDownload, handleGraphMLDownloadError, sourceUrl.value, URLLoaderDataFormat.TEXT);
+				addAsyncResponder(
+	            	WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(sourceUrl.value), URLRequestUtils.DATA_FORMAT_TEXT),
+					handleGraphMLDownload,
+					handleGraphMLDownloadError,
+					sourceUrl.value
+				);
         }
 
 

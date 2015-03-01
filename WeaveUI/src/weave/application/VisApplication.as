@@ -266,7 +266,12 @@ package weave.application
 			if (callback != null)
 				_loadFileCallbacks.push(callback);
 			
-			WeaveAPI.URLRequestUtils.getURL(null, request, handleConfigFileDownloaded, handleConfigFileFault, _requestedConfigFile);
+			addAsyncResponder(
+				WeaveAPI.URLRequestUtils.getURL(null, request),
+				handleConfigFileDownloaded,
+				handleConfigFileFault,
+				_requestedConfigFile
+			);
 		}
 		
 		private function downloadConfigFile():void
