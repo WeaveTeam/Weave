@@ -50,6 +50,7 @@ package weave.data.BinningDefinitions
 	{
 		public function NaturalJenksBinningDefinition()
 		{
+			super(true, false);
 		}
 		
 		public const numOfBins:LinkableNumber = registerLinkableChild(this,new LinkableNumber(5));

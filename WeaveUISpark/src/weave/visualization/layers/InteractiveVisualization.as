@@ -19,8 +19,6 @@
 
 package weave.visualization.layers
 {
-	import com.cartogrammar.drawing.DashedLine;
-	
 	import flash.display.Graphics;
 	import flash.display.InteractiveObject;
 	import flash.events.ContextMenuEvent;
@@ -52,6 +50,7 @@ package weave.visualization.layers
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
 	import weave.utils.DocumentSummaryEvent;
+	import weave.utils.DrawUtils;
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.VectorUtils;
 	import weave.utils.ZoomUtils;
@@ -93,9 +92,6 @@ package weave.visualization.layers
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, this, handleKeyboardEvent);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_UP, this, handleKeyboardEvent);
 			WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, this, _handlePointClick);
-			
-			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, true);
-			
 		}
 		
 		override protected function createChildren():void
@@ -617,58 +613,38 @@ package weave.visualization.layers
 			_selectionGraphicsCleared = false; 
 			
 			// use a blue rectangle for zoom mode, green for selection
-			_dashedLine.graphics = g; 
+			var lineColor:Number;
 			if (_mouseMode == InteractionController.ZOOM)
-			{
-				_dashedLine.lineStyle(2, Weave.properties.dashedZoomColor.value, .75);
-			}
+				lineColor = Weave.properties.dashedZoomColor.value;
 			else
-			{
-				_dashedLine.lineStyle(2, Weave.properties.dashedSelectionColor.value, .75);
-			}
+				lineColor = Weave.properties.dashedSelectionColor.value;
 			
-			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
-			var localMinPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
-			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
-			var localMaxPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
-			
-			var dragX:Number = localMinPoint.x;
-			var dragY:Number = localMinPoint.y;
-			var dragWidth:Number = localMaxPoint.x - localMinPoint.x;
-			var dragHeight:Number = localMaxPoint.y - localMinPoint.y;
+			var dashedLengths:Array = Weave.properties.dashedLengths.getSessionState() as Array;
 			
 			// init temp bounds for reprojecting coordinates
 			plotManager.zoomBounds.getDataBounds(tempDataBounds);
 			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
 			
+			g.lineStyle(2, lineColor, .75, false, 'normal', 'none');
 			if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE || _mouseMode == InteractionController.ZOOM)
 			{
-				_dashedLine.drawRect(dragX, dragY, dragWidth, dragHeight);
+				mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
+				var min:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+				mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
+				var max:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+				
+				DrawUtils.drawDashedLine(g, [min, new Point(min.x, max.y), max], dashedLengths);
+				DrawUtils.drawDashedLine(g, [min, new Point(max.x, min.y), max], dashedLengths);
 			}
 			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
 			{
-				var coords:Array = getCircleLocalScreenCoords();
-				for (var i:int = 0; i <= coords.length; i++)
-				{
-					var point:Point = coords[i % coords.length];
-					if (i == 0)
-						_dashedLine.moveTo(point.x, point.y);
-					else
-						_dashedLine.lineTo(point.x, point.y);
-				}
+				DrawUtils.drawDashedLine(g, getCircleLocalScreenCoords(), dashedLengths);
 			}
 			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
 			{
-				fillPolygon(g, _dashedLine.lineColor, 0.05, _lassoScreenPoints);
-				
-				for (var k:int = 0; k <= _lassoScreenPoints.length; k++)
-				{
-					var kp:Point = _lassoScreenPoints[k % _lassoScreenPoints.length];
-					if (k == 0)
-						_dashedLine.moveTo(kp.x, kp.y);
-					else
-						_dashedLine.lineTo(kp.x, kp.y);
-				}
+				var lassoPolygon:Array = _lassoScreenPoints.concat(_lassoScreenPoints[0]);
+				DrawUtils.drawDashedLine(g, lassoPolygon, dashedLengths);
+				fillPolygon(g, lineColor, 0.05, lassoPolygon);
 			}
 		}
 		
@@ -720,12 +696,6 @@ package weave.visualization.layers
 					graphics.lineTo(point.x, point.y);
 			}
 			graphics.endFill();
-		}
-		
-		private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
-		private function validateDashedLine():void
-		{
-			_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
 		}
 		
 		private function handleSelectionEvent(event:Event, mode:String):void

@@ -51,7 +51,12 @@ package weave.services
 			if (!cache.hasOwnProperty(url))
 			{
 				cache[url] = {};
-				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url), handleResponse, handleResponse, url, URLRequestUtils.DATA_FORMAT_TEXT);
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url), URLRequestUtils.DATA_FORMAT_TEXT),
+					handleResponse,
+					handleResponse,
+					url
+				);
 			}
 			return cache[url];
 		}

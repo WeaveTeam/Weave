@@ -1,0 +1,2 @@
+http://blog.ivank.net/voronoi-diagram-in-as3.html
+MIT license

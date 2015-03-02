@@ -51,6 +51,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.CSVParser;
 	import weave.data.QKeyManager;
+	import weave.services.addAsyncResponder;
 	import weave.utils.HierarchyUtils;
 	
 	/**
@@ -316,7 +317,12 @@ package weave.data.DataSources
 			{
 				// if url is specified, do not use csvDataString
 				csvData.setSessionState(null);
-				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), handleCSVDownload, handleCSVDownloadError, url.value, URLLoaderDataFormat.TEXT);
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), URLLoaderDataFormat.TEXT),
+					handleCSVDownload,
+					handleCSVDownloadError,
+					url.value
+				);
 			}
 		}
 		

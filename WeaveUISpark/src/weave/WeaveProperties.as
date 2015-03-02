@@ -60,6 +60,7 @@ package weave
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
+	import weave.services.addAsyncResponder;
 	import weave.utils.CSSUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.NumberUtils;
@@ -182,9 +183,8 @@ package weave
 			}
 			else
 			{
-				WeaveAPI.URLRequestUtils.getURL(
-					null,
-					new URLRequest('WeaveFonts.swf'),
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(null, new URLRequest('WeaveFonts.swf')),
 					function(event:ResultEvent, token:Object = null):void
 					{
 						var bytes:ByteArray = ByteArray(event.result);
@@ -377,24 +377,19 @@ package weave
 		
 		public const dashedSelectionColor:LinkableNumber = new LinkableNumber(0x00ff00);
 		public const dashedZoomColor:LinkableNumber = new LinkableNumber(0x00faff);
-		
-		/**
-		 * Parameters for the DashedLine selection box.
-		 * @default "5,5"
-		 */
-		public const dashedSelectionBox:LinkableString = new LinkableString("5,5", verifyDashedSelectionBox);
-		public function verifyDashedSelectionBox(csv:String):Boolean
+		public const dashedLengths:LinkableVariable = new LinkableVariable(null, verifyDashedLengths, [5, 5]);
+		public function verifyDashedLengths(object:Object):Boolean
 		{
-			if (csv === null) 
+			// backwards compatibility and support for linkBindableProperty with a text area
+			if (object is String)
+			{
+				dashedLengths.setSessionState((object as String).split(',').map(function(str:String, i:int, a:Array):Number { return StandardLib.asNumber(str); }));
 				return false;
+			}
 			
-			var rows:Array = WeaveAPI.CSVParser.parseCSV(csv);
-			
-			if (rows.length == 0)
+			var values:Array = object as Array;
+			if (!values) 
 				return false;
-			
-			// Only the first row will be used
-			var values:Array = rows[0];
 			var foundNonZero:Boolean = false;
 			for (var i:int = 0; i < values.length; ++i)
 			{
@@ -411,6 +406,7 @@ package weave
 			
 			return foundNonZero;
 		}
+		[Deprecated(replacement="dashedLengths")] public function get dashedSelectionBox():LinkableVariable { return dashedLengths; }
 		
 		public const panelTitleTextFormat:LinkableTextFormat = new LinkableTextFormat();
 		public function get visTextFormat():LinkableTextFormat { return LinkableTextFormat.defaultTextFormat; }

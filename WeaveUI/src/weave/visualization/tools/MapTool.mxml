@@ -106,6 +106,8 @@
 				var nonGeomColumns:Array = input.filter(function(o:*, i:*, a:*):Boolean { return !isGeomColumnOrRef(o, i, a); });
 				if (geomColumns.length)
 				{
+					visualization.plotManager.plotters.removeAllObjects();
+					
 					var geomColumn:Object = geomColumns[0];
 					var gp:GeometryPlotter = LayerListComponent.addPlotterAndEdit(visualization, GeometryPlotter, false);
 					if (gp)

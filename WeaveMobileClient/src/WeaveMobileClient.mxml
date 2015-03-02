@@ -43,6 +43,7 @@
 			import weave.core.ClassUtils;
 			import weave.core.ErrorManager;
 			import weave.core.UIUtils;
+			import weave.services.addAsyncResponder;
 			import weave.ui.WeavePodLayoutManager;
 			import weave.ui.WeaveProgressBar;
 			import weave.visualization.layers.InteractionController;
@@ -146,7 +147,12 @@
 				
 				WeaveAPI.URLRequestUtils.setBaseURL(configURL);
 				weaveTrace('Loading URL: ' + configURL);
-				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(configURL), handleConfigFileDownloaded, handleConfigFileFault, configURL);
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(configURL)),
+					handleConfigFileDownloaded,
+					handleConfigFileFault,
+					configURL
+				);
 			}
 			private function handleConfigFileDownloaded(event:ResultEvent, configURL:String = null):void
 			{

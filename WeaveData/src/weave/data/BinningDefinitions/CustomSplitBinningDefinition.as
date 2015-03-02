@@ -37,6 +37,7 @@ package weave.data.BinningDefinitions
 	{
 		public function CustomSplitBinningDefinition()
 		{
+			super(true, false);
 		}
 		
 		/**

@@ -118,5 +118,52 @@ package weave.utils
 			else
 				graphics.curveTo(startX + (endX - startX)/2, startY + (1 - curvature)/2*(endY - startY), endX, endY);
 		}
+		
+		/**
+		 * Draws a dashed line using lineTo/moveTo with the current lineStyle of a Graphics object.
+		 * @param graphics The Graphics object on which to draw.
+		 * @param points A list of Point objects defining a polyline.
+		 * @param dashedLengths A list of alternating segment and gap lengths.
+		 */
+		public static function drawDashedLine(graphics:Graphics, points:Array, dashedLengths:Array):void
+		{
+			if (!graphics || !points || !dashedLengths || points.length == 0)
+				return;
+			
+			var a:Point = new Point();
+			var b:Point = new Point();
+			var iPoint:int = 1;
+			var iDash:int = 0;
+			var dashLength:Number = dashedLengths[0];
+			
+			a.x = points[0].x;
+			a.y = points[0].y;
+			graphics.moveTo(a.x, a.y);
+			
+			while (iPoint < points.length && isFinite(dashLength))
+			{
+				b.x = points[iPoint].x;
+				b.y = points[iPoint].y;
+				var segmentLength:Number = Point.distance(a, b);
+				
+				if (!isFinite(segmentLength))
+					break;
+				
+				var c:Point = Point.interpolate(b, a, Math.min(dashLength / segmentLength, 1));
+				if (iDash % 2)
+					graphics.moveTo(c.x, c.y);
+				else
+					graphics.lineTo(c.x, c.y);
+				a = c;
+				
+				if (segmentLength <= dashLength) // segment ended
+					++iPoint;
+				
+				if (segmentLength < dashLength) // segment ended before dash
+					dashLength -= segmentLength; // partial dash progression
+				else // dash ended
+					dashLength = dashedLengths[++iDash % dashedLengths.length];
+			}
+		}
 	}
 }

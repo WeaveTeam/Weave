@@ -23,7 +23,6 @@ package weave.data.BinningDefinitions
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
-	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
@@ -40,6 +39,7 @@ package weave.data.BinningDefinitions
 	{
 		public function SimpleBinningDefinition()
 		{
+			super(true, true);
 		}
 		
 		/**
@@ -65,8 +65,8 @@ package weave.data.BinningDefinitions
 					integerValuesOnly = true;
 			}
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-			var dataMin:Number = stats.getMin();
-			var dataMax:Number = stats.getMax();
+			var dataMin:Number = isFinite(overrideInputMin.value) ? overrideInputMin.value : stats.getMin();
+			var dataMax:Number = isFinite(overrideInputMax.value) ? overrideInputMax.value : stats.getMax();
 			
 			// stop if there is no data
 			if (isNaN(dataMin))

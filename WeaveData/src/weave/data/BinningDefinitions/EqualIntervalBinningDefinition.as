@@ -21,7 +21,6 @@ package weave.data.BinningDefinitions
 {
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
-	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
@@ -38,6 +37,7 @@ package weave.data.BinningDefinitions
 	{
 		public function EqualIntervalBinningDefinition()
 		{
+			super(true, true);
 		}
 		
 		public const dataInterval:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
@@ -50,8 +50,8 @@ package weave.data.BinningDefinitions
 			
 			//var integerValuesOnly:Boolean = column is StringColumn;
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-			var dataMin:Number = stats.getMin();
-			var dataMax:Number = stats.getMax();
+			var dataMin:Number = isFinite(overrideInputMin.value) ? overrideInputMin.value : stats.getMin();
+			var dataMax:Number = isFinite(overrideInputMax.value) ? overrideInputMax.value : stats.getMax();
 			var binMin:Number;
 			var binMax:Number = dataMin;
 			var maxInclusive:Boolean;
