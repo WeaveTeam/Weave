@@ -509,7 +509,7 @@ package weave.data.DataSources
 			if (!metadata)
 				return null;
 			
-			return new ColumnTreeNode({source: this, columnMetadata: metadata});
+			return new ColumnTreeNode({source: this, idFields: META_ID_FIELDS, columnMetadata: metadata});
 		}
 		
 		private function handleFault(event:FaultEvent, token:Object = null):void
