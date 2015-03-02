@@ -662,7 +662,7 @@ package weave.utils
 			}
 			
 			var outputDC:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(selectableAttribute as IColumnWrapper);
-			if (outputDC && outputDC.getInternalColumn() == null)
+			if (outputDC && (outputDC.getInternalColumn() == null || outputDC.targetPath == null))
 			{
 				if (inputCol)
 				{
