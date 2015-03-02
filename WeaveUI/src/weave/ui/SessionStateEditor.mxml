@@ -215,7 +215,7 @@ A text editor to change the Session State on the fly.
 					}, {
 						shown: isObjectSelected,
 						label: lang('Watch selected object'),
-						click: function():void { console.consoleWatch(sessionNav.getSelectedLinkableObject()); }
+						click: function():void { DebugUtils.watch(sessionNav.getSelectedLinkableObject()); }
 					}, {
 						shown: isObjectSelected,
 						label: lang('Delete selected object'),
