@@ -171,7 +171,7 @@
 					
 					var index:int = attrs.indexOf(_linkedObject);
 					if (index < 0)
-						linkToObject(attrs[0]);
+						linkToObject(attrs[0], names[0], _overrideOwner);
 					dimensionTypeLinks.selectedIndex = Math.max(0, index);
 					
 					title = ControlPanel.getControlPanelTitle(tool, TITLE_FORMAT);
