@@ -14,6 +14,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.attribute.*;
 import java.net.URI;
 import org.apache.commons.io.input.ReaderInputStream;
+import org.apache.commons.io.input.TeeInputStream;
 import java.awt.geom.Point2D;
 
 /* Dependencies for PDF Rendering */
@@ -43,6 +44,11 @@ import javax.servlet.http.*;
 import weave.servlets.WeaveServlet;
 import weave.servlets.WeaveServlet.ServletRequestInfo;
 
+/* Dependencies for indexing and requests */
+import org.apache.solr.client.solrj.*;
+import org.apache.solr.common.*;
+import org.apache.solr.client.solrj.response.*;
+
 public class DocumentCollection
 {
 	private static final String UPLOAD_PATH = "uploads";
@@ -56,11 +62,15 @@ public class DocumentCollection
 
 	private Path path;
 	private Path servletPath;
-	public DocumentCollection(Path basePath, String name, Path servletPath) throws IOException
+	private String name;
+	private SolrClient solr;
+	public DocumentCollection(Path basePath, String name, Path servletPath, SolrClient client) throws IOException
 	{
 		if (!PathUtils.filenameIsLegal(name)) throw new IOException("Collection name contains unsafe or invalid characters.");
 		this.path = basePath.resolve(name);
+		this.name = name;
 		this.servletPath = servletPath;
+		this.solr = client;
 	}
 
 	public boolean exists()
@@ -156,7 +166,7 @@ public class DocumentCollection
 /* TIKA text extraction */
 	public static Tika tika = null;
 
-	public void extractText(Path document, boolean overwrite) throws IOException
+	public void extractText(Path document, boolean overwrite) throws IOException, SolrServerException
 	{		
 		Path inputPath = path.resolve(DOCUMENT_PATH).resolve(document);
 		Path outputPath = PathUtils.replaceExtension(path.resolve(TXT_PATH).resolve(document), "txt");
@@ -164,13 +174,25 @@ public class DocumentCollection
 		{
 			if (tika == null) tika = new Tika();
 			Reader reader = tika.parse(inputPath.toFile());
+			/* Make a TeeOutputStream to copy to a ByteArrayOutputStream so that we can hand the content to Solr */
+			ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
+			TeeInputStream tee = new TeeInputStream(new ReaderInputStream(reader, Charset.defaultCharset()), byteOutput);
+
+			/* Copy to filesystem for Mallet */
+			/* TODO: Have Mallet read this info from Solr instead. */
 			Files.createDirectories(outputPath.getParent());
 			Files.deleteIfExists(outputPath);
-			Files.copy(new ReaderInputStream(reader, Charset.defaultCharset()), outputPath);
+			Files.copy(tee, outputPath);
+
+			SolrInputDocument doc = new SolrInputDocument();
+			doc.addField("id", document.toString(), 1.0f);
+			doc.addField("content", byteOutput.toString(), 1.0f);
+			doc.addField("collection", name, 1.0f);
+			solr.add(doc);
 		}
 	}
 
-	public void extractText(final boolean overwrite) throws IOException
+	public void extractText(final boolean overwrite) throws IOException, SolrServerException
 	{
 
 		Files.walkFileTree(path.resolve(DOCUMENT_PATH), new SimpleFileVisitor<Path>() {
@@ -180,6 +202,11 @@ public class DocumentCollection
                 try {
                     extractText(path.resolve(DOCUMENT_PATH).relativize(file), overwrite);
                 }
+                catch (SolrServerException e)
+                {
+                	System.err.println("Failed to add full text to solr " + file.toString()+":" 
+                						+ e.toString());
+                }
                 catch (Exception e)
                 {
                     System.err.println("Failed to extract text from PDF "+file.toString()+":"
@@ -188,6 +215,7 @@ public class DocumentCollection
 				return FileVisitResult.CONTINUE;
 			}
 		});
+		solr.commit();
 	}
 
 /* PDF-Renderer thumbnailing */
@@ -290,6 +318,31 @@ public class DocumentCollection
 		Path inputPath = path.resolve(DOCUMENT_PATH).resolve(document);
 		serveFile(inputPath, "application/pdf", info);
 		return;
+	}
+
+	private static int SEARCH_CHUNK_SIZE = 100;
+	public List<String> searchContent(String words) throws SolrServerException
+	{
+		List<String> results = new LinkedList<String>();
+		SolrQuery query = new SolrQuery();
+		query.setQuery(words);
+		query.addFilterQuery("collection:" + name);
+		query.setFields("id");
+		query.setRows(SEARCH_CHUNK_SIZE);
+		query.setStart(0);
+		QueryResponse response;
+		SolrDocumentList doc_list;
+		do
+		{
+			response = solr.query(query);
+			doc_list = response.getResults();
+
+			for (SolrDocument doc : doc_list)
+				results.add((String)doc.getFieldValue("id"));
+
+			query.setStart(query.getStart() + SEARCH_CHUNK_SIZE);
+		} while (query.getStart() <  doc_list.getNumFound());
+		return results;
 	}
 
 /* docears heuristic metadata extraction. */

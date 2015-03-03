@@ -23,6 +23,11 @@ import javax.servlet.ServletException;
 import weave.servlets.documentmap.DocumentCollection;
 import weave.utils.Strings;
 
+import org.apache.solr.client.solrj.*;
+import org.apache.solr.client.solrj.impl.*;
+import org.apache.solr.common.*;
+
+
 
 public class DocumentMapService extends WeaveServlet
 {
@@ -40,8 +45,20 @@ public class DocumentMapService extends WeaveServlet
 		ServletContext application = config.getServletContext();
 		/* TODO: Figure out the 'right way' to get the deployment directory. */
 		Path servletPath = Paths.get("webapps", application.getServletContextName());
-		return new DocumentCollection(Paths.get(application.getInitParameter("collectionsPath")), name, servletPath.toAbsolutePath());
+		return new DocumentCollection(Paths.get(application.getInitParameter("collectionsPath")), name, servletPath.toAbsolutePath(), getSolr());
 	}
+
+	private static SolrClient _solr = null;
+	private static SolrClient getSolr()
+	{
+		if (_solr == null)
+		{
+			_solr = new HttpSolrServer("http://localhost:8080/solr/docmaps");
+		}
+		
+		return _solr;
+	}
+
 	public void createCollection(String name) throws RemoteException
 	{
 		try 
@@ -134,7 +151,7 @@ public class DocumentMapService extends WeaveServlet
 		{
 			getCollection(collectionName).extractText(force);
 		}
-		catch (IOException e)
+		catch (Exception e)
 		{
 			throw new RemoteException("Failed to extract text:", e);
 		}
@@ -209,6 +226,18 @@ public class DocumentMapService extends WeaveServlet
 		catch (Exception e)
 		{
 			throw new RemoteException("Failed to retrieve document.", e);
+		}
+	}
+
+	public List<String> searchContent(String collectionName, String words) throws RemoteException
+	{
+		try
+		{
+			return getCollection(collectionName).searchContent(words);
+		}
+		catch (Exception e)
+		{
+			throw new RemoteException("Failed to perform query.", e);
 		}
 	}
 
