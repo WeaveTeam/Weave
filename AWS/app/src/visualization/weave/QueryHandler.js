@@ -62,25 +62,31 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 	    			//			});
 			}
 	    	else if ((typeof input) == 'string'){
-				//var inputVal = tryParseJSON(input);
-	    		//			if(inputVal) {  // column input
-	    		//				scriptInputs[key] = { id : inputVal.id };
-	    		//			} else { // regular string
-	    		//				scriptInputs[key] = input;
-	    		//			}
+				typedInputObjects.push({
+					name : "", 
+					type : 'string',
+					value : input
+				});
 	    	}
 	    	else if ((typeof input) == 'number'){// regular number
-	    		//scriptInputs[key] = input;
+	    		typedInputObjects.push({
+					name : "", 
+					type : 'number',
+					value : input
+				});
 	    	} 
 	    	else if ((typeof input) == 'boolean'){ // boolean 
-	    		//scriptInputs[key] = input;
+	    		typedInputObjects.push({
+					name : "", 
+					type : 'boolean',
+					value : input
+				});
 	    	}
 	    	else{
 				console.log("unknown script input type ", input);
 			}
     	}
     	
-    	//TODO confirm if this is the right way
     	if($.inArray(typedInputObjects, rowsObject) != 0 && queryService.cache.scriptMetadata)//if it contains the filtered rows
     		{
     			//handling filtered rows
@@ -98,6 +104,19 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     	return typedInputObjects;
     };
     
+    /**
+     * this  function handles the re-identification during aggregation   
+     */
+    this.handleReidentification = function(scriptInputObjects){
+    	
+    	scriptInputObjects.push({
+			type : "Reidentification",
+			name: "ReIdPrevention",
+			value : queryService.queryObject.Reidentification
+		});
+    	
+    };
+    
 	/**
 	 * this function processes the received queryObject and makes the async call for running the script
 	 */
@@ -112,20 +131,24 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			var queryObject = incoming_queryObject;
 			var scriptInputObjects = [];//final collection of script input objects
 			
+			//TODO handle filters before handling script options
+			
 			//handling script inputs
 			scriptInputObjects = this.handleScriptOptions(queryObject.scriptOptions);
+			
+			//handles re-identification for aggregation scripts
+			this.handleReidentification(scriptInputObjects);
 
-			//TODO handle filters before handling script options
-				
+			console.log("scriptInputObjects", scriptInputObjects);
 				scriptName = queryObject.scriptSelected;
-				 var stringifiedQO = JSON.stringify(queryObject);
-				 console.log("query", stringifiedQO);
-				 console.log(JSON.parse(stringifiedQO));
+				 //var stringifiedQO = JSON.stringify(queryObject);
+				 //console.log("query", stringifiedQO);
+				 //console.log(JSON.parse(stringifiedQO));
 				queryService.queryObject.properties.queryDone = false;
 				queryService.queryObject.properties.queryStatus = "Loading data from database...";
 				startTimer = new Date().getTime();
 				
-				console.log("indicatorRemap", queryService.queryObject.IndicatorRemap);
+				//console.log("indicatorRemap", queryService.queryObject.IndicatorRemap);
 				
 				//getting the data
 				queryService.getDataFromServer(scriptInputObjects, queryService.queryObject.IndicatorRemap).then(function(success) {
@@ -140,8 +163,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 							{
 								time2 = new Date().getTime() - startTimer;
 								queryService.queryObject.properties.queryDone = true;
-								//queryService.queryObject.properties.resultData = resultData;
 								queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
+								
 								if(WeaveService.weave){
 									
 									//convert result into csvdata format
@@ -164,10 +187,3 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			}//validation check
 		};
 }]);
-
-qh_module.controller('QueryHandlerCtrl', function($scope, queryService, QueryHandlerService) {
-	
-	$scope.service = queryService;
-	$scope.QueryHandlerService = QueryHandlerService;
-	
-});

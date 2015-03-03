@@ -184,6 +184,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 				metadataTable:{}
 			},
 			openInNewWindow : false,
+			Reidentification : {
+				idPrevention :false,
+				threshold : 0
+			},
 			scriptOptions : {},
 			scriptSelected : "",
 			TimePeriodFilter : {},

@@ -41,6 +41,7 @@ public class ComputationalServlet extends WeaveServlet
 	
 	public static String filteredRows = "FILTEREDROWS";
 	public static String dataMatrix = "DATACOLUMNMATRIX";
+	public static String reidentification = "REIDENTIFICATION";
 
 	public void init(ServletConfig config) throws ServletException
 	{
@@ -104,6 +105,14 @@ public class ComputationalServlet extends WeaveServlet
 					scriptInputs.put("columndata", columnData);
 				}
 			} //TODO handle remaining types of input objects
+			
+			//handling re-identification prevention in aggregation scripts
+			else if(type.equalsIgnoreCase(reidentification))
+			{
+				ReIdentificationObject reId = (ReIdentificationObject)cast(inputObjects[i].value, ReIdentificationObject.class);
+				scriptInputs.put("idPrevention", reId.idPrevention);
+				scriptInputs.put("threshold",reId.threshold );
+			}
 			else {
 				scriptInputs.put(inputObjects[i].name, inputObjects[i].value);
 			}
@@ -123,6 +132,7 @@ public class ComputationalServlet extends WeaveServlet
 				resultData = rService.runScript(FilenameUtils.concat(rScriptsPath, scriptName), scriptInputs);
 			} catch(Exception e) 
 			{
+				scriptInputs.clear();
 				throw (e);
 			}
 		} else {
@@ -240,5 +250,14 @@ public class ComputationalServlet extends WeaveServlet
 		 public int columnsToRemapId;
 		 public  Object originalValue;
 		 public Object reMappedValue;
+	}
+	
+	/**
+	 * this object represents the parameters needed to prevent the re-identification during aggregation 
+	 * */
+	public static class ReIdentificationObject
+	{
+		public int threshold;
+		public boolean idPrevention;
 	}
 }

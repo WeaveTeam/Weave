@@ -1,44 +1,37 @@
+<!--Controlled by AnalysisCtrl  -->
 <div style="height: 100%">
 <!-- BUTTON CONTAINER -->
-	<div style = "width:100%; background-color : #4C4F53; height: 50px; position: fixed;display: table"  ng-controller = DialogController>
+	<div class = "btn-group" role = "group"  style = "width:100%;  height: 30px; position: fixed"
+		 ng-controller= "buttonBarController">
 						
-						<div ng-controller="QueryImportExportCtrl">
-						<!-- EXPORT QUERY BUTTON -->
-							<a href="javascript:void(0);" class="btn btn-default" style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"> <span style="vertical-align: middle" ng-click = "exportQuery()">Export Query</span></a>
-							
-							<!-- IMPORT QUERY BUTTON -->
-							<label class='btn btn-default' style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; height: 30px; margin-top: 10px; margin-right : 5px">Import Query<input fileread="queryObjectUploaded.file" class='file-upload' type='file'/></label>
-						</div>
+						<button class='btn btn-default wa_buttonBar' title = "Download Query Object"><span class = "glyphicon glyphicon-download" ng-click = "exportQuery()"></span></button>
+						
+						<label class='btn btn-default wa_buttonBar' title = "Upload Query Object"><span class = "glyphicon glyphicon-upload" ></span><input fileread="queryObjectUploaded.file" class='file-upload' type='file'/></label>
+						
 						<!-- SHOW?HIDE QUERY OBJECT EDITOR button -->
-						<a href="javascript:void(0);" class="btn btn-default" 
-														style="float : left; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"
+						<button class="btn btn-default wa_buttonBar" title = "Show/Hide Query Object Editor"
 														ng-click = "queryService.queryObject.properties.hideQueryObjectPanel = !queryService.queryObject.properties.hideQueryObjectPanel"
 														ng-init="queryService.queryObject.properties.hideQueryObjectPanel = true">
-								 <span style="vertical-align: middle">
-									 	Show/Hide Query Object
-							 	</span>
-						</a>
+								 <span class = "glyphicon glyphicon-th-list"></span>
+						</button>
 						
-				<!-- CLEAR button --> 
-						<a href="javascript:void(0);" class="btn btn-default" style="float : right; font-size: 15px; padding: 2px 5px; width : 15%; margin-top: 10px; margin-right : 5px"> <span style="vertical-align: middle" ng-click = "clearSessionState()">Clear output visuals</span></a>
+						<!-- CLEAR button --> 
+						<button class="btn btn-default wa_buttonBar" title = "Clear visualizations"> <span class = "glyphicon glyphicon-trash" ng-click = "clearSessionState()"></span></button>
 						
-				<!-- SAVE output visuals button -->	 
-
-						<a href="javascript:void(0);" class="btn btn-default" style="float : right; font-size: 15px; padding: 2px 5px; width: 15%; margin-top: 10px; margin-right : 5px" ng-click="saveVisualizations()"> 
-						<span style="vertical-align: middle">Save output visuals</span> 
-						</a>
+						<!-- SAVE output visuals button -->	 
+						<button  class="btn btn-default wa_buttonBar"  title = "Save visualizations" ng-click="saveVisualizations()"> 
+						<span  class = "glyphicon glyphicon-floppy-disk"></span> 
+						</button>
 				
-				<!-- RUN button -->		
-						<button class="btn btn-primary" 
-							style="width: 10%; float:right; margin-top: 10px; margin-right : 5px"
+						<!-- RUN button -->		
+						<button  class="btn btn-primary wa_buttonBar" title = "Run query"
 							ng-click="QueryHandlerService.run(queryService.queryObject)" 
 							popover="{{queryService.queryObject.properties.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
-							ng-controller="QueryHandlerCtrl"
-							ng-Disabled = "!service.queryObject.properties.isQueryValid">
-							 <span style="vertical-align: right">Run</span>
+							ng-Disabled = "!queryService.queryObject.properties.isQueryValid">
+							 <span class = "glyphicon glyphicon-play"></span>
 						 </button>
 		</div>
-		<!-- BUTTON CONTAINER END -->
+<!-- BUTTON CONTAINER END -->
 		
 		
 		<div style = "padding : 30px"></div>
@@ -239,7 +232,14 @@
 								</tr>
 							</table>
 						</div>
-						
+<!-- reidentification prevention -->
+						<div class="input-group">
+						      <span class="input-group-addon">
+						        <input type="checkbox" ng-model="service.queryObject.Reidentification.idPrevention" >
+						      </span>
+						      <input type="text" class="form-control"  ng-model = "service.queryObject.Reidentification.threshold" 
+						      		 ng-Disabled="!service.queryObject.Reidentification.idPrevention">
+					    </div><!-- /input-group -->
 						
 						
 <!-- Validation -->	
@@ -325,10 +325,10 @@
 <!-- VIZ TOOL WIDGETS -->	
 		<div ng-controller= "toolsCtrl">
 				<div class="row " style="height: 50%; clear:both" ng-if="!queryService.queryObject.properties.openInNewWindow">
-					<div class="databox" style="width: 20%;" ng-if="!showToolMenu">
+					<div class="databox" style="width: 25%;" ng-if="!showToolMenu">
 						
 					</div>
-					<div class="databox" style="width: 20%;" ng-if="showToolMenu">
+					<div class="databox" style="width: 25%;" ng-if="showToolMenu">
 						<div>
 							<div>
 								<select style = "width : 58%" 
@@ -360,7 +360,7 @@
 							</accordion>
 						</div>
 					</div>
-					<div id="flashContent" style="width: 78%; height: 800px; float:left"></div>
+					<div id="flashContent" style="width: 70%; height: 800px; float:left"></div>
 				</div>
 				
 				<!-- individual tool widgets when Weave is opened in a new window -->

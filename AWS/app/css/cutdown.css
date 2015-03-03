@@ -866,7 +866,7 @@ select {
 
 .databox {
 
-	height: 270px;
+	height: 300px;
 	margin-left: 1px;
 	margin-right: 2px;
 	float: left;
@@ -907,3 +907,16 @@ select {
 	line-height: 1.5;
 }
 
+/* buttons*/
+
+.wa_buttonBar {
+	
+	float : left;
+	type : button;
+	font-size: 20px;
+	padding: 2px 5px;
+	width : 5%;
+	height: 30px;
+	margin-top: 10px;
+	margin-right : 5px"
+}
