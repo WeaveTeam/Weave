@@ -68,14 +68,18 @@
 
 <p id="demo"></p>
 
-
-<script language="JavaScript" type="text/javascript" src="json2.js"></script>
 <script language="JavaScript" type="text/javascript">
-
-
 function weaveReady(weave)
 {
+	weave.path(['WeaveProperties', 'altTextOptions', 'altText']).addCallback(updateAltText);
 	alert('Weave JavaScript API is ready (id="'+(weave && weave.id)+'").');
+}
+
+function updateAltText()
+{
+	console.log("hello?");
+	altTextDiv = document.getElementById('altText');
+	altText.innerHTML = weave.path(['WeaveProperties', 'altTextOptions', 'altText']).getState();
 }
 
 function runStartupScript()
@@ -85,8 +89,8 @@ function runStartupScript()
 	
 
 </script>
-		<img id="weaveAltImg" alt="this is a test for screen readers" src="test.png"/>
-        
+		<img id="weaveAltImg" alt="this is a test for screen readers" width="58" height="58" src="speaker.png"/>
+      	<div id="altText"></div>  
         <div id="flashContent" >
             <p>
                 To view this page ensure that Adobe Flash Player version 
