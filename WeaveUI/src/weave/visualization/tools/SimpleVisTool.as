@@ -27,12 +27,7 @@ package weave.visualization.tools
 	import mx.core.UIComponent;
 	
 	import weave.Weave;
-	import weave.api.copySessionState;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnReference;
-	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
@@ -48,9 +43,6 @@ package weave.visualization.tools
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.UIUtils;
-	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.AttributeColumns.FilteredColumn;
-	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.editors.SimpleAxisEditor;
 	import weave.editors.WindowSettingsEditor;
 	import weave.editors.managers.LayerListComponent;
@@ -58,7 +50,6 @@ package weave.visualization.tools
 	import weave.ui.Paragraph;
 	import weave.ui.PenTool;
 	import weave.utils.ColumnUtils;
-	import weave.utils.ProbeTextUtils;
 	import weave.visualization.layers.LayerSettings;
 	import weave.visualization.layers.SimpleInteractiveVisualization;
 	import weave.visualization.plotters.SimpleAxisPlotter;
@@ -181,13 +172,22 @@ package weave.visualization.tools
 		public function getSelectableAttributeNames():Array
 		{
 			var obj:ISelectableAttributes = mainPlotter as ISelectableAttributes;
-			if (!obj)
-			{
-				var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
-				if (descendants.length == 1)
-					obj = descendants[0];
-			}
-			return obj ? obj.getSelectableAttributeNames() : [];
+			if (obj)
+				return obj.getSelectableAttributeNames();
+			
+			var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
+			return [].concat.apply(null, descendants.map(function(descendant:ISelectableAttributes, i:int, a:Array):Array {
+				var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, descendant);
+				var descendantName:String = path[path.length - 1];
+				return descendant.getSelectableAttributeNames().map(function(attrName:String, i:int, a:Array):String {
+					if (descendants.length == 1)
+						return attrName;
+					// translate the name by itself
+					var translated:String = lang(attrName);
+					// TODO - attribute selector needs option to not translate these names (since this is already translated)
+					return lang("{0} ({1})", translated, descendantName);
+				});
+			}));
 		}
 
 		/**
@@ -197,13 +197,13 @@ package weave.visualization.tools
 		public function getSelectableAttributes():Array
 		{
 			var obj:ISelectableAttributes = mainPlotter as ISelectableAttributes;
-			if (!obj)
-			{
-				var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
-				if (descendants.length == 1)
-					obj = descendants[0];
-			}
-			return obj ? obj.getSelectableAttributes() : [];
+			if (obj)
+				return obj.getSelectableAttributes();
+			
+			var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
+			return [].concat.apply(null, descendants.map(function(descendant:ISelectableAttributes, i:int, a:Array):Array {
+				return descendant.getSelectableAttributes();
+			}));
 		}
 
 		private function updateToolWindowSettings():void
