@@ -212,7 +212,7 @@ package weave.api.core
 		 * @param linkableVariable An ILinkableVariable to link to a bindable property.
 		 * @param bindableParent An object with a bindable property.
 		 * @param bindablePropertyName The variable name of the bindable property.
-		 * @param delay The delay to use before setting the linkable variable to reflect a change in the bindable property while the bindableParent has focus.
+		 * @param delay A number of milliseconds to delay before setting the linkable variable to reflect a change in the bindable property while the bindableParent has focus.
 		 * @param onlyWhenFocused If this is set to true and the bindableParent is a UIComponent, the bindable value will only be copied to the linkableVariable when the component has focus.
 		 * @see #unlinkBindableProperty()
 		 */
