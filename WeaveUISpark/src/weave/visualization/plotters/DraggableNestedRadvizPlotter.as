@@ -19,18 +19,13 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 package weave.visualization.plotters
 {
-	import flash.display.Graphics;
-	import flash.display.Shape;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -38,17 +33,10 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableVariable;
-	import weave.core.LinkableWatcher;
-	import weave.data.AttributeColumns.BinnedColumn;
-	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.AttributeColumns.EquationColumn;
-	import weave.data.AttributeColumns.FilteredColumn;
-	import weave.utils.ColumnUtils;
 	import weave.visualization.layers.PlotTask;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -56,13 +44,13 @@ package weave.visualization.plotters
 	/**
 	 * @author adufilie
 	 */
-	public class DraggableNestedRadviz extends AbstractPlotter implements ISelectableAttributes
+	public class DraggableNestedRadvizPlotter extends AbstractPlotter implements ISelectableAttributes
 	{
 		public var probedKey:IQualifiedKey = null;
 		
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, DraggableScatterPlotPlotter, "Draggable Nested Radviz");
 		
-		public function DraggableNestedRadviz()
+		public function DraggableNestedRadvizPlotter()
 		{
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 		}
@@ -92,7 +80,6 @@ package weave.visualization.plotters
 		private const tempPoint:Point = new Point();
 		
 		private const RECORD_INDEX:String = 'recordIndex';
-		private const MIN_IMPORTANCE:String = 'minImportance';
 		private const D_PROGRESS:String = 'd_progress';
 		private const D_ASYNCSTATE:String = 'd_asyncState';
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
@@ -105,7 +92,6 @@ package weave.visualization.plotters
 			}
 			
 			var recordIndex:Number = task.asyncState[RECORD_INDEX];
-			var minImportance:Number = task.asyncState[MIN_IMPORTANCE];
 			var d_progress:Dictionary = task.asyncState[D_PROGRESS];
 			var d_asyncState:Dictionary = task.asyncState[D_ASYNCSTATE];
 			var progress:Number = 1; // set to 1 in case loop is not entered
@@ -230,53 +216,39 @@ import weave.api.detectLinkableObjectChange;
 import weave.api.primitives.IBounds2D;
 import weave.api.registerDisposableChild;
 import weave.api.registerLinkableChild;
+import weave.api.ui.IPlotTask;
 import weave.compiler.StandardLib;
 import weave.data.AttributeColumns.AbstractAttributeColumn;
-import weave.visualization.plotters.DraggableNestedRadviz;
+import weave.visualization.plotters.DraggableNestedRadvizPlotter;
 
-internal class NestedPlotTask
+internal class NestedPlotTask implements IPlotTask
 {
-	/**
-	 * This is the off-screen buffer, which may change
-	 */
-	public var buffer:BitmapData;
-	
-	/**
-	 * This specifies the range of data to be rendered
-	 */
-	public var dataBounds:IBounds2D;
-	
-	/**
-	 * This specifies the pixel range where the graphics should be rendered
-	 */
-	public var screenBounds:IBounds2D;
-	
-	/**
-	 * These are the IQualifiedKey objects identifying which records should be rendered
-	 */
-	public var recordKeys:Array;
-	
-	/**
-	 * This counter is incremented after each iteration.  When the task parameters change, this counter is reset to zero.
-	 */
-	public var iteration:uint;
-	
-	/**
-	 * This is the time at which the current iteration should be stopped, if possible.  This value can be compared to getTimer().
-	 * Ignore this value if an iteration cannot be ended prematurely.
-	 */
-	public var iterationStopTime:int;
-	
-	/**
-	 * This object can be used to optionally store additional state variables for resuming an asynchronous task where it previously left off.
-	 * Setting this will not reset the iteration counter.
-	 */
-	public var asyncState:Object;
+	public var _buffer:BitmapData;
+	public var _dataBounds:IBounds2D;
+	public var _screenBounds:IBounds2D;
+	public var _recordKeys:Array;
+	public var _iteration:uint;
+	public var _iterationStopTime:int;
+	public var _asyncState:Object;
+	public function get buffer():BitmapData { return _buffer; }
+	public function set buffer(v:BitmapData):void { _buffer = v; }
+	public function get dataBounds():IBounds2D { return _dataBounds; }
+	public function set dataBounds(v:IBounds2D):void { _dataBounds = v; }
+	public function get screenBounds():IBounds2D { return _screenBounds; }
+	public function set screenBounds(v:IBounds2D):void { _screenBounds = v; }
+	public function get recordKeys():Array { return _recordKeys; }
+	public function set recordKeys(v:Array):void { _recordKeys = v; }
+	public function get iteration():uint { return _iteration; }
+	public function set iteration(v:uint):void { _iteration = v; }
+	public function get iterationStopTime():int { return _iterationStopTime; }
+	public function set iterationStopTime(v:int):void { _iterationStopTime = v; }
+	public function get asyncState():Object { return _asyncState; }
+	public function set asyncState(v:Object):void { _asyncState = v; }
 }
 
 internal class RankedTopicColumn extends AbstractAttributeColumn
 {
-	public function RankedTopicColumn(plotter:DraggableNestedRadviz):void
+	public function RankedTopicColumn(plotter:DraggableNestedRadvizPlotter):void
 	{
 		var meta:Object = {};
 		meta[ColumnMetadata.TITLE] = lang('Primary Topic');
@@ -288,7 +260,7 @@ internal class RankedTopicColumn extends AbstractAttributeColumn
 		registerLinkableChild(this, plotter.thresholdNumber);
 	}
 	
-	private var plotter:DraggableNestedRadviz;
+	private var plotter:DraggableNestedRadvizPlotter;
 	private var columns:Array;
 	private var names:Array;
 	
