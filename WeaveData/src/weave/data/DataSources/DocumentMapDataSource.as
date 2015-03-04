@@ -99,7 +99,7 @@ package weave.data.DataSources
 		private var _service:AMF3Servlet = null;
 		private var _rService:AMF3Servlet = null;
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/DocumentMapService/'));
-		public const rServiceUrl:LinkableString = registerLinkableChild(this, new LinkableString('http://docmaps.binaryden.net:8080/WeaveServices/RService'));
+		public const rServiceUrl:LinkableString = registerLinkableChild(this, new LinkableString('/WeaveServices/RService'));
 		private var _cache:Object = {};
 		
 		/**

@@ -99,6 +99,7 @@ package
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
 	import weave.visualization.tools.DimensionSliderTool;
+	import weave.visualization.tools.DocMapSearchTool;
 	import weave.visualization.tools.DraggableScatterPlotTool;
 	import weave.visualization.tools.GaugeTool;
 	import weave.visualization.tools.GraphTool;
@@ -216,6 +217,7 @@ package
 				RInterfaceTool,
 				TreeTool,
 				KeyMappingTool,
+				DocMapSearchTool,
 				LayerSettingsTool,
 				ParallelCoordinatesTool
 			]);
