@@ -24,8 +24,10 @@ package weave.visualization.plotters
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
+	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
@@ -48,11 +50,27 @@ package weave.visualization.plotters
 	{
 		public var probedKey:IQualifiedKey = null;
 		
-		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, DraggableScatterPlotPlotter, "Draggable Nested Radviz");
+		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, DraggableScatterPlotPlotter, "Draggable Nested RadViz");
 		
 		public function DraggableNestedRadvizPlotter()
 		{
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+			
+			var columnList:IChildListCallbackInterface = topicColumns.childListCallbacks;
+			columnList.addImmediateCallback(this, function():void {
+				if (columnList.lastNameAdded)
+					topicPlotters.requestObject(columnList.lastNameAdded, RadVizPlotter, false);
+				if (columnList.lastNameRemoved)
+					topicPlotters.removeObject(columnList.lastNameRemoved);
+			});
+			
+			var plotterList:IChildListCallbackInterface = topicPlotters.childListCallbacks;
+			plotterList.addImmediateCallback(this, function():void {
+				if (plotterList.lastObjectAdded)
+					linkSessionState(topicColumns, (plotterList.lastObjectAdded as RadVizPlotter).columns);
+				if (plotterList.lastNameRemoved)
+					topicColumns.removeObject(plotterList.lastNameRemoved);
+			});
 		}
 		
 		public function getSelectableAttributeNames():Array
@@ -75,53 +93,48 @@ package weave.visualization.plotters
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		
-		private const nestedPlotters:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(RadVizPlotter));
+		private const topicPlotters:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(RadVizPlotter));
 		private const rankedTopics:RankedTopicColumn = newLinkableChild(this, RankedTopicColumn);
+		
+		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
+		{
+			var topicIDs:Array = rankedTopics.getValueFromKey(recordKey, Array);
+		}
+		
+		
 		private const tempPoint:Point = new Point();
 		
 		private const RECORD_INDEX:String = 'recordIndex';
-		private const D_PROGRESS:String = 'd_progress';
-		private const D_ASYNCSTATE:String = 'd_asyncState';
+		private const D_TASKS:String = 'tasks';
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
+			var name:String;
+			var radviz:RadVizPlotter;
+			var names:Array = topicColumns.getNames();
+			
 			if (task.iteration == 0)
 			{
 				task.asyncState[RECORD_INDEX] = 0;
-				task.asyncState[D_PROGRESS] = new Dictionary(true);
-				task.asyncState[D_ASYNCSTATE] = new Dictionary(true);
+				task.asyncState[D_TASKS] = {};
+				for each (name in names)
+				{
+					var subtask:CustomPlotTask = task.asyncState[D_TASKS][name] = new CustomPlotTask(task);
+					radviz = topicPlotters.requestObject(name, RadVizPlotter, false);
+					//TODO
+					radviz.anchors;
+					subtask.dataBounds;
+					subtask.screenBounds;
+				}
 			}
 			
 			var recordIndex:Number = task.asyncState[RECORD_INDEX];
-			var d_progress:Dictionary = task.asyncState[D_PROGRESS];
-			var d_asyncState:Dictionary = task.asyncState[D_ASYNCSTATE];
+			var d_tasks:Dictionary = task.asyncState[D_TASKS];
 			var progress:Number = 1; // set to 1 in case loop is not entered
 			while (recordIndex < task.recordKeys.length)
 			{
 				var recordKey:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
 				
-				if( probedKey != null && (task as PlotTask).taskType == PlotTask.TASK_TYPE_PROBE )
-					for each (var topicColumn:IAttributeColumn in topicColumns.getObjects())
-					{
-						var tempColumnValue:Number = topicColumn.getValueFromKey(probedKey, Number);
-						if( tempColumnValue > thresholdNumber.value )
-						{
-							var topicIDs:Array = rankedTopics.getValueFromKey(recordKey, Array);
-							if (!topicIDs || !topicIDs.length)
-								continue;
-							
-							var p0:Point = getTopicPoint(topicIDs[0]);
-							task.dataBounds.projectPointTo(p0, task.screenBounds);
-							
-							for (var i:int = 0; i < topicIDs.length; i++)
-							{
-								var p1:Point = getTopicPoint(topicIDs[i]);
-								task.dataBounds.projectPointTo(p1, task.screenBounds);
-								tempShape.graphics.moveTo(p0.x, p0.y);
-								tempShape.graphics.lineTo(p1.x, p1.y);
-							}
-						}
-					}
-					
+				
 				// this progress value will be less than 1
 				progress = recordIndex / task.recordKeys.length;
 				task.asyncState[RECORD_INDEX] = ++recordIndex;
@@ -131,26 +144,46 @@ package weave.visualization.plotters
 					break; // not done yet
 			}
 			
-			// hack for symbol plotters
-			var nestedPlottersArray:Array = nestedPlotters.getObjects();
-			var ourAsyncState:Object = task.asyncState;
-			for each (var plotter:RadVizPlotter in nestedPlottersArray)
+			// render subtasks
+			for each (name in names)
 			{
-				if (task.iteration == 0)
+				var subtask:CustomPlotTask = d_tasks[name] as CustomPlotTask;
+				if (subtask.progress != 1)
 				{
-					d_asyncState[plotter] = {};
-					d_progress[plotter] = 0;
+					subtask.iteration++;
+					subtask.iterationStopTime = task.iterationStopTime;
+					radviz = topicPlotters.getObject(name) as RadVizPlotter;
+					subtask.progress = radviz.drawPlotAsyncIteration(subtask);
 				}
-				if (d_progress[plotter] != 1)
-				{
-					task.asyncState = d_asyncState[plotter];
-					d_progress[plotter] = plotter.drawPlotAsyncIteration(task);
-				}
-				progress += d_progress[plotter];
+				progress += subtask.progress;
 			}
-			task.asyncState = ourAsyncState;
 			
-			return progress / (1 + nestedPlottersArray.length);
+			progress = progress / (1 + names.length);
+			
+			// draw probe lines linking document to related topics
+			if (progress == 1 && probedKey != null && (task as PlotTask).taskType == PlotTask.TASK_TYPE_PROBE )
+			{
+				tempShape.graphics.clear();
+				var rankedNames:Array = rankedTopics.getValueFromKey(probedKey, Array);
+				for each (name in rankedNames)
+				{
+					var p0:Point = getTopicPoint(name);
+					task.dataBounds.projectPointTo(p0, task.screenBounds);
+					
+					for (var i:int = 0; i < rankedNames.length; i++)
+					{
+						var p1:Point = getTopicPoint(rankedNames[i]);
+						task.dataBounds.projectPointTo(p1, task.screenBounds);
+
+						line.beginLineStyle(probedKey, tempShape.graphics);
+						tempShape.graphics.moveTo(p0.x, p0.y);
+						tempShape.graphics.lineTo(p1.x, p1.y);
+					}
+				}
+				task.buffer.draw(tempShape);
+			}
+			
+			return progress;
 		}
 		
 		private var keyBeingDragged:IQualifiedKey;
@@ -161,7 +194,6 @@ package weave.visualization.plotters
 			if (!topicColumns.getNames().indexOf(key.localName) >= 0)
 				return;
 			keyBeingDragged = key;
-			//trace("Dragging Started  " + keyBeingDragged.localName);
 			isDragging = true;
 		}
 		
@@ -173,13 +205,10 @@ package weave.visualization.plotters
 		
 		public function stopPointDrag(endPoint:Point):void
 		{
-			//trace("Dragging End  " + keyBeingDragged.localName);
 			isDragging = false;
 			if (keyBeingDragged != null)
 				moveTopicPoint(keyBeingDragged, endPoint);
 			keyBeingDragged = null;
-			
-			//Insert send points to R code here.
 		}
 		
 		public const topicPositions:LinkableVariable = newSpatialProperty(LinkableVariable);
@@ -221,15 +250,25 @@ import weave.compiler.StandardLib;
 import weave.data.AttributeColumns.AbstractAttributeColumn;
 import weave.visualization.plotters.DraggableNestedRadvizPlotter;
 
-internal class NestedPlotTask implements IPlotTask
+internal class CustomPlotTask implements IPlotTask
 {
+	public function CustomPlotTask(parentTask:IPlotTask)
+	{
+		this.buffer = parentTask.buffer;
+		this.dataBounds = parentTask.dataBounds.cloneBounds();
+		this.screenBounds = parentTask.screenBounds.cloneBounds();
+	}
+	
+	public var progress:Number = 0;
+	
 	public var _buffer:BitmapData;
 	public var _dataBounds:IBounds2D;
 	public var _screenBounds:IBounds2D;
-	public var _recordKeys:Array;
-	public var _iteration:uint;
+	public var _recordKeys:Array = [];
+	public var _iteration:uint = 0;
 	public var _iterationStopTime:int;
-	public var _asyncState:Object;
+	public var _asyncState:Object = {};
+	
 	public function get buffer():BitmapData { return _buffer; }
 	public function set buffer(v:BitmapData):void { _buffer = v; }
 	public function get dataBounds():IBounds2D { return _dataBounds; }
@@ -251,7 +290,7 @@ internal class RankedTopicColumn extends AbstractAttributeColumn
 	public function RankedTopicColumn(plotter:DraggableNestedRadvizPlotter):void
 	{
 		var meta:Object = {};
-		meta[ColumnMetadata.TITLE] = lang('Primary Topic');
+		meta[ColumnMetadata.TITLE] = lang('Ranked Topics');
 		super(meta);
 		
 		this.plotter = plotter;
@@ -261,46 +300,41 @@ internal class RankedTopicColumn extends AbstractAttributeColumn
 	}
 	
 	private var plotter:DraggableNestedRadvizPlotter;
-	private var columns:Array;
-	private var names:Array;
+	private var columnNames:Array;
+	
+	private var tempDocKey:IQualifiedKey; // used in getTopicWeight
+	
+	private function getTopicWeight(name:String):Number
+	{
+		var column:IAttributeColumn = plotter.topicColumns.getObject(name) as IAttributeColumn;
+		return column.getValueFromKey(tempDocKey, Number);
+	}
 	
 	override protected function generateValue(key:IQualifiedKey, dataType:Class):Object
 	{
 		if (detectLinkableObjectChange(this, plotter.topicColumns.childListCallbacks))
-		{
-			columns = plotter.topicColumns.getObjects();
-			names = plotter.topicColumns.getNames();
-		}
+			columnNames = plotter.topicColumns.getNames();
 		
-		//TODO - sort topicIDs by weight and filter by threshold value
-		var maxValue:Number = NaN;
-		var maxIndex:Number = NaN;
-		var keyType:String = '';
-		for (var i:int = 0; i < columns.length; i++)
-		{
-			var column:IAttributeColumn = columns[i] as IAttributeColumn;
-			var value:Number = column.getValueFromKey(key, Number);
-			if (isNaN(maxValue) || value > maxValue)
-			{
-				maxValue = value;
-				maxIndex = i;
-				keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
-			}
-		}
+		// set tempDocKey for getTopicWeight()
+		tempDocKey = key;
+		// filter topic columns by threshold value
+		var sortedColumnNames:Array = columnNames.filter(function(columnName:String, i:int, a:Array):Boolean {
+			return getTopicWeight(columnName) >= plotter.thresholdNumber.value;
+		});
+		// sort topic column names by topic weight
+		StandardLib.sortOn(sortedColumnNames, getTopicWeight, -1);
 		
-		if (dataType == Number)
-			return maxIndex;
+		if (!dataType)
+			dataType = Array;
 		
-		var name:String = StandardLib.asString(names[i]);
+		if (dataType == Array)
+			return sortedColumnNames; // sorted, filtered topic column names
 		
 		if (dataType == String)
-			return name;
+			return StandardLib.asString(sortedColumnNames[0]); // primary topic column name
 		
-		if (dataType == IQualifiedKey)
-			return WeaveAPI.QKeyManager.getQKey(keyType, name);
-		
-		if (dataType == IAttributeColumn)
-			return columns[i] as IAttributeColumn;
+		if (dataType == Number)
+			return columnNames.indexOf(sortedColumnNames[0]); // index of primary topic
 		
 		return undefined;
 	}
