@@ -394,7 +394,7 @@ package weave.utils
 		/**
 		 * @param func The function to call.
 		 * @param params An array of parameters to pass to the function.
-		 * @param delay The delay before the function is called.
+		 * @param delay The number of milliseconds to delay before the function is called.
 		 */
 		public static function callLater(delay:int, func:Function, params:Array = null):void
 		{
