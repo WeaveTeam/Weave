@@ -1,0 +1,149 @@
+<ui:DraggablePanel xmlns="weave.visualization.tools.*"
+                   xmlns:mx="http://www.adobe.com/2006/mxml"
+                   xmlns:ui="weave.ui.*" 
+                   xmlns:CustomDataGrid="weave.ui.CustomDataGrid.*"
+                   layout="absolute" implements="weave.api.ui.IVisTool, weave.api.ui.ISelectableAttributes"
+                   title="{lang('Document Collection Search')}" xmlns:editors="weave.editors.*">
+
+                   <mx:Script>
+<![CDATA[
+
+import weave.Weave;
+
+import weave.api.data.IQualifiedKey;
+import weave.api.linkBindableProperty;
+import weave.api.newLinkableChild;
+import weave.api.registerLinkableChild;
+import weave.api.detectLinkableObjectChange;
+import weave.api.ui.IVisTool;
+import weave.core.LinkableBoolean;
+import weave.core.LinkableString;
+import weave.core.LinkableNumber;
+import weave.data.AttributeColumns.DynamicColumn;
+import weave.data.KeySets.KeySet;
+import weave.data.DataSources.DocumentMapDataSource;
+import weave.utils.ColumnUtils;
+import weave.api.disposeObject;
+import weave.api.objectWasDisposed;
+import weave.api.reportError;
+
+import mx.rpc.events.FaultEvent;
+import mx.rpc.events.ResultEvent;
+import mx.collections.ArrayCollection;
+
+import weave.services.AMF3Servlet;
+import weave.services.ProxyAsyncToken;
+import weave.services.addAsyncResponder;
+
+private const _probe:KeySet = Weave.defaultProbeKeySet;
+private const _selection:KeySet = Weave.defaultSelectionKeySet;
+
+WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DocMapSearchTool, "Document Collection Search");
+
+public const searchQuery:LinkableString = newLinkableChild(this, LinkableString, queryChanged, true);
+public const collectionName:LinkableString = newLinkableChild(this, LinkableString, queryChanged, true);
+
+private var _service:AMF3Servlet = null;
+private var _source:DocumentMapDataSource = null;
+
+override protected function inConstructor():void
+{
+    super.inConstructor();
+}
+
+private function updateService():void
+{
+	var dataSources:Array = WeaveAPI.globalHashMap.getObjects(DocumentMapDataSource);
+    if (dataSources.length == 0) return;
+
+    _source = dataSources[0] as DocumentMapDataSource;
+
+    if (detectLinkableObjectChange(this, _source))
+    {
+    	disposeObject(_service);
+    	_service = registerLinkableChild(this, new AMF3Servlet(_source.url.value));
+    }
+}
+
+private function handleQueryResults(event:ResultEvent, token:Object):void
+{
+	if (token.service != _service)
+		return;
+
+	var ac:ArrayCollection = event.result as ArrayCollection;
+	var results:Array = ac.source;
+	
+	var params:Array = token.params as Array;
+
+	var keyType:String = _source.getKeyType(params[0]);
+
+	_selection.replaceKeys(WeaveAPI.QKeyManager.getQKeys(keyType, results));
+
+	return;
+}
+
+private function handleFault(event:FaultEvent, token:Object = null):void
+{
+	if (objectWasDisposed(_service))
+		return;
+	reportError(event);
+}
+
+private function queryChanged():void
+{
+	if (!collectionName.value.length) return;
+
+	if (!searchQuery.value.length)
+	{
+		_selection.clearKeys();
+		return;
+	}
+
+	var query:String = searchQuery.value;
+	var collection:String = collectionName.value;
+
+	updateService();
+
+	var token:ProxyAsyncToken = new ProxyAsyncToken(_service.invokeAsyncMethod, ["searchContent", [collection, query]], null, false);
+	addAsyncResponder(token, handleQueryResults, handleFault, {service: _service, params: [collection, query]});
+	token.invoke();
+}
+
+override protected function childrenCreated():void
+{
+    super.childrenCreated();
+
+    linkBindableProperty(searchQuery, searchBox, 'text', 100, false);
+
+    return;
+}
+
+public function getSelectableAttributes():Array
+{
+    return [];
+}
+
+public function getSelectableAttributeNames():Array
+{
+    return [];
+}
+
+]]>
+</mx:Script>
+<ui:TextInputWithPrompt id="searchBox" prompt="{lang('Search')}"/>
+<ui:ControlPanel>
+        <mx:VBox label="{lang('Attributes')}">
+        
+
+        </mx:VBox>
+        <!-- mx:VBox label="{lang('Advanced')}">
+            <mx:CheckBox id="enableProbingCheckBox" label="{lang('Enable mouseover linking')}"/>
+            <ui:Indent>
+                <mx:CheckBox id="probeIncludesChildrenCheckBox" enabled="{enableProbingCheckBox.selected}" label="{lang('Linking includes all children.')}"/>
+            </ui:Indent>
+            <mx:CheckBox id="selectIncludesChildrenCheckBox" label="{lang('Include children in selections.')}"/>
+            <mx:CheckBox id="expandToShowSelectedCheckBox" label="{lang('Expand to show selected children.')}" visible="false"/>
+        </mx:VBox -->
+        <editors:WindowSettingsEditor target="{this}"/>
+    </ui:ControlPanel>
+</ui:DraggablePanel>
