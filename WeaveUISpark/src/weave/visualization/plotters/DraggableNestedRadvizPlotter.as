@@ -111,6 +111,7 @@ package weave.visualization.plotters
 			var name:String;
 			var radviz:RadVizPlotter;
 			var names:Array = topicColumns.getNames();
+			var subtask:CustomPlotTask;
 			
 			if (task.iteration == 0)
 			{
@@ -118,7 +119,7 @@ package weave.visualization.plotters
 				task.asyncState[D_TASKS] = {};
 				for each (name in names)
 				{
-					var subtask:CustomPlotTask = task.asyncState[D_TASKS][name] = new CustomPlotTask(task);
+					subtask = task.asyncState[D_TASKS][name] = new CustomPlotTask(task);
 					radviz = topicPlotters.requestObject(name, RadVizPlotter, false);
 					//TODO
 					radviz.anchors;
@@ -128,12 +129,12 @@ package weave.visualization.plotters
 			}
 			
 			var recordIndex:Number = task.asyncState[RECORD_INDEX];
-			var d_tasks:Dictionary = task.asyncState[D_TASKS];
 			var progress:Number = 1; // set to 1 in case loop is not entered
 			while (recordIndex < task.recordKeys.length)
 			{
 				var recordKey:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
 				
+				//TODO - partition the recordKeys into subtasks
 				
 				// this progress value will be less than 1
 				progress = recordIndex / task.recordKeys.length;
@@ -147,7 +148,7 @@ package weave.visualization.plotters
 			// render subtasks
 			for each (name in names)
 			{
-				var subtask:CustomPlotTask = d_tasks[name] as CustomPlotTask;
+				subtask = task.asyncState[D_TASKS][name] as CustomPlotTask;
 				if (subtask.progress != 1)
 				{
 					subtask.iteration++;
