@@ -188,6 +188,17 @@
 											>
 										</input> 
 										
+										<!-- handling multiple options for a parameter -->
+										<div ng-if="input.type == 'options'"
+											ng-init = "test($index)"
+											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
+											style="width: 100%" 
+											ng-model="service.queryObject.scriptOptions[input.param]"
+											simple-query="getParamOptionsForInput"
+											data-placeholder="Select parameter"
+											allow-clear="true">
+										</div>
+										
 										<!-- handling toggle input types -->
 										<div class="btn-group btn-toggle"
 											ng-if="input.type == 'options' && input.options.length == 2"
@@ -199,7 +210,7 @@
 												ng-class="{'active btn-primary': service.queryObject.scriptOptions[input.param] == input.options[1]}"
 												class="btn btn-default">{{input.options[1]}}</button>
 										</div>
-										
+										<!-- Handling boolean options -->
 										<div class="btn-group btn-toggle"
 											ng-if="input.type == 'boolean'"
 											ng-click="service.queryObject.scriptOptions[input.param] = !service.queryObject.scriptOptions[input.param]">
@@ -215,19 +226,19 @@
 										<input style="width: 100%" ng-if="input.type == 'value'"
 										ng-model="service.queryObject.scriptOptions[input.param]">
 										
-										<!-- Handling multiple column types -->
-										<input type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
-											ng-if="input.type == 'multiColumns'"
+<!-- 										Handling multiple column types -->
+										<input ng-if="input.type == 'multiColumns'"
+											type="hidden" popover="Select parameters" ui-select2-sortable popover-trigger="mouseenter"
 											style="width: 100%" 
+											multiple
 											ng-model="service.queryObject.scriptOptions[input.param]"
-											simple-query="getInputOptions"
+											simple-query="getAllColumns"
 											data-placeholder="Select parameter"
 											allow-clear="true"
-											to-id="getItemParam" 
-											ng-change="">
+											to-id="getItemDefault" to-text= "getItemText">
 										</input> 
 										
-										
+							
 									<br></td>
 								</tr>
 							</table>

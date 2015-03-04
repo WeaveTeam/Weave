@@ -540,8 +540,15 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		options = queryService.cache.scriptMetadata.inputs[index].options;
 	};
 	
-	$scope.getOptInputOptions = function(term, done) {
-		done($filter('filter')(options, term));
+	$scope.getParamOptionsForInput = function(term, done){
+		var optionsToDisplay = options;
+		done($filter('filter')(optionsToDisplay , term));
+	};
+	
+	//getting all colunms
+	$scope.getAllColumns = function(term, done) {
+		var allColumns = queryService.cache.columns;
+		done($filter('filter')(allColumns, term));
 	};
 	
 	$scope.getGeographyInputOptions = function(term, done){
