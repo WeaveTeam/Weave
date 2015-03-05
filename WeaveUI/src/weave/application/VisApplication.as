@@ -520,11 +520,14 @@ package weave.application
 			_selectionIndicatorText.setStyle("bottom", 0);
 			_selectionIndicatorText.setStyle("left", 0);
 			
-			PopUpManager.createPopUp(this, WeaveProgressBar);
+			_weaveProgressBar = PopUpManager.createPopUp(this, WeaveProgressBar) as WeaveProgressBar;
+			//_weaveProgressBar.stayBehind(ErrorLogPanel.getInstance());
 
 			this.addChild(VisTaskbar.instance);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN,this,handleKeyPress);
 		}
+		
+		private var _weaveProgressBar:WeaveProgressBar;
 		
 		private function handleKeyPress():void
 		{

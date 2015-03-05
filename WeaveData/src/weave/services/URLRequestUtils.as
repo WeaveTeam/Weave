@@ -371,6 +371,7 @@ internal class CustomURLLoader extends URLLoader
 	
 	override public function close():void
 	{
+		WeaveAPI.ProgressIndicator.removeTask(_asyncToken);
 		if (URLRequestUtils.debug)
 			trace(debugId(this), 'cancel', _urlRequest.url);
 		_isClosed = true;
@@ -605,7 +606,7 @@ internal class CustomAsyncResponder extends AsyncResponder implements IURLReques
 		if (loader)
 			loader.addResponder(this);
 		
-		WeaveAPI.ProgressIndicator.addTask(loader ? loader.asyncToken : this, relevantContext as ILinkableObject);
+		WeaveAPI.ProgressIndicator.addTask(this, relevantContext as ILinkableObject);
 	}
 	
 	private static function noOp(..._):void {} // does nothing
