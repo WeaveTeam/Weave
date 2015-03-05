@@ -91,9 +91,9 @@ private function handleFault(event:FaultEvent, token:Object = null):void
 
 private function queryChanged():void
 {
-	if (!collectionName.value.length) return;
+	if (!collectionName.value) return;
 
-	if (!searchQuery.value.length)
+	if (!searchQuery.value)
 	{
 		_selection.clearKeys();
 		return;
