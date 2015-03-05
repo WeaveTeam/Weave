@@ -43,7 +43,9 @@ package weave
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableObjectWithNewProperties;
+	import weave.api.disposeObject;
 	import weave.api.linkBindableProperty;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
@@ -60,6 +62,7 @@ package weave
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
+	import weave.services.WeaveRServlet;
 	import weave.services.addAsyncResponder;
 	import weave.utils.CSSUtils;
 	import weave.utils.LinkableTextFormat;
@@ -244,6 +247,7 @@ package weave
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
 		public const showProbeWindow:LinkableBoolean = new LinkableBoolean(true); // Show Probe Tool Tip Window in tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
+		public const showKMeansClustering:LinkableBoolean = new LinkableBoolean(false);
 		public const showAddExternalTools:LinkableBoolean = new LinkableBoolean(false); // Show Add External Tools dialog in tools menu.
 		
 		public const toolToggles:ILinkableHashMap = new LinkableHashMap(LinkableBoolean); // className -> LinkableBoolean
@@ -456,6 +460,17 @@ package weave
 		// temporary?
 		public const rServiceURL:LinkableString = registerLinkableChild(this, new LinkableString("/WeaveServices/RService"), handleRServiceURLChange);// url of Weave R service using Rserve
 		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
+		private var _rService:WeaveRServlet;
+		public function getRService():WeaveRServlet
+		{
+			if (!_rService || _rService.servletURL != Weave.properties.rServiceURL.value)
+			{
+				if (_rService)
+					disposeObject(_rService);
+				_rService = registerDisposableChild(this, new WeaveRServlet(Weave.properties.rServiceURL.value));
+			}
+			return _rService;
+		}
 
 		public const externalTools:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
 		
