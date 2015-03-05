@@ -104,8 +104,6 @@ package weave.visualization.plotters
 		
 		private const tempPoint:Point = new Point();
 		
-		private const RECORD_INDEX:String = 'recordIndex';
-		private const D_TASKS:String = 'tasks';
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
 			var name:String;
@@ -115,11 +113,10 @@ package weave.visualization.plotters
 			
 			if (task.iteration == 0)
 			{
-				task.asyncState[RECORD_INDEX] = 0;
-				task.asyncState[D_TASKS] = {};
+				task.asyncState = {};
 				for each (name in names)
 				{
-					subtask = task.asyncState[D_TASKS][name] = new CustomPlotTask(task);
+					subtask = task.asyncState[name] = new CustomPlotTask(task);
 					radviz = topicPlotters.requestObject(name, RadVizPlotter, false);
 					//TODO
 					radviz.anchors;
@@ -128,17 +125,16 @@ package weave.visualization.plotters
 				}
 			}
 			
-			var recordIndex:Number = task.asyncState[RECORD_INDEX];
 			var progress:Number = 1; // set to 1 in case loop is not entered
-			while (recordIndex < task.recordKeys.length)
+			while (task.iteration < task.recordKeys.length)
 			{
-				var recordKey:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
-				
-				//TODO - partition the recordKeys into subtasks
+				// partition keys into subtasks
+				var recordKey:IQualifiedKey = task.recordKeys[task.iteration] as IQualifiedKey;
+				var primaryTopic:String = rankedTopics.getValueFromKey(recordKey, String);
+				(task.asyncState[primaryTopic] as CustomPlotTask).recordKeys.push(recordKey);
 				
 				// this progress value will be less than 1
-				progress = recordIndex / task.recordKeys.length;
-				task.asyncState[RECORD_INDEX] = ++recordIndex;
+				progress = task.iteration / task.recordKeys.length;
 				
 				// avoid doing too little or too much work per iteration 
 				if (getTimer() > task.iterationStopTime)
@@ -148,7 +144,7 @@ package weave.visualization.plotters
 			// render subtasks
 			for each (name in names)
 			{
-				subtask = task.asyncState[D_TASKS][name] as CustomPlotTask;
+				subtask = task.asyncState[name] as CustomPlotTask;
 				if (subtask.progress != 1)
 				{
 					subtask.iteration++;
