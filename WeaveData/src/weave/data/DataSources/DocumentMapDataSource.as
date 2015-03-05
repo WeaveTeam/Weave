@@ -109,6 +109,8 @@ package weave.data.DataSources
 		
 		private function handleURLChange():void
 		{
+			if (_service && _service.servletURL == url.value)
+				return;
 			disposeObject(_service);
 			_service = registerLinkableChild(this, new AMF3Servlet(url.value));
 			_listCollectionsCallbacks.triggerCallbacks();
@@ -116,6 +118,8 @@ package weave.data.DataSources
 		
 		private function handleRURLChange():void
 		{
+			if (_rService && _rService.servletURL == rServiceUrl.value)
+				return;
 			disposeObject(_rService);
 			_rService = registerLinkableChild(this, new AMF3Servlet(rServiceUrl.value));
 		}
