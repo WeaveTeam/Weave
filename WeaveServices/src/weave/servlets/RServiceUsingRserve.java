@@ -501,14 +501,13 @@ public class RServiceUsingRserve
 	}
 
 	
-	public static RResult[] kMeansClustering( String[] inputNames, Object[][] inputValues, boolean showWarnings, int numberOfClusters, int iterations)throws RemoteException
+	public static RResult[] kMeansClustering( Object[][] inputValues, boolean showWarnings, int numberOfClusters, int iterations)throws RemoteException
 	{
 		RResult [] kClusteringResult = null;
 		RConnection rConnection = null;
 		try
 		{
 			rConnection = getRConnection();	
-			requestScriptAccess(rConnection); // doing this because the eval() call below is not safe
 	
 			int []noOfClusters = new int [1];
 			noOfClusters[0] = numberOfClusters;
@@ -522,14 +521,13 @@ public class RServiceUsingRserve
 			int columnLength = inputValues[0].length; 
 			
 			//to check if columns are not empty and if all columns are of the same length
-			for (int j = 1; j < inputValues.length; j++)
+			for (int j = 0; j < inputValues.length; j++)
 			{
 				if (columnLength == 0 || inputValues[j].length == 0)
-				throw new RemoteException("Unable to run computation on zero-length arrays.");
+					throw new RemoteException("Unable to run computation on zero-length arrays.");
 				if (inputValues[j].length != columnLength)
-				throw new RemoteException("Unable to run computation on two arrays with different lengths (" + columnLength
-					+ " != " + inputValues[j].length + ").");
-				
+					throw new RemoteException("Unable to run computation on two arrays with different lengths (" + columnLength
+						+ " != " + inputValues[j].length + ").");
 			}
 			
 			REXP evalValue;	
@@ -537,9 +535,9 @@ public class RServiceUsingRserve
 			
 //			We have to send columns to R and receive them back to be sent once again to R
 			//enables 'n' number of columns to be sent
-			for (int i = 0; i < inputNames.length; i++)
+			for (int i = 0; i < inputValues.length; i++)
 			{
-				String name = inputNames[i];
+				String name = "column" + i;
 				if(names.length() != 0){
 					names = names + "," + name;}
 				else{
@@ -549,7 +547,7 @@ public class RServiceUsingRserve
 				rConnection.assign(name, value);	
 		
 			}
-			evalValue = rConnection.eval("data.frame(" + names + ")"); // NOT SAFE - script was built using user-specified strings
+			evalValue = rConnection.eval("data.frame(" + names + ")");
 		
 			rConnection.assign("frame",evalValue);
 			rConnection.assign("clusternumber", noOfClusters);

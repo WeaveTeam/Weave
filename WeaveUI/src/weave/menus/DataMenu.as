@@ -19,18 +19,32 @@
 
 package weave.menus
 {
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
+	
 	import weave.Weave;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataType;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IDataSource_File;
 	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IDataSource_Transform;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.reportError;
 	import weave.api.ui.ISelectableAttributes;
+	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
+	import weave.data.AttributeColumns.CSVColumn;
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.DataSourceManager;
+	import weave.services.addAsyncResponder;
+	import weave.services.beans.KMeansClusteringResult;
+	import weave.ui.AlertTextBox;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
+	import weave.utils.ColumnUtils;
 
 	public class DataMenu extends WeaveMenuItem
 	{
@@ -117,6 +131,60 @@ package weave.menus
 			click: function():void { DraggablePanel.openStaticInstance(EquationEditor); }
 		});
 		
+		public static const kMeansClusteringItem:WeaveMenuItem = new WeaveMenuItem({
+			source: WeaveAPI.globalHashMap.childListCallbacks,
+			shown: [Weave.properties.showKMeansClustering],
+			label: lang("K-means clustering"),
+			children: function():Array {
+				return WeaveAPI.globalHashMap.getObjects(ISelectableAttributes)
+					.map(function(isa:ISelectableAttributes, i:int, a:Array):Object {
+						return {
+							label: WeaveAPI.globalHashMap.getName(isa),
+							click: doKMeans,
+							data: isa
+						};
+					});
+			}
+		});
+		private static function doKMeans(item:WeaveMenuItem):void
+		{
+			AlertTextBox.show(
+				'K-means Clustering',
+				'Please specify the number of clusters.',
+				'4',
+				null,
+				function(userInput:String):void {
+					var numberOfClusters:int = StandardLib.asNumber(userInput);
+					var isa:ISelectableAttributes = item.data as ISelectableAttributes;
+					var cols:Array = ColumnUtils.getNonWrapperColumnsFromSelectableAttributes(isa.getSelectableAttributes());
+					cols = cols.filter(function(col:IAttributeColumn, i:int, a:Array):Boolean {
+						return col.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.NUMBER;
+					});
+					var inputValues:Array = ColumnUtils.joinColumns(cols, Number);
+					var keys:Array = inputValues.shift();
+					addAsyncResponder(
+						Weave.properties.getRService().KMeansClustering(inputValues, false, numberOfClusters, 1000),
+						function(event:ResultEvent, keys:Array):void {
+							var result:KMeansClusteringResult = new KMeansClusteringResult(event.result as Array, keys);
+							var rows:Array = keys.map(function(key:IQualifiedKey, i:int, a:Array):Array {
+								return [key.localName, result.clusterVector[i]];
+							});
+							var name:String = WeaveAPI.globalHashMap.generateUniqueName('Clusters');
+							var csvColumn:CSVColumn = WeaveAPI.globalHashMap.requestObject(name, CSVColumn, false);
+							csvColumn.data.setSessionState(rows);
+							csvColumn.title.value = name;
+							csvColumn.keyType.value = (keys[0] as IQualifiedKey).keyType;
+							weaveTrace(lang('The "{0}" column was generated.', name));
+						},
+						function(event:FaultEvent, keys:Array):void {
+							reportError(event);
+						},
+						keys
+					);
+				}
+			);
+		}
+		
 		public function DataMenu()
 		{
 			super({
@@ -127,7 +195,9 @@ package weave.menus
 					return createItems([
 						staticItems,
 						getDynamicItems("+ {0}"),
-						equationColumnItem
+						equationColumnItem,
+						WeaveMenuItem.TYPE_SEPARATOR,
+						kMeansClusteringItem
 					]);
 				}
 			});

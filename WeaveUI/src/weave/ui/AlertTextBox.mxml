@@ -210,7 +210,7 @@
 		}
 		
 		public static var lastInstance:Object;
-		public static function show(title:String, message:String, defaultInput:String = "", inputValidator:Function = null):AlertTextBox
+		public static function show(title:String, message:String, defaultInput:String = "", inputValidator:Function = null, inputHandler:Function = null):AlertTextBox
 		{
 			var newAlert:AlertTextBox = new AlertTextBox();
 			newAlert.title = title;
@@ -225,6 +225,14 @@
 			//newAlert.isPopUp = false;
 			
 			lastInstance = newAlert;
+			
+			if (inputHandler != null)
+				newAlert.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, function(event:AlertTextBoxEvent):void {
+					if (event.confirm)
+						inputHandler(newAlert.textInput);
+				});
+			
+			
 			return newAlert;
 		}
 	]]>

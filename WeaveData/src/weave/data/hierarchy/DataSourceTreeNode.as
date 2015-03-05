@@ -47,11 +47,17 @@ package weave.data.hierarchy
 							return ds.getHierarchyRoot();
 						}
 					);
-					var columns:Array = root.getObjects(EquationColumn).concat(root.getObjects(CSVColumn));
+					var equationColumns:Array = root.getObjects(EquationColumn);
+					var csvColumns:Array = root.getObjects(CSVColumn);
+					var columns:Array = equationColumns.concat(csvColumns);
 					if (columns.length)
 						nodes.push({
 							source: root.childListCallbacks,
-							label: lang("Equations"),
+							label: function():String {
+								return csvColumns.length
+									? lang('Generated columns')
+									: lang('Equations');
+							},
 							isBranch: true,
 							hasChildBranches: false,
 							children: columns.map(
