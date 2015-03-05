@@ -19,7 +19,9 @@
 
 package weave.ui
 {
+	import flash.display.DisplayObject;
 	import flash.events.Event;
+	import flash.utils.Dictionary;
 	
 	import mx.controls.ProgressBar;
 	import mx.controls.ProgressBarLabelPlacement;
@@ -62,12 +64,28 @@ package weave.ui
 			handleProgressIndicatorCounterChange();
 		}
 		
+		private const _stayBehind:Dictionary = new Dictionary(true);
+		
+		/**
+		 * Call this function to prevent the progress bar from obscuring a specific DisplayObject.
+		 */
+		public function stayBehind(object:DisplayObject):void
+		{
+			_stayBehind[object] = true;
+		}
+		
 		private function handleEnterFrame(event:Event = null):void
 		{
 			if (parent && visible)
 			{
 				y = parent.height - height;
-				parent.setChildIndex(this, parent.numChildren - 1);
+				var myIndex:int = parent.getChildIndex(this);
+				while (myIndex > 0 && _stayBehind[parent.getChildAt(myIndex - 1)])
+					myIndex--;
+				var desiredIndex:int = parent.numChildren - 1;
+				while (myIndex < desiredIndex && !_stayBehind[parent.getChildAt(myIndex + 1)])
+					myIndex++;
+				parent.setChildIndex(this, myIndex);
 			}
 		}
 		
