@@ -16,17 +16,19 @@ import weave.api.newLinkableChild;
 import weave.api.registerLinkableChild;
 import weave.api.detectLinkableObjectChange;
 import weave.api.ui.IVisTool;
-import weave.core.LinkableBoolean;
+import weave.core.LinkableVariable;
 import weave.core.LinkableString;
 import weave.core.LinkableNumber;
 import weave.data.AttributeColumns.DynamicColumn;
 import weave.data.KeySets.KeySet;
 import weave.data.DataSources.DocumentMapDataSource;
 import weave.utils.ColumnUtils;
+import weave.utils.VectorUtils;
 import weave.api.disposeObject;
 import weave.api.objectWasDisposed;
 import weave.api.reportError;
 
+import mx.binding.utils.BindingUtils;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 import mx.collections.ArrayCollection;
@@ -42,6 +44,7 @@ WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DocMapSearchTool, "Docum
 
 public const searchQuery:LinkableString = newLinkableChild(this, LinkableString, queryChanged, true);
 public const collectionName:LinkableString = newLinkableChild(this, LinkableString, queryChanged, true);
+public const savedQueries:LinkableVariable = newLinkableChild(this, LinkableVariable, savedQueriesChanged, true);
 
 private var _service:AMF3Servlet = null;
 private var _source:DocumentMapDataSource = null;
@@ -104,9 +107,47 @@ private function queryChanged():void
 
 	updateService();
 
+    savedQueriesList.selectedItem = query;
+
 	var token:ProxyAsyncToken = new ProxyAsyncToken(_service.invokeAsyncMethod, ["searchContent", [collection, query]], null, false);
 	addAsyncResponder(token, handleQueryResults, handleFault, {service: _service, params: [collection, query]});
 	token.invoke();
+}
+
+private function savedQueriesChanged():void
+{
+    savedQueriesList.dataProvider = savedQueries.getSessionState() as Array || [];
+    savedQueriesList.selectedItem = searchQuery.value;
+}
+
+private function saveQuery():void
+{
+    if (searchBox.text)
+    {
+        var queries:Array = savedQueries.getSessionState() as Array || [];
+        queries.push(searchBox.text);
+        savedQueries.setSessionState(queries);
+    }
+}
+
+private function removeQuery():void
+{
+    var queries:Array = savedQueries.getSessionState() as Array || [];
+    var idx:int = queries.indexOf(savedQueriesList.selectedItem);
+    if (idx != -1)
+    {
+        VectorUtils.removeItems(queries, [idx]);
+        savedQueries.setSessionState(queries);
+    }
+}
+
+private function savedQuerySelected(object:Object):void
+{
+    var savedQuery:String = savedQueriesList.selectedItem as String;
+    if (savedQuery)
+    {
+        searchQuery.value = savedQuery;
+    }
 }
 
 override protected function childrenCreated():void
@@ -114,6 +155,7 @@ override protected function childrenCreated():void
     super.childrenCreated();
 
     linkBindableProperty(searchQuery, searchBox, 'text', 100, false);
+    BindingUtils.bindSetter(savedQuerySelected, savedQueriesList, "selectedItem", true);
 
     return;
 }
@@ -130,7 +172,14 @@ public function getSelectableAttributeNames():Array
 
 ]]>
 </mx:Script>
-<ui:TextInputWithPrompt id="searchBox" prompt="{lang('Search')}"/>
+<mx:VBox>
+    <mx:HBox>
+        <ui:TextInputWithPrompt id="searchBox" prompt="{lang('Search')}"/>
+        <mx:Button label="{lang('Save')}" click="saveQuery()"/>
+    </mx:HBox>
+    <mx:List width="100%" id="savedQueriesList"/>
+    <mx:Button label="{lang('Remove')}" click="removeQuery()" enabled="{savedQueriesList.selectedItem}"/>
+</mx:VBox>
 <ui:ControlPanel>
         <mx:VBox label="{lang('Attributes')}">
         

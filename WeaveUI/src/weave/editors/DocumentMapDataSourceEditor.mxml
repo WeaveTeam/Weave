@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+    Weave (Web-based Analysis and Visualization Environment)
+    Copyright (C) 2008-2011 University of Massachusetts Lowell
+
+    This file is a part of Weave.
+
+    Weave is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License, Version 3,
+    as published by the Free Software Foundation.
+
+    Weave is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
+-->
+<mx:VBox 
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns="weave.editors.*"
+	verticalScrollPolicy="off"
+	horizontalScrollPolicy="off"
+	creationPolicy="all"
+	implements="weave.api.ui.IDataSourceEditor" xmlns:ui="weave.ui.*"
+	>
+	<mx:Label id="editorTitle" fontWeight="bold" text="{label}"/>
+	<ui:Indent label="{lang('Source name *')}">
+		<mx:TextInput id="sourceName" width="100%"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Source URL')}">
+		<ui:TextInputWithPrompt id="url" prompt="http://www.example.com/WeaveServices/DataService" width="100%"/>
+	</ui:Indent>
+	<mx:Button label="{lang('Manage Collections...')}" click="manageCollections()"/>
+	<mx:Spacer height="20"/>
+	<mx:Label text="{lang('* = required')}"/>
+	<mx:Script>
+		<![CDATA[
+			import mx.controls.Alert;
+			
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IDataSource;
+			import weave.api.disposeObject;
+			import weave.api.registerDisposableChild;
+			import weave.compiler.StandardLib;
+			import weave.data.DataSources.DocumentMapDataSource;
+			import weave.ui.WeaveDataSourceHierarchySelector;
+			
+			override protected function createChildren():void
+			{
+				super.createChildren();
+				
+				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(DocumentMapDataSource));
+			}
+			
+			[Bindable] private var target:DocumentMapDataSource = null;
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				target = object as DocumentMapDataSource;
+				
+				if (!parent)
+				{
+					callLater(setTarget, arguments);
+					return;
+				}
+				
+				if (target)
+				{
+					sourceName.text = WeaveAPI.globalHashMap.getName(target);
+					url.text = target.url.value;
+					
+					sourceName.editable = false;
+					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
+				}
+			}
+			
+			public function hasPendingChanges():Boolean
+			{
+				return StandardLib.asString(target.url.value) != StandardLib.asString(url.text);
+			}
+			
+			public function applyChanges():void
+			{
+				// set value on data source
+				target.url.value = url.text;
+				// read from data source in case value is different
+				url.text = target.url.value;
+			}
+			
+			public function createDataSource():IDataSource
+			{
+				if (!sourceName.text)
+				{
+					Alert.show(lang("Please fill all required fields"), lang("Error"));
+					return null;
+				}
+				if (WeaveAPI.globalHashMap.getObject(sourceName.text))
+				{
+					Alert.show(lang("Source Name already being used. Please give a different name"), lang("Error"));
+					return null;
+				}
+				target = WeaveAPI.globalHashMap.requestObject(sourceName.text, DocumentMapDataSource, false);
+				if (!target)
+				{
+					Alert.show(lang("Unexpected problem. Unable to add the data source."));
+					return null;
+				}
+				applyChanges();
+				return target;
+			}
+
+			public function manageCollections():void
+			{
+
+			}
+		]]>
+	</mx:Script>
+</mx:VBox>

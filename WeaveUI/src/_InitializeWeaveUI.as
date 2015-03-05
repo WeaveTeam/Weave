@@ -45,6 +45,7 @@ package
 	import weave.editors.CKANDataSourceEditor;
 	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
+	import weave.editors.DocumentMapDataSourceEditor;
 	import weave.editors.DraggableScatterPlotEditor;
 	import weave.editors.DynamicColumnEditor;
 	import weave.editors.ForeignDataMappingTransformEditor;
@@ -160,7 +161,7 @@ package
 			em.registerEditor(CKANDataSource, CKANDataSourceEditor);
 			em.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
 			em.registerEditor(GeoJSONDataSource, GeoJSONDataSourceEditor);
-			trace(DocumentMapDataSource);
+			em.registerEditor(DocumentMapDataSource, DocumentMapDataSourceEditor);
 			
 			em.registerEditor(StringDataFilter, StringDataFilterEditor);
 			em.registerEditor(NumberDataFilter, NumberDataFilterEditor);
