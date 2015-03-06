@@ -19,7 +19,6 @@
 
 package weave.data.DataSources
 {	
-	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
 	
@@ -48,13 +47,13 @@ package weave.data.DataSources
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.services.addAsyncResponder;
 	import weave.utils.ShpFileReader;
 
 	/**
@@ -95,9 +94,19 @@ package weave.data.DataSources
 		override protected function initialize():void
 		{
 			if (detectLinkableObjectChange(initialize, dbfUrl) && dbfUrl.value)
-				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(dbfUrl.value), handleDBFDownload, handleDBFDownloadError, dbfUrl.value, URLLoaderDataFormat.BINARY);
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(dbfUrl.value)),
+					handleDBFDownload,
+					handleDBFDownloadError,
+					dbfUrl.value
+				);
 			if (detectLinkableObjectChange(initialize, shpUrl) && shpUrl.value)
-				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(shpUrl.value), handleShpDownload, handleShpDownloadError, shpUrl.value, URLLoaderDataFormat.BINARY);
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(shpUrl.value)),
+					handleShpDownload,
+					handleShpDownloadError,
+					shpUrl.value
+				);
 			
 			// recalculate all columns previously requested because data may have changed.
 			refreshAllProxyColumns();

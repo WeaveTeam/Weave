@@ -28,6 +28,7 @@ package weave.data.BinningDefinitions
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
@@ -50,6 +51,7 @@ package weave.data.BinningDefinitions
 	{
 		public function NaturalJenksBinningDefinition()
 		{
+			super(true, false);
 		}
 		
 		public const numOfBins:LinkableNumber = registerLinkableChild(this,new LinkableNumber(5));
@@ -271,46 +273,40 @@ package weave.data.BinningDefinitions
 		
 		private function _handleJenksBreaks():void
 		{
-			var countNum:Number = numOfBins.value;
-			var kClassCount:Number =  _sortedValues.length;
-			var kClass:Array = [];
+			var k:int,
+				value:Number,
+				data:Array = _sortedValues,
+				kclass:Array = [],
+				countNum:int = 1;
 			
-			for(var i:int = 0; i < countNum +1; i++)
+			// don't attempt to generate more bins than there are distinct values
+			value = data[0];
+			for (k = 1; k < data.length; k++)
 			{
-				kClass.push(0);
-			}
-			
-			// the calculation of classes will never include the upper and
-			// lower bounds, so we need to explicitly set them
-			kClass[countNum] = _sortedValues[_sortedValues.length -1];
-			
-			kClass[0] = _sortedValues[0];
-			
-			
-			// the lower_class_limits matrix is used as indexes into itself
-			// here: the `kClassCount` variable is reused in each iteration.
-			if(kClassCount>countNum) // we only do this step if the number of values is greater than the number of bins.
-			{
-				while (countNum >=2)
+				if (value != data[k])
 				{
-					var id:Number = _lower_class_limits[kClassCount][countNum] -2;
-					kClass[countNum -1] = _sortedValues[id];
-					kClassCount = _lower_class_limits[kClassCount][countNum] -1;
-					countNum --;
+					value = data[k];
+					countNum++;
+					if (countNum >= numOfBins.value)
+						break;
 				}
 			}
-			// check to see if the 0 and 1 in the array are the same - if so, set 0
-			// to 0:
-			if (kClass[0] == kClass[1]) 
-			{
-				kClass[0] = 0
+				
+			// the calculation of classes will never include the upper and
+			// lower bounds, so we need to explicitly set them
+			kclass[countNum] = data[data.length - 1];
+			kclass[0] = data[0];
+			
+			// the lower_class_limits matrix is used as indexes into itself
+			// here: the `k` variable is reused in each iteration.
+			k = data.length - 1;
+			while (countNum > 1) {
+				kclass[countNum - 1] = data[_lower_class_limits[k][countNum] - 2];
+				k = _lower_class_limits[k][countNum] - 1;
+				countNum--;
 			}
 			
-			var binMin:Number;
-			var binMax:Number; 
-			
-			
-			for (var iBin:int = 0; iBin < numOfBins.value; iBin++)
+			for (var iBin:int = 0; iBin < kclass.length - 1; iBin++)
 			{
 				var minIndex:Number;
 				if(iBin == 0)
@@ -319,7 +315,7 @@ package weave.data.BinningDefinitions
 				}
 				else
 				{
-					minIndex = _previousSortedValues.lastIndexOf(kClass[iBin]);
+					minIndex = _previousSortedValues.lastIndexOf(kclass[iBin]);
 					minIndex = minIndex +1;
 				}
 				
@@ -333,12 +329,12 @@ package weave.data.BinningDefinitions
 				else
 				{
 					/* Get the index of the next break */
-					maxIndex = _previousSortedValues.lastIndexOf(kClass[iBin+1]);
+					maxIndex = _previousSortedValues.lastIndexOf(kclass[iBin+1]);
 				}
 				
 				if(maxIndex == -1)
 				{
-					_tempNumberClassifier.max.value = _tempNumberClassifier.min.value ;
+					_tempNumberClassifier.max.value = _tempNumberClassifier.min.value;
 				}
 				else
 				{
@@ -347,16 +343,34 @@ package weave.data.BinningDefinitions
 				_tempNumberClassifier.minInclusive.value = true;
 				_tempNumberClassifier.maxInclusive.value = true;
 				
+				if (_tempNumberClassifier.min.value > _tempNumberClassifier.max.value)
+					continue;
+				
 				//first get name from overrideBinNames
 				var name:String = getOverrideNames()[iBin];
 				//if it is empty string set it from generateBinLabel
-				if(!name)
+				if (!name)
 					name = _tempNumberClassifier.generateBinLabel(_column);
+				
 				output.requestObjectCopy(name, _tempNumberClassifier);
 			}
 			
 			// trigger callbacks now because we're done updating the output
 			asyncResultCallbacks.triggerCallbacks();
+		}
+		
+		protected function fixMinMaxInclusive():void
+		{
+			var a:Array = output.getObjects(NumberClassifier);
+			for (var i:int = 0; i < a.length; i++)
+			{
+				var nc1:NumberClassifier = a[i];
+				var nc2:NumberClassifier = a[i+1];
+				if (nc1 && nc2 && nc1.max.value == nc2.min.value)
+					nc2.minInclusive.value = !(nc1.maxInclusive.value = (nc1.min.value == nc1.max.value || !nc1.minInclusive.value));
+				var newName1:String = getOverrideNames()[i] || nc1.generateBinLabel(_column);
+				output.renameObject(output.getName(nc1), newName1);
+			}
 		}
 		
 		private function getSumOfNumbers(list:Array):Number

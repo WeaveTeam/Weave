@@ -551,7 +551,7 @@ SchafersMissingDataImputation
 				
 				
 				
-				//var clusterQuery:AsyncToken = Rservice.KMeansClustering(assignNames, clusterInputValues,false, Number(clusterNumber.text),Number(iterationNumber.text));
+				//var clusterQuery:AsyncToken = Rservice.KMeansClustering(clusterInputValues,false, Number(clusterNumber.text),Number(iterationNumber.text));
 				
 				addAsyncResponder(clusterQuery, handleClusterScriptResult, handleRunScriptFault, joinedColumnQKeys);
 				

@@ -77,6 +77,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				//poinstSensitivityColumnList.hashMap = _target._plotter.pointSensitivityColumns;
 				(classDis as DynamicColumnComponent).dynamicObject = _target.classDiscriminatorColumn;
 				linkBindableProperty(_target._plotter.enableJitter,jitterckbx,'selected');
+				linkBindableProperty(_target._anchorPlotter.unrestrictAnchors, unrestrictAnchorsckbx, 'selected');
 				linkBindableProperty(_target._plotter.radiusConstant,sizeSlider,'value');				
 				linkBindableProperty(_target._plotter.alphaColumn.defaultValue, alphaSlider, "value");
 				linkBindableProperty(_target._plotter.jitterLevel, jitterSlider, "value" );
@@ -431,7 +432,16 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 								liveDragging="true"/>
 				</mx:HBox>
 			</mx:VBox>
+			
 			<mx:Spacer height="10"/>
+
+			<mx:VBox>
+				<mx:CheckBox id="unrestrictAnchorsckbx" label="Enable unrestricted anchors"
+							 toolTip="Use this controle to remove the RadViz circle and allow unrestricted anchor movement"/>
+			</mx:VBox>
+			
+			<mx:Spacer height="10"/>
+
 			<mx:VBox>
 				<mx:Label text="Dimensional Anchor Reordering Algorithm:"
 						  toolTip="Use this control to reorder the dimensional anchors"/>					

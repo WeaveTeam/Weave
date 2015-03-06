@@ -19,7 +19,6 @@
 
 package weave.core
 {
-	import flash.display.DisplayObject;
 	import flash.utils.getTimer;
 	
 	import mx.binding.utils.BindingUtils;
@@ -106,7 +105,6 @@ package weave.core
 			trace(str);
 		}
 
-		
 		// When given zero parameters, this function copies the linkable value to the bindable value.
 		// When given one or more parameters, this function copies the bindable value to the linkable value.
 		private function synchronize(firstParam:* = undefined, callingLater:Boolean = false):void
@@ -155,8 +153,7 @@ package weave.core
 			var bindableValue:Object = bindableParent[bindablePropertyName];
 			if (uiComponent && !(bindableValue is Boolean))
 			{
-				var obj:DisplayObject = uiComponent.getFocus();
-				if (obj && uiComponent.contains(obj)) // has focus
+				if (UIUtils.hasFocus(uiComponent))
 				{
 					if (linkableVariable is LinkableVariable)
 					{

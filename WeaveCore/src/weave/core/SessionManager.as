@@ -44,6 +44,7 @@ package weave.core
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableObjectWithBusyStatus;
+	import weave.api.core.ILinkableObjectWithNewProperties;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.core.ISessionManager;
 	import weave.api.reportError;
@@ -396,10 +397,15 @@ package weave.core
 			var deprecatedLookup:Object = classNameToDeprecatedGetterLookup[classQName];
 			
 			// set session state
+			var foundMissingProperty:Boolean = false;
 			for each (name in classNameToSessionedPropertyNames[classQName])
 			{
 				if (!newState.hasOwnProperty(name))
+				{
+					if (removeMissingDynamicObjects && linkableObject is ILinkableObjectWithNewProperties)
+						foundMissingProperty = true;
 					continue;
+				}
 				
 				var property:ILinkableObject = null;
 				try
@@ -421,6 +427,12 @@ package weave.core
 					
 				setSessionState(property, newState[name], removeMissingDynamicObjects);
 			}
+			
+			// handle properties missing from absolute session state
+			if (foundMissingProperty)
+				for each (name in classNameToSessionedPropertyNames[classQName])
+					if (!newState.hasOwnProperty(name))
+						(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperty(newState, name);
 			
 			// pass deprecated session state to deprecated setters
 			for each (name in classNameToDeprecatedSetterNames[classQName])
@@ -788,8 +800,8 @@ package weave.core
 					var triggerCount:int = _dUnbusyTriggerCounts[owner];
 					delete _dUnbusyTriggerCounts[owner]; // affects next for loop iteration - mitigated by outer loop
 					
-					var cc:CallbackCollection = CallbackCollection(getCallbackCollection(owner));
-					if (cc.wasDisposed)
+					var cc:ICallbackCollection = getCallbackCollection(owner);
+					if (cc is CallbackCollection ? (cc as CallbackCollection).wasDisposed : objectWasDisposed(owner))
 						continue; // already disposed
 					
 					if (cc.triggerCounter != triggerCount)

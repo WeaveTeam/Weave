@@ -1,5 +1,4 @@
-﻿package weave.radviz.voronoi
-/*package net.ivank.voronoi*/
+﻿package net.ivank.voronoi
 {
 	//import de.polygonal.ds.Prioritizable;
 	import flash.geom.Point;

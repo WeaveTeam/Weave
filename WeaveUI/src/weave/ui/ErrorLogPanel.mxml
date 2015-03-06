@@ -154,7 +154,7 @@
 					var desiredHeight:Number = 150;
 					var percentHeight:Number = Math.round(desiredHeight / app.stage.stageHeight * 100);
 					
-					instance.panelY.value = (100 - percentHeight) + "%";
+					instance.panelY.value = (98 - percentHeight) + "%";
 					instance.panelHeight.value = percentHeight + "%";
 					
 					instance.panelX.value = "0%";

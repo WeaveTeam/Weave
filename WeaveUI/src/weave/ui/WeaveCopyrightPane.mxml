@@ -21,7 +21,7 @@
 -->
 
 <mx:Button 	xmlns:mx="http://www.adobe.com/2006/mxml" 
-			label="Weave \u00A9 {(new Date()).getFullYear()} Open Indicators Consortium"
+			label="Weave \u00A9 {(new Date()).getFullYear()} IVPR, UMass Lowell"
 			skin="{null}"
 			fontFamily="_sans"
 			fontSize="10"

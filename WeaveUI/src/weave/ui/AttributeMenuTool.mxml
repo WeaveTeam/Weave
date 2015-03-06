@@ -322,6 +322,7 @@
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(layouts[0], verifyLayoutMode));
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['column']), handleChoicesChange);
 			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
+			public const useChoiceIndex:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleSelectedAttributeChange, true);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const autoPlayRepeat:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			internal const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(ISelectableAttributes), handleToolChange, true);
@@ -335,7 +336,12 @@
 			
 			public function getSelectedLabel():String
 			{
-				var column:IAttributeColumn = choices.getObject(selectedAttribute.value) as IAttributeColumn;
+				var selected:String = selectedAttribute.value;
+				var column:IAttributeColumn;
+				if (useChoiceIndex.value)
+					column = (choices.getObjects()[selected]) as IAttributeColumn;
+				else
+					column = choices.getObject(selectedAttribute.value) as IAttributeColumn;
 				return choiceLabelFunction(column);
 			}
 			
@@ -541,7 +547,13 @@
 				var choiceNames:Array = choices.getNames(IAttributeColumn);
 				var selectedName:String = choiceNames[selectedIndex];
 				
-				if (selectedAttribute.value != selectedName)
+				if (useChoiceIndex.value && selectedAttribute.value != selectedIndex.toString())
+				{
+					// setting this will cause a recursive call, so we can return afterwards
+					selectedAttribute.value = selectedIndex.toString();
+					return;
+				}
+				if (!useChoiceIndex.value && selectedAttribute.value != selectedName)
 				{
 					// setting this will cause a recursive call, so we can return afterwards
 					selectedAttribute.value = selectedName;
@@ -595,7 +607,7 @@
 				}
 				
 				var names:Array = choices.getNames();
-				var selectedIndex:int = names.indexOf(selectedAttribute.value);
+				var selectedIndex:int = useChoiceIndex.value ? StandardLib.asNumber(selectedAttribute.value) : names.indexOf(selectedAttribute.value);
 				choiceCombo.selectedIndex = alwaysShowPrompt.value ? -1 : selectedIndex;
 				choiceList.selectedIndex = selectedIndex;
 				if (selectedIndex >= 0)

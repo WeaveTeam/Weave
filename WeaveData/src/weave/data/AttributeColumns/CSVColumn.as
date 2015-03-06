@@ -91,7 +91,6 @@ package weave.data.AttributeColumns
 		
 		/**
 		 * If this is set to true, the data will be parsed as numbers to produce the numeric data.
-		 * If this is set to false, the numeric data for the column will be the row index.
 		 */
 		public const numericMode:LinkableBoolean = newLinkableChild(this, LinkableBoolean, invalidate);
 

@@ -25,7 +25,6 @@ package weave.services.wms
 		public function CustomWMS()
 		{
 			_currentTileIndex = new WMSTileIndex();
-			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		override public function getProjectionSRS():String
@@ -81,6 +80,8 @@ package weave.services.wms
 		
 		private function getImageAttributes():void
 		{
+			_currentTileIndex = new WMSTileIndex();
+
 			if (!wmsURL.value)
 				return;
 			

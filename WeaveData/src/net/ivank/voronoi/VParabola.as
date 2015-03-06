@@ -1,5 +1,4 @@
-﻿package weave.radviz.voronoi
-/*package net.ivank.voronoi*/
+﻿package net.ivank.voronoi
 {
 	import flash.geom.Point;
 	

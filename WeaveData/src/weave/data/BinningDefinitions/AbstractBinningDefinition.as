@@ -27,10 +27,12 @@ package weave.data.BinningDefinitions
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableHashMap;
+	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 
 	/**
@@ -41,6 +43,18 @@ package weave.data.BinningDefinitions
 	 */
 	public class AbstractBinningDefinition implements IBinningDefinition
 	{
+		public function AbstractBinningDefinition(allowOverrideBinNames:Boolean, allowOverrideInputRange:Boolean)
+		{
+			if (allowOverrideBinNames)
+				_overrideBinNames = registerLinkableChild(this, new LinkableString(''));
+			
+			if (allowOverrideInputRange)
+			{
+				_overrideInputMin = newLinkableChild(this, LinkableNumber);
+				_overrideInputMax = newLinkableChild(this, LinkableNumber);
+			}
+		}
+		
 		/**
 		 * Implementations that extend this class should use this as an output buffer.
 		 */		
@@ -85,12 +99,18 @@ package weave.data.BinningDefinitions
 		
 		//-------------------
 		
-		public const overrideBinNames:LinkableString = registerLinkableChild(this, new LinkableString(''));
+		private var _overrideBinNames:LinkableString;
+		private var _overrideInputMin:LinkableNumber;
+		private var _overrideInputMax:LinkableNumber;
 		
-		private var names:Array = [];
+		public function get overrideBinNames():LinkableString { return _overrideBinNames; }
+		public function get overrideInputMin():LinkableNumber { return _overrideInputMin; }
+		public function get overrideInputMax():LinkableNumber { return _overrideInputMax; }
+		
 		protected function getOverrideNames():Array
 		{
-			if (detectLinkableObjectChange(getOverrideNames, overrideBinNames))
+			var names:Array = [];
+			if (overrideBinNames && detectLinkableObjectChange(getOverrideNames, overrideBinNames))
 				names = WeaveAPI.CSVParser.parseCSVRow(overrideBinNames.value) || [];
 			return names;
 		}

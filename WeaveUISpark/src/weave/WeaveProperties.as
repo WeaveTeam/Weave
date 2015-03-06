@@ -38,10 +38,14 @@ package weave
 	
 	import ru.etcs.utils.FontLoader;
 	
+	import weave.api.copySessionState;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
+	import weave.api.core.ILinkableObjectWithNewProperties;
+	import weave.api.disposeObject;
 	import weave.api.linkBindableProperty;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
@@ -58,6 +62,8 @@ package weave
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
+	import weave.services.WeaveRServlet;
+	import weave.services.addAsyncResponder;
 	import weave.utils.CSSUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.utils.NumberUtils;
@@ -70,7 +76,7 @@ package weave
 	/**
 	 * A list of global settings for a Weave instance.
 	 */
-	public class WeaveProperties implements ILinkableObject
+	public class WeaveProperties implements ILinkableObject, ILinkableObjectWithNewProperties
 	{
 		[Embed(source="/weave/weave_version.txt", mimeType="application/octet-stream")]
 		private static const WeaveVersion:Class;
@@ -180,9 +186,8 @@ package weave
 			}
 			else
 			{
-				WeaveAPI.URLRequestUtils.getURL(
-					null,
-					new URLRequest('WeaveFonts.swf'),
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(null, new URLRequest('WeaveFonts.swf')),
 					function(event:ResultEvent, token:Object = null):void
 					{
 						var bytes:ByteArray = ByteArray(event.result);
@@ -242,6 +247,7 @@ package weave
 		public const showProbeToolTipEditor:LinkableBoolean = new LinkableBoolean(true);  // Show Probe Tool Tip Editor tools menu
 		public const showProbeWindow:LinkableBoolean = new LinkableBoolean(true); // Show Probe Tool Tip Window in tools menu
 		public const showEquationEditor:LinkableBoolean = new LinkableBoolean(true); // Show Equation Editor option tools menu
+		public const showKMeansClustering:LinkableBoolean = new LinkableBoolean(false);
 		public const showAddExternalTools:LinkableBoolean = new LinkableBoolean(false); // Show Add External Tools dialog in tools menu.
 		
 		public const toolToggles:ILinkableHashMap = new LinkableHashMap(LinkableBoolean); // className -> LinkableBoolean
@@ -347,7 +353,7 @@ package weave
 		public const showKeyTypeInColumnTitle:LinkableBoolean = new LinkableBoolean(false);
 		
 		// cosmetic options
-		public const showCopyright:LinkableBoolean = new LinkableBoolean(true); // copyright at bottom of page
+		public const showCopyright:LinkableBoolean = new LinkableBoolean(true);
 
 		// probing and selection
 		public const selectionBlurringAmount:LinkableNumber = new LinkableNumber(4);
@@ -375,24 +381,19 @@ package weave
 		
 		public const dashedSelectionColor:LinkableNumber = new LinkableNumber(0x00ff00);
 		public const dashedZoomColor:LinkableNumber = new LinkableNumber(0x00faff);
-		
-		/**
-		 * Parameters for the DashedLine selection box.
-		 * @default "5,5"
-		 */
-		public const dashedSelectionBox:LinkableString = new LinkableString("5,5", verifyDashedSelectionBox);
-		public function verifyDashedSelectionBox(csv:String):Boolean
+		public const dashedLengths:LinkableVariable = new LinkableVariable(null, verifyDashedLengths, [5, 5]);
+		public function verifyDashedLengths(object:Object):Boolean
 		{
-			if (csv === null) 
+			// backwards compatibility and support for linkBindableProperty with a text area
+			if (object is String)
+			{
+				dashedLengths.setSessionState((object as String).split(',').map(function(str:String, i:int, a:Array):Number { return StandardLib.asNumber(str); }));
 				return false;
+			}
 			
-			var rows:Array = WeaveAPI.CSVParser.parseCSV(csv);
-			
-			if (rows.length == 0)
+			var values:Array = object as Array;
+			if (!values) 
 				return false;
-			
-			// Only the first row will be used
-			var values:Array = rows[0];
 			var foundNonZero:Boolean = false;
 			for (var i:int = 0; i < values.length; ++i)
 			{
@@ -409,11 +410,13 @@ package weave
 			
 			return foundNonZero;
 		}
+		[Deprecated(replacement="dashedLengths")] public function get dashedSelectionBox():LinkableVariable { return dashedLengths; }
 		
 		public const panelTitleTextFormat:LinkableTextFormat = new LinkableTextFormat();
 		public function get visTextFormat():LinkableTextFormat { return LinkableTextFormat.defaultTextFormat; }
 		public const visTitleTextFormat:LinkableTextFormat = new LinkableTextFormat();
 		public const axisTitleTextFormat:LinkableTextFormat = new LinkableTextFormat();
+		public const mouseoverTextFormat:LinkableTextFormat = new LinkableTextFormat();
 		
 		public function get probeLineFormatter():LinkableFunction { return ProbeTextUtils.probeLineFormatter; }
 		
@@ -457,6 +460,17 @@ package weave
 		// temporary?
 		public const rServiceURL:LinkableString = registerLinkableChild(this, new LinkableString("/WeaveServices/RService"), handleRServiceURLChange);// url of Weave R service using Rserve
 		public const pdbServiceURL:LinkableString = new LinkableString("/WeavePDBService/PDBService");
+		private var _rService:WeaveRServlet;
+		public function getRService():WeaveRServlet
+		{
+			if (!_rService || _rService.servletURL != Weave.properties.rServiceURL.value)
+			{
+				if (_rService)
+					disposeObject(_rService);
+				_rService = registerDisposableChild(this, new WeaveRServlet(Weave.properties.rServiceURL.value));
+			}
+			return _rService;
+		}
 
 		public const externalTools:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString));
 		
@@ -623,5 +637,11 @@ package weave
 		[Deprecated(replacement="getToolToggle")] public function set enableAddRamachandranPlot(value:Boolean):void { _toggleToolsMenuItem("RamachandranPlotTool", value); }
 		[Deprecated(replacement="getToolToggle")] public function set enableAddDataStatisticsTool(value:Boolean):void { _toggleToolsMenuItem("DataStatisticsTool", value); }
 		//--------------------------------------------
+		
+		public function handleMissingSessionStateProperty(newState:Object, missingProperty:String):void
+		{
+			if (newState.hasOwnProperty('version') && missingProperty == 'mouseoverTextFormat')
+				copySessionState(visTextFormat, mouseoverTextFormat);
+		}
 	}
 }

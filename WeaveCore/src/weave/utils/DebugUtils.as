@@ -29,6 +29,9 @@ package weave.utils
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
+	import weave.api.core.ILinkableObject;
+	import weave.api.getCallbackCollection;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	
 	/**
@@ -184,6 +187,54 @@ package weave.utils
 				_objToId[key] = old[key];
 		}
 		
+		/**************
+		 ** Watching **
+		 **************/
+		
+		public static function getObject(target:Object):ILinkableObject
+		{
+			if (target == null || target is ILinkableObject)
+				return target as ILinkableObject;
+			if (!(target is Array))
+				target = WeaveAPI.CSVParser.parseCSVRow(String(target));
+			return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, target as Array);
+		}
+		
+		private static const watchLookup:Dictionary = new Dictionary(true);
+		
+		public static function watch(target:Object = null, callbackReturnsString:Function = null):void
+		{
+			if (!target)
+			{
+				weaveTrace('Usage: consoleWatch(target, optional_callbackReturnsString)');
+				return;
+			}
+			
+			keepDebugIds();
+			
+			var linkableTarget:ILinkableObject = getObject(target);
+			unwatch(linkableTarget);
+			var callback:Function = function():void {
+				var str:String = '';
+				var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, linkableTarget) || []
+				if (path.length)
+					str += " " + Compiler.stringify(path.pop());
+				if (callbackReturnsString != null)
+					str += ': ' + callbackReturnsString();
+				debugTrace(linkableTarget, str);
+			};
+			watchLookup[linkableTarget] = callback;
+			getCallbackCollection(linkableTarget).addImmediateCallback(null, callback);
+		}
+		
+		public static function unwatch(target:Object):void
+		{
+			var linkableTarget:ILinkableObject = getObject(target);
+			var callback:Function = watchLookup[linkableTarget];
+			delete watchLookup[linkableTarget];
+			getCallbackCollection(linkableTarget).removeCallback(callback);
+		}
+		
 		/*****************
 		 **  Profiling  **
 		 *****************/
@@ -239,9 +290,9 @@ package weave.utils
 		 **  Miscellaneous  **
 		 *********************/
 		
-		public static function debugDisplayList(root:DisplayObject, maxDepth:int = -1, labelPropertyOrFunction:* = 'name'):String
+		public static function debugDisplayList(root:DisplayObject = null, maxDepth:int = -1, labelPropertyOrFunction:* = 'name'):String
 		{
-			return _debugDisplayList(root, maxDepth, labelPropertyOrFunction, 0, '', '');
+			return _debugDisplayList(root || WeaveAPI.StageUtils.stage, maxDepth, labelPropertyOrFunction, 0, '', '');
 		}
 		private static function _debugDisplayList(root:DisplayObject, maxDepth:int, labelPropertyOrFunction:*, currentDepth:int, indent:String, childIndent:String):String
 		{
@@ -343,7 +394,7 @@ package weave.utils
 		/**
 		 * @param func The function to call.
 		 * @param params An array of parameters to pass to the function.
-		 * @param delay The delay before the function is called.
+		 * @param delay The number of milliseconds to delay before the function is called.
 		 */
 		public static function callLater(delay:int, func:Function, params:Array = null):void
 		{

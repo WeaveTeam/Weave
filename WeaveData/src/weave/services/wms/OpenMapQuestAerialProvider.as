@@ -45,7 +45,7 @@ package weave.services.wms
 		{
 			var sourceCoord:Coordinate = sourceCoordinate(coord);
 			
-			return [ 'http://oatile' + serverNumber + '.mqcdn.com/naip/' + sourceCoord.zoom + '/' + sourceCoord.column + '/' + sourceCoord.row + '.png' ];
+			return [ 'http://otile' + serverNumber + '.mqcdn.com/tiles/1.0.0/sat/' + sourceCoord.zoom + '/' + sourceCoord.column + '/' + sourceCoord.row + '.png' ];
 		}
 	}
 }

@@ -149,7 +149,8 @@ internal class Library implements IDisposableObject
 	public function Library(url:String)
 	{
 		_url = url;
-		WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(url), handleSWCResult, handleSWCFault);
+		var token:AsyncToken = WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url));
+		token.addResponder(new AsyncResponder(handleSWCResult, handleSWCFault));
 	}
 	
 	private var _url:String;

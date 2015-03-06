@@ -25,6 +25,8 @@ package weave.utils
 	import mx.rpc.events.ResultEvent;
 	import mx.styles.CSSStyleDeclaration;
 	import mx.styles.StyleManager;
+	
+	import weave.services.addAsyncResponder;
 
 	/**
 	 * CSSUtils
@@ -41,9 +43,8 @@ package weave.utils
 		 */
 		public static function loadStyleSheet(url:String):void
 		{
-			WeaveAPI.URLRequestUtils.getURL(
-				null,
-				new URLRequest(url),
+			addAsyncResponder(
+				WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(url)),
 				function(event:ResultEvent, token:Object = null):void
 				{
 					var styleMap:Object = {};

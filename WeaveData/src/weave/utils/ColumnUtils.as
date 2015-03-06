@@ -110,9 +110,10 @@ package weave.utils
 		 * Temporary solution
 		 * @param column
 		 * @return 
-		 */		
-		public static function getDataSource(column:IAttributeColumn):String
+		 */
+		public static function getDataSources(column:IAttributeColumn):Array
 		{
+			var sources:Array = [];
 			var name:String;
 			var nameMap:Object = {};
 			var cols:Array;
@@ -121,19 +122,8 @@ package weave.utils
 			else
 				cols = getLinkableDescendants(column, ReferencedColumn);
 			for (var i:int = 0; i < cols.length; i++)
-			{
-				var col:ReferencedColumn = cols[i];
-				var source:IDataSource = col.getDataSource();
-				var sourceOwner:ILinkableHashMap = getLinkableOwner(source) as ILinkableHashMap;
-				if (!sourceOwner)
-					continue;
-				name = sourceOwner.getName(source);
-				nameMap[name] = true;
-			}
-			var names:Array = [];
-			for (name in nameMap)
-				names.push(name);
-			return names.join(', ');
+				sources.push((cols[i] as ReferencedColumn).getDataSource());
+			return VectorUtils.union(sources);
 		}
 
 		/**
@@ -429,23 +419,17 @@ package weave.utils
 			return result;
 		}
 		/**
-		 * This function takes an array of attribute columns, a set of keys, and the type of the columns
 		 * @param attrCols An array of IAttributeColumns or ILinkableHashMaps containing IAttributeColumns.
-		 * @param subset An IKeyFilter or IKeySet specifying which keys to include in the CSV output, or null to indicate all keys available in the Attributes.
-		 * @param dataType
-		 * @return A string containing a CSV-formatted table containing the attributes of the requested keys.
+		 * @return An Array of non-wrapper columns with duplicates removed.
 		 */
-		public static function generateTableCSV(attrCols:Array, subset:IKeyFilter = null, dataType:Class = null):String
+		public static function getNonWrapperColumnsFromSelectableAttributes(attrCols:Array):Array
 		{
-			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
-			
-			var records:Array = [];				
 			var columnLookup:Dictionary = new Dictionary(true);
 			attrCols = attrCols.map(
 				function(item:Object, i:int, a:Array):* {
 					return item is ILinkableHashMap
-						? (item as ILinkableHashMap).getObjects(IAttributeColumn)
-						: item as IAttributeColumn;
+					? (item as ILinkableHashMap).getObjects(IAttributeColumn)
+					: item as IAttributeColumn;
 				}
 			);
 			attrCols = VectorUtils.flatten(attrCols);
@@ -461,6 +445,21 @@ package weave.utils
 					return true;
 				}
 			);
+			return attrCols;
+		}
+		/**
+		 * This function takes an array of attribute columns, a set of keys, and the type of the columns
+		 * @param attrCols An array of IAttributeColumns or ILinkableHashMaps containing IAttributeColumns.
+		 * @param subset An IKeyFilter or IKeySet specifying which keys to include in the CSV output, or null to indicate all keys available in the Attributes.
+		 * @param dataType
+		 * @return A string containing a CSV-formatted table containing the attributes of the requested keys.
+		 */
+		public static function generateTableCSV(attrCols:Array, subset:IKeyFilter = null, dataType:Class = null):String
+		{
+			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
+			
+			var records:Array = [];
+			attrCols = getNonWrapperColumnsFromSelectableAttributes(attrCols);
 			var columnTitles:Array = attrCols.map(
 				function(column:IAttributeColumn, i:int, a:Array):String {
 					return getTitle(column);
@@ -672,7 +671,7 @@ package weave.utils
 			}
 			
 			var outputDC:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(selectableAttribute as IColumnWrapper);
-			if (outputDC && outputDC.getInternalColumn() == null)
+			if (outputDC && (outputDC.getInternalColumn() == null || outputDC.targetPath == null))
 			{
 				if (inputCol)
 				{

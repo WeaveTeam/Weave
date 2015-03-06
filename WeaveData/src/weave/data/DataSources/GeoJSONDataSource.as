@@ -35,6 +35,7 @@ package weave.data.DataSources
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -45,6 +46,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.ProjectionManager;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.services.addAsyncResponder;
 	import weave.utils.GeoJSON;
 	import weave.utils.VectorUtils;
 	
@@ -96,7 +98,9 @@ package weave.data.DataSources
 		
 		override protected function get initializationComplete():Boolean
 		{
-			return super.initializationComplete;
+			return super.initializationComplete
+				&& !linkableObjectIsBusy(this)
+				&& jsonData;
 		}
 		
 		/**
@@ -110,7 +114,12 @@ package weave.data.DataSources
 			{
 				jsonData = null;
 				if (url.value)
-					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), handleDownload, handleDownloadError, url.value, URLLoaderDataFormat.TEXT);
+					addAsyncResponder(
+						WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), URLLoaderDataFormat.TEXT),
+						handleDownload,
+						handleDownloadError,
+						url.value
+					);
 			}
 			
 			if (detectLinkableObjectChange(initialize, keyType, keyProperty))
@@ -239,6 +248,11 @@ package weave.data.DataSources
 				var i:int = 0;
 				function initGeoms(stopTime:int):Number
 				{
+					if (!jsonData)
+					{
+						proxyColumn.dataUnavailable();
+						return 1;
+					}
 					for (; i < jsonData.qkeys.length; i++)
 					{
 						if (getTimer() > stopTime)
@@ -400,7 +414,7 @@ internal class GeoJSONData
 		// get projection
 		var crs:Object = obj[GeoJSON.P_CRS];
 		if (crs && crs[GeoJSON.P_TYPE] == GeoJSON.CRS_T_NAME)
-			projection = ProjectionManager.getProjectionFromURN(crs[GeoJSON.CRS_N_P_NAME]);
+			projection = ProjectionManager.getProjectionFromURN(crs[GeoJSON.CRS_P_PROPERTIES][GeoJSON.CRS_N_P_NAME]);
 		
 		// get features
 		var featureCollection:Object = GeoJSON.asFeatureCollection(obj);

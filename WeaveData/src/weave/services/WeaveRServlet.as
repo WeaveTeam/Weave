@@ -53,7 +53,7 @@ package weave.services
 		}
 		
 		/** async result will be of type KMeansClusteringResult */
-		public function KMeansClustering(inputNames:Array, inputValues:Array,showWarnings:Boolean,numberOfClusters:int,iterations:int):AsyncToken
+		public function KMeansClustering(inputValues:Array,showWarnings:Boolean,numberOfClusters:int,iterations:int):AsyncToken
 		{			
 			return invokeAsyncMethod("kMeansClustering", arguments);
 		}

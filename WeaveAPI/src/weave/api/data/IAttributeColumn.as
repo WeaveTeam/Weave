@@ -41,6 +41,7 @@ package weave.api.data
 		/**
 		 * This function gets a value associated with a record key.
 		 * @param key A record key.
+		 * @param dataType The desired value type (Examples: Number, String, Date, Array, IQualifiedKey)
 		 * @return The value associated with the given record key.
 		 */
 		function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*;

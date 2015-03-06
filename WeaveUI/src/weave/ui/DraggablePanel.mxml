@@ -258,17 +258,19 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				subMenuButton.smallIcon = true;
 				zOrderButton.data = [
 					{
-						label: lang('Reset'),
-						click: function():void { zOrder.value = 0; },
-						shown: function():Boolean { return zOrder.value != 0; }
-					},{
 						label: lang('Always above'),
 						click: function():void { zOrder.value = 1; },
-						shown: function():Boolean { return zOrder.value <= 0; }
+						type: WeaveMenuItem.TYPE_RADIO,
+						toggled: function():Boolean { return zOrder.value > 0; }
 					},{
 						label: lang('Always below'),
 						click: function():void { zOrder.value = -1; },
-						shown: function():Boolean { return zOrder.value >= 0; }
+						type: WeaveMenuItem.TYPE_RADIO,
+						toggled: function():Boolean { return zOrder.value < 0; }
+					},{
+						label: lang('Reset'),
+						click: function():void { zOrder.value = 0; },
+						shown: function():Boolean { return zOrder.value != 0; }
 					}
 				];
 				
@@ -321,7 +323,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 						{label: lang(TOOLTIP_CONTROLS), shown: shouldShowUserControlButton, click: toggleControlPanel},
 						{label: lang(TOOLTIP_ATTRIBUTES), shown: shouldShowAttributeButton, click: handleAttributeButtonClick},
 						WeaveMenuItem.TYPE_SEPARATOR,
-						enableZOrder.value ? zOrderButton.menu.getMenuItems() : null,
+						{label: lang(TOOLTIP_ZORDER_MENU), shown: enableZOrder, children: zOrderButton.menu.getMenuItems},
 						{label: lang(TOOLTIP_MINIMIZE), shown: minimizable, click: minimized},
 						{label: maximizeButton.toolTip, shown: maximizable, click: maximized},
 						{label: lang(TOOLTIP_CLOSE), shown: closeable, click: removePanel}
@@ -1671,6 +1673,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public static const TOOLTIP_SUBMENU:String = "Menu";
 			public static const TOOLTIP_ATTRIBUTES:String = "Change attributes";
 			public static const TOOLTIP_ZORDER:String = "Toggle always above or below";
+			public static const TOOLTIP_ZORDER_MENU:String = "Z-Order";
 			public static const TOOLTIP_MINIMIZE:String = "Minimize";
 			public static const TOOLTIP_MAXIMIZE:String = "Maximize";
 			public static const TOOLTIP_RESTORE:String = "Restore Down";

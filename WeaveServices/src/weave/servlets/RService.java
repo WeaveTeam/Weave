@@ -201,11 +201,11 @@ public class RService extends WeaveServlet
 	{
 		return RServiceUsingRserve.normalize(docrootPath, data);
 	}
-	public RResult[] kMeansClustering(String[] inputNames, Object[][] inputValues, boolean showWarnings,int numberOfClusters, int iterations) throws Exception
+	public RResult[] kMeansClustering(Object[][] inputValues, boolean showWarnings,int numberOfClusters, int iterations) throws Exception
 	{
 		
 		//return RServiceUsingRserve.kMeansClustering( docrootPath, dataX, dataY, numberOfClusters);
-		return RServiceUsingRserve.kMeansClustering(inputNames, inputValues, showWarnings,numberOfClusters, iterations);
+		return RServiceUsingRserve.kMeansClustering(inputValues, showWarnings,numberOfClusters, iterations);
 	}
 
 	public HierarchicalClusteringResult hierarchicalClustering(double[] dataX, double[] dataY) throws RemoteException

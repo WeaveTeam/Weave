@@ -18,6 +18,7 @@
 			
 			import weave.api.reportError;
 			import weave.application.VisApp;
+			import weave.services.addAsyncResponder;
 			
 			weaveTraceImpl as Function; // if we don't reference this, it won't be included in the build
 			
@@ -98,9 +99,8 @@
 			
 			private function loadFileUrl(url:String):void
 			{
-				WeaveAPI.URLRequestUtils.getURL(
-					null,
-					new URLRequest(url),
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(url)),
 					function (event:ResultEvent, token:Object = null):void
 					{
 						WeaveAPI.URLRequestUtils.setBaseURL(url);

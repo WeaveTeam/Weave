@@ -174,7 +174,7 @@ package weave.visualization.plotters
 		public const recordValueLabelColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const labelFormatter:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
+		public const labelFormatter:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string', 'column']));
 		public const labelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
 		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
 		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
@@ -646,7 +646,7 @@ package weave.visualization.plotters
 								
 								try
 								{
-									_bitmapText.text = labelFormatter.apply(null, [_bitmapText.text]);
+									_bitmapText.text = labelFormatter.apply(null, [_bitmapText.text, heightColumn]);
 								}
 								catch (e:Error)
 								{

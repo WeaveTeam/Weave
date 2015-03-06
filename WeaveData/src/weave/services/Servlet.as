@@ -192,7 +192,9 @@ package weave.services
 			}
 			
 			// the last argument is BINARY instead of _dataFormat because the stream should not be parsed
-			_asyncTokenData[invokeToken] = WeaveAPI.URLRequestUtils.getURL(this, request, resultHandler, faultHandler, invokeToken, URLLoaderDataFormat.BINARY);
+			var token:AsyncToken = WeaveAPI.URLRequestUtils.getURL(this, request, URLLoaderDataFormat.BINARY);
+			addAsyncResponder(token, resultHandler, faultHandler, invokeToken);
+			_asyncTokenData[invokeToken] = token.loader;
 		}
 		
 		/**
