@@ -100,13 +100,23 @@ package weave.data.DataSources
 		private var _rService:AMF3Servlet = null;
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/DocumentMapService/'));
 		public const rServiceUrl:LinkableString = registerLinkableChild(this, new LinkableString('/WeaveServices/RService'));
+		public const topicNameOverrides:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(), updateTitles);
 		private var _cache:Object = {};
 		
 		/**
 		 * collectionName -> LinkableVariable( Object mapping nodeID -> {x: ?, y: ?} )
 		 */
 		public const fixedNodePositions:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableVariable), updateNodePositions, true);
-		
+		private function updateTitles():void
+		{
+			for each (var collection:String in _collections)
+			{
+				for each (var topicID:String in getTopicIDs(collection))
+				{
+					getCachedColumn(collection, TABLE_DOC_WEIGHTS, topicID);
+				}
+			}
+		}
 		private function handleURLChange():void
 		{
 			if (_service && _service.servletURL == url.value)
@@ -213,6 +223,15 @@ package weave.data.DataSources
 				{
 					var keyType:String = getKeyType(collection);
 					title = topicWordsColumn.getValueFromKey(WeaveAPI.QKeyManager.getQKey(keyType, column), String) || title;
+					
+					/* Handle user-specified topic names */
+					var collectionTopicOverrides:LinkableHashMap = topicNameOverrides.getObject(collection) as LinkableHashMap;
+					
+					if (collectionTopicOverrides)
+					{
+						var overriddenTopicName:LinkableString = collectionTopicOverrides.getObject(column) as LinkableString;
+						if (overriddenTopicName.value) title = overriddenTopicName.value;
+					}
 				}
 			}
 			
@@ -294,7 +313,7 @@ package weave.data.DataSources
 			return cachedColumn;
 		}
 		
-		private function getTopicIDs(collection:String):Array
+		public function getTopicIDs(collection:String):Array
 		{
 			var column:IAttributeColumn = getCachedColumn(collection, TABLE_TOPICS, COLUMN_TOPIC);
 			return column ? (VectorUtils.pluck(column.keys, 'localName') as Array).sort() : [];
@@ -423,8 +442,8 @@ package weave.data.DataSources
 		}
 		
 		// avoids recreating collection categories (tree collapse bug)
-		private const _listCollectionsCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
-		private var _collections:Array;
+		public const _listCollectionsCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
+		public var _collections:Array;
 		
 		/**
 		 * Gets the root node of the attribute hierarchy.
