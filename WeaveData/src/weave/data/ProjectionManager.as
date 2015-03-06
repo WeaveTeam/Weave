@@ -62,6 +62,9 @@ package weave.data
 		{
 			// http://mathworld.wolfram.com/AlbersEqual-AreaConicProjection.html
 			ProjProjection.defs['EPSG:9822'] = '+title=Albers Equal-Area Conic +proj=aea +lat_1=0 +lat_2=60 +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs';
+			
+			// http://geeohspatial.blogspot.com/2013/03/custom-srss-in-postgis-and-qgis.html
+			ProjProjection.defs['SR-ORG:6703'] = '+title=USA_Contiguous_Albers_Equal_Area_Conic_USGS_version +proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs';
 
 			//ProjProjection.defs['aeac-us'] = '+title=Albers Equal-Area Conic +proj=aea +lat_1=37.25 +lat_2=40.25 +lat_0=36 +lon_0=-72 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs';
 			
