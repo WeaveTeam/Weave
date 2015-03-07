@@ -108,6 +108,7 @@
 			}
 			private function labelFunction(item:Object, column:DataGridColumn):String
 			{
+				var collection:String = collectionCombo.selectedItem as String;
 				var entry:LinkableString = item as LinkableString;
 				if (column == topicIdColumn)
 				{
@@ -115,9 +116,9 @@
 				}
 				else if (column == topicWordColumn)
 				{
-					if (target._topicIdToWords)
+					if (target._topicIdToWords[collection])
 					{
-						return target._topicIdToWords[controller.hashMap.getName(entry)] || "";
+						return target._topicIdToWords[collection][controller.hashMap.getName(entry)] || "";
 					}
 					else
 					{
