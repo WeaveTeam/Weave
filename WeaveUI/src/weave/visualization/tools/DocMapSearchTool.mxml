@@ -136,7 +136,7 @@ private function removeQuery():void
     var idx:int = queries.indexOf(savedQueriesList.selectedItem);
     if (idx != -1)
     {
-        VectorUtils.removeItems(queries, [idx]);
+        queries.splice(idx, 1);
         savedQueries.setSessionState(queries);
     }
 }
