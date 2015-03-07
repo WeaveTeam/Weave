@@ -32,6 +32,7 @@ package weave.visualization.tools
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableDescendants;
+	import weave.api.getLinkableOwner;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.IInitSelectableAttributes;
@@ -177,8 +178,10 @@ package weave.visualization.tools
 			
 			var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
 			return [].concat.apply(null, descendants.map(function(descendant:ISelectableAttributes, i:int, a:Array):Array {
-				var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, descendant);
-				var descendantName:String = path[path.length - 1];
+				var owner:ILinkableHashMap = getLinkableOwner(descendant);
+				if (!owner)
+					return [];
+				var descendantName:String = owner.getName(descendant);
 				return descendant.getSelectableAttributeNames().map(function(attrName:String, i:int, a:Array):String {
 					if (descendants.length == 1)
 						return attrName;
