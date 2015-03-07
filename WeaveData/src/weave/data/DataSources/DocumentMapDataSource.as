@@ -246,7 +246,7 @@ package weave.data.DataSources
 			meta[META_COLUMN] = column;
 			return meta;
 		}
-		
+		public var _topicIdToWords:Object = null;
 		private function getCachedColumn(collection:String, table:String, column:String):IAttributeColumn
 		{
 			var meta:Object = getColumnMetadata(collection, table, column);
@@ -278,6 +278,7 @@ package weave.data.DataSources
 				
 				if (table == TABLE_TOPICS && column == COLUMN_TOPIC)
 					rpc('getTopicWords', [collection], function(topicIdToWords:Object):Object {
+						_topicIdToWords = topicIdToWords;
 						var topicIDs:Array = VectorUtils.getKeys(topicIdToWords);
 						var topicWords:Array = topicIDs.map(function(topicID:String, i:int, a:Array):String {
 							return lang('{0}: {1}', topicID, topicIdToWords[topicID].source.join(' '));

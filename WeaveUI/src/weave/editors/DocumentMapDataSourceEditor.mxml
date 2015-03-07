@@ -40,19 +40,41 @@
 		<mx:Button label="{lang('Manage...')}" click="manageCollection()" enabled="{collectionCombo.selectedItem}"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Topic Names')}">
-		<CustomDataGrid:CustomDataGrid id="topicNameGrid"/>
+		<mx:DataGrid id="topicNameGrid" itemEditEnd="editEnd(event)" editable="true" height="100%" width="100%">
+			<mx:columns>
+				<mx:DataGridColumn id="topicIdColumn"
+					headerText="{lang('ID')}"
+					sortable="false"
+					editable="false"
+				/>
+				<mx:DataGridColumn id="topicWordColumn"
+					headerText="{lang('Keywords')}"
+					sortable="false"
+					editable="false"
+				/>
+				<mx:DataGridColumn id="topicLabelColumn"
+					headerText="{lang('Label')}"
+					sortable="false"
+					editable="true"
+				/>
+			</mx:columns>
+		</mx:DataGrid>
 	</ui:Indent>
 	<mx:Spacer height="20"/>
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.controls.Alert;
+			import mx.events.DataGridEvent;
+			import mx.binding.utils.BindingUtils;
+			import mx.controls.dataGridClasses.DataGridColumn;
 			
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
 			import weave.api.disposeObject;
 			import weave.api.registerDisposableChild;
 			import weave.api.newDisposableChild;
+			import weave.api.getCallbackCollection;
 			import weave.compiler.StandardLib;
 			import weave.data.DataSources.DocumentMapDataSource;
 			import weave.visualization.tools.DocMapSearchTool;
@@ -61,31 +83,65 @@
 			import weave.ui.VariableListController;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
-			import mx.binding.utils.BindingUtils;
-
-			private const controller:VariableListController = newDisposableChild(this, VariableListController);
 			
+			private const controller:VariableListController = newDisposableChild(this, VariableListController);
+		
 			override protected function createChildren():void
 			{
 				super.createChildren();
 				
 				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(DocumentMapDataSource));
 				BindingUtils.bindSetter(updateTopicNameView, collectionCombo, "selectedItem", true);
+				topicIdColumn.labelFunction = topicWordColumn.labelFunction = topicLabelColumn.labelFunction = labelFunction;
 				controller.view = topicNameGrid;
-
 			}
 			
 			[Bindable] private var target:DocumentMapDataSource = null;
-			
+
+			private function editEnd(event:DataGridEvent):void
+			{
+				var grid:DataGrid = event.target as DataGrid;
+				var column:DataGridColumn = grid.columns[event.columnIndex];
+				var entry:LinkableString = event.itemRenderer.data as LinkableString;
+				var newValue:String = grid.itemEditorInstance[column.editorDataField];
+				entry.value = newValue;
+			}
+			private function labelFunction(item:Object, column:DataGridColumn):String
+			{
+				var entry:LinkableString = item as LinkableString;
+				if (column == topicIdColumn)
+				{
+					return controller.hashMap.getName(entry);
+				}
+				else if (column == topicWordColumn)
+				{
+					if (target._topicIdToWords)
+					{
+						return target._topicIdToWords[controller.hashMap.getName(entry)] || "";
+					}
+					else
+					{
+						return "";
+					}
+				}
+				else if (column == topicLabelColumn)
+				{
+					return entry.value;
+				}
+				return null;
+			}
+			private var _currentHashMap:LinkableHashMap = null;
 			private function updateTopicNameView(object:Object):void
 			{
 				var collectionName:String = collectionCombo.selectedItem as String;
 				if (!collectionName) return;
-				var hashMap:LinkableHashMap = target.topicNameOverrides.requestObject(collectionName, LinkableHashMap, false) as LinkableHashMap;
-				controller.hashMap = hashMap;
+
+
+
+				controller.hashMap = target.topicNameOverrides.requestObject(collectionName, LinkableHashMap, false) as LinkableHashMap;
 				for each (var topicID:String in target.getTopicIDs(collectionName))
 				{
-					hashMap.requestObject(topicID, LinkableString, false);
+					controller.hashMap.requestObject(topicID, LinkableString, false);
 				}
 			}
 
