@@ -24,6 +24,7 @@ package
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.BackgroundTextPlotter;
 	import weave.visualization.plotters.CustomGlyphPlotter;
+	import weave.visualization.plotters.DraggableNestedRadvizPlotter;
 	import weave.visualization.plotters.EquationPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
@@ -56,6 +57,7 @@ package
 			AxisLabelPlotter,
 			BackgroundTextPlotter,
 			CustomGlyphPlotter,
+			DraggableNestedRadvizPlotter,
 			EquationPlotter,
 			GeometryLabelPlotter,
 			GeometryPlotter,

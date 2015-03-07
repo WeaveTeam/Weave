@@ -55,7 +55,7 @@ package weave.visualization.plotters
 	/**
 	 * @author adufilie
 	 */
-	public class DraggableScatterPlotPlotter extends AbstractGlyphPlotter implements ISelectableAttributes
+	public class DraggableScatterPlotPlotter extends AbstractGlyphPlotter implements ISelectableAttributes, IDraggablePlotter
 	{
 		private var topicPoints:Dictionary = new Dictionary();
 		public var probedKey:IQualifiedKey = null;
@@ -232,7 +232,8 @@ package weave.visualization.plotters
 		}
 		
 		private var keyBeingDragged:IQualifiedKey;
-		public var isDragging:Boolean = false;
+		public function get isDragging():Boolean { return _isDragging; }
+		private var _isDragging:Boolean = false;
 		
 		public function startPointDrag(key:IQualifiedKey):void
 		{
@@ -240,7 +241,7 @@ package weave.visualization.plotters
 				return;
 			keyBeingDragged = key;
 			//trace("Dragging Started  " + keyBeingDragged.localName);
-			isDragging = true;
+			_isDragging = true;
 		}
 		
 		public function updatePointDrag(tempDragPoint:Point):void
@@ -252,7 +253,7 @@ package weave.visualization.plotters
 		public function stopPointDrag(endPoint:Point):void
 		{
 			//trace("Dragging End  " + keyBeingDragged.localName);
-			isDragging = false;
+			_isDragging = false;
 			if (keyBeingDragged != null)
 				moveDataPoint(keyBeingDragged, endPoint);
 			keyBeingDragged = null;

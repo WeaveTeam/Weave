@@ -54,7 +54,7 @@ package weave.visualization.layers
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.VectorUtils;
 	import weave.utils.ZoomUtils;
-	import weave.visualization.plotters.DraggableScatterPlotPlotter;
+	import weave.visualization.plotters.IDraggablePlotter;
 	
 	/**
 	 * This is a container for a list of PlotLayers
@@ -769,7 +769,7 @@ package weave.visualization.layers
 			}
 		}
 		
-		private var draggingPlotter:DraggableScatterPlotPlotter = null;
+		private var draggingPlotter:IDraggablePlotter = null;
 		
 		protected function doSelection(mouseDown:Boolean=false):void
 		{
@@ -843,8 +843,8 @@ package weave.visualization.layers
 				
 				keys = VectorUtils.flatten(_lastProbedQKeys, keys);
 				
-				if( plotter is DraggableScatterPlotPlotter )
-					draggingPlotter = plotter as DraggableScatterPlotPlotter;
+				if (plotter is IDraggablePlotter)
+					draggingPlotter = plotter as IDraggablePlotter;
 				if( (draggingPlotter != null && !draggingPlotter.isDragging) || draggingPlotter == null )
 					setSelectionKeys(name, keys);
 				if( draggingPlotter != null )
@@ -981,7 +981,7 @@ package weave.visualization.layers
 				
 				if (keys.length == 0)
 				{
-					if( plotManager.getPlotter(layerName) is DraggableScatterPlotPlotter )
+					if( plotManager.getPlotter(layerName) is IDraggablePlotter )
 						dispatchEvent(new DocumentSummaryEvent(DocumentSummaryEvent.HIDE_DOCUMENT));
 					else
 						ProbeTextUtils.hideProbeToolTip();
@@ -989,7 +989,7 @@ package weave.visualization.layers
 				else
 				{
 					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
-					if( plotManager.getPlotter(layerName) is DraggableScatterPlotPlotter )
+					if( plotManager.getPlotter(layerName) is IDraggablePlotter )
 						dispatchEvent(new DocumentSummaryEvent(DocumentSummaryEvent.DISPLAY_DOCUMENT, stage.mouseX, stage.mouseY, text, keySet.keys[0]));
 					else
 						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);
