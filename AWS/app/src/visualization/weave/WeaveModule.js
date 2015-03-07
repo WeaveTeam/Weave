@@ -118,8 +118,6 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		return toolName;
 	};
 	
-	
-	
 	this.MapTool = function(state, aToolName){
 		
 		var toolName = aToolName || ws.generateUniqueName("MapTool");
@@ -134,59 +132,99 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 				}
 				ws.weave.path(toolName).request('MapTool').state({ panelX : "0%", panelY : "0%", panelTitle : state.title, enableTitle : true });
 				;
-				//TODO get this checked and see if done correctly
-				if(state.geometryLayer)
+				//STATE LAYER
+				if(state.stateGeometryLayer)
 				{
-					var geometry = angular.fromJson(state.geometryLayer);
+					var stateGeometry = angular.fromJson(state.stateGeometryLayer);
+					console.log("state geometry layer", stateGeometry );
+					
 					ws.weave.path(toolName).request('MapTool')
 					.push('children', 'visualization', 'plotManager', 'plotters')
-					.push('statelayer').request('weave.visualization.plotters.GeometryPlotter')
+					.push('Albers_State_Layer').request('weave.visualization.plotters.GeometryPlotter')
 					.push('line', 'color', 'defaultValue').state('0').pop()
-					.push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
+					.push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')//state layer
 					.push('dataSourceName').state('WeaveDataSource').pop()
 					.push('metadata').state({
-						"keyType": geometry.keyType,
-						"title": geometry.title,
+						"keyType": stateGeometry.keyType,
+						"title": stateGeometry.title,
 						"entityType": "column",
-						"weaveEntityId": geometry.id,
-						"projection": "EPSG:4326",
-						"dataType": "geometry"
+						"weaveEntityId": stateGeometry.id,
+						"projection": stateGeometry.projection,
+						"dataType": stateGeometry.dataType
 					});
-					//TODO parameterize setting the keytype and keyColName
+					
+					
 					if(state.useKeyTypeForCSV)
 					{
 						if(state.labelLayer) {
-							ws.weave.setSessionState([angular.fromJson(state.labelLayer).dataSourceName], {"keyType" : geometry.keyType});
+							ws.weave.setSessionState([angular.fromJson(state.labelLayer).dataSourceName], {"keyType" : stateGeometry.keyType});
 						}
 					}
 					
 				}
+				else{//to remove state layer
+					
+					if($.inArray('Albers_State_Layer',ws.weave.path().getNames()))//check if the layer exists and then remove it
+						ws.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'Albers_State_Layer').remove();
+				}
 				
-				if(state.labelLayer && state.geometryLayer)
+				//COUNTY LAYER
+				if(state.countyGeometryLayer)
 				{
-					var labelLayer = angular.fromJson(state.labelLayer);
-					var geometryLayer = angular.fromJson(state.geometryLayer);
+					var countyGeometry = angular.fromJson(state.countyGeometryLayer);
+					console.log("county geometry layer", countyGeometry );
+					
 					ws.weave.path(toolName).request('MapTool')
-					.push('children', 'visualization', 'plotManager','plotters')
-					.push('stateLabellayer').request('weave.visualization.plotters.GeometryLabelPlotter')
-					.push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
+					.push('children', 'visualization', 'plotManager', 'plotters')
+					.push('Albers_County_Layer').request('weave.visualization.plotters.GeometryPlotter')
+					.push('line', 'color', 'defaultValue').state('0').pop()
+					.push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')//county layer
 					.push('dataSourceName').state('WeaveDataSource').pop()
 					.push('metadata').state({
-						"keyType": geometryLayer.keyType,
-						"title": geometryLayer.title,
+						"keyType":countyGeometry.keyType,
+						"title":countyGeometry.title,
 						"entityType": "column",
-						"weaveEntityId": geometryLayer.id,
-						"projection": "EPSG:4326",
-						"dataType": "geometry"
-					}).pop().pop()
-					.push('text', null).request('ReferencedColumn')
-					.push('dataSourceName').state(labelLayer.dataSourceName).pop()
-					.push('metadata').state({
-						"csvColumn": labelLayer.name,
-						"title": labelLayer.name,
-						"keyType": geometryLayer.keyType
+						"weaveEntityId": countyGeometry.id,
+						"projection":countyGeometry.projection,
+						"dataType": countyGeometry.dataType
 					});
+				
+					//TODO change following
+					//done for handling albers projection What about other projection?
+					ws.weave.path(toolName, 'projectionSRS').state(countyGeometry.projection);
+					ws.weave.path('MapTool','children', 'visualization', 'plotManager').vars({myZoom: 4.5}).exec('setZoomLevel(myZoom)');
 				}
+				else{//to remove county layer
+					
+					if($.inArray('Albers_County_Layer',ws.weave.path().getNames()))//check if the layer exists and then remove it
+						ws.weave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters', 'Albers_County_Layer').remove();
+				}
+				//LABEL LAYER
+//				if(state.labelLayer && state.geometryLayer)
+//				{
+//					var labelLayer = angular.fromJson(state.labelLayer);
+//					var geometryLayer = angular.fromJson(state.geometryLayer);
+//					ws.weave.path(toolName).request('MapTool')
+//					.push('children', 'visualization', 'plotManager','plotters')
+//					.push('stateLabellayer').request('weave.visualization.plotters.GeometryLabelPlotter')
+//					.push('geometryColumn', 'internalDynamicColumn', null).request('ReferencedColumn')
+//					.push('dataSourceName').state('WeaveDataSource').pop()
+//					.push('metadata').state({
+//						"keyType": geometryLayer.keyType,
+//						"title": geometryLayer.title,
+//						"entityType": "column",
+//						"weaveEntityId": geometryLayer.id,
+//						"projection": "EPSG:4326",
+//						"dataType": "geometry"
+//					}).pop().pop()
+//					.push('text', null).request('ReferencedColumn')
+//					.push('dataSourceName').state(labelLayer.dataSourceName).pop()
+//					.push('metadata').state({
+//						"csvColumn": labelLayer.name,
+//						"title": labelLayer.name,
+//						"keyType": geometryLayer.keyType
+//					});
+//				}
 			} catch(e) {
 				console.log(e);
 			}
@@ -861,7 +899,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 // * This function accesses the weave instance and sets the global color attribute column
 // * 
 // * @param {string} colorColumnName
-// * @param {string} csvDataSource // TODO specify the type
+// * @param {string} csvDataSource // 
 // * 
 // * @return void
 // */
@@ -877,7 +915,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 // * 
 // * @param {string} toolName
 // * @param {boolean} enableTitle
-// * @param {string} title // TODO specify the type
+// * @param {string} title // 
 // * 
 // * @return void
 // */
