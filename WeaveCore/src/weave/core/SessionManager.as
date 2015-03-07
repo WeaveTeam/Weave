@@ -69,6 +69,9 @@ package weave.core
 			if (!(linkableParent is ILinkableObject))
 				throw new Error("newLinkableChild(): Parent does not implement ILinkableObject.");
 			
+			if (!linkableChildType)
+				throw new Error("newLinkableChild(): Child type parameter cannot be null.");
+			
 			var childQName:String = getQualifiedClassName(linkableChildType);
 			if (!ClassUtils.classImplements(childQName, ILinkableObjectQualifiedClassName))
 				throw new Error("newLinkableChild(): Child class does not implement ILinkableObject.");
