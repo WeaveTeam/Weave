@@ -38,6 +38,7 @@ package weave.visualization.plotters
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableOwner;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -202,7 +203,7 @@ package weave.visualization.plotters
 		private const radiusColumnStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(radiusColumn));
 		public const radiusConstant:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		
-		private static var randomValueArray:Array = new Array();		
+		private static var randomValueArray:Array = new Array();
 		private static var randomArrayIndexMap:Dictionary;
 		private var keyNumberMap:Dictionary;		
 		private var keyNormMap:Dictionary;
@@ -482,8 +483,6 @@ package weave.visualization.plotters
 		{
 			if (task.iteration == 0)
 			{
-				if (!keyNumberMap || keyNumberMap[task.recordKeys[0]] == null)
-					return 1;
 				if (columns.getObjects().length != anchors.getObjects().length)
 					return 1;
 				if (detectLinkableObjectChange(drawPlotAsyncIteration, lineStyle, fillStyle, radiusConstant, radiusColumn))
@@ -499,9 +498,10 @@ package weave.visualization.plotters
 				var key:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
 				
 				getXYcoordinates(key);
-				// skip missing x,y
-				if (isFinite(coordinate.x) && isFinite(coordinate.y))
+				// skip if excluded from subset or missing x,y
+				if (filteredKeySet.containsKey(key) && isFinite(coordinate.x) && isFinite(coordinate.y))
 				{
+					trace('topic',(getLinkableOwner(this) as LinkableHashMap).getName(this), 'key',key.localName, 'anchors(',columns.getNames(),')');
 					task.dataBounds.projectPointTo(coordinate, task.screenBounds);
 					var radius:Number;
 					if (useGlyphCache)
@@ -605,12 +605,11 @@ package weave.visualization.plotters
 		 */
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			output.setBounds(-1, -1.1, 1, 1.1);
+			output.setBounds(-1, -1, 1, 1);
 		}		
 		
 		public var drawProbe:Boolean = false;
 		public var probedKeys:Array = null;
-		private var _destination:BitmapData = null;
 		
 		public function drawProbeLines(keys:Array,dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
 		{						
