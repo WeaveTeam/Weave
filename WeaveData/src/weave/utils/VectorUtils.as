@@ -94,6 +94,26 @@ package weave.utils
 		}
 		
 		/**
+		 * Removes items from an Array.
+		 * @param array An Array (or Vector) of items.
+		 * @param itemsToRemove An Array (or Vector) of items to skip when making a copy of the array.
+		 * @return A new Array containing the items from the original array except those that appear in itemsToRemove.
+		 */
+		public static function subtract(array:*, itemsToRemove:*):Array
+		{
+			var item:*;
+			_lookupId++;
+			for each (item in itemsToRemove)
+				_lookup[item] = _lookupId;
+			var result:Array = [];
+			var i:int = 0;
+			for each (item in array)
+				if (_lookup[item] != _lookupId)
+					result[i++] = item;
+			return result;
+		}
+		
+		/**
 		 * This function copies the contents of the source to the destination.
 		 * Either parameter may be either an Array or a Vector.
 		 * @param source An Array-like object.
@@ -464,7 +484,7 @@ package weave.utils
 		 * @param array Array or Vector
 		 * @param indices Array of indices to remove
 		 */
-		public static function removeItems(array:*, indices:Array):void
+		public static function removeByIndex(array:*, indices:Array):void
 		{
 			var n:int = array.length;
 			var skipList:Vector.<int> = Vector.<int>(indices).sort(Array.NUMERIC);
