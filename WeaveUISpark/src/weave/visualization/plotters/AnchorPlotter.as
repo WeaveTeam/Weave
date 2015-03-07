@@ -21,6 +21,7 @@ package weave.visualization.plotters
 {	
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
+	import flash.display.Shape;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
@@ -34,6 +35,7 @@ package weave.visualization.plotters
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.ILineStyle;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ITextPlotter;
@@ -258,20 +260,21 @@ package weave.visualization.plotters
 				// draw bitmap text
 				_bitmapText.draw(destination);								
 			}
-			if(showBarycenter.value)
-			{
-				drawBarycenter(recordKeys, dataBounds, screenBounds, graphics, destination);
-			}
 			
-			if(showVoronoi.value)
+			destination.draw(tempShape);
+			
+			if (showBarycenter.value)
 			{
-				drawVoronoi(recordKeys, dataBounds, screenBounds, graphics, destination);
+				drawBarycenter(recordKeys, dataBounds, screenBounds, destination);
 			}
-			if(showConvexHull.value)
+			if (showVoronoi.value)
 			{
-				drawConvexHull(recordKeys, dataBounds, screenBounds, graphics, destination);
+				drawVoronoi(recordKeys, dataBounds, screenBounds, destination);
 			}
-			destination.draw(tempShape);							
+			if (showConvexHull.value)
+			{
+				drawConvexHull(recordKeys, dataBounds, screenBounds, destination);
+			}
 			
 			_currentScreenBounds.copyFrom(screenBounds);
 			_currentDataBounds.copyFrom(dataBounds);
@@ -310,21 +313,21 @@ package weave.visualization.plotters
 				circleLineStyle.beginLineStyle(null,g);
 				g.drawEllipse(x, y, coordinate.x - x, coordinate.y - y);
 			} catch (e:Error) { }
+			destination.draw(tempShape);
 			
 			if(drawingClassLines)
 			{
-				drawClassLines(dataBounds, screenBounds, g,destination );
+				drawClassLines(dataBounds, screenBounds, destination );
 			}
-			
-			destination.draw(tempShape);
 			
 			_currentScreenBounds.copyFrom(screenBounds);
 			_currentDataBounds.copyFrom(dataBounds);
 		}
 		
-		public function drawClassLines(dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void
+		public function drawClassLines(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			var graphics:Graphics = g;
+			var graphics:Graphics = static_tempShape.graphics;
+			graphics.clear();
 			var numOfClasses:int = 0;
 			for ( var type:Object in anchorClasses)
 			{
@@ -372,11 +375,13 @@ package weave.visualization.plotters
 				
 				_bitmapText.draw(destination);*/
 			}
+			destination.draw(static_tempShape);
 		}
 		
-		public function drawBarycenter(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void
+		public function drawBarycenter(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			var graphics:Graphics = g;
+			var graphics:Graphics = static_tempShape.graphics;
+			graphics.clear();
 			
 			var barycenter:Point = new Point();
 			var counter:int = 0;
@@ -408,34 +413,47 @@ package weave.visualization.plotters
 			graphics.drawCircle(barycenter.x, barycenter.y, barycenterRadius.value);
 			
 			graphics.endFill();
-			
+			destination.draw(static_tempShape);
 		}
 		
-		public function drawConvexHull(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void
+		public function drawConvexHull(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
-			var graphics:Graphics = g;
+			static_drawConvexHull(anchors, circleLineStyle, recordKeys, dataBounds, screenBounds, destination);
+		}
+		
+		private static const static_tempShape:Shape = new Shape();
+		public static function static_drawConvexHull(anchors:LinkableHashMap, lineStyle:ILineStyle, recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			var graphics:Graphics = static_tempShape.graphics;
 			var anchor1:AnchorPoint;
 			var anchor2:AnchorPoint;
 			var anchor:AnchorPoint;
 			var _anchors:Array = [];
 			var index:int;
 			var p1:Point = new Point();
-			var p2:Point = new Point();0
+			var p2:Point = new Point();
+			
+			graphics.clear();
+			if (recordKeys)
+			{
+				
+				// convert the array of record keys into array of anchors
+				for(index = 0; index < recordKeys.length; index++)
+				{
+					anchor = anchors.getObject(recordKeys[index].localName) as AnchorPoint;
+					
+					if (recordKeys[index].keyType != ANCHOR_KEYTYPE || !anchor)
+						continue;
+					
+					_anchors.push(anchor);
+				}
+			}
+			else
+				_anchors = anchors.getObjects();
 			
 			// don't draw anything if no anchors
-			if ( !recordKeys || recordKeys.length == 0)
+			if (_anchors.length == 0)
 				return;
-			
-			// convert the array of record keys into array of anchors
-			for(index = 0; index < recordKeys.length; index++)
-			{
-				 anchor = anchors.getObject(recordKeys[index].localName) as AnchorPoint;
-				
-				if (recordKeys[index].keyType != ANCHOR_KEYTYPE || !anchor)
-					continue;
-				
-				_anchors.push(anchor);
-			}
 			
 			// sort by polar angle
 			_anchors.sort(anchorCompareFunctionByPolarAngle);
@@ -449,7 +467,7 @@ package weave.visualization.plotters
 				p2.x = anchor2.x.value;p2.y = anchor2.y.value;
 				dataBounds.projectPointTo(p1, screenBounds);
 				dataBounds.projectPointTo(p2, screenBounds);
-				circleLineStyle.beginLineStyle(null, graphics);
+				lineStyle.beginLineStyle(null, graphics);
 				graphics.moveTo(p1.x, p1.y);
 				graphics.lineTo(p2.x, p2.y);				
 			}
@@ -464,6 +482,7 @@ package weave.visualization.plotters
 			graphics.lineTo(p2.x, p2.y);
 			
 			graphics.endFill();
+			destination.draw(static_tempShape);
 			
 			function anchorCompareFunctionByPolarAngle(a1:AnchorPoint, a2:AnchorPoint):Number
 			{
@@ -482,10 +501,11 @@ package weave.visualization.plotters
 		
 		
 		
-		public function drawVoronoi(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, g:Graphics,destination:BitmapData):void
+		public function drawVoronoi(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			// http://blog.ivank.net/voronoi-diagram-in-as3.html
-			var graphics:Graphics = g;
+			var graphics:Graphics = static_tempShape.graphics;
+			graphics.clear();
 			
 			var i:int;
 			var edges:Vector.<VEdge>; // vector  for edges
@@ -532,6 +552,7 @@ package weave.visualization.plotters
 			   graphics.moveTo(edges[i].start.x, edges[i].start.y);
 			   graphics.lineTo(edges[i].end  .x, edges[i].end  .y);
 			}
+			destination.draw(static_tempShape);
 		}
 		
 		override public function getDataBoundsFromRecordKey(recordKey:IQualifiedKey, output:Array):void
