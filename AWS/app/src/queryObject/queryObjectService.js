@@ -546,7 +546,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 					return {
 						id : entity.id,
 						title : entity.publicMetadata.title,
-						keyType : entity.publicMetadata.keyType
+						keyType : entity.publicMetadata.keyType,
+						dataType : entity.publicMetadata.dataType,
+						projection: entity.publicMetadata.projection
 					};
 				});
 				scope.$safeApply(function() {
