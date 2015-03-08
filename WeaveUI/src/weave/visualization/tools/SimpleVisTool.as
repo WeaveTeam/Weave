@@ -176,7 +176,7 @@ package weave.visualization.tools
 			if (obj)
 				return obj.getSelectableAttributeNames();
 			
-			var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
+			var descendants:Array = visualization.plotManager.plotters.getObjects(ISelectableAttributes);
 			return [].concat.apply(null, descendants.map(function(descendant:ISelectableAttributes, i:int, a:Array):Array {
 				var owner:ILinkableHashMap = getLinkableOwner(descendant);
 				if (!owner)
@@ -203,7 +203,7 @@ package weave.visualization.tools
 			if (obj)
 				return obj.getSelectableAttributes();
 			
-			var descendants:Array = getLinkableDescendants(this, ISelectableAttributes);
+			var descendants:Array = visualization.plotManager.plotters.getObjects(ISelectableAttributes);
 			return [].concat.apply(null, descendants.map(function(descendant:ISelectableAttributes, i:int, a:Array):Array {
 				return descendant.getSelectableAttributes();
 			}));
