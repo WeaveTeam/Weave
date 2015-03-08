@@ -203,8 +203,8 @@ package weave.visualization.plotters
 		private const radiusColumnStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(radiusColumn));
 		public const radiusConstant:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		
-		private static var randomValueArray:Array = new Array();
-		private static var randomArrayIndexMap:Dictionary = new Dictionary(true);
+		private var randomValueArray:Array = new Array();
+		private var randomArrayIndexMap:Dictionary = new Dictionary(true);
 		private var keyNumberMap:Dictionary = new Dictionary(true);
 		private var keyNormMap:Dictionary = new Dictionary(true);
 		private var keyGlobalNormMap:Dictionary = new Dictionary(true);
@@ -288,7 +288,10 @@ package weave.visualization.plotters
 			
 			setAnchorLocations();
 			
-			if (doCDLayoutFlag) setClassDiscriminationAnchorsLocations();
+			if (doCDLayoutFlag)
+				setClassDiscriminationAnchorsLocations();
+			
+			clearCoordCache();
 		}
 		
 		private function getNorm(column:IAttributeColumn, key:IQualifiedKey):Number
