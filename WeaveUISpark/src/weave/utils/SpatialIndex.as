@@ -679,7 +679,7 @@ package weave.utils
 						
 						// Consider all keys until we have found one that overlaps the query center.
 						// After that, only consider keys that overlap query center.
-						if (!foundQueryCenterOverlap || overlapsQueryCenter)
+						if (!foundQueryCenterOverlap || overlapsQueryCenter || recordBounds.isEmpty())
 						{
 							// if this is the first record that overlaps the query center, reset the list of keys
 							if (!foundQueryCenterOverlap && overlapsQueryCenter)
