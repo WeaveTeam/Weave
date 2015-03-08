@@ -78,6 +78,9 @@ package weave.visualization.plotters
 				{
 					var radviz:RadVizPlotter = topicPlotters.requestObject(columnList.lastNameAdded, RadVizPlotter, false);
 					registerSpatialProperty(radviz.spatialCallbacks);
+					linkSessionState(radiusMin, radviz.minRadius);
+					linkSessionState(radiusMax, radviz.maxRadius);
+					linkSessionState(radiusConstant, radviz.radiusConstant);
 					linkSessionState(line, radviz.lineStyle);
 					linkSessionState(fill, radviz.fillStyle);
 					linkSessionState(docRadius, radviz.radiusColumn);
@@ -141,6 +144,9 @@ package weave.visualization.plotters
 		public const jitterEnable:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
+		public const radiusMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2));
+		public const radiusMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10));
+		public const radiusConstant:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		public const labelSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(11));
 		public const gridSnap:LinkableNumber = registerLinkableChild(this, new LinkableNumber(.5));
 		public const textCentered:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
@@ -426,6 +432,9 @@ package weave.visualization.plotters
 			}
 			
 			var ss:Object = topicPositions.getSessionState() || {};
+			// prevent having two topics at the same location
+			if (VectorUtils.getKeys(ss).some(function(key:String, i:int, a:Array):Boolean { return ss[key].x == x && ss[key].y == y; }))
+				return;
 			ss[topicID] = {x: x, y: y};
 			topicPositions.setSessionState(ss);
 		}
