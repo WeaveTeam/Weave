@@ -35,9 +35,9 @@
 		<ui:TextInputWithPrompt id="url" prompt="http://www.example.com/WeaveServices/DataService" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Collections')}">
-		<ui:CustomComboBox id="collectionCombo"/>
-		<mx:Button label="{lang('Open Search')}" click="openSearch()" enabled="{collectionCombo.selectedItem}"/>
-		<mx:Button label="{lang('Manage...')}" click="manageCollection()" enabled="{collectionCombo.selectedItem}"/>
+		<ui:MenuButton id="collectionMenu" label="{selectedCollection || 'Choose a collection...'}"/>
+		<mx:Button label="{lang('Open Search')}" click="openSearch()" enabled="{!!selectedCollection}"/>
+		<mx:Button label="{lang('Manage...')}" click="manageCollection()" enabled="{!!selectedCollection}"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Topic Names')}">
 		<mx:DataGrid id="topicNameGrid" itemEditEnd="editEnd(event)" editable="true" height="100%" width="100%">
@@ -64,34 +64,34 @@
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.controls.Alert;
-			import mx.events.DataGridEvent;
 			import mx.binding.utils.BindingUtils;
+			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
+			import mx.events.DataGridEvent;
 			
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
 			import weave.api.disposeObject;
-			import weave.api.registerDisposableChild;
-			import weave.api.newDisposableChild;
 			import weave.api.getCallbackCollection;
+			import weave.api.newDisposableChild;
+			import weave.api.registerDisposableChild;
 			import weave.compiler.StandardLib;
-			import weave.data.DataSources.DocumentMapDataSource;
-			import weave.visualization.tools.DocMapSearchTool;
-			import weave.ui.WeaveDataSourceHierarchySelector;
-			import weave.ui.DraggablePanel;
-			import weave.ui.VariableListController;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
+			import weave.data.DataSources.DocumentMapDataSource;
+			import weave.ui.DraggablePanel;
+			import weave.ui.VariableListController;
+			import weave.ui.WeaveDataSourceHierarchySelector;
+			import weave.visualization.tools.DocMapSearchTool;
 			
 			private const controller:VariableListController = newDisposableChild(this, VariableListController);
+			
 		
 			override protected function createChildren():void
 			{
 				super.createChildren();
 				
 				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(DocumentMapDataSource));
-				BindingUtils.bindSetter(updateTopicNameView, collectionCombo, "selectedItem", true);
 				topicIdColumn.labelFunction = topicWordColumn.labelFunction = topicLabelColumn.labelFunction = labelFunction;
 				controller.view = topicNameGrid;
 			}
@@ -108,7 +108,7 @@
 			}
 			private function labelFunction(item:Object, column:DataGridColumn):String
 			{
-				var collection:String = collectionCombo.selectedItem as String;
+				var collection:String = selectedCollection;
 				var entry:LinkableString = item as LinkableString;
 				if (column == topicIdColumn)
 				{
@@ -132,13 +132,10 @@
 				return null;
 			}
 			private var _currentHashMap:LinkableHashMap = null;
-			private function updateTopicNameView(object:Object):void
+			[Bindable] private var selectedCollection:String;
+			private function updateTopicNameView(collectionName:String):void
 			{
-				var collectionName:String = collectionCombo.selectedItem as String;
-				if (!collectionName) return;
-
-
-
+				selectedCollection = collectionName;
 				controller.hashMap = target.topicNameOverrides.requestObject(collectionName, LinkableHashMap, false) as LinkableHashMap;
 				for each (var topicID:String in target.getTopicIDs(collectionName))
 				{
@@ -164,7 +161,19 @@
 					sourceName.editable = false;
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
 
-					target._listCollectionsCallbacks.addGroupedCallback(this, updateCollectionCombo, true);
+					collectionMenu.data = {
+						source: target._listCollectionsCallbacks,
+						children: function():Array {
+							return target._collections.map(function(collection:String, i:int, a:Array):Object {
+								return {
+									label: collection,
+									click: function():void {
+										updateTopicNameView(collection);
+									}
+								};
+							});
+						}
+					};
 				}
 			}
 			
@@ -202,15 +211,12 @@
 				applyChanges();
 				return target;
 			}
+			
 			public function openSearch():void
 			{
 				var toolName:String = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(DocMapSearchTool));
 				var tool:DocMapSearchTool = WeaveAPI.globalHashMap.requestObject(toolName, DocMapSearchTool, false);
-				tool.collectionName.value = collectionCombo.selectedItem as String;
-			}
-			public function updateCollectionCombo():void
-			{
-				collectionCombo.dataProvider = target._collections;
+				tool.collectionName.value = selectedCollection;
 			}
 			public function manageCollection():void
 			{

@@ -100,7 +100,7 @@ package weave.data.DataSources
 		private var _rService:AMF3Servlet = null;
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/DocumentMapService/'));
 		public const rServiceUrl:LinkableString = registerLinkableChild(this, new LinkableString('/WeaveServices/RService'));
-		public const topicNameOverrides:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), updateTitles);
+		public const topicNameOverrides:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableHashMap), updateTitles);
 		private var _cache:Object = {};
 		
 		/**
