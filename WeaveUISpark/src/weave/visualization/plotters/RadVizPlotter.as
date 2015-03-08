@@ -192,8 +192,8 @@ package weave.visualization.plotters
 		
 		public var LayoutClasses:Dictionary = null;//(Set via the editor) needed for setting the Cd layout dimensional anchor  locations
 		
-		private var minRadius:Number = 2;
-		private var maxRadius:Number = 10;
+		public const minRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2));
+		public const maxRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10));
 		
 		/**
 		 * This is the radius of the circle, in screen coordinates.
@@ -484,11 +484,13 @@ package weave.visualization.plotters
 		
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
+			var _minRadius:Number = minRadius.value;
+			var _maxRadius:Number = maxRadius.value;
 			if (task.iteration == 0)
 			{
 				if (columns.getObjects().length != anchors.getObjects().length)
 					return 1;
-				if (detectLinkableObjectChange(drawPlotAsyncIteration, lineStyle, fillStyle, radiusConstant, radiusColumn))
+				if (detectLinkableObjectChange(drawPlotAsyncIteration, lineStyle, fillStyle, radiusConstant, radiusColumn, minRadius, maxRadius))
 					keyToGlyph = new Dictionary(true);
 				task.asyncState = 0;
 			}
@@ -512,7 +514,7 @@ package weave.visualization.plotters
 						if (!glyph)
 						{
 							if (radiusColumn.getInternalColumn())
-								radius = minRadius + radiusColumnStats.getNorm(key) * (maxRadius - minRadius);
+								radius = _minRadius + radiusColumnStats.getNorm(key) * (_maxRadius - _minRadius);
 							else
 								radius = radiusConstant.value;
 							
@@ -528,7 +530,7 @@ package weave.visualization.plotters
 					else
 					{
 						if (radiusColumn.getInternalColumn())
-							radius = minRadius + radiusColumnStats.getNorm(key) * (maxRadius - minRadius);
+							radius = _minRadius + radiusColumnStats.getNorm(key) * (_maxRadius - _minRadius);
 						else
 							radius = radiusConstant.value;
 						var shape:Shape = drawGlyph(
