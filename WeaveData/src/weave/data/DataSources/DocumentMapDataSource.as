@@ -100,7 +100,7 @@ package weave.data.DataSources
 		private var _rService:AMF3Servlet = null;
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/DocumentMapService/'));
 		public const rServiceUrl:LinkableString = registerLinkableChild(this, new LinkableString('/WeaveServices/RService'));
-		public const topicNameOverrides:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(), updateTitles);
+		public const topicNameOverrides:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableString), updateTitles);
 		private var _cache:Object = {};
 		
 		/**
@@ -226,11 +226,11 @@ package weave.data.DataSources
 					
 					/* Handle user-specified topic names */
 					var collectionTopicOverrides:LinkableHashMap = topicNameOverrides.getObject(collection) as LinkableHashMap;
-					
 					if (collectionTopicOverrides)
 					{
-						var overriddenTopicName:LinkableString = collectionTopicOverrides.getObject(column) as LinkableString;
-						if (overriddenTopicName.value) title = overriddenTopicName.value;
+						var overriddenTopicName:LinkableString = collectionTopicOverrides.requestObject(column, LinkableString, false);
+						if (overriddenTopicName && overriddenTopicName.value)
+							title = overriddenTopicName.value;
 					}
 				}
 			}
@@ -269,11 +269,12 @@ package weave.data.DataSources
 				if (table == TABLE_DOC_FILES)
 				{
 					var eq:EquationColumn = cachedColumn as EquationColumn;
-					(eq.requestVariable('title', ProxyColumn, true) as ProxyColumn).setInternalColumn(getCachedColumn(collection, TABLE_DOC_METADATA, COLUMN_DOC_TITLE));
+					var methodName:String = column == COLUMN_DOC_THUMBNAIL ? 'getThumbnail' : 'getDocument';
+					(eq.requestVariable('titleColumn', ProxyColumn, true) as ProxyColumn).setInternalColumn(getCachedColumn(collection, TABLE_DOC_METADATA, COLUMN_DOC_TITLE));
 					(eq.requestVariable('url', LinkableString, true) as LinkableString).value = url.value;
-					(eq.requestVariable('method', LinkableString, true) as LinkableString).value = column == COLUMN_DOC_THUMBNAIL ? 'getThumbnail' : 'getDocument';
+					(eq.requestVariable('method', LinkableString, true) as LinkableString).value = methodName;
 					(eq.requestVariable('collection', LinkableString, true) as LinkableString).value = collection;
-					eq.equation.value = "`{ url.value }?method={ method.value }&collectionName={ collection.value }&document={ key.localName }`";
+					eq.equation.value = "titleColumn.containsKey(key) ? `{ url.value }?method={ method.value }&collectionName={ collection.value }&document={ key.localName }` : undefined";
 				}
 				
 				if (table == TABLE_TOPICS && column == COLUMN_TOPIC)
