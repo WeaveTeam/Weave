@@ -139,10 +139,11 @@ package weave.visualization.plotters
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		public const labelSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(11));
 		public const gridSnap:LinkableNumber = registerLinkableChild(this, new LinkableNumber(.5));
+		public const textCentered:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const textVerticalPos_1_to_4:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2, function(value:Number):Boolean { return [1,2,3,4].indexOf(value) >= 0; }));
 		public const topicColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000080));
 		public const topicBackgroundAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.05));
-		public const topicPointSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
+		public const topicPointSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(6));
 		public const topicPositions:LinkableVariable = newSpatialProperty(LinkableVariable);
 		
 		private const topicPlotters:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(RadVizPlotter));
@@ -221,8 +222,6 @@ package weave.visualization.plotters
 				
 				//AnchorPlotter.static_drawConvexHull(radviz.anchors, line, null, subtask.dataBounds, subtask.screenBounds, subtask.buffer);
 				
-				var topicColumn:IAttributeColumn = topicColumns.getObject(name) as IAttributeColumn;
-				bitmapText.text = topicColumn.getMetadata(ColumnMetadata.TITLE);
 				switch (textVerticalPos_1_to_4.value)
 				{
 					case 1:
@@ -246,8 +245,21 @@ package weave.visualization.plotters
 						bitmapText.height = tempRect.height;
 					break;
 				}
-				bitmapText.x = tempRect.x;
-				bitmapText.width = tempRect.width;
+				if (textCentered.value)
+				{
+					bitmapText.x = tempBounds.getXCenter();
+					bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_CENTER;
+					bitmapText.maxWidth = tempRect.width;
+				}
+				else
+				{
+					bitmapText.x = tempRect.x;
+					bitmapText.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+					bitmapText.width = tempRect.width;
+				}
+				
+				var topicColumn:IAttributeColumn = topicColumns.getObject(name) as IAttributeColumn;
+				bitmapText.text = topicColumn.getMetadata(ColumnMetadata.TITLE);
 				bitmapText.textFormat.size = labelSize.value;
 				bitmapText.draw(destination);
 			}
@@ -323,7 +335,8 @@ package weave.visualization.plotters
 				
 				tempShape.graphics.clear();
 				tempShape.graphics.lineStyle(1, topicColor.value, 1.0);
-				tempShape.graphics.drawRect(center.x, center.y, topicPointSize.value, topicPointSize.value);
+				var size:Number = topicPointSize.value;
+				tempShape.graphics.drawRect(center.x - size/2, center.y - size/2, size, size);
 				tempShape.graphics.endFill();
 				task.buffer.draw(tempShape);
 			}
