@@ -21,6 +21,10 @@ package weave.servlets;
 
 import java.io.File;
 import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 
@@ -39,12 +43,6 @@ import org.rosuda.REngine.RFactor;
 import org.rosuda.REngine.RList;
 import org.rosuda.REngine.Rserve.RConnection;
 import org.rosuda.REngine.Rserve.RserveException;
-
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Arrays;
 
 import weave.beans.ClassDiscriminationResult;
 import weave.beans.HierarchicalClusteringResult;
