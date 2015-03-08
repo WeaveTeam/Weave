@@ -204,10 +204,10 @@ package weave.visualization.plotters
 		public const radiusConstant:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		
 		private static var randomValueArray:Array = new Array();
-		private static var randomArrayIndexMap:Dictionary;
-		private var keyNumberMap:Dictionary;		
-		private var keyNormMap:Dictionary;
-		private var keyGlobalNormMap:Dictionary;
+		private static var randomArrayIndexMap:Dictionary = new Dictionary(true);
+		private var keyNumberMap:Dictionary = new Dictionary(true);
+		private var keyNormMap:Dictionary = new Dictionary(true);
+		private var keyGlobalNormMap:Dictionary = new Dictionary(true);
 		
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
 		
@@ -414,6 +414,7 @@ package weave.visualization.plotters
 			{
 				coordinate.x = cached[0];
 				coordinate.y = cached[1];
+				return;
 			}
 			
 			//implements RadViz algorithm for x and y coordinates of a record
@@ -423,9 +424,9 @@ package weave.visualization.plotters
 			
 			var anchorArray:Array = anchors.getObjects();			
 			
-			var value:Number = 0;			
+			var value:Number = 0;
 			var anchor:AnchorPoint;
-			var normArray:Array = (localNormalization.value) ? keyNormMap[recordKey] : keyGlobalNormMap[recordKey];
+			var normArray:Array = localNormalization.value ? keyNormMap[recordKey] : keyGlobalNormMap[recordKey];
 			var _cols:Array = columns.getObjects();
 			for (var i:int = 0; i < _cols.length; i++)
 			{
@@ -501,7 +502,6 @@ package weave.visualization.plotters
 				// skip if excluded from subset or missing x,y
 				if (filteredKeySet.containsKey(key) && isFinite(coordinate.x) && isFinite(coordinate.y))
 				{
-					trace('topic',(getLinkableOwner(this) as LinkableHashMap).getName(this), 'key',key.localName, 'anchors(',columns.getNames(),')');
 					task.dataBounds.projectPointTo(coordinate, task.screenBounds);
 					var radius:Number;
 					if (useGlyphCache)
