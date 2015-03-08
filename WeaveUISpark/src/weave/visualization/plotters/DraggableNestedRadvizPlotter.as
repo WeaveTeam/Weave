@@ -82,7 +82,7 @@ package weave.visualization.plotters
 					linkSessionState(fill, radviz.fillStyle);
 					linkSessionState(docRadius, radviz.radiusColumn);
 					linkSessionState(jitterLevel, radviz.jitterLevel);
-					linkSessionState(enableJitter, radviz.enableJitter);
+					linkSessionState(jitterEnable, radviz.enableJitter);
 					
 					// this hack is so the call to requestLocalObject() succeeds
 					ClassUtils.registerDeprecatedClass(getQualifiedClassName(KeyFilterByTopic), KeyFilterByTopic);
@@ -137,8 +137,8 @@ package weave.visualization.plotters
 		public const numProbeTopicLines:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3));
 		public const thresholdNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.25, isFinite)); // for probe lines
 		
-		public const jitterLevel:LinkableNumber = registerSpatialProperty(new LinkableNumber(-19));			
-		public const enableJitter:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
+		public const jitterLevel:LinkableNumber = registerSpatialProperty(new LinkableNumber(10));			
+		public const jitterEnable:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		public const labelSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(11));
