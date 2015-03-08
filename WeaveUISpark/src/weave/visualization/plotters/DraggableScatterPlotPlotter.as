@@ -25,6 +25,7 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
@@ -47,6 +48,7 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.DataSources.DocumentMapDataSource;
+	import weave.data.QKeyManager;
 	import weave.utils.ColumnUtils;
 	import weave.visualization.layers.PlotTask;
 	import weave.visualization.plotters.styles.SolidFillStyle;
@@ -55,7 +57,7 @@ package weave.visualization.plotters
 	/**
 	 * @author adufilie
 	 */
-	public class DraggableScatterPlotPlotter extends AbstractGlyphPlotter implements ISelectableAttributes, IDraggablePlotter
+	public class DraggableScatterPlotPlotter extends AbstractGlyphPlotter implements ISelectableAttributes, IDraggablePlotter, IDocumentPlotter
 	{
 		private var topicPoints:Dictionary = new Dictionary();
 		public var probedKey:IQualifiedKey = null;
@@ -76,6 +78,14 @@ package weave.visualization.plotters
 		public function getSelectableAttributes():Array
 		{
 			return [dataX, dataY, fill.color, sizeBy, thumbnails, docLinks, topicColumns];
+		}
+		public function getThumbnailURL(key:IQualifiedKey):String
+		{
+			return thumbnails.getValueFromKey(key, String);
+		}
+		public function getDocumentURL(key:IQualifiedKey):String
+		{
+			return docLinks.getValueFromKey(key, String);
 		}
 		
 		public const topicColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
@@ -246,6 +256,7 @@ package weave.visualization.plotters
 		
 		public function updatePointDrag(tempDragPoint:Point):void
 		{
+			return; // disabled
 			if (keyBeingDragged != null)
 				moveDataPoint(keyBeingDragged, tempDragPoint);
 		}
@@ -275,6 +286,21 @@ package weave.visualization.plotters
 				return null;
 			var ss:Object = lv.getSessionState();
 			return ss && ss[key.localName];
+		}
+		
+		/**
+		 * @return An Array of Point objects corresponding to topicColumns
+		 */
+		public function getOrderedTopicPoints():Array
+		{
+			return topicColumns.getObjects().map(function(column:IAttributeColumn, i:int, a:Array):Point {
+				var keyType:String = column.getMetadata(ColumnMetadata.KEY_TYPE);
+				var localName:String = column.getMetadata(DocumentMapDataSource.META_COLUMN);
+				var key:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(keyType, localName);
+				var p:Point = new Point();
+				getCoordsFromRecordKey(key, p);
+				return p;
+			});
 		}
 		
 		private function getMovedDataPointsVariable():LinkableVariable

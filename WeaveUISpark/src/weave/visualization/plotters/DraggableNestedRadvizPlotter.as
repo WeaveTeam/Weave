@@ -21,6 +21,7 @@ package weave.visualization.plotters
 {
 	import avmplus.getQualifiedClassName;
 	
+	import flash.display.BitmapData;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.utils.Dictionary;
@@ -32,6 +33,7 @@ package weave.visualization.plotters
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.linkBindableProperty;
 	import weave.api.linkSessionState;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
@@ -44,8 +46,10 @@ package weave.visualization.plotters
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.KeySets.KeySet;
@@ -59,10 +63,8 @@ package weave.visualization.plotters
 	/**
 	 * @author adufilie
 	 */
-	public class DraggableNestedRadvizPlotter extends AbstractPlotter implements ISelectableAttributes
+	public class DraggableNestedRadvizPlotter extends AbstractPlotter implements ISelectableAttributes, IDraggablePlotter, IDocumentPlotter
 	{
-		public var probedKey:IQualifiedKey = null;
-		
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, DraggableNestedRadvizPlotter, "Draggable Nested RadViz");
 		
 		public function DraggableNestedRadvizPlotter()
@@ -72,12 +74,14 @@ package weave.visualization.plotters
 			var columnList:IChildListCallbackInterface = topicColumns.childListCallbacks;
 			columnList.addImmediateCallback(this, function():void {
 				topicColumnNames = topicColumns.getNames();
-				topicKeySet.replaceKeys(WeaveAPI.QKeyManager.getQKeys(TOPIC_KEY_TYPE, topicColumnNames));
-				setColumnKeySources(topicColumns.getObjects().concat(topicKeySet));
 				if (columnList.lastNameAdded)
 				{
 					var radviz:RadVizPlotter = topicPlotters.requestObject(columnList.lastNameAdded, RadVizPlotter, false);
 					registerSpatialProperty(radviz.spatialCallbacks);
+					linkSessionState(line, radviz.lineStyle);
+					linkSessionState(fill, radviz.fillStyle);
+					linkSessionState(docRadius, radviz.radiusColumn);
+					
 					// this hack is so the call to requestLocalObject() succeeds
 					ClassUtils.registerDeprecatedClass(getQualifiedClassName(KeyFilterByTopic), KeyFilterByTopic);
 					var kf:KeyFilterByTopic = radviz.filteredKeySet.keyFilter.requestLocalObject(KeyFilterByTopic, true);
@@ -86,7 +90,11 @@ package weave.visualization.plotters
 					kf.filterString = columnList.lastNameAdded;
 				}
 				if (columnList.lastNameRemoved)
+				{
 					topicPlotters.removeObject(columnList.lastNameRemoved);
+				}
+				topicKeySet.replaceKeys(WeaveAPI.QKeyManager.getQKeys(TOPIC_KEY_TYPE, topicColumnNames));
+				setColumnKeySources(topicColumns.getObjects().concat(topicKeySet));
 			}, true);
 			
 			var plotterList:IChildListCallbackInterface = topicPlotters.childListCallbacks;
@@ -104,6 +112,14 @@ package weave.visualization.plotters
 		{
 			return [topicColumns, fill.color, docRadius, thumbnails, docLinks];
 		}
+		public function getThumbnailURL(key:IQualifiedKey):String
+		{
+			return thumbnails.getValueFromKey(key, String);
+		}
+		public function getDocumentURL(key:IQualifiedKey):String
+		{
+			return docLinks.getValueFromKey(key, String);
+		}
 		
 		public static const TOPIC_KEY_TYPE:String = 'DraggableNestedRadVizPlotter_topic';
 		
@@ -116,16 +132,26 @@ package weave.visualization.plotters
 		public const docLinks:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const thumbnails:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		
+		public const numProbeTopicLines:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3));
 		public const thresholdNumber:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.25, isFinite)); // for probe lines
 		
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
-		
+		public const labelSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(11));
+		public const gridSnap:LinkableNumber = registerLinkableChild(this, new LinkableNumber(.5));
+		public const textVerticalPos_1_to_4:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2, function(value:Number):Boolean { return [1,2,3,4].indexOf(value) >= 0; }));
+		public const topicColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000080));
+		public const topicBackgroundAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.05));
+		public const topicPointSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		public const topicPositions:LinkableVariable = newSpatialProperty(LinkableVariable);
+		
 		private const topicPlotters:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(RadVizPlotter));
 		private const rankedTopics:RankedTopicColumn = registerLinkableChild(this, new RankedTopicColumn(this as DraggableNestedRadvizPlotter));
 		
 		private const tempBounds:Bounds2D = new Bounds2D();
+		private const bitmapText:BitmapText = new BitmapText();
+		private const tempRect:Rectangle = new Rectangle();
+		private const tempBoundsArray:Array = [];
 		
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
@@ -158,7 +184,9 @@ package weave.visualization.plotters
 					radviz.getBackgroundDataBounds(output[0]);
 					// hack to get upper-left corner
 					var b:IBounds2D = output[0];
-					b.setCenteredRectangle(b.getXMin(), b.getYMax(), 0, 0);
+					//b.setCenteredRectangle(b.getXMin(), b.getYMax(), 0, 0);
+					b.setWidth(0);
+					b.setHeight(0);
 				}
 				else
 					radviz.getDataBoundsFromRecordKey(recordKey, output);
@@ -168,9 +196,62 @@ package weave.visualization.plotters
 			(output[0] as IBounds2D).offset(p.x, p.y);
 		}
 		
-		
-		private const tempPoint:Point = new Point();
-		private const bitmapText:BitmapText = new BitmapText();
+		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
+		{
+			for each (var name:String in topicColumnNames)
+			{
+				var radviz:RadVizPlotter = topicPlotters.getObject(name) as RadVizPlotter;
+				radviz.getBackgroundDataBounds(tempBounds);
+				var topicPoint:Point = getTopicPoint(name);
+				tempBounds.offset(topicPoint.x, topicPoint.y);
+				if (!tempBounds.overlaps(dataBounds))
+					continue;
+				
+				dataBounds.projectCoordsTo(tempBounds, screenBounds);
+				tempBounds.centeredResize(tempBounds.getXCoverage() - 2, tempBounds.getYCoverage() - 2);
+				screenBounds.constrainBounds(tempBounds, false);
+				tempBounds.getRectangle(tempRect);
+				
+				// draw box around nested plotter
+				tempShape.graphics.clear();
+				tempShape.graphics.beginFill(topicColor.value, topicBackgroundAlpha.value);
+				tempShape.graphics.drawRect(tempRect.x, tempRect.y, tempRect.width, tempRect.height);
+				tempShape.graphics.endFill();
+				destination.draw(tempShape);
+				
+				//AnchorPlotter.static_drawConvexHull(radviz.anchors, line, null, subtask.dataBounds, subtask.screenBounds, subtask.buffer);
+				
+				var topicColumn:IAttributeColumn = topicColumns.getObject(name) as IAttributeColumn;
+				bitmapText.text = topicColumn.getMetadata(ColumnMetadata.TITLE);
+				switch (textVerticalPos_1_to_4.value)
+				{
+					case 1:
+						bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_TOP;
+						bitmapText.y = tempBounds.getYNumericMin();
+						bitmapText.height = tempRect.height;
+					break;
+					case 2:
+						bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM;
+						bitmapText.y = tempBounds.getYCenter();
+						bitmapText.height = tempRect.height / 2;
+					break;
+					case 3:
+						bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_TOP;
+						bitmapText.y = tempBounds.getYCenter();
+						bitmapText.height = tempRect.height / 2;
+					break;
+					case 4:
+						bitmapText.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM;
+						bitmapText.y = tempBounds.getYNumericMax();
+						bitmapText.height = tempRect.height;
+					break;
+				}
+				bitmapText.x = tempRect.x;
+				bitmapText.width = tempRect.width;
+				bitmapText.textFormat.size = labelSize.value;
+				bitmapText.draw(destination);
+			}
+		}
 		
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
@@ -208,24 +289,6 @@ package weave.visualization.plotters
 						anchor.x.value = otherPoint.x;
 						anchor.y.value = otherPoint.y;
 					}
-					
-					if ((task as PlotTask).taskType == PlotTask.TASK_TYPE_SUBSET)
-					{
-						radviz.getBackgroundDataBounds(tempBounds);
-						subtask.dataBounds.projectCoordsTo(tempBounds, subtask.screenBounds);
-						var r:Rectangle = tempBounds.getRectangle();
-						task.buffer.fillRect(r, 0x10000080);
-						
-						AnchorPlotter.static_drawConvexHull(radviz.anchors, line, null, subtask.dataBounds, subtask.screenBounds, subtask.buffer);
-						
-						var topicColumn:IAttributeColumn = topicColumns.getObject(name) as IAttributeColumn;
-						bitmapText.text = topicColumn.getMetadata(ColumnMetadata.TITLE);
-						bitmapText.x = r.x;
-						bitmapText.y = r.y;
-						bitmapText.width = r.width;
-						bitmapText.height = r.height;
-						bitmapText.draw(task.buffer);
-					}
 				}
 			}
 			
@@ -246,30 +309,52 @@ package weave.visualization.plotters
 			
 			progress = progress / names.length;
 			
+			if (progress < 1)
+				return progress;
+			
+			for each (name in names)
+			{
+				if (task.recordKeys.indexOf(WeaveAPI.QKeyManager.getQKey(TOPIC_KEY_TYPE, name)) < 0)
+					continue;
+				
+				// draw a small square in the middle of the topic plotter
+				var center:Point = getTopicPoint(name);
+				task.dataBounds.projectPointTo(center, task.screenBounds);
+				
+				tempShape.graphics.clear();
+				tempShape.graphics.lineStyle(1, topicColor.value, 1.0);
+				tempShape.graphics.drawRect(center.x, center.y, topicPointSize.value, topicPointSize.value);
+				tempShape.graphics.endFill();
+				task.buffer.draw(tempShape);
+			}
+			
 			// draw probe lines linking document to related topics
-			if (progress == 1 && probedKey != null && (task as PlotTask).taskType == PlotTask.TASK_TYPE_PROBE )
+			if ((task as PlotTask).taskType == PlotTask.TASK_TYPE_PROBE && task.recordKeys.length)
 			{
 				tempShape.graphics.clear();
+				var probedKey:IQualifiedKey = task.recordKeys[0];
+				
+				var p0:Point = new Point();
+				getDataBoundsFromRecordKey(probedKey, tempBoundsArray);
+				(tempBoundsArray[0] as IBounds2D).getCenterPoint(p0);
+				task.dataBounds.projectPointTo(p0, task.screenBounds);
+				
 				var rankedNames:Array = rankedTopics.getValueFromKey(probedKey, Array);
-				for each (name in rankedNames)
+				var n:int = Math.min(numProbeTopicLines.value, rankedNames.length);
+				for (var i:int = 0; i < n; i++)
 				{
-					var p0:Point = getTopicPoint(name);
-					task.dataBounds.projectPointTo(p0, task.screenBounds);
-					
-					for (var i:int = 0; i < rankedNames.length; i++)
-					{
-						var p1:Point = getTopicPoint(rankedNames[i]);
-						task.dataBounds.projectPointTo(p1, task.screenBounds);
+					name = rankedNames[i];
+					var p1:Point = getTopicPoint(name);
+					task.dataBounds.projectPointTo(p1, task.screenBounds);
 
-						line.beginLineStyle(probedKey, tempShape.graphics);
-						tempShape.graphics.moveTo(p0.x, p0.y);
-						tempShape.graphics.lineTo(p1.x, p1.y);
-					}
+					line.beginLineStyle(probedKey, tempShape.graphics);
+					tempShape.graphics.moveTo(p0.x, p0.y);
+					tempShape.graphics.lineTo(p1.x, p1.y);
 				}
 				task.buffer.draw(tempShape);
 			}
 			
-			return progress;
+			return 1;
 		}
 		
 		private var keyBeingDragged:IQualifiedKey;
@@ -278,10 +363,11 @@ package weave.visualization.plotters
 		
 		public function startPointDrag(key:IQualifiedKey):void
 		{
-			if (!topicColumnNames.indexOf(key.localName) >= 0)
-				return;
-			keyBeingDragged = key;
-			_isDragging = true;
+			if (key.keyType == TOPIC_KEY_TYPE && topicColumnNames.indexOf(key.localName) >= 0)
+			{
+				keyBeingDragged = key;
+				_isDragging = true;
+			}
 		}
 		
 		public function updatePointDrag(tempDragPoint:Point):void
@@ -298,7 +384,7 @@ package weave.visualization.plotters
 			keyBeingDragged = null;
 		}
 		
-		public function resetTopicPoints():void
+		public function resetMovedDataPoints():void
 		{
 			topicPositions.setSessionState(null);
 		}
@@ -319,8 +405,16 @@ package weave.visualization.plotters
 		
 		private function moveTopicPoint(topicID:String, point:Point):void
 		{
+			var x:Number = point.x;
+			var y:Number = point.y;
+			if (gridSnap.value > 0)
+			{
+				x = Math.round(x / gridSnap.value) * gridSnap.value;
+				y = Math.round(y / gridSnap.value) * gridSnap.value;
+			}
+			
 			var ss:Object = topicPositions.getSessionState() || {};
-			ss[topicID] = {x: point.x, y: point.y};
+			ss[topicID] = {x: x, y: y};
 			topicPositions.setSessionState(ss);
 		}
 	}
@@ -438,7 +532,7 @@ internal class RankedTopicColumn extends AbstractAttributeColumn implements ILin
 			dataCache.dictionary[dataType] = cache = new Dictionary();
 		var value:* = cache[key];
 		if (value === undefined)
-			cache[key] = value = dataType(generateValue(key, dataType));
+			cache[key] = value = generateValue(key, dataType);
 		return value;
 	}	
 	override protected function generateValue(key:IQualifiedKey, dataType:Class):Object

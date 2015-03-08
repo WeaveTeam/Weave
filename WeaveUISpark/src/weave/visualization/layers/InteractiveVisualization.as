@@ -54,6 +54,7 @@ package weave.visualization.layers
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.VectorUtils;
 	import weave.utils.ZoomUtils;
+	import weave.visualization.plotters.IDocumentPlotter;
 	import weave.visualization.plotters.IDraggablePlotter;
 	
 	/**
@@ -588,12 +589,11 @@ package weave.visualization.layers
 		protected function updateSelectionRectangleGraphics():void 
 		{
 			selectionRectangleExists = false;
-			if( draggingPlotter != null )
-				if( draggingPlotter.isDragging)
-				{
-					//draggingPlotter.updatePointDrag(getMouseDataCoordinates());
-					return;
-				}
+			if (draggingPlotter && draggingPlotter.isDragging)
+			{
+				draggingPlotter.updatePointDrag(getMouseDataCoordinates());
+				return;
+			}
 					
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value)
 				return;
@@ -843,14 +843,19 @@ package weave.visualization.layers
 				
 				keys = VectorUtils.flatten(_lastProbedQKeys, keys);
 				
-				if (plotter is IDraggablePlotter)
-					draggingPlotter = plotter as IDraggablePlotter;
-				if( (draggingPlotter != null && !draggingPlotter.isDragging) || draggingPlotter == null )
-					setSelectionKeys(name, keys);
-				if( draggingPlotter != null )
+				var documentPlotter:IDocumentPlotter = plotter as IDocumentPlotter;
+				if (doubleClicked && documentPlotter)
 				{
-					if( doubleClicked )
-						dispatchEvent(new DocumentSummaryEvent(DocumentSummaryEvent.OPEN_DOCUMENT,0,0,"",keys[0]));
+					dispatchEvent(new DocumentSummaryEvent(DocumentSummaryEvent.OPEN_DOCUMENT,0,0,"",keys[0]));
+					break;
+				}
+				
+				draggingPlotter = plotter as IDraggablePlotter;
+				if (draggingPlotter)
+				{
+					if (!draggingPlotter.isDragging)
+						setSelectionKeys(name, keys);
+				
 					if( mouseDown && !selectionRectangleExists)
 					{
 						if( keys.length == 1 && !draggingPlotter.isDragging)
@@ -861,7 +866,14 @@ package weave.visualization.layers
 						if( draggingPlotter.isDragging )
 							draggingPlotter.stopPointDrag(getMouseDataCoordinates());
 					}
+					
+					if (draggingPlotter.isDragging)
+						clearSelection();
+					
+					break;
 				}
+				
+				setSelectionKeys(name, keys);
 				
 				break; // select only one layer at a time
 			}
@@ -981,7 +993,7 @@ package weave.visualization.layers
 				
 				if (keys.length == 0)
 				{
-					if( plotManager.getPlotter(layerName) is IDraggablePlotter )
+					if( plotManager.getPlotter(layerName) is IDocumentPlotter )
 						dispatchEvent(new DocumentSummaryEvent(DocumentSummaryEvent.HIDE_DOCUMENT));
 					else
 						ProbeTextUtils.hideProbeToolTip();
@@ -989,7 +1001,7 @@ package weave.visualization.layers
 				else
 				{
 					var text:String = ProbeTextUtils.getProbeText(keySet.keys, additionalProbeColumns);
-					if( plotManager.getPlotter(layerName) is IDraggablePlotter )
+					if( plotManager.getPlotter(layerName) is IDocumentPlotter )
 						dispatchEvent(new DocumentSummaryEvent(DocumentSummaryEvent.DISPLAY_DOCUMENT, stage.mouseX, stage.mouseY, text, keySet.keys[0]));
 					else
 						ProbeTextUtils.showProbeToolTip(text, stage.mouseX, stage.mouseY);

@@ -73,6 +73,7 @@ package
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.ColorRampEditor;
 	import weave.ui.DataFilter;
+	import weave.ui.DocumentSummaryComponent;
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
 	import weave.ui.SchafersMissingDataTool;
@@ -193,6 +194,7 @@ package
 				CustomTool,
 				CustomGraphicsTool,
 				CytoscapeWebTool,
+				DocumentSummaryComponent,
 				DraggableScatterPlotTool,
 				SchafersMissingDataTool,
 				DataFilter,

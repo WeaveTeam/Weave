@@ -15,14 +15,24 @@ Use the static functions to show this as a popup.
 	
 	<mx:Script >
 		<![CDATA[
+			import flash.net.navigateToURL;
+			
 			import mx.managers.PopUpManager;
 			import mx.rpc.events.FaultEvent;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
+			import weave.api.core.ILinkableObject;
+			import weave.api.getLinkableDescendants;
+			import weave.api.getLinkableOwner;
 			import weave.api.services.IURLRequestToken;
 			import weave.core.LinkableString;
+			import weave.core.SessionManager;
 			import weave.services.addAsyncResponder;
+			import weave.utils.DocumentSummaryEvent;
+			import weave.visualization.layers.InteractiveVisualization;
+			import weave.visualization.layers.Visualization;
+			import weave.visualization.plotters.IDocumentPlotter;
 			
 			private static var _docURL:LinkableString = new LinkableString("");
 			
@@ -117,6 +127,81 @@ Use the static functions to show this as a popup.
 				_bitmap = null;
 			}
 			
+			private static var _initializedObjects:Dictionary = staticInit();
+			private static function staticInit():Dictionary
+			{
+				(WeaveAPI.SessionManager as SessionManager).addTreeCallback(null, initAllDraggableVisualizations, true);
+				return new Dictionary(true);
+			}
+			private static function initAllDraggableVisualizations():void
+			{
+				var plotters:Array = getLinkableDescendants(WeaveAPI.globalHashMap, IDocumentPlotter);
+				for each (var plotter:IDocumentPlotter in plotters)
+				{
+					if (_initializedObjects[plotter])
+						continue;
+					_initializedObjects[plotter] = true;
+					var owner:ILinkableObject = getLinkableOwner(plotter);
+					while (owner && !(owner is InteractiveVisualization))
+						owner = getLinkableOwner(owner);
+					
+					if (!owner || _initializedObjects[owner])
+						continue;
+					initDraggableVisualization(owner as InteractiveVisualization);
+				}
+			}
+			private static function initDraggableVisualization(visualization:InteractiveVisualization):void
+			{
+				_initializedObjects[visualization] = true;
+				visualization.addEventListener(DocumentSummaryEvent.DISPLAY_DOCUMENT, showDocumentToolTip);
+				visualization.addEventListener(DocumentSummaryEvent.HIDE_DOCUMENT, hideDocumentToolTip);
+				visualization.addEventListener(DocumentSummaryEvent.OPEN_DOCUMENT, openExternalDocument);
+				
+				function getPlotter():IDocumentPlotter
+				{
+					return getLinkableDescendants(visualization, IDocumentPlotter)[0];
+				}
+				
+				function showDocumentToolTip(e:DocumentSummaryEvent):void
+				{
+					var plotter:IDocumentPlotter = getPlotter();
+					if (!plotter)
+						return;
+					
+					var docLink:String = plotter.getDocumentURL(e.imageKey);
+					if (!docLink)
+						return;
+					var imageURL:String = plotter.getThumbnailURL(e.imageKey);
+					if (imageURL)
+						DocumentSummaryComponent.show(e.xPos,e.yPos,e.docTitle,visualization,imageURL);
+				}
+				function hideDocumentToolTip(e:DocumentSummaryEvent):void
+				{
+					DocumentSummaryComponent.hide();
+				}
+				function openExternalDocument(e:DocumentSummaryEvent):void
+				{
+					var plotter:IDocumentPlotter = getPlotter();
+					if (!plotter)
+						return;
+					var docLink:String = plotter.getDocumentURL(e.imageKey);
+					if (!docLink)
+						return;
+					
+					if( ExternalInterface.available )
+					{
+						try{
+							ExternalInterface.call("open", docLink, "_blank", "width=800,height=800,left=100,top=200");
+						}
+						catch(e:Error) 
+						{
+						}
+					}
+					else
+						navigateToURL(new URLRequest(docLink), '_blank');
+				}
+			}
+
 		]]>
 	</mx:Script>
 	<mx:Text id="nodeTitle" fontWeight="bold" width="100%"/>

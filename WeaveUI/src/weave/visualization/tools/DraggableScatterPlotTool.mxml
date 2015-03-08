@@ -28,15 +28,28 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.copySessionState;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.getCallbackCollection;
+			import weave.api.getLinkableOwner;
+			import weave.api.getSessionState;
 			import weave.api.registerLinkableChild;
+			import weave.api.setSessionState;
 			import weave.api.ui.IVisTool;
+			import weave.compiler.StandardLib;
+			import weave.core.ClassUtils;
 			import weave.core.LinkableVariable;
+			import weave.data.DataSources.DocumentMapDataSource;
 			import weave.data.KeySets.KeySet;
-			import weave.ui.DocumentSummaryComponent;
+			import weave.primitives.Bounds2D;
 			import weave.ui.SelectableAttributesCheckBoxList;
 			import weave.utils.ColumnUtils;
-			import weave.utils.DocumentSummaryEvent;
+			import weave.utils.NumberUtils;
+			import weave.utils.ZoomUtils;
+			import weave.visualization.layers.PlotManager;
+			import weave.visualization.plotters.DraggableNestedRadvizPlotter;
 			import weave.visualization.plotters.DraggableScatterPlotPlotter;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DraggableScatterPlotTool, "Document Map");
@@ -65,38 +78,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				visualization.plotManager.marginTop.value    = "10";
 				visualization.plotManager.marginLeft.value   = "10";
 				visualization.plotManager.marginRight.value  = "10";
-				
-				visualization.addEventListener(DocumentSummaryEvent.DISPLAY_DOCUMENT, showDocumentToolTip);
-				visualization.addEventListener(DocumentSummaryEvent.HIDE_DOCUMENT, hideDocumentToolTip);
-				visualization.addEventListener(DocumentSummaryEvent.OPEN_DOCUMENT, openExternalDocument);
 			}
 			
-			private function showDocumentToolTip(e:DocumentSummaryEvent):void
-			{
-				var imageURL:String = String(plotter.thumbnails.getValueFromKey(e.imageKey, String));
-				DocumentSummaryComponent.show(e.xPos,e.yPos,e.docTitle,this,imageURL);
-			}
-			
-			private function hideDocumentToolTip(e:DocumentSummaryEvent):void
-			{
-				DocumentSummaryComponent.hide();
-			}
-			
-			private function openExternalDocument(e:DocumentSummaryEvent):void
-			{
-				var docLink:String = plotter.docLinks.getValueFromKey(e.imageKey, String);
-				if( !docLink )
-					return;
-				if( ExternalInterface.available )
-				{
-					try{
-						ExternalInterface.call("open", docLink, "_blank", "width=800,height=800,left=100,top=200");
-					}
-					catch(e:Error) 
-					{
-					}
-				}
-			}
 			
 			override public function initSelectableAttributes(input:Array):void
 			{
@@ -124,6 +107,75 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				super.childrenCreated();
 				
 				_probe.addImmediateCallback(this, updateTopicProbe);
+				
+				enableSubMenu.value = true;
+				enableSubMenu.lock();
+				subMenuButton.data = [
+					{
+						label: lang("Create Nested RadViz"),
+						click: createNestedRadViz
+					}
+				];
+			}
+			
+			private function createNestedRadViz():void
+			{
+				var selfName:String = WeaveAPI.globalHashMap.getName(this);
+				var newName:String = 'NestedRadViz_from_' + selfName;
+				var tool:CustomTool = WeaveAPI.globalHashMap.requestObject(newName, CustomTool, false);
+				tool.sendWindowToForeground();
+				
+				var px:int = StandardLib.asNumber(StandardLib.replace(this.panelX.value, '%', ''));
+				var py:int= StandardLib.asNumber(StandardLib.replace(this.panelY.value, '%', ''));
+				var pw:int= StandardLib.asNumber(StandardLib.replace(this.panelWidth.value, '%', ''));
+				var ph:int= StandardLib.asNumber(StandardLib.replace(this.panelHeight.value, '%', ''));
+				if (px + pw == 100)
+					px-=3;
+				else
+					px+=3;
+				if (py + ph == 100)
+					py-=3;
+				else
+					py+=3;
+				setSessionState(tool, {panelX: px + '%', panelY: py + '%', panelWidth: pw + '%', panelHeight: ph + '%'});
+				
+				var pm1:PlotManager = visualization.plotManager;
+				var pm2:PlotManager = tool.visualization.plotManager;
+				pm2.marginTop.value = '0';
+				pm2.marginBottom.value = '0';
+				pm2.marginLeft.value = '0';
+				pm2.marginRight.value = '0';
+				pm2.enableFixedAspectRatio.value = true;
+				pm2.enableAutoZoomToExtent.value = false;
+				
+				var plotName:String = WeaveAPI.ClassRegistry.getDisplayName(DraggableNestedRadvizPlotter);
+				var newPlotter:DraggableNestedRadvizPlotter = pm2.plotters.requestObject(plotName, DraggableNestedRadvizPlotter, false);
+				copySessionState(plotter.topicColumns, newPlotter.topicColumns);
+				copySessionState(plotter.docLinks, newPlotter.docLinks);
+				copySessionState(plotter.thumbnails, newPlotter.thumbnails);
+				copySessionState(plotter.sizeBy, newPlotter.docRadius);
+				
+				var names:Array = newPlotter.topicColumns.getNames();
+				
+				var srcBounds:Bounds2D = new Bounds2D();
+				var screenBounds:Bounds2D = new Bounds2D();
+				pm1.zoomBounds.getDataBounds(srcBounds);
+				pm1.zoomBounds.getScreenBounds(screenBounds);
+				
+				var destBounds:Bounds2D = new Bounds2D();
+				destBounds.setCenteredRectangle(0, 0, names.length/2, names.length/2);
+				ZoomUtils.conformDataBoundsToAspectRatio(destBounds, screenBounds, screenBounds.getWidth() / screenBounds.getHeight());
+				pm2.zoomBounds.setDataBounds(destBounds, true);
+
+				var o:Object = {};
+				var points:Array = plotter.getOrderedTopicPoints();
+				for (var i:int = 0; i < names.length; i++)
+				{
+					var point:Point = points[i];
+					srcBounds.projectPointTo(point, destBounds);
+					o[names[i]] = point;
+				}
+				newPlotter.topicPositions.setSessionState(o);
 			}
 			
 			private function updateTopicProbe():void
