@@ -83,7 +83,6 @@ package weave.visualization.plotters
 		{
 			fillStyle.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			setNewRandomJitterColumn();		
-			iterations.value = 50;
 			algorithms[RANDOM_LAYOUT] = RandomLayoutAlgorithm;
 			algorithms[GREEDY_LAYOUT] = GreedyLayoutAlgorithm;
 			algorithms[NEAREST_NEIGHBOR] = NearestNeighborLayoutAlgorithm;
@@ -182,9 +181,9 @@ package weave.visualization.plotters
 		
 		//public const drawAnnuliCenter:LinkableBoolean = newLinkableChild(this, LinkableBoolean(true));
 		
-		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19));			
-		public const enableJitter:LinkableBoolean = 		registerSpatialProperty(new LinkableBoolean(false));
-		public const iterations:LinkableNumber = 			newLinkableChild(this,LinkableNumber);
+		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19), clearCoordCache);
+		public const enableJitter:LinkableBoolean = 		registerSpatialProperty(new LinkableBoolean(false), clearCoordCache);
+		public const iterations:LinkableNumber = 			registerLinkableChild(this, new LinkableNumber(50));
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this,SolidFillStyle);
