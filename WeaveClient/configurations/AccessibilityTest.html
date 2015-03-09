@@ -77,7 +77,6 @@ function weaveReady(weave)
 
 function updateAltText()
 {
-	console.log("hello?");
 	altTextDiv = document.getElementById('altText');
 	altText.innerHTML = weave.path(['WeaveProperties', 'altTextOptions', 'altText']).getState();
 }
