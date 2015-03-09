@@ -1,4 +1,4 @@
-AnalysisModule.controller("ColorCtrl", function($scope, queryService, WeaveService){
+AnalysisModule.controller("ColorCtrl", function($scope, WeaveService){
 
 	$scope.WeaveService = WeaveService;
 

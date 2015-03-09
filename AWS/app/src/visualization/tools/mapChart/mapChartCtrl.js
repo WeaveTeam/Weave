@@ -1,18 +1,19 @@
-AnalysisModule.controller("MapCtrl", function($scope,$filter, AnalysisService, queryService, WeaveService){
+AnalysisModule.controller("MapCtrl", function($scope,$filter, queryService, WeaveService){
 	
 	$scope.service = queryService;
 	
 	$scope.service.getGeometryDataColumnsEntities(true);
 	
+	$scope.tool.zoomLevel = 0;
 	
 	//select2-sortable handlers
-	$scope.getItemId = function(item) {
-		return item.id;
-	};
-	
-	$scope.getItemText = function(item) {
-		return item.title;
-	};
+//	$scope.getItemId = function(item) {
+//		return item.id;
+//	};
+//	
+//	$scope.getItemText = function(item) {
+//		return item.title;
+//	};
 	
 	//geometry layers
 	$scope.getGeometryLayers = function(term, done) {

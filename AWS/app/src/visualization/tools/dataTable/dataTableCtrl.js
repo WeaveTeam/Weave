@@ -1,4 +1,4 @@
-AnalysisModule.controller("DataTableCtrl", function($scope,  AnalysisService, queryService, WeaveService) {
+AnalysisModule.controller("DataTableCtrl", function($scope, WeaveService) {
 
 	$scope.WeaveService = WeaveService;
 
