@@ -1,60 +1,28 @@
-<div class="databox draggable_filter" style="width: 300px; height: 100%;">
-	<!-- <div class="databox" style="width: 200px;"> -->
-	<div class=" header panel-heading" style="margin-bottom: 0px">
-		
-<!-- 	   <span class="dropdown" dropdown> -->
-<!-- 	 			      <a href class="dropdown-toggle" dropdown-toggle> -->
-<!-- 					  <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> -->
-<!-- 	 				  </a> -->
-<!-- 	    			<ul class="dropdown-menu"> -->
-<!-- 	   				 <li ng-repeat="choice in uiFilterOptions"> -->
-<!-- 	       				 <a href>{{choice}}</a> -->
-<!-- 	      			</li> -->
-<!-- 	    			</ul> -->
-<!-- 			</span>	 -->
-		
-		<h2>Generic Filter</h2>
-		
-		
-		<a href="javascript: void(0)" 
-			class="close-button" data-trigger="hover" placement="right" title="Remove"  
-			ng-click="close_filter()"> 
-			<i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> 
-		</a>
-	</div>
-	
-	<div class="body" style="width: 100%; height:100%; border: solid 2px; border-color: #4C4F53">
+<div class=" header panel-heading" style="margin-bottom: 0px">
+	<h2>Generic Filter</h2>
+
+	<a href="javascript: void(0)" 
+		class="close-button" data-trigger="hover" placement="right" title="Remove"> 
+		<i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> 
+	</a>
+</div>
+
+<div class="body" style="width: 100%; height:100%; border: solid 2px; border-color: #4C4F53">
 <!-- 			<select ng-model = "filterType" ng-options = "option as option for option in uiFilterOptions"></select> -->
-		<input
+	<input
 			type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
-			ng-change="getMetadata($index)"
 			style="width: 100%" 
-			ng-model="queryService.queryObject.filters[$index].column"
+			ng-model="column"
 			simple-query="getFilterInputOptions"
 			data-placeholder="Select Filter"
 			allow-clear="true"
 			to-id="getItemId" to-text="getItemText">
-		</input> 
-		<br><br>
-		<div>
-			<!-- multi select picker -->
-			<select ng-if="filterType == 'multiselect'" style=width:100%" ui-select2="{allowClear : true}" multiple data-placeholder="Choose filters" ng-model="queryService.queryObject.filters[$parent.$index].value">
-				<option ng-repeat="filter in filterOptions">{{filter.label}}</option>
-			</select>
-			
-			<!-- combo box picker -->
-			<div ng-if="filterType == 'combobox'" ng-repeat="filter in filterOptions">
-				<input type="checkbox" ng-model="categoricalFilterValues[$index]" ng-change="updateCategoricalFilter($index)"/> {{filter.label}} </option> 
-			</div>
-			
-			<!-- slider picker  -->
-			<div ng-if="filterType == 'slider'">
-				<div style="text-align: center;">
-					{{queryService.queryObject.filters[$index].value[0]}} - {{queryService.queryObject.filters[$index].value[1]}}
-				</div>
-				<div  ui-slider="{range:true}"  step="1" ng-model="queryService.queryObject.filters[$index].value"/>
-			</div>
-		</div>
-		<br>
+	</input> 
+
+	<br><br>
+	<div>
+		<!-- multi select picker -->
+		<!-- combo box picker -->
 	</div>
+	<br>
 </div>

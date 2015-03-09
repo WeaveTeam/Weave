@@ -1,3 +1,43 @@
+AnalysisModule.directive('filter', function() {
+	
+	function link(scope, element, attrs) {
+		element.draggable().resizable();
+		element.addClass('databox');
+		element.width(300);
+		element.height("100%");
+	}
+	
+	return {
+		restrict : 'E',
+		transclude : true,
+		templateUrl : 'src/analysis/data_filters/generic_filter.html',
+		link : link,
+		scope : {
+			columns : '='
+		},
+		controller: function($scope, $filter) {
+			var columns = scope.columns;
+			$scope.$watch('columns', function() {
+				columns = $scope.columns;
+			});
+			$scope.getItemId = function(item) {
+				return item.id;
+			};
+			$scope.getItemText = function(item) {
+				return item.description || item.title;
+			};
+			
+			$scope.getFilterInputOptions = function(term, done) {
+				done($filter('filter')(columns, {title:term}, 'title'));
+			};
+			
+			$scope.getMetadata = function() {
+				
+			};
+		}
+	};
+});
+
 AnalysisModule.controller('dataFilterCtrl', function($scope, queryService, $filter){
 	
 	$scope.queryService = queryService;
@@ -27,11 +67,11 @@ AnalysisModule.controller('dataFilterCtrl', function($scope, queryService, $filt
 	};
 	// this makes the panel draggable upon initialization
 	// there might be a better way to do this
-	$scope.$watchCollection(function() {
-		return $(".draggable_filter");
-	}, function() {
-		 $(".draggable_filter" ).draggable();
-	});
+//	$scope.$watchCollection(function() {
+//		return $(".draggable_filter");
+//	}, function() {
+//		 $(".draggable_filter" ).draggable();
+//	});
 	
 	$scope.add = function () {
 		queryService.queryObject.filters.push({
