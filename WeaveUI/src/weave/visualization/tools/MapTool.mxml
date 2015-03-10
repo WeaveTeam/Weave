@@ -23,7 +23,7 @@
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
 	     xmlns:ui="weave.ui.*"
 		 xmlns:managers="weave.editors.managers.*"
-		 implements="weave.api.ui.IVisTool_Basic"
+		 implements="weave.api.ui.IVisTool_Basic, weave.api.ui.IAltText"
 	     >
 	<mx:Script>
 		<![CDATA[
@@ -718,6 +718,11 @@
 					_baseMapZoomAuthority.adjustZoomBounds(visualization.plotManager.zoomBounds);
 				}
 			}
+			
+			public function updateAltText():void
+			{
+			}
+			
 			
 			// BACKWARDS COMPATIBILITY
 			[Deprecated(replacement="zoomSliderHeight")] public function set sizeFactorOfMapControls(value:Number):void { zoomSliderHeight.value *= value; }

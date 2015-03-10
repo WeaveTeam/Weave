@@ -380,17 +380,28 @@
 				{
 					var heightColumn:IAttributeColumn = heights[0] as IAttributeColumn;
 					var statsHeight:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(heightColumn);
-					var max:Number = statsHeight.getMax();
-					var min:Number = statsHeight.getMin();
-					
+					var max:Number = statsHeight.getMin();
+					var min:Number = statsHeight.getMax();
+					var average:Number = statsHeight.getMean();
+					var tmp:Number;
 					var max_keys:Array = [];
 					var min_keys:Array = [];
 					
 					for each (var k:IQualifiedKey in heightColumn.keys)
 					{
-						if(heightColumn.getValueFromKey(k) == max)
+						tmp = heightColumn.getValueFromKey(k)
+						if(tmp > max)
+							max = tmp;
+						if(tmp < min)
+							min = tmp;
+					}
+					
+					for each (k in heightColumn.keys)
+					{
+						var test:Number = Math.abs(heightColumn.getValueFromKey(k) - max);
+						if(Math.abs(heightColumn.getValueFromKey(k) - max) < 0.001)
 							max_keys.push(k);
-						if(heightColumn.getValueFromKey(k) == min)
+						if(Math.abs(heightColumn.getValueFromKey(k) - min) < 0.001)
 							min_keys.push(k);
 						
 					}
@@ -404,7 +415,7 @@
 					temp += ".";
 					temp += '\n';
 					
-					temp += lang("The minimum {0} is {0} when {1} is", ColumnUtils.getTitle(heightColumn), min, ColumnUtils.getTitle(_plotter.sortColumn));
+					temp += lang("The minimum {0} is {1} when {2} is", ColumnUtils.getTitle(heightColumn), min, ColumnUtils.getTitle(_plotter.sortColumn));
 					
 					for each(k in min_keys)
 					{
@@ -412,6 +423,9 @@
 					}
 					
 					temp += ".";
+					temp += "\n";
+					
+					temp += lang("The average value is {0}.", StandardLib.roundSignificant(average, 2));
 				}
 				altTextEditor.automaticDescription.value = temp;
 				getCallbackCollection(this).triggerCallbacks();
