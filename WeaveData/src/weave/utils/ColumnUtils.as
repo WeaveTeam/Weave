@@ -670,8 +670,13 @@ package weave.utils
 					outputRC.setColumnReference(null, null);
 			}
 			
+			var foundGlobalColumn:Boolean = false;
+			if (selectableAttribute is DynamicColumn)
+				foundGlobalColumn = (selectableAttribute as DynamicColumn).targetPath != null;
+			if (selectableAttribute is ExtendedDynamicColumn)
+				foundGlobalColumn = (selectableAttribute as ExtendedDynamicColumn).internalDynamicColumn.targetPath != null;
 			var outputDC:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(selectableAttribute as IColumnWrapper);
-			if (outputDC && (outputDC.getInternalColumn() == null || outputDC.targetPath == null))
+			if (outputDC && (outputDC.getInternalColumn() == null || !foundGlobalColumn))
 			{
 				if (inputCol)
 				{
