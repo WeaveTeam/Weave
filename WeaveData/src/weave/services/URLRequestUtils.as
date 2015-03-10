@@ -36,6 +36,7 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.URLUtil;
 	
+	import weave.api.reportError;
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
 	import weave.compiler.StandardLib;
@@ -182,7 +183,7 @@ package weave.services
 			
 			if (useCache && request.method == URLRequestMethod.GET)
 			{
-				var content:Object = _contentCache[request.url]; 
+				var content:Object = _contentCache[request.url];
 				if (content)
 				{
 					// create a request token so its cancel function can be used and the result handler won't be called next frame
@@ -201,6 +202,8 @@ package weave.services
 				// make the request and add handler function that will load the content
 				var customAsyncToken:CustomAsyncToken = getURL(null, request, DATA_FORMAT_BINARY) as CustomAsyncToken;
 				loader = customAsyncToken.loader as CustomURLLoader;
+				if (!loader)
+					reportError('URLLoader missing from CustomAsyncToken', null, customAsyncToken);
 				addAsyncResponder(customAsyncToken, handleGetContentResult, handleGetContentFault, request.url);
 				_requestURLToLoader[request.url] = loader;
 			}
@@ -229,13 +232,18 @@ package weave.services
 		private function handleGetContentResult(resultEvent:ResultEvent, url:String):void
 		{
 			var customURLLoader:CustomURLLoader = _requestURLToLoader[url] as CustomURLLoader;
+			if (!customURLLoader)
+				reportError('URLLoader missing in handleGetContentResult() for ' + url);
 			
 			var bytes:ByteArray = resultEvent.result as ByteArray;
 			if (!bytes || bytes.length == 0)
 			{
 				var fault:Fault = new Fault("Error", "HTTP GET failed: Content is null from " + url);
 				delete _requestURLToLoader[url];
-				customURLLoader.applyFault(fault);
+				if (customURLLoader)
+					customURLLoader.applyFault(fault);
+				else
+					reportError('Content is null and URLLoader is missing in handleGetContentResult() for ' + url);
 				return;
 			}
 
@@ -248,7 +256,7 @@ package weave.services
 				_contentCache[url] = result;
 				delete _requestURLToLoader[url];
 				// run the responders from ContentRequestTokens that were not called before
-				var responders:Array = customURLLoader.asyncToken.responders;
+				var responders:Array = customURLLoader ? customURLLoader.asyncToken.responders : [];
 				var contentResultEvent:ResultEvent = ResultEvent.createEvent(result);
 				for (var i:int = 0; i < responders.length; i++)
 				{
@@ -261,7 +269,10 @@ package weave.services
 			{
 				var fault:Fault = new Fault(errorEvent.type, errorEvent.text + " (" + url + ")");
 				delete _requestURLToLoader[url];
-				customURLLoader.applyFault(fault);
+				if (customURLLoader)
+					customURLLoader.applyFault(fault);
+				else
+					reportError('Received fault from content Loader; URLLoader is missing in handleGetContentResult() for ' + url);
 			};
 		
 		
