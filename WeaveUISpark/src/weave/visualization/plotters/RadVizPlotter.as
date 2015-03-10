@@ -38,6 +38,7 @@ package weave.visualization.plotters
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableOwner;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -202,11 +203,11 @@ package weave.visualization.plotters
 		private const radiusColumnStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(radiusColumn));
 		public const radiusConstant:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		
-		private static var randomValueArray:Array = new Array();		
-		private static var randomArrayIndexMap:Dictionary;
-		private var keyNumberMap:Dictionary;		
-		private var keyNormMap:Dictionary;
-		private var keyGlobalNormMap:Dictionary;
+		private var randomValueArray:Array = new Array();
+		private var randomArrayIndexMap:Dictionary = new Dictionary(true);
+		private var keyNumberMap:Dictionary = new Dictionary(true);
+		private var keyNormMap:Dictionary = new Dictionary(true);
+		private var keyGlobalNormMap:Dictionary = new Dictionary(true);
 		
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
 		
@@ -287,7 +288,10 @@ package weave.visualization.plotters
 			
 			setAnchorLocations();
 			
-			if (doCDLayoutFlag) setClassDiscriminationAnchorsLocations();
+			if (doCDLayoutFlag)
+				setClassDiscriminationAnchorsLocations();
+			
+			clearCoordCache();
 		}
 		
 		private function getNorm(column:IAttributeColumn, key:IQualifiedKey):Number
@@ -413,6 +417,7 @@ package weave.visualization.plotters
 			{
 				coordinate.x = cached[0];
 				coordinate.y = cached[1];
+				return;
 			}
 			
 			//implements RadViz algorithm for x and y coordinates of a record
@@ -422,9 +427,9 @@ package weave.visualization.plotters
 			
 			var anchorArray:Array = anchors.getObjects();			
 			
-			var value:Number = 0;			
+			var value:Number = 0;
 			var anchor:AnchorPoint;
-			var normArray:Array = (localNormalization.value) ? keyNormMap[recordKey] : keyGlobalNormMap[recordKey];
+			var normArray:Array = localNormalization.value ? keyNormMap[recordKey] : keyGlobalNormMap[recordKey];
 			var _cols:Array = columns.getObjects();
 			for (var i:int = 0; i < _cols.length; i++)
 			{
@@ -482,8 +487,6 @@ package weave.visualization.plotters
 		{
 			if (task.iteration == 0)
 			{
-				if (!keyNumberMap || keyNumberMap[task.recordKeys[0]] == null)
-					return 1;
 				if (columns.getObjects().length != anchors.getObjects().length)
 					return 1;
 				if (detectLinkableObjectChange(drawPlotAsyncIteration, lineStyle, fillStyle, radiusConstant, radiusColumn))
@@ -499,8 +502,8 @@ package weave.visualization.plotters
 				var key:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
 				
 				getXYcoordinates(key);
-				// skip missing x,y
-				if (isFinite(coordinate.x) && isFinite(coordinate.y))
+				// skip if excluded from subset or missing x,y
+				if (filteredKeySet.containsKey(key) && isFinite(coordinate.x) && isFinite(coordinate.y))
 				{
 					task.dataBounds.projectPointTo(coordinate, task.screenBounds);
 					var radius:Number;
@@ -605,12 +608,11 @@ package weave.visualization.plotters
 		 */
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			output.setBounds(-1, -1.1, 1, 1.1);
+			output.setBounds(-1, -1, 1, 1);
 		}		
 		
 		public var drawProbe:Boolean = false;
 		public var probedKeys:Array = null;
-		private var _destination:BitmapData = null;
 		
 		public function drawProbeLines(keys:Array,dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
 		{						

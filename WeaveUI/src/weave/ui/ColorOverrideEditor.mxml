@@ -195,7 +195,7 @@
 			
 			private function removeSelectedColors():void
 			{
-				VectorUtils.removeItems(_recordColorTable, colorOverrideList.selectedIndices);
+				VectorUtils.removeByIndex(_recordColorTable, colorOverrideList.selectedIndices);
 				recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
 			}
 		]]>
