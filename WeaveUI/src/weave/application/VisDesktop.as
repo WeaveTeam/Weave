@@ -24,13 +24,16 @@ package weave.application
 	
 	import spark.components.Group;
 	
+	import weave.Weave;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.linkBindableProperty;
 	import weave.api.newLinkableChild;
 	import weave.api.ui.ILinkableContainer;
 	import weave.api.ui.ILinkableLayoutManager;
 	import weave.core.UIUtils;
 	import weave.ui.BasicLinkableLayoutManager;
+	import weave.ui.CenteredImage;
 	
 	internal class VisDesktop extends Canvas implements ILinkableContainer, IDisposableObject
 	{
@@ -38,16 +41,27 @@ package weave.application
 		{
 		}
 		
+		[Embed(source="/weave/resources/images/weave-icon-large.png", mimeType="image/png")]
+		private static const WeaveBackgroundImage:Class;
+		
 		internal function get workspace():Group
 		{
 			return manager as Group;
 		}
 		
+		private var backgroundImage:CenteredImage = new CenteredImage();
 		private var manager:ILinkableLayoutManager = null;
 		
 		override protected function createChildren():void
 		{
 			super.createChildren();
+			
+			backgroundImage.source = WeaveBackgroundImage;
+			backgroundImage.alpha = 0.1;
+			backgroundImage.percentWidth = 100;
+			backgroundImage.percentHeight = 100;
+			linkBindableProperty(Weave.properties.showBackgroundImage, backgroundImage, 'visible');
+			addElement(backgroundImage);
 			
 			manager = newLinkableChild(this, BasicLinkableLayoutManager);
 			//manager = newLinkableChild(this, WeavePodLayoutManager);

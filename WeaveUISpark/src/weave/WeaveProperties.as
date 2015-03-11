@@ -229,6 +229,7 @@ package weave
 		
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
 		public const backgroundColor:LinkableNumber = new LinkableNumber(DEFAULT_BACKGROUND_COLOR, isFinite);
+		public const showBackgroundImage:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableMouseWheel:LinkableBoolean = new LinkableBoolean(true);
 		
