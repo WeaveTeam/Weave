@@ -60,14 +60,20 @@ package weave.application
 			backgroundImage.alpha = 0.1;
 			backgroundImage.percentWidth = 100;
 			backgroundImage.percentHeight = 100;
-			linkBindableProperty(Weave.properties.showBackgroundImage, backgroundImage, 'visible');
 			addElement(backgroundImage);
+			Weave.properties.showBackgroundImage.addImmediateCallback(this, toggleBackgroundImage);
+			Weave.properties.dashboardMode.addImmediateCallback(this, toggleBackgroundImage, true);
 			
 			manager = newLinkableChild(this, BasicLinkableLayoutManager);
 			//manager = newLinkableChild(this, WeavePodLayoutManager);
 			addElement(manager as IVisualElement);
 			
 			UIUtils.linkLayoutManager(manager, getLinkableChildren());
+		}
+		
+		private function toggleBackgroundImage():void
+		{
+			backgroundImage.visible = Weave.properties.showBackgroundImage.value && !Weave.properties.dashboardMode.value;
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
