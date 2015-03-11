@@ -16,8 +16,7 @@
 package weave.api.core
 {
 	/**
-	 * Allows a reviewSessionState() function to be defined which will receive
-	 * the full session state for the ILinkableObject 
+	 * Implement this interface to detect when properties are missing from a full session state.
 	 */
 	public interface ILinkableObjectWithNewProperties extends ILinkableObject
 	{
