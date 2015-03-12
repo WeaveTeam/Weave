@@ -82,6 +82,7 @@
 						   change="delimiterChanged()"/>
 		<mx:Button label="{lang('Append file')}" click="append = true; browseForFiles()"/>
 	</ui:Indent>
+	<mx:Button label="{lang('Edit metadata')}" click="editMetadata()"/>
 
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:HBox horizontalGap="0">
@@ -121,6 +122,8 @@
 			import weave.ui.BusyIndicator;
 			import weave.ui.IndentGroup;
 			import weave.utils.VectorUtils;
+			import weave.ui.CSVMetadataEditor;
+			import weave.ui.DraggablePanel;
 			
 			[Bindable] private var indentGroup:IndentGroup = new IndentGroup();
 			
@@ -435,6 +438,11 @@
 				tableEditor.setRows(null);
 				textEditor.text = '';
 				tabNav.selectedChild = textTab;
+			}
+			private function editMetadata():void
+			{
+				var editor:CSVMetadataEditor = DraggablePanel.openStaticInstance(CSVMetadataEditor) as CSVMetadataEditor;
+				editor.target = this.target;
 			}
 		]]>
 	</mx:Script>

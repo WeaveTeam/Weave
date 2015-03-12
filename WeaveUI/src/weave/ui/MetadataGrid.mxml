@@ -55,6 +55,11 @@
 	 * The name of a metadata property that should always be included in the list.
 	 */
 	public var defaultPropertyName:String;
+
+	/**
+	 * Whether or not 'get metadata' should return the full metadata or just a diff.
+	 */
+	public var fullMetadata:Boolean = false;
 	
 	/**
 	 * A Function like function(propName:String):Array returning an Array of suggested String values for the specified metadata property.
@@ -150,17 +155,19 @@
 	
     [Bindable(event="metaChanged")] public function get metadata():Object
     {
-        var result:Object = {};
+        var result:Object = (fullMetadata && originalValues) ? ObjectUtil.copy(originalValues) : {};
         for each (var item:MetadataGridItem in gridItems)
-			if (item.changed)
+			if (fullMetadata || item.changed)
                 result[item.property] = item.value || null; // avoid empty strings
 		
         return result;
     }
+    private var originalValues:Object = null;
     public function set metadata(values:Object):void
     {
 		if (values)
 		{
+			originalValues = values;
 	        var items:Array = new Array();
 			if (values && defaultPropertyName && !values.hasOwnProperty(defaultPropertyName))
 				items.push(new MetadataGridItem(defaultPropertyName));
