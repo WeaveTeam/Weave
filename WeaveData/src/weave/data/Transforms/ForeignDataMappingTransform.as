@@ -71,23 +71,19 @@ package weave.data.Transforms
             if (!_rootNode)
             {
                 var source:ForeignDataMappingTransform = this;
-                var dataColumnNames:Array = [];
-                
                 _rootNode = new ColumnTreeNode({
-                    source: source,
+                    source: dataColumns,
                     data: source,
                     label: WeaveAPI.globalHashMap.getName(this),
                     isBranch: true,
                     hasChildBranches: false,
                     children: function():Array {
-                        if (detectLinkableObjectChange(_rootNode, dataColumns))
-							dataColumnNames = dataColumns.getNames();
-                        return dataColumnNames.map(
+                        return dataColumns.getNames().map(
                             function(dataColumnName:String, ..._):* {
                                 var column:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
-                                var columnLabel:String = column.getMetadata(ColumnMetadata.TITLE);
+                                var title:String = column.getMetadata(ColumnMetadata.TITLE);
                                 var metadata:Object = {};
-                                metadata[ColumnMetadata.TITLE] = columnLabel;
+                                metadata[ColumnMetadata.TITLE] = title;
                                 metadata[DATA_COLUMNNAME_META] = dataColumnName;
                                 return generateHierarchyNode(metadata);
                             }
