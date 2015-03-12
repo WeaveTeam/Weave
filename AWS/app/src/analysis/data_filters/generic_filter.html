@@ -12,17 +12,35 @@
 	<input
 			type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
 			style="width: 100%" 
-			ng-model="column"
+			ng-model="model.column"
+			ng-change="getMetadata()"
 			simple-query="getFilterInputOptions"
-			data-placeholder="Select Filter"
+			data-placeholder="Filter Column"
 			allow-clear="true"
 			to-id="getItemId" to-text="getItemText">
 	</input> 
 
 	<br><br>
-	<div>
 		<!-- multi select picker -->
+ 	<div ng-if="filterType == 'multiselect'">
+ 		<select style = "width : 100%" 
+							ui-select2="{allowClear : true}" 
+							ng-model="model.multiSelectModel" 
+							multiple  
+							data-placeholder="Filter Values">
+   						 <option ng-repeat="filter in filterOptions" value="{{filter.value}}">{{filter.label}}</option>
+		</select>
+ 	</div>
 		<!-- combo box picker -->
+	<div ng-if="filterType == 'combobox'" ng-repeat="option in filterOptions">
+		<input type="checkbox" ng-init="model.comboboxModel[$index] = false" ng-model=model.comboboxModel[$index]> {{option.label}} </input>
+	</div>
+		<!-- slider picker -->
+	<div ng-if="filterType == 'slider'">
+		<div style="text-align: center;">
+				{{model.sliderModel[0]}} - {{model.sliderModel[1]}}
+		</div>
+		<div  ui-slider="sliderOptions" step="1" ng-model="model.sliderModel"/>
 	</div>
 	<br>
 </div>

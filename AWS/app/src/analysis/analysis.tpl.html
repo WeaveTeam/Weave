@@ -319,7 +319,9 @@
 <!-- 					</div> -->
 	
 <!-- 				</div> -->
-				<filter columns="queryService.cache.columns"></filter>
+				
+				<filter columns="queryService.cache.columns" ng-model='test'></filter>
+
 				<div ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.queryObject.filters">
 					<div style="height: 100%" ng-include="filter.template_url"></div>
 					<br>

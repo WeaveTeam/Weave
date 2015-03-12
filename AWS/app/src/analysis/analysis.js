@@ -68,6 +68,10 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	});
 	
+	$scope.$watch("test", function() {
+		console.log($scope.test);
+	}, true);
+	
 	$scope.$watch('WeaveService.weaveWindow.closed', function() {
 		queryService.queryObject.properties.openInNewWindow = WeaveService.weaveWindow.closed;
 	});
