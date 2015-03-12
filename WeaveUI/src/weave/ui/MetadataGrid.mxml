@@ -165,9 +165,9 @@
     private var originalValues:Object = null;
     public function set metadata(values:Object):void
     {
+		originalValues = values;
 		if (values)
 		{
-			originalValues = values;
 	        var items:Array = new Array();
 			if (values && defaultPropertyName && !values.hasOwnProperty(defaultPropertyName))
 				items.push(new MetadataGridItem(defaultPropertyName));
