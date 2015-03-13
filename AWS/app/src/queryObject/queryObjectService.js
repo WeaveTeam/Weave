@@ -234,8 +234,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 	this.cache = {
 			dataTableList : [],
 			scriptList : [],
-			filters : [],
-			numericalColumns : []
+			filterArray : [],
+			numericalColumns : [],
 	};
 
 	this.crossTabQuery = {};

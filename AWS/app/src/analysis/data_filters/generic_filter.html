@@ -2,7 +2,9 @@
 	<h2>Generic Filter</h2>
 
 	<a href="javascript: void(0)" 
-		class="close-button" data-trigger="hover" placement="right" title="Remove"> 
+		class="close-button" data-trigger="hover" placement="right" title="Remove"
+		ng-click="$parent.removeFilter($parent.$index)"	
+	> 
 		<i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> 
 	</a>
 </div>
@@ -32,8 +34,10 @@
 		</select>
  	</div>
 		<!-- combo box picker -->
-	<div ng-if="filterType == 'combobox'" ng-repeat="option in filterOptions">
-		<input type="checkbox" ng-init="model.comboboxModel[$index] = false" ng-model=model.comboboxModel[$index]> {{option.label}} </input>
+	<div ng-if="filterType == 'combobox'" style="display: inline-block; overflow: hidden; width: 100%; height: 100%">
+		<div ng-repeat="option in filterOptions">
+			<input type="checkbox" ng-init="model.comboboxModel[$index] = false" ng-model=model.comboboxModel[$index]> {{option.label}} </input>
+		</div>
 	</div>
 		<!-- slider picker -->
 	<div ng-if="filterType == 'slider'">

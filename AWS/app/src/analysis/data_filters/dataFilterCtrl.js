@@ -1,10 +1,15 @@
 AnalysisModule.directive('filter', function(queryService) {
 	
 	function link($scope, element, attrs, ngModelCtrl) {
-		element.draggable().resizable();
+		element.draggable({ containment: "parent" }).resizable({
+			 maxHeight: 300,
+		     maxWidth: 715,
+		     minHeight: 80,
+		     minWidth: 270
+		});
 		element.addClass('databox');
 		element.width(300);
-		element.height("100%");
+		element.height(120);
 	}
 
 	return {
@@ -62,6 +67,8 @@ AnalysisModule.directive('filter', function(queryService) {
 										});
 									}
 								}
+							} else {
+								$scope.filterType = "";
 							}
 						}
 					});
@@ -139,7 +146,7 @@ AnalysisModule.directive('filter', function(queryService) {
 			 * internal model accordingly
 			 *
 			 */
-//			$scope.$watch('ngModel', function(newVal, oldVal) {
+//			$scope.$on('queryObjectChange', function(newVal, oldVal) {
 //				if(angular.equals(newVal, oldVal))
 //					return;
 //				// check the column id to find out the ui type.
@@ -196,4 +203,16 @@ AnalysisModule.directive('filter', function(queryService) {
 
 AnalysisModule.controller('dataFilterCtrl', function($scope, queryService, $filter){
 	
-}); 
+	$scope.filterArray = [];
+	var i = 0;
+	$scope.addFilter = function() {
+		queryService.cache.filterArray.push(i);
+		i++;
+		console.log("adding filter", i);
+	};
+	
+	$scope.removeFilter = function(index) {
+		queryService.cache.filterArray.splice(index, 1);
+		queryService.queryObject.splice(index, 1);
+	};
+});

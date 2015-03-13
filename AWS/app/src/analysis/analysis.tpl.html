@@ -272,60 +272,58 @@
 <!-- FILTERS -->	
 				<div ng-include src="'src/analysis/data_filters/data_filters.html'"></div>
 	
-				<!--Geography filter -->
-				<div class="databox" style="width: 15%;"
-					ng-if="AnalysisService.showGeographyFilter">
-		
-					<div class="header panel-heading">
-						<h2>Geography filter</h2>
-						<a href="javascript: void(0)" class="close-button" data-trigger="hover" placement="right" title="Remove"  ng-click="AnalysisService.showGeographyFilter = false"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
+				<div class="databox" style="width:700px; height:350px">
+					<!--Geography filter -->
+					<div class="databox" style="width: 15%;"
+						ng-if="AnalysisService.showGeographyFilter">
+			
+						<div class="header panel-heading">
+							<h2>Geography filter</h2>
+							<a href="javascript: void(0)" class="close-button" data-trigger="hover" placement="right" title="Remove"  ng-click="AnalysisService.showGeographyFilter = false"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
+						</div>
+						<div class="body">
+							<div style="height: 100%"
+								ng-include="AnalysisService.geoFilter_tool.template_url">
+								</div>
+			
+						</div>
 					</div>
-					<div class="body">
-						<div style="height: 100%"
-							ng-include="AnalysisService.geoFilter_tool.template_url">
-							</div>
+					
+					<!--Timeperiod filter -->
+					<div class="databox" style="width: 15%"
+						ng-if="AnalysisService.showTimePeriodFilter">
+						<!-- <div class="databox" style="width: 130px;"> -->
+		
+						<div class="header panel-heading">
+							<h2>Time Period</h2>
+							<a href="javascript: void(0)" class="close-button" data-trigger="hover" placement="right" title="Remove"  ng-click="AnalysisService.showTimePeriodFilter = false"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
+						</div>
+		
+						<div class="body">
+							<div style="height: 100%"
+								ng-include="AnalysisService.timeFilter_tool.template_url"></div>
+						</div>
 		
 					</div>
+		
+					<!--Byvariable filter -->
+	<!-- 				<div class="databox" style="width: 15%"> -->
+	<!-- 					<div class="databox" style="width: 160px;"> -->
+		
+	<!-- 					<div class="header panel-heading"> -->
+	<!-- 						<h2>By-variable</h2> -->
+	<!-- 					</div> -->
+		
+	<!-- 					<div class="body"> -->
+	<!-- 						<div style="height: 100%" -->
+	<!-- 							ng-include="AnalysisService.content_tools[3].template_url"></div> -->
+	<!-- 					</div> -->
+		
+	<!-- 				</div> -->
+					
+					<filter  ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.cache.filterArray" columns="queryService.cache.columns" ng-model='queryService.queryObject.filters[$index]'></filter>
 				</div>
 				
-				<!--Timeperiod filter -->
-				<div class="databox" style="width: 15%"
-					ng-if="AnalysisService.showTimePeriodFilter">
-					<!-- <div class="databox" style="width: 130px;"> -->
-	
-					<div class="header panel-heading">
-						<h2>Time Period</h2>
-						<a href="javascript: void(0)" class="close-button" data-trigger="hover" placement="right" title="Remove"  ng-click="AnalysisService.showTimePeriodFilter = false"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
-					</div>
-	
-					<div class="body">
-						<div style="height: 100%"
-							ng-include="AnalysisService.timeFilter_tool.template_url"></div>
-					</div>
-	
-				</div>
-	
-				<!--Byvariable filter -->
-<!-- 				<div class="databox" style="width: 15%"> -->
-<!-- 					<div class="databox" style="width: 160px;"> -->
-	
-<!-- 					<div class="header panel-heading"> -->
-<!-- 						<h2>By-variable</h2> -->
-<!-- 					</div> -->
-	
-<!-- 					<div class="body"> -->
-<!-- 						<div style="height: 100%" -->
-<!-- 							ng-include="AnalysisService.content_tools[3].template_url"></div> -->
-<!-- 					</div> -->
-	
-<!-- 				</div> -->
-				
-				<filter columns="queryService.cache.columns" ng-model='test'></filter>
-
-				<div ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.queryObject.filters">
-					<div style="height: 100%" ng-include="filter.template_url"></div>
-					<br>
-				</div>
 			</div>
 		</div>
 		<br><br><br>
