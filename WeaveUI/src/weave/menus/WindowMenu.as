@@ -25,7 +25,9 @@ package weave.menus
 	import mx.controls.Alert;
 	
 	import weave.Weave;
+	import weave.api.core.ILinkableObject;
 	import weave.api.detectLinkableObjectChange;
+	import weave.compiler.StandardLib;
 	import weave.editors.WeavePropertiesEditor;
 	import weave.ui.DraggablePanel;
 
@@ -174,8 +176,9 @@ package weave.menus
 		
 		public static function get dynamicItems():Array
 		{
+			var allPanels:Array = getAllPanels().sortOn('title');
 			return createItems(
-				getAllPanels().map(
+				allPanels.map(
 					function(panel:DraggablePanel, ..._):* {
 						return {
 							shown: {not: Weave.properties.dashboardMode},

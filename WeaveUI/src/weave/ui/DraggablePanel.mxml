@@ -1576,6 +1576,8 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public function restorePanel():void
 			{
 				sendWindowToForeground();
+				if (_controlPanel)
+					_controlPanel.sendWindowToForeground();
 				minimized.value = false;
 			}
 			
