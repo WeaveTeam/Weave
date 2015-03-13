@@ -1,0 +1,104 @@
+<ui:DraggablePanel
+	xmlns:ui ="weave.ui.*"
+    xmlns:mx="http://www.adobe.com/2006/mxml"
+    title="{lang('Local Metadata Editor')}"
+    layout="vertical"
+	backgroundColor="#EFF4BC"
+	width="500"
+	height="500"
+	escapeKeyClosesPanel="true">
+<mx:VBox width="100%" height="100%" >
+	<ui:MenuButton id="columnMenu" label="{selectedColumn || lang('Choose a column...')}"/>
+	<ui:MetadataGrid id="metaGrid" 
+		fullMetadata="true" 
+		propertyIgnoreList=""/>
+	<mx:HBox width="100%">
+		<mx:Button label="{lang('Save')}" click="saveMeta()"/>
+		<mx:Button label="{lang('Cancel')}" click="removePanel()"/>
+	</mx:HBox>
+</mx:VBox>
+<mx:Script>
+<![CDATA[
+	import weave.data.DataSources.CSVDataSource;
+	import weave.core.UIUtils;
+	import weave.api.data.ColumnMetadata;
+
+	[Bindable] private var selectedColumn:String = null;
+
+	override protected function inConstructor():void
+	{
+		super.inConstructor();
+	}
+
+	override protected function createChildren():void
+	{
+		super.createChildren();
+
+		metaGrid.fullMetadata = true;
+		metaGrid.propertyIgnoreList = [CSVDataSource.METADATA_COLUMN_INDEX, CSVDataSource.METADATA_COLUMN_NAME, ColumnMetadata.KEY_TYPE];
+	}
+
+	private var _target:CSVDataSource = null;
+
+	private function updateSelectedColumn(columnId:String):void
+	{
+		selectedColumn = columnId;
+
+		var allMeta:Object = target.metadata.getSessionState() || {};
+
+		var colMeta:Object = allMeta[columnId];
+
+		if (!colMeta)
+		{
+			colMeta = target.generateMetadataForColumnId(columnId);
+		}
+
+		metaGrid.metadata = colMeta;
+
+	}
+
+	private function saveMeta():void
+	{
+		var allMeta:Object = target.metadata.getSessionState() || {};
+		allMeta[selectedColumn] = metaGrid.metadata;
+		target.metadata.setSessionState(allMeta);
+		metaGrid.metadata = metaGrid.metadata;
+	}
+
+	private function setTarget(value:CSVDataSource):void
+	{
+		if (!parent)
+		{
+					callLater(setTarget, arguments);
+					return;
+		}
+		_target = value;
+		columnMenu.data = 
+		{
+			source: target,
+			children: function():Array 
+			{
+				return target.getColumnIds().map(
+					function(columnId:String, idx:int, arr:Array):Object 
+					{
+						return {
+							label: columnId,
+							click: function():void 
+							{
+								updateSelectedColumn(columnId);
+							}
+						};
+					}
+				);
+			}
+		}
+
+	}
+	public function set target(value:CSVDataSource):void
+	{
+		setTarget(value);
+	}
+	public function get target():CSVDataSource {return _target;}
+]]>
+</mx:Script>
+</ui:DraggablePanel>
