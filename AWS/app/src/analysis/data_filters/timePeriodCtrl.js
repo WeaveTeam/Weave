@@ -1,3 +1,7 @@
+AnalysisModule.directive('time-filter', function(queryService) {
+
+	
+});
 AnalysisModule.controller('timePeriodCtrl', function($scope, queryService){
 	
 	$scope.service = queryService;
@@ -46,7 +50,6 @@ AnalysisModule.controller('timePeriodCtrl', function($scope, queryService){
 		var treeData = [];
 		for(var i in year_metadata) {
 			if(!month_metadata.length) {
-				console.log(month_metadata);
 				treeData[i] = { title : year_metadata[i].label, key : year_metadata[i].value, isFolder : true,  children : [] };
 			} else {
 				console.log(month_metadata);

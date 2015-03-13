@@ -3,7 +3,7 @@ AnalysisModule.directive('filter', function(queryService) {
 	function link($scope, element, attrs, ngModelCtrl) {
 		element.draggable({ containment: "parent" }).resizable({
 			 maxHeight: 300,
-		     maxWidth: 715,
+		     maxWidth: 650,
 		     minHeight: 80,
 		     minWidth: 270
 		});
