@@ -578,14 +578,14 @@ background-color: #4C4F53;
 	border-color: #d43f3a;
 }
 
-.invalidate {
+.queryUndone {
 	width : 20px;
 	height : 20px;
 /* 	border:1px solid #000; */
 	background : #d9534f;
 }
 
-.validate{
+.queryDone{
 	width : 20px;
 	height : 20px;
 /* 	border:1px solid #000; */
@@ -905,6 +905,26 @@ select {
 	font-size: 13px;
 	color: #666666;
 	line-height: 1.5;
+}
+
+.topAnalysisControl {
+	width: 100%; 
+	position: fixed;
+	height: 5%;
+	background-color: #4C4F53;
+}
+.topAnalysisControl .queryRunStatus{
+	width:20%;
+	height: 100%;
+	float:left;
+	padding-top: 5px;
+	padding-left: 5px
+}
+
+.topAnalysisControl .buttonBarContainer{
+	width:80%;
+	height: 100%;
+	float:left
 }
 
 /* buttons*/
