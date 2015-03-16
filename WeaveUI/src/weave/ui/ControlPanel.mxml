@@ -397,12 +397,19 @@
 			 * @param sessionEditorFallback If this is set to true and no editor could be created, the default session editor is opened.
 			 * @return true if an editor window was opened.
 			 */
-			public static function openEditor(linkableObject:ILinkableObject, targets:Array = null, initialSessionStates:Array = null, sessionEditorFallback:Boolean = true):Boolean
+			public static function openEditor(linkableObject:ILinkableObject, targets:Array = null, initialSessionStates:Array = null, sessionEditorFallback:Boolean = true, customEditor:Class = null):Boolean
 			{
 				var controlPanel:ControlPanel = editorPanels[linkableObject] as ControlPanel;
 				if (!controlPanel || objectWasDisposed(controlPanel))
 				{
-					var editor:IUIComponent = WeaveAPI.EditorManager.getNewEditor(linkableObject);
+					var editor:IUIComponent;
+					if (customEditor)
+					{
+						editor = new customEditor() as ILinkableObjectEditor;
+						(editor as ILinkableObjectEditor).setTarget(linkableObject);
+					}
+					else
+						editor = WeaveAPI.EditorManager.getNewEditor(linkableObject);
 					if (!editor)
 						editor = DynamicEditor.createComponent(linkableObject, getSessionStateName(linkableObject), false);
 					if (!editor)
