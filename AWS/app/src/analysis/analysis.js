@@ -55,7 +55,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	
 	$scope.showToolMenu = false;
 	
-	
+	$scope.$watch('queryService.queryObject.Indicator', function() {
+		console.log($scope.queryService.queryObject.Indicator);
+	}, true);
 	$("#queryObjectPanel" ).draggable().resizable();
 	
 	$scope.$watch(function() {
@@ -263,23 +265,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			}
 	 };
 	 //**********************************************************REMAPPING END**************************************
-	
-	//select2-sortable handlers
-	$scope.getItemId = function(item) {
-		return item.id;
-	};
-	
-	$scope.getItemText = function(item) {
-		if(queryService.queryObject.properties.displayAsQuestions)
-			return item.description || item.title;
-		return item.title;
-	};
-	
-	//datatable
-	$scope.getDataTable = function(term, done) {
-		var values = queryService.cache.dataTableList;
-		done($filter('filter')(values, {title:term}, 'title'));
-	};
 	
 	$scope.$watch("queryService.queryObject.dataTable.id", function() {
 		if($scope.queryService.queryObject.dataTable)

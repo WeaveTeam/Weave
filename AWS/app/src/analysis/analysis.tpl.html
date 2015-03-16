@@ -50,14 +50,12 @@
 						<div ng-class="{'unvalidatedUI' : !queryService.queryObject.dataTable, 'validatedUI' : queryService.queryObject.dataTable}"
 							 title = "Red flags indicate required selections for query validation">
 						
-								<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
-								style="width: 97%;"
-								ng-model="queryService.queryObject.dataTable"
-								simple-query="getDataTable"
-								data-placeholder="Select Datatable"
-								allow-clear="true"
-								to-id="getItemId" to-text="getItemText">
-								</input>
+							<ui-select ng-model="queryService.queryObject.dataTable" theme="select2" style="width: 97%;">
+							    <ui-select-match allow-clear="true" placeholder="Select a data table...">{{$select.selected.title}}</ui-select-match>
+								<ui-select-choices repeat="dataTable in queryService.cache.dataTableList | filter : { title : $select.search }">
+ 							       		 <div ng-bind-html="dataTable.title | highlight: $select.search"></div>
+ 							        </ui-select-choices>
+							</ui-select>
 								 
 						</div>
 						
@@ -68,14 +66,16 @@
 	
 <!-- INDICATOR -->		<div style="width: 100%;" title = "Red flags indicate required selections for query validation"
 							 ng-class="{'unvalidatedUI' : !queryService.queryObject.Indicator, 'validatedUI' : queryService.queryObject.Indicator}">
-							<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
-								style="width: 97%" 
-								ng-model="queryService.queryObject.Indicator"
-								simple-query="getIndicators"
-								data-placeholder="Select Indicator"
-								allow-clear="true"
-								to-id="getItemId" to-text="getItemText">
-							</input> 
+
+							<ui-select ng-model="queryService.queryObject.Indicator" theme="select2" style="width: 97%;">
+						    	<ui-select-match allow-clear="true" placeholder="Select Indicator...">{{$select.selected.title}}</ui-select-match>
+								<ui-select-choices repeat="indicator in queryService.cache.columns | filter : { columnType : 'indicator', title : $select.search }">
+						       		 <b ng-bind-html="indicator.title | highlight: $select.search"></b>
+						       		 <small>
+						       		 	{{indicator.description}}
+						       		 </small>
+						        </ui-select-choices>
+							</ui-select>
 						</div>
 						
 						<br> {{IndicDescription}} 

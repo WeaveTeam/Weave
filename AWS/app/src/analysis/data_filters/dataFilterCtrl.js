@@ -146,7 +146,7 @@ AnalysisModule.directive('filter', function(queryService) {
 			 * internal model accordingly
 			 *
 			 */
-//			$scope.$on('queryObjectChange', function(newVal, oldVal) {
+//			$scope.$watch('queryService.queryObject', function(newVal, oldVal) {
 //				if(angular.equals(newVal, oldVal))
 //					return;
 //				// check the column id to find out the ui type.
@@ -196,7 +196,7 @@ AnalysisModule.directive('filter', function(queryService) {
 //						}
 //					});
 //				};
-//			});
+//			}, true);
 		}
 	};
 });
