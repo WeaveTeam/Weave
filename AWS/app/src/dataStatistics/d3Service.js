@@ -51,9 +51,17 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 										})
 			//handling selections							
 			.on('click', function(d){
-										d3.select(this).style("fill", "yellow");//marking the selected states 
-										//catching the selected states for filtering
-										geoService.selectedStates.push(d.properties.NAME);
+										//if it is selected for the first time
+										if( $.inArray(d.properties.NAME, geoService.selectedStates) == -1){
+											d3.select(this).style("fill", "yellow");
+											geoService.selectedStates.push(d.properties.NAME);
+										}
+										//if already selected; remove it
+										else{
+											var index = $.inArray(d.properties.NAME, geoService.selectedStates);
+											geoService.selectedStates.splice(index, 1);
+											d3.select(this).style("fill", "#335555");
+										}
 										
 									})
 		    .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
