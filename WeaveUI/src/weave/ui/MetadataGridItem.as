@@ -43,10 +43,5 @@ package weave.ui
 			
 			return oldValue != value;
 		}
-		
-		/**
-		 * Use this as a placeholder in metadata object to indicate that multiple values exist for a metadata field.
-		 */
-		public static const MULTIPLE_VALUES_PLACEHOLDER:Object = {toString: lang('(No change)').toString};
     }
 }

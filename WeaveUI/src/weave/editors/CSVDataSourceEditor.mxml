@@ -82,7 +82,7 @@
 						   change="delimiterChanged()"/>
 		<mx:Button label="{lang('Append file')}" click="append = true; browseForFiles()"/>
 	</ui:Indent>
-	<mx:Button label="{lang('Edit metadata')}" click="editMetadata()"/>
+	<mx:Button id="editMetadataButton" label="{lang('Edit metadata')}" click="editMetadata()" enabled="false"/>
 
 	<ui:Indent label="{lang('Key Column')}">
 		<mx:HBox horizontalGap="0">
@@ -120,10 +120,11 @@
 			import weave.data.DataSources.CSVDataSource;
 			import weave.menus.WeaveMenuItem;
 			import weave.ui.BusyIndicator;
+			import weave.ui.CSVMetadataEditor;
+			import weave.ui.ControlPanel;
+			import weave.ui.DraggablePanel;
 			import weave.ui.IndentGroup;
 			import weave.utils.VectorUtils;
-			import weave.ui.CSVMetadataEditor;
-			import weave.ui.DraggablePanel;
 			
 			[Bindable] private var indentGroup:IndentGroup = new IndentGroup();
 			
@@ -204,6 +205,7 @@
 				
 				if (target)
 				{
+					editMetadataButton.enabled = true;
 					sourceName.text = WeaveAPI.globalHashMap.getName(target);
 					url.text = target.url.value;
 					keyColumnName.text = target.keyColName.value;
@@ -441,8 +443,7 @@
 			}
 			private function editMetadata():void
 			{
-				var editor:CSVMetadataEditor = DraggablePanel.openStaticInstance(CSVMetadataEditor) as CSVMetadataEditor;
-				editor.target = this.target;
+				ControlPanel.openEditor(this.target, null, null, true, CSVMetadataEditor);
 			}
 		]]>
 	</mx:Script>

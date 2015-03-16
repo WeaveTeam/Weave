@@ -1,104 +1,100 @@
-<ui:DraggablePanel
-	xmlns:ui ="weave.ui.*"
-    xmlns:mx="http://www.adobe.com/2006/mxml"
-    title="{lang('Local Metadata Editor')}"
-    layout="vertical"
-	backgroundColor="#EFF4BC"
-	width="500"
-	height="500"
-	escapeKeyClosesPanel="true">
-<mx:VBox width="100%" height="100%" >
-	<ui:MenuButton id="columnMenu" label="{selectedColumn || lang('Choose a column...')}"/>
-	<ui:MetadataGrid id="metaGrid" 
-		fullMetadata="true" 
-		propertyIgnoreList=""/>
-	<mx:HBox width="100%">
-		<mx:Button label="{lang('Save')}" click="saveMeta()"/>
-		<mx:Button label="{lang('Cancel')}" click="removePanel()"/>
-	</mx:HBox>
-</mx:VBox>
+<mx:HDividedBox
+		xmlns:ui ="weave.ui.*"
+	    xmlns:mx="http://www.adobe.com/2006/mxml"
+		width="100%" height="100%"
+    	label="{lang('Metadata Editor')}"
+		implements="weave.api.ui.ILinkableObjectEditor">
+	<mx:VBox height="100%">
+		<mx:Label text="{lang('Columns')}"/>
+		<mx:List id="columnList" width="100%" height="100%" change="synchronize()" allowMultipleSelection="true"/>
+	</mx:VBox>
+	<ui:MetadataGrid id="metaGrid" metaChanged="saveChanges()" propertyIgnoreList=""/>
 <mx:Script>
 <![CDATA[
-	import weave.data.DataSources.CSVDataSource;
-	import weave.core.UIUtils;
+	import mx.utils.ObjectUtil;
+	
+	import weave.api.core.ILinkableObject;
 	import weave.api.data.ColumnMetadata;
-
-	[Bindable] private var selectedColumn:String = null;
-
-	override protected function inConstructor():void
-	{
-		super.inConstructor();
-	}
+	import weave.api.getCallbackCollection;
+	import weave.api.services.beans.EntityMetadata;
+	import weave.data.DataSources.CSVDataSource;
+	import weave.utils.VectorUtils;
 
 	override protected function createChildren():void
 	{
 		super.createChildren();
 
-		metaGrid.fullMetadata = true;
 		metaGrid.propertyIgnoreList = [CSVDataSource.METADATA_COLUMN_INDEX, CSVDataSource.METADATA_COLUMN_NAME, ColumnMetadata.KEY_TYPE];
+		metaGrid.selectablePropertyNames = VectorUtils.subtract(EntityMetadata.getSuggestedPublicPropertyNames(), [ColumnMetadata.PROJECTION]);
 	}
 
-	private var _target:CSVDataSource = null;
-
-	private function updateSelectedColumn(columnId:String):void
-	{
-		selectedColumn = columnId;
-
-		var allMeta:Object = target.metadata.getSessionState() || {};
-
-		var colMeta:Object = allMeta[columnId];
-
-		if (!colMeta)
-		{
-			colMeta = target.generateMetadataForColumnId(columnId);
-		}
-
-		metaGrid.metadata = colMeta;
-
-	}
-
-	private function saveMeta():void
-	{
-		var allMeta:Object = target.metadata.getSessionState() || {};
-		allMeta[selectedColumn] = metaGrid.metadata;
-		target.metadata.setSessionState(allMeta);
-		metaGrid.metadata = metaGrid.metadata;
-	}
-
-	private function setTarget(value:CSVDataSource):void
+	private var target:CSVDataSource = null;
+	private var prevSelectedColumns:Array = null;
+	
+	public function setTarget(value:ILinkableObject):void
 	{
 		if (!parent)
 		{
-					callLater(setTarget, arguments);
-					return;
+			callLater(setTarget, arguments);
+			return;
 		}
-		_target = value;
-		columnMenu.data = 
-		{
-			source: target,
-			children: function():Array 
-			{
-				return target.getColumnIds().map(
-					function(columnId:String, idx:int, arr:Array):Object 
-					{
-						return {
-							label: columnId,
-							click: function():void 
-							{
-								updateSelectedColumn(columnId);
-							}
-						};
-					}
-				);
-			}
-		}
-
+		target = value as CSVDataSource;
+		target.metadata.addGroupedCallback(this, displaySelectedMeta, true);
+		getCallbackCollection(target).addGroupedCallback(this, function():void {
+			var selectedItems:Array = columnList.selectedItems;
+			columnList.dataProvider = target.getColumnIds();
+			columnList.selectedItems = selectedItems;
+		}, true);
+		columnList.labelFunction = target.getColumnTitle;
 	}
-	public function set target(value:CSVDataSource):void
+	public function hasPendingChanges():Boolean { return false; }
+	public function applyChanges():void { }
+	
+	private function synchronize():void
 	{
-		setTarget(value);
+		saveChanges();
+		prevSelectedColumns = columnList.selectedItems;
+		displaySelectedMeta();
 	}
-	public function get target():CSVDataSource {return _target;}
+	
+	private function saveChanges():void
+	{
+		metaGrid.validateProperties();
+		if (metaGrid.metadataChanged)
+		{
+			var newState:Object = target.metadata.getSessionState() || {};
+			var newMeta:Object = metaGrid.metadata;
+			for each (id in prevSelectedColumns)
+			{
+				var currentMeta:Object = target.generateMetadataForColumnId(id); // already considers current session state values
+				newState[id] = WeaveAPI.SessionManager.combineDiff(currentMeta, newMeta);
+				
+				// remove missing values
+				var keys:Array = VectorUtils.getKeys(newState[id]);
+				for each (var key:String in keys)
+					if (!newState[id][key])
+						delete newState[id][key];
+			}
+			target.metadata.setSessionState(newState);
+		}
+	}
+	
+	private function displaySelectedMeta():void
+	{
+		// load from allMeta into grid, combining metadata for all selected columns
+		var id:String;
+		var metaCombined:Object;
+		for each (id in columnList.selectedItems)
+		{
+			var newMeta:Object = target.generateMetadataForColumnId(id);
+			if (!metaCombined)
+				metaCombined = newMeta;
+			else
+				MetadataGrid.combineMetadata(newMeta, metaCombined);
+		}
+		metaGrid.metadata = metaCombined;
+	}
+
 ]]>
 </mx:Script>
-</ui:DraggablePanel>
+</mx:HDividedBox>

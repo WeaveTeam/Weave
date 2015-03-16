@@ -206,8 +206,8 @@
 			}
 			else
 			{
-				combineMetadata(entity.publicMetadata, publicMetadata);
-				combineMetadata(entity.privateMetadata, privateMetadata);
+				MetadataGrid.combineMetadata(entity.publicMetadata, publicMetadata);
+				MetadataGrid.combineMetadata(entity.privateMetadata, privateMetadata);
 			}
 		}
 		
@@ -215,14 +215,6 @@
         privateMetaGrid.metadata = privateMetadata;
 		
 		detectChange();
-	}
-	
-	private function combineMetadata(newValuesInput:Object, combinedValuesOutput:Object):void
-	{
-		for each (var arg:Object in arguments)
-			for (var name:String in arg)
-				if (newValuesInput[name] != combinedValuesOutput[name])
-					combinedValuesOutput[name] = MetadataGridItem.MULTIPLE_VALUES_PLACEHOLDER;
 	}
 	
 	private function getEntityFromSelectedItem(node_or_id:Object):Entity
