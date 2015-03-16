@@ -2,7 +2,65 @@
  *this service contains all the functions needed for D3 visualizations 
  *TODO move to an independent D3 module later 
  */
-dataStatsModule.service('d3Service', ['$q', function($q){
+dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoService){
+	
+	/**
+	 * this function loads a json file
+	 * @param filename name if file to load
+	 * @param run callback once loaded
+	 */
+	this.loadJson = function(dom_element_to_append_to, filename){
+		
+		var margin = {top: 5, right: 5, bottom: 5, left: 5};
+		var  width = (dom_element_to_append_to.offsetWidth) - margin.left - margin.right;
+	    var height = (dom_element_to_append_to.offsetHeight) - margin.top - margin.bottom;
+	    
+	    var tooltip = d3.select(dom_element_to_append_to)
+		.append("div")
+		.style("position", "absolute")
+		.style("z-index", "10")
+		.style("visibility", "hidden")
+		.text("")
+		.style("color", "red")
+		.style("font-weight", 'bold');
+		
+		var projection = d3.geo.albersUsa()
+							   .translate([width/2, height/2])
+							   .scale([550]);
+		var path = d3.geo.path()//path generator
+						 .projection(projection);
+		
+		d3.json(filename, function(json){
+			
+			// SVG Creation	
+			var mysvg = d3.select(dom_element_to_append_to).append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom)
+			.append("g")
+			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			
+			//adding map layer
+			mysvg.selectAll("path")
+			.data(json.features)
+			.enter()
+			.append("path")
+			.attr("d", path)
+			.style("fill", "#335555")
+			.on('mouseover', function(d){
+											tooltip.style('visibility', 'visible' ).text(d.properties.NAME); 
+										})
+			//handling selections							
+			.on('click', function(d){
+										d3.select(this).style("fill", "yellow");//marking the selected states 
+										//catching the selected states for filtering
+										geoService.selectedStates.push(d.properties.NAME);
+										
+									})
+		    .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+		    .on('mouseout', function(){ tooltip.style('visibility', 'hidden');});
+		});
+	};
+	
 	
 	/**
 	 * function to draw a heatmap using a matrix computed in R/STATA
@@ -31,12 +89,7 @@ dataStatsModule.service('d3Service', ['$q', function($q){
 			     .domain([0, 0.5, 1.0])//TODO parameterize this according to the matrix  
 			     .range([colorLow, colorMed, colorHigh]);
 	
-			// SVG Creation	
-			var mysvg = d3.select(dom_element_to_append_to).append("svg")
-			.attr("width", width + margin.left + margin.right)
-			.attr("height", height + margin.top + margin.bottom)
-			.append("g")
-			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			
 			// remove all previous items before render
 		    //mysvg.selectAll('*').remove();
 			
