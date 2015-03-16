@@ -610,11 +610,6 @@ package
 				if (backslashNeedsEscaping && appliedCode.indexOf('\\') >= 0)
 					appliedCode = appliedCode.split('\\').join('\\\\');
 				
-				trace('---');
-				trace(evalFunc);
-				trace(appliedCode);
-				trace(pValues);
-				
 				result = ExternalInterface.call(evalFunc, appliedCode, pValues);
 				
 				// parse stringified results
