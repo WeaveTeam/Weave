@@ -19,6 +19,7 @@ package
 	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
+	import flash.utils.getQualifiedClassName;
 
 	/**
 	 * An alternative to flash.external.ExternalInterface with workarounds for its limitations.
@@ -514,7 +515,7 @@ package
 			// separate function parameters from code
 			for each (var item:Object in paramsAndCode)
 			{
-				if (item.constructor == Object)
+				if (getQualifiedClassName(item) == 'Object')
 				{
 					// We assume that all the keys in the Object are valid JavaScript identifiers,
 					// since they are to be used in the code as variables.
@@ -608,6 +609,11 @@ package
 				// work around unescaped backslash bug
 				if (backslashNeedsEscaping && appliedCode.indexOf('\\') >= 0)
 					appliedCode = appliedCode.split('\\').join('\\\\');
+				
+				trace('---');
+				trace(evalFunc);
+				trace(appliedCode);
+				trace(pValues);
 				
 				result = ExternalInterface.call(evalFunc, appliedCode, pValues);
 				
