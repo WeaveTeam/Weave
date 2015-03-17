@@ -111,11 +111,13 @@ package weave.data.DataSources
 		 * Contains the csv data that should be used elsewhere in the code
 		 */		
 		private var parsedRows:Array;
+		private var cachedDataTypes:Object = {};
 		private var columnIds:Array = [];
 		private var keysVector:Vector.<IQualifiedKey>;
 		
 		protected function handleParsedRows(rows:Array):void
 		{
+			cachedDataTypes = {};
 			parsedRows = rows;
 			columnIds = rows && rows[0] is Array ? (rows[0] as Array).concat() : [];
 			// make sure column names are unique - if not, use index values for columns with duplicate names
@@ -161,11 +163,11 @@ package weave.data.DataSources
 		}
 		/**
 		 * Convenience function for setting session state of csvData.
-		 * @param rows
+		 * @param csvDataString CSV string using comma as a delimiter.
 		 */
 		public function setCSVDataString(csvDataString:String):void
 		{
-			asyncParser.parseCSV(csvDataString);
+			csvData.setSessionState(WeaveAPI.CSVParser.parseCSV(csvDataString));
 		}
 		
 		/**
@@ -220,6 +222,8 @@ package weave.data.DataSources
 			var metadata:Object = {};
 			metadata[ColumnMetadata.TITLE] = getColumnTitle(id);
 			metadata[ColumnMetadata.KEY_TYPE] = keyType.value || DataType.STRING;
+			if (cachedDataTypes[id])
+				metadata[ColumnMetadata.DATA_TYPE] = cachedDataTypes[id];
 			
 			// get column metadata from session state
 			var meta:Object = getColumnMetadata(id);
@@ -548,6 +552,7 @@ package weave.data.DataSources
 					(newColumn as StringColumn).setRecords(keysVector, strings);
 				}
 			}
+			cachedDataTypes[columnId] = newColumn.getMetadata(ColumnMetadata.DATA_TYPE);
 			proxyColumn.setInternalColumn(newColumn);
 		}
 		
@@ -615,7 +620,7 @@ package weave.data.DataSources
 		// backwards compatibility
 		[Deprecated] public function set csvDataString(value:String):void
 		{
-			asyncParser.parseCSV(value);
+			setCSVDataString(value);
 		}
 		
 		[Deprecated(replacement="getColumnById")] public function getColumnByName(name:String):IAttributeColumn { return getColumnById(name); }
