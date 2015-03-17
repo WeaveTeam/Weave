@@ -19,51 +19,88 @@
 #include "AS3/AS3.h"
 #include "tracef.h"
 
-void dates_parse() __attribute((used,
-            annotate("as3sig:public function dates_parse(dates:Array, fmt:String):Array"),
+#define DATE_FORMAT_MAX (1024)
+void date_format() __attribute((used,
+            annotate("as3sig:public function date_format(date:Date, fmt:String):String")
             annotate("as3package:weave.flascc")));
 
-void dates_parse()
+void date_format()
 {
-    size_t dates_n = 0;
     char *fmt;
-    inline_nonreentrant_as3(
-            "%0 = dates.length;"
-            "%1 = CModule.mallocString(fmt);"
-            "var output:Array = new Array(dates.length);"
-            : "=r"(dates_n), "=r"(fmt)
-    );
 
-    size_t idx;
-    char* date_str;
     struct tm tm;
     memset(&tm, 0, sizeof(struct tm));
-    for (idx = 0; idx < dates_n; idx++)
-    {
-        inline_nonreentrant_as3(
-            "%0 = CModule.mallocString(String(dates[%1]));"
-            : "=r"(date_str) : "r"(idx)
-        );
+    
+    inline_nonreentrant_as3(
+        "var output:String = null;"
+        "%0 = CModule.mallocString(fmt);"
+        "%1 = date.fullYear - 1900;"
+        "%2 = date.month;"
+        "%3 = date.date;"
+        "%4 = date.hours;"
+        "%5 = date.minutes;"
+        "%6 = date.seconds;"
+        : 
+        "=r"(fmt), 
+        "=r"(tm.tm_year),
+        "=r"(tm.tm_mon),
+        "=r"(tm.tm_mday),
+        "=r"(tm.tm_hour),
+        "=r"(tm.tm_min),
+        "=r"(tm.tm_sec)
+    );
 
-        if (strptime(date_str, fmt, &tm))
-        {
-			inline_nonreentrant_as3(
-				"output[%0] = new Date(%1,%2,%3,%4,%5,%6);"
-				: : "r"(idx),
-				 "r"(tm.tm_year + 1900),
-				 "r"(tm.tm_mon),
-				 "r"(tm.tm_mday),
-				 "r"(tm.tm_hour),
-				 "r"(tm.tm_min),
-				 "r"(tm.tm_sec)
-			);
-        }
-        else
-        {
-        	inline_nonreentrant_as3("output[%0] = null;" : : "r"(idx));
-        }
-        free(date_str);
+    char* output = malloc(sizeof(char)*DATE_FORMAT_MAX);
+    size_t output_len;
+
+    if (strftime(output, DATE_FORMAT_MAX, fmt, &tm))
+    {
+        output_len = strnlen(output, DATE_FORMAT_MAX);
+        inline_as3(
+                "ram.position = %0;"
+                "output = ram.readUTFBytes(%1);"
+                : : "r"(output), "r"(output_len)
+        );
     }
+
+    free(fmt);
+    free(output);
+
+    AS3_ReturnAS3Var(output);
+}
+
+void date_parse() __attribute((used,
+            annotate("as3sig:public function date_parse(date:String, fmt:String):Date"),
+            annotate("as3package:weave.flascc")));
+
+void date_parse()
+{
+    char *date_str;
+    char *fmt;
+    inline_nonreentrant_as3(
+        "var output:Date = null;"
+        "%0 = CModule.mallocString(date);"
+        "%1 = CModule.mallocString(fmt);"
+        : "=r"(date_str), "=r"(fmt)
+    );
+
+    struct tm tm;
+    memset(&tm, 0, sizeof(struct tm));
+
+    if (strptime(date_str, fmt, &tm))
+    {
+		inline_nonreentrant_as3(
+			"output = new Date(%0,%1,%2,%3,%4,%5);"
+			: : "r"(tm.tm_year + 1900),
+			 "r"(tm.tm_mon),
+			 "r"(tm.tm_mday),
+			 "r"(tm.tm_hour),
+			 "r"(tm.tm_min),
+			 "r"(tm.tm_sec)
+		);
+    }
+
+    free(date_str);
     free(fmt);
 
     AS3_ReturnAS3Var(output);
