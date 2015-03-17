@@ -21,7 +21,7 @@
 
 #define DATE_FORMAT_MAX (1024)
 void date_format() __attribute((used,
-            annotate("as3sig:public function date_format(date:Date, fmt:String):String")
+            annotate("as3sig:public function date_format(date:Date, fmt:String):String"),
             annotate("as3package:weave.flascc")));
 
 void date_format()
@@ -50,7 +50,7 @@ void date_format()
         "=r"(tm.tm_sec)
     );
 
-    char* output = malloc(sizeof(char)*DATE_FORMAT_MAX);
+    char* output = (char*)malloc(sizeof(char)*DATE_FORMAT_MAX);
     size_t output_len;
 
     if (strftime(output, DATE_FORMAT_MAX, fmt, &tm))
@@ -110,7 +110,7 @@ void date_parse()
 size_t dates_detect_c(char* dates[], size_t dates_n, char* formats[], size_t* formats_n);
 
 void dates_detect() __attribute((used,
-            annotate("as3sig:public function dates_detect(dates:Array, formats:Array):Array"),
+            annotate("as3sig:public function dates_detect(dates:*, formats:Array):Array"),
             annotate("as3package:weave.flascc")));
 
 void dates_detect()
@@ -136,7 +136,8 @@ void dates_detect()
     for (idx = 0; idx < dates_n; idx++)
     {
         inline_nonreentrant_as3(
-                "%0 = CModule.mallocString(String(dates[%1]));"
+                "var date:String = dates[%1] as String;"
+                "%0 = date ? CModule.mallocString(date) : 0;"
                 : "=r"(tmp) : "r"(idx)
         );
         dates[idx] = tmp;
@@ -145,7 +146,7 @@ void dates_detect()
     for (idx = 0; idx < formats_n; idx++)
     {
         inline_nonreentrant_as3(
-                "%0 = CModule.mallocString(String(formats[%1]));"
+                "%0 = CModule.mallocString(formats[%1] as String || '');"
                 : "=r"(tmp) : "r"(idx)
         );
         formats[idx] = tmp;
@@ -199,7 +200,8 @@ size_t dates_detect_c(char* dates[], size_t dates_n, char* formats[], size_t *fo
     struct tm tmp_time;
     for (row_idx = 0; row_idx < dates_n; row_idx++)
     {
-        if (dates[row_idx] == NULL) continue;
+        if (dates[row_idx] == NULL)
+        	continue;
         for (fmt_idx = 0; fmt_idx < formats_remaining; fmt_idx++)
         {
             if (formats[fmt_idx] == NULL)
