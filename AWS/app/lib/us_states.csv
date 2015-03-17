@@ -1,0 +1,53 @@
+US_STATE_FIPS_CODE,NAME10,STUSPS10,the_geom_id
+1,Alabama,AL,36
+2,Alaska,AK,18
+4,Arizona,AZ,44
+5,Arkansas,AR,14
+6,California,CA,29
+8,Colorado,CO,23
+9,Connecticut,CT,28
+10,Delaware,DE,25
+11,District of Columbia,DC,47
+12,Florida,FL,32
+13,Georgia,GA,12
+15,Hawaii,HI,35
+16,Idaho,ID,33
+17,Illinois,IL,40
+18,Indiana,IN,42
+19,Iowa,IA,43
+20,Kansas,KS,15
+21,Kentucky,KY,30
+22,Louisiana,LA,46
+23,Maine,ME,51
+24,Maryland,MD,5
+25,Massachusetts,MA,31
+26,Michigan,MI,22
+27,Minnesota,MN,45
+28,Mississippi,MS,19
+29,Missouri,MO,34
+30,Montana,MT,26
+31,Nebraska,NE,16
+32,Nevada,NV,11
+33,New Hampshire,NH,38
+34,New Jersey,NJ,24
+35,New Mexico,NM,4
+36,New York,NY,13
+37,North Carolina,NC,52
+38,North Dakota,ND,10
+39,Ohio,OH,3
+40,Oklahoma,OK,20
+41,Oregon,OR,7
+42,Pennsylvania,PA,2
+44,Rhode Island,RI,6
+45,South Carolina,SC,37
+46,South Dakota,SD,39
+47,Tennessee,TN,41
+48,Texas,TX,49
+49,Utah,UT,17
+50,Vermont,VT,50
+51,Virginia,VA,48
+53,Washington,WA,27
+54,West Virginia,WV,21
+55,Wisconsin,WI,9
+56,Wyoming,WY,1
+72,Puerto Rico,PR,8
