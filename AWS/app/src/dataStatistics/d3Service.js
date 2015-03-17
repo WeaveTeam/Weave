@@ -3,18 +3,28 @@
  *TODO move to an independent D3 module later 
  */
 dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoService){
+	var that = this;
+	
+	//is a pointer to the geomteries after being loaded the first time
+	this.cache = {
+			stateTopoGeometries : []
+	};
 	
 	/**
-	 * this function loads a json file
+	 * this function renders a map layer
 	 * @param filename name if file to load
 	 * @param run callback once loaded
 	 */
-	this.loadJson = function(dom_element_to_append_to, filename){
+	this.renderLayer = function(dom_element_to_append_to, filename){
+		
+		//clearing previous rendered stuff
+		d3.select(dom_element_to_append_to).selectAll("*").remove();
 		
 		var margin = {top: 5, right: 5, bottom: 5, left: 5};
 		var  width = (dom_element_to_append_to.offsetWidth) - margin.left - margin.right;
 	    var height = (dom_element_to_append_to.offsetHeight) - margin.top - margin.bottom;
 	    
+	    //tooltip
 	    var tooltip = d3.select(dom_element_to_append_to)
 		.append("div")
 		.style("position", "absolute")
@@ -24,41 +34,54 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 		.style("color", "red")
 		.style("font-weight", 'bold');
 		
+	    //projection
 		var projection = d3.geo.albersUsa()
 							   .translate([width/2, height/2])
 							   .scale([550]);
-		var path = d3.geo.path()//path generator
+		//path generator
+		var path = d3.geo.path()
 						 .projection(projection);
 		
-		d3.json(filename, function(json){
-			
-			// SVG Creation	
-			var mysvg = d3.select(dom_element_to_append_to).append("svg")
-			.attr("width", width + margin.left + margin.right)
-			.attr("height", height + margin.top + margin.bottom)
-			.append("g")
-			.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-			
+		var zoom = d3.behavior.zoom()
+	    .translate(projection.translate())
+	    .scale(projection.scale())
+	    .scaleExtent([height, 8 * height])
+	    .on("zoom", zoomed);
+		
+		// SVG Creation	
+		var mysvg = d3.select(dom_element_to_append_to).append("svg")
+		.attr("width", width + margin.left + margin.right)
+		.attr("height", height + margin.top + margin.bottom);
+		
+		var g = mysvg.append("g")
+	    .call(zoom);
+		
+		function zoomed() {
+			  projection.translate(d3.event.translate).scale(d3.event.scale);
+			  g.selectAll("path").attr("d", path);
+		};
+		
+		function addlayer(geometries){
 			//adding map layer
-			mysvg.selectAll("path")
-			.data(json.features)
+			g.selectAll("path")
+			.data(geometries)
 			.enter()
 			.append("path")
 			.attr("d", path)
 			.style("fill", "#335555")
 			.on('mouseover', function(d){
-											tooltip.style('visibility', 'visible' ).text(d.properties.NAME); 
+											tooltip.style('visibility', 'visible' ).text(d.properties.name); 
 										})
 			//handling selections							
 			.on('click', function(d){
 										//if it is selected for the first time
-										if( $.inArray(d.properties.NAME, geoService.selectedStates) == -1){
+										if( $.inArray(d.properties.name, geoService.selectedStates) == -1){
 											d3.select(this).style("fill", "yellow");
-											geoService.selectedStates.push(d.properties.NAME);
+											geoService.selectedStates.push(d.properties.name);
 										}
 										//if already selected; remove it
 										else{
-											var index = $.inArray(d.properties.NAME, geoService.selectedStates);
+											var index = $.inArray(d.properties.name, geoService.selectedStates);
 											geoService.selectedStates.splice(index, 1);
 											d3.select(this).style("fill", "#335555");
 										}
@@ -66,7 +89,48 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 									})
 		    .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
 		    .on('mouseout', function(){ tooltip.style('visibility', 'hidden');});
-		});
+			
+		};
+		
+		//if cached use cache
+		if(that.cache.stateTopoGeometries.length > 1){
+			
+			addlayer(this.cache.stateTopoGeometries);
+		}
+		//loading for the first time
+		else{
+			
+			d3.json(filename, function(error, geomJson){
+				//adding state name property from csv to the topojson
+				d3.csv("lib/us_states.csv", function(state_fips){
+					
+					var features = topojson.feature(geomJson, geomJson.objects.states).features;
+					that.cache.stateTopoGeometries= features;
+					
+					for(i in state_fips){
+						
+						var fips = parseFloat(state_fips[i].US_STATE_FIPS_CODE);
+						
+						for(j in features){
+							
+							var id = features[j].id;
+							
+							if(fips == id){
+								
+								features[j].properties.name = state_fips[i].NAME10;
+								break;
+							}
+						}//j loop
+					}//i loop
+					
+					addlayer(features);	
+					
+				});//end of csv load
+				
+			});//end of json load
+		}
+		
+		
 	};
 	
 	

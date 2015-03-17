@@ -8,10 +8,16 @@
 	
 	<div class="body">
 		<div style = "width: 20%; float: left; height: 100%" >
-		<input type="checkbox" ng-model = "stateGeometry.checked" >US States</input>
-		<br>
-		<input type="checkbox">Us Counties</input>
-		<br>
+			<input type="checkbox" ng-model = "stateGeometry.checked" >US States</input>
+			<br>
+			<input type="checkbox" ng-model = "countyGeometry.checked" >Us Counties</input>
+			<br>
+		
+			<span style = "margin-left: 5px" class = "glyphicon glyphicon-plus-sign"></span>
+			
+			<div style = "margin-bottom: 10px" ui-slider="{range:false, orientation: 'vertical'}" min= "2" step="1"  max = "18" ng-model="tool.zoomLevel"/>
+			
+			<span style = "margin-left: 5px" class = "glyphicon glyphicon-minus-sign"></span>
 		</div>
 		
 		<div id = "mapDisplay" style = "width: 80%; float: left; height: 100%">

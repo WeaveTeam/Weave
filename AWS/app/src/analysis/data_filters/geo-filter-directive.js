@@ -11,14 +11,22 @@ AnalysisModule.directive('geoFilter', ['geoService','d3Service',  function facto
 				
 				var dom_element_to_append_to = document.getElementById('mapDisplay');
 				
-				$scope.stateGeometry = {file: "lib/us_states.json"};
+				$scope.stateGeometry = {file: "lib/us_topojson.json"};
+				$scope.countyGeometry = {file : "lib/us_counties.json"};
 				
+				//watching state layer
 				$scope.$watch('stateGeometry.checked', function(){
 					if($scope.stateGeometry.checked){//getting state geojson
-						d3Service.loadJson(dom_element_to_append_to, $scope.stateGeometry.file);
+						d3Service.renderLayer(dom_element_to_append_to, $scope.stateGeometry.file);
 						
 					}
-				} );
+				});
+				
+				//watching county layer
+				$scope.$watch('countyGeometry.checked', function(){
+					if($scope.countyGeometry.checked)
+						d3Service.renderLayer(dom_element_to_append_to, $scope.countyGeometry.file);
+				});
 			},
 			link : function(scope, elem, attrs){
 			
@@ -29,9 +37,11 @@ AnalysisModule.directive('geoFilter', ['geoService','d3Service',  function facto
 	return directiveDefnObject;
 }]);
 
+var blah;
 
 AnalysisModule.service('geoService', [function(){
 	
-	this.selectedStates= [];
+	blah = this.selectedStates= [];
+	
 	
 }]);
