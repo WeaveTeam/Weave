@@ -19,6 +19,7 @@
 
 package weave.ui.controlBars
 {
+	import flash.display.DisplayObject;
 	import flash.geom.Point;
 	import flash.utils.setTimeout;
 	
@@ -34,6 +35,8 @@ package weave.ui.controlBars
 	
 	public class CustomMenuBar extends MenuBar
 	{
+		private static const MARGIN_WIDTH:int = 10; // same as in MenuBar.as
+
 		public function CustomMenuBar()
 		{
 			this.addEventListener(MenuEvent.MENU_SHOW, handleMenuShow);
@@ -54,6 +57,10 @@ package weave.ui.controlBars
 		{
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			
+			// remove hard-coded margins
+			for each (var item:DisplayObject in menuBarItems)
+				item.x -= MARGIN_WIDTH;
+			
 			// fixes bug where old menu doesn't go away.
 			// We can't call Menu.hide() because it will still affect the MenuBar
 			// even though the MenuBar no longer manages the old Menu.
@@ -71,6 +78,14 @@ package weave.ui.controlBars
 				}
 			}
 			oldMenus = menus;
+		}
+		
+		override protected function measure():void
+		{
+			super.measure();
+			// remove hard-coded margins
+			measuredWidth -= 2 * MARGIN_WIDTH;
+			measuredMinWidth -= 2 * MARGIN_WIDTH;
 		}
 		
 		private var oldMenus:Array = null;
