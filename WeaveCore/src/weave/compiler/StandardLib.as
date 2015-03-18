@@ -463,6 +463,14 @@ package weave.compiler
 		}
 		
 		/**
+		 * ITU-R 601
+		 */
+		public static function getColorLuma(color:Number):Number
+		{
+			return 0.3 * ((color & 0xFF0000) >> 16) + 0.59 * ((color & 0x00FF00) >> 8) + 0.11 * (color & 0x0000FF);
+		}
+		
+		/**
 		 * Code from Graphics Gems Volume 1
 		 */
 		public static function getNiceNumber(x:Number, round:Boolean):Number

@@ -1506,7 +1506,10 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 
 				if (_enableMoveResize || _moveImage.visible)
 				{
-					_dragCanvas.graphics.lineStyle(1, borderIsVisible ? thinBorderOverlayColor : thinBorderColor, thinBorderAlpha);
+					// choose the thin border color to be black or white based on the brightness of the background
+					var bgColor:Number = borderIsVisible ? getStyle('borderColor') : getStyle('backgroundColor');
+					var thinBorderColor:Number = StandardLib.getColorLuma(bgColor) < 0x80 ? 0xFFFFFF : 0x000000;
+					_dragCanvas.graphics.lineStyle(1, thinBorderColor, thinBorderAlpha);
 					_dragCanvas.graphics.drawRect(0, 0, Math.round(width)-1, Math.round(height)-1);
 				}
 			}
@@ -1686,8 +1689,6 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			private static const resizeBorderThickness:int = 5;
 			public static var adminMode:Boolean = false;
 			public static var activePanel:DraggablePanel = null;
-			public static var thinBorderOverlayColor:uint = 0xFFFFFF;
-			public static var thinBorderColor:uint = 0;
 			public static var thinBorderAlpha:Number = 0.1;
 			
 			/**
