@@ -542,8 +542,8 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		return queryService.queryObject.scriptOptions;
 	}, function(newValue, oldValue) {
 		// run this only if the user chooses to link the indicator
-		if($scope.service.queryObject.properties.linkedIndicator) {
-			if(newValue != oldValue) {
+		//if($scope.service.queryObject.properties.linkedIndicator) {
+			if(!angular.equals(newValue, oldValue)) {
 				var scriptOptions = newValue;
 				for(var key in scriptOptions) { 
 					var option = scriptOptions[key];
@@ -555,8 +555,32 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 						}
 					}
 				}
+				var oldScriptOptions = oldValue;
+				var newScriptOptions = newValue;
+				var flag = true;
+				for(var key in oldScriptOptions) { 
+					var option = oldScriptOptions[key];
+					if(option) {
+						if(option.hasOwnProperty("columnType")) {
+							if(option.columnType.toLowerCase() == "indicator") {
+								for(var key2 in newScriptOptions) {
+									var option2 = newScriptOptions[key2];
+									if(option2) {
+										if(option2.hasOwnProperty("columnType")) {
+											if(option2.columnType.toLowerCase() == "indicator") {
+												flag = false;
+											}
+										}
+									}
+								}
+								if(flag)
+									queryService.queryObject.Indicator = undefined;
+							}
+						}
+					}
+				}	
 			}
-		}
+		//}
 	}, true);
 
 	$scope.$watchCollection(function() {
@@ -578,7 +602,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 				return queryService.cache.scriptMetadata;
 			}, function(newValue, oldValue) {
 				// run this only if the user chooses to link the indicator
-				if($scope.service.queryObject.properties.linkedIndicator) {
+				//if($scope.service.queryObject.properties.linkedIndicator) {
 					if(newValue) {
 						scriptMetadata = newValue;
 						if(indicator && scriptMetadata) {
@@ -594,9 +618,22 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 									}
 								}
 							}
+						} else if(!indicator) {
+							for(var i in queryService.cache.scriptMetadata.inputs) {
+								var metadata = queryService.cache.scriptMetadata.inputs[i];
+								if(metadata.hasOwnProperty('type')) {
+									if(metadata.type == 'column') {
+										if(metadata.hasOwnProperty('columnType')) {
+											if(metadata.columnType.toLowerCase() == "indicator") {
+												queryService.queryObject.scriptOptions[metadata.param] = undefined;
+											}
+										}
+									}
+								}
+							}
 						}
 					}
-				}
+				//}
 			}, true);
 		}
 	}, true);
