@@ -23,7 +23,7 @@
 <mx:Button 	xmlns:mx="http://www.adobe.com/2006/mxml" 
 			label="Weave \u00A9 {(new Date()).getFullYear()} IVPR, UMass Lowell"
 			skin="{null}"
-			fontFamily="_sans"
+			fontFamily="Verdana, Tahoma, Arial"
 			fontSize="10"
 			color="#000000" 
 			useHandCursor="true"			
