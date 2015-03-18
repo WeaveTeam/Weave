@@ -509,63 +509,6 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	}, true);
 	
 	
-	//**************************************select2 sortable options handlers*******************************
-	//handler for select2sortable for script list
-	$scope.getScriptList = function(term, done) {
-		var values = queryService.cache.scriptList;
-		done($filter('filter')(values, term));
-	};
-	
-	//handlers for select2sortable for script input options
-	$scope.getTimeInputOptions = function(term, done){
-		var values = queryService.cache.columns;
-		done($filter('filter')(values,{columnType : 'time',title:term},'title'));
-	};
-	
-	var options = [];
-	$scope.test = function(index) {
-		options = queryService.cache.scriptMetadata.inputs[index].options;
-	};
-	
-	$scope.getParamOptionsForInput = function(term, done){
-		var optionsToDisplay = options;
-		done($filter('filter')(optionsToDisplay , term));
-	};
-	
-	//getting all colunms
-	$scope.getAllColumns = function(term, done) {
-		var allColumns = queryService.cache.columns;
-		done($filter('filter')(allColumns, term));
-	};
-	
-	$scope.getGeographyInputOptions = function(term, done){
-		var values = queryService.cache.columns;
-		done($filter('filter')(values,{columnType : 'geography',title:term},'title'));
-	};
-	
-	$scope.getAnalyticInputOptions = function(term, done){
-		var values = queryService.cache.columns;
-		done($filter('filter')(values,{columnType : 'analytic',title:term},'title'));
-	};
-	
-	//TODO try to use parent scope function
-	 $scope.getIndicators2 = function(term, done) {
-			var columns = queryService.cache.columns;
-			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
-	};
-	
-	$scope.getItemDefault = function(item) {
-		return item.title;
-	};
-	
-	$scope.getItemText = function(item) {
-		if(queryService.queryObject.properties.displayAsQuestions)
-				return item.description || item.title;
-		return item.title;
-	};
-	//**************************************select2 sortable options handlers END*******************************
-	
-	
 	//handles the defaults appearing in the script options selection
 	$scope.$watchCollection(function() {
 		return [queryService.cache.scriptMetadata, queryService.cache.columns];
@@ -619,7 +562,6 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	$scope.$watchCollection(function() {
 		return [queryService.queryObject.Indicator, queryService.queryObject.scriptSelected, queryService.cache.scriptMetadata];
 	}, function(newVal, oldVal) {
-		console.log(queryService.cache.scriptMetadata);
 		if(newVal != oldVal) {
 			var indicator = newVal[0];
 			var scriptSelected = newVal[1];

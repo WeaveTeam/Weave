@@ -10,28 +10,24 @@
 </div>
 
 <div class="body" style="width: 100%; height:100%; border: solid 2px; border-color: #4C4F53">
-<!-- 			<select ng-model = "filterType" ng-options = "option as option for option in uiFilterOptions"></select> -->
-	<input
-			type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
-			style="width: 100%" 
-			ng-model="model.column"
-			ng-change="getMetadata()"
-			simple-query="getFilterInputOptions"
-			data-placeholder="Filter Column"
-			allow-clear="true"
-			to-id="getItemId" to-text="getItemText">
-	</input> 
+	
+	<ui-select ng-model="model.column" theme="select2" style="width: 100%;">
+   		<ui-select-match allow-clear="true" placeholder="Select column to filter...">{{$select.selected.title}}</ui-select-match>
+		<ui-select-choices repeat="column in columns | filter : { title : $select.search }">
+      			 <div ng-bind-html="column.title | highlight: $select.search"></div>
+       	</ui-select-choices>
+	</ui-select>
 
 	<br><br>
 		<!-- multi select picker -->
  	<div ng-if="filterType == 'multiselect'">
- 		<select style = "width : 100%" 
-							ui-select2="{allowClear : true}" 
-							ng-model="model.multiSelectModel" 
-							multiple  
-							data-placeholder="Filter Values">
-   						 <option ng-repeat="filter in filterOptions" value="{{filter.value}}">{{filter.label}}</option>
-		</select>
+		<ui-select ng-model="model.multiSelectModel" multiple theme="select2" style="width: 100%;">
+   			<ui-select-match allow-clear="true" placeholder="Select column to filter...">{{$item.label}}</ui-select-match>
+			<ui-select-choices repeat="filter.value as filter in filterOptions | filter : { label : $select.search }">
+      			 <div ng-bind-html="filter.label | highlight: $select.search"></div>
+       		</ui-select-choices>
+	</ui-select>
+		
  	</div>
 		<!-- combo box picker -->
 	<div ng-if="filterType == 'combobox'" style="display: inline-block; overflow: hidden; width: 100%; height: 100%">

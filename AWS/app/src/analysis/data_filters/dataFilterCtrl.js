@@ -42,7 +42,8 @@ AnalysisModule.directive('filter', function(queryService) {
 					sliderModel : []
 			};
 			$scope.filterType = "";
-			$scope.getMetadata =  function() {
+			
+			$scope.$watch('model.column',  function() {
 				if($scope.model.column && $scope.model.column.hasOwnProperty("id")) {
 					queryService.getEntitiesById([$scope.model.column.id], true).then(function(entity) {
 						entity = entity[0];
@@ -73,7 +74,7 @@ AnalysisModule.directive('filter', function(queryService) {
 						}
 					});
 				}
-			};
+			}, true);
 			
 			/* multi select controls */
 			$scope.getMultiSelectFilterOptions = function(term, done) {
@@ -208,7 +209,6 @@ AnalysisModule.controller('dataFilterCtrl', function($scope, queryService, $filt
 	$scope.addFilter = function() {
 		queryService.cache.filterArray.push(i);
 		i++;
-		console.log("adding filter", i);
 	};
 	
 	$scope.removeFilter = function(index) {
