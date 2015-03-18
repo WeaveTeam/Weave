@@ -23,6 +23,7 @@ package weave.data.DataSources
 	import flash.net.URLRequest;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
@@ -36,11 +37,14 @@ package weave.data.DataSources
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableOwner;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.core.LinkablePromise;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.DateColumn;
@@ -65,17 +69,48 @@ package weave.data.DataSources
 
 		public function CSVDataSource()
 		{
+			registerLinkableChild(rawDataPromise, url);
 		}
 
-		public const metadata:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, typeofIsObject));
-		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const csvData:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), handleCSVDataChange);
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString, updateKeys);
 		public const keyColName:LinkableString = newLinkableChild(this, LinkableString, updateKeys);
 		
+		public const metadata:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, typeofIsObject));
 		private function typeofIsObject(value:Object):Boolean { return typeof value == 'object'; }
 		
-		private const asyncParser:CSVParser = registerLinkableChild(this, new CSVParser(true), handleCSVParser);
+		public const url:LinkableString = newLinkableChild(this, LinkableString);
+		
+		public const delimiter:LinkableString = registerLinkableChild(this, new LinkableString(',', verifyDelimiter), parseRawData);
+		private function verifyDelimiter(value:String):Boolean { return value && value.length == 1 && value != '"'; }
+		
+		private const rawDataPromise:LinkablePromise = registerLinkableChild(this, new LinkablePromise(getRawData, null, "Downloading CSV data"), parseRawData);
+		private function getRawData():AsyncToken
+		{
+			if (!url.value)
+				return null;
+			return WeaveAPI.URLRequestUtils.getURL(rawDataPromise, new URLRequest(url.value));
+		}
+		private function parseRawData():void
+		{
+			if (rawDataPromise.error)
+				reportError(rawDataPromise.error);
+			
+			if (detectLinkableObjectChange(parseRawData, delimiter))
+			{
+				if (csvParser)
+					disposeObject(csvParser);
+				csvParser = registerLinkableChild(this, new CSVParser(true, delimiter.value), handleCSVParser);
+			}
+			
+			/*if (linkableObjectIsBusy(rawDataPromise))
+				return;*/
+			
+			csvParser.parseCSV(String(rawDataPromise.result || ''));
+		}
+		
+		private var csvParser:CSVParser;
+		
 		/**
 		 * Called when csv parser finishes its task
 		 */
@@ -85,11 +120,11 @@ package weave.data.DataSources
 			if (url.value)
 			{
 				// when using url, we don't want to set session state of csvData
-				handleParsedRows(asyncParser.parseResult);
+				handleParsedRows(csvParser.parseResult);
 			}
 			else
 			{
-				csvData.setSessionState(asyncParser.parseResult);
+				csvData.setSessionState(csvParser.parseResult);
 			}
 		}
 		
@@ -313,29 +348,13 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * Called when url session state changes
-		 */		
-		protected function handleURLChange():void
-		{
-			if (detectLinkableObjectChange(handleURLChange, url) && url.value)
-			{
-				// if url is specified, do not use csvDataString
-				csvData.setSessionState(null);
-				addAsyncResponder(
-					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), URLLoaderDataFormat.TEXT),
-					handleCSVDownload,
-					handleCSVDownloadError,
-					url.value
-				);
-			}
-		}
-		
-		/**
 		 * This gets called as a grouped callback.
 		 */		
 		override protected function initialize():void
 		{
-			handleURLChange();
+			// if url is specified, do not use csvDataString
+			if (url.value)
+				csvData.setSessionState(null);
 			
 			// recalculate all columns previously requested because CSV data may have changed.
 			refreshAllProxyColumns();
@@ -408,27 +427,6 @@ package weave.data.DataSources
 			_attributeHierarchy.detectChanges();
 		}
 
-		/**
-		 * Called when the CSV data is downloaded from a URL.
-		 */
-		protected function handleCSVDownload(event:ResultEvent, token:Object = null):void
-		{
-			//debugTrace(this, "handleCSVDownload", url.value);
-			// Only handle this download if it is for current url.
-			if (token == url.value)
-			{
-				asyncParser.parseCSV(String(event.result));
-			}
-		}
-
-		/**
-		 * Called when the CSV data fails to download from a URL.
-		 */
-		protected function handleCSVDownloadError(event:FaultEvent, token:Object = null):void
-		{
-			reportError(event);
-		}
-		
 		/**
 		 * This function must be implemented by classes by extend AbstractDataSource.
 		 * This function should make a request to the source to fill in the hierarchy.
@@ -564,7 +562,7 @@ package weave.data.DataSources
 		 */		
 		private function getColumnValues(rows:Array, columnIndex:int, outputArrayOrVector:*):*
 		{
-			outputArrayOrVector.length = rows.length - 1;
+			outputArrayOrVector.length = Math.max(0, rows.length - 1);
 			var i:int;
 			if (columnIndex < 0)
 			{
