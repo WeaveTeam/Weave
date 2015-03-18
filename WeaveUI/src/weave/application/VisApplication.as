@@ -39,6 +39,7 @@ package weave.application
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.containers.Canvas;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
 	import mx.controls.Image;
@@ -671,6 +672,7 @@ package weave.application
 
 		private var menuBar:WeaveMenuBar = null;
 		private var historySlider:UIComponent = null;
+		private var spacer:Canvas = null;
 		
 		private function refreshMenu():void
 		{
@@ -688,11 +690,18 @@ package weave.application
 			if (!menuBar)
 			{
 				menuBar = new WeaveMenuBar();
+				menuBar.setStyle('backgroundColor', 0xe0e0e0);
 				this.addChildAt(menuBar, 0);
 			}
 			if (!historySlider)
 			{
 				historySlider = WeaveAPI.EditorManager.getNewEditor(Weave.history) as UIComponent;
+				historySlider.setStyle('backgroundColor', 0xe0e0e0);
+				historySlider.setStyle('backgroundAlpha', 1);
+				historySlider.setStyle('borderSides', 'top');
+				historySlider.setStyle('borderColor', 0xc0c0c0);
+				historySlider.setStyle('borderStyle', 'solid');
+				historySlider.setStyle('borderThickness', 1);
 				var shs:SessionHistorySlider = historySlider as SessionHistorySlider;
 				if (shs)
 					shs.squashActive.addImmediateCallback(this, function():void{
@@ -700,9 +709,21 @@ package weave.application
 					});
 				
 				if (historySlider)
-					this.addChildAt(historySlider, this.getChildIndex(visDesktop));
+					this.addChildAt(historySlider, 1);
 				else
 					reportError("Unable to get editor for SessionStateLog");
+			}
+			
+			if (!spacer)
+			{
+				// TODO - this functionality should be done in a ToolBarVBox class with verticalGap=1 and borderSides: 'bottom'
+				
+				spacer = new Canvas();
+				spacer.height = 1;
+	 			spacer.percentWidth = 100;
+				spacer.setStyle('backgroundAlpha', 1);
+				spacer.setStyle('backgroundColor', 0x808080);
+				this.addChildAt(spacer, this.getChildIndex(visDesktop));
 			}
 			
 			const alpha_full:Number = 1.0;
@@ -716,12 +737,16 @@ package weave.application
 				menuBar.refresh();
 			
 			// show/hide historySlider
+			historySlider.setStyle('borderStyle', showMenu ? 'solid' : 'none');
 			if (historySlider)
 			{
 				var showHistory:Boolean = Weave.properties.enableSessionHistoryControls.value || adminMode;
 				historySlider.visible = historySlider.includeInLayout = showHistory;
 				historySlider.alpha = Weave.properties.enableSessionHistoryControls.value ? alpha_full : alpha_partial;
 			}
+			
+			// show/hide spacer
+			spacer.visible = spacer.includeInLayout = showMenu || showHistory;
 		}
 
 		/**

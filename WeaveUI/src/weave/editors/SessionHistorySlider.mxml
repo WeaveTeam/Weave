@@ -27,6 +27,7 @@
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 xmlns="weave.editors.*"
 		 click="handleAnyClick();"
+		 backgroundColor="0xCCCCCC"
 		 width="100%" horizontalGap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
 		 implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject" xmlns:ui="weave.ui.*">
 	<mx:Button width="24" toolTip="{lang('Load session history from a file')}" icon="@Embed(source='/weave/resources/images/eject-inset.png')" click="load()"/> 
