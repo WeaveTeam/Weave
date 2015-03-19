@@ -99,7 +99,8 @@ package weave.data.AttributeColumns
 			if (!_dateFormat)
 			{
 				var possibleFormats:Array = weave.flascc.dates_detect(dates, DATE_FORMATS);
-				_dateFormat = possibleFormats.sortOn('length').pop();
+				StandardLib.sortOn(possibleFormats, 'length');
+				_dateFormat = possibleFormats.pop();
 			}
 			
 			_dateFormat = convertDateFormat_as_to_c(_dateFormat);
