@@ -16,17 +16,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <locale.h>
 #include "AS3/AS3.h"
 #include "tracef.h"
 
 #define DATE_FORMAT_MAX (1024)
 void date_format() __attribute((used,
-            annotate("as3sig:public function date_format(date:Date, fmt:String):String"),
+            annotate("as3sig:public function date_format(date:Date, fmt:String, locale:String = null):String"),
             annotate("as3package:weave.flascc")));
 
 void date_format()
 {
     char *fmt;
+    char *locale_str = NULL;
 
     struct tm tm;
     memset(&tm, 0, sizeof(struct tm));
@@ -40,6 +42,7 @@ void date_format()
         "%4 = date.hours;"
         "%5 = date.minutes;"
         "%6 = date.seconds;"
+        "if (locale) %7 = CModule.mallocString(locale);"
         : 
         "=r"(fmt), 
         "=r"(tm.tm_year),
@@ -47,8 +50,11 @@ void date_format()
         "=r"(tm.tm_mday),
         "=r"(tm.tm_hour),
         "=r"(tm.tm_min),
-        "=r"(tm.tm_sec)
+        "=r"(tm.tm_sec),
+        "=r"(locale_str)
     );
+
+    setlocale(LC_TIME, locale);
 
     char* output = (char*)malloc(sizeof(char)*DATE_FORMAT_MAX);
     size_t output_len;
@@ -65,6 +71,7 @@ void date_format()
 
     free(fmt);
     free(output);
+    if (locale_str) free(locale_str);
 
     AS3_ReturnAS3Var(output);
 }
