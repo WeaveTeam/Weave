@@ -20,6 +20,7 @@
 package weave.services
 {
 	import flash.events.Event;
+	import flash.utils.ByteArray;
 	
 	import mx.core.mx_internal;
 	import mx.messaging.messages.ErrorMessage;
@@ -31,6 +32,7 @@ package weave.services
 	import mx.utils.ObjectUtil;
 	
 	import weave.api.reportError;
+	import weave.utils.fixErrorMessage;
 	
 	use namespace mx_internal;
 
@@ -104,8 +106,14 @@ package weave.services
 			}
 			catch (e:Error)
 			{
-				reportError(e, null, event.result);
-				fault = new Fault(e.name, "Unable to parse result from server", e.message);
+				fixErrorMessage(e);
+				trace(e.getStackTrace());
+				//reportError(e, null, event.result);
+				var faultString:String = "Cannot read response from server";
+				if (event.result == null || (event.result is ByteArray && (event.result as ByteArray).length == 0))
+					faultString = "No response from server";
+				fault = new Fault(e.name, faultString, e.message);
+				fault.content = event.result;
 				handleFault(FaultEvent.createEvent(fault, this));
 				return;
 			}

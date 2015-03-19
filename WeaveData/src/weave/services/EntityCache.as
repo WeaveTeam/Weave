@@ -312,7 +312,7 @@ package weave.services
 		private function handleEntityHierarchyInfo(event:ResultEvent, publicMetadata:Object):void
 		{
 			var entityType:String = publicMetadata[ColumnMetadata.ENTITY_TYPE];
-			var infoArray:Array = event.result as Array;
+			var infoArray:Array = event.result as Array || [];
 			var ids:Array = new Array(infoArray.length);
 			for (var i:int = 0; i < infoArray.length; i++)
 			{

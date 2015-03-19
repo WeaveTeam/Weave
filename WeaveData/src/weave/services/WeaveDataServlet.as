@@ -111,7 +111,7 @@ package weave.services
 				if (cast is Class)
 				{
 					var result:Object = results[i];
-					if (result is (cast as Class))
+					if (result === null || result is (cast as Class))
 						continue;
 					var newResult:Object = new cast();
 					for (var key:String in result)

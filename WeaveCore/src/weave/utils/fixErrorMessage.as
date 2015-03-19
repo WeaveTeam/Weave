@@ -179,6 +179,7 @@ internal const FlashErrorCodes:Object = {
 	"2055": "The print job could not be started",
 	"2056": "The print job could not be sent to the printer",
 	"2057": "The page could not be added to the print job",
+	"2058": "There was an error decompressing the data",
 	"2059": "Security sandbox violation: cannot overwrite an ExternalInterface callback added by another domain",
 	"2060": "Security sandbox violation: ExternalInterface caller cannot access the other domain",
 	"2061": "No ExternalInterface callback registered under that name",
