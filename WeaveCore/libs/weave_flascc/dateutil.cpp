@@ -70,7 +70,7 @@ void date_format()
 }
 
 void date_parse() __attribute((used,
-            annotate("as3sig:public function date_parse(date:String, fmt:String):Date"),
+            annotate("as3sig:public function date_parse(date:String, fmt:String, utc:Boolean = false):Date"),
             annotate("as3package:weave.flascc")));
 
 void date_parse()
@@ -86,11 +86,15 @@ void date_parse()
 
     struct tm tm;
     memset(&tm, 0, sizeof(struct tm));
+    tm.tm_mday = 1;
 
     if (strptime(date_str, fmt, &tm))
     {
 		inline_nonreentrant_as3(
-			"output = new Date(%0,%1,%2,%3,%4,%5);"
+			"if (utc)"
+			"    output = new Date(Date.UTC(%0,%1,%2,%3,%4,%5));"
+			"else"
+			"    output = new Date(%0,%1,%2,%3,%4,%5);"
 			: : "r"(tm.tm_year + 1900),
 			 "r"(tm.tm_mon),
 			 "r"(tm.tm_mday),
