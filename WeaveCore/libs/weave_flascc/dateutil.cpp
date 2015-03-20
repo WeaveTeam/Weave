@@ -16,24 +16,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <locale.h>
 #include "AS3/AS3.h"
 #include "tracef.h"
 
 #define DATE_FORMAT_MAX (1024)
 void date_format() __attribute((used,
-            annotate("as3sig:public function date_format(date:Date, fmt:String, locale:String = null):String"),
+            annotate("as3sig:public function date_format(date:Date, fmt:String):String"),
             annotate("as3package:weave.flascc")));
 
 void date_format()
 {
     char *fmt;
-    char *locale_str = NULL;
 
     struct tm tm;
     memset(&tm, 0, sizeof(struct tm));
     
-    inline_nonreentrant_as3(
+    inline_as3(
         "var output:String = null;"
         "%0 = CModule.mallocString(fmt);"
         "%1 = date.fullYear - 1900;"
@@ -42,7 +40,6 @@ void date_format()
         "%4 = date.hours;"
         "%5 = date.minutes;"
         "%6 = date.seconds;"
-        "if (locale) %7 = CModule.mallocString(locale);"
         : 
         "=r"(fmt), 
         "=r"(tm.tm_year),
@@ -50,11 +47,8 @@ void date_format()
         "=r"(tm.tm_mday),
         "=r"(tm.tm_hour),
         "=r"(tm.tm_min),
-        "=r"(tm.tm_sec),
-        "=r"(locale_str)
+        "=r"(tm.tm_sec)
     );
-
-    setlocale(LC_TIME, locale);
 
     char* output = (char*)malloc(sizeof(char)*DATE_FORMAT_MAX);
     size_t output_len;
@@ -71,7 +65,6 @@ void date_format()
 
     free(fmt);
     free(output);
-    if (locale_str) free(locale_str);
 
     AS3_ReturnAS3Var(output);
 }
@@ -84,10 +77,12 @@ void date_parse()
 {
     char *date_str;
     char *fmt;
-    inline_nonreentrant_as3(
+    inline_as3(
+        "if (!date)"
+        "	return null;"
         "var output:Date = null;"
-        "%0 = CModule.mallocString(date);"
-        "%1 = CModule.mallocString(fmt);"
+        "%0 = CModule.mallocString(date + '%%');"
+        "%1 = CModule.mallocString(fmt + '%%');"
         : "=r"(date_str), "=r"(fmt)
     );
 
@@ -95,7 +90,7 @@ void date_parse()
     memset(&tm, 0, sizeof(struct tm));
     tm.tm_mday = 1;
 
-    if (strptime(date_str, fmt, &tm))
+    if (strptime(date_str, fmt, &tm) == date_str + strlen(date_str))
     {
 		inline_nonreentrant_as3(
 			"if (utc)"
@@ -126,29 +121,22 @@ void dates_detect() __attribute((used,
 
 void dates_detect()
 {
-    size_t dates_n = 0;
-    size_t formats_n = 0;
-    char** dates;
-    char** formats;
+    size_t dates_n;
+    size_t formats_n;
+    AS3_GetScalarFromVar(dates_n, dates.length);
+    AS3_GetScalarFromVar(formats_n, formats.length);
 
-    inline_nonreentrant_as3(
-            "%0 = dates.length;"
-            "%1 = formats.length;"
-            "var dates_ptr:int = CModule.malloc(dates.length * 4);"
-            "var formats_ptr:int = CModule.malloc(formats.length * 4);"
-            "%2 = dates_ptr;"
-            "%3 = formats_ptr;"
-            : "=r"(dates_n), "=r"(formats_n), "=r"(dates), "=r"(formats)
-    );
+    char* dates[dates_n];
+    char* formats[formats_n];
 
     size_t idx;
     char* tmp;
 
     for (idx = 0; idx < dates_n; idx++)
     {
-        inline_nonreentrant_as3(
+        inline_as3(
                 "var date:String = dates[%1] as String;"
-                "%0 = date ? CModule.mallocString(date) : 0;"
+                "%0 = date ? CModule.mallocString(date + '%%') : 0;"
                 : "=r"(tmp) : "r"(idx)
         );
         dates[idx] = tmp;
@@ -156,8 +144,9 @@ void dates_detect()
 
     for (idx = 0; idx < formats_n; idx++)
     {
-        inline_nonreentrant_as3(
-                "%0 = CModule.mallocString(formats[%1] as String || '');"
+        inline_as3(
+                "var fmt:String = formats[%1] as String || '';"
+                "%0 = CModule.mallocString(fmt + '%%');"
                 : "=r"(tmp) : "r"(idx)
         );
         formats[idx] = tmp;
@@ -167,10 +156,7 @@ void dates_detect()
 
     /* Free the dates */
     for (idx = 0; idx < dates_n; idx++)
-    {
         free(dates[idx]);
-    }
-    free(dates);
 
     inline_nonreentrant_as3(
             "var output:Array = new Array(%0)"
@@ -180,7 +166,7 @@ void dates_detect()
     size_t len;
     for (idx = 0; idx < formats_n; idx++)
     {
-        len = strlen(formats[idx]);
+        len = strlen(formats[idx]) - 1; // subtract 1 to account for added '%'
         inline_as3(
                 "ram.position = %0;"
                 "var formatStr:String = ram.readUTFBytes(%1);"
@@ -189,7 +175,6 @@ void dates_detect()
         );
         free(formats[idx]);
     }
-    free(formats);
     AS3_ReturnAS3Var(output);
 }
 
