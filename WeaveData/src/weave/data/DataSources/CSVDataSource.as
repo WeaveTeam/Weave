@@ -520,6 +520,7 @@ package weave.data.DataSources
 			
 			var strings:Vector.<String> = getColumnValues(parsedRows, colIndex, new Vector.<String>());
 			var numbers:Vector.<Number> = null;
+			var dateFormats:Array = null;
 			
 			if (!keysVector || strings.length != keysVector.length)
 			{
@@ -528,9 +529,17 @@ package weave.data.DataSources
 			}
 			
 			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
+
 			if (dataType == null || dataType == DataType.NUMBER)
+			{
 				numbers = stringsToNumbers(strings, dataType == DataType.NUMBER);
-			
+			}
+
+			if (dataType == null || dataType == DataType.DATE)
+			{
+				dateFormats = DateColumn.suggestDateFormats(strings);
+			}
+
 			var newColumn:IAttributeColumn;
 			if (numbers)
 			{
@@ -539,7 +548,7 @@ package weave.data.DataSources
 			}
 			else
 			{
-				if (dataType == DataType.DATE)
+				if (dataType == DataType.DATE || (dateFormats && dateFormats.length > 0))
 				{
 					newColumn = new DateColumn(metadata);
 					(newColumn as DateColumn).setRecords(keysVector, strings);
@@ -578,7 +587,7 @@ package weave.data.DataSources
 			}
 			return outputArrayOrVector;
 		}
-		
+
 		private function stringsToNumbers(strings:Vector.<String>, forced:Boolean):Vector.<Number>
 		{
 			var numbers:Vector.<Number> = new Vector.<Number>(strings.length);
