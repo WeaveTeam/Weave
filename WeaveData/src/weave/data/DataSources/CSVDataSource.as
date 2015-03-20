@@ -93,6 +93,9 @@ package weave.data.DataSources
 		}
 		private function parseRawData():void
 		{
+			if (!url.value)
+				return;
+			
 			if (rawDataPromise.error)
 				reportError(rawDataPromise.error);
 			
