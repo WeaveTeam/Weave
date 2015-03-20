@@ -30,6 +30,7 @@ package weave.api.services.beans
 				ColumnMetadata.PROJECTION,
 				ColumnMetadata.AGGREGATION,
 				ColumnMetadata.DATE_FORMAT,
+				ColumnMetadata.OVERRIDE_BINS,
 				ColumnMetadata.MIN,
 				ColumnMetadata.MAX,
 				'year'

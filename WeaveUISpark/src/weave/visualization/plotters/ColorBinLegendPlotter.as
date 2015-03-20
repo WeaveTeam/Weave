@@ -211,7 +211,7 @@ package weave.visualization.plotters
 			if (internalColorColumn == null)
 				return; // draw nothing
 			var binnedColumn:BinnedColumn = internalColorColumn.getInternalColumn() as BinnedColumn;
-			if (binnedColumn && binnedColumn.binningDefinition.internalObject)
+			if (binnedColumn && binnedColumn.numberOfBins)
 				drawBinnedPlot(recordKeys, dataBounds, screenBounds, destination);
 			else
 				drawContinuousPlot(recordKeys, dataBounds, screenBounds, destination);

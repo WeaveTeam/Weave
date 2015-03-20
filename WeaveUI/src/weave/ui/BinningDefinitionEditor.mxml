@@ -249,6 +249,8 @@
 				if (!binnedColumn)
 					return;
 				
+				var binsOverridden:Boolean = binnedColumn.binningDefinition.binsOverridden;
+				
 				// find the radio button with the same binning definition type
 				var def:IBinningDefinition = binnedColumn.binningDefinition.internalObject as IBinningDefinition;
 				var foundType:Boolean = false;
@@ -267,11 +269,11 @@
 						break;
 					}
 				}
-				radioVBox.enabled = foundType;
-				binNameEditor.alpha = foundType && localDef ? 1 : .5;
+				radioVBox.enabled = foundType && !binsOverridden;
+				binNameEditor.alpha = foundType && localDef ? 1 : .5; // translucent when no binning definition is given
 				var abd:AbstractBinningDefinition = def as AbstractBinningDefinition;
-				overrideNamesCheckBox.includeInLayout = overrideNamesCheckBox.visible = abd && abd.overrideBinNames;
-				overrideInputRangeBox.includeInLayout = overrideInputRangeBox.visible = abd && abd.overrideInputMin;
+				overrideNamesCheckBox.includeInLayout = overrideNamesCheckBox.visible = abd && abd.overrideBinNames && !binsOverridden;
+				overrideInputRangeBox.includeInLayout = overrideInputRangeBox.visible = abd && abd.overrideInputMin && !binsOverridden;
 				
 				// update bin names
 				gridSource.source = binnedColumn.binningDefinition.getBinNames();
@@ -279,6 +281,11 @@
 					overrideNamesCheckBox.selected = true;
 				else
 					overrideNamesCheckBox.selected = false;
+				
+				if (binsOverridden)
+					radioVBox.toolTip = lang('The binning cannot be changed because this attribute column specifies the "overrideBins" metadata.');
+				else
+					radioVBox.toolTip = null;
 			}
 			
 			// called when the 'bin name override' checkbox is clicked

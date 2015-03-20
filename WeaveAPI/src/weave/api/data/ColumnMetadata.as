@@ -31,6 +31,7 @@ package weave.api.data
 		public static const PROJECTION:String = "projection";
 		public static const AGGREGATION:String = "aggregation";
 		public static const DATE_FORMAT:String = "dateFormat";
+		public static const OVERRIDE_BINS:String = "overrideBins";
 		public static const MIN:String = "min";
 		public static const MAX:String = "max";
 		

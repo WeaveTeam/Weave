@@ -28,6 +28,8 @@ package weave.data.AttributeColumns
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
+	import weave.data.BinClassifiers.NumberClassifier;
 	import weave.data.BinningDefinitions.CategoryBinningDefinition;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;
 	import weave.data.BinningDefinitions.SimpleBinningDefinition;
@@ -54,7 +56,8 @@ package weave.data.AttributeColumns
 		 */
 		override public function getMetadata(propertyName:String):String
 		{
-			if (binningDefinition.internalObject)
+			validateBins();
+			if (_binClassifiers && _binClassifiers.length)
 			{
 				switch (propertyName)
 				{
@@ -109,8 +112,10 @@ package weave.data.AttributeColumns
 						_binnedKeysMap[_binNames[i]] = _binnedKeysArray[i] = []; // same Array pointer
 				_keys = internalDynamicColumn.keys;
 				_i = 0;
-				// hack: assuming bin classifiers are NumberClassifiers except for CategoryBinningDefinition
-				_dataType = binningDefinition.internalObject is CategoryBinningDefinition ? String : Number;
+				if (StandardLib.getArrayType(_binClassifiers) == NumberClassifier)
+					_dataType = Number;
+				else
+					_dataType = String;
 				// fill all mappings
 				if (_column && _binClassifiers)
 				{
@@ -221,7 +226,7 @@ package weave.data.AttributeColumns
 		{
 			validateBins();
 			
-			if (_binNames.length == 0 && !binningDefinition.internalObject)
+			if (!_binClassifiers || !_binClassifiers.length)
 				return super.getValueFromKey(key, dataType);
 			
 			var binIndex:Number = Number(_keyToBinIndexMap[key]); // undefined -> NaN
@@ -255,7 +260,7 @@ package weave.data.AttributeColumns
 		{
 			validateBins();
 			
-			if (_binNames.length == 0 && !binningDefinition.internalObject)
+			if (!_binClassifiers || !_binClassifiers.length)
 				return ColumnUtils.deriveStringFromNumber(internalDynamicColumn, value);
 			
 			try
