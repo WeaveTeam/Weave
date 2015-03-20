@@ -166,6 +166,7 @@ app.value('adminServiceURL', '/WeaveServices/AdminService');
 app.value('projectManagementURL', '/WeaveAnalystServices/ProjectManagementServlet');
 app.value('scriptManagementURL', '/WeaveAnalystServices/ScriptManagementServlet');
 app.value('computationServiceURL', '/WeaveAnalystServices/ComputationalServlet');
+app.value('WeaveDataSource', 'WeaveDataSource');
 
 app.controller('AWSController', function($scope, $state, authenticationService) {
 	//for ng-route
