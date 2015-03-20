@@ -100,7 +100,7 @@ package weave.data.AttributeColumns
 			_dateFormat = getMetadata(ColumnMetadata.DATE_FORMAT);
 			if (!_dateFormat)
 			{
-				var possibleFormats:Array = weave.flascc.dates_detect(dates, DATE_FORMATS);
+				var possibleFormats:Array = detectDateFormats(dates);
 				StandardLib.sortOn(possibleFormats, 'length');
 				_dateFormat = possibleFormats.pop();
 			}
@@ -334,12 +334,15 @@ package weave.data.AttributeColumns
 			//,'S','%-S'
 		];
 		
-		public static function suggestDateFormats(dates:*):Array
+		public static function detectDateFormats(dates:*):Array
 		{
-			return weave.flascc.dates_detect(dates, DATE_FORMATS);
+			return weave.flascc.dates_detect(dates, DATE_FORMAT_AUTO_DETECT);
 		}
 		
-		public static const DATE_FORMATS:Array = [
+		public static const DATE_FORMAT_ADDITIONAL_SUGGESTIONS:Array = [
+			"%Y"
+		];
+		public static const DATE_FORMAT_AUTO_DETECT:Array = [
 			'%d-%b-%y',
 			'%b-%d-%y',
 			'%d-%b-%Y',
@@ -381,17 +384,10 @@ package weave.data.AttributeColumns
 			'%a, %d %b %Y %H:%M:%S %z', // RFC_822
 			
 			// ISO_8601   http://www.thelinuxdaily.com/2014/03/c-function-to-validate-iso-8601-date-formats-using-strptime/
-			"%Y",
-			"%Y-%m",
-			"%y-%m",
 			"%Y-%m-%d",
 			"%y-%m-%d",
-			"%Y%m%d",
-			"%y%m%d",
 			"%Y-%m-%d %T",
 			"%y-%m-%d %T",
-			"%Y%m%d%H%M%S",
-			"%y%m%d%H%M%S",
 			"%Y-%m-%dT%T",
 			"%y-%m-%dT%T",
 			"%Y-%m-%dT%TZ",

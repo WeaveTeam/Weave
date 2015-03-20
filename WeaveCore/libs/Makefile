@@ -30,7 +30,7 @@ check:
 	fi
 
 weave_flascc.swc: $(wildcard weave_flascc/*)
-	"$(FLASCC)/usr/bin/g++" $(BASE_CFLAGS) -flto-api=weave_flascc/exports.txt -O4 weave_flascc/*.cpp -emit-swc=weave.flascc -o $@
+	"$(FLASCC)/usr/bin/g++" $(BASE_CFLAGS) -flto-api=weave_flascc/exports.txt -O4 weave_flascc/*.cpp weave_flascc/*.c -emit-swc=weave.flascc -o $@
 	
 #.SECONDEXPANSION:
 #%.swc: $$(wildcard %/*)

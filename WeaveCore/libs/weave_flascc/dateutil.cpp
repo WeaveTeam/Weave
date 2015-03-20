@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "strptime2.h"
 #include "AS3/AS3.h"
 #include "tracef.h"
 
@@ -81,8 +82,8 @@ void date_parse()
         "if (!date)"
         "	return null;"
         "var output:Date = null;"
-        "%0 = CModule.mallocString(date + '%%');"
-        "%1 = CModule.mallocString(fmt + '%%');"
+        "%0 = CModule.mallocString(date);"
+        "%1 = CModule.mallocString(fmt);"
         : "=r"(date_str), "=r"(fmt)
     );
 
@@ -90,7 +91,7 @@ void date_parse()
     memset(&tm, 0, sizeof(struct tm));
     tm.tm_mday = 1;
 
-    if (strptime(date_str, fmt, &tm) == date_str + strlen(date_str))
+    if (strptime2(date_str, fmt, &tm) == date_str + strlen(date_str))
     {
 		inline_nonreentrant_as3(
 			"if (utc)"
@@ -136,7 +137,7 @@ void dates_detect()
     {
         inline_as3(
                 "var date:String = dates[%1] as String;"
-                "%0 = date ? CModule.mallocString(date + '%%') : 0;"
+                "%0 = date ? CModule.mallocString(date) : 0;"
                 : "=r"(tmp) : "r"(idx)
         );
         dates[idx] = tmp;
@@ -146,7 +147,7 @@ void dates_detect()
     {
         inline_as3(
                 "var fmt:String = formats[%1] as String || '';"
-                "%0 = CModule.mallocString(fmt + '%%');"
+                "%0 = CModule.mallocString(fmt);"
                 : "=r"(tmp) : "r"(idx)
         );
         formats[idx] = tmp;
@@ -166,7 +167,7 @@ void dates_detect()
     size_t len;
     for (idx = 0; idx < formats_n; idx++)
     {
-        len = strlen(formats[idx]) - 1; // subtract 1 to account for added '%'
+        len = strlen(formats[idx]);
         inline_as3(
                 "ram.position = %0;"
                 "var formatStr:String = ram.readUTFBytes(%1);"
@@ -192,11 +193,13 @@ size_t dates_detect_c(char* dates[], size_t dates_n, char* formats[], size_t *fo
 {
     /* fmt_idx needs to be int so we can let it go negative */
     int row_idx, fmt_idx;
+    char* date;
     size_t formats_remaining = *formats_n;
     struct tm tmp_time;
     for (row_idx = 0; row_idx < dates_n; row_idx++)
     {
-        if (dates[row_idx] == NULL)
+    	date = dates[row_idx];
+        if (date == NULL)
         	continue;
         for (fmt_idx = 0; fmt_idx < formats_remaining; fmt_idx++)
         {
@@ -206,7 +209,7 @@ size_t dates_detect_c(char* dates[], size_t dates_n, char* formats[], size_t *fo
                 break;
             }
             //tracef("strptime(%s, %s, ...)\n", dates[row_idx], formats[fmt_idx]);
-            if (strptime(dates[row_idx], formats[fmt_idx], &tmp_time) == NULL)
+            if (strptime2(date, formats[fmt_idx], &tmp_time) != date + strlen(date))
             {
                 /*
                  * Put the last entry in this slot, make the last entry NULL,
