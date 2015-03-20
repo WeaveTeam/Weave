@@ -535,9 +535,9 @@ package weave.data.DataSources
 				numbers = stringsToNumbers(strings, dataType == DataType.NUMBER);
 			}
 
-			if (dataType == null || dataType == DataType.DATE)
+			if ((!numbers && dataType == null) || dataType == DataType.DATE)
 			{
-				dateFormats = DateColumn.suggestDateFormats(strings);
+				dateFormats = DateColumn.detectDateFormats(strings);
 			}
 
 			var newColumn:IAttributeColumn;
