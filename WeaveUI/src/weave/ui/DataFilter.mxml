@@ -112,13 +112,13 @@
 				subMenuButton.data = [
 					{
 						data: StringDataFilter,
-						label: lang("String filter"),
+						label: lang("String filter (Combo box)"),
 						click: onClick,
 						type: WeaveMenuItem.TYPE_RADIO,
 						toggled: isToggled
 					},{
 						data: NumberDataFilter,
-						label: lang("Number filter"),
+						label: lang("Number filter (Dual slider)"),
 						click: onClick,
 						type: WeaveMenuItem.TYPE_RADIO,
 						toggled: isToggled
