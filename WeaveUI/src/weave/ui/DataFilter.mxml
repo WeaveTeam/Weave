@@ -28,13 +28,16 @@
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeyFilter;
 			import weave.api.getSessionState;
 			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IVisTool;
+			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableWatcher;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
@@ -42,10 +45,37 @@
 			import weave.utils.ColumnUtils;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataFilter, "Data Filter");
+			
+			public const editor:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ILinkableObjectEditor), handleEditor, true);
+			
+			private function getEditor():ILinkableObjectEditor
+			{
+				return editor.internalObject as ILinkableObjectEditor;
+			}
+			private function handleEditor():void
+			{
+				var _editor:ILinkableObjectEditor = getEditor();
+				if (!_editor.parent)
+					addChild(_editor as DisplayObject);
+			}
 
-			private var _editor:ILinkableObjectEditor;
 			private var _globalName:String;
-			private const _filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handlePanelTitleChange, true);
+			private const _filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleFilterWatcher, true);
+			
+			private function handleFilterWatcher():void
+			{
+				var _editor:ILinkableObjectEditor = getEditor();
+				if (!_editor)
+				{
+					var editorClass:Class = WeaveAPI.EditorManager.getEditorClass(keyFilter);
+					if (editorClass)
+						_editor = editor.requestLocalObject(editorClass, false);
+				}
+				if (_editor)
+					_editor.setTarget(keyFilter);
+
+				handlePanelTitleChange();
+			}
 			
 			private function get globalName():String
 			{
@@ -108,6 +138,7 @@
 			
 			private function setFilterType(type:Class):void
 			{
+				editor.removeObject();
 				var state:Object = filterColumn && getSessionState(filterColumn);
 				Weave.defaultSubsetKeyFilter.filters.requestObject(globalName, type, false) as IKeyFilter;
 				if (filterColumn && state)
@@ -116,20 +147,7 @@
 			
 			private function handleFilters():void
 			{
-				if (Weave.defaultSubsetKeyFilter.filters.childListCallbacks.lastNameRemoved == globalName)
-				{
-					if (_editor && _editor.parent == this)
-						this.removeChild(_editor as DisplayObject);
-					_editor = null;
-				}
-				
-				var filter:IKeyFilter = keyFilter;
-				if (filter && !_editor)
-				{
-					_editor = WeaveAPI.EditorManager.getNewEditor(filter);
-					addChild(_editor as DisplayObject);
-				}
-				_filterWatcher.target = filter;
+				_filterWatcher.target = keyFilter;
 			}
 			
 			override public function get defaultPanelTitle():String
