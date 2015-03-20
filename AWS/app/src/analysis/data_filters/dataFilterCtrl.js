@@ -84,7 +84,8 @@ AnalysisModule.directive('filter', function(queryService) {
 			});
 			
 			/* combo box controls    */
-			$scope.$watchCollection('model.comboboxModel', function (newVal, oldVal) {
+			$scope.$watchCollection('model.comboboxModel', function () {
+				
 				var model = $scope.model.comboboxModel;
 				if(!model.length)
 					return;
@@ -121,9 +122,9 @@ AnalysisModule.directive('filter', function(queryService) {
 			 * internal model accordingly
 			 *
 			 */
-//			$scope.$watch('ngModel', function(newVal, oldVal) {
+//			$scope.$watch('queryService.queryObject.filters', function(newVal, oldVal) {
 //				
-//				if(!newVal.v.length || !oldVal.v.length || angular.equals(newVal, oldVal))
+//				if(!newVal && !oldVal && angular.equals(newVal, oldVal))
 //					return;
 //				// check the column id to find out the ui type.
 //				var model = $scope.ngModel;
