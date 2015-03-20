@@ -23,15 +23,12 @@
 <!-- 			<option ng-repeat="dt in options" value="{{dt}}">{{dt.title}}</option> -->
 <!-- 			</select> -->
 			
-			<select style = "width : 100%" 
-								ui-select2="{allowClear : true}" 
-								ng-model="tool.columns" 
-							multiple  
-							data-placeholder="Choose Column(s)">
-					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
-  					</optgroup>
-			</select>
+			<ui-select ng-model="tool.columns" multiple theme="select2" style="width: 100%;">
+		    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$item.name}}</ui-select-match>
+				<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { name : $select.search }">
+		       		 <div ng-bind-html="column.name | highlight: $select.search"></div>
+		        </ui-select-choices>
+			</ui-select>
 
 			<!--<span>Data Table</span>
 			<select ui-select2-"{allowClear : true}" ng-model="dataTable" style=width:200px;>

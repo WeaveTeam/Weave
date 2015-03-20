@@ -1,16 +1,31 @@
-<div class="panel-body" ng-controller="timePeriodCtrl">
+<div class=" header panel-heading" style="margin-bottom: 0px">
+	<h2>Generic Filter</h2>
+
+	<a href="javascript: void(0)" 
+		class="close-button" data-trigger="hover" placement="right" title="Remove"
+		ng-click="$parent.removeFilter($parent.$index)"	
+	> 
+		<i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> 
+	</a>
+</div>
+
+<div class="panel-body">
 	<ul class="input-controls">
 	<div style="display: inline">
 		<div style="display: inline-block; margin-bottom: 10px">
-				<select style="width: 100%" ui-select2 ng-model="service.queryObject.TimePeriodFilter.yearColumn" data-placeholder="Year Column">
-					<option></option>
-					<option value="{{col}}" ng-repeat="col in service.cache.columns | filter : {columnType : 'time'}">{{col.title}}</option>
-				</select>
+			<ui-select ng-model="model.firstLevel" theme="select2" style="width: 100%;">
+		   		<ui-select-match allow-clear="true" placeholder="First Level">{{$select.selected.title}}</ui-select-match>
+				<ui-select-choices repeat="col in columnOptions | filter : {columnType : 'time'}">
+		      			 <div ng-bind-html="column.title | highlight: $select.search"></div>
+		       	</ui-select-choices>
+			</ui-select>
 		<div style="display: inline-block; padding-left: 0px; margin-top: 2px;">
-			<select style="width: 100%;" ui-select2 ng-model="service.queryObject.TimePeriodFilter.monthColumn" data-placeholder="Month Column">
-				<option></option>
-				<option value="{{col}}" ng-repeat="col in service.cache.columns | filter : {columnType : 'time'}">{{col.title}}</option>
-			</select>	
+			<ui-select ng-model="model.secondLevel" theme="select2" style="width: 100%;">
+		   		<ui-select-match allow-clear="true" placeholder="Second Level">{{$select.selected.title}}</ui-select-match>
+				<ui-select-choices repeat="col in columnOptions | filter : {columnType : 'time'}">
+		      			 <div ng-bind-html="column.title | highlight: $select.search"></div>
+		       	</ui-select-choices>
+			</ui-select>
 		</div>
 	</div>
 		<br>

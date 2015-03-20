@@ -32,14 +32,12 @@
 				</td>
 			
 				<td style="padding-left: 5px;">
-					<select style = "width : 100%" 
-								ui-select2="{allowClear : true}" 
-							ng-model="tool.X" 
-							data-placeholder="Choose Column">
-						<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
-	  					</optgroup>
-					</select>
+					<ui-select ng-model="tool.X" theme="select2" style="width: 100%;">
+				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$select.selected.name}}</ui-select-match>
+						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { name : $select.search }">
+				       		 <div ng-bind-html="column.name | highlight: $select.search"></div>
+				        </ui-select-choices>
+					</ui-select>
 				</td>
 			</tr>
 		
@@ -50,14 +48,12 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-				<select style = "width : 100%" 
-								ui-select2="{allowClear : true}" 
-							ng-model="tool.Y" 
-							data-placeholder="Choose Column">
-						<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
-	  					</optgroup>
-					</select>
+				<ui-select ng-model="tool.Y" theme="select2" style="width: 100%;">
+			    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$select.selected.name}}</ui-select-match>
+					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { name : $select.search }">
+			       		 <div ng-bind-html="column.name | highlight: $select.search"></div>
+			        </ui-select-choices>
+				</ui-select>
 			</td>
 		</tr>
 	</table>

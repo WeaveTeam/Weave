@@ -48,6 +48,8 @@
 	position: inherit !important;
 }
 
+.ui-slider-range { background: #729fcf; }
+
 .search-script .search-script-div {
 	display: block;
 	padding: 0px;

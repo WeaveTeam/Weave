@@ -2,46 +2,41 @@
 		
 	<div style="padding:20px">
 		<br>
-		<input style="width:20%" type="hidden" ui-select2-sortable
-			ng-model="queryService.queryObject.dataTable"
-			simple-query="getDataTable"
-			data-placeholder="Select Data Table"
-			allow-clear="true"
-			to-id="getItemId" to-text="getItemText"
-		>
 		
+		<ui-select ng-model="queryService.queryObject.dataTable" theme="select2" style="width: 20%;">
+		    <ui-select-match allow-clear="true" placeholder="Select a data table...">{{$select.selected.title}}</ui-select-match>
+			<ui-select-choices repeat="dataTable in queryService.cache.dataTableList | filter : { title : $select.search }">
+			       		 <div ng-bind-html="dataTable.title | highlight: $select.search"></div>
+			        </ui-select-choices>
+		</ui-select>
+
+		<ui-select ng-model="queryService.crossTabQuery.filters[0].column" theme="select2" style="width: 10%;">
+	    	<ui-select-match allow-clear="true" placeholder="Filter By...">{{$select.selected.title}}</ui-select-match>
+			<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search }">
+	       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+	        </ui-select-choices>
+		</ui-select>
 		
-		<input style="width:10%" type="hidden" ui-select2-sortable
-			ng-model="queryService.crossTabQuery.filters[0].column"
-			simple-query="getColumns"
-			data-placeholder="Filter By"
-			allow-clear="true"
-			to-id="getItemId" to-text="getItemText"
-		>
-		<input style="width:10%" type="hidden" ui-select2-sortable
-			ng-model="queryService.crossTabQuery.filters[0].option"
-			simple-query="getFirstFilterOptions"
-			data-placeholder="Value"
-			allow-clear="true"
-			to-id="getFilterId" to-text="getFilterText"
-		>
-		<input style="width:10%" type="hidden" ui-select2-sortable
-			ng-model="queryService.crossTabQuery.filters[1].column"
-			simple-query="getColumns"
-			data-placeholder="Filter By"
-			allow-clear="true"
-			to-id="getItemId" to-text="getItemText"
-		>
-		<input style="width:10%" type="hidden" ui-select2-sortable
-			ng-model="queryService.crossTabQuery.filters[1].option"
-			simple-query="getSecondFilterOptions"
-			data-placeholder="Value"
-			allow-clear="true"
-			to-id="getFilterId" to-text="getFilterText"
-		>
+		<ui-select ng-model="queryService.crossTabQuery.filters[0].option" theme="select2" style="width: 10%;">
+	    	<ui-select-match allow-clear="true" placeholder="Value">{{$select.selected.label}}</ui-select-match>
+			<ui-select-choices repeat="filterOption in firstFilterMetadata | filter : { label : $select.search }">
+	       		 <div ng-bind-html="filterOption.label | highlight: $select.search"></div>
+	        </ui-select-choices>
+		</ui-select>
 		
+		<ui-select ng-model="queryService.crossTabQuery.filters[1].column" theme="select2" style="width: 10%;">
+	    	<ui-select-match allow-clear="true" placeholder="Filter By...">{{$select.selected.title}}</ui-select-match>
+			<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search }">
+	       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+	        </ui-select-choices>
+		</ui-select>
 		
-		
+		<ui-select ng-model="queryService.crossTabQuery.filters[1].option" theme="select2" style="width: 10%;">
+	    	<ui-select-match allow-clear="true" placeholder="Value">{{$select.selected.label}}</ui-select-match>
+			<ui-select-choices repeat="filterOption in secondFilterMetadata | filter : { label : $select.search }">
+	       		 <div ng-bind-html="filterOption.label | highlight: $select.search"></div>
+	        </ui-select-choices>
+		</ui-select>
 		
 		<div class="row" style="clear: both">
 			<div class="databox" style="width: 100%; padding:20px; height:50%">
@@ -52,14 +47,16 @@
 				<div class="body" style="width: 100%">
 					<h5 class="widget-description "><i style="font-size: 12px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i>{{rowInfo}}</h5>
 					<div class="">
-						<input type="hidden" popover="Select Indicator" ui-select2-sortable
-							style="width: 100%" ng-model="queryService.crossTabQuery.row"
-							simple-query="getIndicators"
-							data-placeholder="Choose Indicator"
-							allow-clear="true"
-							to-id="getItemId" to-text="getItemText">
-						</input>
-						
+						<ui-select ng-model="queryService.crossTabQuery.row" theme="select2"  style="width : 100%">
+					    	<ui-select-match allow-clear="true" placeholder="Choose Indicator...">{{$select.selected.description || $select.selected.title}}</ui-select-match>
+							<ui-select-choices repeat="column in queryService.cache.columns | filter : { columnType : 'indicator', title : $select.search }">
+					       		 <b ng-bind-html="column.title | highlight: $select.search"></b>
+					       		 <small>
+					       		 	{{column.description}}
+					       		 </small>
+					        </ui-select-choices>
+						</ui-select>
+					
 						<table border="border: 1px solid #0000FF"  ng-show="rVarValues" style="width:100%; padding-top:10px">
 							<tr> 
 								<td  align="center">
@@ -88,15 +85,15 @@
 				<div class="body" style="width: 100%">
 					<h5 class="widget-description "><i style="font-size: 12px; padding-right: 5px" class="glyphicon glyphicon-info-sign"></i>{{columnInfo}}</h5>
 					<div class="">
-						<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
-							style="width: 100%" ng-model="queryService.crossTabQuery.column"
-							simple-query="getIndicators"
-							data-placeholder="Choose Indicator"
-							allow-clear="true"
-							to-id="getItemId" to-text="getItemText"
-							ng-disabled="!queryService.crossTabQuery.row">
-						</input>
-						
+						<ui-select ng-model="queryService.crossTabQuery.column" theme="select2" style="width : 100%">
+					    	<ui-select-match allow-clear="true" placeholder="Choose Indicator...">{{$select.selected.description || $select.selected.title}}</ui-select-match>
+							<ui-select-choices repeat="column in queryService.cache.columns | filter : { columnType : 'indicator', title : $select.search }">
+					       		 <b ng-bind-html="column.title | highlight: $select.search"></b>
+					       		 <small>
+					       		 	{{column.description}}
+					       		 </small>
+					        </ui-select-choices>
+						</ui-select>
 						<table border="border: 1px solid #0000FF"  ng-show="cVarValues" style="width:100%; padding-top:10px">
 							<tr> 
 								<td  align="center">
@@ -131,14 +128,15 @@
 									<b>Control 1: </b>
 								</td>
 								<td align="left">
-									<input style="width:80%" type="hidden" ui-select2-sortable
-										style="width: 100%" ng-model="queryService.crossTabQuery.control1"
-										simple-query="getIndicators"
-										data-placeholder="Select Control"
-										allow-clear="true"
-										to-id="getItemId" to-text="getItemText"
-										ng-disabled="!queryService.crossTabQuery.column"
-									>
+									<ui-select ng-model="queryService.crossTabQuery.control1" theme="select2"  style="width : 100%">
+								    	<ui-select-match allow-clear="true" placeholder="Select Control...">{{$select.selected.description || $select.selected.title}}</ui-select-match>
+										<ui-select-choices repeat="column in queryService.cache.columns | filter : { columnType : 'indicator', title : $select.search }">
+								       		 <b ng-bind-html="column.title | highlight: $select.search"></b>
+								       		 <small>
+								       		 	{{column.description}}
+								       		 </small>
+								        </ui-select-choices>
+									</ui-select>
 								</td>
 							</tr>
 							<tr>
@@ -146,14 +144,15 @@
 									<b>Control 2: </b>
 								</td>
 								<td align="left">
-									<input style="width:80%" type="hidden" ui-select2-sortable 
-										style="width: 100%" ng-model="queryService.crossTabQuery.control2"
-										simple-query="getIndicators"
-										data-placeholder="Select Control"
-										allow-clear="true"
-										to-id="getItemId" to-text="getItemText"
-										ng-disabled="!queryService.crossTabQuery.control1"
-									>
+									<ui-select ng-model="queryService.crossTabQuery.control2" theme="select2"  style="width : 100%">
+								    	<ui-select-match allow-clear="true" placeholder="Select Control...">{{$select.selected.description || $select.selected.title}}</ui-select-match>
+										<ui-select-choices repeat="column in queryService.cache.columns | filter : { columnType : 'indicator', title : $select.search }">
+								       		 <b ng-bind-html="column.title | highlight: $select.search"></b>
+								       		 <small>
+								       		 	{{column.description}}
+								       		 </small>
+								        </ui-select-choices>
+									</ui-select>
 								</td>
 							</tr>
 						</table>

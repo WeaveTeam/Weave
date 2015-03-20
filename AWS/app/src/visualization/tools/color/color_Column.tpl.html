@@ -1,12 +1,11 @@
 <div style="width: 100%" class="master-select2-container" ng-controller="ColorCtrl">
-					<select style = "width : 100%" 
-							ui-select2="{allowClear : true}" 
-							ng-model="tool.column" 
-							data-placeholder="Choose Column">
-					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
-  					</optgroup>
-				</select>
+					
+				<ui-select ng-model="tool.column" theme="select2" style="width: 100%;">
+			    	<ui-select-match allow-clear="true" placeholder="Choose Layer...">{{$select.selected.name}}</ui-select-match>
+					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { name : $select.search }">
+			       		 <div ng-bind-html="column.name | highlight: $select.search"></div>
+			        </ui-select-choices>
+				</ui-select>
 						<div style = "padding : 5px"></div>
 						<input type="checkbox" ng-model="tool.showColorLegend"/> Show Color Legend
 </div>

@@ -66,21 +66,12 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-			<!-- TODO change this to ui-select2-sortable -->
-				<ui-select ng-model="queryService.queryObject.resultSet" theme="select2" style="width: 100%;">
+				<ui-select ng-model="tool.labelLayer" theme="select2" style="width: 100%;">
 			    	<ui-select-match allow-clear="true" placeholder="Choose Layer...">{{$select.selected.name}}</ui-select-match>
-					<ui-select-choices groupby="column.dataSourceName" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
+					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { name : $select.search }">
 			       		 <div ng-bind-html="column.name | highlight: $select.search"></div>
 			        </ui-select-choices>
 				</ui-select>
-				<select style = "width : 100%" 
-								ui-select2="{allowClear : true}" 
-								ng-model="tool.labelLayer" 
-								data-placeholder="Choose Layer">
-					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
-  					</optgroup>
-				</select>
 			</td>
 		</tr>	
 	</table>

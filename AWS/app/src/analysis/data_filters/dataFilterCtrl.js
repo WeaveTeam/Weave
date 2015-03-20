@@ -24,17 +24,6 @@ AnalysisModule.directive('filter', function(queryService) {
 			ngModel : '=',
 		},
 		controller : function($scope, $filter) {
-			$scope.getItemId = function(item) {
-				return item.id;
-			};
-			
-			$scope.getItemText = function(item) {
-				return item.description || item.title;
-			};
-			
-			$scope.getFilterInputOptions = function(term, done) {
-				done($filter('filter')($scope.columns, {title:term}, 'title'));
-			};
 			
 			$scope.model = {
 					comboboxModel : [],
@@ -76,20 +65,6 @@ AnalysisModule.directive('filter', function(queryService) {
 				}
 			}, true);
 			
-			/* multi select controls */
-			$scope.getMultiSelectFilterOptions = function(term, done) {
-				done($filter('filter')($scope.filterOptions, {label:term}, 'label'));
-			};
-			
-			
-			$scope.getFilterItemId = function(item) {
-				return item.value;
-			};
-			
-			$scope.getFilterItemText = function(item) {
-				return item.label;
-			};
-			
 			$scope.$watch('model.column', function() {
 				if(!$scope.model.column || !$scope.model.column.hasOwnProperty("id")) {
 					$scope.filterType = "";
@@ -109,8 +84,7 @@ AnalysisModule.directive('filter', function(queryService) {
 			});
 			
 			/* combo box controls    */
-			$scope.$watchCollection('model.comboboxModel', function () {
-				
+			$scope.$watchCollection('model.comboboxModel', function (newVal, oldVal) {
 				var model = $scope.model.comboboxModel;
 				if(!model.length)
 					return;
@@ -147,8 +121,9 @@ AnalysisModule.directive('filter', function(queryService) {
 			 * internal model accordingly
 			 *
 			 */
-//			$scope.$watch('queryService.queryObject', function(newVal, oldVal) {
-//				if(angular.equals(newVal, oldVal))
+//			$scope.$watch('ngModel', function(newVal, oldVal) {
+//				
+//				if(!newVal.v.length || !oldVal.v.length || angular.equals(newVal, oldVal))
 //					return;
 //				// check the column id to find out the ui type.
 //				var model = $scope.ngModel;

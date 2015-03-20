@@ -63,19 +63,19 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		queryObject.resultSet[dataSourceName] = [];
 		for(var i in csvData[0])
 		{
-			queryObject.resultSet[dataSourceName][i] = { name : csvData[0][i], dataSourceName : dataSourceName};
+			queryObject.resultSet.push({ name : csvData[0][i], dataSourceName : dataSourceName});
 		}
-		queryObject.resultSet[dataSourceName]["data"] = csvData;
+		console.log(queryObject.resultSet);
+		//queryObject.resultSet[dataSourceName]["data"] = csvData; <- unused
 	};
 	
 	// weave path func
 	var setCSVColumn = function (column, propertyName){
 		if(ws.weave && ws.weave.path && column) {
-			var col = angular.fromJson(column);
-			if(col.name == "" || angular.isUndefined(col.name))
+			if(column.name == "" || angular.isUndefined(column.name))
 				return;
-			this.weave.path(col.dataSourceName)
-				.getValue('putColumn')(col.name, this.push(propertyName).request('DynamicColumn').getPath());
+			this.weave.path(column.dataSourceName)
+				.getValue('putColumn')(column.name, this.push(propertyName).request('DynamicColumn').getPath());
 
 		}
 	};
@@ -135,7 +135,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 				//STATE LAYER
 				if(state.stateGeometryLayer)
 				{
-					var stateGeometry = angular.fromJson(state.stateGeometryLayer);
+					var stateGeometry = state.stateGeometryLayer;
 					console.log("state geometry layer", stateGeometry );
 					
 					ws.weave.path(toolName).request('MapTool')
@@ -157,7 +157,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 					if(state.useKeyTypeForCSV)
 					{
 						if(state.labelLayer) {
-							ws.weave.setSessionState([angular.fromJson(state.labelLayer).dataSourceName], {"keyType" : stateGeometry.keyType});
+							ws.weave.setSessionState([state.labelLayer.dataSourceName], {"keyType" : stateGeometry.keyType});
 						}
 					}
 					
@@ -171,7 +171,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 				//COUNTY LAYER
 				if(state.countyGeometryLayer)
 				{
-					var countyGeometry = angular.fromJson(state.countyGeometryLayer);
+					var countyGeometry = state.countyGeometryLayer;
 					console.log("county geometry layer", countyGeometry );
 					
 					ws.weave.path(toolName).request('MapTool')
@@ -202,8 +202,8 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 				//LABEL LAYER
 //				if(state.labelLayer && state.geometryLayer)
 //				{
-//					var labelLayer = angular.fromJson(state.labelLayer);
-//					var geometryLayer = angular.fromJson(state.geometryLayer);
+//					var labelLayer = state.labelLayer;
+//					var geometryLayer = state.geometryLayer;
 //					ws.weave.path(toolName).request('MapTool')
 //					.push('children', 'visualization', 'plotManager','plotters')
 //					.push('stateLabellayer').request('weave.visualization.plotters.GeometryLabelPlotter')
@@ -283,7 +283,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 		if(ws.weave && ws.weave.path && state) {
 			if(state.column)
 			{
-				ws.weave.path('defaultColorDataColumn').setColumn(angular.fromJson(state.column).name, angular.fromJson(state.column).dataSourceName);
+				ws.weave.path('defaultColorDataColumn').setColumn(state.column.name, state.column.dataSourceName);
 			}
 			if(state.showColorLegend)
 			{
@@ -297,7 +297,7 @@ AnalysisModule.service("WeaveService", ['$rootScope', function(rootScope) {
 	};
 	
 	this.keyColumn = function(akeyColumn) {
-		var keyColumn = angular.fromJson(akeyColumn);
+		var keyColumn = akeyColumn;
 		if(ws.weave && ws.weave.path && keyColumn) {
 			if(keyColumn.name) {
 				ws.weave.setSessionState([keyColumn.dataSourceName], {keyColName : keyColumn.name});
