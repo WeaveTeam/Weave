@@ -22,25 +22,29 @@
 <DraggablePanel xmlns="weave.ui.*" 
 				layout="vertical" verticalAlign="middle"
 				xmlns:mx="http://www.adobe.com/2006/mxml" 
-				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes"
+				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes, weave.api.core.ILinkableObjectWithNewProperties"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				>
 	<mx:Script>
 		<![CDATA[
 			import weave.Weave;
+			import weave.api.core.ICallbackCollection;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeyFilter;
+			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IVisTool;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableWatcher;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
+			import weave.editors.StringDataFilterEditor;
 			import weave.menus.WeaveMenuItem;
 			import weave.utils.ColumnUtils;
 			
@@ -55,12 +59,14 @@
 			private function handleEditor():void
 			{
 				var _editor:ILinkableObjectEditor = getEditor();
-				if (!_editor.parent)
+				if (_editor && !_editor.parent)
 					addChild(_editor as DisplayObject);
 			}
+			
+			private var _editorStateMissing:Boolean = false;
 
 			private var _globalName:String;
-			private const _filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleFilterWatcher, true);
+			private const _filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleFilterWatcher);
 			
 			private function handleFilterWatcher():void
 			{
@@ -69,7 +75,14 @@
 				{
 					var editorClass:Class = WeaveAPI.EditorManager.getEditorClass(keyFilter);
 					if (editorClass)
+					{
 						_editor = editor.requestLocalObject(editorClass, false);
+						if (_editorStateMissing && _editor is StringDataFilterEditor)
+						{
+							_editorStateMissing = false;
+							(_editor as StringDataFilterEditor).layoutMode.value = "ComboBox";
+						}
+					}
 				}
 				if (_editor)
 					_editor.setTarget(keyFilter);
@@ -107,21 +120,73 @@
 					return;
 				super.createChildren();
 				
-				function onClick(item:WeaveMenuItem):void { setFilterType(item.data as Class); }
-				function isToggled(item:WeaveMenuItem):Boolean { return Weave.defaultSubsetKeyFilter.filters.getObject(globalName) is (item.data as Class); }
+				function onClick(item:WeaveMenuItem):void
+				{
+					var filterType:Class = item.data[0] as Class;
+					var layoutMode:String = item.data[1];
+					
+					setFilterType(filterType);
+					
+					var editor:StringDataFilterEditor = getEditor() as StringDataFilterEditor;
+					if (editor)
+						editor.layoutMode.value = layoutMode;
+				}
+				function isToggled(item:WeaveMenuItem):Boolean
+				{
+					var filterType:Class = item.data[0] as Class;
+					var layoutMode:String = item.data[1];
+					if (Weave.defaultSubsetKeyFilter.filters.getObject(globalName) is filterType)
+					{
+						if (layoutMode)
+						{
+							var editor:StringDataFilterEditor = getEditor() as StringDataFilterEditor;
+							return editor && editor.layoutMode.value == layoutMode;
+						}
+						return true;
+					}
+					return false;
+				}
 				subMenuButton.data = [
 					{
-						data: StringDataFilter,
-						label: lang("String filter (Combo box)"),
-						click: onClick,
+						data: [StringDataFilter],
+						label: lang("String filter"),
 						type: WeaveMenuItem.TYPE_RADIO,
-						toggled: isToggled
+						toggled: isToggled,
+						children: MenuToolViewStack.LAYOUTS.map(function(layout:String, i:int, a:Array):Object {
+							return {
+								data: [StringDataFilter, layout],
+								label: MenuToolViewStack.layoutLabelFunction(layout),
+								click: onClick,
+								type: WeaveMenuItem.TYPE_RADIO,
+								toggled: isToggled
+							};
+						})
 					},{
-						data: NumberDataFilter,
-						label: lang("Number filter (Dual slider)"),
+						data: [NumberDataFilter],
+						label: lang("Number filter"),
 						click: onClick,
 						type: WeaveMenuItem.TYPE_RADIO,
 						toggled: isToggled
+					},
+					WeaveMenuItem.TYPE_SEPARATOR,
+					{
+						label: lang("Show filter toggle CheckBox"),
+						type: WeaveMenuItem.TYPE_RADIO,
+						groupName: 'showToggle',
+						toggled: function():Boolean {
+							var _editor:ILinkableObjectEditor = getEditor();
+							return _editor && getSessionState(_editor)['showToggle'];
+						},
+						click: function():void {
+							var _editor:ILinkableObjectEditor = getEditor();
+							if (_editor)
+								setSessionState(_editor, {showToggle: !getSessionState(_editor)['showToggle']}, false);
+						}
+					},
+					WeaveMenuItem.TYPE_SEPARATOR,
+					{
+						label: lang("Edit session state"),
+						click: toggleControlPanel
 					}
 				];
 				
@@ -138,11 +203,22 @@
 			
 			private function setFilterType(type:Class):void
 			{
+				var editorState:Object = getEditor() && getSessionState(editor.internalObject);
+				var filterState:Object = keyFilter && getSessionState(keyFilter);
 				editor.removeObject();
-				var state:Object = filterColumn && getSessionState(filterColumn);
-				Weave.defaultSubsetKeyFilter.filters.requestObject(globalName, type, false) as IKeyFilter;
-				if (filterColumn && state)
-					setSessionState(filterColumn, state);
+				
+				var fwcc:ICallbackCollection = getCallbackCollection(_filterWatcher);
+				fwcc.delayCallbacks();
+				
+				Weave.defaultSubsetKeyFilter.filters.requestObject(globalName, type, false);
+				if (filterState)
+					setSessionState(keyFilter, filterState);
+				
+				fwcc.triggerCallbacks();
+				fwcc.resumeCallbacks();
+				
+				if (editor.internalObject)
+					setSessionState(editor.internalObject, editorState);
 			}
 			
 			private function handleFilters():void
@@ -166,6 +242,15 @@
 			public function getSelectableAttributes():Array
 			{
 				return filterColumn ? [filterColumn] : [];
+			}
+			
+			public function handleMissingSessionStateProperty(newState:Object, missingProperty:String):void
+			{
+				if (missingProperty == 'editor')
+				{
+					_editorStateMissing = true;
+					handleFilterWatcher();
+				}
 			}
 		]]>
 	</mx:Script>
