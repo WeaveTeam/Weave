@@ -18,6 +18,7 @@
 */
 package weave.services
 {
+	import flash.display.LoaderInfo;
 	import flash.utils.Dictionary;
 	
 	import mx.controls.Alert;
@@ -403,6 +404,9 @@ package weave.services
 
 		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
 		{
+			var flashVars:Object = WeaveAPI.topLevelApplication.root.loaderInfo.parameters || {};
+			var weaveUrl:String = flashVars['weaveUrl'] || 'weave.html';
+			
 			var params:Object = {};
 			if (fileName)
 				params['file'] = fileName;
@@ -410,7 +414,7 @@ package weave.services
 				params['recover'] = true;
 			var success:Boolean = JavaScript.exec(
 				{
-					url: 'weave.html?' + StandardLib.replace(URLUtil.objectToString(params, '&'), '%2F', '/'),
+					url: weaveUrl + '?' + StandardLib.replace(URLUtil.objectToString(params, '&'), '%2F', '/'),
 					target: ADMIN_SESSION_WINDOW_NAME_PREFIX + createWeaveSession(),
 					windowParams: 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1'
 				},
