@@ -244,7 +244,7 @@ package weave.visualization.layers
 				if (debug)
 					trace(this, 'begin async rendering');
 				// normal priority because rendering is not often a prerequisite for other tasks
-				WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_NORMAL, asyncComplete);
+				WeaveAPI.StageUtils.startTask(this, asyncIterate, WeaveAPI.TASK_PRIORITY_NORMAL, asyncComplete, lang("Plotting {0} for {1}", ['subset', 'selection', 'mouseover'][_taskType], debugId(_plotter)));
 				
 				// assign secondary busy task in case async task gets cancelled due to busy dependencies
 				WeaveAPI.SessionManager.assignBusyTask(_dependencies, this);

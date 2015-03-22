@@ -127,7 +127,7 @@ package weave.utils
 			
 			_iterateAll(-1); // restart from first task
 			// normal priority because some things can be done without having a fully populated spatial index (?)
-			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_NORMAL, callbacks.triggerCallbacks);
+			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_NORMAL, callbacks.triggerCallbacks, lang("Creating spatial index for {0}", debugId(plotter)));
 		}
 		
 		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate0, _iterate1, _iterate2);

@@ -20,7 +20,6 @@
 package weave.data
 {
 	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
@@ -28,8 +27,6 @@ package weave.data
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerDisposableChild;
-	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.AttributeColumns.ReferencedColumn;
 	
 	/**
 	 * This is an all-static class containing numerical statistics on columns and functions to access the statistics.
@@ -282,7 +279,7 @@ internal class ColumnStatistics implements IColumnStatistics
 		runningTotals = new Dictionary(true);
 		
 		// high priority because preparing data is often a prerequisite for other things
-		WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete);
+		WeaveAPI.StageUtils.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, lang("Calculating statistics for {0} values in {1}", keys.length, debugId(column)));
 	}
 
 	private function iterate(stopTime:int):Number
