@@ -29,16 +29,29 @@ package weave.data.KeySets
 
 	public class StringDataFilter implements IKeyFilter
 	{
-		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		public const stringValue:LinkableString = newLinkableChild(this, LinkableString);
-		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), cacheValues);
+		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn, cacheValues);
+		public const stringValue:LinkableString = newLinkableChild(this, LinkableString, cacheValues);
+		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), cacheValues);
+		
+		private function cacheValues():void
+		{
+			_enabled = enabled.value;
+			_keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
+			_stringValue = stringValue.value;
+			_includeMissingKeyTypes = includeMissingKeyTypes.value;
+		}
+		
+		private var _enabled:Boolean;
+		private var _keyType:String;
+		private var _stringValue:String;
+		private var _includeMissingKeyTypes:Boolean;
 		
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			if (includeMissingKeyTypes.value && key.keyType != column.getMetadata(ColumnMetadata.KEY_TYPE))
+			if (_includeMissingKeyTypes && key.keyType != _keyType)
 				return true;
-			return !enabled.value || column.getValueFromKey(key, String) == stringValue.value;
+			return !_enabled || column.getValueFromKey(key, String) == _stringValue;
 		}
 	}
 }

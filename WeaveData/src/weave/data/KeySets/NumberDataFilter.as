@@ -29,20 +29,35 @@ package weave.data.KeySets
 
 	public class NumberDataFilter implements IKeyFilter
 	{
-		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		public const min:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-Infinity));
-		public const max:LinkableNumber = registerLinkableChild(this, new LinkableNumber(Infinity));
-		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), cacheValues);
+		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn, cacheValues);
+		public const min:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-Infinity), cacheValues);
+		public const max:LinkableNumber = registerLinkableChild(this, new LinkableNumber(Infinity), cacheValues);
+		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), cacheValues);
+
+		private function cacheValues():void
+		{
+			_enabled = enabled.value;
+			_keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
+			_min = min.value;
+			_max = max.value;
+			_includeMissingKeyTypes = includeMissingKeyTypes.value;
+		}
 		
+		private var _enabled:Boolean;
+		private var _keyType:String;
+		private var _min:Number;
+		private var _max:Number;
+		private var _includeMissingKeyTypes:Boolean;
+
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			if (!enabled.value)
+			if (!_enabled)
 				return true;
-			if (includeMissingKeyTypes.value && key.keyType != column.getMetadata(ColumnMetadata.KEY_TYPE))
+			if (_includeMissingKeyTypes && key.keyType != _keyType)
 				return true;
 			var value:Number = column.getValueFromKey(key, Number);
-			return (value >= min.value) && (value <= max.value);
+			return value >= _min && value <= _max;
 		}
 	}
 }
