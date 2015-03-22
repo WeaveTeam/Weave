@@ -104,7 +104,7 @@ package weave.data.AttributeColumns
 		
 		public function toString():String
 		{
-			return debugId(this) + '(' + ColumnUtils.getTitle(this) + ')';
+			return debugId(this) + '(' + (getInternalColumn() ? getInternalColumn() : ColumnUtils.getTitle(this)) + ')';
 		}
 	}
 }
