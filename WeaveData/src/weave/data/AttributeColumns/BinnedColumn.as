@@ -30,7 +30,6 @@ package weave.data.AttributeColumns
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.data.BinClassifiers.NumberClassifier;
-	import weave.data.BinningDefinitions.CategoryBinningDefinition;
 	import weave.data.BinningDefinitions.DynamicBinningDefinition;
 	import weave.data.BinningDefinitions.SimpleBinningDefinition;
 	import weave.utils.ColumnUtils;
@@ -91,11 +90,11 @@ package weave.data.AttributeColumns
 		 */
 		private function validateBins():void
 		{
-			if (WeaveAPI.SessionManager.linkableObjectIsBusy(this))
-				return;
-			
 			if (_resultTriggerCount != binningDefinition.asyncResultCallbacks.triggerCounter)
 			{
+				if (WeaveAPI.SessionManager.linkableObjectIsBusy(this))
+					return;
+				
 				_resultTriggerCount = binningDefinition.asyncResultCallbacks.triggerCounter;
 				// reset cached values
 				_column = internalDynamicColumn.getInternalColumn();
@@ -120,7 +119,7 @@ package weave.data.AttributeColumns
 				if (_column && _binClassifiers)
 				{
 					// high priority because not much can be done without data
-					WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, triggerCallbacks);
+					WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, triggerCallbacks, lang("Binning {0} records in {1}", _keys.length, debugId(this)));
 				}
 			}
 		}
