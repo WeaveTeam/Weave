@@ -429,10 +429,14 @@ package weave.primitives
 		 */		
 		private static function saveUnusedNode(node:KDNode):void
 		{
+			for each (var sibling:KDNode in node.siblings)
+				saveUnusedNode(sibling);
 			// clear all pointers stored in node
 			node.object = null;
 			node.left = null;
 			node.right = null;
+			if (node.siblings)
+				node.siblings.length = 0;
 			// save node
 			unusedNodes.push(node);
 		}
