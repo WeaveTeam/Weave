@@ -172,10 +172,11 @@ package weave.primitives
 			if (key.length != dimensionality)
 				throw new Error("KDTree.insert key parameter must have same dimensionality as tree");
 
+			var newNode:KDNode;
 			if (autoBalance)
 			{
 				// add the node to the list of all nodes
-				var newNode:KDNode = getUnusedNode(key, obj);
+				newNode = getUnusedNode(key, obj);
 				allNodes.push(newNode);
 				// make sure the tree will balance itself before querying
 				needsBalancing = true;
@@ -207,6 +208,15 @@ package weave.primitives
 					}
 					// go down the tree
 					node = node.left;
+				}
+				else if (StandardLib.compare(key, node.key) == 0)
+				{
+					// identical key
+					if (node.siblings == null)
+						node.siblings = [];
+					newNode = getUnusedNode(key, obj, node.splitDimension);
+					node.siblings.push(newNode);
+					return newNode;
 				}
 				else // key >= location
 				{
@@ -296,7 +306,7 @@ package weave.primitives
 			{
 				// declare temp variables
 				var inRange:Boolean;
-				var node:KDNode, key:Array, keyVal:Number, dimension:int, location:Number;
+				var node:KDNode, sibling:KDNode, key:Array, keyVal:Number, dimension:int, location:Number;
 				// traverse the tree
 				// begin by putting the root node on the stack
 				var stackPos:int = 0;
@@ -342,9 +352,17 @@ package weave.primitives
 						{
 							// if sort dimension is specified, add node to query result array
 							if (sortDimension >= 0)
+							{
 								queryResult[resultCount++] = node;
+								for each (sibling in node.siblings)
+									queryResult[resultCount++] = sibling;
+							}
 							else // if no sort dimension specified, add object to result array
+							{
 								queryResult[resultCount++] = node.object;
+								for each (sibling in node.siblings)
+									queryResult[resultCount++] = sibling.object;
+							}
 							// avoid adding the object to the result more than once
 							ignoreList[node.object] = true;
 						}
@@ -375,7 +393,8 @@ package weave.primitives
 				StandardLib.sortOn(queryResult, getNodeSortValue, compareNodesDescending ? -1 : 1);
 				
 				// replace nodes with objects in queryResult
-				for (i = queryResult.length; i--;)
+				i = resultCount;
+				while (i--)
 					queryResult[i] = (queryResult[i] as KDNode).object;
 			}
 			return queryResult;
@@ -408,7 +427,7 @@ package weave.primitives
 		 * This function is used to save old nodes for later use.
 		 * @param node The node to save for later.
 		 */		
-		public static function saveUnusedNode(node:KDNode):void
+		private static function saveUnusedNode(node:KDNode):void
 		{
 			// clear all pointers stored in node
 			node.object = null;
@@ -421,7 +440,7 @@ package weave.primitives
 		 * This function uses object pooling to get an instance of KDNode.
 		 * @return Either a previously saved unused node, or a new node.
 		 */
-		public static function getUnusedNode(key:Array, object:Object, splitDimension:int = 0):KDNode
+		private static function getUnusedNode(key:Array, object:Object, splitDimension:int = 0):KDNode
 		{
 			var node:KDNode;
 			// if no more unused nodes left, return new node

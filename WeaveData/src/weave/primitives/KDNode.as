@@ -71,5 +71,10 @@ package weave.primitives
 		 * Child node corresponding to the right side of the splitting plane
 		 */
 		public var right:KDNode = null;
+		
+		/**
+		 * An Array of additional nodes having identical keys
+		 */
+		public var siblings:Array;
 	}
 }
