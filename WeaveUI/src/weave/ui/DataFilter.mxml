@@ -27,6 +27,8 @@
 				>
 	<mx:Script>
 		<![CDATA[
+			import avmplus.getQualifiedClassName;
+			
 			import weave.Weave;
 			import weave.api.core.ICallbackCollection;
 			import weave.api.core.ILinkableObject;
@@ -39,6 +41,7 @@
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IVisTool;
+			import weave.core.ExternalSessionStateInterface;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableWatcher;
@@ -50,11 +53,18 @@
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataFilter, "Data Filter");
 			
+			private const filter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter), handleFilterWatcher);
 			public const editor:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ILinkableObjectEditor), handleEditor, true);
 			
+			private var _editorStateMissing:Boolean = false;
+			
+			private function getFilter():IKeyFilter
+			{
+				return filter.target as IKeyFilter;
+			}
 			private function getEditor():ILinkableObjectEditor
 			{
-				return editor.internalObject as ILinkableObjectEditor;
+				return editor.target as ILinkableObjectEditor;
 			}
 			private function handleEditor():void
 			{
@@ -63,46 +73,9 @@
 					addChild(_editor as DisplayObject);
 			}
 			
-			private var _editorStateMissing:Boolean = false;
-
-			private var _globalName:String;
-			private const _filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleFilterWatcher);
-			
-			private function handleFilterWatcher():void
+			private function getFilterColumn():IAttributeColumn
 			{
-				var _editor:ILinkableObjectEditor = getEditor();
-				if (!_editor)
-				{
-					var editorClass:Class = WeaveAPI.EditorManager.getEditorClass(keyFilter);
-					if (editorClass)
-					{
-						_editor = editor.requestLocalObject(editorClass, false);
-						if (_editorStateMissing && _editor is StringDataFilterEditor)
-						{
-							_editorStateMissing = false;
-							(_editor as StringDataFilterEditor).layoutMode.value = "ComboBox";
-						}
-					}
-				}
-				if (_editor)
-					_editor.setTarget(keyFilter);
-
-				handlePanelTitleChange();
-			}
-			
-			private function get globalName():String
-			{
-				return _globalName || (_globalName = WeaveAPI.globalHashMap.getName(this));
-			}
-			
-			private function get keyFilter():IKeyFilter
-			{
-				return Weave.defaultSubsetKeyFilter.filters.getObject(globalName) as IKeyFilter;
-			}
-			
-			private function get filterColumn():IAttributeColumn
-			{
-				var kf:IKeyFilter = keyFilter;
+				var kf:IKeyFilter = getFilter();
 				var ndf:NumberDataFilter = kf as NumberDataFilter;
 				var sdf:StringDataFilter = kf as StringDataFilter;
 				return ((ndf && ndf.column) || (sdf && sdf.column)) as IAttributeColumn;
@@ -124,18 +97,13 @@
 				{
 					var filterType:Class = item.data[0] as Class;
 					var layoutMode:String = item.data[1];
-					
-					setFilterType(filterType);
-					
-					var editor:StringDataFilterEditor = getEditor() as StringDataFilterEditor;
-					if (editor)
-						editor.layoutMode.value = layoutMode;
+					setFilterType(filterType, {layoutMode: layoutMode});
 				}
 				function isToggled(item:WeaveMenuItem):Boolean
 				{
 					var filterType:Class = item.data[0] as Class;
 					var layoutMode:String = item.data[1];
-					if (Weave.defaultSubsetKeyFilter.filters.getObject(globalName) is filterType)
+					if (getFilter() is filterType)
 					{
 						if (layoutMode)
 						{
@@ -190,58 +158,96 @@
 					}
 				];
 				
-				Weave.defaultSubsetKeyFilter.filters.childListCallbacks.addImmediateCallback(this, handleFilters, true);
-				if (!keyFilter)
-					setFilterType(StringDataFilter);
+				callLater(initLater);
+			}
+			
+			private function initLater():void
+			{
+				if (filter.targetPath == null)
+					filter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER, 'filters', WeaveAPI.globalHashMap.getName(this)];
+				if (!getFilter())
+					setFilterType(StringDataFilter, null);
+				
+				if (_editorStateMissing && editor.target is StringDataFilterEditor)
+					(editor.target as StringDataFilterEditor).layoutMode.value = MenuToolViewStack.LAYOUT_COMBO;
+				_editorStateMissing = false;
 			}
 			
 			override public function dispose():void
 			{
-				Weave.defaultSubsetKeyFilter.filters.removeObject(globalName);
+				if (filter.targetPath)
+				{
+					try
+					{
+						WeaveAPI.ExternalSessionStateInterface.removeObject(filter.targetPath);
+					}
+					catch (e:Error)
+					{
+						trace(e.getStackTrace());
+					}
+				}
 				super.dispose()
 			}
 			
-			private function setFilterType(type:Class):void
+			private function setFilterType(type:Class, editorDiff:Object):void
 			{
-				var editorState:Object = getEditor() && getSessionState(editor.internalObject);
-				var filterState:Object = keyFilter && getSessionState(keyFilter);
-				editor.removeObject();
+				var editorState:Object = editor.target && getSessionState(editor.target);
+				var filterState:Object = filter.target && getSessionState(filter.target);
 				
-				var fwcc:ICallbackCollection = getCallbackCollection(_filterWatcher);
-				fwcc.delayCallbacks();
+				try
+				{
+					WeaveAPI.ExternalSessionStateInterface.requestObject(filter.targetPath, getQualifiedClassName(type));
+				}
+				catch (e:Error)
+				{
+					trace(e.getStackTrace());
+				}
 				
-				Weave.defaultSubsetKeyFilter.filters.requestObject(globalName, type, false);
-				if (filterState)
-					setSessionState(keyFilter, filterState);
-				
-				fwcc.triggerCallbacks();
-				fwcc.resumeCallbacks();
-				
-				if (editor.internalObject)
-					setSessionState(editor.internalObject, editorState);
+				if (filter.target && filterState)
+					setSessionState(filter.target, filterState);
+				if (editor.target && editorState)
+				{
+					WeaveAPI.SessionManager.combineDiff(editorState, editorDiff);
+					setSessionState(editor.target, editorState);
+				}
 			}
 			
-			private function handleFilters():void
+			private function handleFilterWatcher():void
 			{
-				_filterWatcher.target = keyFilter;
+				handlePanelTitleChange();
+				
+				var _filter:ILinkableObject = getFilter();
+				if (_filter)
+				{
+					var editorClass:Class = WeaveAPI.EditorManager.getEditorClass(_filter);
+					if (editorClass)
+					{
+						var _editor:ILinkableObjectEditor = editor.requestLocalObject(editorClass, false);
+						if (_editor)
+							_editor.setTarget(_filter);
+						return;
+					}
+				}
+				
+				editor.removeObject();
 			}
 			
 			override public function get defaultPanelTitle():String
 			{
-				if (filterColumn)
-					return lang('Filter for {0}', ColumnUtils.getTitle(filterColumn));
+				if (getFilterColumn())
+					return lang('Filter for {0}', ColumnUtils.getTitle(getFilterColumn()));
 				
 				return lang('Filter');
 			}
 			
 			public function getSelectableAttributeNames():Array
 			{
-				return filterColumn ? ['Filter'] : [];
+				return getFilterColumn() ? ['Filter'] : [];
 			}
 			
 			public function getSelectableAttributes():Array
 			{
-				return filterColumn ? [filterColumn] : [];
+				return getFilterColumn() ? [getFilterColumn()] : [];
 			}
 			
 			public function handleMissingSessionStateProperty(newState:Object, missingProperty:String):void
@@ -249,7 +255,10 @@
 				if (missingProperty == 'editor')
 				{
 					_editorStateMissing = true;
-					handleFilterWatcher();
+					if (editor.target is StringDataFilterEditor)
+						(editor.target as StringDataFilterEditor).layoutMode.value = MenuToolViewStack.LAYOUT_COMBO;
+					else
+						callLater(initLater);
 				}
 			}
 		]]>
