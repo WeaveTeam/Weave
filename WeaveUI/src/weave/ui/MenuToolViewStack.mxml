@@ -42,7 +42,7 @@
 	<mx:Canvas label="{lang('Vertical Slider')}">
 		<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
 					width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-					change="handleUserSelection(choiceVSlider.maximum - choiceVSlider.value);"
+					change="if (UIUtils.hasFocus(choiceVSlider)) handleUserSelection(choiceVSlider.maximum - choiceVSlider.value);"
 					mouseDown="choiceVSlider.setFocus()"
 					/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 	</mx:Canvas>
@@ -50,7 +50,7 @@
 		<mx:HBox verticalAlign="middle" width="100%" height="100%">
 			<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
 						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-						change="handleUserSelection(choiceHSlider.value);"
+						change="if (UIUtils.hasFocus(choiceHSlider)) handleUserSelection(choiceHSlider.value);"
 						mouseDown="choiceHSlider.setFocus()"
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:HBox>
@@ -76,7 +76,7 @@
 			
 			private var _choices:Array = [];
 			private var _labelFunction:Function;
-			private var _chosenIndex:int = -1;
+			private var _chosenItem:Object = null;
 			
 			public function set layoutMode(name:String):void
 			{
@@ -106,9 +106,6 @@
 				choiceCombo.dataProvider = _choices;
 				choiceList.dataProvider = _choices;
 				
-				choiceCombo.selectedIndex = _chosenIndex;
-				choiceList.selectedIndex = _chosenIndex;
-				
 				choiceCombo.labelFunction = _labelFunction;
 				choiceList.labelFunction = _labelFunction;
 				
@@ -128,9 +125,11 @@
 				choiceHSlider.labels = labels;
 				choiceVSlider.maximum = labels.length - 1;
 				choiceHSlider.maximum = labels.length - 1;
+				
+				handleUserSelection(_choices.indexOf(_chosenItem), false);
 			}
 			
-			private function handleUserSelection(index:int):void
+			private function handleUserSelection(index:int, updateChosenItem:Boolean = true):void
 			{
 				var comboIndex:int = alwaysShowPrompt ? -1 : index;
 				if (choiceCombo.selectedIndex != comboIndex)
@@ -139,44 +138,31 @@
 				if (choiceList.selectedIndex != index)
 					choiceList.selectedIndex = index;
 				
-				if (_chosenIndex >= 0)
-				{
-					if (choiceHSlider.value != index)
-						choiceHSlider.value = index;
-					
-					var vIndex:int = _choices.length - 1 - index;
-					if (choiceVSlider.value != vIndex)
-						choiceVSlider.value = vIndex;
-				}
+				if (choiceHSlider.value != index)
+					choiceHSlider.value = index;
 				
-				chosenIndex = index;
-			}
-			
-			[Bindable(event="choiceChange")]
-			public function get chosenIndex():int
-			{
-				return _chosenIndex;
-			}
-			
-			public function set chosenIndex(value:int):void
-			{
-				if (value == _chosenIndex)
-					return;
+				var vIndex:int = _choices.length - 1 - index;
+				if (choiceVSlider.value != vIndex)
+					choiceVSlider.value = vIndex;
 				
-				_chosenIndex = value;
-				handleUserSelection(value);
-				dispatchEvent(new Event("choiceChange"));
+				if (updateChosenItem)
+					chosenItem = _choices[index];
 			}
 			
 			[Bindable(event="choiceChange")]
 			public function get chosenItem():Object
 			{
-				return _choices[_chosenIndex];
+				return _chosenItem;
 			}
 			
-			public function set chosenItem(value:Object):void
+			public function set chosenItem(item:Object):void
 			{
-				chosenIndex = _choices.indexOf(value);
+				if (_chosenItem == item)
+					return;
+				
+				_chosenItem = item;
+				handleUserSelection(_choices.indexOf(item), false);
+				dispatchEvent(new Event("choiceChange"));
 			}
 		]]>
 	</mx:Script>
