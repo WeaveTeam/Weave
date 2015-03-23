@@ -87,23 +87,24 @@ void date_parse()
         : "=r"(date_str), "=r"(fmt)
     );
 
-    struct tm tm;
-    memset(&tm, 0, sizeof(struct tm));
+    struct ext_tm tm;
+    memset(&tm, 0, sizeof(struct ext_tm));
     tm.tm_mday = 1;
 
     if (strptime2(date_str, fmt, &tm) == date_str + strlen(date_str))
     {
 		inline_nonreentrant_as3(
 			"if (utc)"
-			"    output = new Date(Date.UTC(%0,%1,%2,%3,%4,%5));"
+			"    output = new Date(Date.UTC(%0,%1,%2,%3,%4,%5,%6));"
 			"else"
-			"    output = new Date(%0,%1,%2,%3,%4,%5);"
+			"    output = new Date(%0,%1,%2,%3,%4,%5,%6);"
 			: : "r"(tm.tm_year + 1900),
 			 "r"(tm.tm_mon),
 			 "r"(tm.tm_mday),
 			 "r"(tm.tm_hour),
 			 "r"(tm.tm_min),
-			 "r"(tm.tm_sec)
+			 "r"(tm.tm_sec),
+             "r"(tm.tm_msec)
 		);
     }
 
@@ -195,7 +196,7 @@ size_t dates_detect_c(char* dates[], size_t dates_n, char* formats[], size_t *fo
     int row_idx, fmt_idx;
     char* date;
     size_t formats_remaining = *formats_n;
-    struct tm tmp_time;
+    struct ext_tm tmp_time;
     for (row_idx = 0; row_idx < dates_n; row_idx++)
     {
     	date = dates[row_idx];
