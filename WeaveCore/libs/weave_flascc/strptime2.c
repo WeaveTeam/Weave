@@ -489,6 +489,11 @@ label:
 				i += *buf - '0';
 				len--;
 			}
+
+			// Weave: strict number of digits in years
+			if (len)
+				return 0;
+
 			if (c == 'Y')
 				i -= 1900;
 			if (c == 'y' && i < 69)
