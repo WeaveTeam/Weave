@@ -167,12 +167,14 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 				if(state.countyGeometryLayer)
 				{
 					var countyGeometry = angular.fromJson(state.countyGeometryLayer);
+					console.log("countygeom",countyGeometry );
+					console.log("state",stateGeometry );
 					
 					ws.weave.path(toolName).request('MapTool')
 					.push('children', 'visualization', 'plotManager', 'plotters')
 					.push('Albers_County_Layer').request('weave.visualization.plotters.GeometryPlotter')
 					.push('line', 'color', 'defaultValue').state('0').pop()
-					.call(setQueryColumns, {geomteryColumn : countyGeometry});
+					.call(setQueryColumns, {geometryColumn : countyGeometry});
 				
 					//TODO change following
 					//done for handling albers projection What about other projection?
@@ -307,20 +309,15 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 		return toolName;
 	};
 	
-	this.ColorColumn = function(state, analystMode){
+	this.ColorColumn = function(state){
 		if(ws.weave && ws.weave.path && state) {
 			
-			if(analystMode == 'computation')
+			if(state.column)
 			{
-				if(state.column)
-				{
-					ws.weave.path('defaultColorDataColumn').setColumn(angular.fromJson(state.column).id, angular.fromJson(state.column).dataSourceName);
-				}
+				ws.weave.path('defaultColorDataColumn').setColumn(angular.fromJson(state.column).id, angular.fromJson(state.column).dataSourceName);
 			}
-			if(analystMode == 'visualize')
-			{
-				var path = ws.weave.path().getPath();
-				setColumn(state.column, path, 'defaultColorDataColumn');
+//				var path = ws.weave.path().getPath();
+//				setColumn(state.column, path, 'defaultColorDataColumn');
 				
 				//hack for demo
 				if(state.column2 && state.column3){
@@ -333,8 +330,6 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					  .setColumns([ state.column3.id, state.column2.id]);
 				}
 				//hack for demo end
-			}
-			
 			
 			if(state.showColorLegend)
 			{
