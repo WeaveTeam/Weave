@@ -82,12 +82,13 @@ static char * _strptime(const char *, const char *, struct tm *, int *);
 #define asizeof(a)	(sizeof (a) / sizeof ((a)[0]))
 
 static char *
-_strptime(const char *buf, const char *fmt, struct tm *tm, int *GMTp)
+_strptime(const char *buf, const char *fmt, struct ext_tm *tm, int *GMTp)
 {
 	char	c;
 	const char *ptr;
 	int	i,
-		len;
+		len,
+		acc;
 	int Ealternative, Oalternative;
 	struct lc_time_T *tptr = __get_current_time_locale();
 
@@ -219,13 +220,18 @@ label:
 
 		case 'M':
 		case 'S':
+		case 'Q':
 			if (*buf == 0 || isspace((unsigned char)*buf))
 				break;
 
 			if (!isdigit((unsigned char)*buf))
 				return 0;
 
-			len = 2;
+			if (c == 'Q')
+				len = 3;
+			else
+				len = 2;
+
 			for (i = 0; len && *buf != 0 && isdigit((unsigned char)*buf); buf++) {
 				i *= 10;
 				i += *buf - '0';
@@ -236,11 +242,21 @@ label:
 				if (i > 59)
 					return 0;
 				tm->tm_min = i;
-			} else {
+			} else 
+			if (c == 'S') {
 				if (i > 60)
 					return 0;
 				tm->tm_sec = i;
+			} else /* 'Q' */ {
+				acc = 1;
+				while (len--)
+				{
+					acc*=10;
+				}
+
+				tm->tm_msec = i * acc;
 			}
+
 
 			if (*buf != 0 && isspace((unsigned char)*buf))
 				while (*ptr != 0 && !isspace((unsigned char)*ptr))
