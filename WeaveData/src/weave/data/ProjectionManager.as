@@ -459,7 +459,7 @@ internal class WorkerThread implements IDisposableObject
 		else
 		{
 			// TODO - assess priority assignment
-			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_NORMAL, asyncComplete);
+			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_NORMAL, asyncComplete, lang("Reprojecting {0} geometries in {1}", keys.length, debugId(unprojectedColumn)));
 		}
 	}
 	
