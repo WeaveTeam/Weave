@@ -1,5 +1,5 @@
 <div class=" header panel-heading" style="margin-bottom: 0px">
-	<h2>Generic Filter</h2>
+	<h2>Tree Filter</h2>
 
 	<a href="javascript: void(0)" 
 		class="close-button" data-trigger="hover" placement="right" title="Remove"
@@ -12,21 +12,18 @@
 <div class="panel-body">
 	<ul class="input-controls">
 	<div style="display: inline">
-		<div style="display: inline-block; margin-bottom: 10px">
 			<ui-select ng-model="model.firstLevel" theme="select2" style="width: 100%;">
 		   		<ui-select-match allow-clear="true" placeholder="First Level">{{$select.selected.title}}</ui-select-match>
-				<ui-select-choices repeat="col in columnOptions | filter : {columnType : 'time'}">
+				<ui-select-choices repeat="column in columns">
 		      			 <div ng-bind-html="column.title | highlight: $select.search"></div>
 		       	</ui-select-choices>
 			</ui-select>
-		<div style="display: inline-block; padding-left: 0px; margin-top: 2px;">
 			<ui-select ng-model="model.secondLevel" theme="select2" style="width: 100%;">
 		   		<ui-select-match allow-clear="true" placeholder="Second Level">{{$select.selected.title}}</ui-select-match>
-				<ui-select-choices repeat="col in columnOptions | filter : {columnType : 'time'}">
+				<ui-select-choices repeat="column in columns">
 		      			 <div ng-bind-html="column.title | highlight: $select.search"></div>
 		       	</ui-select-choices>
 			</ui-select>
-		</div>
 	</div>
 		<br>
 		
@@ -35,7 +32,7 @@
 			<a ng-click='deSelectAll()'>Deselect all</a>
 <!-- 			<a ng-click='toggleSelect()'>Toggle select</a> -->
 		</p>
-      	<div id="timeTree"style="width: 100%; height: 160px; overflow: hidden"></div>
+      	<div id="tree" style="width: 100%; height: 160px; overflow: hidden"></div>
       	<br>
 	</ul>
 </div>
