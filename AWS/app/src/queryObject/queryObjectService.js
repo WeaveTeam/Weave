@@ -227,15 +227,15 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 					template_url : 'src/visualization/tools/color/key_Column.tpl.html'
 				}
 			},
-			resultSet : {}
+			resultSet : []
 	};    		
     
 	
 	this.cache = {
 			dataTableList : [],
 			scriptList : [],
-			filters : [],
-			numericalColumns : []
+			filterArray : [],
+			numericalColumns : [],
 	};
 
 	this.crossTabQuery = {};

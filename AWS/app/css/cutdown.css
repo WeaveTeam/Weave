@@ -48,6 +48,8 @@
 	position: inherit !important;
 }
 
+.ui-slider-range { background: #729fcf; }
+
 .search-script .search-script-div {
 	display: block;
 	padding: 0px;
@@ -885,7 +887,7 @@ select {
 	margin-bottom: 3px;
 }
 
-.databox .body {
+.body {
 
 	width: 100%;
 	height: 100%;
