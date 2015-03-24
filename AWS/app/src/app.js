@@ -5,9 +5,7 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  'ngAnimate', // Angular Library
                                  'ngSanitize',
                                  'mgcrea.ngStrap',
-                                 'ui.select2',
-                                 'ui.select2.sortable',
-                                 //'ui.slider',
+                                 'ui.select',
                                  'ui.bootstrap',
                                  'ui.sortable', // Shweta Needs, comes from angular-strap???
                                  //'ngRoute',
