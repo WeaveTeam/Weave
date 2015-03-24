@@ -4,20 +4,7 @@ angular.module('aws.project', [])
 	
 	//retrives project list
 	projectService.getListOfProjects();
-	//select2-sortable handlers
-	$scope.getItemId = function(item) {
-		return item;
-	};
-	
-	$scope.getItemText = function(item) {
-		return item;
-	};
-	
 	//projectlist
-	$scope.getProjectsList = function(term, done) {
-		var values = $scope.projectService.cache.listOfProjectsFromDatabase;
-		done($filter('filter')(values,term));
-	};
 	
 	//when a datatable is selected or changed
 	$scope.$watch('projectService.cache.dataTable', function(){
