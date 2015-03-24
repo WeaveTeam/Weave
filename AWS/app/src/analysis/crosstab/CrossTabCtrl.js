@@ -8,8 +8,8 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 	};
 
 	$scope.queryService = queryService;
-	var firstFilterMetadata = {};
-	var secondFilterMetadata = {};
+	$scope.firstFilterMetadata = {};
+	$scope.secondFilterMetadata = {};
 	
 	$scope.rowInfo = "Select a row variable. Some analysts refer to the row as the dependent variable.";
 	$scope.columnInfo = "Select a column variable. Some analysts refer to the column as the independent variable.";
@@ -81,7 +81,7 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 						var metadata = angular.fromJson(resultMetadata.publicMetadata.aws_metadata);
 						if(metadata.hasOwnProperty("varValues")) {
 							queryService.getDataMapping(metadata.varValues).then(function(result) {
-								firstFilterMetadata = result;
+								$scope.firstFilterMetadata = result;
 							});
 						}
 					}
@@ -89,7 +89,7 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 			});
 		} else {
 			// delete metadata if filter column is cleared
-			firstFilterMetadata = [];
+			$scope.firstFilterMetadata = [];
 		}
 	});
 	
@@ -103,7 +103,7 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 						var metadata = angular.fromJson(resultMetadata.publicMetadata.aws_metadata);
 						if(metadata.hasOwnProperty("varValues")) {
 							queryService.getDataMapping(metadata.varValues).then(function(result) {
-								secondFilterMetadata = result;
+								$scope.secondFilterMetadata = result;
 							});
 						}
 					}
@@ -111,57 +111,9 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 			});
 		} else {
 			// delete metadata if filter column is cleared
-			secondFilterMetadata = [];
+			$scope.secondFilterMetadata = [];
 		}
 	});
-	
-	$scope.getItemId = function(item) {
-		return item.id;
-	};
-	
-	$scope.getItemText = function(item) {
-		return item.description || item.title;
-	};
-	
-	$scope.getFilterId = function(item) {
-		return item.value;
-	};
-	
-	$scope.getFilterText = function(item) {
-		return item.label;
-	};
-	
-	//datatable
-	$scope.getDataTable = function(term, done) {
-		var values = queryService.cache.dataTableList;
-		done($filter('filter')(values, {title:term}, 'title'));
-	};
-	
-	$scope.getColumns = function(term, done) {
-		var values = queryService.cache.columns;
-		done($filter('filter')(values, {title:term}, 'title'));
-	};
-	
-	$scope.getFirstFilterOptions = function(term, done) {
-		done($filter('filter')(firstFilterMetadata, {label:term}, 'label'));
-	};
-	
-	$scope.getSecondFilterOptions = function(term, done) {
-		done($filter('filter')(secondFilterMetadata, {label:term}, 'label'));
-	};
-	
-	$scope.$watch("queryService.queryObject.dataTable", function() {
-		if(!queryService.queryObject.dataTable || !queryService.queryObject.dataTable.hasOwnProperty("id")) {
-		} else {
-			queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
-		}
-	});
-	
-	//Indicator
-	 $scope.getIndicators = function(term, done) {
-			var columns = queryService.cache.columns;
-			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
-	};
 	
 	$scope.runReport = function() {
 		var dataRequest = {

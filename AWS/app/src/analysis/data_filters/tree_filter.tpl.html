@@ -1,0 +1,38 @@
+<div class=" header panel-heading" style="margin-bottom: 0px">
+	<h2>Tree Filter</h2>
+
+	<a href="javascript: void(0)" 
+		class="close-button" data-trigger="hover" placement="right" title="Remove"
+		ng-click="$parent.removeFilter($parent.$index)"	
+	> 
+		<i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> 
+	</a>
+</div>
+
+<div class="panel-body">
+	<ul class="input-controls">
+	<div style="display: inline">
+			<ui-select ng-model="model.firstLevel" theme="select2" style="width: 100%;">
+		   		<ui-select-match allow-clear="true" placeholder="First Level">{{$select.selected.title}}</ui-select-match>
+				<ui-select-choices repeat="column in columns">
+		      			 <div ng-bind-html="column.title | highlight: $select.search"></div>
+		       	</ui-select-choices>
+			</ui-select>
+			<ui-select ng-model="model.secondLevel" theme="select2" style="width: 100%;">
+		   		<ui-select-match allow-clear="true" placeholder="Second Level">{{$select.selected.title}}</ui-select-match>
+				<ui-select-choices repeat="column in columns">
+		      			 <div ng-bind-html="column.title | highlight: $select.search"></div>
+		       	</ui-select-choices>
+			</ui-select>
+	</div>
+		<br>
+		
+		<p>
+			<a ng-click='selectAll()'>Select all</a>
+			<a ng-click='deSelectAll()'>Deselect all</a>
+<!-- 			<a ng-click='toggleSelect()'>Toggle select</a> -->
+		</p>
+      	<div id="tree" style="width: 100%; height: 160px; overflow: hidden"></div>
+      	<br>
+	</ul>
+</div>

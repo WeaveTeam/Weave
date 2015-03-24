@@ -1,14 +1,12 @@
 <div style = "height: 100%">
 	
 	<div style="padding-top:2px;padding-bottom: 5px; width: 30%">
-		<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
-								style="width: 100%" ng-model="queryService.queryObject.dataTable"
-								simple-query="getDataTable"
-								data-placeholder="Select Datatable"
-								allow-clear="true"
-								to-id="getItemId" to-text="getItemText"
-							>
-		</input> 
+		<ui-select ng-model="queryService.queryObject.dataTable" theme="select2" style="width: 100%;">
+	    <ui-select-match allow-clear="true" placeholder="Select a data table...">{{$select.selected.title}}</ui-select-match>
+		<ui-select-choices repeat="dataTable in queryService.cache.dataTableList | filter : { title : $select.search }">
+		       		 <div ng-bind-html="dataTable.title | highlight: $select.search"></div>
+		        </ui-select-choices>
+		</ui-select>
 	</div>
 <!-- TODO rethink nested tabs? some other nested structure? -->
 	<nav class="navbar navbar-inverse" role="navigation">
