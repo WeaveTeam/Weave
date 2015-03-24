@@ -30,26 +30,19 @@
 				</td>
 			
 				<td style="padding-left: 5px;">
-					<select ng-if= "analyst.mode == 'computation'"
-							style = "width : 100%" 
-							ui-select2="{allowClear : true}" 
-							ng-model="tool.heights" 
-							multiple  
-							data-placeholder="Choose Column(s)">
-						<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.id}}</option>
-	  					</optgroup>
-					</select>
+					<ui-select ng-if= "analyst.mode == 'computation'" ng-model="tool.heights" multiple theme="select2" style="width: 100%;">
+				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
+						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
+				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+				        </ui-select-choices>
+					</ui-select>
 					
-					<input ng-if= "analyst.mode == 'visualize'" type="hidden" popover="Select heigh column" ui-select2-sortable popover-trigger="mouseenter"
-								style="width: 100%;"
-								ng-model="tool.heights"
-								multiple
-								simple-query="getAllColumns"
-								data-placeholder="Choose Columns(s)"
-								allow-clear="true"
-								to-id="getItemId" to-text="getItemText">
-					</input>
+					<ui-select ng-if= "analyst.mode == 'visualize'" ng-model="tool.heights" multiple theme="select2" style="width: 100%;">
+				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
+						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
+				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+				        </ui-select-choices>
+					</ui-select>
 				</td>
 			</tr>
 		
@@ -59,25 +52,19 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-				<select ng-if = "analyst.mode == 'computation'"
-						style = "width : 100%" 
-						ui-select2="{allowClear : true}" 
-						ng-model="tool.posErr" 
-						multiple  
-						data-placeholder="Choose Column(s)">
-					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.id}}</option>
-  					</optgroup>
-				</select>
-				
-				<input  ng-if= "analyst.mode == 'visualize'" type="hidden" popover="Select heigh column" ui-select2-sortable multiple popover-trigger="mouseenter"
-						style="width: 100%;"
-						ng-model="tool.posErr"
-						simple-query="getAllColumns"
-						data-placeholder="Choose Columns(s)"
-						allow-clear="true"
-						to-id="getItemId" to-text="getItemText">
-				</input>
+				<ui-select ng-if= "analyst.mode == 'computation'" ng-model="tool.posErr" multiple theme="select2" style="width: 100%;">
+				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
+						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
+				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+				        </ui-select-choices>
+					</ui-select>
+					
+					<ui-select ng-if= "analyst.mode == 'visualize'" ng-model="tool.posErr" multiple theme="select2" style="width: 100%;">
+				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
+						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
+				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+				        </ui-select-choices>
+					</ui-select>
 			</td>
 		</tr>
 			
@@ -87,25 +74,20 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-				<select ng-if = "analyst.mode == 'computation'"
-						style = "width : 100%" 
-						ui-select2="{allowClear : true}" 
-						ng-model="tool.negErr" 
-						multiple  
-						data-placeholder="Choose Column(s)">
-					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.id}}</option>
-  					</optgroup>
-				</select>
-				
-				<input 	ng-if= "analyst.mode == 'visualize'" type="hidden" popover="Select heigh column" ui-select2-sortable multiple popover-trigger="mouseenter"
-						style="width: 100%;"
-						ng-model="tool.negErr"
-						simple-query="getAllColumns"
-						data-placeholder="Choose Columns(s)"
-						allow-clear="true"
-						to-id="getItemId" to-text="getItemText">
-				</input>
+
+				<ui-select ng-if= "analyst.mode == 'computation'" ng-model="tool.negErr" multiple theme="select2" style="width: 100%;">
+				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
+						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
+				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+				        </ui-select-choices>
+					</ui-select>
+					
+					<ui-select ng-if= "analyst.mode == 'visualize'" ng-model="tool.negErr" multiple theme="select2" style="width: 100%;">
+				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
+						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
+				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+				        </ui-select-choices>
+					</ui-select>
 			</td>
 		</tr>	
 			
@@ -115,24 +97,20 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-				<select ng-if = "analyst.mode == 'computation'"
-						style = "width : 100%" 
-						ui-select2="{allowClear : true}" 
-						ng-model="tool.sort" 
-						data-placeholder="Choose Column">
-					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.id}}</option>
-  					</optgroup>
-				</select>
+
+				<ui-select  ng-if = "analyst.mode == 'computation'" ng-model="tool.sort" theme="select2" style="width: 100%;">
+			    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$select.selected.title}}</ui-select-match>
+					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
+			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+			        </ui-select-choices>
+				</ui-select>
 				
-				<input 	ng-if= "analyst.mode == 'visualize'" type="hidden" popover="Select heigh column" ui-select2-sortable popover-trigger="mouseenter"
-						style="width: 100%;"
-						ng-model="tool.sort"
-						simple-query="getAllColumns"
-						data-placeholder="Choose Columns(s)"
-						allow-clear="true"
-						to-id="getItemId" to-text="getItemText">
-				</input>
+				<ui-select  ng-if= "analyst.mode == 'visualize'" ng-model="tool.sort" theme="select2" style="width: 100%;">
+			    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$select.selected.title}}</ui-select-match>
+					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
+			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+			        </ui-select-choices>
+				</ui-select>
 			</td>
 		</tr>
 		
@@ -142,24 +120,20 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-				<select ng-if= "analyst.mode == 'computation'"
-						style = "width : 100%" 
-						ui-select2="{allowClear : true}" 
-						ng-model="tool.label" 
-						data-placeholder="Choose Column">
-					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.id}}</option>
-  					</optgroup>
-				</select>
+
+				<ui-select ng-if= "analyst.mode == 'computation'" ng-model=tool.label theme="select2" style="width: 100%;">
+			    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$select.selected.title}}</ui-select-match>
+					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
+			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+			        </ui-select-choices>
+				</ui-select>
 				
-				<input  ng-if= "analyst.mode == 'visualize'" type="hidden" popover="Select heigh column" ui-select2-sortable popover-trigger="mouseenter"
-						style="width: 100%;"
-						ng-model="tool.label"
-						simple-query="getAllColumns"
-						data-placeholder="Choose Columns(s)"
-						allow-clear="true"
-						to-id="getItemId" to-text="getItemText">
-				</input>
+				<ui-select  ng-if= "analyst.mode == 'visualize'" ng-model=tool.label theme="select2" style="width: 100%;">
+			    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$select.selected.title}}</ui-select-match>
+					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
+			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+			        </ui-select-choices>
+				</ui-select>
 			</td>
 		</tr>
 		<tr>	
