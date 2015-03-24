@@ -474,16 +474,24 @@
 				
 				// backwards compatibility
 				var tool:ISelectableAttributes = getTargetTool();
-				if (tool && tool.getSelectableAttributes().length == 0)
+				if (tool)
 				{
-					var sm:ISessionManager = WeaveAPI.SessionManager;
-					var descendants:Array = sm.getLinkableDescendants(tool, ISelectableAttributes);
-					descendants = descendants.filter(filterDescendants).filter(filterDescendants);
-					if (descendants.length)
+					var attrNames:Array = tool.getSelectableAttributeNames();
+					if (attrNames.length == 0 || attrNames.indexOf(targetAttributeName) < 0)
 					{
-						var path:Array = sm.getPath(WeaveAPI.globalHashMap, descendants[0]);
-						targetToolPath.setSessionState(path);
-						toolWatcher.targetPath = path;
+						var sm:ISessionManager = WeaveAPI.SessionManager;
+						var descendants:Array = sm.getLinkableDescendants(tool, ISelectableAttributes);
+						descendants = descendants.filter(filterDescendants).filter(filterDescendants);
+						if (descendants.length)
+						{
+							tool = descendants[0];
+							if (tool.getSelectableAttributeNames().indexOf(targetAttributeName) >= 0)
+							{
+								var path:Array = sm.getPath(WeaveAPI.globalHashMap, tool);
+								targetToolPath.setSessionState(path);
+								toolWatcher.targetPath = path;
+							}
+						}
 					}
 				}
 			}
