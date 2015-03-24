@@ -19,7 +19,7 @@ var tryParseJSON = function(jsonString){
 };
 
 
-var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.select2', 'ui.slider', 'ui.bootstrap']);
+var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.slider', 'ui.bootstrap']);
 
 //analysis service
 AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', 'queryService',
