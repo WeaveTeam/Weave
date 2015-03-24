@@ -72,6 +72,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		queryService.queryObject.properties.openInNewWindow = WeaveService.weaveWindow.closed;
 	});
 	
+	//************************** query object editor**********************************
 	var expandedNodes = null;
 	var scrolledPosition = 0;
 	var activeNode = null;
@@ -207,8 +208,15 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	 $("#queryObjectPanel" ).css({'top' : -1020, 'left' : 265});
 	
 	 $scope.$watch('queryService.queryObject.resultSet', function() {
-		 console.log($scope.queryService.queryObject.resultSet);
-	 });
+		 //console.log($scope.queryService.queryObject.resultSet);
+	 });//************************** query object editor end**********************************
+	 
+	 //*******************************************Weave Analyst Mode*********************
+	 //when the mode is computation then a script has to be selected and analysis is run and results of computation can be visualized
+	 //when the mode is visualize the original data can be visualized and the computation is by-passed
+	 //TODO handle hybrid
+	 $scope.analyst = {mode: "computation"};
+	 
 	//**********************************************************REMAPPING**************************************
 	 queryService.cache.shouldRemap = [];
 	 $scope.newValue= "";
@@ -492,20 +500,20 @@ AnalysisModule.config(function($selectProvider) {
 AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, $filter) {
 
 	// This sets the service variable to the queryService 
-	$scope.service = queryService;
+	$scope.queryService = queryService;
 	
 	queryService.getListOfScripts(true);
 	
 	$scope.$watch("queryService.queryObject.scriptSelected", function() {
-		queryService.getScriptMetadata(queryService.queryObject.scriptSelected, true);
+		$scope.getScriptMetadata($scope.queryService.queryObject.scriptSelected, true);
 	});
 	
 	//clears scrip options when script clear button is hit
 	$scope.getScriptMetadata = function(scriptSelected, forceUpdate){
-		if(scriptSelected)
-			$scope.service.getScriptMetadata(scriptSelected, forceUpdate);
+		if($scope.queryService.queryObject.scriptSelected)
+			$scope.queryService.getScriptMetadata(scriptSelected, forceUpdate);
 		else
-			$scope.service.cache.scriptMetadata.inputs = [];
+			$scope.queryService.cache.scriptMetadata = {};
 	};
 
 	//  clear script options when script changes
@@ -596,7 +604,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 								var column = columns[j];
 								if(input.hasOwnProperty("defaults")) {
 									if(column.title == input['defaults']) {
-										$scope.service.queryObject.scriptOptions[input.param] = column;
+										$scope.queryService.queryObject.scriptOptions[input.param] = column;
 										break;
 									}
 								}
@@ -612,7 +620,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		return queryService.queryObject.scriptOptions;
 	}, function(newValue, oldValue) {
 		// run this only if the user chooses to link the indicator
-		if($scope.service.queryObject.properties.linkedIndicator) {
+		if($scope.queryService.queryObject.properties.linkedIndicator) {
 			if(newValue != oldValue) {
 				var scriptOptions = newValue;
 				for(var key in scriptOptions) { 
@@ -649,7 +657,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 				return queryService.cache.scriptMetadata;
 			}, function(newValue, oldValue) {
 				// run this only if the user chooses to link the indicator
-				if($scope.service.queryObject.properties.linkedIndicator) {
+				if($scope.queryService.queryObject.properties.linkedIndicator) {
 					if(newValue) {
 						scriptMetadata = newValue;
 						if(indicator && scriptMetadata) {

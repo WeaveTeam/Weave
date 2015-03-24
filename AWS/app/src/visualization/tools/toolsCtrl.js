@@ -1,4 +1,4 @@
-AnalysisModule.controller("toolsCtrl", function($scope, queryService, WeaveService, AnalysisService){
+AnalysisModule.controller("toolsCtrl", function($scope, $filter,queryService, WeaveService, AnalysisService){
 	
 	$scope.queryService = queryService;
 	$scope.WeaveService = WeaveService;
@@ -26,15 +26,16 @@ AnalysisModule.controller("toolsCtrl", function($scope, queryService, WeaveServi
 				};
 				break;
 			case "ScatterPlot Tool":
-				var toolName = WeaveService.BarChartTool(null, "");
+				var toolName = WeaveService.ScatterPlotTool(null, "");
 				queryService.queryObject.visualizations[toolName] = {
-					title : 'Scatter Plot Tool',
+					title : 'ScatterPlot Tool',
 					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html'
 				};
 				break;
 			case "DataTable":
+				var toolName = WeaveService.DataTableTool(null, "");
 				queryService.queryObject.visualizations[toolName] = {
-					title : 'Data Table Tool',
+					title : 'DataTable Tool',
 					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html'
 				};
 				break;
@@ -45,16 +46,14 @@ AnalysisModule.controller("toolsCtrl", function($scope, queryService, WeaveServi
 		WeaveService.weave.path(toolId).remove();
 		delete queryService.queryObject.visualizations[toolId];
 	};
-
-//	$scope.getItemId = function(item) {
-//		return item.id;
-//	};
-//	
-//	$scope.getItemText = function(item) {
-//		return item.title;
-//	};
 	
-	//datatable
+	//for displying all columns in a datatable
+	$scope.getAllColumns = function(term, done) {
+		var allColumns = queryService.cache.columns;
+		done($filter('filter')(allColumns, term));
+	};
+
+	//displaying results of a computation
 	$scope.resultColumns = function(term, done) {
 		var values = WeaveService.resultSet;
 		done($filter('filter')(values, {name:term}, 'name'));

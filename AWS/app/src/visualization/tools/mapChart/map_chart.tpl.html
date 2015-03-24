@@ -24,32 +24,35 @@
 			<tr>
 			
 			
-				<td>
-						Geometry Layers:
-
-				</td>
-			
+				<td> State </td>
 				<td style="padding-left: 5px;">
 				
-					<input type="hidden" popover="Select Geometry layer" ui-select2-sortable popover-trigger="mouseenter"
+					<input type="hidden" title="Select State Geometry layer" ui-select2-sortable popover-trigger="mouseenter"
 					style="width: 100%;"
 					ng-model="tool.stateGeometryLayer"
 					simple-query="getGeometryLayers"
-					data-placeholder="Select Geometry Layer"
+					data-placeholder="Select State Layer"
 					allow-clear="true"
 					to-id="getItemId" to-text="getItemText">
 					</input>
+					</td>
+			</tr>
+				
+				<tr>
+					<td> County </td>
+					<td  style="padding-left: 5px;">
+						<input type="hidden" title="Select County Geometry layer" ui-select2-sortable popover-trigger="mouseenter"
+						style="width: 100%;"
+						ng-model="tool.countyGeometryLayer"
+						simple-query="getGeometryLayers"
+						data-placeholder="Select County Layer"
+						allow-clear="true"
+						to-id="getItemId" to-text="getItemText">
+						</input>
+					</td>
+				</tr>
 					
-<!-- 					<button><span class = "glyphicon glyphicon-plus" ></span></button> -->
 					
-					<input type="hidden" popover="Select Geometry layer" ui-select2-sortable popover-trigger="mouseenter"
-					style="width: 100%;"
-					ng-model="tool.countyGeometryLayer"
-					simple-query="getGeometryLayers"
-					data-placeholder="Select Geometry Layer"
-					allow-clear="true"
-					to-id="getItemId" to-text="getItemText">
-					</input>
 					
 <!-- 					<select style = "width : 100%"  -->
 <!-- 									ui-select2="{allowClear : true}"  -->
@@ -58,8 +61,7 @@
 <!-- 							<option></option> -->
 <!-- 							<option value="{{gt}}"  ng-repeat="gt in service.cache.geometryColumns">{{gt.title}}</option> -->
 <!-- 					</select> -->
-				</td>
-			</tr>
+			
 		
 		<tr>
 			<td>
@@ -75,22 +77,42 @@
 		</tr>
 			
 		<tr>
+			<td style="padding-left: 5px;">
+			Zoom 
+			</td>
+			
+			<td>
+				<div  ui-slider="{range:false}" min= "2" step="1"  max = "18" ng-model="tool.zoomLevel"/>
+				{{tool.zoomLevel}}
+			</td>
+		</tr>
+			
+			
+		<tr>
 			<td>
 				Label Layer
 			</td>
 			
 			<td style="padding-left: 5px;">
 			<!-- TODO change this to ui-select2-sortable -->
-				<select style = "width : 100%" 
+				<select ng-if = "analyst.mode == 'computation'"
+								style = "width : 100%" 
 								ui-select2="{allowClear : true}" 
 								ng-model="tool.labelLayer" 
 								data-placeholder="Choose Layer">
 					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
+   						 <option ng-repeat="column in columns" value="{{column}}">{{column.id}}</option>
   					</optgroup>
 				</select>
 				
-				
+				<input ng-if= "analyst.mode == 'visualize'" type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
+								style="width: 100%;"
+								ng-model="tool.labelLayer"
+								simple-query="getAllColumns"
+								data-placeholder=""
+								allow-clear="true"
+								to-id="getItemId" to-text="getItemText">
+				</input>
 			</td>
 		</tr>	
 	</table>

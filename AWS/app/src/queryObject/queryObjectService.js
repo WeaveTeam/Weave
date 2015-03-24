@@ -16,7 +16,7 @@ QueryObject.value('indicator_tool', {
 
 QueryObject.value('geoFilter_tool',{
 										title : 'Geography Filter',
-										template_url : 'src/analysis/data_filters/geography.tpl.html',
+										template_url : 'src/analysis/data_filters/geographyFilter.tpl.html',
 										description : 'Filter data by States and Counties',
 										category : 'datafilter'
 });
@@ -154,10 +154,10 @@ QueryObject.service('runQueryService', ['errorLogService','$modal', function(err
 
 QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQueryService',
                                      'dataServiceURL', 'adminServiceURL','projectManagementURL', 'scriptManagementURL','computationServiceURL',
-                                     'BarChartTool', 'MapTool', 'DataTableTool', 'ScatterPlotTool', 'color_Column', 'key_Column',
+                                     'BarChartTool', 'MapTool', 'DataTableTool', 'ScatterPlotTool', 'color_Column', 'key_Column','WeaveDataSource',
                          function($q, scope, WeaveService, runQueryService, 
                         		 dataServiceURL, adminServiceURL, projectManagementURL, scriptManagementURL, computationServiceURL,
-                        		 BarChartTool, MapTool, DataTableTool, ScatterPlotTool, color_Column, key_Column) {
+                        		 BarChartTool, MapTool, DataTableTool, ScatterPlotTool, color_Column, key_Column, WeaveDataSource) {
     
 	var SaveState =  function () {
         sessionStorage.queryObject = angular.toJson(queryObject);
@@ -446,6 +446,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 									columnObject.columnType = metadata.columnType;
 									columnObject.varType = metadata.varType;
 									columnObject.description = metadata.description || "";
+									columnObject.dataSourceName = WeaveDataSource;
 									
 									if(metadata.varRange)
 										columnObject.varRange = metadata.varRange;
@@ -465,6 +466,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 										columnObject.title = entity.publicMetadata.title;
 										columnObject.columnType = "";
 										columnObject.description =  "";
+										columnObject.dataSourceName = WeaveDataSource;
 										
 										return columnObject;
 									}
@@ -475,8 +477,12 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 									var columnObject = {};
 									columnObject.id = entity.id;
 									columnObject.title = entity.publicMetadata.title;
+									columnObject.dataType = entity.publicMetadata.dataType;
+									columnObject.entityType = entity.publicMetadata.entityType;
+									columnObject.keyType = entity.publicMetadata.keyType;
 									columnObject.columnType = "";
 									columnObject.description =  "";
+									columnObject.dataSourceName = WeaveDataSource;
 									
 									return columnObject;
 								
@@ -548,7 +554,9 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 						title : entity.publicMetadata.title,
 						keyType : entity.publicMetadata.keyType,
 						dataType : entity.publicMetadata.dataType,
-						projection: entity.publicMetadata.projection
+						geometry : entity.publicMetadata.geometry,
+						projection: entity.publicMetadata.projection,
+						dataSourceName : WeaveDataSource
 					};
 				});
 				scope.$safeApply(function() {

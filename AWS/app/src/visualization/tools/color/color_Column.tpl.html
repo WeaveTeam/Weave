@@ -1,12 +1,33 @@
 <div style="width: 100%" class="master-select2-container" ng-controller="ColorCtrl">
-					<select style = "width : 100%" 
+					<select ng-if = "analyst.mode == 'computation'"
+							style = "width : 100%" 
 							ui-select2="{allowClear : true}" 
 							ng-model="tool.column" 
 							data-placeholder="Choose Column">
 					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
+   						 <option ng-repeat="column in columns" value="{{column}}">{{column.id}}</option>
   					</optgroup>
 				</select>
+				
+				<input ng-if= "analyst.mode == 'visualize'" 
+								type="hidden" popover="Select color column" ui-select2-sortable popover-trigger="mouseenter"
+								style="width: 100%;"
+								ng-model="tool.column2"
+								simple-query="getAllColumns"
+								data-placeholder="Choose State Color"
+								to-id="getItemId" to-text="getItemText">
+				</input>
+				
+				<!-- hack for demo -->
+				<input ng-if= "analyst.mode == 'visualize'" 
+								type="hidden" popover="Select color column" ui-select2-sortable popover-trigger="mouseenter"
+								style="width: 100%;"
+								ng-model="tool.column3"
+								simple-query="getAllColumns"
+								data-placeholder="Choose County Color"
+								to-id="getItemId" to-text="getItemText">
+				</input>
+				<!-- hack for demo -->
 						<div style = "padding : 5px"></div>
 						<input type="checkbox" ng-model="tool.showColorLegend"/> Show Color Legend
 </div>

@@ -5,16 +5,7 @@ AnalysisModule.controller("MapCtrl", function($scope,$filter, queryService, Weav
 	$scope.service.getGeometryDataColumnsEntities(true);
 	
 	$scope.tool.zoomLevel = 0;
-	
-	//select2-sortable handlers
-//	$scope.getItemId = function(item) {
-//		return item.id;
-//	};
-//	
-//	$scope.getItemText = function(item) {
-//		return item.title;
-//	};
-	
+
 	//geometry layers
 	$scope.getGeometryLayers = function(term, done) {
 		var values = $scope.service.cache.geometryColumns;
@@ -22,6 +13,7 @@ AnalysisModule.controller("MapCtrl", function($scope,$filter, queryService, Weav
 	};
 	
 	$scope.$watch('tool', function() {
+		//console.log("map ctrl");
 		if($scope.toolId) // this gets triggered twice, the second time toolId with a undefined value.
 			WeaveService.MapTool($scope.tool, $scope.toolId);
 	}, true);

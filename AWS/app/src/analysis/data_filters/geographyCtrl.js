@@ -103,107 +103,107 @@ AnalysisModule.controller('GeographyCtrl', function($scope, queryService){
 		}
 	});
 
-	$scope.$watchCollection(function() {
-
-		return [queryService.queryObject.GeographyFilter.stateColumn, queryService.queryObject.GeographyFilter.countyColumn, processedMetadata];
-		
-	}, function() {
-		var stateColumn = queryService.queryObject.GeographyFilter.stateColumn;
-		var countyColumn = queryService.queryObject.GeographyFilter.countyColumn;
-		if(stateColumn != undefined && countyColumn != undefined && processedMetadata != undefined) {
-			if(stateColumn != "" && countyColumn != "" && processedMetadata.length) {
-				geoTreeData = createGeoTreeData(processedMetadata);
-			}
-		}
-	});
+//	$scope.$watchCollection(function() {
+//
+//		return [queryService.queryObject.GeographyFilter.stateColumn, queryService.queryObject.GeographyFilter.countyColumn, processedMetadata];
+//		
+//	}, function() {
+//		var stateColumn = queryService.queryObject.GeographyFilter.stateColumn;
+//		var countyColumn = queryService.queryObject.GeographyFilter.countyColumn;
+//		if(stateColumn != undefined && countyColumn != undefined && processedMetadata != undefined) {
+//			if(stateColumn != "" && countyColumn != "" && processedMetadata.length) {
+//				geoTreeData = createGeoTreeData(processedMetadata);
+//			}
+//		}
+//	});
 	
-	var createGeoTreeData = function(metadata) {
-		var treeData = [];
-		for(var i in metadata) {
-			treeData[i] = { title : metadata[i].label, key : metadata[i].value, isFolder : true,  children : [] };
-			for(var j in metadata[i].counties) {
-				treeData[i].children.push({ title : metadata[i].counties[j].label, key : metadata[i].counties[j].value });
-			}
-		}
-		return treeData;
-	}
+//	var createGeoTreeData = function(metadata) {
+//		var treeData = [];
+//		for(var i in metadata) {
+//			treeData[i] = { title : metadata[i].label, key : metadata[i].value, isFolder : true,  children : [] };
+//			for(var j in metadata[i].counties) {
+//				treeData[i].children.push({ title : metadata[i].counties[j].label, key : metadata[i].counties[j].value });
+//			}
+//		}
+//		return treeData;
+//	}
 	
-	$scope.$watch(function() {
-		return geoTreeData;
-	}, function(){
-		if(geoTreeData) {
-			$("#geoTree").dynatree({
-				minExpandLevel: 1,
-				checkbox : true,
-				selectMode : 3,
-				children : geoTreeData,
-				keyBoard : true,
-				onSelect: function(select, node) {
-					var treeSelection = {};
-					var root = $("#geoTree").dynatree("getRoot");
-					
-					for (var i = 0; i < root.childList.length; i++) {
-						var state = root.childList[i];
-						for(var j = 0; j < state.childList.length; j++) {
-							var county = state.childList[j];
-							if(state.childList[j].bSelected) {
-								if(!treeSelection[state.data.key]) {
-									var countyKey = county.data.key;
-									treeSelection[state.data.key] = {};
-									treeSelection[state.data.key].label = state.data.title;
-									var countyObj = {};
-									countyObj[countyKey] = county.data.title;
-									treeSelection[state.data.key].counties = [countyObj];
-								} else {
-									var countyKey = county.data.key;
-									var countyObj = {};
-									countyObj[countyKey] = county.data.title;
-									treeSelection[state.data.key].counties.push(countyObj);
-								}
-							}
-						}
-					}
-					queryService.queryObject.GeographyFilter.filters = treeSelection;
-					
-				},
-				onKeydown: function(node, event) {
-					if( event.which == 32 ) {
-						node.toggleSelect();
-						return false;
-					}
-				},
-				cookieId: "geo-tree",
-				idPrefix: "geo-tree-",
-				debugLevel: 0
-			});
-			
-			var node = $("#geoTree").dynatree("getRoot");
-			node.sortChildren(cmp, true);
-			$("#geoTree").dynatree("getTree").reload();
-		}
-	});
-	
-	 $scope.toggleSelect = function(){
-	      $("#geoTree").dynatree("getRoot").visit(function(node){
-	        node.toggleSelect();
-	      });
-	 };
-	 
-	$scope.deSelectAll = function(){
-      $("#geoTree").dynatree("getRoot").visit(function(node){
-        node.select(false);
-      });
-    };
-    
-    $scope.selectAll = function(){
-    	$("#geoTree").dynatree("getRoot").visit(function(node){
-    		node.select(true);
-    	});
-    };
-    
-     var cmp = function(a, b) {
-        a = a.data.title;
-        b = b.data.title;
-        return a > b ? 1 : a < b ? -1 : 0;
-     };
+//	$scope.$watch(function() {
+//		return geoTreeData;
+//	}, function(){
+//		if(geoTreeData) {
+//			$("#geoTree").dynatree({
+//				minExpandLevel: 1,
+//				checkbox : true,
+//				selectMode : 3,
+//				children : geoTreeData,
+//				keyBoard : true,
+//				onSelect: function(select, node) {
+//					var treeSelection = {};
+//					var root = $("#geoTree").dynatree("getRoot");
+//					
+//					for (var i = 0; i < root.childList.length; i++) {
+//						var state = root.childList[i];
+//						for(var j = 0; j < state.childList.length; j++) {
+//							var county = state.childList[j];
+//							if(state.childList[j].bSelected) {
+//								if(!treeSelection[state.data.key]) {
+//									treeSelection[state.data.key] = {};
+//									treeSelection[state.data.key].label = state.data.title;
+//									var countyObj = {};
+//									var countyKey = county.data.key;
+//									countyObj[countyKey] = county.data.title;
+//									treeSelection[state.data.key].counties = [countyObj];
+//								} else {
+//									var countyKey = county.data.key;
+//									var countyObj = {};
+//									countyObj[countyKey] = county.data.title;
+//									treeSelection[state.data.key].counties.push(countyObj);
+//								}
+//							}
+//						}
+//					}
+//					queryService.queryObject.GeographyFilter.filters = treeSelection;
+//					
+//				},
+//				onKeydown: function(node, event) {
+//					if( event.which == 32 ) {
+//						node.toggleSelect();
+//						return false;
+//					}
+//				},
+//				cookieId: "geo-tree",
+//				idPrefix: "geo-tree-",
+//				debugLevel: 0
+//			});
+//			
+//			var node = $("#geoTree").dynatree("getRoot");
+//			node.sortChildren(cmp, true);
+//			$("#geoTree").dynatree("getTree").reload();
+//		}
+//	});
+//	
+//	 $scope.toggleSelect = function(){
+//	      $("#geoTree").dynatree("getRoot").visit(function(node){
+//	        node.toggleSelect();
+//	      });
+//	 };
+//	 
+//	$scope.deSelectAll = function(){
+//      $("#geoTree").dynatree("getRoot").visit(function(node){
+//        node.select(false);
+//      });
+//    };
+//    
+//    $scope.selectAll = function(){
+//    	$("#geoTree").dynatree("getRoot").visit(function(node){
+//    		node.select(true);
+//    	});
+//    };
+//    
+//     var cmp = function(a, b) {
+//        a = a.data.title;
+//        b = b.data.title;
+//        return a > b ? 1 : a < b ? -1 : 0;
+//     };
 });

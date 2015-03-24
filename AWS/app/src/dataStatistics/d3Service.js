@@ -7,7 +7,9 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 	
 	//is a pointer to the geomteries after being loaded the first time
 	this.cache = {
-			stateTopoGeometries : []
+			stateTopoGeometries : [],
+			countyTopoGeometries : [],
+			US: []
 	};
 	
 	/**
@@ -15,7 +17,7 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 	 * @param filename name if file to load
 	 * @param run callback once loaded
 	 */
-	this.renderLayer = function(dom_element_to_append_to, filename){
+	this.renderLayer = function(dom_element_to_append_to, filename, heirarchyLevel){
 		
 		//clearing previous rendered stuff
 		d3.select(dom_element_to_append_to).selectAll("*").remove();
@@ -23,7 +25,8 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 		var margin = {top: 5, right: 5, bottom: 5, left: 5};
 		var  width = (dom_element_to_append_to.offsetWidth) - margin.left - margin.right;
 	    var height = (dom_element_to_append_to.offsetHeight) - margin.top - margin.bottom;
-	    
+	    var centered;
+
 	    //tooltip
 	    var tooltip = d3.select(dom_element_to_append_to)
 		.append("div")
@@ -42,26 +45,131 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 		var path = d3.geo.path()
 						 .projection(projection);
 		
-		var zoom = d3.behavior.zoom()
-	    .translate(projection.translate())
-	    .scale(projection.scale())
-	    .scaleExtent([height, 8 * height])
-	    .on("zoom", zoomed);
 		
-		// SVG Creation	
-		var mysvg = d3.select(dom_element_to_append_to).append("svg")
-		.attr("width", width + margin.left + margin.right)
-		.attr("height", height + margin.top + margin.bottom);
+		if(that.cache.US.length == 0)
+		{//first time call
+			d3.json(filename, function(error, USGeometries){
+				
+				that.cache.US = USGeometries;
+				
+				var states = topojson.feature(USGeometries, USGeometries.objects.states);
+				that.cache.stateTopoGeometries = states;
+				
+				var counties = topojson.feature(USGeometries, USGeometries.objects.counties);
+				that.cache.countyTopoGeometries = counties;
+				
+				
+				if(heirarchyLevel == 'State'){//handling state level geometries
+					handleStateLayer();
+				}
+				else if(heirarchyLevel == 'County'){ //handling county level
+					
+					handleCountyLayer();
+				}
+				else{
+					//handling country level
+				}
+			});
+		}
+		else//use cache
+		{
+			if(heirarchyLevel == 'State'){
+				
+				addStatelayer(that.cache.stateTopoGeometries.features);	
+			}
+			else if(heirarchyLevel == 'County'){
+				
+				if('name' in that.cache.countyTopoGeometries.features[0].properties)//if this property has been assigned add it
+					addCountyLayer(that.cache.countyTopoGeometries.features);
+				else
+					handleCountyLayer();
+			}
+			else{
+				//handling country level
+			}
+			
+		}
 		
-		var g = mysvg.append("g")
-	    .call(zoom);
 		
-		function zoomed() {
-			  projection.translate(d3.event.translate).scale(d3.event.scale);
-			  g.selectAll("path").attr("d", path);
-		};
+		function handleStateLayer(){
+			//adding state name property from csv to the topojson
+			d3.csv("lib/us_states.csv", function(state_fips){
+				
+				for(i in state_fips){
+					
+					var fips = parseFloat(state_fips[i].US_STATE_FIPS_CODE);
+					
+					for(j in that.cache.stateTopoGeometries.features){
+						
+						var id = that.cache.stateTopoGeometries.features[j].id;
+						
+						if(fips == id){
+							
+							that.cache.stateTopoGeometries.features[j].properties.name = state_fips[i].NAME10;
+							break;
+						}
+					}//j loop
+				}//i loop
+				
+				addStatelayer(that.cache.stateTopoGeometries.features);	
+				
+			});//end of csv load
+		}
 		
-		function addlayer(geometries){
+		function handleCountyLayer(){
+			//adding county name property from csv to topojson
+			d3.csv("lib/us_counties.csv", function(county_fips){
+				
+				for(i in county_fips){
+					
+					var county_fips_code = parseFloat(county_fips[i].FIPS);
+					
+					for(j in that.cache.countyTopoGeometries.features){
+						
+						var id = that.cache.countyTopoGeometries.features[j].id;
+						
+						if(county_fips_code == id){
+							that.cache.countyTopoGeometries.features[j].properties.name = county_fips[i].County_Name;
+							that.cache.countyTopoGeometries.features[j].properties.state = county_fips[i].State_Name;
+							that.cache.countyTopoGeometries.features[j].properties.stateAbbr = county_fips[i].State_Abbr;
+							that.cache.countyTopoGeometries.features[j].properties.stateId = parseFloat(county_fips[i].STFIPS);
+							break;
+						}
+					}//j loop
+				}//i loop
+				
+				addCountyLayer(that.cache.countyTopoGeometries.features);
+				
+			});//end of csv load
+		}
+					
+		
+		//d3 code for state level
+		function addStatelayer(geometries){
+			
+			// SVG Creation	
+			var stateSvg = d3.select(dom_element_to_append_to).append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom);
+			
+			//clearing previous layers
+			//mysvg.selectAll("*").remove();
+			
+			var zoom = d3.behavior.zoom()
+		    .translate(projection.translate())
+		    .scale(projection.scale())
+		    .scaleExtent([height, 8 * height])
+		    .on("zoom", zoomed);
+			
+			var g = stateSvg.append("g")
+		    .call(zoom);
+			
+			function zoomed() {
+				  projection.translate(d3.event.translate).scale(d3.event.scale);
+				  g.selectAll("path").attr("d", path);
+			};
+			
+			
 			//adding map layer
 			g.selectAll("path")
 			.data(geometries)
@@ -74,15 +182,15 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 										})
 			//handling selections							
 			.on('click', function(d){
+										console.log("state Object", d);
 										//if it is selected for the first time
-										if( $.inArray(d.properties.name, geoService.selectedStates) == -1){
+										if(!(d.id in geoService.selectedStates)){
 											d3.select(this).style("fill", "yellow");
-											geoService.selectedStates.push(d.properties.name);
+											geoService.selectedStates[d.id] =  d.properties.name;
 										}
 										//if already selected; remove it
 										else{
-											var index = $.inArray(d.properties.name, geoService.selectedStates);
-											geoService.selectedStates.splice(index, 1);
+											delete geoService.selectedStates[d.id];
 											d3.select(this).style("fill", "#335555");
 										}
 										
@@ -92,47 +200,86 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 			
 		};
 		
-		//if cached use cache
-		if(that.cache.stateTopoGeometries.length > 1){
+		//d3 code for county level
+		/*used parts of mbostock's demo @http://bl.ocks.org/mbostock/2206590 */
+		function addCountyLayer(geometries){
+			// SVG Creation	
+			var countySvg = d3.select(dom_element_to_append_to).append("svg")
+			.attr("width", width + margin.left + margin.right)
+			.attr("height", height + margin.top + margin.bottom);
 			
-			addlayer(this.cache.stateTopoGeometries);
-		}
-		//loading for the first time
-		else{
 			
-			d3.json(filename, function(error, geomJson){
-				//adding state name property from csv to the topojson
-				d3.csv("lib/us_states.csv", function(state_fips){
-					
-					var features = topojson.feature(geomJson, geomJson.objects.states).features;
-					that.cache.stateTopoGeometries= features;
-					
-					for(i in state_fips){
-						
-						var fips = parseFloat(state_fips[i].US_STATE_FIPS_CODE);
-						
-						for(j in features){
-							
-							var id = features[j].id;
-							
-							if(fips == id){
-								
-								features[j].properties.name = state_fips[i].NAME10;
-								break;
-							}
-						}//j loop
-					}//i loop
-					
-					addlayer(features);	
-					
-				});//end of csv load
-				
-			});//end of json load
+			//clearing previous layers
+			//mysvg.selectAll("*").remove();
+			
+			countySvg.append("rect")
+				 .attr("class", "background")
+				 .attr("width", width)
+				 .attr("height", height)
+				 .on("click", clicked);
+			var f = countySvg.append('g');
+			
+			f.append("g")
+			 .attr("id", "states")
+			 .selectAll("g")
+			 .data(that.cache.stateTopoGeometries.features)
+			 .enter()
+			 .append("g").on('click', function(d){clicked(this, d);})
+			 .append("path")
+			 .attr("d", path);
+			
+			f.append("path")//just for the borders
+		      .datum(topojson.mesh(that.cache.US, that.cache.US.objects.states, function(a, b) { return a !== b; }))
+		      .attr("id", "state-borders")
+		      .attr("d", path);
+			
+			
+			function clicked(gElement, d) {
+				  var x, y, k;
+				  if (d && centered !== d) {
+				    var centroid = path.centroid(d);
+				    x = centroid[0];
+				    y = centroid[1];
+				    k = 2;
+				    centered = d;
+				    
+				    //find all counties belonging to d
+				    var c_in_selectedState= [];
+				    for(var i in geometries){
+				    	var county = geometries[i];
+				    	if(d.id == county.properties.stateId){
+				    		c_in_selectedState.push(county);
+				    	}
+				    }
+				    //drawing counties in d
+				    var gAr = d3.select(gElement);
+				    gAr.selectAll("path")
+				     .data(c_in_selectedState)
+				     .enter().append("path")
+				     .attr("d", path)
+				     .attr("class", "countyBorders");
+				  } 
+				  
+				  else { 
+				    x = width / 2;
+				    y = height / 2;
+				    k = 1;
+				    centered = null;
+				  }
+
+//				  f.selectAll("path")
+//				      .classed("active", centered && function(d) { return d === centered; });
+
+				  f.transition()
+				      .duration(750)
+				      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
+				      .style("stroke-width", 1.5 / k + "px");
+				}
+			
+			
 		}
-		
 		
 	};
-	
 	
 	/**
 	 * function to draw a heatmap using a matrix computed in R/STATA

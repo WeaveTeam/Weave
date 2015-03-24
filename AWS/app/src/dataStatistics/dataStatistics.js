@@ -52,12 +52,12 @@ dataStatsModule.service('statisticsService', ['$q','$rootScope', 'runQueryServic
 		
 		//empty the cache of previously calculated stats
 		//TODO confirm if better way to do this
-		this.cache.summaryStats.statsData = [];
-		this.cache.summaryStats.columnDefinitions = [];
-		this.cache.correlationMatrix = [];
-		this.cache.columnTitles= [];
-		this.sparklineData.breaks = [];
-		this.sparklineData.counts = {};
+//		this.cache.summaryStats.statsData = [];
+//		this.cache.summaryStats.columnDefinitions = [];
+//		this.cache.correlationMatrix = [];
+//		this.cache.columnTitles= [];
+//		this.sparklineData.breaks = [];
+//		this.sparklineData.counts = {};
 		
 		
 		var statsInputs = QueryHandlerService.handleScriptOptions(numericalColumns);//will return int[] ids

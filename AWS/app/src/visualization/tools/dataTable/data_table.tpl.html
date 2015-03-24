@@ -23,15 +23,26 @@
 <!-- 			<option ng-repeat="dt in options" value="{{dt}}">{{dt.title}}</option> -->
 <!-- 			</select> -->
 			
-			<select style = "width : 100%" 
-								ui-select2="{allowClear : true}" 
-								ng-model="tool.columns" 
-							multiple  
-							data-placeholder="Choose Column(s)">
+			<select ng-if= "analyst.mode == 'computation'" 
+					style = "width : 100%" 
+					ui-select2="{allowClear : true}" 
+					ng-model="tool.columns" 
+					multiple  
+					data-placeholder="Choose Column(s)">
 					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.name}}</option>
+   						 <option ng-repeat="column in columns" value="{{column}}">{{column.id}}</option>
   					</optgroup>
 			</select>
+			
+			<input ng-if= "analyst.mode == 'visualize'" 
+								type="hidden" popover="Select columns" ui-select2-sortable multiple popover-trigger="mouseenter"
+								style="width: 100%;"
+								ng-model="tool.columns"
+								simple-query="getAllColumns"
+								data-placeholder="Choose Column"
+								allow-clear="true"
+								to-id="getItemId" to-text="getItemText">
+			</input>
 
 			<!--<span>Data Table</span>
 			<select ui-select2-"{allowClear : true}" ng-model="dataTable" style=width:200px;>
