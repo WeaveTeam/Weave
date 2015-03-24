@@ -63,9 +63,10 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 		queryObject.resultSet[dataSourceName] = [];
 		for(var i in csvData[0])
 		{
-			queryObject.resultSet[dataSourceName][i] = { id : csvData[0][i], dataSourceName : dataSourceName};
+			queryObject.resultSet.push({ id : csvData[0][i], title: csvData[0][i], dataSourceName : dataSourceName});
 		}
-		queryObject.resultSet[dataSourceName]["data"] = csvData;
+		console.log(queryObject.resultSet);
+		//queryObject.resultSet[dataSourceName]["data"] = csvData; <- unused
 	};
 	
 	// weave path func
@@ -77,10 +78,9 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			}
 			else if (ws.weave && ws.weave.path && column)
 			{
-				var col = angular.fromJson(column);
-				if(col.id == "" || angular.isUndefined(col.id))
+				if(column.id == "" || angular.isUndefined(column.id))
 					return;
-				this.push(propertyName).setColumn(col.id, col.dataSourceName);
+				this.push(propertyName).setColumn(column.id, column.dataSourceName);
 			}
 		});
 		if (Array.isArray(mapping))
@@ -140,8 +140,8 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 				//STATE LAYER
 				if(state.stateGeometryLayer)
 				{
-					var stateGeometry = angular.fromJson(state.stateGeometryLayer);
-					
+					var stateGeometry = state.stateGeometryLayer;
+
 					ws.weave.path(toolName).request('MapTool')
 					.push('children', 'visualization', 'plotManager', 'plotters')
 					.push('Albers_State_Layer').request('weave.visualization.plotters.GeometryPlotter')
@@ -152,7 +152,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					{
 						if(state.labelLayer)
 						{
-							ws.weave.setSessionState([angular.fromJson(state.labelLayer).dataSourceName], {"keyType" : stateGeometry.keyType});
+							ws.weave.setSessionState([state.labelLayer.dataSourceName], {"keyType" : stateGeometry.keyType});
 						}
 					}
 					
@@ -166,9 +166,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 				//COUNTY LAYER
 				if(state.countyGeometryLayer)
 				{
-					var countyGeometry = angular.fromJson(state.countyGeometryLayer);
-					console.log("countygeom",countyGeometry );
-					console.log("state",stateGeometry );
+					var countyGeometry = state.countyGeometryLayer;
 					
 					ws.weave.path(toolName).request('MapTool')
 					.push('children', 'visualization', 'plotManager', 'plotters')
@@ -190,10 +188,10 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 				//LABEL LAYER
 				if(state.labelLayer && state.stateGeometryLayer)
 				{
-					var labelLayer = angular.fromJson(state.labelLayer);
+					var labelLayer = state.labelLayer;
 					ws.weave.setSessionState([labelLayer.dataSourceName], {keyColName : "fips"});//TODO handle this
 					
-					var stateGeometryLayer = angular.fromJson(state.stateGeometryLayer);
+					var stateGeometryLayer = state.stateGeometryLayer;
 					
 					ws.weave.path(toolName).request('MapTool')
 					.push('children', 'visualization', 'plotManager','plotters')
@@ -314,7 +312,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			
 			if(state.column)
 			{
-				ws.weave.path('defaultColorDataColumn').setColumn(angular.fromJson(state.column).id, angular.fromJson(state.column).dataSourceName);
+				ws.weave.path('defaultColorDataColumn').setColumn(state.column.id, state.column.dataSourceName);
 			}
 //				var path = ws.weave.path().getPath();
 //				setColumn(state.column, path, 'defaultColorDataColumn');
@@ -342,9 +340,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 		//;
 	};
 	
-	this.keyColumn = function(akeyColumn) {
-		var keyColumn = angular.fromJson(akeyColumn);
-		//console.log("keyColumn", keyColumn);
+	this.keyColumn = function(keyColumn) {
 		if(ws.weave && ws.weave.path && keyColumn) {
 			if(keyColumn.name) {
 				ws.weave.setSessionState([keyColumn.dataSourceName], {keyColName : keyColumn.id});

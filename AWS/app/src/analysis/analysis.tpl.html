@@ -68,14 +68,12 @@
 						<div ng-class="{'unvalidatedUI' : !queryService.queryObject.dataTable, 'validatedUI' : queryService.queryObject.dataTable}"
 							 title = "Red flags indicate required selections for query validation">
 						
-								<input type="hidden" popover="Select Data Table" ui-select2-sortable popover-trigger="mouseenter"
-								style="width: 97%;"
-								ng-model="queryService.queryObject.dataTable"
-								simple-query="getDataTable"
-								data-placeholder="Select Datatable"
-								allow-clear="true"
-								to-id="getItemId" to-text="getItemText">
-								</input>
+							<ui-select ng-model="queryService.queryObject.dataTable" theme="select2" style="width: 97%;">
+							    <ui-select-match allow-clear="true" placeholder="Select a data table...">{{$select.selected.title}}</ui-select-match>
+								<ui-select-choices repeat="dataTable in queryService.cache.dataTableList | filter : { title : $select.search }">
+ 							       		 <div ng-bind-html="dataTable.title | highlight: $select.search"></div>
+ 							        </ui-select-choices>
+							</ui-select>
 								 
 						</div>
 						<br/>
@@ -87,14 +85,16 @@
 <!-- INDICATOR -->
 		<div style="width: 100%;" title = "Red flags indicate required selections for query validation"
 							 ng-class="{'unvalidatedUI' : !queryService.queryObject.Indicator, 'validatedUI' : queryService.queryObject.Indicator}">
-							<input type="hidden" popover="Select Indicator" ui-select2-sortable popover-trigger="mouseenter"
-								style="width: 97%" 
-								ng-model="queryService.queryObject.Indicator"
-								simple-query="getIndicators"
-								data-placeholder="Select Indicator"
-								allow-clear="true"
-								to-id="getItemId" to-text="getItemText">
-							</input> 
+
+							<ui-select ng-model="queryService.queryObject.Indicator" theme="select2" style="width: 97%;">
+						    	<ui-select-match allow-clear="true" placeholder="Select Indicator...">{{$select.selected.title}}</ui-select-match>
+								<ui-select-choices repeat="indicator in queryService.cache.columns | filter : { columnType : 'indicator', title : $select.search }">
+						       		 <b ng-bind-html="indicator.title | highlight: $select.search"></b>
+						       		 <small>
+						       		 	{{indicator.description}}
+						       		 </small>
+						        </ui-select-choices>
+							</ui-select>
 						</div>
 						
 						<br> {{IndicDescription}} 
@@ -138,13 +138,13 @@
 				<div class="body" ng-controller="ScriptsSettingsCtrl">
 <!-- Script Select-->	<div ng-class="{'unvalidatedUI' : !queryService.queryObject.scriptSelected, 'validatedUI' : queryService.queryObject.scriptSelected}"
 						title = "Red flags indicate required selections for query validation">
-							<input type="hidden" popover="Select Script" ui-select2-sortable popover-trigger="mouseenter"
-								style="width: 97%" 
-								ng-model="queryService.queryObject.scriptSelected"
-								simple-query="getScriptList"
-								data-placeholder="Select Script"
-								allow-clear="true">
-							</input> 
+						
+							<ui-select ng-model="queryService.queryObject.scriptSelected" theme="select2" style="width: 97%;">
+					    		<ui-select-match allow-clear="true" placeholder="Select Script...">{{$select.selected}}</ui-select-match>
+								<ui-select-choices repeat="script in queryService.cache.scriptList">
+					       			 <div ng-bind-html="script | highlight: $select.search"></div>
+					        	</ui-select-choices>
+							</ui-select>
 						</div>
 					
 						
@@ -160,67 +160,17 @@
 									
 										<!-- Handling column types -->
 										<!-- TIME -->
-										<input ng-if="input.type == 'column' && input.columnType == 'time'" 
-											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
-											style="width: 100%" 
-											ng-model="queryService.queryObject.scriptOptions[input.param]"
-											simple-query="getTimeInputOptions"
-											data-placeholder="Select parameter"
-											allow-clear="true"
-											to-id = "getItemDefault" to-text= "getItemText"
-											>
-										</input> 
-										
-										<!-- ANALYTIC -->
-										<input ng-if="input.type == 'column' && input.columnType == 'analytic'" 
-											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
-											style="width: 100%" 
-											ng-model="queryService.queryObject.scriptOptions[input.param]"
-											simple-query="getAnalyticInputOptions"
-											data-placeholder="Select parameter"
-											allow-clear="true"
-											to-id = "getItemDefault" to-text= "getItemText"
-											>
-										</input> 
-										
-										<!-- GEOGRAPHY -->
-										<input ng-if="input.type == 'column' && input.columnType == 'geography'" 
-											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
-											style="width: 100%" 
-											ng-model="queryService.queryObject.scriptOptions[input.param]"
-											simple-query="getGeographyInputOptions"
-											data-placeholder="Select parameter"
-											allow-clear="true"
-											to-id = "getItemDefault" to-text= "getItemText">
-										</input> 
-										
-										<!-- INDICATOR -->
-										<input ng-if="input.type == 'column' && input.columnType == 'indicator'" 
-											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
-											style="width: 100%" 
-											ng-model="queryService.queryObject.scriptOptions[input.param]"
-											simple-query="getIndicators2"
-											data-placeholder="Select parameter"
-											allow-clear="true"
-											to-id = "getItemDefault" to-text= "getItemText"
-											>
-										</input> 
-										
-										<!-- handling multiple options for a parameter -->
-										<div ng-if="input.type == 'options'"
-											ng-init = "test($index)"
-											type="hidden" popover="Select parameter" ui-select2-sortable popover-trigger="mouseenter"
-											style="width: 100%" 
-											ng-model="queryService.queryObject.scriptOptions[input.param]"
-											simple-query="getParamOptionsForInput"
-											data-placeholder="Select parameter"
-											allow-clear="true">
-										</div>
-										
+
+										<ui-select ng-if="input.type == 'column'" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 97%;">
+								    		<ui-select-match allow-clear="true" placeholder="Select column...">{{$select.selected.title}}</ui-select-match>
+											<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search, columnType : input.columnType }">
+								       			 <div ng-bind-html="column.title | highlight: $select.search"></div>
+								        	</ui-select-choices>
+										</ui-select>
 										<!-- handling toggle input types -->
 										<div class="btn-group btn-toggle"
 											ng-if="input.type == 'options' && input.options.length == 2"
-											ng-click="toggleButton(input)"">
+											ng-click="toggleButton(input)">
 											<button
 												ng-class="{'active btn-primary': queryService.queryObject.scriptOptions[input.param] == input.options[0]}"
 												class="btn btn-default">{{input.options[0]}}</button>
@@ -245,18 +195,12 @@
 										ng-model="queryService.queryObject.scriptOptions[input.param]">
 										
 <!-- 										Handling multiple column types -->
-										<input ng-if="input.type == 'multiColumns'"
-											type="hidden" popover="Select parameters" ui-select2-sortable popover-trigger="mouseenter"
-											style="width: 100%" 
-											multiple
-											ng-model="queryService.queryObject.scriptOptions[input.param]"
-											simple-query="getAllColumns"
-											data-placeholder="Select parameter"
-											allow-clear="true"
-											to-id="getItemDefault" to-text= "getItemText">
-										</input> 
-										
-							
+										<ui-select ng-if="input.type == 'multiColumns'" multiple ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 97%;">
+										    <ui-select-match placeholder="Select Columns...">{{$item.title}}</ui-select-match>
+										    <ui-select-choices repeat="column in queryService.cache.columns | filter: { title : $select.search, columnType : input.columnType }">
+									      	      <div ng-bind-html="column.title | highlight: $select.search"></div>
+										    </ui-select-choices>
+									    </ui-select>
 									<br></td>
 								</tr>
 							</table>
@@ -267,7 +211,7 @@
 						      <span class="input-group-addon">
 						        <input type="checkbox" ng-model="service.queryObject.Reidentification.idPrevention" >
 						      </span>
-						      <input type="text" class="form-control"  ng-model = "service.queryObject.Reidentification.threshold" 
+						      <input type="text" style="z-index: 0" form-control"  ng-model = "service.queryObject.Reidentification.threshold" 
 						      		 ng-Disabled="!service.queryObject.Reidentification.idPrevention">
 					    </div><!-- /input-group -->
 						
@@ -294,40 +238,14 @@
 				<!--Geography filter -->
 				<geo-Filter  ng-if="AnalysisService.showGeographyFilter"></geo-Filter>
 			
-				<!--Timeperiod filter -->
-				<div class="databox" style="width: 15%"
-					ng-if="AnalysisService.showTimePeriodFilter">
+				
 	
-					<div class="header panel-heading">
-						<h2>Time Period</h2>
-						<a href="javascript: void(0)" class="close-button" data-trigger="hover" placement="right" title="Remove"  ng-click="AnalysisService.showTimePeriodFilter = false"> <i style="margin:8px 0px 2px 10px; font-size: 10px" class="glyphicon glyphicon-remove"></i> </a>
-					</div>
-	
-					<div class="body">
-						<div style="height: 100%"
-							ng-include="AnalysisService.timeFilter_tool.template_url"></div>
-					</div>
-	
+					<!--Timeperiod filter -->
+					<tree-filter ng-model="queryService.queryObject.timePeriodFilter" columns="queryService.cache.columns"></tree-filter>
+					
+					<filter  ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.cache.filterArray" columns="queryService.cache.columns" ng-model='queryService.queryObject.filters[$index]'></filter>
 				</div>
-	
-				<!--Byvariable filter -->
-<!-- 				<div class="databox" style="width: 15%"> -->
-<!-- 					<div class="databox" style="width: 160px;"> -->
-	
-<!-- 					<div class="header panel-heading"> -->
-<!-- 						<h2>By-variable</h2> -->
-<!-- 					</div> -->
-	
-<!-- 					<div class="body"> -->
-<!-- 						<div style="height: 100%" -->
-<!-- 							ng-include="AnalysisService.content_tools[3].template_url"></div> -->
-<!-- 					</div> -->
-	
-<!-- 				</div> -->
-				<div ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.queryObject.filters">
-					<div style="height: 100%" ng-include="filter.template_url"></div>
-					<br>
-				</div>
+				
 			</div>
 		</div>
 		<br><br><br>
@@ -347,12 +265,12 @@
 					<div class="databox" style="width: 25%;" ng-if="showToolMenu">
 						<div>
 							<div>
-								<select style = "width : 58%" 
-												ui-select2="{allowClear : true}" 
-												ng-model="selectedToolToAdd" 
-												data-placeholder="Add Tool">
-				   						 <option ng-repeat="tool in tool_options" value="{{tool}}">{{tool}}</option>
-								</select>
+								<ui-select ng-model="selectedToolToAdd" theme="select2" style="width: 59%;">
+									<ui-select-match allow-clear="true" placeholder="Add Tool...">{{$select.selected}}</ui-select-match>
+									<ui-select-choices repeat="tool in tool_options | filter :  $select.search">
+							       		 <div ng-bind-html="tool | highlight: $select.search"></div>
+							        </ui-select-choices>
+								</ui-select>
 								<button style = "width : 19%" class= "btn btn-sm btn-default" ng-click="addTool(selectedToolToAdd)">Add</button>
 								<button style = "width : 19%" class="btn btn-sm btn-default" ng-click="WeaveService.tileWindows()">Tile</button>
 							</div>

@@ -13,51 +13,19 @@
 			</td>
 		</tr>
 		<div class="portlet-content">
-			<!--<select style="width: 100%" id="duallistboxid" dual-list-box multiple ng-model="selected" data-placeholder="Choose Columns"
-			ng-options="opt for opt in options"></select>-->
-
-<!-- 			<select -->
-<!-- 			multiple -->
-<!-- 			dual-list-box> -->
-<!-- 			<option></option> -->
-<!-- 			<option ng-repeat="dt in options" value="{{dt}}">{{dt.title}}</option> -->
-<!-- 			</select> -->
+			<ui-select ng-if= "analyst.mode == 'computation'"  ng-model="tool.columns" multiple theme="select2" style="width: 100%;">
+		    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$item.title}}</ui-select-match>
+				<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
+		       		 <div ng-bind-html="column.title| highlight: $select.search"></div>
+		        </ui-select-choices>
+			</ui-select>
 			
-			<select ng-if= "analyst.mode == 'computation'" 
-					style = "width : 100%" 
-					ui-select2="{allowClear : true}" 
-					ng-model="tool.columns" 
-					multiple  
-					data-placeholder="Choose Column(s)">
-					<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-   						 <option ng-repeat="column in columns" value="{{column}}">{{column.id}}</option>
-  					</optgroup>
-			</select>
-			
-			<input ng-if= "analyst.mode == 'visualize'" 
-								type="hidden" popover="Select columns" ui-select2-sortable multiple popover-trigger="mouseenter"
-								style="width: 100%;"
-								ng-model="tool.columns"
-								simple-query="getAllColumns"
-								data-placeholder="Choose Column"
-								allow-clear="true"
-								to-id="getItemId" to-text="getItemText">
-			</input>
-
-			<!--<span>Data Table</span>
-			<select ui-select2-"{allowClear : true}" ng-model="dataTable" style=width:200px;>
-			<option></option>
-			<option ng-repeat="dt in dataTableList" value="{{dt}}">{{dt.title}}</option>
-			</select>-->
-
-			<!--
-			<select
-			ng-model="dataTable"
-			multiple
-			ng-options="dt.title for dt in dataTableList"
-			bs-duallistbox>
-			</select>
-			-->
+			<ui-select  ng-if= "analyst.mode == 'visualize'" ng-model="tool.columns" multiple theme="select2" style="width: 100%;">
+		    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$item.title}}</ui-select-match>
+				<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
+		       		 <div ng-bind-html="column.title| highlight: $select.search"></div>
+		        </ui-select-choices>
+			</ui-select>
 
 		</div>
 	</ul>

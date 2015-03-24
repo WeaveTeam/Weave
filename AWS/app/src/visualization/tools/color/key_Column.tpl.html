@@ -1,23 +1,18 @@
 <div style="width: 100%; padding-bottom" class="master-select2-container">
-				Key Column: <select ng-if = "analyst.mode == 'computation'"
-									style = "width : 100%" 
-									ui-select2="{allowClear : true}" 
-									ng-model="tool.keyColumn" 
-									ng-change = "WeaveService.keyColumn(tool.keyColumn);"
-									data-placeholder="Choose Column">
-								<optgroup ng-repeat="(dataset, columns) in queryService.queryObject.resultSet" label="{{dataset}}">
-		   							 <option ng-repeat="column in columns" value="{{column}}">{{column.id}}</option>
-		  						</optgroup>
-							</select>
-							
-							<input ng-if= "analyst.mode == 'visualize'" 
-								type="hidden" popover="Select key column" ui-select2-sortable popover-trigger="mouseenter"
-								style="width: 100%;"
-								ng-model="tool.keyColumn"
-								simple-query="getAllColumns"
-								data-placeholder="Choose Column"
-								allow-clear="true"
-								to-id="getItemId" to-text="getItemText">
-							</input>
+				Key Column: 
+				
+				<ui-select ng-if = "analyst.mode == 'computation'" ng-model="tool.keyColumn" theme="select2" style="width: 100%;">
+			    	<ui-select-match allow-clear="true" placeholder="Choose Layer...">{{$select.selected.title}}</ui-select-match>
+					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
+			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+			        </ui-select-choices>
+				</ui-select>
+				
+				<ui-select ng-if= "analyst.mode == 'visualize'"  ng-model="tool.keyColumn" theme="select2" style="width: 100%;">
+			    	<ui-select-match allow-clear="true" placeholder="Choose Layer...">{{$select.selected.title}}</ui-select-match>
+					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
+			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
+			        </ui-select-choices>
+				</ui-select>
 				<input type="button" value="set" ng-click="WeaveService.keyColumn(tool.keyColumn)"/>
 </div>

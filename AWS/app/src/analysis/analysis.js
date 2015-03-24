@@ -44,8 +44,6 @@ AnalysisModule.service('AnalysisService', ['geoFilter_tool','timeFilter_tool', '
 	
 }]);
 
-
-
 //main analysis controller
 AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService, AnalysisService, WeaveService, QueryHandlerService, $window,statisticsService ) {
 
@@ -57,7 +55,9 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	
 	$scope.showToolMenu = false;
 	
-	
+	$scope.$watch('queryService.queryObject.Indicator', function() {
+		console.log($scope.queryService.queryObject.Indicator);
+	}, true);
 	$("#queryObjectPanel" ).draggable().resizable();
 	
 	$scope.$watch(function() {
@@ -269,23 +269,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			}
 	 };
 	 //**********************************************************REMAPPING END**************************************
-	
-	//select2-sortable handlers
-	$scope.getItemId = function(item) {
-		return item.id;
-	};
-	
-	$scope.getItemText = function(item) {
-		if(queryService.queryObject.properties.displayAsQuestions)
-			return item.description || item.title;
-		return item.title;
-	};
-	
-	//datatable
-	$scope.getDataTable = function(term, done) {
-		var values = queryService.cache.dataTableList;
-		done($filter('filter')(values, {title:term}, 'title'));
-	};
 	
 	$scope.$watch("queryService.queryObject.dataTable.id", function() {
 		if($scope.queryService.queryObject.dataTable)
@@ -530,63 +513,6 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	}, true);
 	
 	
-	//**************************************select2 sortable options handlers*******************************
-	//handler for select2sortable for script list
-	$scope.getScriptList = function(term, done) {
-		var values = queryService.cache.scriptList;
-		done($filter('filter')(values, term));
-	};
-	
-	//handlers for select2sortable for script input options
-	$scope.getTimeInputOptions = function(term, done){
-		var values = queryService.cache.columns;
-		done($filter('filter')(values,{columnType : 'time',title:term},'title'));
-	};
-	
-	var options = [];
-	$scope.test = function(index) {
-		options = queryService.cache.scriptMetadata.inputs[index].options;
-	};
-	
-	$scope.getParamOptionsForInput = function(term, done){
-		var optionsToDisplay = options;
-		done($filter('filter')(optionsToDisplay , term));
-	};
-	
-	//getting all colunms
-	$scope.getAllColumns = function(term, done) {
-		var allColumns = queryService.cache.columns;
-		done($filter('filter')(allColumns, term));
-	};
-	
-	$scope.getGeographyInputOptions = function(term, done){
-		var values = queryService.cache.columns;
-		done($filter('filter')(values,{columnType : 'geography',title:term},'title'));
-	};
-	
-	$scope.getAnalyticInputOptions = function(term, done){
-		var values = queryService.cache.columns;
-		done($filter('filter')(values,{columnType : 'analytic',title:term},'title'));
-	};
-	
-	//TODO try to use parent scope function
-	 $scope.getIndicators2 = function(term, done) {
-			var columns = queryService.cache.columns;
-			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
-	};
-	
-	$scope.getItemDefault = function(item) {
-		return item.title;
-	};
-	
-	$scope.getItemText = function(item) {
-		if(queryService.queryObject.properties.displayAsQuestions)
-				return item.description || item.title;
-		return item.title;
-	};
-	//**************************************select2 sortable options handlers END*******************************
-	
-	
 	//handles the defaults appearing in the script options selection
 	$scope.$watchCollection(function() {
 		return [queryService.cache.scriptMetadata, queryService.cache.columns];
@@ -620,8 +546,9 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		return queryService.queryObject.scriptOptions;
 	}, function(newValue, oldValue) {
 		// run this only if the user chooses to link the indicator
-		if($scope.queryService.queryObject.properties.linkedIndicator) {
-			if(newValue != oldValue) {
+
+		//if($scope.service.queryObject.properties.linkedIndicator) {
+			if(!angular.equals(newValue, oldValue)) {
 				var scriptOptions = newValue;
 				for(var key in scriptOptions) { 
 					var option = scriptOptions[key];
@@ -633,14 +560,37 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 						}
 					}
 				}
+				var oldScriptOptions = oldValue;
+				var newScriptOptions = newValue;
+				var flag = true;
+				for(var key in oldScriptOptions) { 
+					var option = oldScriptOptions[key];
+					if(option) {
+						if(option.hasOwnProperty("columnType")) {
+							if(option.columnType.toLowerCase() == "indicator") {
+								for(var key2 in newScriptOptions) {
+									var option2 = newScriptOptions[key2];
+									if(option2) {
+										if(option2.hasOwnProperty("columnType")) {
+											if(option2.columnType.toLowerCase() == "indicator") {
+												flag = false;
+											}
+										}
+									}
+								}
+								if(flag)
+									queryService.queryObject.Indicator = undefined;
+							}
+						}
+					}
+				}	
 			}
-		}
+		//}
 	}, true);
 
 	$scope.$watchCollection(function() {
 		return [queryService.queryObject.Indicator, queryService.queryObject.scriptSelected, queryService.cache.scriptMetadata];
 	}, function(newVal, oldVal) {
-		console.log(queryService.cache.scriptMetadata);
 		if(newVal != oldVal) {
 			var indicator = newVal[0];
 			var scriptSelected = newVal[1];
@@ -657,7 +607,8 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 				return queryService.cache.scriptMetadata;
 			}, function(newValue, oldValue) {
 				// run this only if the user chooses to link the indicator
-				if($scope.queryService.queryObject.properties.linkedIndicator) {
+
+				//if($scope.service.queryObject.properties.linkedIndicator) {
 					if(newValue) {
 						scriptMetadata = newValue;
 						if(indicator && scriptMetadata) {
@@ -673,9 +624,22 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 									}
 								}
 							}
+						} else if(!indicator) {
+							for(var i in queryService.cache.scriptMetadata.inputs) {
+								var metadata = queryService.cache.scriptMetadata.inputs[i];
+								if(metadata.hasOwnProperty('type')) {
+									if(metadata.type == 'column') {
+										if(metadata.hasOwnProperty('columnType')) {
+											if(metadata.columnType.toLowerCase() == "indicator") {
+												queryService.queryObject.scriptOptions[metadata.param] = undefined;
+											}
+										}
+									}
+								}
+							}
 						}
 					}
-				}
+				//}
 			}, true);
 		}
 	}, true);
