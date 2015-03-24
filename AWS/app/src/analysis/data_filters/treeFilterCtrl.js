@@ -51,6 +51,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 								secondLevel_metadata = angular.fromJson(secondLevelEntity.publicMetadata.aws_metadata).varValues;
 								
 								treeData = convertToTreeData(firstLevel_metadata, secondLevel_metadata);
+								console.log(treeData);
 							}
 						});
 					} else if($scope.model.firstLevel.id &&
@@ -62,11 +63,11 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 								
 								firstLevel_metadata = angular.fromJson(firstLevelEntity.publicMetadata.aws_metadata).varValues;
 								treeData = convertToTreeData(firstLevel_metadata, []);
+								console.log(treeData);
 							}
 						});
 					} else if(!$scope.model.firstLevel.id &&
 							$scope.model.secondLevel.id) {
-						var firstLevel = angular.fromJson($scope.model.secondLevel);
 						
 						queryService.getEntitiesById([firstLevel.id], true).then(function(entities) {
 							firstLevelEntity = entities[0];
@@ -75,6 +76,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 								
 								firstLevel_metadata = angular.fromJson(firstLevelEntity.publicMetadata.aws_metadata).varValues;
 								treeData = convertToTreeData(firstLevel_metadata, []);
+								console.log(treeData);
 							}
 						});
 					} // just the firstLevel column and no secondLevel column.
@@ -90,12 +92,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 			var convertToTreeData = function(firstLevel_metadata, secondLevel_metadata) {
 				var treeData = [];
 				for(var i in firstLevel_metadata) {
-					if(!secondLevel_metadata.length) {
-						treeData[i] = { title : firstLevel_metadata[i].label, key : firstLevel_metadata[i].value, isFolder : true,  children : [] };
-					} else {
-						console.log(secondLevel_metadata);
-						treeData[i] = { title : firstLevel_metadata[i].label, key : firstLevel_metadata[i].value, isFolder : false,  children : [] };
-					}
+					treeData[i] = { title : firstLevel_metadata[i].label, key : firstLevel_metadata[i].value, isFolder : false,  children : [] };
 					for(var j in secondLevel_metadata) {
 						treeData[i].children.push({ title : secondLevel_metadata[j].label, key : secondLevel_metadata[j].value });
 					}
@@ -144,6 +141,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 							}
 						}
 						$scope.model.filters = treeSelection;
+						$scope.$apply();
 					},
 					onKeydown: function(node, event) {
 						if( event.which == 32 ) {
@@ -158,7 +156,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 				var node = $(tree).dynatree("getRoot");
 				node.sortChildren(cmp, true);
 				$(tree).dynatree("getTree").reload();
-			});
+			}, true);
 			
 			$scope.toggleSelect = function(){
 				$(tree).dynatree("getRoot").visit(function(node){
