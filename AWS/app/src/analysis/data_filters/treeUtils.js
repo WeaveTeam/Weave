@@ -1,3 +1,9 @@
+AnalysisModule.directive('tree', function(queryService) {
+	
+	
+	
+});
+
 var treeUtils = {};
 
 treeUtils.toggleSelect = function(treeId){
@@ -6,7 +12,7 @@ treeUtils.toggleSelect = function(treeId){
 	});
 };
 		
-treeUtils.deSelectAll = function(tree){
+treeUtils.deSelectAll = function(treeId){
 	$(treeId).dynatree("getRoot").visit(function(node){
 		node.select(false);
 	});
