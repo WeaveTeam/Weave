@@ -1,3 +1,7 @@
+/**
+ * controls the datatable visualization tool  widget
+ */
+
 AnalysisModule.controller("DataTableCtrl", function($scope, WeaveService) {
 
 	$scope.WeaveService = WeaveService;

@@ -21,7 +21,7 @@ AnalysisModule.directive('filter', function(queryService) {
 		require : 'ngModel',
 		scope : {
 			columns : '=',
-			ngModel : '=',
+			ngModel : '='
 		},
 		controller : function($scope, $filter) {
 			

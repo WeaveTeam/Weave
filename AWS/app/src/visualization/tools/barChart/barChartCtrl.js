@@ -1,3 +1,7 @@
+/**
+ * controls the bar chart visualization tool widget
+ */
+
 AnalysisModule.controller("BarChartCtrl", function($scope, WeaveService){
 
 	$scope.WeaveService = WeaveService;
