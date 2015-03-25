@@ -835,7 +835,7 @@ package weave.core
 		{
 			var busy:Boolean = false;
 			
-			_aBusyTraversal.push(linkableObject);
+			_aBusyTraversal[_aBusyTraversal.length] = linkableObject; // push
 			_dBusyTraversal[linkableObject] = true;
 			
 			outerLoop: for (var i:int = 0; i < _aBusyTraversal.length; i++)
@@ -872,7 +872,7 @@ package weave.core
 					// queue all the children that haven't been queued yet
 					if (!_dBusyTraversal[child])
 					{
-						_aBusyTraversal.push(child);
+						_aBusyTraversal[_aBusyTraversal.length] = child; // push
 						_dBusyTraversal[child] = true;
 					}
 				}
