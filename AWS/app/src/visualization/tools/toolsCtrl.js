@@ -7,7 +7,7 @@ AnalysisModule.controller("toolsCtrl", function($scope, $filter,queryService, We
 	
 	$scope.tool_options = ["Map Tool", "BarChart Tool", "ScatterPlot Tool", "DataTable"];
 
-	$scope.fixed_ids = ["MapTool", "BarChartTool", "ScatterPlotTool", "DataTableTool", "key_Column", "color_Column"];
+	$scope.fixed_ids = ["MapTool", "BarChartTool", "ScatterPlotTool", "DataTableTool", "key_Column", "color_Column", "AttributeMenuTool"];
 	
 	$scope.addTool = function(name) {
 		switch(name) {
@@ -37,6 +37,13 @@ AnalysisModule.controller("toolsCtrl", function($scope, $filter,queryService, We
 				queryService.queryObject.visualizations[toolName] = {
 					title : 'DataTable Tool',
 					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html'
+				};
+				break;
+			case "AttributeMenuTool":
+				var toolName = WeaveService.AttributeMenuTool(null, "");
+				queryService.queryObject.visualizations[toolName] = {
+					title : 'Attribute Menu Tool',
+					template_url : 'src/visualization/tools/attributeMenu/attribute_Menu.tpl.html'
 				};
 				break;
 		}
