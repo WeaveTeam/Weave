@@ -193,15 +193,23 @@ package weave.data.AttributeColumns
 					if (_numberToStringFunction != null)
 					{
 						string = _numberToStringFunction(number);
+						if (!string)
+							continue;
 						date = parseDate(string);
 					}
 					else
+					{
+						if (!isFinite(number))
+							continue;
 						date = new Date(number);
+					}
 				}
 				else
 				{
 					try
 					{
+						if (!string)
+							continue;
 						date = parseDate(string);
 					}
 					catch (e:Error)
