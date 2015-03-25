@@ -9,14 +9,14 @@
      ng-enter="authenticationService.authenticate(user, password)">	
 	
 	<div style = "width : 300px; height : 150px;  border-radius: 10px; background-color: #4C4F53 ;">
-		<div style = "width: 30%; height: 75%; float:left">
-			<div style = "padding: 30px 20px 20px 20px"><font color= "white"> Username </font></div>
-			<div style = "padding: 0px 20px 20px 20px"><font color= "white"> Password </font></div>
+		<div style = "width: 15%; height: 75%; float:left">
+			<div style = "padding: 30px 20px 20px 20px"><font color= "white"> <i class = "fa fa-user"></i> </font></div>
+			<div style = "padding: 0px 20px 20px 20px"><font color= "white"><i class="fa fa-key"></i> </font></div>
 		</div>
 		
-		<div style = "width: 70%; height: 75% ;float:left">
-			<div style = "padding: 25px 15px 20px 20px"><input ng-model="user" type="text"/></div>
-			<div style = "padding: 0px 20px 20px 20px"><input ng-model="password" type="password"/></div>
+		<div style = "width: 85%; height: 75% ;float:left">
+			<div style = "padding: 25px 15px 20px 20px"><input ng-model="user" placeholder = "Username" type="text"/></div>
+			<div style = "padding: 0px 20px 20px 20px"><input ng-model="password"  placeholder = "Password" type="password"/></div>
 		</div>
 		
 		<div style = "float:right; margin-right : 25px"> 

@@ -21,23 +21,23 @@
 			<div class = "btn-group" role = "group" style = "margin-left: 70%; width: 100%; height: 100%"  
 			 ng-controller= "buttonBarController">
 							
-							<button class='btn btn-default wa_buttonBar' title = "Download Query Object"><span class = "glyphicon glyphicon-download" ng-click = "exportQuery()"></span></button>
+							<button class='btn btn-default wa_buttonBar' title = "Download Query Object"><span class = "fa fa-download" ng-click = "exportQuery()"></span></button>
 							
-							<label class='btn btn-default wa_buttonBar' title = "Upload Query Object"><span class = "glyphicon glyphicon-upload" ></span><input fileread="queryObjectUploaded.file" class='file-upload' type='file'/></label>
+							<label class='btn btn-default wa_buttonBar' title = "Upload Query Object"><span class = "fa fa-upload" ></span><input fileread="queryObjectUploaded.file" class='file-upload' type='file'/></label>
 							
 							<!-- SHOW?HIDE QUERY OBJECT EDITOR button -->
 							<button class="btn btn-default wa_buttonBar" title = "Show/Hide Query Object Editor"
 															ng-click = "queryService.queryObject.properties.hideQueryObjectPanel = !queryService.queryObject.properties.hideQueryObjectPanel"
 															ng-init="queryService.queryObject.properties.hideQueryObjectPanel = true">
-									 <span class = "glyphicon glyphicon-th-list"></span>
+									 <span class = "fa fa-pencil-square-o"></span>
 							</button>
 							
 							<!-- CLEAR button --> 
-							<button class="btn btn-default wa_buttonBar" title = "Clear visualizations"> <span class = "glyphicon glyphicon-trash" ng-click = "clearSessionState()"></span></button>
+							<button class="btn btn-default wa_buttonBar" title = "Clear visualizations"> <span class = "fa fa-trash-o" ng-click = "clearSessionState()"></span></button>
 							
 							<!-- SAVE output visuals button -->	 
 							<button  class="btn btn-default wa_buttonBar"  title = "Save visualizations" ng-click="saveVisualizations()"> 
-							<span  class = "glyphicon glyphicon-floppy-disk"></span> 
+							<span  class = "fa fa-floppy-o"></span> 
 							</button>
 					
 							<!-- RUN button -->		
@@ -45,7 +45,7 @@
 								ng-click="QueryHandlerService.run(queryService.queryObject)" 
 								popover="{{queryService.queryObject.properties.validationStatus}}" popover-trigger="mouseenter"  popover-placement="bottom"
 								ng-Disabled = "!queryService.queryObject.properties.isQueryValid">
-								 <span class = "glyphicon glyphicon-play"></span>
+								 <span class = "fa fa-play-circle fa-lg"></span>
 							 </button>
 			</div>
 		</div>
@@ -247,8 +247,6 @@
 				</div>
 				
 			</div>
-		</div>
-		<br><br><br>
 		
 		<input type="checkbox" ng-model="queryService.queryObject.properties.openInNewWindow"> Show Weave in separate window</input>
 		
