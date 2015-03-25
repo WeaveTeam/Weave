@@ -93,6 +93,7 @@ package weave.data.BinningDefinitions
 			}
 			
 			_sortedValues = new Array();
+			_numOfBins = numOfBins.value;
 			_keyCount = 0;
 			_previousSortedValues.length = 0;
 			
@@ -105,11 +106,11 @@ package weave.data.BinningDefinitions
 			_compoundIterateAll(-1); // reset compound task
 			
 			// high priority because not much can be done without data
-			WeaveAPI.StageUtils.startTask(asyncResultCallbacks, _compoundIterateAll, WeaveAPI.TASK_PRIORITY_HIGH, _handleJenksBreaks);
+			WeaveAPI.StageUtils.startTask(asyncResultCallbacks, _compoundIterateAll, WeaveAPI.TASK_PRIORITY_HIGH, _handleJenksBreaks, lang("Computing Natural Breaks binning for {0} values", _keys.length));
 		}
 		
 		private var _compoundIterateAll:Function = StageUtils.generateCompoundIterativeTask(_getValueFromKeys, _iterateSortedKeys, _iterateJenksBreaks);
-		
+		private var _numOfBins:int;
 		private var _keyCount:int = 0;
 		private var _keys:Array = []; 
 		private function _getValueFromKeys(stopTime:int):Number
@@ -154,7 +155,6 @@ package weave.data.BinningDefinitions
 			
 			_lower_class_limits = [];
 			_variance_combinations = [];
-			var numberOfBins:Number = numOfBins.value;
 			// Initialize and fill each matrix with zeroes
 			for (var i:int = 0; i < _sortedValues.length+1; i++)
 			{
@@ -163,7 +163,7 @@ package weave.data.BinningDefinitions
 				// despite these arrays having the same values, we need
 				// to keep them separate so that changing one does not change
 				// the other
-				for(var j:int =0; j < numberOfBins+1; j++)
+				for(var j:int =0; j < _numOfBins+1; j++)
 				{
 					temp1.push(0);
 					temp2.push(0);
@@ -172,7 +172,7 @@ package weave.data.BinningDefinitions
 				_variance_combinations.push(temp2);
 			}
 			
-			for (var k:int =1; k <numberOfBins + 1; k++)
+			for (var k:int =1; k <_numOfBins + 1; k++)
 			{
 				_lower_class_limits[1][k] = 1;
 				_variance_combinations[1][k] = 0;
@@ -250,7 +250,7 @@ package weave.data.BinningDefinitions
 					if(i4 !=0)
 					{
 						_p = 2;
-						for (; _p < numOfBins.value + 1; _p++)
+						for (; _p < _numOfBins + 1; _p++)
 						{
 							// if adding this element to an existing class
 							// will increase its variance beyond the limit, break
@@ -287,7 +287,7 @@ package weave.data.BinningDefinitions
 				{
 					value = data[k];
 					countNum++;
-					if (countNum >= numOfBins.value)
+					if (countNum >= _numOfBins)
 						break;
 				}
 			}
@@ -322,7 +322,7 @@ package weave.data.BinningDefinitions
 				_tempNumberClassifier.min.value = _previousSortedValues[minIndex];
 				
 				var maxIndex:Number;
-				if(iBin == numOfBins.value -1)
+				if(iBin == _numOfBins -1)
 				{
 					maxIndex = _previousSortedValues.length -1;
 				}
