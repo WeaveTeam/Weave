@@ -89,6 +89,24 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 		return this;
 	};
 	
+	this.AttributeMenuTool = function(state, aToolName){
+		
+		var toolName = aToolName || ws.generateUniqueName("AttributeMenuTool");
+		
+		if(state == null)
+			return toolName;
+		
+		if(ws.weave && ws.weave.path && state) {
+			if(!state.enabled) {
+				ws.weave.path(toolName).remove();
+				return "";
+			}
+			ws.weave.path(toolName).request('AttributeMenuTool')
+			.state({ panelX : "50%", panelY : "0%", panelTitle : state.title, enableTitle : true})
+			.call(setQueryColumns, {choices: state.attributes});
+		}
+	};
+	
 	this.BarChartTool =  function (state, aToolName) {
 		var toolName = aToolName || ws.generateUniqueName("BarChartTool");
 		
