@@ -1177,10 +1177,11 @@ package weave.compiler
 			
 			// loop over keys in Array or Object
 			var lineBreakIndent:String = lineBreak + indent;
+			var valueIsArrayOrVector:Boolean = value is Array || isVector(value);
 			output = [];
-			if (value is Array)
+			if (valueIsArrayOrVector)
 			{
-				for (var i:int = 0; i < (value as Array).length; i++)
+				for (var i:int = 0; i < value.length; i++)
 					output.push(_stringify(String(i), value[i], replacer, lineBreakIndent, indent, json_values_only));
 			}
 			else if (value.constructor == Object)
@@ -1201,13 +1202,23 @@ package weave.compiler
 			}
 			
 			if (output.length == 0)
-				return value is Array ? "[]" : "{}";
+				return valueIsArrayOrVector ? "[]" : "{}";
 			
-			return (value is Array ? "[" : "{")
+			return (valueIsArrayOrVector ? "[" : "{")
 				+ lineBreakIndent
 				+ output.join(indent ? ',' + lineBreakIndent : ', ')
 				+ lineBreak
-				+ (value is Array ? "]" : "}");
+				+ (valueIsArrayOrVector ? "]" : "}");
+		}
+		
+		private static const VectorClass:Class = Object(new Vector.<Object>()).constructor;
+		
+		/**
+		 * Tests if an object is a Vector.
+		 */
+		private static function isVector(object:*):Boolean
+		{
+			return object is VectorClass || object is Vector.<int> || object is Vector.<uint> || object is Vector.<Number>;
 		}
 		
 		/**
