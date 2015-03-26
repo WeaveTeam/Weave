@@ -71,6 +71,8 @@
 			
 			public function set dataSourceType(type:Class):void
 			{
+				if (_dataSourceType == type)
+					return;
 				disposeObject(_editor);
 				container.removeAllChildren();
 				_editor = null;
