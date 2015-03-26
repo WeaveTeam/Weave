@@ -23,6 +23,8 @@ package weave.compiler
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
 	
+	import flashx.textLayout.tlf_internal;
+	
 	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
@@ -417,6 +419,26 @@ package weave.compiler
 				for (var d:int = 0; d <= 9; d++)
 					trace('roundSignificant(',n,',',d,') =',roundSignificant(n, d));
 			}
+		}
+		
+		/**
+		 * Rounds a number to the nearest multiple of a precision value.
+		 * @param number A number to round.
+		 * @param precision A precision to use.
+		 * @return The number rounded to the nearest multiple of the precision value.
+		 */
+		public static function roundPrecision(number:Number, precision:Number):Number
+		{
+			return Math.round(number / precision) * precision;
+		}
+		
+		/**
+		 * @param n The number to round.
+		 * @param d The total number of non-zero digits we care about for small numbers.
+		 */
+		public static function suggestPrecision(n:Number, d:int):Number
+		{
+			return Math.pow(10, Math.min(0, Math.ceil(Math.log(n) / Math.LN10) - d));
 		}
 
 		/**

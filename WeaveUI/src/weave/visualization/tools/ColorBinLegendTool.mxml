@@ -184,7 +184,7 @@
 					super.childrenCreated();
 					
 					outerDocument._plotter.dynamicColorColumn.addImmediateCallback(this, colorColumnCallback, true);
-					dataColumnComponent.dynamicObject = outerDocument._plotter.dynamicColorColumn;
+					dataColumnComponent.columnWrapper = outerDocument._plotter.dynamicColorColumn;
 					outerDocument.visualization.plotManager.marginTopNumber.addImmediateCallback(this, handleMarginChange);
 					
 					linkBindableProperty(outerDocument._plotter.maxColumns, legendControls.numColumns, 'value');
