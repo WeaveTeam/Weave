@@ -37,6 +37,16 @@ package weave.utils
 		private static var _lookup:Dictionary = new Dictionary(true);
 		private static var _lookupId:int = 0;
 		
+		private static const VectorClass:Class = Object(new Vector.<Object>()).constructor;
+		
+		/**
+		 * Tests if an object is a Vector.
+		 */
+		public static function isVector(object:*):Boolean
+		{
+			return object is VectorClass || object is Vector.<int> || object is Vector.<uint> || object is Vector.<Number>;
+		}
+		
 		/**
 		 * Computes the union of the items in a list of Arrays. Can also be used to get a list of unique items in an Array.
 		 * @param arrays A list of Arrays.
