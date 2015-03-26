@@ -17,6 +17,7 @@
 #include <string.h>
 #include <time.h>
 #include "strptime2.h"
+#include "strftime2.h"
 #include "AS3/AS3.h"
 #include "tracef.h"
 
@@ -29,7 +30,7 @@ void date_format()
 {
     char *fmt;
 
-    struct tm tm;
+    struct ext_tm tm;
     memset(&tm, 0, sizeof(struct tm));
     
     inline_as3(
@@ -41,6 +42,7 @@ void date_format()
         "%4 = date.hours;"
         "%5 = date.minutes;"
         "%6 = date.seconds;"
+        "%7 = date.milliseconds;"
         : 
         "=r"(fmt), 
         "=r"(tm.tm_year),
@@ -48,13 +50,14 @@ void date_format()
         "=r"(tm.tm_mday),
         "=r"(tm.tm_hour),
         "=r"(tm.tm_min),
-        "=r"(tm.tm_sec)
+        "=r"(tm.tm_sec),
+        "=r"(tm.tm_msec)
     );
 
     char* output = (char*)malloc(sizeof(char)*DATE_FORMAT_MAX);
     size_t output_len;
 
-    if (strftime(output, DATE_FORMAT_MAX, fmt, &tm))
+    if (strftime2(output, DATE_FORMAT_MAX, fmt, &tm))
     {
         output_len = strnlen(output, DATE_FORMAT_MAX);
         inline_as3(
