@@ -241,18 +241,15 @@
 				
 	
 					<!--Timeperiod filter -->
-					<tree-filter ng-model="queryService.queryObject.timePeriodFilter" columns="queryService.cache.columns"></tree-filter>
-					
 					<filter  ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.cache.filterArray" columns="queryService.cache.columns" ng-model='queryService.queryObject.filters[$index]'></filter>
+
+					<tree-filter ng-repeat="filter in queryService.cache.treeFilterArray" columns="queryService.cache.columns" ng-model="queryService.queryObject.treeFilters[$index]"></tree-filter>
+
 				</div>
 				
 			</div>
 		
 		<input type="checkbox" ng-model="queryService.queryObject.properties.openInNewWindow"> Show Weave in separate window</input>
-		
-		
-		
-		
 		
 <!-- VIZ TOOL WIDGETS -->	
 		<div ng-controller= "toolsCtrl">

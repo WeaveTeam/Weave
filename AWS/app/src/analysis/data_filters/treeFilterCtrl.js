@@ -1,20 +1,19 @@
 AnalysisModule.directive('treeFilter', function(queryService) {
 	
 	function link($scope, element, attrs, ngModel, modelCtrl) {
-		element.draggable({ containment: "parent"}).resizable({
-			 maxHeight: 300,
-		     maxWidth: 650,
-		     minHeight: 80,
-		     minWidth: 270
-		});
+//		element.draggable({ containment: "parent"}).resizable({
+//			 //maxHeight: 300,
+//		     maxWidth: 250,
+//		     minHeight: 80,
+//		     minWidth: 180
+//		});
 		element.addClass('databox');
-		element.width("30%");
-		element.height("100%");
+		element.width(180);
+		//element.height("100%");
 		
 	}
 
 	return {
-
 		restrict : 'E',
 		transclude : true,
 		templateUrl : 'src/analysis/data_filters/tree_filter.tpl.html',
@@ -31,56 +30,62 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 			$scope.model = {
 					firstLevel : undefined,
 					secondLevel : undefined,
-					filter : []
+					filters : []
 			};
 			
 			$scope.$watchCollection(function() {
 				return [$scope.model.firstLevel, $scope.model.secondLevel];
 			}, function() {
-				if($scope.model.firstLevel && $scope.model.secondLevel) {
-					if($scope.model.firstLevel.id && $scope.model.secondLevel.id) {
-						queryService.getEntitiesById([$scope.model.firstLevel.id, $scope.model.secondLevel.id], true).then(function(entities) {
-							firstLevelEntity = entities[0];
-							secondLevelEntity = entities[1];
-							if(firstLevelEntity.publicMetadata.hasOwnProperty("aws_metadata") &&
-									secondLevelEntity.publicMetadata.hasOwnProperty("aws_metadata")) {
-								var firstLevel_metadata; 
-								var secondLevel_metadata;
-								
-								firstLevel_metadata = angular.fromJson(firstLevelEntity.publicMetadata.aws_metadata).varValues;
-								secondLevel_metadata = angular.fromJson(secondLevelEntity.publicMetadata.aws_metadata).varValues;
-								
-								treeData = convertToTreeData(firstLevel_metadata, secondLevel_metadata);
-								console.log(treeData);
+				if($scope.model.firstLevel && $scope.model.secondLevel && $scope.model.firstLevel.id && $scope.model.secondLevel.id) {
+					queryService.getEntitiesById([$scope.model.firstLevel.id, $scope.model.secondLevel.id], true).then(function(entities) {
+						firstLevelEntity = entities[0];
+						secondLevelEntity = entities[1];
+						if(firstLevelEntity.publicMetadata.hasOwnProperty("aws_metadata") &&
+								secondLevelEntity.publicMetadata.hasOwnProperty("aws_metadata")) {
+							var varValues = angular.fromJson(firstLevelEntity.publicMetadata.aws_metadata).varValues;
+							if(varValues) { // check if varValues is not null
+								// get var values by checking if not stored in another table.
+								queryService.getDataMapping(varValues).then(function(firstLevel_metadata) {
+									varValues = angular.fromJson(secondLevelEntity.publicMetadata.aws_metadata).varValues;
+									if(varValues) {
+										queryService.getDataMapping(varValues).then(function(secondLevel_metadata) {
+											treeData = convertToTreeData(secondLevel_metadata, firstLevel_metadata);
+										});
+									}
+								});
 							}
-						});
-					} else if($scope.model.firstLevel.id &&
-							!$scope.model.secondLevel.id) {
-						queryService.getEntitiesById([firstLevel.id], true).then(function(entities) {
-							firstLevelEntity = entities[0];
-							if(firstLevelEntity.publicMetadata.hasOwnProperty("aws_metadata")) {
-								var firstLevel_metadata; 
-								
-								firstLevel_metadata = angular.fromJson(firstLevelEntity.publicMetadata.aws_metadata).varValues;
-								treeData = convertToTreeData(firstLevel_metadata, []);
-								console.log(treeData);
+						}
+					});
+				} else if($scope.model.firstLevel && $scope.model.firstLevel.id &&
+						!$scope.model.secondLevel) {
+					queryService.getEntitiesById([$scope.model.firstLevel.id], true).then(function(entities) {
+						firstLevelEntity = entities[0];
+						if(firstLevelEntity.publicMetadata.hasOwnProperty("aws_metadata")) {
+							var varValues = angular.fromJson(firstLevelEntity.publicMetadata.aws_metadata).varValues;
+							if(varValues)
+							{
+								queryService.getDataMapping(varValues).then(function(firstLevel_metadata) {
+									treeData = convertToTreeData(firstLevel_metadata, []);
+								});
 							}
-						});
-					} else if(!$scope.model.firstLevel.id &&
-							$scope.model.secondLevel.id) {
-						
-						queryService.getEntitiesById([firstLevel.id], true).then(function(entities) {
-							firstLevelEntity = entities[0];
-							if(firstLevelEntity.publicMetadata.hasOwnProperty("aws_metadata")) {
-								var firstLevel_metadata; 
-								
-								firstLevel_metadata = angular.fromJson(firstLevelEntity.publicMetadata.aws_metadata).varValues;
-								treeData = convertToTreeData(firstLevel_metadata, []);
-								console.log(treeData);
+						}
+					});
+				} else if(!$scope.model.firstLevel &&
+						$scope.model.secondLevel && $scope.model.secondLevel.id) {
+					queryService.getEntitiesById([$scope.model.secondLevel.id], true).then(function(entities) {
+						firstLevelEntity = entities[0];
+						if(firstLevelEntity.publicMetadata.hasOwnProperty("aws_metadata")) {
+							var varValues = angular.fromJson(firstLevelEntity.publicMetadata.aws_metadata).varValues;
+							if(varValues) {
+								queryService.getDataMapping(varValues).then(function(firstLevel_metadata) {
+									treeData = convertToTreeData(firstLevel_metadata, []);
+								});
 							}
-						});
-					} // just the firstLevel column and no secondLevel column.
-				}
+						}
+					});
+				} else {
+					treeData = [];
+				}// just the firstLevel column and no secondLevel column.
 			});
 			
 			var cmp = function(a, b) {
@@ -100,6 +105,38 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 				return treeData;
 			};
 			
+			$scope.$watch('model', function() {
+				$scope.ngModel = {};
+				$scope.ngModel.or = [];
+				if($scope.model.firstLevel && $scope.model.secondLevel &&
+					$scope.model.firstLevel.id && $scope.model.secondLevel.id
+					&& $scope.model.filters && Object.keys($scope.model.filters))
+				{
+					for(var key in $scope.model.filters) {
+						var index = $scope.ngModel.or.push({ and : [
+						                                            {cond : { 
+						                                            	f : $scope.model.firstLevel.id, 
+						                                            	v : [key] 
+						                                            }
+						                                            },
+						                                            {cond: {
+						                                            	f : $scope.model.secondLevel.id, 
+						                                            	v : []
+						                                            }
+						                                            }
+						                                            ]
+						});
+						for(var i in $scope.model.filters[key].secondLevels) {
+							var seconLevelValues = "";
+							for(var key2 in $scope.model.filters[key].secondLevels[i]) {
+								secondLevelValues = key2;
+							}
+							$scope.ngModel.or[index-1].and[1].cond.v.push(secondLevelValues);
+						}
+					}
+				}
+				console.log($scope.ngModel);
+			}, true);
 			$scope.$watch(function() {
 				
 				return treeData;
@@ -107,10 +144,20 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 			}, function(){
 				
 				if(!treeData.length)
-					return
+				{
+					$(tree).dynatree({
+						minExpandLevel: 1,
+						checkbox : true,
+						icon : false,
+						selectMode : 3,
+						children : treeData,
+					});
+					return;
+				}
 				$(tree).dynatree({
 					minExpandLevel: 1,
 					checkbox : true,
+					icon : false,
 					selectMode : 3,
 					children : treeData,
 					keyBoard : true,
@@ -141,6 +188,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 							}
 						}
 						$scope.model.filters = treeSelection;
+						console.log("tree selection", treeSelection);
 						$scope.$apply();
 					},
 					onKeydown: function(node, event) {
@@ -151,7 +199,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 					},
 					cookieId: "time-period-tree",
 					idPrefix: "time-period-tree-",
-					debugLevel: 0
+					debugLevel: 1
 				});
 				var node = $(tree).dynatree("getRoot");
 				node.sortChildren(cmp, true);
@@ -176,5 +224,5 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 				});
 			};
 		}
-	}
+	};
 });

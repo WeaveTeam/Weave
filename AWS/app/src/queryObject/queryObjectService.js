@@ -178,6 +178,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			Indicator : "",
 			IndicatorRemap : [],
 			filters : [],
+			treeFilters : [],
 			GeographyFilter : {
 				stateColumn:{},
 				countyColumn:{},
@@ -190,9 +191,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			},
 			scriptOptions : {},
 			scriptSelected : "",
-			TimePeriodFilter : {},
-			ByVariableFilters : [],
-			ByVariableColumns : [],
 			properties : {
 				validationStatus : "test",
 				isQueryValid : false
@@ -235,7 +233,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			dataTableList : [],
 			scriptList : [],
 			filterArray : [],
-			numericalColumns : [],
+			treeFilterArray : [],
+			numericalColumns : []
 	};
 
 	this.crossTabQuery = {};

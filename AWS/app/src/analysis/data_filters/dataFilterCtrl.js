@@ -1,15 +1,15 @@
 AnalysisModule.directive('filter', function(queryService) {
 	
 	function link($scope, element, attrs, ngModelCtrl) {
-		element.draggable({ containment: "parent" }).resizable({
-			 maxHeight: 300,
-		     maxWidth: 650,
-		     minHeight: 80,
-		     minWidth: 270
-		});
+//		element.draggable({ containment: "parent" }).resizable({
+//			 //maxHeight: 150,
+//		     maxWidth: 250,
+//		     minHeight: 100,
+//		     minWidth: 180
+//		});
 		element.addClass('databox');
-		element.width(300);
-		element.height(120);
+		element.width(180);
+		//element.height(120);
 	}
 
 	return {
@@ -78,8 +78,10 @@ AnalysisModule.directive('filter', function(queryService) {
 				
 				$scope.ngModel = 
 					{
-						f : $scope.model.column.id,
-						v : model
+						cond : {
+							f : $scope.model.column.id,
+							v : model
+						}
 					};
 			});
 			
@@ -98,8 +100,10 @@ AnalysisModule.directive('filter', function(queryService) {
 				}
 				$scope.ngModel = 
 					{
-						f : $scope.model.column.id,
-						v : result
+						cond : {
+							f : $scope.model.column.id,
+							v : result
+						}
 					};
 			});
 			
@@ -111,8 +115,10 @@ AnalysisModule.directive('filter', function(queryService) {
 				
 				$scope.ngModel = 
 					{
-						f : $scope.model.column.id,
-						v : [model]
+						cond : {
+							f : $scope.model.column.id,
+							v : [model]
+						}
 					};
 			});
 			
@@ -182,6 +188,8 @@ AnalysisModule.controller('dataFilterCtrl', function($scope, queryService, $filt
 	
 	$scope.filterArray = [];
 	var i = 0;
+	var j = 0;
+	
 	$scope.addFilter = function() {
 		queryService.cache.filterArray.push(i);
 		i++;
@@ -189,6 +197,16 @@ AnalysisModule.controller('dataFilterCtrl', function($scope, queryService, $filt
 	
 	$scope.removeFilter = function(index) {
 		queryService.cache.filterArray.splice(index, 1);
-		queryService.queryObject.splice(index, 1);
+		queryService.queryObject.filters.splice(index, 1);
 	};
+
+	$scope.addTreeFilter = function() {
+		queryService.cache.treeFilterArray.push(j);
+		j++;
+	};
+	
+	$scope.removeTreeFilter = function(index) {
+		queryService.cache.treeFilterArray.splice(index, 1);
+		queryService.queryObject.treeFilters.splice(index, 1);
+	};	
 });
