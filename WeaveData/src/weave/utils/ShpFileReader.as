@@ -102,7 +102,8 @@ package weave.utils
 					point = record.shape as ShpPoint;
 					points.push( point.x, point.y );
 				}
-				geom.setCoordinates( points, BLGTreeUtils.METHOD_SAMPLE );
+				if (points)
+					geom.setCoordinates( points, BLGTreeUtils.METHOD_SAMPLE );
 				geoms.push(geom);
 			}
 			return 1;
