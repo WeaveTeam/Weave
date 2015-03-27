@@ -11,13 +11,13 @@
 
 <div class="body" style="width: 100%; height:100%; border: solid 2px; border-color: #4C4F53">
 	<div style="display: inline">
-			<ui-select ng-model="model.firstLevel" theme="select2" style="width: 100%;">
+			<ui-select ng-Model="ngModel.firstLevel" theme="select2" style="width: 100%;">
 		   		<ui-select-match allow-clear="true" placeholder="First Level">{{$select.selected.title}}</ui-select-match>
 				<ui-select-choices repeat="column in columns">
 		      			 <div ng-bind-html="column.title | highlight: $select.search"></div>
 		       	</ui-select-choices>
 			</ui-select>
-			<ui-select ng-model="model.secondLevel" theme="select2" style="width: 100%;">
+			<ui-select ng-Model="ngModel.secondLevel" theme="select2" style="width: 100%;">
 		   		<ui-select-match allow-clear="true" placeholder="Second Level">{{$select.selected.title}}</ui-select-match>
 				<ui-select-choices repeat="column in columns">
 		      			 <div ng-bind-html="column.title | highlight: $select.search"></div>

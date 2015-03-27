@@ -9,7 +9,6 @@ AnalysisModule.directive('filter', function(queryService) {
 //		});
 		element.addClass('databox');
 		element.width(180);
-		//element.height(120);
 	}
 
 	return {
@@ -25,21 +24,18 @@ AnalysisModule.directive('filter', function(queryService) {
 		},
 		controller : function($scope, $filter) {
 			
-			$scope.model = {
+			$scope.ngModel = $scope.$parent.filtersModel[$scope.$parent.$index] || {
 					comboboxModel : [],
-					multiSelectModel : [],
-					sliderModel : []
+					multiselectModel : [],
+					sliderModel : [],
+					nestedFilter : {},
 			};
 			$scope.filterType = "";
+			$scope.filterOptions = [];
 			
-			$scope.ngModel = {
-					model : $scope.model,
-					nestedFilter : {}
-			};
-			
-			$scope.$watch('model.column',  function() {
-				if($scope.model.column && $scope.model.column.hasOwnProperty("id")) {
-					queryService.getEntitiesById([$scope.model.column.id], true).then(function(entity) {
+			$scope.$watch('ngModel.column',  function(newVal, oldVal) {
+				if($scope.ngModel.column && $scope.ngModel.column.hasOwnProperty("id")) {
+					queryService.getEntitiesById([$scope.ngModel.column.id], true).then(function(entity) {
 						entity = entity[0];
 						if(entity && entity.publicMetadata.hasOwnProperty("aws_metadata")) {
 							var metadata = angular.fromJson(entity.publicMetadata.aws_metadata);
@@ -49,7 +45,7 @@ AnalysisModule.directive('filter', function(queryService) {
 									var min = angular.fromJson(metadata.varRange)[0];
 									var max = angular.fromJson(metadata.varRange)[1];
 									$scope.sliderOptions = { range:true, min:min, max:max }; // todo. put the slider values on top of the slider
-									$scope.model.sliderModel = [Math.floor((max - min) / 3), Math.floor(2*(max - min) / 3)];
+									$scope.ngModel.sliderModel = [Math.floor((max - min) / 3), Math.floor(2*(max - min) / 3)];
 								} else if(metadata.varType == "categorical") {
 									if(metadata.varValues) {
 										queryService.getDataMapping(metadata.varValues).then(function(varValues) {
@@ -70,92 +66,84 @@ AnalysisModule.directive('filter', function(queryService) {
 				}
 			}, true);
 			
-			$scope.$watch('model.column', function() {
-				if(!$scope.model.column || !$scope.model.column.hasOwnProperty("id")) {
+			$scope.$watch('ngModel.column', function(newVal, oldVal) {
+				if(!$scope.ngModel.column || !$scope.ngModel.column.hasOwnProperty("id")) {
 					$scope.filterType = "";
 				}
 			}, true);
 			
-			$scope.$watchCollection('model.multiSelectModel', function() {
-				var model = $scope.model.multiSelectModel;
+			$scope.$watchCollection('ngModel.multiselectModel', function(newVal, oldVal) {
+				var ngModel = $scope.ngModel.multiselectModel;
 				
-				$scope.model.comboboxModel = [];
-				$scope.model.sliderModel = [];
+				$scope.ngModel.comboboxModel = [];
+				$scope.ngModel.sliderModel = [];
 
-				if(!model.length)
+				if(!ngModel || !ngModel.length)
 					return;
 				
 				$scope.ngModel.nestedFilter = 
 					{
 						cond : {
-							f : $scope.model.column.id,
-							v : model
+							f : $scope.ngModel.column.id,
+							v : ngModel
 						}
 					};
 			});
 			
 			/* combo box controls    */
-			$scope.$watchCollection('model.comboboxModel', function () {
+			$scope.$watchCollection('ngModel.comboboxModel', function(newVal, oldVal) {
 				
-				var model = $scope.model.comboboxModel;
+				var ngModel = $scope.ngModel.comboboxModel;
 				
-				$scope.model.multiSelectModel = [];
-				$scope.model.sliderModel = [];
+				$scope.ngModel.multiselectModel = [];
+				$scope.ngModel.sliderModel = [];
 				
-				if(!model.length)
+				if(!ngModel.length)
 					return;
 				
 				var result = [];
-				for(var i in model)
+				for(var i in ngModel)
 				{
-					if(model[i])
+					if(ngModel[i] && $scope.filterOptions[i])
 						result.push($scope.filterOptions[i].value);
 				}
 				$scope.ngModel.nestedFilter = 
 					{
 						cond : {
-							f : $scope.model.column.id,
+							f : $scope.ngModel.column.id,
 							v : result
 						}
 					};
 			});
 			
 			/* combo box controls    */
-			$scope.$watchCollection('model.sliderModel', function() {
-				var model = $scope.model.sliderModel;
+			$scope.$watchCollection('ngModel.sliderModel', function(newVal, oldVal) {
 
-				$scope.model.multiSelectModel = [];
-				$scope.model.comboboxModel = [];
+				var ngModel = $scope.ngModel.sliderModel;
 
-				if(!model.length)
+				$scope.ngModel.multiselectModel = [];
+				$scope.ngModel.comboboxModel = [];
+
+				if(!ngModel.length)
 					return;
 				
 				$scope.ngModel.nestedFilter = 
 					{
 						cond : {
-							f : $scope.model.column.id,
-							v : [model]
+							f : $scope.ngModel.column.id,
+							v : [ngModel]
 						}
 					};
 			});
-			
-			/* 
-			 * we watch the ngModel inside the directive because
-			 * when ngModel change externally, we should be able to adjust the 
-			 * internal model accordingly
-			 *
-			 */
-			$scope.$watch('ngModel.model', function() { 
-				if($scope.ngModel && $scope.ngModel.model) {
-					$scope.model = $scope.ngModel.model;
-				}
-			}, true);
 		}
 	};
 });
 
 AnalysisModule.controller('dataFilterCtrl', function($scope, queryService, $filter){
 	
+	$scope.filtersModel = queryService.queryObject.filters;
+	$scope.treeFiltersModel = queryService.queryObject.treeFilters;
+
 	$scope.addFilter = function() {
 		// the values are the same as the index for convenience
 		queryService.queryObject.filterArray.push(queryService.queryObject.filterArray.length);

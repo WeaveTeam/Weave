@@ -17,7 +17,9 @@
 					 Title:
 				</td>
 				<td style="padding-left: 5px;">
-					<input  style = "width : 100%" type="text"
+					<input  
+							ng-init = "queryService.queryObject.Indicator.title"
+							style = "width : 100%" type="text"
 							placeholder="Default" 
 							ng-model="tool.title"/>
 				</td>

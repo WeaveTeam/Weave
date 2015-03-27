@@ -5,14 +5,17 @@
 	</div>
 	
 	<div class="body">
-		<input type="checkbox" ng-model="AnalysisService.showGeographyFilter"> Geography Filter</input>
 		<br><br>
-		<button type="button" ng-click="addFilter()" class="btn btn-sm new-project-button">
+		<button style="width : 100%; padding:10%"type="button" ng-click="AnalysisService.showGeographyFilter = true" class="btn btn-sm new-project-button">
+				Geography Filter
+		</button>		<br><br>
+
+		<button style="width : 100%; padding:10%" type="button" ng-click="addFilter()" class="btn btn-sm new-project-button">
 				Column Filter
 		</button>
 		
 		<br><br>
-		<button type="button" ng-click="addTreeFilter()" class="btn btn-sm new-project-button">
+		<button style="width : 100%; padding:10%" type="button" ng-click="addTreeFilter()" class="btn btn-sm new-project-button">
 				Two-Column Filter
 		</button>
 		<br>

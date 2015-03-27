@@ -225,18 +225,16 @@
 			</div>
 		</div>
 	</div>	
-	<div style="width: 100%; padding:20px; height:50%">
+	<div style="width: 100%; padding:20px; height:10%">
 	  	 <button class= 'btn btn-primary btn-sm' ng-click="runReport()">Run Report</button><!-- button controls for editing metadata of a single column -->
 	     <button class = 'btn btn-primary btn-sm' ng-click="reset()">Reset</button>
 	     <button class = 'btn btn-primary btn-sm' ng-click="showInWeave()" style="float:right">Visualize in Weave</button>
 	     {{crossTabStatus}}
 	</div>
-	<br><br>
-	
-	<div class="row" style="height: 50%; clear:both; padding-left: 20%; padding-right:10%">
-				<table cellspacing="1" cellpadding="7"  border="3" >  <!-- border="border: 1px solid #0000FF"> -->
-						<tr ng-repeat="row in queryService.crossTabQuery.result">
-							<td width= "10%" style="padding-left: 5px; padding-right: 5px" ng-repeat="col in row track by $index">
+	<div class="row" style="height: 50%; clear:both; padding-left: 10%; padding-right:10%">
+				<table cellspacing="1" cellpadding="7" style="border-style: double; background-color:white">  <!-- border="border: 1px solid #0000FF"> -->
+						<tr ng-repeat="row in queryService.crossTabQuery.result" style = "border-style: double">
+							<td width= "10%" style="padding-left: 5px; padding-right: 5px; border-style: double" ng-repeat="col in row track by $index">
 								{{col}}
 							</td>
 						</tr>
