@@ -192,6 +192,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			scriptOptions : {},
 			scriptSelected : "",
 			properties : {
+				linkIndicator : true,
 				validationStatus : "test",
 				isQueryValid : false
 			},

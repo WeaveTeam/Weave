@@ -55,9 +55,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	
 	$scope.showToolMenu = false;
 	
-	$scope.$watch('queryService.queryObject.Indicator', function() {
-		console.log($scope.queryService.queryObject.Indicator);
-	}, true);
 	$("#queryObjectPanel" ).draggable().resizable();
 	
 	$scope.$watch(function() {
@@ -547,7 +544,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	}, function(newValue, oldValue) {
 		// run this only if the user chooses to link the indicator
 
-		//if($scope.service.queryObject.properties.linkedIndicator) {
+		if(queryService.queryObject.properties.linkIndicator) {
 			if(!angular.equals(newValue, oldValue)) {
 				var scriptOptions = newValue;
 				for(var key in scriptOptions) { 
@@ -585,7 +582,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 					}
 				}	
 			}
-		//}
+		}
 	}, true);
 
 	$scope.$watchCollection(function() {
@@ -596,19 +593,12 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 			var scriptSelected = newVal[1];
 			var scriptMetadata = newVal[2];
 			
-//			if(indicator && scriptSelected) {
-//				queryService.queryObject.BarChartTool.title = "Bar Chart of " + scriptSelected.split('.')[0] + " of " + indicator.title;
-//				queryService.queryObject.MapTool.title = "Map of " + scriptSelected.split('.')[0] + " of " + indicator.title;
-//				queryService.queryObject.ScatterPlotTool.title = "Scatter Plot of " + scriptSelected.split('.')[0] + " of " + indicator.title;
-//
-//			}
-			
 			$scope.$watch(function() {
 				return queryService.cache.scriptMetadata;
 			}, function(newValue, oldValue) {
 				// run this only if the user chooses to link the indicator
 
-				//if($scope.service.queryObject.properties.linkedIndicator) {
+				if(queryService.queryObject.properties.linkIndicator) {
 					if(newValue) {
 						scriptMetadata = newValue;
 						if(indicator && scriptMetadata) {
@@ -639,7 +629,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 							}
 						}
 					}
-				//}
+				}
 			}, true);
 		}
 	}, true);

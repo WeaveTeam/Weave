@@ -11,7 +11,7 @@
 
 <div class="body" style="width: 100%; height:100%; border: solid 2px; border-color: #4C4F53">
 	
-	<ui-select ng-model="model.column" theme="select2" style="width: 100%;">
+	<ui-select ng-model="ngModel.column" theme="select2" style="width: 100%;">
    		<ui-select-match allow-clear="true" placeholder="Select column to filter...">{{$select.selected.title}}</ui-select-match>
 		<ui-select-choices repeat="column in columns | filter : { title : $select.search }">
       			 <div ng-bind-html="column.title | highlight: $select.search"></div>
@@ -19,12 +19,12 @@
 	</ui-select>
 	<br>
 	
-	{{ model.column.description }}
+	{{ ngModel.column.description }}
 	
 	<br><br>
 		<!-- multi select picker -->
  	<div ng-if="filterType == 'multiselect'">
-		<ui-select ng-model="model.multiSelectModel" multiple theme="select2" style="width: 100%;">
+		<ui-select ng-model="ngModel.multiselectModel" multiple theme="select2" style="width: 100%;">
    			<ui-select-match allow-clear="true" placeholder="Select column to filter...">{{$item.label}}</ui-select-match>
 			<ui-select-choices repeat="filter.value as filter in filterOptions | filter : { label : $select.search }">
       			 <div ng-bind-html="filter.label | highlight: $select.search"></div>
@@ -35,15 +35,15 @@
 		<!-- combo box picker -->
 	<div ng-if="filterType == 'combobox'" style="display: inline-block; overflow: hidden; width: 100%; height: 100%">
 		<div ng-repeat="option in filterOptions">
-			<input type="checkbox" ng-init="model.comboboxModel[$index] = false" ng-model=model.comboboxModel[$index]> {{option.label}} </input>
+			<input type="checkbox" ng-init="ngModel.comboboxModel[$index] = false" ng-model=ngModel.comboboxModel[$index]> {{option.label}} </input>
 		</div>
 	</div>
 		<!-- slider picker -->
 	<div ng-if="filterType == 'slider'">
 		<div style="text-align: center;">
-				{{model.sliderModel[0]}} - {{model.sliderModel[1]}}
+				{{ngModel.sliderModel[0]}} - {{ngModel.sliderModel[1]}}
 		</div>
-		<div  class="ui-slider-range" ui-slider="sliderOptions" step="1" ng-model="model.sliderModel"/>
+		<div  class="ui-slider-range" ui-slider="sliderOptions" step="1" ng-model="ngModel.sliderModel"/>
 	</div>
 	<br>
 </div>

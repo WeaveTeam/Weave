@@ -1,6 +1,6 @@
 AnalysisModule.directive('treeFilter', function(queryService) {
 	
-	function link($scope, element, attrs, ngModel, modelCtrl) {
+	function link($scope, element, attrs, ngModel, ngModelCtrl) {
 //		element.draggable({ containment: "parent"}).resizable({
 //			 //maxHeight: 300,
 //		     maxWidth: 250,
@@ -27,17 +27,17 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 			
 			var tree = $element.find('#tree');
 			var treeData = [];
-			$scope.model = {
+			$scope.ngModel = $scope.$parent.treeFiltersModel[$scope.$parent.$index] || {
 					firstLevel : undefined,
 					secondLevel : undefined,
 					treeSelection : [],
 			};
 			
 			$scope.$watchCollection(function() {
-				return [$scope.model.firstLevel, $scope.model.secondLevel];
-			}, function() {
-				if($scope.model.firstLevel && $scope.model.secondLevel && $scope.model.firstLevel.id && $scope.model.secondLevel.id) {
-					queryService.getEntitiesById([$scope.model.firstLevel.id, $scope.model.secondLevel.id], true).then(function(entities) {
+				return [$scope.ngModel.firstLevel, $scope.ngModel.secondLevel];
+			}, function(newVal, oldVal) {
+				if($scope.ngModel.firstLevel && $scope.ngModel.secondLevel && $scope.ngModel.firstLevel.id && $scope.ngModel.secondLevel.id) {
+					queryService.getEntitiesById([$scope.ngModel.firstLevel.id, $scope.ngModel.secondLevel.id], true).then(function(entities) {
 						firstLevelEntity = entities[0];
 						secondLevelEntity = entities[1];
 						if(firstLevelEntity.publicMetadata.hasOwnProperty("aws_metadata") &&
@@ -56,9 +56,9 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 							}
 						}
 					});
-				} else if($scope.model.firstLevel && $scope.model.firstLevel.id &&
-						!$scope.model.secondLevel) {
-					queryService.getEntitiesById([$scope.model.firstLevel.id], true).then(function(entities) {
+				} else if($scope.ngModel.firstLevel && $scope.ngModel.firstLevel.id &&
+						!$scope.ngModel.secondLevel) {
+					queryService.getEntitiesById([$scope.ngModel.firstLevel.id], true).then(function(entities) {
 						firstLevelEntity = entities[0];
 						if(firstLevelEntity.publicMetadata.hasOwnProperty("aws_metadata")) {
 							var varValues = angular.fromJson(firstLevelEntity.publicMetadata.aws_metadata).varValues;
@@ -70,9 +70,9 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 							}
 						}
 					});
-				} else if(!$scope.model.firstLevel &&
-						$scope.model.secondLevel && $scope.model.secondLevel.id) {
-					queryService.getEntitiesById([$scope.model.secondLevel.id], true).then(function(entities) {
+				} else if(!$scope.ngModel.firstLevel &&
+						$scope.ngModel.secondLevel && $scope.ngModel.secondLevel.id) {
+					queryService.getEntitiesById([$scope.ngModel.secondLevel.id], true).then(function(entities) {
 						firstLevelEntity = entities[0];
 						if(firstLevelEntity.publicMetadata.hasOwnProperty("aws_metadata")) {
 							var varValues = angular.fromJson(firstLevelEntity.publicMetadata.aws_metadata).varValues;
@@ -105,47 +105,43 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 				return treeData;
 			};
 			
-			$scope.$watch('model', function() {
-				$scope.ngModel = {
-						model : $scope.model,
-						nestedFilter : {}
-				};
-				$scope.ngModel.nestedFilter.or = [];
-				var nestedFilter = $scope.ngModel.nestedFilter;
-				// TODO re-enable selection based on the treeSelection object
-				//	$(tree).dynatree("getRoot").visit(function(node){
-				//	});
-				if($scope.model.treeSelection && (Object.keys($scope.model.treeSelection) || $scope.treeSelection.length))
-				{
-						if($scope.model.firstLevel && $scope.model.firstLevel.id && $scope.model.secondLevel && $scope.model.secondLevel.id)
+			$scope.$watch('ngModel', function() {
+				if($scope.ngModel) {
+					$scope.ngModel.nestedFilter = {
+							or : []
+					};
+					var nestedFilter = $scope.ngModel.nestedFilter;
+					if($scope.ngModel.treeSelection && (Object.keys($scope.ngModel.treeSelection) || $scope.treeSelection.length))
+					{
+						if($scope.ngModel.firstLevel && $scope.ngModel.firstLevel.id && $scope.ngModel.secondLevel && $scope.ngModel.secondLevel.id)
 						{
-							for(var key in $scope.model.treeSelection) {
+							for(var key in $scope.ngModel.treeSelection) {
 								var index = nestedFilter.or.push({ and : [
 								                                          {
 								                                        	  cond : { 
-								                                        		  f : $scope.model.firstLevel.id, 
+								                                        		  f : $scope.ngModel.firstLevel.id, 
 								                                        		  v : [key] 
 								                                        	  }
 								                                          },
 								                                          {
 								                                        	  cond: {
-								                                        		  f : $scope.model.secondLevel.id, 
+								                                        		  f : $scope.ngModel.secondLevel.id, 
 								                                        		  v : []
 								                                        	  }
 								                                          }
 								                                          ]
 								});
 								
-								for(var i in $scope.model.treeSelection[key].secondLevels) {
+								for(var i in $scope.ngModel.treeSelection[key].secondLevels) {
 									var seconLevelValues = "";
-									for(var key2 in $scope.model.treeSelection[key].secondLevels[i]) {
+									for(var key2 in $scope.ngModel.treeSelection[key].secondLevels[i]) {
 										secondLevelValues = key2;
 									}
 									nestedFilter.or[index-1].and[1].cond.v.push(secondLevelValues);
 								}
 							}
 						} else {
-							var level = $scope.model.firstLevel || $scope.model.secondLevel;
+							var level = $scope.ngModel.firstLevel || $scope.ngModel.secondLevel;
 							
 							nestedFilter.or.push({
 								
@@ -153,18 +149,13 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 								       {
 								    	   cond : {
 								    		   f : level,
-								    		   v : $scope.model.treeSelection
+								    		   v : $scope.ngModel.treeSelection
 								    	   }
 								       }
-								]
+								       ]
 							});
 						}
-				}
-			}, true);
-			
-			$scope.$watch('ngModel.model', function() { 
-				if($scope.ngModel && $scope.ngModel.model) {
-					$scope.model = $scope.ngModel.model;
+					}
 				}
 			}, true);
 			
@@ -231,7 +222,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 								}
 							}
 						}
-						$scope.model.treeSelection = treeSelection;
+						$scope.ngModel.treeSelection = treeSelection;
 						$rootScope.$safeApply();
 					},
 					onKeydown: function(node, event) {

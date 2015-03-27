@@ -3,6 +3,12 @@ AnalysisModule.controller('CrossTabCtrl', function($scope, $filter, queryService
 	
 	queryService.getDataTableList(true);
 	
+	
+	$scope.$watch("queryService.queryObject.dataTable.id", function() {
+		if($scope.queryService.queryObject.dataTable)
+			queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
+	});
+	
 	queryService.crossTabQuery = {
 			filters : [{},{}]
 	};
