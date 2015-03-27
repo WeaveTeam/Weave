@@ -102,6 +102,7 @@ package weave.data.BinningDefinitions
 		private var _overrideBinNames:LinkableString;
 		private var _overrideInputMin:LinkableNumber;
 		private var _overrideInputMax:LinkableNumber;
+		private var _overrideBinNamesArray:Array = [];
 		
 		public function get overrideBinNames():LinkableString { return _overrideBinNames; }
 		public function get overrideInputMin():LinkableNumber { return _overrideInputMin; }
@@ -109,10 +110,9 @@ package weave.data.BinningDefinitions
 		
 		protected function getOverrideNames():Array
 		{
-			var names:Array = [];
 			if (overrideBinNames && detectLinkableObjectChange(getOverrideNames, overrideBinNames))
-				names = WeaveAPI.CSVParser.parseCSVRow(overrideBinNames.value) || [];
-			return names;
+				_overrideBinNamesArray = WeaveAPI.CSVParser.parseCSVRow(overrideBinNames.value) || [];
+			return _overrideBinNamesArray;
 		}
 	}
 }
