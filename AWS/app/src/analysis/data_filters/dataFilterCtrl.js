@@ -1,15 +1,15 @@
 AnalysisModule.directive('filter', function(queryService) {
 	
 	function link($scope, element, attrs, ngModelCtrl) {
-		element.draggable({ containment: "parent" }).resizable({
-			 maxHeight: 300,
-		     maxWidth: 650,
-		     minHeight: 80,
-		     minWidth: 270
-		});
+//		element.draggable({ containment: "parent" }).resizable({
+//			 //maxHeight: 150,
+//		     maxWidth: 250,
+//		     minHeight: 100,
+//		     minWidth: 180
+//		});
 		element.addClass('databox');
-		element.width(300);
-		element.height(120);
+		element.width(180);
+		//element.height(120);
 	}
 
 	return {
@@ -31,6 +31,11 @@ AnalysisModule.directive('filter', function(queryService) {
 					sliderModel : []
 			};
 			$scope.filterType = "";
+			
+			$scope.ngModel = {
+					model : $scope.model,
+					nestedFilter : {}
+			};
 			
 			$scope.$watch('model.column',  function() {
 				if($scope.model.column && $scope.model.column.hasOwnProperty("id")) {
@@ -73,13 +78,19 @@ AnalysisModule.directive('filter', function(queryService) {
 			
 			$scope.$watchCollection('model.multiSelectModel', function() {
 				var model = $scope.model.multiSelectModel;
+				
+				$scope.model.comboboxModel = [];
+				$scope.model.sliderModel = [];
+
 				if(!model.length)
 					return;
 				
-				$scope.ngModel = 
+				$scope.ngModel.nestedFilter = 
 					{
-						f : $scope.model.column.id,
-						v : model
+						cond : {
+							f : $scope.model.column.id,
+							v : model
+						}
 					};
 			});
 			
@@ -87,6 +98,10 @@ AnalysisModule.directive('filter', function(queryService) {
 			$scope.$watchCollection('model.comboboxModel', function () {
 				
 				var model = $scope.model.comboboxModel;
+				
+				$scope.model.multiSelectModel = [];
+				$scope.model.sliderModel = [];
+				
 				if(!model.length)
 					return;
 				
@@ -96,23 +111,31 @@ AnalysisModule.directive('filter', function(queryService) {
 					if(model[i])
 						result.push($scope.filterOptions[i].value);
 				}
-				$scope.ngModel = 
+				$scope.ngModel.nestedFilter = 
 					{
-						f : $scope.model.column.id,
-						v : result
+						cond : {
+							f : $scope.model.column.id,
+							v : result
+						}
 					};
 			});
 			
 			/* combo box controls    */
 			$scope.$watchCollection('model.sliderModel', function() {
 				var model = $scope.model.sliderModel;
+
+				$scope.model.multiSelectModel = [];
+				$scope.model.comboboxModel = [];
+
 				if(!model.length)
 					return;
 				
-				$scope.ngModel = 
+				$scope.ngModel.nestedFilter = 
 					{
-						f : $scope.model.column.id,
-						v : [model]
+						cond : {
+							f : $scope.model.column.id,
+							v : [model]
+						}
 					};
 			});
 			
@@ -122,73 +145,34 @@ AnalysisModule.directive('filter', function(queryService) {
 			 * internal model accordingly
 			 *
 			 */
-//			$scope.$watch('queryService.queryObject.filters', function(newVal, oldVal) {
-//				
-//				if(!newVal && !oldVal && angular.equals(newVal, oldVal))
-//					return;
-//				// check the column id to find out the ui type.
-//				var model = $scope.ngModel;
-//				if(model && model.hasOwnProperty("f")) {
-//					queryService.getEntitiesById([model.f], true).then(function(entity) {
-//						entity = entity[0];
-//						if(entity && entity.publicMetadata.hasOwnProperty("aws_metadata")) {
-//							var metadata = angular.fromJson(entity.publicMetadata.aws_metadata);
-//							if(metadata.hasOwnProperty("varType")) {
-//								if(metadata.varType == "continuous") {
-//									$scope.filterType = "slider";
-//									var min = angular.fromJson(metadata.varRange)[0];
-//									var max = angular.fromJson(metadata.varRange)[1];
-//									$scope.sliderOptions = { range:true, min:min, max:max };
-//									$scope.model.sliderModel = model.v[0];
-//								} else if(metadata.varType == "categorical") {
-//									if(metadata.varValues) {
-//										queryService.getDataMapping(metadata.varValues).then(function(varValues) {
-//											$scope.filterOptions = varValues;
-//											if($scope.filterOptions.length < 10) {
-//												$scope.filterType = "combobox";
-//												var tempValueArray = [];
-//												var combobox = [];
-//												for(var i in $scope.filterOptions)
-//												{
-//													tempValueArray.push($scope.filterOptions[i].value);
-//													combobox[i] = false;
-//												}
-//												for(var i in model.v) {
-//													if(tempValueArray.indexOf(model.v[i]) > -1)
-//													{
-//														combobox[i] = true;
-//													} else {
-//														combobox[i] = false;
-//													}
-//												}
-//												$scope.model.comboboxModel = combobox;
-//											} else {
-//												$scope.filterType = "multiselect";
-//												$scope.model.multiSelectModel = model.v;
-//											}
-//										});
-//									}
-//								}
-//							}
-//						}
-//					});
-//				};
-//			}, true);
+			$scope.$watch('ngModel.model', function() { 
+				if($scope.ngModel && $scope.ngModel.model) {
+					$scope.model = $scope.ngModel.model;
+				}
+			}, true);
 		}
 	};
 });
 
 AnalysisModule.controller('dataFilterCtrl', function($scope, queryService, $filter){
 	
-	$scope.filterArray = [];
-	var i = 0;
 	$scope.addFilter = function() {
-		queryService.cache.filterArray.push(i);
-		i++;
+		// the values are the same as the index for convenience
+		queryService.queryObject.filterArray.push(queryService.queryObject.filterArray.length);
 	};
 	
 	$scope.removeFilter = function(index) {
-		queryService.cache.filterArray.splice(index, 1);
-		queryService.queryObject.splice(index, 1);
+		queryService.queryObject.filterArray.splice(index, 1);
+		queryService.queryObject.filters.splice(index, 1);
 	};
+
+	$scope.addTreeFilter = function() {
+		// the values are the same as the index for convenience
+		queryService.queryObject.treeFilterArray.push(queryService.queryObject.treeFilterArray.length);
+	};
+	
+	$scope.removeTreeFilter = function(index) {
+		queryService.queryObject.treeFilterArray.splice(index, 1);
+		queryService.queryObject.treeFilters.splice(index, 1);
+	};	
 });

@@ -1,5 +1,5 @@
 <div class=" header panel-heading" style="margin-bottom: 0px">
-	<h2>Generic Filter</h2>
+	<h2>Filter</h2>
 
 	<a href="javascript: void(0)" 
 		class="close-button" data-trigger="hover" placement="right" title="Remove"
@@ -17,7 +17,10 @@
       			 <div ng-bind-html="column.title | highlight: $select.search"></div>
        	</ui-select-choices>
 	</ui-select>
-
+	<br>
+	
+	{{ model.column.description }}
+	
 	<br><br>
 		<!-- multi select picker -->
  	<div ng-if="filterType == 'multiselect'">

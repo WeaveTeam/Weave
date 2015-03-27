@@ -246,25 +246,24 @@
 	
 <!-- FILTERS -->	
 				<div ng-include src="'src/analysis/data_filters/data_filters.html'"></div>
-	
-				<!--Geography filter -->
-				<geo-Filter  ng-if="AnalysisService.showGeographyFilter" ng-model= "queryService.queryObject.GeographyFilter"></geo-Filter>
-			
 				
-	
-					<!--Timeperiod filter -->
-					<tree-filter ng-model="queryService.queryObject.timePeriodFilter" columns="queryService.cache.columns"></tree-filter>
-					
-					<filter  ng-controller="dataFilterCtrl" ng-repeat="filter in queryService.cache.filterArray" columns="queryService.cache.columns" ng-model='queryService.queryObject.filters[$index]'></filter>
+				<div ng-controller="dataFilterCtrl">
+					<!--Geography filter -->
+					<geo-Filter  ng-if="AnalysisService.showGeographyFilter" ng-model= "queryService.queryObject.GeographyFilter"></geo-Filter>
+				
+					<!--  regular column filter -->	
+					<filter  ng-repeat="filter in queryService.queryObject.filterArray" columns="queryService.cache.columns" ng-model='queryService.queryObject.filters[$index]'></filter>
+		
+					<!-- two columns filter -->
+					<tree-filter ng-repeat="filter in queryService.queryObject.treeFilterArray" columns="queryService.cache.columns" ng-model="queryService.queryObject.treeFilters[$index]"></tree-filter>
+				</div>
+				
 				</div>
 				
 			</div>
+		</div>
 		
 		<input type="checkbox" ng-model="queryService.queryObject.properties.openInNewWindow"> Show Weave in separate window</input>
-		
-		
-		
-		
 		
 <!-- VIZ TOOL WIDGETS -->	
 		<div ng-controller= "toolsCtrl">
