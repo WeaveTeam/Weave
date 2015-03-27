@@ -64,7 +64,10 @@ package flare.data.converters
          */
         public static function parse(graphml:XML):Object
         {
-            var lookup:Object = {};
+            var nodeIdLookup:Object = {};
+            var nodeIdCounter:int = 0;
+            var edgeIdLookup:Object = {};
+            var edgeIdCounter:int = 0;
             var nodes:Array = [], n:Object;
             var edges:Array = [], e:Object;
             var id:String, sid:String, tid:String;
@@ -116,7 +119,14 @@ package flare.data.converters
             // parse nodes
             for each (var node:XML in graphml..node) {
                 id = node.@[ID].toString();
-                lookup[id] = (n = parseData(node));
+
+                while (!id || nodeIdLookup[id])
+                {
+                	id = String(nodeIdCounter++);
+                }
+
+                nodeIdLookup[id] = (n = parseData(node));
+                n.id = id;
                 nodes.push(n);
             }
             
@@ -125,14 +135,21 @@ package flare.data.converters
                 id  = edge.@[ID].toString();
                 sid = edge.@[SOURCE].toString();
                 tid = edge.@[TARGET].toString();
+
+				while (!id || edgeIdLookup[id])
+                {
+                	id = String(edgeIdCounter++);
+                }
                 
                 // error checking
-                if (!lookup.hasOwnProperty(sid))
+                if (!nodeIdLookup.hasOwnProperty(sid))
                     error("Edge "+id+" references unknown node: "+sid);
-                if (!lookup.hasOwnProperty(tid))
+                if (!nodeIdLookup.hasOwnProperty(tid))
                     error("Edge "+id+" references unknown node: "+tid);
-                                
-                edges.push(e = parseData(edge));
+                
+                edgeIdLookup[id] = (e = parseData(edge));                
+                e.id = id;
+                edges.push(e);
             }
             var result:Object = {};
 
