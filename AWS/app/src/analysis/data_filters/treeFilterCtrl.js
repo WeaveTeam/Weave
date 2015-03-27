@@ -30,7 +30,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 			$scope.model = {
 					firstLevel : undefined,
 					secondLevel : undefined,
-					treeSelection : [],
+					treeSelection : []
 			};
 			
 			$scope.$watchCollection(function() {

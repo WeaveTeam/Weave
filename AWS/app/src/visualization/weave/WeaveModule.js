@@ -6,6 +6,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 	var ws = this;
 	this.weaveWindow = window;
 	this.analysisWindow = window;
+	this.toolsEnabled = [];
 	
 	this.columnNames = [];
 	
@@ -89,6 +90,114 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 		return this;
 	};
 	
+	//returns a list of visualization tools currently open in Weave
+	this.listOfTools = function(){
+		var openTools = [];
+		if(ws.weave && ws.weave.path ){
+			var tools =  ws.weave.path().libs('weave.api.ui.IVisTool').getValue('getObjects(IVisTool)');
+		}
+		
+		for(var i in tools){
+			var type = tools[i].getType();
+			openTools.push(type.replace(/weave.visualization.tools::/g, ""));
+		}
+		
+		return openTools;
+	};
+	
+	//returns a list of selectable attributes for every plotter in a given visualization tool
+	this.getSelectableAttributes = function(vizTool){
+		
+		var selAttributes =[];
+		
+		if(ws.weave && ws.weave.path ){
+			var plotLayers = ws.weave.path(vizTool, 'children', 'visualization', 'plotManager', 'plotters').getNames();
+			
+			for(var i in plotLayers)
+			{
+				var attrs = ws.weave.path(vizTool, 'children', 'visualization', 'plotManager', 'plotters', plotLayers[i]).getValue('getSelectableAttributeNames()');
+				for(var j in attrs){
+					selAttributes.push({plotLayer : plotLayers[i], title : attrs[j]});
+				}
+			}
+		}
+		
+		
+		return selAttributes;
+	};
+	
+	/**
+	 * this function sets the selected attribute(selected in the attribute widget tool) in the required tool
+	 * @param tool the tool whose attribute is to be set
+	 * @param vizAttribute the attribute of tool to be set
+	 * @param attrObject the object used for setting vizAttribute
+	 */
+	
+	this.setVizAttribute = function(tool, vizAttribute, attrObject){
+		switch(tool){
+		
+			case 'MapTool' :
+				switch(vizAttrbute){
+					case 'Color' :
+						//call color column setter
+						if(ws.weave && ws.weave.path)
+							{
+								ws.weave.path('defaultColorDataColumn').setColumn(attrObject.id, attrObject.dataSourceName);
+							}
+						break;
+					case 'Geometry' :
+						//set geometry column
+						if(ws.weave && ws.weave.path)
+						{
+							//ws.wave.path(tool, 'children', 'visualization', 'plotManager', 'plotters', );
+						}
+						break;
+			}
+				break;
+				
+			case 'ScatterplotTool' :
+				switch(vizAttribute){
+					case 'Color':
+						if(ws.weave && ws.weave.path)
+						{
+							ws.weave.path('defaultColorDataColumn').setColumn(attrObject.id, attrObject.dataSourceName);
+						}
+						break;
+					case 'X':
+						break;
+					case 'Y':
+						break;
+					case 'Size':
+						break;
+			}
+				break;
+				
+			case 'CompoundBarChartTool':
+				switch(vizAttribute){
+				case 'Color':
+					if(ws.weave && ws.weave.path)
+					{
+						ws.weave.path('defaultColorDataColumn').setColumn(attrObject.id, attrObject.dataSourceName);
+					}
+					break;
+				case 'Height':
+					break;
+				case 'Label':
+					break;
+				case 'Sort':
+					break;
+				case 'Positive Error':
+					break;
+				case 'Negative Error':
+			}
+				break;
+				
+			case 'TableTool':
+				break;
+		
+		}
+	};
+	
 	this.AttributeMenuTool = function(state, aToolName){
 		
 		var toolName = aToolName || ws.generateUniqueName("AttributeMenuTool");
@@ -152,6 +261,9 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 				{
 					ws.weave.path(toolName).remove();
 					return "";
+				}
+				else{
+					
 				}
 				ws.weave.path(toolName).request('MapTool').state({ panelX : "0%", panelY : "0%", panelTitle : state.title, enableTitle : true });
 				;
@@ -264,48 +376,6 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 		return toolName;
 	};
 	
-	
-//	var setColumn = function(column, propertyPath, property){
-//		var metadata;
-//		
-//		var deferred = $q.defer();
-//		if(column)
-//			{
-//						runQueryService.queryRequest(dataServiceURL, 'getEntitiesById', [[column.id]],function(result){
-//							metadata = result;
-//							rootScope.$safeApply(function() {
-//							deferred.resolve(metadata);
-//							});
-//							
-//							console.log("metadata", metadata);
-//							//TODO make aws_metadata part of weave metadata
-//							//TEMPORARy SOLUTION needed for converting the aws_metadata to weave metadata
-//							if(ws.weave && ws.weave.path && column) {
-//								if(column.id && column.title)
-//									{	console.log("column", column);
-//										ws.weave.path(propertyPath).push(property)					
-//											.setColumn({
-//											keyType :metadata[0].publicMetadata.keyTpe,//handle hard code later
-//											weaveEntityId : metadata[0].id ,
-//											dataType: metadata[0].publicMetadata.dataType , 
-//											title: metadata[0].publicMetadata.title , 
-//											entityType:metadata[0].publicMetadata.entityType
-//										}, 'WeaveDataSource');
-//									}
-//							}
-//							
-//						},
-//							function(error){
-//							rootScope.$safeApply(function(error) {
-//								deferred.reject(error);
-//							});
-//			
-//							return deferred.promise;
-//						});
-//						
-//			}
-//	};
-	
 	this.DataTableTool = function(state, aToolName){
 
 		if(!state)
@@ -332,9 +402,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			{
 				ws.weave.path('defaultColorDataColumn').setColumn(state.column.id, state.column.dataSourceName);
 			}
-//				var path = ws.weave.path().getPath();
-//				setColumn(state.column, path, 'defaultColorDataColumn');
-				
+
 				//hack for demo
 				if(state.column2 && state.column3){
 					console.log("getting columns together", state.column2, state.column3);

@@ -4,8 +4,8 @@
  **/
 var qh_module = angular.module('aws.QueryHandlerModule', []);
 
-qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService','runQueryService','computationServiceURL', '$window', '$modal',
-                                 function($q, scope, queryService, WeaveService, errorLogService,runQueryService, $window, $modal) {
+qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService','runQueryService','geoService', '$window', '$modal',
+                                 function($q, scope, queryService, WeaveService, errorLogService,runQueryService,geoService, $window, $modal) {
 	
 	//this.WeaveService.weaveWindow;
 	var scriptInputs = {};
@@ -118,51 +118,101 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     };
     
     /**
-     * this function handles processing geography filters
+     * this function handles geography filters
      **/
     this.handleGeographyFilters = function(incoming_qo){
-//		var geoQuery = {};
-//		var stateId = "";
-//		var countyId = "";
-//		
-//		if(incoming_qo.GeographyFilter.stateColumn.id) {
-//			stateId = incoming_qo.GeographyFilter.stateColumn.id;
-//		}
-//		if(incoming_qo.GeographyFilter.countyColumn.id) {
-//			countyId = incoming_qo.GeographyFilter.countyColumn.id;
-//		}
-//
-//		geoQuery.or = [];
-//		
-//		if(incoming_qo.GeographyFilter.hasOwnProperty("filters")) {
-//			if(Object.keys(incoming_qo.GeographyFilter.filters).length !== 0) {
-//				for(var key in incoming_qo.GeographyFilter.filters) {
+    	var geoQuery = {};
+    	var currentGeo;
+    	var tempGeoFilter;
+ 
+    	incoming_qo.GeographyFilter.filters = geoService.selectedGeographies;
+
+		geoQuery.or = [];
+		
+		if(incoming_qo.GeographyFilter.hasOwnProperty("filters")) {
+			if(Object.keys(incoming_qo.GeographyFilter.filters).length !== 0)
+			{
+				//state filter
+				if(!incoming_qo.GeographyFilter.countyColumn)
+				{
+					var states = [];
+					for(var state in incoming_qo.GeographyFilter.filters)
+					{
+						states.push(state);
+					}
+					
+					
+					geoQuery = 	{
+									  cond : { 
+										  		f : incoming_qo.GeographyFilter.stateColumn.id, 
+										  		v : states
+									  		 }
+								};
+												
+					
+					console.log("geoQuery", geoQuery);
+				}
+				// state + county filter
+				else
+				{
+					for(var key in incoming_qo.GeographyFilter.filters)
+					{
+						var counties = [];
+						var singleState = incoming_qo.GeographyFilter.filters[key].counties;
+						console.log("single state", singleState);
+						
+						counties = Object.keys(singleState);
+						geoQuery.or.push({ and : [
+													{
+														  cond : { 
+															  		f : incoming_qo.GeographyFilter.nestedStateColumn.id, 
+															  		v : [key] 
+														  		 }
+													},
+													{
+														  cond: {
+															  		f : incoming_qo.GeographyFilter.countyColumn.id,
+															  		v : counties
+														  		}
+													}
+													]});
+					}
+					console.log("geoQuery", geoQuery);
+				}
+				
+				
+//				for(var key in incoming_qo.GeographyFilter.filters)
+//				{
 //					var index = geoQuery.or.push({ and : [
-//					                                      {cond : { 
-//					                                    	  f : stateId, 
-//					                                    	  v : [key] 
-//					                                      }
+//					                                      {
+//					                                    	  cond : { 
+//					                                    		  		f : stateId, 
+//					                                    		  		v : [key] 
+//					                                    	  		 }
 //					                                      },
-//					                                      {cond: {
-//					                                    	  f : countyId, 
-//					                                    	  v : []
+//					                                      {
+//					                                    	  cond: {
+//					                                    		  		f : countyId, 
+//					                                    		  		v : []
+//					                                    	  		}
 //					                                      }
-//					                                      }
-//					                                      ]
-//					});
-//					for(var i in incoming_qo.GeographyFilter.filters[key].counties) {
+//					                                      ]});
+//					console.log("geoQuery", geoQuery);
+//					for(var i in incoming_qo.GeographyFilter.filters[key].counties) 
+//					{
 //						var countyFilterValue = "";
-//						for(var key2 in incoming_qo.GeographyFilter.filters[key].counties[i]) {
+//						for(var key2 in incoming_qo.GeographyFilter.filters[key].counties[i]) 
+//						{
 //							countyFilterValue = key2;
 //						}
 //						geoQuery.or[index-1].and[1].cond.v.push(countyFilterValue);
 //					}
 //				}
-//				if(geoQuery.or.length) {
-//					nestedFilterRequest.and.push(geoQuery);
-//				}
-//			}
-//		}
+				if(geoQuery.or.length) {
+					nestedFilterRequest.and.push(geoQuery);
+				}
+			}
+		}
     };
     
 	/**
@@ -199,7 +249,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			//handles re-identification for aggregation scripts
 			this.handleReidentification(scriptInputObjects);
 
-			console.log("scriptInputObjects", scriptInputObjects);
+			//console.log("scriptInputObjects", scriptInputObjects);
 				scriptName = queryObject.scriptSelected;
 				 //var stringifiedQO = JSON.stringify(queryObject);
 				 //console.log("query", stringifiedQO);

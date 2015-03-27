@@ -228,18 +228,8 @@
 <!-- 					    </div> -->
 						
 						
-<!-- Validation -->	
-						<!-- Tell us status of the execution of query object --><!-- Different from validation status -->
-<!-- 						<div style = "display :table" ng-model = "service.isValidated"> -->
-<!-- 							 <div style = "display : table-cell; border-radius:5px "  -->
-<!-- 							 ng-class="{'validate' : service.queryObject.properties.queryDone, 'invalidate' : !service.queryObject.properties.queryDone}" -->
-<!-- 							 title= "A green signal indiactes the query has been executed successfully"> -->
-<!-- 							 </div> -->
-<!-- 							 <div style= "display : table-cell; padding-left : 5px">{{service.queryObject.properties.queryStatus}}</div> -->
-<!-- 						 </div>  -->
-						 
-					</div>
-				</div>
+					</div><!-- end of scripts control -->
+				</div> <!-- end of calculations control -->
 				
 				
 				
@@ -258,11 +248,10 @@
 					<tree-filter ng-repeat="filter in queryService.queryObject.treeFilterArray" columns="queryService.cache.columns" ng-model="queryService.queryObject.treeFilters[$index]"></tree-filter>
 				</div>
 				
-				</div>
 				
 			</div>
 		</div>
-		
+		<div style = "padding : 20px"></div>
 		<input type="checkbox" ng-model="queryService.queryObject.properties.openInNewWindow"> Show Weave in separate window</input>
 		
 <!-- VIZ TOOL WIDGETS -->	

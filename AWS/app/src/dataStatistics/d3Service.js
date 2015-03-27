@@ -177,24 +177,23 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 			.append("path")
 			.attr("d", path)
 			.style("fill", "#335555")
+			//handling selections							
+			.on('click', function(d){
+				//if it is selected for the first time
+				if(!(d.id in geoService.selectedGeographies)){
+					d3.select(this).style("fill", "yellow");
+					geoService.selectedGeographies[d.id] = { title: d.properties.name };
+				}
+				//if already selected; remove it
+				else{
+					delete geoService.selectedGeographies[d.id];
+					d3.select(this).style("fill", "#335555");
+				}
+				
+			})
 			.on('mouseover', function(d){
 											tooltip.style('visibility', 'visible' ).text(d.properties.name); 
 										})
-			//handling selections							
-			.on('click', function(d){
-										console.log("state Object", d);
-										//if it is selected for the first time
-										if(!(d.id in geoService.selectedStates)){
-											d3.select(this).style("fill", "yellow");
-											geoService.selectedStates[d.id] =  d.properties.name;
-										}
-										//if already selected; remove it
-										else{
-											delete geoService.selectedStates[d.id];
-											d3.select(this).style("fill", "#335555");
-										}
-										
-									})
 		    .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
 		    .on('mouseout', function(){ tooltip.style('visibility', 'hidden');});
 			
@@ -203,6 +202,7 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 		//d3 code for county level
 		/*used parts of mbostock's demo @http://bl.ocks.org/mbostock/2206590 */
 		function addCountyLayer(geometries){
+			var counties = {};
 			// SVG Creation	
 			var countySvg = d3.select(dom_element_to_append_to).append("svg")
 			.attr("width", width + margin.left + margin.right)
@@ -255,7 +255,21 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 				    var gAr = d3.select(gElement);
 				    gAr.selectAll("path")
 				     .data(c_in_selectedState)
-				     .enter().append("path")
+				     .enter().append("g")
+				     .on('click', function(d){
+				    	 						console.log("counties",d);
+				    	 						d3.select(this).style("fill", "yellow");
+				    	 						counties[d.id] = d.properties.name;
+				    	 						geoService.selectedGeographies[d.properties.stateId] = {title : d.properties.state, counties : counties};
+				    	 						
+				    	 						
+			    	 						 })
+				     .on('mouseover', function(d){
+											tooltip.style('visibility', 'visible' ).text(d.properties.name + " (" + d.properties.stateAbbr + ")"); 
+										})
+					 .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+					 .on('mouseout', function(){ tooltip.style('visibility', 'hidden');})
+				     .append("path")
 				     .attr("d", path)
 				     .attr("class", "countyBorders");
 				  } 

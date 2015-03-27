@@ -7,34 +7,54 @@
 	
 	
 	<div class="body">
-		<div style = "width: 25%; float: left; height: 100%" >
-			<input type="radio" ng-model = "geometry.selected" value = "State" >US States</input>
-			<br>
-			<div>
-				<select ng-if = "geometry.selected == 'State'">
-					<option>Hello</option>
-					<option>Shweta</option>
-				</select>
-			</div>
-			<br>
-			
-			<input type="radio" ng-model = "geometry.selected" value = "County" >US Counties</input>
-			<br>
-			<div>
-				<select ng-if = "geometry.selected == 'County'">
-					<option>Blah</option>
-					<option>HI</option>
-				</select>
-			</div>
-			<br>
-			<span style = "margin-left: 5px" class = "glyphicon glyphicon-plus-sign"></span>
-			
-			<div style = "margin-bottom: 10px" ui-slider="{range:false, orientation: 'vertical'}" min= "2" step="1"  max = "18" ng-model="tool.zoomLevel"/>
-			
-			<span style = "margin-left: 5px" class = "glyphicon glyphicon-minus-sign"></span>
+		<div style = "width: 20%; float: left; height: 100%" >
+				<input type="radio" ng-model = "geometry.selected" value = "State" >US States</input>
+				<br>
+				<div title= "Select State Geography Column">
+					<ui-select ng-if = "geometry.selected == 'State'" 
+							   ng-model="queryService.queryObject.GeographyFilter.stateColumn" theme="select2" style="width: 97%;"
+							   ng-change = "renderLayer()">
+					    		<ui-select-match  placeholder="Select geography">{{$select.selected.title}}</ui-select-match>
+								<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search, columnType : 'geography' }">
+					       			 <div ng-bind-html="column.title | highlight: $select.search"></div>
+					        	</ui-select-choices>
+					</ui-select>
+				</div>
+				
+				
+				
+				<input type="radio" ng-model = "geometry.selected" value = "County" >US Counties</input>
+				<br>
+				<div title= "Select County Geography Column">
+					<ui-select ng-if = "geometry.selected == 'County'" 
+							   ng-model="queryService.queryObject.GeographyFilter.nestedStateColumn" theme="select2" style="width: 97%;">
+					    		<ui-select-match placeholder="Select geography">{{$select.selected.title}}</ui-select-match>
+								<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search, columnType : 'geography' }">
+					       			 <div ng-bind-html="column.title | highlight: $select.search"></div>
+					        	</ui-select-choices>
+					</ui-select>
+				</div>
+				
+				<br>
+				<div title= "Select County Geography Column">
+					<ui-select ng-if = "geometry.selected == 'County'" 
+							   ng-model="queryService.queryObject.GeographyFilter.countyColumn" theme="select2" style="width: 97%;" 
+							   ng-change = "renderLayer()">
+					    		<ui-select-match placeholder="Select geography">{{$select.selected.title}}</ui-select-match>
+								<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search, columnType : 'geography' }">
+					       			 <div ng-bind-html="column.title | highlight: $select.search"></div>
+					        	</ui-select-choices>
+					</ui-select>
+				</div>
+				
+				<span style = "margin-left: 5px" class = "glyphicon glyphicon-plus-sign"></span>
+				
+				
+				
+				<div style = "margin-bottom: 10px" ui-slider="{range:false, orientation: 'vertical'}" min= "2" step="1"  max = "18" ng-model="tool.zoomLevel"/>
+				<span style = "margin-left: 5px" class = "glyphicon glyphicon-minus-sign"></span>
 		</div>
 		
-		<div id = "mapDisplay" style = "width: 75%; float: left; height: 100%">
-		</div>
+		<div id = "mapDisplay" style = "width: 80%; float: left; height: 100%"></div>
 	</div>
 </div>

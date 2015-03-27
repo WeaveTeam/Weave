@@ -581,16 +581,15 @@ background-color: #4C4F53;
 }
 
 .queryUndone {
-	width : 20px;
+	width : 100px;
 	height : 20px;
-/* 	border:1px solid #000; */
+	float:left;
 	background : #d9534f;
 }
 
 .queryDone{
-	width : 20px;
+	width : 100px;
 	height : 20px;
-/* 	border:1px solid #000; */
 	background : #5bb75b;
 }
 /* the blue one */
@@ -953,8 +952,8 @@ select {
 
 #state-borders {
   fill: none;
-  stroke: #fff;
-  stroke-width: 1.5px;
+  stroke: black;
+  stroke-width: 0.5px;
   stroke-linejoin: round;
   stroke-linecap: round;
   pointer-events: none;
@@ -966,4 +965,8 @@ select {
 .countyBorders{
 	stroke:black;
 	stroke-width: 0.5px;
+}
+
+.activeListItem {
+	background-color: #B2FFFF
 }
