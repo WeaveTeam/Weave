@@ -4,11 +4,11 @@
 	<div class = "topAnalysisControl">
 		<div class= "queryRunStatus">
 			<div style = "display :table" ng-model = "service.isValidated">
-							 <div style = "display : table-cell; border-radius:5px;" 
-							 ng-class="{'queryDone' : queryService.queryObject.properties.queryDone, 'queryUndone' : !queryService.queryObject.properties.queryDone}"
-							 title= "A green signal indiactes the query has been executed successfully">
-							 </div>
-							 <div style= "display : table-cell; padding-left : 5px"><font color= "white">{{queryService.queryObject.properties.queryStatus}}</font></div>
+<!-- 							 <div style = "display : table-cell; border-radius:5px;"  -->
+<!-- 							 ng-class="{'queryDone' : queryService.queryObject.properties.queryDone, 'queryUndone' : !queryService.queryObject.properties.queryDone}" -->
+<!-- 							 title= "A green signal indiactes the query has been executed successfully"> -->
+<!-- 							 </div> -->
+<!-- 							 <div style= "display : table-cell; padding-left : 5px"><font color= "white">{{queryService.queryObject.properties.queryStatus}}</font></div> -->
 			</div> 
 			<font color="#D5D5D5">Mode</font>
 							<input type="radio" value="computation" 
@@ -18,7 +18,7 @@
 						
 		</div>
 		<div class= "buttonBarContainer">
-			<div class = "btn-group" role = "group" style = "margin-left: 70%; width: 100%; height: 100%"  
+			<div class = "btn-group" role = "group" style = "margin-left: 55%; width: 100%; height: 100%"  
 			 ng-controller= "buttonBarController">
 							
 							<button class='btn btn-default wa_buttonBar' title = "Download Query Object"><span class = "fa fa-download" ng-click = "exportQuery()"></span></button>
@@ -47,8 +47,20 @@
 								ng-Disabled = "!queryService.queryObject.properties.isQueryValid">
 								 <span class = "fa fa-play-circle fa-lg"></span>
 							 </button>
-			</div>
+							 
+<!-- 							 <div style = "display : table-cell; border-radius:5px;"  -->
+<!-- 							 ng-class="{'queryDone' : queryService.queryObject.properties.queryDone, 'queryUndone' : !queryService.queryObject.properties.queryDone}" -->
+<!-- 							 title= "A green signal indiactes the query has been executed successfully"> -->
+<!-- 							 </div> -->
+<!-- 							 <div style= "display : table-cell; padding-left : 5px"><font color= "white">{{queryService.queryObject.properties.queryStatus}}</font></div> -->
+							<br>
+							<div style = "float:left; margin-left : 10px"  ng-class="{'queryDone' : queryService.queryObject.properties.queryDone, 'queryUndone' : !queryService.queryObject.properties.queryDone}" >
+							<i class = "fa fa-flag"></i>
+							</div>
 		</div>
+			</div>
+			
+			
 	</div>
 <!-- BUTTON CONTAINER END -->
 		
@@ -206,14 +218,14 @@
 							</table>
 						</div>
 <!-- reidentification prevention -->
-						Masking Reidentification
-						<div class="input-group">
-						      <span class="input-group-addon">
-						        <input type="checkbox" ng-model="service.queryObject.Reidentification.idPrevention" >
-						      </span>
-						      <input type="text" style="z-index: 0" form-control"  ng-model = "service.queryObject.Reidentification.threshold" 
-						      		 ng-Disabled="!service.queryObject.Reidentification.idPrevention">
-					    </div><!-- /input-group -->
+<!-- 						Masking Reidentification -->
+<!-- 						<div class="input-group"> -->
+<!-- 						      <span class="input-group-addon"> -->
+<!-- 						        <input type="checkbox" ng-model="service.queryObject.Reidentification.idPrevention" > -->
+<!-- 						      </span> -->
+<!-- 						      <input type="text" style="z-index: 0" form-control"  ng-model = "service.queryObject.Reidentification.threshold"  -->
+<!-- 						      		 ng-Disabled="!service.queryObject.Reidentification.idPrevention"> -->
+<!-- 					    </div> -->
 						
 						
 <!-- Validation -->	
@@ -237,7 +249,7 @@
 				
 				<div ng-controller="dataFilterCtrl">
 					<!--Geography filter -->
-					<geo-Filter  ng-if="AnalysisService.showGeographyFilter"></geo-Filter>
+					<geo-Filter  ng-if="AnalysisService.showGeographyFilter" ng-model= "queryService.queryObject.GeographyFilter"></geo-Filter>
 				
 					<!--  regular column filter -->	
 					<filter  ng-repeat="filter in queryService.queryObject.filterArray" columns="queryService.cache.columns" ng-model='queryService.queryObject.filters[$index]'></filter>

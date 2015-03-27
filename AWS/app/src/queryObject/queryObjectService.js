@@ -219,6 +219,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html',
 					enabled : false
 				},
+				AttributeMenuTool : {
+					title : 'Attribute Menu Tool',
+					template_url : 'src/visualization/tools/attributeMenu/attribute_Menu.tpl.html',
+					enabled: false
+				},
 				color_Column : {
 					title : "Color Column",
 					template_url : 'src/visualization/tools/color/color_Column.tpl.html'
@@ -235,6 +240,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 	this.cache = {
 			dataTableList : [],
 			scriptList : [],
+			filterArray : [],
 			numericalColumns : []
 	};
 
