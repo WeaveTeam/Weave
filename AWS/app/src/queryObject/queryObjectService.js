@@ -195,6 +195,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 				validationStatus : "test",
 				isQueryValid : false
 			},
+			filterArray : [],
+			treeFilterArray : [],
 			visualizations : {
 				MapTool : {
 					title : 'Map Tool',
@@ -232,8 +234,6 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 	this.cache = {
 			dataTableList : [],
 			scriptList : [],
-			filterArray : [],
-			treeFilterArray : [],
 			numericalColumns : []
 	};
 

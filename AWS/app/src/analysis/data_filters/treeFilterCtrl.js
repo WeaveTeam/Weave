@@ -23,14 +23,14 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 			columns : '=',
 			ngModel : '='
 		},
-		controller : function($scope, $element, $filter) {
+		controller : function($scope, $element, $rootScope, $filter) {
 			
 			var tree = $element.find('#tree');
 			var treeData = [];
 			$scope.model = {
 					firstLevel : undefined,
 					secondLevel : undefined,
-					filters : []
+					treeSelection : [],
 			};
 			
 			$scope.$watchCollection(function() {
@@ -97,46 +97,77 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 			var convertToTreeData = function(firstLevel_metadata, secondLevel_metadata) {
 				var treeData = [];
 				for(var i in firstLevel_metadata) {
-					treeData[i] = { title : firstLevel_metadata[i].label, key : firstLevel_metadata[i].value, isFolder : false,  children : [] };
+					treeData[i] = { title : firstLevel_metadata[i].label, key : firstLevel_metadata[i].value, isFolder : false, icon : false,  children : [] };
 					for(var j in secondLevel_metadata) {
-						treeData[i].children.push({ title : secondLevel_metadata[j].label, key : secondLevel_metadata[j].value });
+						treeData[i].children.push({ title : secondLevel_metadata[j].label, key : secondLevel_metadata[j].value, icon : false });
 					}
 				}
 				return treeData;
 			};
 			
 			$scope.$watch('model', function() {
-				$scope.ngModel = {};
-				$scope.ngModel.or = [];
-				if($scope.model.firstLevel && $scope.model.secondLevel &&
-					$scope.model.firstLevel.id && $scope.model.secondLevel.id
-					&& $scope.model.filters && Object.keys($scope.model.filters))
+				$scope.ngModel = {
+						model : $scope.model,
+						nestedFilter : {}
+				};
+				$scope.ngModel.nestedFilter.or = [];
+				var nestedFilter = $scope.ngModel.nestedFilter;
+				// TODO re-enable selection based on the treeSelection object
+				//	$(tree).dynatree("getRoot").visit(function(node){
+				//	});
+				if($scope.model.treeSelection && (Object.keys($scope.model.treeSelection) || $scope.treeSelection.length))
 				{
-					for(var key in $scope.model.filters) {
-						var index = $scope.ngModel.or.push({ and : [
-						                                            {cond : { 
-						                                            	f : $scope.model.firstLevel.id, 
-						                                            	v : [key] 
-						                                            }
-						                                            },
-						                                            {cond: {
-						                                            	f : $scope.model.secondLevel.id, 
-						                                            	v : []
-						                                            }
-						                                            }
-						                                            ]
-						});
-						for(var i in $scope.model.filters[key].secondLevels) {
-							var seconLevelValues = "";
-							for(var key2 in $scope.model.filters[key].secondLevels[i]) {
-								secondLevelValues = key2;
+						if($scope.model.firstLevel && $scope.model.firstLevel.id && $scope.model.secondLevel && $scope.model.secondLevel.id)
+						{
+							for(var key in $scope.model.treeSelection) {
+								var index = nestedFilter.or.push({ and : [
+								                                          {
+								                                        	  cond : { 
+								                                        		  f : $scope.model.firstLevel.id, 
+								                                        		  v : [key] 
+								                                        	  }
+								                                          },
+								                                          {
+								                                        	  cond: {
+								                                        		  f : $scope.model.secondLevel.id, 
+								                                        		  v : []
+								                                        	  }
+								                                          }
+								                                          ]
+								});
+								
+								for(var i in $scope.model.treeSelection[key].secondLevels) {
+									var seconLevelValues = "";
+									for(var key2 in $scope.model.treeSelection[key].secondLevels[i]) {
+										secondLevelValues = key2;
+									}
+									nestedFilter.or[index-1].and[1].cond.v.push(secondLevelValues);
+								}
 							}
-							$scope.ngModel.or[index-1].and[1].cond.v.push(secondLevelValues);
+						} else {
+							var level = $scope.model.firstLevel || $scope.model.secondLevel;
+							
+							nestedFilter.or.push({
+								
+								and : [
+								       {
+								    	   cond : {
+								    		   f : level,
+								    		   v : $scope.model.treeSelection
+								    	   }
+								       }
+								]
+							});
 						}
-					}
 				}
-				console.log($scope.ngModel);
 			}, true);
+			
+			$scope.$watch('ngModel.model', function() { 
+				if($scope.ngModel && $scope.ngModel.model) {
+					$scope.model = $scope.ngModel.model;
+				}
+			}, true);
+			
 			$scope.$watch(function() {
 				
 				return treeData;
@@ -164,32 +195,44 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 					onSelect: function() {
 						var treeSelection = {};
 						var root = $(tree).dynatree("getRoot");
-						
 						// convert the selection to a compatible format.
 						for (var i = 0; i < root.childList.length; i++) {
 							var firstLevel = root.childList[i];
-							for(var j = 0; j < firstLevel.childList.length; j++) {
-								var secondLevel = firstLevel.childList[j];
-								if(firstLevel.childList[j].bSelected) {
-									if(!treeSelection[firstLevel.data.key]) {
-										var secondLevelKey = secondLevel.data.key;
-										treeSelection[firstLevel.data.key] = {};
-										treeSelection[firstLevel.data.key].label = firstLevel.data.title;
-										var secondLevelObj = {};
-										secondLevelObj[secondLevelKey] = secondLevel.data.title;
-										treeSelection[firstLevel.data.key].secondLevels = [secondLevelObj];
-									} else {
-										var secondLevelKey = secondLevel.data.key;
-										var secondLevelObj = {};
-										secondLevelObj[secondLevelKey] = secondLevel.data.title;
-										treeSelection[firstLevel.data.key].secondLevels.push(secondLevelObj);
+							if(firstLevel.childList) {
+								for(var j = 0; j < firstLevel.childList.length; j++) {
+									var secondLevel = firstLevel.childList[j];
+									if(firstLevel.childList[j].bSelected) {
+										if(!treeSelection[firstLevel.data.key]) {
+											var secondLevelKey = secondLevel.data.key;
+											treeSelection[firstLevel.data.key] = {};
+											treeSelection[firstLevel.data.key].label = firstLevel.data.title;
+											var secondLevelObj = {};
+											secondLevelObj[secondLevelKey] = secondLevel.data.title;
+											treeSelection[firstLevel.data.key].secondLevels = [secondLevelObj];
+										} else {
+											var secondLevelKey = secondLevel.data.key;
+											var secondLevelObj = {};
+											secondLevelObj[secondLevelKey] = secondLevel.data.title;
+											treeSelection[firstLevel.data.key].secondLevels.push(secondLevelObj);
+										}
 									}
+								}
+							} else {
+								// when the firstLevel doesn't have a childList, it's a one level tree
+								if(firstLevel.bSelected) {
+									treeSelection[i] = firstLevel.data.title;
+									// convert treeSelection to array in the case where it's 1D
+									treeSelection = $.map(treeSelection, function(value, index) {
+										return [value];
+									});
+									
+									// cleans the array
+									treeSelection = treeSelection.filter(function(n){ return n != undefined; }); 
 								}
 							}
 						}
-						$scope.model.filters = treeSelection;
-						console.log("tree selection", treeSelection);
-						$scope.$apply();
+						$scope.model.treeSelection = treeSelection;
+						$rootScope.$safeApply();
 					},
 					onKeydown: function(node, event) {
 						if( event.which == 32 ) {
