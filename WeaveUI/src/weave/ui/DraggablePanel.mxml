@@ -1691,24 +1691,36 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 			public static var activePanel:DraggablePanel = null;
 			public static var thinBorderAlpha:Number = 0.1;
 			
+			
 			/**
 			 * This function will create and reuse a static instance of each type of DraggablePanel requested.
 			 * @param classDef A Class extending DraggablePanel.
 			 * @return The static instance of the given class.
 			 */
-			public static function openStaticInstance(draggablePanelClass:Class):*
+			public static function getStaticInstance(draggablePanelClass:Class):*
 			{
-				var qname:String = getQualifiedClassName(draggablePanelClass);
-				var dpqname:String = getQualifiedClassName(DraggablePanel);
-				if (!ClassUtils.classExtends(qname, dpqname))
-					throw new Error(qname + " does not extend " + dpqname);
-				
 				var instance:DraggablePanel = _instances[draggablePanelClass];
 				if (!instance)
 				{
+					var qname:String = getQualifiedClassName(draggablePanelClass);
+					var dpqname:String = getQualifiedClassName(DraggablePanel);
+					if (!ClassUtils.classExtends(qname, dpqname))
+						throw new Error(qname + " does not extend " + dpqname);
+					
 					_instances[draggablePanelClass] = instance = new draggablePanelClass() as DraggablePanel;
 					instance.enableZOrder.value = false;
 				}
+				return instance;
+			}
+			
+			/**
+			 * This function will create and reuse a static instance of each type of DraggablePanel requested, and add it as a popup.
+			 * @param classDef A Class extending DraggablePanel.
+			 * @return The static instance of the given class.
+			 */
+			public static function openStaticInstance(draggablePanelClass:Class):*
+			{
+				var instance:DraggablePanel = getStaticInstance(draggablePanelClass);
 				if (!instance.parent)
 					PopUpManager.addPopUp(instance, WeaveAPI.topLevelApplication as UIComponent);
 				instance.restorePanel();

@@ -260,7 +260,11 @@
 			
 			public static function open(columnOrHashMap:ILinkableObject = null, title:String = null, showVariableNames:Boolean = false, owner:ISelectableAttributes = null):AttributeSelectorPanel
 			{
-				var instance:AttributeSelectorPanel = DraggablePanel.openStaticInstance(AttributeSelectorPanel);
+				var instance:AttributeSelectorPanel = DraggablePanel.getStaticInstance(AttributeSelectorPanel);
+				// if the panel is not currently visible, make sure the search input is empty
+				if (!instance.parent && instance.editor && instance.editor.searchInput)
+					instance.editor.searchInput.text = '';
+				DraggablePanel.openStaticInstance(AttributeSelectorPanel);
 				
 				instance.linkToObject(columnOrHashMap, title, owner);
 				instance.columnList.showVariableNames = showVariableNames;
