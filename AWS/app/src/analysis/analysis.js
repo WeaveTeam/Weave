@@ -54,13 +54,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.QueryHandlerService = QueryHandlerService;
 	
 	$scope.showToolMenu = false;
-	
-<<<<<<< HEAD
-	$scope.$watch('queryService.queryObject.Indicator', function() {
-		//console.log($scope.queryService.queryObject.Indicator);
-	}, true);
-=======
->>>>>>> 12a30faf14110ca36ba11a0681a971f18c0b792c
+
 	$("#queryObjectPanel" ).draggable().resizable();
 	
 	$scope.$watch(function() {
