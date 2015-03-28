@@ -10,15 +10,27 @@
 <!-- 							 </div> -->
 <!-- 							 <div style= "display : table-cell; padding-left : 5px"><font color= "white">{{queryService.queryObject.properties.queryStatus}}</font></div> -->
 			</div> 
-			<font color="#D5D5D5">Mode</font>
-							<input type="radio" value="computation" 
-							   ng-model = "analyst.mode"/> <font color="#D5D5D5">Computed</font>
-							<input type="radio"  value= "visualize"
-							   ng-model = "analyst.mode"/> <font color="#D5D5D5">Original</font>
+<!-- 			<font color="#D5D5D5">Mode</font> -->
+<!-- 							<input type="radio" value="computation"  -->
+<!-- 							   ng-model = "analyst.mode"/> <font color="#D5D5D5">Computed</font> -->
+<!-- 							<input type="radio"  value= "visualize" -->
+<!-- 							   ng-model = "analyst.mode"/> <font color="#D5D5D5">Original</font> -->
+							   
+			<div ng-class="{'unvalidatedUI' : !queryService.queryObject.dataTable, 'validatedUI' : queryService.queryObject.dataTable}"
+							 title = "Red flags indicate required selections for query validation">
+						
+							<ui-select ng-model="queryService.queryObject.dataTable" theme="select2" style="width: 97%;">
+							    <ui-select-match allow-clear="true" placeholder="Select a data table...">{{$select.selected.title}}</ui-select-match>
+								<ui-select-choices repeat="dataTable in queryService.cache.dataTableList | filter : { title : $select.search }">
+ 							       		 <div ng-bind-html="dataTable.title | highlight: $select.search"></div>
+ 							        </ui-select-choices>
+							</ui-select>
+								 
+			</div>
 						
 		</div>
 		<div class= "buttonBarContainer">
-			<div class = "btn-group" role = "group" style = "margin-left: 55%; width: 100%; height: 100%"  
+			<div class = "btn-group" role = "group" style = "margin-left: 45%; width: 100%; height: 100%"  
 			 ng-controller= "buttonBarController">
 							
 							<button class='btn btn-default wa_buttonBar' title = "Download Query Object"><span class = "fa fa-download" ng-click = "exportQuery()"></span></button>
@@ -52,10 +64,13 @@
 <!-- 							 ng-class="{'queryDone' : queryService.queryObject.properties.queryDone, 'queryUndone' : !queryService.queryObject.properties.queryDone}" -->
 <!-- 							 title= "A green signal indiactes the query has been executed successfully"> -->
 <!-- 							 </div> -->
-<!-- 							 <div style= "display : table-cell; padding-left : 5px"><font color= "white">{{queryService.queryObject.properties.queryStatus}}</font></div> -->
+<!-- 							 <div style= "display : table-cell; padding-left : 5px"></div> -->
 							<br>
-							<div style = "float:left; margin-left : 10px"  ng-class="{'queryDone' : queryService.queryObject.properties.queryDone, 'queryUndone' : !queryService.queryObject.properties.queryDone}" >
-							<i class = "fa fa-flag"></i>
+							<div style = "float:left; margin-left : 8px; width: 50%"  
+							ng-class="{'queryDone' : queryService.queryObject.properties.queryDone, 'queryUndone' : !queryService.queryObject.properties.queryDone}" >
+								<i ng-if = "queryService.queryObject.properties.queryDone" class="fa fa-check-circle fa-lg"></i>
+								<i ng-if = "!queryService.queryObject.properties.queryDone" class="fa fa-exclamation-triangle fa-lg"></i>
+							<font size = "2" color= "white">{{queryService.queryObject.properties.queryStatus}}</font>
 							</div>
 		</div>
 			</div>
@@ -77,17 +92,7 @@
 						<h2>Indicator</h2>
 					</div>
 					<div class="body" style="width: 100%">
-						<div ng-class="{'unvalidatedUI' : !queryService.queryObject.dataTable, 'validatedUI' : queryService.queryObject.dataTable}"
-							 title = "Red flags indicate required selections for query validation">
 						
-							<ui-select ng-model="queryService.queryObject.dataTable" theme="select2" style="width: 97%;">
-							    <ui-select-match allow-clear="true" placeholder="Select a data table...">{{$select.selected.title}}</ui-select-match>
-								<ui-select-choices repeat="dataTable in queryService.cache.dataTableList | filter : { title : $select.search }">
- 							       		 <div ng-bind-html="dataTable.title | highlight: $select.search"></div>
- 							        </ui-select-choices>
-							</ui-select>
-								 
-						</div>
 						<br/>
 <!-- 						<input type="checkbox" -->
 <!-- 							ng-model="queryService.queryObject.properties.displayAsQuestions"> -->
