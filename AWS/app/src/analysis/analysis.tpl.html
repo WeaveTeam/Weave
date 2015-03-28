@@ -60,15 +60,11 @@
 								 <span class = "fa fa-play-circle fa-lg"></span>
 							 </button>
 							 
-<!-- 							 <div style = "display : table-cell; border-radius:5px;"  -->
-<!-- 							 ng-class="{'queryDone' : queryService.queryObject.properties.queryDone, 'queryUndone' : !queryService.queryObject.properties.queryDone}" -->
-<!-- 							 title= "A green signal indiactes the query has been executed successfully"> -->
-<!-- 							 </div> -->
-<!-- 							 <div style= "display : table-cell; padding-left : 5px"></div> -->
 							<br>
 							<div style = "float:left; margin-left : 8px; width: 50%"  
-							ng-class="{'queryDone' : queryService.queryObject.properties.queryDone, 'queryUndone' : !queryService.queryObject.properties.queryDone}" >
-								<i ng-if = "queryService.queryObject.properties.queryDone" class="fa fa-check-circle fa-lg"></i>
+								 ng-class="{'queryDone' : queryService.queryObject.properties.queryDone, 'queryUndone' : !queryService.queryObject.properties.queryDone}" >
+								<i ng-if = "queryService.queryObject.properties.queryDone" class="fa fa-check-circle fa-lg"  
+								   title= "A green signal indiactes the query has been executed successfully"></i>
 								<i ng-if = "!queryService.queryObject.properties.queryDone" class="fa fa-exclamation-triangle fa-lg"></i>
 							<font size = "2" color= "white">{{queryService.queryObject.properties.queryStatus}}</font>
 							</div>
@@ -86,90 +82,76 @@
 	<div style="height: 100%" class="container-fluid" style="padding: 5px;">
 		<div style="width:100%;">
 			<div class="row" style="height: 30%; clear: both">
-<!--Indicator and datatable-->
-				<div class="databox" style="width: 20%">
-					<div id="indicator" class=" header panel-heading">
-						<h2>Indicator</h2>
-					</div>
-					<div class="body" style="width: 100%">
+			<!-- indicator -->
+<!-- 				<div class="databox" style="width: 20%"> -->
+<!-- 					<div id="indicator" class=" header panel-heading"> -->
+<!-- 						<h2>Indicator</h2> -->
+<!-- 					</div> -->
+<!-- 					<div class="body" style="width: 100%"> -->
 						
-						<br/>
+<!-- 						<br/> -->
 <!-- 						<input type="checkbox" -->
 <!-- 							ng-model="queryService.queryObject.properties.displayAsQuestions"> -->
 <!-- 						Display As Questions</input> -->
-						
-						
-<!-- INDICATOR -->
-		<div style="width: 100%;" title = "Red flags indicate required selections for query validation"
-							 ng-class="{'unvalidatedUI' : !queryService.queryObject.Indicator, 'validatedUI' : queryService.queryObject.Indicator}">
 
-							<ui-select ng-model="queryService.queryObject.Indicator" theme="select2" style="width: 97%;">
-						    	<ui-select-match allow-clear="true" placeholder="Select Indicator...">{{$select.selected.title}}</ui-select-match>
-								<ui-select-choices repeat="indicator in queryService.cache.columns | filter : { columnType : 'indicator', title : $select.search }">
-						       		 <b ng-bind-html="indicator.title | highlight: $select.search"></b>
-						       		 <small>
-						       		 	{{indicator.description}}
-						       		 </small>
-						        </ui-select-choices>
-							</ui-select>
-						</div>
-						
-						<br> {{IndicDescription}} 
-					  
- <!-- REMAPPING -->
-					  	<div  style="overflow-y: scroll; height:60%">
-					      <table border="border: 1px solid #0000FF"  ng-show="queryService.queryObject.Indicator">
-								<tr> 
-									<td  align="center">
-										Value
-									</td>
-									<td  align="center">
-										Description
-									</td>
-									<td   align="center">
-										New Value
-									</td>
-								 </tr>
-								<tr ng-repeat="varValue in varValues">
-									<td width= "10%" style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
-									<td width= "40%" style="padding-left: 5px" > {{varValue.label}} </td>
-									<td width= "50%"> <input style ="width : 100%" 
-														ng-model="newValue"
-														ng-change="setRemapValue(varValue.value,newValue)"> 
-														</input> </td>
-								</tr>
-							</table>
-					  	</div>
-					</div>
-				</div>
+<!-- 						<div style="width: 100%;" title = "Red flags indicate required selections for query validation" -->
+<!-- 											 ng-class="{'unvalidatedUI' : !queryService.queryObject.Indicator, 'validatedUI' : queryService.queryObject.Indicator}"> -->
+				
+<!-- 											<ui-select ng-model="queryService.queryObject.Indicator" theme="select2" style="width: 97%;"> -->
+<!-- 										    	<ui-select-match allow-clear="true" placeholder="Select Indicator...">{{$select.selected.title}}</ui-select-match> -->
+<!-- 												<ui-select-choices repeat="indicator in queryService.cache.columns | filter : { columnType : 'indicator', title : $select.search }"> -->
+<!-- 										       		 <b ng-bind-html="indicator.title | highlight: $select.search"></b> -->
+<!-- 										       		 <small> -->
+<!-- 										       		 	{{indicator.description}} -->
+<!-- 										       		 </small> -->
+<!-- 										        </ui-select-choices> -->
+<!-- 											</ui-select> -->
+<!-- 						</div> -->
+										
+<!-- 						<br> {{IndicDescription}}  -->
+ 
+<!-- 					</div> -->
+<!-- 				</div> -->
 				
 				
 				
 				
 <!--Calculations -->
-				<div class="databox" style="width: 20%">
+				<div class="databox" style="width: 50%">
 	
 					<div class="header panel-heading">
-						<h2>Calculations</h2>
+						<h2>Computation</h2>
 					</div>
 				<div class="body" ng-controller="ScriptsSettingsCtrl">
-<!-- Script Select-->	<div ng-class="{'unvalidatedUI' : !queryService.queryObject.scriptSelected, 'validatedUI' : queryService.queryObject.scriptSelected}"
-						title = "Red flags indicate required selections for query validation">
-						
-							<ui-select ng-model="queryService.queryObject.scriptSelected" theme="select2" style="width: 97%;">
-					    		<ui-select-match allow-clear="true" placeholder="Select Script...">{{$select.selected}}</ui-select-match>
-								<ui-select-choices repeat="script in queryService.cache.scriptList">
-					       			 <div ng-bind-html="script | highlight: $select.search"></div>
-					        	</ui-select-choices>
-							</ui-select>
+					<div style = "width:55%; height: 100%; float:left;">
+						<div class="btn-group">
+        					<label class="btn btn-success btn-sm" ng-model="queryService.queryObject.ComputationEngine" btn-radio="'R'" uncheckable>R</label>
+        					<label class="btn btn-success btn-sm" ng-model="queryService.queryObject.ComputationEngine" btn-radio="'STATA'" uncheckable>Stata</label>
+       					    <label class="btn btn-success btn-sm" ng-model="queryService.queryObject.ComputationEngine" btn-radio="'PYTHON'" uncheckable>Python</label>
+    					</div>
+    					<br/>
+    					
+<!-- Script Select-->	<div style = "width: 100%; margin-top: 5px">
+							<div style = "width: 90%; float: left" ng-class="{'unvalidatedUI' : !queryService.queryObject.scriptSelected, 'validatedUI' : queryService.queryObject.scriptSelected}"
+								title = "Red flags indicate required selections for query validation">
+								
+									<ui-select ng-model="queryService.queryObject.scriptSelected" theme="select2" style="width: 97%;">
+							    		<ui-select-match allow-clear="true" placeholder="Select Script...">{{$select.selected}}</ui-select-match>
+										<ui-select-choices repeat="script in queryService.cache.scriptList">
+							       			 <div ng-bind-html="script | highlight: $select.search"></div>
+							        	</ui-select-choices>
+									</ui-select>
+								</div>
+							<div style = "float:left; margin-left: 10px" ><i class="fa fa-info-circle fa-lg" 
+							title = "1.This selects a script (computation) to be executed on the data. 2.This must be followed by selection of script input parameters." ></i></div>
 						</div>
 					
+						<br><br>
 						
-						<h6 class='tool-category'>Script parameters</h6>
-<!-- Script options -->	<div class= "tool-bar">
+<!-- Script options -->	<div style = "width: 100%" class= "tool-bar">
 							<table width=100%>
 								<tr ng-repeat="input in queryService.cache.scriptMetadata.inputs">
-									<td align="right" width=30%>
+									<td align="right" width=10%>
 										<div class="label-p">{{input.param}}:</div>
 									</td>
 		
@@ -178,12 +160,15 @@
 										<!-- Handling column types -->
 										<!-- TIME -->
 
-										<ui-select ng-if="input.type == 'column'" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 97%;">
+										<ui-select ng-if="input.type == 'column'" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;">
 								    		<ui-select-match allow-clear="true" placeholder="Select column...">{{$select.selected.title}}</ui-select-match>
 											<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search, columnType : input.columnType }">
 								       			 <div ng-bind-html="column.title | highlight: $select.search"></div>
 								        	</ui-select-choices>
 										</ui-select>
+										<!-- Remapping -->
+										<i style = "padding-left: 10px" class="fa fa-pencil-square-o fa-lg"></i>
+										
 										<!-- handling toggle input types -->
 										<div class="btn-group btn-toggle"
 											ng-if="input.type == 'options' && input.options.length == 2"
@@ -222,6 +207,35 @@
 								</tr>
 							</table>
 						</div>
+					</div>
+				
+					<div style = "width:45%;height: 100%; float:left;">
+						<!-- REMAPPING -->
+					  	<div  style="overflow-y: scroll; height:60%">
+					      <table border="border: 1px solid #0000FF"  ng-show="queryService.queryObject.Indicator">
+								<tr> 
+									<td  align="center">
+										Value
+									</td>
+									<td  align="center">
+										Description
+									</td>
+									<td   align="center">
+										New Value
+									</td>
+								 </tr>
+								<tr ng-repeat="varValue in varValues">
+									<td width= "10%" style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
+									<td width= "40%" style="padding-left: 5px" > {{varValue.label}} </td>
+									<td width= "50%"> <input style ="width : 100%" 
+														ng-model="newValue"
+														ng-change="setRemapValue(varValue.value,newValue)"> 
+														</input> </td>
+								</tr>
+							</table>
+					  	</div>
+					
+					</div>	
 <!-- reidentification prevention -->
 <!-- 						Masking Reidentification -->
 <!-- 						<div class="input-group"> -->

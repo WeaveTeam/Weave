@@ -482,7 +482,10 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	// This sets the service variable to the queryService 
 	$scope.queryService = queryService;
 	
-	queryService.getListOfScripts(true);
+	$scope.$watch('queryService.queryObject.ComputationEngine', function(){
+		if($scope.queryService.queryObject.ComputationEngine)
+			queryService.getListOfScripts(true, $scope.queryService.queryObject.ComputationEngine);
+	});
 	
 	$scope.$watch("queryService.queryObject.scriptSelected", function() {
 		$scope.getScriptMetadata($scope.queryService.queryObject.scriptSelected, true);
