@@ -73,6 +73,8 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 	// weave path func
 	var setQueryColumns = function(mapping) {
 		this.forEach(mapping, function(column, propertyName) {
+			//console.log("column", column);
+			//console.log("propertyName", propertyName);
 			if (Array.isArray(column))
 			{
 				this.push(propertyName).call(setQueryColumns, column);
@@ -92,17 +94,12 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 	
 	//returns a list of visualization tools currently open in Weave
 	this.listOfTools = function(){
-		var openTools = [];
 		if(ws.weave && ws.weave.path ){
-			var tools =  ws.weave.path().libs('weave.api.ui.IVisTool').getValue('getObjects(IVisTool)');
+			var tools =  ws.weave.path().libs('weave.api.ui.IVisTool').getValue('getNames(IVisTool)');
+			console.log("tools", tools);
 		}
-		
-		for(var i in tools){
-			var type = tools[i].getType();
-			openTools.push(type.replace(/weave.visualization.tools::/g, ""));
-		}
-		
-		return openTools;
+
+		return tools;
 	};
 	
 	//returns a list of selectable attributes for every plotter in a given visualization tool
@@ -133,16 +130,16 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 	
 	/**
 	 * this function sets the selected attribute(selected in the attribute widget tool) in the required tool
-	 * @param tool the tool whose attribute is to be set
+	 * @param toolName the tool whose attribute is to be set
 	 * @param vizAttribute the attribute of tool to be set
 	 * @param attrObject the object used for setting vizAttribute
 	 */
 	
-	this.setVizAttribute = function(tool, vizAttribute, attrObject){
+	this.setVizAttribute = function(toolName, vizAttribute, attrObject){
 		console.log("vizAttribute", vizAttribute);
-		console.log("tool", tool);
+		console.log("tool", toolName);
 		console.log("attrObject", attrObject);
-		switch(tool){
+		switch(toolName){
 		
 			case 'MapTool' :
 				switch(vizAttribute.title){
@@ -157,7 +154,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 						//set geometry column
 						if(ws.weave && ws.weave.path)
 						{
-							ws.wave.path(tool, 'children', 'visualization', 'plotManager', 'plotters')
+							ws.wave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters')
 							.push(vizAttribute.plotLayer).request('weave.visualization.plotters.GeometryPlotter')
 							.call(setQueryColumns, {geometryColumn: attrObject});
 						}
@@ -177,7 +174,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 						if(ws.weave && ws.weave.path)
 						{
 							ws.weave.path(toolName).request('ScatterPlotTool')
-							.state({ panelX : "50%", panelY : "50%", panelTitle : state.title, enableTitle : true})
+							.state({ panelX : "50%", panelY : "50%", panelTitle :"ScatterPlot Tool", enableTitle : true})
 							.push('children', 'visualization','plotManager', 'plotters', 'plot')
 							.call(setQueryColumns, {dataX : attrObject});
 						}
@@ -186,7 +183,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 						if(ws.weave && ws.weave.path)
 						{
 							ws.weave.path(toolName).request('ScatterPlotTool')
-							.state({ panelX : "50%", panelY : "50%", panelTitle : state.title, enableTitle : true})
+							.state({ panelX : "50%", panelY : "50%", panelTitle : "ScatterPlot Tool", enableTitle : true})
 							.push('children', 'visualization','plotManager', 'plotters', 'plot')
 							.call(setQueryColumns, {dataY : attrObject});
 						}
@@ -195,7 +192,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 						if(ws.weave && ws.weave.path){
 							
 							ws.weave.path(toolName).request('ScatterPlotTool')
-							.state({ panelX : "50%", panelY : "50%", panelTitle : state.title, enableTitle : true})
+							.state({ panelX : "50%", panelY : "50%", panelTitle : "ScatterPlot Tool", enableTitle : true})
 							.push('children', 'visualization','plotManager', 'plotters', 'plot')
 							.call(setQueryColumns, {sizeBy : attrObject});
 						}
@@ -203,7 +200,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			}
 				break;
 				
-			case 'CompoundBarChartTool':
+			case 'BarChartTool':
 				switch(vizAttribute.title){
 				case 'Color':
 					if(ws.weave && ws.weave.path)
@@ -216,7 +213,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					{
 						ws.weave.path(toolName)
 						.request('CompoundBarChartTool')
-						.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
+						.state({ panelX : "0%", panelY : "50%", panelTitle :"BarChart Tool", enableTitle : true, showAllLabels : true })
 						.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
 						.call(setQueryColumns, {heightColumns : attrObject});
 					}
@@ -226,7 +223,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					{
 						ws.weave.path(toolName)
 						.request('CompoundBarChartTool')
-						.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
+						.state({ panelX : "0%", panelY : "50%", panelTitle : "BarChart Tool", enableTitle : true, showAllLabels : true })
 						.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
 						.call(setQueryColumns, {labelColumn : attrObject});
 					}
@@ -236,7 +233,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					{
 						ws.weave.path(toolName)
 						.request('CompoundBarChartTool')
-						.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
+						.state({ panelX : "0%", panelY : "50%", panelTitle : "BarChart Tool", enableTitle : true, showAllLabels : true })
 						.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
 						.call(setQueryColumns, {sortColumn : attrObject});
 					}
@@ -246,7 +243,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					{
 						ws.weave.path(toolName)
 						.request('CompoundBarChartTool')
-						.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
+						.state({ panelX : "0%", panelY : "50%", panelTitle :"BarChart Tool", enableTitle : true, showAllLabels : true })
 						.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
 						.call(setQueryColumns, {positiveErrorColumns : attrObject});
 					}
@@ -256,7 +253,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					{
 						ws.weave.path(toolName)
 						.request('CompoundBarChartTool')
-						.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
+						.state({ panelX : "0%", panelY : "50%", panelTitle : "BarChart Tool", enableTitle : true, showAllLabels : true })
 						.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
 						.call(setQueryColumns, {positiveErrorColumns : attrObject});
 					}
