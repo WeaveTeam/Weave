@@ -248,6 +248,7 @@ metadataModule.config(function($provide){
 	 };
 
 	 $scope.$watch('ngGridEventEndCellEdit', function(){
+		 console.log("hello");
 		 updateMetadata($scope.myData);
 	 });
 

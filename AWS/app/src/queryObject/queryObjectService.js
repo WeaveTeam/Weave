@@ -174,7 +174,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			date : new Date(),
     		author : "",
     		dataTable : "",
-			ComputationEngine : "",
+			ComputationEngine : "R",
 			Indicator : "",
 			IndicatorRemap : [],
 			filters : [],
