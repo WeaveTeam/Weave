@@ -143,7 +143,8 @@ AnalysisModule.controller('dataFilterCtrl', function($scope, queryService, $filt
 	
 	$scope.filtersModel = queryService.queryObject.filters;
 	$scope.treeFiltersModel = queryService.queryObject.treeFilters;
-
+	queryService.queryObject.filterArray.push(queryService.queryObject.filterArray.length);
+	queryService.queryObject.treeFilterArray.push(queryService.queryObject.treeFilterArray.length);
 	$scope.addFilter = function() {
 		// the values are the same as the index for convenience
 		queryService.queryObject.filterArray.push(queryService.queryObject.filterArray.length);

@@ -209,7 +209,7 @@ metadataModule.config(function($provide){
 	var convertToTableFormat = function(aws_metadata) {
 		var data = [];
 		for (var key in aws_metadata) {
-			data.push({property : key, value : aws_metadata[key] });
+			data.push({property : key, value : angular.toJson(aws_metadata[key]) });
 		}
 		return data;
 	};
@@ -222,7 +222,7 @@ metadataModule.config(function($provide){
 	var convertToMetadataFormat = function(tableData) {
 		var aws_metadata = {};
 		for (var i in tableData) {
-			aws_metadata[tableData[i].property] = tableData[i].value;
+			aws_metadata[tableData[i].property] = angular.fromJson(tableData[i].value);
 		}
 		return aws_metadata;
 	};
