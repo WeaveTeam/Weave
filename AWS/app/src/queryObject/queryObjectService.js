@@ -174,7 +174,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			date : new Date(),
     		author : "",
     		dataTable : "",
-			ComputationEngine : "R",
+			ComputationEngine : "",
 			Indicator : "",
 			IndicatorRemap : [],
 			filters : [],
@@ -304,13 +304,25 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
      * This function wraps the async aws getListOfScripts function into an angular defer/promise
      * So that the UI asynchronously wait for the data to be available...
      */
-    this.getListOfScripts = function(forceUpdate) {
+    this.getListOfScripts = function(forceUpdate, compEngine) {
     	if(!forceUpdate) {
-			return this.cache.scriptList;
+			//return this.cache.scriptList;
     	} else {
-    		runQueryService.queryRequest(scriptManagementURL, 'getListOfScripts', null, function(result){
-    			that.cache.scriptList = result;
-    		});
+    		switch(compEngine){
+    			case ("R"):
+    				runQueryService.queryRequest(scriptManagementURL, 'getListOfRScripts', null, function(result){
+    					that.cache.scriptList = [];
+    	    			that.cache.scriptList = result;
+    	    		});	
+    			break;
+    			case("STATA"):
+    				runQueryService.queryRequest(scriptManagementURL, 'getListOfStataScripts', null, function(result){
+    					that.cache.scriptList = [];
+    	    			that.cache.scriptList = result;
+    	    		});	
+    			break;
+    		}
+    		
     	}
     };
 
