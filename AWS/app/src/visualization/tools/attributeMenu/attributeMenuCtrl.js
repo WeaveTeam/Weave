@@ -14,7 +14,7 @@ AnalysisModule.controller("AttributeMenuCtrl", function($scope, WeaveService, $t
 	$scope.$watch('tool.selectedVizTool', function(){
 		//console.log("tools selected", $scope.tool.selectedVizTool);
 		if($scope.tool.selectedVizTool)
-			$scope.vizAttributes = WeaveService.getSelectableAttributes($scope.tool.selectedVizTool);
+			$scope.vizAttributeColl = WeaveService.getSelectableAttributes($scope.tool.selectedVizTool);
 	});
 	
 	$scope.$watch('tool', function() {
@@ -23,10 +23,11 @@ AnalysisModule.controller("AttributeMenuCtrl", function($scope, WeaveService, $t
 	}, true);
 	
 	$scope.setAttributes = function(attr){
-		console.log("attr", attr);
-		
+		if(attr)
+			$scope.tool.chosenAttribute = attr;
 		//check for tha attrbite selected
-		//if($scope.tool.vizAttribute" && $scope.tool.selectedVizTool && attr)
+		if($scope.tool.vizAttribute && $scope.tool.selectedVizTool && $scope.tool.chosenAttribute)
 			//set the attribute in weave
+			WeaveService.setVizAttribute($scope.tool.selectedVizTool,$scope.tool.vizAttribute,$scope.tool.chosenAttribute);
 	};
 });
