@@ -99,7 +99,7 @@ static const struct lc_time_T	_C_time_locale = {
 	 */
 	"%I:%M:%S %p"
 };
-
+/*
 struct lc_time_T *
 __get_current_time_locale(void)
 {
@@ -107,6 +107,7 @@ __get_current_time_locale(void)
 		? &_time_locale
 		: (struct lc_time_T *)&_C_time_locale);
 }
+*/
 
 // Weave: commented this out
 /*
