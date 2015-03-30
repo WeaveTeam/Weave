@@ -204,7 +204,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			}
 		}
 	});
-	 $("#queryObjectPanel" ).css({'top' : -1020, 'left' : 265});
+	 // starting position for the queryObject panel
+	 $("#queryObjectPanel" ).css({'top' : -1930, 'left' : 315});
 	
 	 
 	 $scope.$watch('queryService.queryObject.resultSet', function() {

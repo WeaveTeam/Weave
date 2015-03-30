@@ -120,9 +120,9 @@
 				<div class="body" ng-controller="ScriptsSettingsCtrl">
 					<div style = "width:55%; height: 100%; float:left;">
 						<div class="btn-group">
-        					<label class="btn btn-success btn-sm" ng-model="queryService.queryObject.ComputationEngine" btn-radio="'R'" uncheckable>R</label>
-        					<label class="btn btn-success btn-sm" ng-model="queryService.queryObject.ComputationEngine" btn-radio="'STATA'" uncheckable>Stata</label>
-       					    <label class="btn btn-success btn-sm" ng-model="queryService.queryObject.ComputationEngine" btn-radio="'PYTHON'" uncheckable>Python</label>
+        					<label class="btn btn-primary btn-sm" ng-model="queryService.queryObject.ComputationEngine" btn-radio="'R'" uncheckable>R</label>
+        					<label class="btn btn-primary btn-sm" ng-model="queryService.queryObject.ComputationEngine" btn-radio="'STATA'" uncheckable>Stata</label>
+       					    <label class="btn btn-primary btn-sm" ng-model="queryService.queryObject.ComputationEngine" btn-radio="'PYTHON'" uncheckable>Python</label>
     					</div>
     					<br/>
     					
@@ -251,9 +251,9 @@
 				
 	
 <!-- FILTERS -->	
-				<div ng-include src="'src/analysis/data_filters/data_filters.html'"></div>
 				
 				<div ng-controller="dataFilterCtrl">
+					<div ng-include src="'src/analysis/data_filters/data_filters.html'"></div>
 					<!--Geography filter -->
 					<geo-Filter  ng-if="AnalysisService.showGeographyFilter" ng-model= "queryService.queryObject.GeographyFilter"></geo-Filter>
 				

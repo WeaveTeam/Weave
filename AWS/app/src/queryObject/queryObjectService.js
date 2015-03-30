@@ -174,7 +174,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			date : new Date(),
     		author : "",
     		dataTable : "",
-			ComputationEngine : "",
+			ComputationEngine : "R",
 			Indicator : "",
 			IndicatorRemap : [],
 			filters : [],
@@ -531,11 +531,10 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 		} else {
 			if(idsArray) {
 				runQueryService.queryRequest(dataServiceURL, "getEntitiesById", [idsArray], function (dataEntityArray){
-					
 					that.cache.dataColumnEntities = dataEntityArray;
 					
 					scope.$safeApply(function() {
-						deferred.resolve(that.cache.dataColumnEntities);
+						deferred.resolve(dataEntityArray);
 					});
 				},
 				function(error) {

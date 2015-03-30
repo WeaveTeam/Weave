@@ -66,9 +66,8 @@ metadataModule.config(function($provide){
 							if(!node.data.metadata)
 								{
 									$scope.selectedDataTableId = parseInt(node.data.key);
-									console.log("$scope.selected", $scope.selectedDataTableId);
 									//clears the grid when nodes are selected
-									$scope.myData = [];
+									$scope.myData= [];
 									$scope.$apply();//TODO check if this is the right thing to do
 								}
 
@@ -172,15 +171,15 @@ metadataModule.config(function($provide){
 	 * retrieves the metadata for a single column
 	 * */
 	var getColumnMetadata = function (columnObject) {
-		
 		if(columnObject && columnObject.id) {
 			queryService.getEntitiesById([columnObject.id], true).then(function(entity) {
 					entity = entity[0];
 					if(entity.publicMetadata.hasOwnProperty('aws_metadata')) {
 						var data = [];
-						var aws_metadata = angular.fromJson(columnObject.metadata.aws_metadata);//converts the json string into an object
+						var aws_metadata = angular.fromJson(entity.publicMetadata.aws_metadata);//converts the json string into an object
 						data = convertToTableFormat(aws_metadata);//to use in the grid
-						setMyData(data);
+						$scope.myData = data;
+						$rootScope.$safeApply();
 					}
 			});
 		} else {
@@ -247,7 +246,7 @@ metadataModule.config(function($provide){
 
 	 };
 
-	 $scope.$watch('ngGridEventEndCellEdit', function(){
+	 $scope.$on('ngGridEventEndCellEdit', function(){
 		 updateMetadata($scope.myData);
 	 });
 
@@ -257,16 +256,19 @@ metadataModule.config(function($provide){
 	  */
 	 var updateMetadata = function(metadata) {
 		 var jsonaws_metadata = angular.toJson(convertToMetadataFormat(metadata));
-		 console.log("updating metadata");
+		 console.log("updating metadata", $scope.selectedDataTableId);
 		 if(angular.isDefined($scope.selectedDataTableId))
-		 {
-			 queryService.updateEntity($scope.authenticationService.user, 
-					 				   $scope.authenticationService.password, 
-					 				   $scope.selectedDataTableId, 
-					 				   { 
-											publicMetadata : { aws_metadata : jsonaws_metadata }
-					 				   });
-		 }
+			 {
+						 queryService.updateEntity($scope.authenticationService.user, 
+				 				   $scope.authenticationService.password, 
+				 				   $scope.selectedDataTableId, 
+				 				   { 
+										publicMetadata : { aws_metadata : jsonaws_metadata }
+				 				   }).then(function() {
+				 					   	//$scope.maxTasks = 100;
+				 					   //$scope.progressValue = 100;
+				 				   });
+			 }
 		 
 	 };
 	 
@@ -276,7 +278,7 @@ metadataModule.config(function($provide){
 	  */
 	 //adding
 	 $scope.addNewRow = function () {
-		 $scope.myData.push({property: '...', value: angular.toJson('...')});
+		 $scope.myData.push({property: 'Property Name', value: 'Value'});
 		 updateMetadata($scope.myData);
 	 };
 
