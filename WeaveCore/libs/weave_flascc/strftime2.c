@@ -25,8 +25,8 @@ static const char	elsieid[] = "@(#)strftime.3	8.3";
 #endif /* !defined NOID */
 #endif /* !defined lint */
 
-#include "namespace.h"
-#include "private.h"
+//#include "namespace.h"
+#include "timeprivate.h"
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char	sccsid[] = "@(#)strftime.c	5.4 (Berkeley) 3/14/89";
@@ -42,7 +42,7 @@ __FBSDID("$FreeBSD: src/lib/libc/stdtime/strftime.c,v 1.44.2.1.6.1 2010/12/21 17
 
 static char *	_add(const char *, char *, const char *);
 static char *	_conv(int, const char *, char *, const char *);
-static char *	_fmt(const char *, const struct tm *, char *, const char *,
+static char *	_fmt(const char *, const struct ext_tm *, char *, const char *,
 			int *);
 static char *	_yconv(int, int, int, int, char *, const char *);
 
@@ -84,7 +84,7 @@ static const char* fmt_padding[][4] = {
 
 size_t
 strftime2(char * __restrict s, size_t maxsize, const char * __restrict format,
-    const struct tm * __restrict t)
+    const struct ext_tm * __restrict t)
 {
 	char *	p;
 	int	warn;
@@ -115,16 +115,16 @@ strftime2(char * __restrict s, size_t maxsize, const char * __restrict format,
 }
 
 static char *
-_fmt(format, t, pt, ptlim, warnp)
+_fmt(format, ext_t, pt, ptlim, warnp)
 const char *		format;
-const struct tm * const	t;
+const struct ext_tm * 	ext_t;
 char *			pt;
 const char * const	ptlim;
 int *			warnp;
 {
 	int Ealternative, Oalternative, PadIndex;
 	struct lc_time_T *tptr = __get_current_time_locale();
-
+	const struct tm* t = &(ext_t->tm);
 	for ( ; *format; ++format) {
 		if (*format == '%') {
 			Ealternative = 0;
@@ -176,7 +176,7 @@ label:
 				{
 				int warn2 = IN_SOME;
 
-				pt = _fmt(tptr->c_fmt, t, pt, ptlim, &warn2);
+				pt = _fmt(tptr->c_fmt, ext_t, pt, ptlim, &warn2);
 				if (warn2 == IN_ALL)
 					warn2 = IN_THIS;
 				if (warn2 > *warnp)
@@ -184,7 +184,7 @@ label:
 				}
 				continue;
 			case 'D':
-				pt = _fmt("%m/%d/%y", t, pt, ptlim, warnp);
+				pt = _fmt("%m/%d/%y", ext_t, pt, ptlim, warnp);
 				continue;
 			case 'd':
 				pt = _conv(t->tm_mday, fmt_padding[PAD_FMT_DAYOFMONTH][PadIndex],
@@ -217,7 +217,7 @@ label:
 					fmt_padding[PAD_FMT_SDAYOFMONTH][PadIndex], pt, ptlim);
 				continue;
 			case 'F':
-				pt = _fmt("%Y-%m-%d", t, pt, ptlim, warnp);
+				pt = _fmt("%Y-%m-%d", ext_t, pt, ptlim, warnp);
 				continue;
 			case 'H':
 				pt = _conv(t->tm_hour, fmt_padding[PAD_FMT_HMS][PadIndex],
@@ -286,14 +286,14 @@ label:
 					pt, ptlim);
 				continue;
 			case 'R':
-				pt = _fmt("%H:%M", t, pt, ptlim, warnp);
+				pt = _fmt("%H:%M", ext_t, pt, ptlim, warnp);
 				continue;
 			case 'r':
-				pt = _fmt(tptr->ampm_fmt, t, pt, ptlim,
+				pt = _fmt(tptr->ampm_fmt, ext_t, pt, ptlim,
 					warnp);
 				continue;
 			case 'Q':
-				pt = _conv(t->tm_msec, fmt_padding[PAD_FMT_MSEC][PadIndex],
+				pt = _conv(ext_t->tm_msec, fmt_padding[PAD_FMT_MSEC][PadIndex],
 					pt, ptlim);
 			case 'S':
 				pt = _conv(t->tm_sec, fmt_padding[PAD_FMT_HMS][PadIndex],
@@ -317,7 +317,7 @@ label:
 				}
 				continue;
 			case 'T':
-				pt = _fmt("%H:%M:%S", t, pt, ptlim, warnp);
+				pt = _fmt("%H:%M:%S", ext_t, pt, ptlim, warnp);
 				continue;
 			case 't':
 				pt = _add("\t", pt, ptlim);
@@ -432,7 +432,7 @@ label:
 				** "date as dd-bbb-YYYY"
 				** (ado, 1993-05-24)
 				*/
-				pt = _fmt("%e-%b-%Y", t, pt, ptlim, warnp);
+				pt = _fmt("%e-%b-%Y", ext_t, pt, ptlim, warnp);
 				continue;
 			case 'W':
 				pt = _conv((t->tm_yday + DAYSPERWEEK -
@@ -445,13 +445,13 @@ label:
 				pt = _conv(t->tm_wday, "%d", pt, ptlim);
 				continue;
 			case 'X':
-				pt = _fmt(tptr->X_fmt, t, pt, ptlim, warnp);
+				pt = _fmt(tptr->X_fmt, ext_t, pt, ptlim, warnp);
 				continue;
 			case 'x':
 				{
 				int	warn2 = IN_SOME;
 
-				pt = _fmt(tptr->x_fmt, t, pt, ptlim, &warn2);
+				pt = _fmt(tptr->x_fmt, ext_t, pt, ptlim, &warn2);
 				if (warn2 == IN_ALL)
 					warn2 = IN_THIS;
 				if (warn2 > *warnp)
@@ -537,7 +537,7 @@ label:
 				}
 				continue;
 			case '+':
-				pt = _fmt(tptr->date_fmt, t, pt, ptlim,
+				pt = _fmt(tptr->date_fmt, ext_t, pt, ptlim,
 					warnp);
 				continue;
 			case '-':

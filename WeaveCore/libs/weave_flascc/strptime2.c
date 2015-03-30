@@ -77,12 +77,12 @@ __FBSDID("$FreeBSD: src/lib/libc/stdtime/strptime.c,v 1.36.2.2.2.1 2010/12/21 17
 #include "timelocal.h"
 #include "strptime2.h"
 
-static char * _strptime(const char *, const char *, struct tm *, int *);
+static char * _strptime(const char *, const char *, struct ext_tm *, int *);
 
 #define asizeof(a)	(sizeof (a) / sizeof ((a)[0]))
 
 static char *
-_strptime(const char *buf, const char *fmt, struct ext_tm *tm, int *GMTp)
+_strptime(const char *buf, const char *fmt, struct ext_tm *ext_tm, int *GMTp)
 {
 	char	c;
 	const char *ptr;
@@ -91,6 +91,7 @@ _strptime(const char *buf, const char *fmt, struct ext_tm *tm, int *GMTp)
 		acc;
 	int Ealternative, Oalternative;
 	struct lc_time_T *tptr = __get_current_time_locale();
+	struct tm* tm = &(ext_tm->tm);
 
 	ptr = fmt;
 	while (*ptr != 0) {
@@ -120,7 +121,7 @@ label:
 			break;
 
 		case '+':
-			buf = _strptime(buf, tptr->date_fmt, tm, GMTp);
+			buf = _strptime(buf, tptr->date_fmt, ext_tm, GMTp);
 			if (buf == 0)
 				return 0;
 			break;
@@ -143,13 +144,13 @@ label:
 			break;
 
 		case 'c':
-			buf = _strptime(buf, tptr->c_fmt, tm, GMTp);
+			buf = _strptime(buf, tptr->c_fmt, ext_tm, GMTp);
 			if (buf == 0)
 				return 0;
 			break;
 
 		case 'D':
-			buf = _strptime(buf, "%m/%d/%y", tm, GMTp);
+			buf = _strptime(buf, "%m/%d/%y", ext_tm, GMTp);
 			if (buf == 0)
 				return 0;
 			break;
@@ -167,37 +168,37 @@ label:
 			goto label;
 
 		case 'F':
-			buf = _strptime(buf, "%Y-%m-%d", tm, GMTp);
+			buf = _strptime(buf, "%Y-%m-%d", ext_tm, GMTp);
 			if (buf == 0)
 				return 0;
 			break;
 
 		case 'R':
-			buf = _strptime(buf, "%H:%M", tm, GMTp);
+			buf = _strptime(buf, "%H:%M", ext_tm, GMTp);
 			if (buf == 0)
 				return 0;
 			break;
 
 		case 'r':
-			buf = _strptime(buf, tptr->ampm_fmt, tm, GMTp);
+			buf = _strptime(buf, tptr->ampm_fmt, ext_tm, GMTp);
 			if (buf == 0)
 				return 0;
 			break;
 
 		case 'T':
-			buf = _strptime(buf, "%H:%M:%S", tm, GMTp);
+			buf = _strptime(buf, "%H:%M:%S", ext_tm, GMTp);
 			if (buf == 0)
 				return 0;
 			break;
 
 		case 'X':
-			buf = _strptime(buf, tptr->X_fmt, tm, GMTp);
+			buf = _strptime(buf, tptr->X_fmt, ext_tm, GMTp);
 			if (buf == 0)
 				return 0;
 			break;
 
 		case 'x':
-			buf = _strptime(buf, tptr->x_fmt, tm, GMTp);
+			buf = _strptime(buf, tptr->x_fmt, ext_tm, GMTp);
 			if (buf == 0)
 				return 0;
 			break;
@@ -254,7 +255,7 @@ label:
 					acc*=10;
 				}
 
-				tm->tm_msec = i * acc;
+				ext_tm->tm_msec = i * acc;
 			}
 
 
@@ -589,13 +590,14 @@ label:
 
 char *
 strptime2(const char * __restrict buf, const char * __restrict fmt,
-    struct tm * __restrict tm)
+    struct ext_tm * __restrict ext_tm)
 {
 	char *ret;
 	int gmt;
+	struct tm* tm = &(ext_tm->tm);
 
 	gmt = 0;
-	ret = _strptime(buf, fmt, tm, &gmt);
+	ret = _strptime(buf, fmt, ext_tm, &gmt);
 	if (ret && gmt) {
 		time_t t = timegm(tm);
 		localtime_r(&t, tm);

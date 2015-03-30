@@ -16,8 +16,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "strptime2.h"
-#include "strftime2.h"
+extern "C" {
+    #include "strptime2.h"
+    #include "strftime2.h"
+}
 #include "AS3/AS3.h"
 #include "tracef.h"
 
@@ -31,7 +33,7 @@ void date_format()
     char *fmt;
 
     struct ext_tm tm;
-    memset(&tm, 0, sizeof(struct tm));
+    memset(&tm, 0, sizeof(struct ext_tm));
     
     inline_as3(
         "var output:String = null;"
@@ -45,12 +47,12 @@ void date_format()
         "%7 = date.milliseconds;"
         : 
         "=r"(fmt), 
-        "=r"(tm.tm_year),
-        "=r"(tm.tm_mon),
-        "=r"(tm.tm_mday),
-        "=r"(tm.tm_hour),
-        "=r"(tm.tm_min),
-        "=r"(tm.tm_sec),
+        "=r"(tm.tm.tm_year),
+        "=r"(tm.tm.tm_mon),
+        "=r"(tm.tm.tm_mday),
+        "=r"(tm.tm.tm_hour),
+        "=r"(tm.tm.tm_min),
+        "=r"(tm.tm.tm_sec),
         "=r"(tm.tm_msec)
     );
 
@@ -92,7 +94,7 @@ void date_parse()
 
     struct ext_tm tm;
     memset(&tm, 0, sizeof(struct ext_tm));
-    tm.tm_mday = 1;
+    tm.tm.tm_mday = 1;
 
     if (strptime2(date_str, fmt, &tm) == date_str + strlen(date_str))
     {
@@ -101,12 +103,12 @@ void date_parse()
 			"    output = new Date(Date.UTC(%0,%1,%2,%3,%4,%5,%6));"
 			"else"
 			"    output = new Date(%0,%1,%2,%3,%4,%5,%6);"
-			: : "r"(tm.tm_year + 1900),
-			 "r"(tm.tm_mon),
-			 "r"(tm.tm_mday),
-			 "r"(tm.tm_hour),
-			 "r"(tm.tm_min),
-			 "r"(tm.tm_sec),
+			: : "r"(tm.tm.tm_year + 1900),
+			 "r"(tm.tm.tm_mon),
+			 "r"(tm.tm.tm_mday),
+			 "r"(tm.tm.tm_hour),
+			 "r"(tm.tm.tm_min),
+			 "r"(tm.tm.tm_sec),
              "r"(tm.tm_msec)
 		);
     }

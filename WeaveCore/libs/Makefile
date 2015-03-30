@@ -1,8 +1,9 @@
-FLASCC:=/cygdrive/c/flascc/sdk
-FLEX:=/cygdrive/c/flex
+FLASCC:=/Users/pkovac/bin/crossbridge/sdk
+FLEX:=/Users/pkovac/bin/flex
 AS3COMPILER:=asc2.jar
 BASE_CFLAGS:=-Werror -Wno-write-strings -Wno-trigraphs
-
+C_OBJS =strftime2.o strptime2.o timelocal.o
+CPP_OBJS =CSVParser.oo b64util.oo dateutil.oo hashutil.oo main.oo modp_b64.oo ziputil.oo
 $?UNAME=$(shell uname -s)
 ifneq (,$(findstring CYGWIN,$(UNAME)))
 	$?nativepath=$(shell cygpath -at mixed $(1))
@@ -28,16 +29,18 @@ check:
 	@if [ -d "$(FLEX)/bin" ] ; then true ; \
 	else echo "Couldn't locate Flex sdk directory, please invoke make with \"make FLEX=/path/to/flex  ...\"" ; exit 1 ; \
 	fi
-
-weave_flascc.swc: $(wildcard weave_flascc/*)
-	"$(FLASCC)/usr/bin/g++" $(BASE_CFLAGS) -flto-api=weave_flascc/exports.txt -O4 weave_flascc/*.cpp weave_flascc/*.c -emit-swc=weave.flascc -o $@
-	
+%.o: weave_flascc/%.c
+	"$(FLASCC)/usr/bin/gcc" $(BASE_CFLAGS) -O4 -c $? -o $@
+%.oo: weave_flascc/%.cpp
+	"$(FLASCC)/usr/bin/g++" $(BASE_CFLAGS) -O4 -c $? -o $@
+weave_flascc.swc: $(C_OBJS) $(CPP_OBJS)
+	"$(FLASCC)/usr/bin/g++" $(BASE_CFLAGS) -flto-api=weave_flascc/exports.txt $^ -emit-swc=weave.flascc -o $@
 #.SECONDEXPANSION:
 #%.swc: $$(wildcard %/*)
 #	"$(FLASCC)/usr/bin/g++" $(BASE_CFLAGS) -flto-api=$*/exports.txt -O4 $*/*.cpp -emit-swc=weave.$* -o $@
 
 clean:
-	rm -f *.swc
+	rm -f *.swc *.o *.oo
 
 # http://www.cprogramming.com/tutorial/makefiles_continued.html
 # http://stackoverflow.com/questions/6637088/makefile-pattern-rule-referencing-stem-in-dependencies
