@@ -306,7 +306,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
      */
     this.getListOfScripts = function(forceUpdate, compEngine) {
     	if(!forceUpdate) {
-			//return this.cache.scriptList;
+			return that.cache.scriptList;
     	} else {
     		switch(compEngine){
     			case ("R"):
@@ -321,6 +321,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	    			that.cache.scriptList = result;
     	    		});	
     			break;
+    			default:
+    				that.cache.scriptList = [];
     		}
     		
     	}
