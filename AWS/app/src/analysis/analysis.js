@@ -153,7 +153,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	var convertToTableFormat = function(obj) {
 		var data = [];
 		for (var key in obj) {
-			data.push({property : key, value : obj[key] });
+			data.push({property : key, value : angular.toJson(obj[key])});
 		}
 		return data;
 	};
@@ -185,6 +185,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	        data: 'qobjData',
 	        enableRowSelection: true,
 	        enableCellEdit: true,
+	        enableCellSelection : true,
+	        enableCellEditOnFocus : true,
 	        columnDefs: [{field: 'property', displayName: 'Property', enableCellEdit: false, enableCellSelection : false}, 
 	                     {field:'value', displayName:'Value', enableCellEdit: true}],
 	        multiSelect : false,
@@ -204,6 +206,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	});
 	 $("#queryObjectPanel" ).css({'top' : -1020, 'left' : 265});
 	
+	 
 	 $scope.$watch('queryService.queryObject.resultSet', function() {
 		 //console.log($scope.queryService.queryObject.resultSet);
 	 });//************************** query object editor end**********************************
@@ -267,16 +270,32 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	 };
 	 //**********************************************************REMAPPING END**************************************
 	
-	$scope.$watch("queryService.queryObject.dataTable.id", function() {
-		if($scope.queryService.queryObject.dataTable)
+	$scope.$watch("queryService.queryObject.dataTable", function(newVal, oldVal) {
+		if($scope.queryService.queryObject.dataTable) {
 			queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true);
-	});
+		}
+		
+	}, true);
 	
-	//Indicator
-	 $scope.getIndicators = function(term, done) {
-			var columns = queryService.cache.columns;
-			done($filter('filter')(columns,{columnType : 'indicator',title:term},'title'));
-	};
+	$scope.$watch("queryService.cache.columns", function(newVal, oldVal) {
+		
+		
+		if(!angular.equals(newVal, oldVal)) {
+			// this deletes the columns from the old data table selected in the resultSet
+			var tempArray = [];
+			for(var i = 0; i < queryService.queryObject.resultSet.length; i++) {
+				if(queryService.queryObject.resultSet[i].dataSourceName != "WeaveDataSource") {
+					tempArray.push(queryService.queryObject.resultSet[i]); // creating a temp array is faster than splicing
+				}
+			}
+			queryService.queryObject.resultSet = tempArray;
+		}
+		
+		for(var i in queryService.cache.columns) {
+			var column = queryService.cache.columns[i];
+			queryService.queryObject.resultSet.push({ id : column.id, title: column.title, dataSourceName : column.dataSourceName });
+		}
+	});
 	
 	//*************************watch for Weave in different Weave windows*********************************************
 	$scope.$watch(function() {
@@ -285,7 +304,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		if(WeaveService.weave && WeaveService.weave.WeavePath) 
 		{
 			if(queryService.cache.weaveSessionState) {
-				console.log("logging state", WeaveService.weave.path().state, queryService.cache.weaveSessionState);
 				WeaveService.weave.path().state(queryService.cache.weaveSessionState);
 			}
 		}

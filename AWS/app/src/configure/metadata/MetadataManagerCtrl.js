@@ -239,9 +239,7 @@ metadataModule.config(function($provide){
 	 $scope.gridOptions = { 
 	        data: 'myData',
 	        enableRowSelection: true,
-	        enableCellSelection : true,
-	        enableCellEdit : true,
-	        enableCellEditOnFocus : true,
+	        enableCellEdit: true,
 	        columnDefs: [{field: 'property', displayName: 'Property', enableCellEdit: true}, 
 	                     {field:'value', displayName:'Value', enableCellEdit: true}],
 	        multiSelect : false,
@@ -249,7 +247,7 @@ metadataModule.config(function($provide){
 
 	 };
 
-	 $scope.$on('ngGridEventEndCellEdit', function(){
+	 $scope.$watch('ngGridEventEndCellEdit', function(){
 		 updateMetadata($scope.myData);
 	 });
 
@@ -259,17 +257,15 @@ metadataModule.config(function($provide){
 	  */
 	 var updateMetadata = function(metadata) {
 		 var jsonaws_metadata = angular.toJson(convertToMetadataFormat(metadata));
+		 console.log("updating metadata");
 		 if(angular.isDefined($scope.selectedDataTableId))
 		 {
 			 queryService.updateEntity($scope.authenticationService.user, 
-	 				   $scope.authenticationService.password, 
-	 				   $scope.selectedDataTableId, 
-	 				   { 
-							publicMetadata : { aws_metadata : jsonaws_metadata }
-	 				   }).then(function() {
-	 					   	//$scope.maxTasks = 100;
-	 					   //$scope.progressValue = 100;
-	 				   });
+					 				   $scope.authenticationService.password, 
+					 				   $scope.selectedDataTableId, 
+					 				   { 
+											publicMetadata : { aws_metadata : jsonaws_metadata }
+					 				   });
 		 }
 		 
 	 };

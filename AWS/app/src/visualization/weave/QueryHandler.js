@@ -279,7 +279,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 									var formattedResult = WeaveService.createCSVDataFormat(resultData.resultData, resultData.columnNames);
 									//create the CSVDataSource
 									WeaveService.addCSVData(formattedResult, queryService.queryObject.Indicator.title, queryService.queryObject);
-									console.log(queryService.queryObject.resultSet);
 								}
 							}
 						}, function(error) {
