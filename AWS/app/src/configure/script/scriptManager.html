@@ -2,14 +2,14 @@
 	
 	<div ng-include src="'src/configure/auth/login.html'"></div>
 
-	<div class="container" contenteditable="false"  ng-if="authenticationService.authenticated">
+	<div style="width:100%; padding-left: 25px" contenteditable="false"  ng-if="authenticationService.authenticated">
 		<div class="row">
 			<button class= "btn btn-sm btn-primary"  style="float:right;" ng-click="authenticationService.logout()">Logout</button>
 		</div>
 		<br>
 		<div class="row" contenteditable="false">
 			<div class="col-md-3" contenteditable="false">
-			    <div id="tree" dynatree style="width: 100%; height: 600px; overflow: scroll"></div><!-- The actual hierarchy of tables and their columns -->
+			    <div id="tree" dynatree style="width: 100%; height: 600px; overflow: hidden"></div><!-- The actual hierarchy of tables and their columns -->
 <!-- 				<tabset> -->
 <!-- 				    <tab heading="R Scripts"> -->
 <!-- 						<div class="gridStyle" ng-grid="rScriptListOptions"></div> -->

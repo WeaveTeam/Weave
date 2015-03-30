@@ -61,13 +61,10 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			.request('CSVDataSource')
 			.vars({rows: csvData})
 			.exec('setCSVData(rows)');
-		queryObject.resultSet[dataSourceName] = [];
 		for(var i in csvData[0])
 		{
-			queryObject.resultSet.push({ id : csvData[0][i], title: csvData[0][i], dataSourceName : dataSourceName});
+			queryObject.resultSet.unshift({ id : csvData[0][i], title: csvData[0][i], dataSourceName : dataSourceName});
 		}
-		console.log(queryObject.resultSet);
-		//queryObject.resultSet[dataSourceName]["data"] = csvData; <- unused
 	};
 	
 	// weave path func

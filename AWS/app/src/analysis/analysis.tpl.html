@@ -10,11 +10,6 @@
 <!-- 							 </div> -->
 <!-- 							 <div style= "display : table-cell; padding-left : 5px"><font color= "white">{{queryService.queryObject.properties.queryStatus}}</font></div> -->
 			</div> 
-			<font color="#D5D5D5">Mode</font>
-							<input type="radio" value="computation" 
-							   ng-model = "analyst.mode"/> <font color="#D5D5D5">Computed</font>
-							<input type="radio"  value= "visualize"
-							   ng-model = "analyst.mode"/> <font color="#D5D5D5">Original</font>
 							   
 			<div ng-class="{'unvalidatedUI' : !queryService.queryObject.dataTable, 'validatedUI' : queryService.queryObject.dataTable}"
 							 title = "Red flags indicate required selections for query validation">
@@ -172,6 +167,7 @@
 										<!-- handling toggle input types -->
 										<div class="btn-group btn-toggle"
 											ng-if="input.type == 'options' && input.options.length == 2"
+											ng-init="queryService.queryObject.scriptOptions[input.param] = input.options[0]"
 											ng-click="toggleButton(input)">
 											<button
 												ng-class="{'active btn-primary': queryService.queryObject.scriptOptions[input.param] == input.options[0]}"
@@ -181,11 +177,12 @@
 												class="btn btn-default">{{input.options[1]}}</button>
 										</div>
 										<!-- Handling boolean options -->
-										<div class="btn-group btn-toggle"
+										<div class="btn-group btn-toggle" style="width:100%; height:100%"
 											ng-if="input.type == 'boolean'"
+											ng-init="queryService.queryObject.scriptOptions[input.param] = true"
 											ng-click="queryService.queryObject.scriptOptions[input.param] = !queryService.queryObject.scriptOptions[input.param]">
 											<button
-												ng-class="{'active btn-danger': queryService.queryObject.scriptOptions[input.param] == true}"
+												ng-class="{'active btn-primary': queryService.queryObject.scriptOptions[input.param] == true}"
 												class="btn btn-default">True</button>
 											<button
 												ng-class="{'active btn-danger': queryService.queryObject.scriptOptions[input.param] == false}"
