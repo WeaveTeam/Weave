@@ -38,9 +38,9 @@
 			<tr>
 				<td>Tool attribute</td>
 				<td style="padding-left: 5px;">
-					<ui-select ng-model="tool.vizAttributes" theme="select2" style="width: 100%;">
+					<ui-select ng-model="tool.vizAttribute" theme="select2" style="width: 100%;">
 				    	<ui-select-match allow-clear="true" placeholder="Select attribute...">{{$select.selected.title}}</ui-select-match>
-						<ui-select-choices group-by="'plotLayer'"  repeat="attr in vizAttributes | filter : {title: $select.search}">
+						<ui-select-choices group-by="'plotLayer'"  repeat="attr in vizAttributeColl | filter : {title: $select.search}">
 				       		 <div ng-bind-html="attr.title | highlight: $select.search"></div>
 				        </ui-select-choices>
 					</ui-select>
@@ -54,14 +54,14 @@
 				</td>
 			
 				<td style="padding-left: 5px;">
-					<ui-select ng-if= "analyst.mode == 'computation'" ng-model="tool.vizAttribute" multiple theme="select2" style="width: 100%;">
+					<ui-select ng-if= "analyst.mode == 'computation'" ng-model="tool.columns" multiple theme="select2" style="width: 100%;">
 				    	<ui-select-match allow-clear="true" placeholder="Choose Columns...">{{$item.title}}</ui-select-match>
 						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
 				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
 				        </ui-select-choices>
 					</ui-select>
 					
-					<ui-select ng-if= "analyst.mode == 'visualize'" ng-model="tool.vizAttribute" multiple theme="select2" style="width: 100%;">
+					<ui-select ng-if= "analyst.mode == 'visualize'" ng-model="tool.columns" multiple theme="select2" style="width: 100%;">
 				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
 						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
 				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
@@ -73,9 +73,8 @@
 			<tr>
 				<td>List Control</td>
 				<td>
-					<ul ng-repeat = "attr in tool.attributes">
-					<li ng-model ="tool.chosenAttribute" 
-					ng-class" = "{'activeListItem' :status}" ng-mouseEnter = "status= true" ng-mouseleave = "status = false"
+					<ul ng-repeat = "attr in tool.columns">
+					<li ng-class = "{'activeListItem' :status}" ng-mouseEnter = "status= true" ng-mouseleave = "status = false"
 					ng-click = "setAttributes(attr)">
 					{{attr.title}}</li>
 					</ul>
