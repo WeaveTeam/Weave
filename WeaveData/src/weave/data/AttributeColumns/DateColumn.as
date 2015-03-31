@@ -410,7 +410,8 @@ package weave.data.AttributeColumns
 			"%Y-%b-%d %T",
 			"%Y-%b-%d %H:%M:%S",
 			"%d-%b-%Y %T",
-			"%d-%b-%Y %H:%M:%S"
+			"%d-%b-%Y %H:%M:%S",
+			"%d-%b-%Y %H:%M:%S.%Q",
 			
 			/*
 			//https://code.google.com/p/datejs/source/browse/trunk/src/globalization/en-US.js
