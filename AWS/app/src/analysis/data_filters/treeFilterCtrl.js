@@ -143,17 +143,14 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 						} else {
 							var level = $scope.ngModel.firstLevel || $scope.ngModel.secondLevel;
 							
-							nestedFilter.or.push({
-								
-								and : [
-								       {
-								    	   cond : {
-								    		   f : level,
-								    		   v : $scope.ngModel.treeSelection
-								    	   }
-								       }
-								       ]
-							});
+							if(level && level.id && $scope.ngModel.treeSelection) {
+								$scope.ngModel.nestedFilter = {
+										cond : {
+											f : level.id,
+											v : $scope.ngModel.treeSelection
+										}
+								};
+							}
 						}
 					}
 				}
@@ -233,7 +230,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 					},
 					cookieId: "time-period-tree",
 					idPrefix: "time-period-tree-",
-					debugLevel: 1
+					debugLevel: 0
 				});
 				var node = $(tree).dynatree("getRoot");
 				node.sortChildren(cmp, true);

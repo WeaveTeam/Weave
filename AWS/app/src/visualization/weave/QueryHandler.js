@@ -37,7 +37,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     			value: {
     				columnIds : [],
     				namesToAssign: [],
-    				filters: null //will be {} once filters are completed
+    				filters: nestedFilterRequest.and.length ? nestedFilterRequest : null //will be {} once filters are completed
     				
     			}
     	};
@@ -232,14 +232,20 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 				this.handleGeographyFilters(queryObject);
 			}
 			
+			queryService.queryObject.filters.forEach(function(filter) {
+				if(filter.nestedFilter && filter.nestedFilter.cond) {
+					nestedFilterRequest.and.push(filter.nestedFilter);
+				}
+			});
 			
-			//		
-			//		if(nestedFilterRequest.and.length) {
-			//			filters = nestedFilterRequest;
-			//		} else {
-			//			filters = null;
-			//		}
-			
+			queryService.queryObject.treeFilters.forEach(function(filter) {
+				if(filter.nestedFilter && ((filter.nestedFilter.or && filter.nestedFilter.or.length)
+									   || (filter.nestedFilter.cond))) {
+					nestedFilterRequest.and.push(filter.nestedFilter);
+				}
+			});
+	
+			console.log(nestedFilterRequest);
 			//handling script inputs
 			scriptInputObjects = this.handleScriptOptions(queryObject.scriptOptions);
 			
@@ -277,7 +283,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 									var formattedResult = WeaveService.createCSVDataFormat(resultData.resultData, resultData.columnNames);
 									//create the CSVDataSource]
 									var dsn = queryService.queryObject.Indicator ? queryService.queryObject.Indicator.title : "";
-									WeaveService.addCSVData(formattedResult, queryService.queryObject.Indicator.title, queryService.queryObject);
+									WeaveService.addCSVData(formattedResult, dsn, queryService.queryObject);
 								}
 							}
 						}, function(error) {

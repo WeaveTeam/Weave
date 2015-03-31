@@ -131,7 +131,7 @@ AnalysisModule.directive('filter', function(queryService) {
 					{
 						cond : {
 							f : $scope.ngModel.column.id,
-							v : [ngModel]
+							r : [ngModel]
 						}
 					};
 			});
