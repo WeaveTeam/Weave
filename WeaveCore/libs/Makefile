@@ -29,6 +29,8 @@ check:
 	@if [ -d "$(FLEX)/bin" ] ; then true ; \
 	else echo "Couldn't locate Flex sdk directory, please invoke make with \"make FLEX=/path/to/flex  ...\"" ; exit 1 ; \
 	fi
+timetest: $(C_OBJS) timetest.o
+	"$(FLASCC)/usr/bin/gcc" $(BASE_CFLAGS) -O4 $^ -o $@
 %.o: weave_flascc/%.c
 	"$(FLASCC)/usr/bin/gcc" $(BASE_CFLAGS) -O4 -c $? -o $@
 %.oo: weave_flascc/%.cpp
@@ -40,7 +42,7 @@ weave_flascc.swc: $(C_OBJS) $(CPP_OBJS)
 #	"$(FLASCC)/usr/bin/g++" $(BASE_CFLAGS) -flto-api=$*/exports.txt -O4 $*/*.cpp -emit-swc=weave.$* -o $@
 
 clean:
-	rm -f *.swc *.o *.oo
+	rm -f *.swc *.o *.oo timetest
 
 # http://www.cprogramming.com/tutorial/makefiles_continued.html
 # http://stackoverflow.com/questions/6637088/makefile-pattern-rule-referencing-stem-in-dependencies

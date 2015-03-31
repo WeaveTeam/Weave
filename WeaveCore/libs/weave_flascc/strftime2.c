@@ -295,6 +295,7 @@ label:
 			case 'Q':
 				pt = _conv(ext_t->tm_msec, fmt_padding[PAD_FMT_MSEC][PadIndex],
 					pt, ptlim);
+                                continue;
 			case 'S':
 				pt = _conv(t->tm_sec, fmt_padding[PAD_FMT_HMS][PadIndex],
 					pt, ptlim);
