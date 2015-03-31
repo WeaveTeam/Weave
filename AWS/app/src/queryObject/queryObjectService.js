@@ -238,6 +238,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     
 	
 	this.cache = {
+			columns : [],
 			dataTableList : [],
 			scriptList : [],
 			filterArray : [],

@@ -502,7 +502,6 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	$scope.queryService = queryService;
 	
 	$scope.$watch('queryService.queryObject.ComputationEngine', function(){
-		$scope.queryService.queryObject.scriptSelected = '';
 		if($scope.queryService.queryObject.ComputationEngine)
 			queryService.getListOfScripts(true, $scope.queryService.queryObject.ComputationEngine);
 	});
