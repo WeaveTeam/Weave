@@ -200,27 +200,27 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			treeFilterArray : [],
 			visualizations : {
 				MapTool : {
-					title : 'Map Tool',
+					title : 'MapTool',
 					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html',
 					enabled : false
 				},
 				BarChartTool : {
-					title : 'Bar Chart Tool',
+					title : 'BarChartTool',
 					template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html',
 					enabled : false
 				},
 				DataTableTool : {
-					title : 'Data Table Tool',
+					title : 'DataTableTool',
 					template_url : 'src/visualization/tools/dataTable/data_table.tpl.html',
 					enabled : false
 				},
 				ScatterPlotTool : {
-					title : 'Scatter Plot Tool',
+					title : 'ScatterPlotTool',
 					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html',
 					enabled : false
 				},
 				AttributeMenuTool : {
-					title : 'Attribute Menu Tool',
+					title : 'AttributeMenuTool',
 					template_url : 'src/visualization/tools/attributeMenu/attribute_Menu.tpl.html',
 					enabled: false
 				},
