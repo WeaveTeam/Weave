@@ -99,10 +99,16 @@ public class ComputationalServlet extends WeaveServlet
 						scriptInputs.put(rows.namesToAssign[x], columnData[x]);
 					}
 				}
-				//if single datamatrix to be used ascribe only one name 'columndata'
+				
+				//if multi columns --> assign each columns to proper column name
+				// under the same hashmap. the hashmap will then be converted into
+				// a data frame or table
 				else if(type.equalsIgnoreCase(dataMatrix)){
-					
-					scriptInputs.put("columndata", columnData);
+					StringMap<Object> dataMatrixMap = new StringMap<Object>();
+					for(int x =  0; x < rows.namesToAssign.length;  x++) {
+						dataMatrixMap.put(rows.namesToAssign[x], columnData[x]);
+					}
+					scriptInputs.put(inputObjects[i].name, dataMatrixMap);
 				}
 			} //TODO handle remaining types of input objects
 			

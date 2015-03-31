@@ -58,7 +58,7 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 		String [] columnNames = null;
 		try
 		{
-			 rConnection = getRConnection();
+			rConnection = getRConnection();
 	
 			rConnection.assign("scriptPath", scriptAbsPath);
 			
@@ -178,6 +178,20 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 		
 			else
 				throw new RemoteException("Unsupported value type");
+		} else if (object instanceof StringMap<?>) {
+			// if it's a string map, we create a R list for each
+			StringMap<?> stringMap = (StringMap<?>) object;
+			RList l = new RList();
+			for(String key : stringMap.keySet()) {
+				Object value = stringMap.get(key);
+				l.put(key, getREXP(value));
+			}
+			
+			try {
+				return REXP.createDataFrame(l);
+			} catch (REXPMismatchException e) {
+				throw new RemoteException("Failed to Create Dataframe",e);
+			}
 		}
 		
 		// handle non-array by wrapping it in an array

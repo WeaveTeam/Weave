@@ -33,7 +33,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     	//Filtered Rows bean(each column is assigned a name when it reaches the computation engine)
     	var rowsObject = {
     			name: "", //(optional)needed for handling different kinds of results on client end
-    			type: "",//this will be decided depending on what type of object is being sent to server
+    			type: "filteredRows",//this will be decided depending on what type of object is being sent to server
     			value: {
     				columnIds : [],
     				namesToAssign: [],
@@ -46,22 +46,33 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     	for(var key in scriptOptions) {
 			var input = scriptOptions[key];
 			
+			// handle multiColumns. Note that we do this first because type of arrayVariabel == 'object' returns true.
+			if(Array.isArray(input)) {
+				typedInputObjects.push({
+					name : key,
+					type : 'dataColumnMatrix',
+					value : {
+						
+						columnIds : $.map(input, function(column) {
+							return column.id;
+						}), 
+						filters : nestedFilterRequest.and.length ? nestedFilterRequest : null,
+						namesToAssign : $.map(input, function(column) {
+							return column.title;
+						})
+					}
+				});
+			} 
 			
-	    	if((typeof input) == 'object') {
-	    		
+			// handle single column
+			else if((typeof input) == 'object') {
 	    		rowsObject.value.columnIds.push(input.id);
-	    		
+    			rowsObject.value.namesToAssign.push(key);
 	    		if($.inArray(rowsObject,typedInputObjects) == -1)//if not present in array before
 	    			typedInputObjects.push(rowsObject);
 	    	}
-				
-	    	else if ((typeof input) == 'array') // array of columns
-			{
-	    		//scriptInputs[key] = $.map(input, function(inputVal) {
-	    			//				return { id : JSON.parse(inputVal).id };
-	    			//			});
-			}
-	    	else if ((typeof input) == 'string'){
+
+			else if ((typeof input) == 'string'){
 				typedInputObjects.push({
 					name : key, 
 					type : 'string',
@@ -86,20 +97,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 				console.log("unknown script input type ", input);
 			}
     	}
-    	
-    	if($.inArray(typedInputObjects, rowsObject) != 0 && queryService.cache.scriptMetadata)//if it contains the filtered rows
-    		{
-    			//handling filtered rows
-    			//handling column titles for variable assignment
-	    		var scriptMetadata = queryService.cache.scriptMetadata;
-	    		for(var x in scriptMetadata.inputs){
-	    			var singleInput = scriptMetadata.inputs[x];
-	    			rowsObject.value.namesToAssign.push(singleInput.param);
-	    		}
-	    		
-	    		rowsObject.type = "FilteredRows";
-    		}
-    	
     	
     	return typedInputObjects;
     };
@@ -269,6 +266,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 						queryService.runScript(scriptName).then(function(resultData) {
 							if(!angular.isUndefined(resultData))
 							{
+								console.log(resultData);
 								time2 = new Date().getTime() - startTimer;
 								queryService.queryObject.properties.queryDone = true;
 								queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";

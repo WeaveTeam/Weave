@@ -9,8 +9,8 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 	               { title : "Stata Scripts", children : [], isFolder : true }
 	               ];
 	  //needed for population options in the metadata grid
-	  $scope.inputTypes = ["column", "options", "boolean", "value", "multiColumns", ""];
-	  $scope.columnTypes = ["analytic", "geography", "indicator", "time", "by-variable"];
+	  $scope.inputTypes = ["column", "options", "boolean", "value", "multiColumns"];
+	  $scope.columnTypes = ["", "all", "analytic", "geography", "indicator", "time", "by-variable"];
 	  
 	  
 	  $scope.service = scriptManagerService;
@@ -67,7 +67,7 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 			  data: 'scriptMetadata.inputs',
 			  columnDefs : [{field : "param", displayName : "Parameter"},
 		               {field :"type", displayName : "Type", enableCellEdit : false, cellTemplate : '<select style="vertical-align:middle;" ng-input="COL_FIELD" ng-model="COL_FIELD" ng-options="input for input in inputTypes" style="align:center"></select>'},
-		               {field : "columnType", displayName : "Column Type", enableCellEdit : false, cellTemplate : '<select  ng-input="COL_FIELD" ng-if="scriptMetadata.inputs[row.rowIndex].type == &quot;column&quot;" ng-model="COL_FIELD" ng-options="type for type in columnTypes" style="align:center"></select>'},
+		               {field : "columnType", displayName : "Column Type", enableCellEdit : false, cellTemplate : '<select  ng-input="COL_FIELD" ng-if="scriptMetadata.inputs[row.rowIndex].type == &quot;column&quot" ng-model="COL_FIELD" ng-options="type for type in columnTypes" style="align:center"></select>'},
 		               {field : "options", displayName : "Options"},
 		               {field : "default", displayName : "Default"},
 		               {field : "description", displayName : "Description"}],

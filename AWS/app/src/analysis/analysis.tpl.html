@@ -152,12 +152,21 @@
 									</td>
 		
 									<td>
-											<ui-select ng-if="input.type == 'column'" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;">
+											<ui-select ng-if="input.type == 'column' && input.columnType && input.columnType != 'all' && input.columnType != ' '" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;">
 									    		<ui-select-match allow-clear="true" placeholder="Select column...">{{$select.selected.title}}</ui-select-match>
 												<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search, columnType : input.columnType }">
 									       			 <div ng-bind-html="column.title | highlight: $select.search"></div>
 									        	</ui-select-choices>
 											</ui-select>
+											
+											<!--  handle the case where the column doesn't have a column type in which case we don't filter by columnType -->
+											<ui-select ng-if="input.type == 'column' && (!input.columnType || input.columnType == 'all' || input.columnType == ' ')" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;">
+									    		<ui-select-match allow-clear="true" placeholder="Select column...">{{$select.selected.title}}</ui-select-match>
+												<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search }">
+									       			 <div ng-bind-html="column.title | highlight: $select.search"></div>
+									        	</ui-select-choices>
+											</ui-select>
+											
 											<i ng-if="input.type == 'column'" style = "padding-left: 3px; padding-top:5px;" class="fa fa-pencil-square-o fa-lg"></i>
 											<!-- Remapping -->
 											
@@ -187,13 +196,21 @@
 											</div> 
 											
 											<!-- handling value types -->
-											<input style="width: 100%" ng-if="input.type == 'value'"
+											<input style="width: 80%" ng-if="input.type == 'value'"
 											ng-model="queryService.queryObject.scriptOptions[input.param]">
 											
 	<!-- 										Handling multiple column types -->
-											<ui-select ng-if="input.type == 'multiColumns'" multiple ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 97%;">
+											<ui-select ng-if="input.type == 'multiColumns' && input.columnType && input.columnType != 'all' && input.columnType != ' '" multiple ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;">
 											    <ui-select-match placeholder="Select Columns...">{{$item.title}}</ui-select-match>
 											    <ui-select-choices repeat="column in queryService.cache.columns | filter: { title : $select.search, columnType : input.columnType }">
+										      	      <div ng-bind-html="column.title | highlight: $select.search"></div>
+											    </ui-select-choices>
+										    </ui-select>
+										    
+											<!--  handle the case where the column doesn't have a column type in which case we don't filter by columnType -->
+											<ui-select ng-if="input.type == 'multiColumns' && (!input.columnType || input.columnType == 'all' || input.columnType == ' ')" multiple ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;">
+											    <ui-select-match placeholder="Select Columns...">{{$item.title}}</ui-select-match>
+											    <ui-select-choices repeat="column in queryService.cache.columns | filter: { title : $select.search }">
 										      	      <div ng-bind-html="column.title | highlight: $select.search"></div>
 											    </ui-select-choices>
 										    </ui-select>
