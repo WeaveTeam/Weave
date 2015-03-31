@@ -99,8 +99,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 		return tools;
 	};
 	
-	//returns a list of selectable attributes for every plotter in a given visualization tool
-	this.getSelectableAttributes = function(vizTool){
+	this.getSelectableAttributes = function(toolName, vizTool){
 		
 		var selAttributes =[];
 		
@@ -132,135 +131,21 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 	 * @param attrObject the object used for setting vizAttribute
 	 */
 	
-	this.setVizAttribute = function(toolName, vizAttribute, attrObject){
-		console.log("vizAttribute", vizAttribute);
-		console.log("tool", toolName);
-		console.log("attrObject", attrObject);
-		switch(toolName){
-		
-			case 'MapTool' :
-				switch(vizAttribute.title){
-					case 'Color' :
-						//call color column setter
-						if(ws.weave && ws.weave.path)
-							{
-								ws.weave.path('defaultColorDataColumn').setColumn(attrObject.id, attrObject.dataSourceName);
-							}
-						break;
-					case 'Geometry' :
-						//set geometry column
-						if(ws.weave && ws.weave.path)
-						{
-							ws.wave.path(toolName, 'children', 'visualization', 'plotManager', 'plotters')
-							.push(vizAttribute.plotLayer).request('weave.visualization.plotters.GeometryPlotter')
-							.call(setQueryColumns, {geometryColumn: attrObject});
-						}
-						break;
-			}
-				break;
+	this.setVizAttribute = function(originalTool, toolName, vizAttribute, attrObject){
+		if(ws.weave && weave.path)
+			{	
+				var selectedColumn;
+				//1. collect columns find the right one
+				var columnObjects = ws.weave.path(originalTool).request('AttributeMenuTool').push('choices').getState();
+				for (var i in columnObjects)
+				{
+					if(columnObjects[i].sessionState.metadata == attrObject.title)
+						selectedColumn = columnObjects[i].objectName;
+				}
+				//2. set it
+				ws.weave.path(originalTool).request('AttributeMenuTool').state({selectedAttribute : selectedColumn});
 				
-			case 'ScatterPlotTool' :
-				switch(vizAttribute.title){
-					case 'Color':
-						if(ws.weave && ws.weave.path)
-						{
-							ws.weave.path('defaultColorDataColumn').setColumn(attrObject.id, attrObject.dataSourceName);
-						}
-						break;
-					case 'X':
-						if(ws.weave && ws.weave.path)
-						{
-							ws.weave.path(toolName).request('ScatterPlotTool')
-							.state({ panelX : "50%", panelY : "50%", panelTitle :"ScatterPlot Tool", enableTitle : true})
-							.push('children', 'visualization','plotManager', 'plotters', 'plot')
-							.call(setQueryColumns, {dataX : attrObject});
-						}
-						break;
-					case 'Y':
-						if(ws.weave && ws.weave.path)
-						{
-							ws.weave.path(toolName).request('ScatterPlotTool')
-							.state({ panelX : "50%", panelY : "50%", panelTitle : "ScatterPlot Tool", enableTitle : true})
-							.push('children', 'visualization','plotManager', 'plotters', 'plot')
-							.call(setQueryColumns, {dataY : attrObject});
-						}
-						break;
-					case 'Size':
-						if(ws.weave && ws.weave.path){
-							
-							ws.weave.path(toolName).request('ScatterPlotTool')
-							.state({ panelX : "50%", panelY : "50%", panelTitle : "ScatterPlot Tool", enableTitle : true})
-							.push('children', 'visualization','plotManager', 'plotters', 'plot')
-							.call(setQueryColumns, {sizeBy : attrObject});
-						}
-						break;
 			}
-				break;
-				
-			case 'BarChartTool':
-				switch(vizAttribute.title){
-				case 'Color':
-					if(ws.weave && ws.weave.path)
-					{
-						ws.weave.path('defaultColorDataColumn').setColumn(attrObject.id, attrObject.dataSourceName);
-					}
-					break;
-				case 'Height':
-					if(ws.weave && ws.weave.path)
-					{
-						ws.weave.path(toolName)
-						.request('CompoundBarChartTool')
-						.state({ panelX : "0%", panelY : "50%", panelTitle :"BarChart Tool", enableTitle : true, showAllLabels : true })
-						.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
-						.call(setQueryColumns, {heightColumns : attrObject});
-					}
-					break;
-				case 'Label':
-					if(ws.weave && ws.weave.path)
-					{
-						ws.weave.path(toolName)
-						.request('CompoundBarChartTool')
-						.state({ panelX : "0%", panelY : "50%", panelTitle : "BarChart Tool", enableTitle : true, showAllLabels : true })
-						.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
-						.call(setQueryColumns, {labelColumn : attrObject});
-					}
-					break;
-				case 'Sort':
-					if(ws.weave && ws.weave.path)
-					{
-						ws.weave.path(toolName)
-						.request('CompoundBarChartTool')
-						.state({ panelX : "0%", panelY : "50%", panelTitle : "BarChart Tool", enableTitle : true, showAllLabels : true })
-						.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
-						.call(setQueryColumns, {sortColumn : attrObject});
-					}
-					break;
-				case 'Positive Error':
-					if(ws.weave && ws.weave.path)
-					{
-						ws.weave.path(toolName)
-						.request('CompoundBarChartTool')
-						.state({ panelX : "0%", panelY : "50%", panelTitle :"BarChart Tool", enableTitle : true, showAllLabels : true })
-						.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
-						.call(setQueryColumns, {positiveErrorColumns : attrObject});
-					}
-					break;
-				case 'Negative Error':
-					if(ws.weave && ws.weave.path)
-					{
-						ws.weave.path(toolName)
-						.request('CompoundBarChartTool')
-						.state({ panelX : "0%", panelY : "50%", panelTitle : "BarChart Tool", enableTitle : true, showAllLabels : true })
-						.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
-						.call(setQueryColumns, {positiveErrorColumns : attrObject});
-					}
-			}
-				break;
-				
-			case 'TableTool':
-				break;
-		
-		}//end of switch for tool
 	};
 	
 	this.AttributeMenuTool = function(state, aToolName){
@@ -278,6 +163,10 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			ws.weave.path(toolName).request('AttributeMenuTool')
 			.state({ panelX : "50%", panelY : "0%", panelHeight: "15%", panelWidth :"50%",  panelTitle : state.title, enableTitle : true})
 			.call(setQueryColumns, {choices: state.columns});
+			
+			if(state.vizAttribute && state.selectedVizTool)
+				ws.weave.path(toolName).request('AttributeMenuTool')
+				.state({targetAttribute : state.vizAttribute.title , targetToolPath : [state.selectedVizTool]});
 		}
 	};
 	

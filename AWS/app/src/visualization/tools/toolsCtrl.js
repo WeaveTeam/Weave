@@ -5,34 +5,34 @@ AnalysisModule.controller("toolsCtrl", function($scope, $filter,queryService, We
 	$scope.AnalysisService = AnalysisService;
 	
 	
-	$scope.tool_options = ["Map Tool", "BarChart Tool", "ScatterPlot Tool", "DataTable"];
+	$scope.tool_options = ["MapTool", "BarChartTool", "ScatterPlotTool", "DataTable"];
 
-	$scope.fixed_ids = ["MapTool", "BarChartTool", "ScatterPlotTool", "DataTableTool", "key_Column", "color_Column", "AttributeMenuTool"];
+	$scope.fixed_ids = ["MapTool", "BarChartTool", "ScatterPlotTool", "DataTableTool", "KeyColumn", "ColorColumn", "AttributeMenuTool"];
 	
 	$scope.addTool = function(name) {
 		switch(name) {
-			case "Map Tool":
+			case "MapTool":
 				var toolName = WeaveService.MapTool(null, "");
 				queryService.queryObject.visualizations[toolName] = {
-					title : 'Map Tool',
+					title : 'MapTool',
 					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
 				};
 				break;
-			case "BarChart Tool":
+			case "BarChartTool":
 				var toolName = WeaveService.BarChartTool(null, "");
 				queryService.queryObject.visualizations[toolName] = {
-					title : 'Bar Chart Tool',
+					title : 'BarChartTool',
 					template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html'
 				};
 				break;
-			case "ScatterPlot Tool":
+			case "ScatterPlotTool":
 				var toolName = WeaveService.ScatterPlotTool(null, "");
 				queryService.queryObject.visualizations[toolName] = {
 					title : 'ScatterPlot Tool',
 					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html'
 				};
 				break;
-			case "DataTable":
+			case "DataTableTool":
 				var toolName = WeaveService.DataTableTool(null, "");
 				queryService.queryObject.visualizations[toolName] = {
 					title : 'DataTable Tool',
@@ -42,7 +42,7 @@ AnalysisModule.controller("toolsCtrl", function($scope, $filter,queryService, We
 			case "AttributeMenuTool":
 				var toolName = WeaveService.AttributeMenuTool(null, "");
 				queryService.queryObject.visualizations[toolName] = {
-					title : 'Attribute Menu Tool',
+					title : 'AttributeMenu Tool',
 					template_url : 'src/visualization/tools/attributeMenu/attribute_Menu.tpl.html'
 				};
 				break;
