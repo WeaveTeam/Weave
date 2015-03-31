@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <limits.h>
 extern "C" {
     #include "strptime2.h"
     #include "strftime2.h"
@@ -76,7 +77,7 @@ void date_format()
 }
 
 void date_parse() __attribute((used,
-            annotate("as3sig:public function date_parse(date:String, fmt:String, utc:Boolean = false):Date"),
+            annotate("as3sig:public function date_parse(date:String, fmt:String, utc:Boolean = false, force_local:Boolean = false):Date"),
             annotate("as3package:weave.flascc")));
 
 void date_parse()
@@ -94,12 +95,30 @@ void date_parse()
 
     struct ext_tm tm;
     memset(&tm, 0, sizeof(struct ext_tm));
-    tm.tm.tm_mday = 1;
+    tm.tm.tm_year = tm.tm.tm_mon = tm.tm.tm_mday = INT_MAX;
 
     if (strptime2(date_str, fmt, &tm) == date_str + strlen(date_str))
     {
+                /* If the date was incompletely specified, these fields won't be populated. 
+                   A date field comprised of only Hour/Minute/Second/Msecond might be a duration,
+                   and should be interpreted as UTC to avoid confusion. */
+                if (tm.tm.tm_year == INT_MAX &&
+                    tm.tm.tm_mon == INT_MAX &&
+                    tm.tm.tm_mday == INT_MAX)
+                {
+                    tm.tm.tm_year = tm.tm.tm_mon = 0;
+                    inline_nonreentrant_as3(
+                        "utc = true;"
+                    );
+                }
+
+                if (tm.tm.tm_mday == INT_MIN) 
+                {
+                    tm.tm.tm_mday = 1;
+                }
+
 		inline_nonreentrant_as3(
-			"if (utc)"
+			"if (utc && !force_local)"
 			"    output = new Date(Date.UTC(%0,%1,%2,%3,%4,%5,%6));"
 			"else"
 			"    output = new Date(%0,%1,%2,%3,%4,%5,%6);"
