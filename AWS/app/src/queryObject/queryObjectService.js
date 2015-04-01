@@ -224,12 +224,12 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 					template_url : 'src/visualization/tools/attributeMenu/attribute_Menu.tpl.html',
 					enabled: false
 				},
-				color_Column : {
-					title : "Color Column",
+				ColorColumn : {
+					title : "ColorColumn",
 					template_url : 'src/visualization/tools/color/color_Column.tpl.html'
 				},
-				key_Column : {
-					title : "Key Column",
+				KeyColumn : {
+					title : "KeyColumn",
 					template_url : 'src/visualization/tools/color/key_Column.tpl.html'
 				}
 			},

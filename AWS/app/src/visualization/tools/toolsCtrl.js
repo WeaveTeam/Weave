@@ -4,6 +4,7 @@ AnalysisModule.controller("toolsCtrl", function($scope, $filter,queryService, We
 	$scope.WeaveService = WeaveService;
 	$scope.AnalysisService = AnalysisService;
 	
+	console.log($scope);
 	
 	$scope.tool_options = ["MapTool", "BarChartTool", "ScatterPlotTool", "DataTable"];
 
@@ -52,17 +53,5 @@ AnalysisModule.controller("toolsCtrl", function($scope, $filter,queryService, We
 	$scope.removeTool = function(toolId) {
 		WeaveService.weave.path(toolId).remove();
 		delete queryService.queryObject.visualizations[toolId];
-	};
-	
-	//for displying all columns in a datatable
-	$scope.getAllColumns = function(term, done) {
-		var allColumns = queryService.cache.columns;
-		done($filter('filter')(allColumns, term));
-	};
-
-	//displaying results of a computation
-	$scope.resultColumns = function(term, done) {
-		var values = WeaveService.resultSet;
-		done($filter('filter')(values, {name:term}, 'name'));
 	};
 });
