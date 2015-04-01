@@ -17,10 +17,8 @@
 #include <string.h>
 #include <time.h>
 #include <limits.h>
-extern "C" {
-    #include "strptime2.h"
-    #include "strftime2.h"
-}
+#include "strptime2.h"
+#include "strftime2.h"
 #include "AS3/AS3.h"
 #include "tracef.h"
 
