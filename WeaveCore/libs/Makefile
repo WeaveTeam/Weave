@@ -1,5 +1,5 @@
-FLASCC:=/Users/pkovac/bin/crossbridge/sdk
-FLEX:=/Users/pkovac/bin/flex
+FLASCC:=/cygdrive/c/flascc/sdk
+FLEX:=/cygdrive/c/flex
 AS3COMPILER:=asc2.jar
 BASE_CFLAGS:=-Werror -Wno-write-strings -Wno-trigraphs
 C_OBJS =strftime2.o strptime2.o timelocal.o b64util.o dateutil.o hashutil.o main.o modp_b64.o ziputil.o
@@ -36,7 +36,9 @@ timetest: $(C_OBJS) timetest.o
 %.oo: weave_flascc/%.cpp
 	"$(FLASCC)/usr/bin/g++" $(BASE_CFLAGS) -O4 -c $? -o $@
 weave_flascc.swc: $(C_OBJS) $(CPP_OBJS)
-	"$(FLASCC)/usr/bin/g++" $(BASE_CFLAGS) -flto-api=weave_flascc/exports.txt $^ -emit-swc=weave.flascc -o $@
+	"$(FLASCC)/usr/bin/g++" $(BASE_CFLAGS) -O4 -flto-api=weave_flascc/exports.txt $^ -emit-swc=weave.flascc -o $@
+#weave_flascc.swc: $(wildcard weave_flascc/*)
+#	"$(FLASCC)/usr/bin/g++" $(BASE_CFLAGS) -flto-api=weave_flascc/exports.txt -O4 weave_flascc/*.cpp weave_flascc/*.c -emit-swc=weave.flascc -o $@
 #.SECONDEXPANSION:
 #%.swc: $$(wildcard %/*)
 #	"$(FLASCC)/usr/bin/g++" $(BASE_CFLAGS) -flto-api=$*/exports.txt -O4 $*/*.cpp -emit-swc=weave.$* -o $@

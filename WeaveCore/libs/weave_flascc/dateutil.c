@@ -110,7 +110,7 @@ void date_parse()
 		}
 
 		if (tm.tm.tm_year == INT_MAX)
-			tm.tm.tm_year = 0;
+			tm.tm.tm_year = 70;
 		if (tm.tm.tm_mon == INT_MAX)
 			tm.tm.tm_mon = 0;
 		if (tm.tm.tm_mday == INT_MAX)
