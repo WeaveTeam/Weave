@@ -368,34 +368,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
     	else
     		userName = "Awesome User";
     	
-    	var qo = this.exportQueryObject();
-//    	   	for(var key in qo.scriptOptions) {
-//    	    		var input = qo.scriptOptions[key];
-//    	    		//console.log(typeof input);
-//    	    		switch(typeof input) {
-//    	    			
-//    	    			case 'string' :
-//    	    				var inputVal = tryParseJSON(input);
-//    	    				if(inputVal) {  // column input
-//    	    					qo.scriptOptions[key] = inputVal;
-//    	    				} else { // regular string
-//    	    					qo.scriptOptions[key] = input;
-//    	    				}
-//    	    				break;
-//    	    			
-//    	    			default:
-//    	    				console.log("unknown script input type");
-//    	    		}
-//    	    	}
-//    	    	if (typeof(qo.Indicator) == 'string'){
-//    	    		var inputVal = tryParseJSON(qo.Indicator);
-//    				if(inputVal) {  // column input
-//    					qo.Indicator = inputVal;
-//    				} else { // regular string
-//    					qo.Indicator = input;
-//    				}
-//    	    	}
-    	var queryObjectJsons = angular.toJson(qo);
+
+    	var queryObjectJsons = angular.toJson(this.queryObject);
     	var resultVisualizations = base64String;
     	
     	
