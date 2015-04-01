@@ -27,11 +27,11 @@
 		 width="100%"
 		 implements="weave.api.core.ILinkableObject,weave.api.ui.ILinkableObjectEditor"
 		 creationComplete="handleCreationComplete()"
-		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3" creationPolicy="all">
-		<mx:VBox id="radioVBox" borderStyle="solid" borderThickness="1" cornerRadius="10"
-				  paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5">
+		 creationPolicy="all">
+	<mx:VBox>
+		<mx:Label fontWeight="bold" text="{lang('Binning type:')}"/>
+		<mx:VBox id="radioVBox" paddingLeft="20">
 			
-			<mx:Label fontWeight="bold" text="{lang('Binning type:')}"/>
 			<mx:RadioButtonGroup id="typeGroup" change="handleTypeRadio()"/>
 			
 			<mx:HBox width="100%" verticalAlign="middle">
@@ -45,10 +45,10 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%"/>
+			<!--<mx:HRule width="100%"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:RadioButton id="customRadio" label="{lang('Custom breaks')}" groupName="typeGroup" width="100%" data="{_customSplit}"/>
+				<mx:RadioButton id="customRadio" label="{lang('Custom breaks')}" groupName="typeGroup" data="{_customSplit}"/>
 				<mx:TextInput enabled="{customRadio.selected}" id="splitValues" width="100%"/>
 				<ui:HelpComponent label="{customRadio.label}">
 					Enter comma-separated custom break values for dividing the data into bins.
@@ -56,7 +56,7 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%"/>
+			<!--<mx:HRule width="100%"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="quantileRadio" label="{lang('Quantile')}" groupName="typeGroup" width="100%" data="{_quantile}"/>
@@ -68,7 +68,7 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%"/>
+			<!--<mx:HRule width="100%"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="equalIntervalRadio" label="{lang('Equal interval')}" groupName="typeGroup" width="100%" data="{_equalInterval}"/>
@@ -79,7 +79,7 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%"/>
+			<!--<mx:HRule width="100%"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="sdRadio" label="{lang('Standard deviations')}" groupName="typeGroup" width="100%" data="{_stdDev}"/>
@@ -88,7 +88,7 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 		
-			<mx:HRule width="100%"/>
+			<!--<mx:HRule width="100%"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="jenksRadio" label="{lang('Natural breaks')}" groupName="typeGroup" selected="true" width="100%" data="{_jenks}"/>
@@ -102,7 +102,7 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%"/>
+			<!--<mx:HRule width="100%"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="catRadio" label="{lang('All categories (string values)')}" groupName="typeGroup" width="100%" data="{_category}"/>
@@ -111,7 +111,7 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%" visible="{showNoneOption}" includeInLayout="{showNoneOption}"/>
+			<!--<mx:HRule width="100%" visible="{showNoneOption}" includeInLayout="{showNoneOption}"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle" visible="{showNoneOption}" includeInLayout="{showNoneOption}">
 				<mx:RadioButton id="noneRadio" label="{lang('None')}" groupName="typeGroup" width="100%" data="{null}"/>
@@ -120,25 +120,26 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 		</mx:VBox>
-		<mx:VBox width="100%" height="100%">
-			<mx:HBox id="overrideInputRangeBox" width="100%">
-				<mx:Label text="{lang('Override data range:')}"/>
-				<ui:TextInputWithPrompt id="overrideInputMin" prompt="{lang('min')}" width="100%"/>
-				<ui:TextInputWithPrompt id="overrideInputMax" prompt="{lang('max')}" width="100%"/>
-			</mx:HBox>
-			<mx:DataGrid id="binNameEditor"
-						 width="100%" height="100%" minWidth="0"
-						 draggableColumns="false" sortableColumns="false"
-						 selectable="{overrideNamesCheckBox.selected}"
-						 editable="{overrideNamesCheckBox.selected}"
-						 itemEditEnd="handleItemEdited(event)"
-						 dataProvider="{gridSource}">
-				<mx:columns>
-					<mx:DataGridColumn headerText="{lang('Bin names')}"/>
-				</mx:columns>
-			</mx:DataGrid>
-			<mx:CheckBox id="overrideNamesCheckBox" label="{lang('Edit and override names')}" change="handleOverrideCheckbox()"/>
-		</mx:VBox>
+	</mx:VBox>
+	<mx:VBox width="100%" height="100%">
+		<mx:HBox id="overrideInputRangeBox" width="100%">
+			<mx:Label text="{lang('Override data range:')}"/>
+			<ui:TextInputWithPrompt id="overrideInputMin" prompt="{lang('min')}" width="100%"/>
+			<ui:TextInputWithPrompt id="overrideInputMax" prompt="{lang('max')}" width="100%"/>
+		</mx:HBox>
+		<mx:DataGrid id="binNameEditor"
+					 width="100%" height="100%" minWidth="0"
+					 draggableColumns="false" sortableColumns="false"
+					 selectable="{overrideNamesCheckBox.selected}"
+					 editable="{overrideNamesCheckBox.selected}"
+					 itemEditEnd="handleItemEdited(event)"
+					 dataProvider="{gridSource}">
+			<mx:columns>
+				<mx:DataGridColumn headerText="{lang('Bin names')}"/>
+			</mx:columns>
+		</mx:DataGrid>
+		<mx:CheckBox id="overrideNamesCheckBox" label="{lang('Edit and override names')}" change="handleOverrideCheckbox()"/>
+	</mx:VBox>
 	
 	<mx:Script>
 		<![CDATA[
