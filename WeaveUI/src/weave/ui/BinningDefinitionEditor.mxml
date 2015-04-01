@@ -29,7 +29,9 @@
 		 creationComplete="handleCreationComplete()"
 		 creationPolicy="all">
 	<mx:VBox>
-		<mx:Label fontWeight="bold" text="{lang('Binning type:')}"/>
+		<mx:HBox verticalAlign="middle" height="22">
+			<mx:Label text="{lang('Binning type:')}"/>
+		</mx:HBox>
 		<mx:VBox id="radioVBox" paddingLeft="20">
 			
 			<mx:RadioButtonGroup id="typeGroup" change="handleTypeRadio()"/>
@@ -122,7 +124,7 @@
 		</mx:VBox>
 	</mx:VBox>
 	<mx:VBox width="100%" height="100%">
-		<mx:HBox id="overrideInputRangeBox" width="100%">
+		<mx:HBox id="overrideInputRangeBox" width="100%" verticalAlign="middle">
 			<mx:Label text="{lang('Override data range:')}"/>
 			<ui:TextInputWithPrompt id="overrideInputMin" prompt="{lang('min')}" width="100%"/>
 			<ui:TextInputWithPrompt id="overrideInputMax" prompt="{lang('max')}" width="100%"/>

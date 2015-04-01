@@ -160,14 +160,14 @@
 	<editorFactory><mx:Component><ui:ControlPanel>
 		<mx:VBox label="{lang('Basic')}">
 			<ui:DynamicColumnComponent id="dataColumnComponent"/>
-			<ui:BinningDefinitionEditor id="binEditor" showNoneOption="false"/>
-		</mx:VBox>
-		<mx:VBox label="{lang('Advanced')}">
 			<ui:DynamicColumnComponent id="columnToAggregateComponent"/>
 			<ui:Indent label="{lang('Height aggregation method')}">
 				<ui:CustomComboBox id="agMethodCombo" dataProvider="{HistogramPlotter.ENUM_AGGREGATION_METHODS}" labelFunction="lang"
 								   creationComplete="linkBindableProperty(outerDocument.plotter.aggregationMethod, event.target, 'selectedItem');"/>
 			</ui:Indent>
+			<ui:BinningDefinitionEditor id="binEditor" showNoneOption="false"/>
+		</mx:VBox>
+		<mx:VBox label="{lang('Advanced')}">
 			<ui:CustomCheckBox label="{lang('Draw horizontal bars')}" creationComplete="linkBindableProperty(outerDocument.plotter.horizontalMode, event.target, 'selected');"/>
 			<mx:CheckBox id="drawPartialCheckBox"
 						 label="{lang('Draw partial histogram bars for selection and probe')}"
