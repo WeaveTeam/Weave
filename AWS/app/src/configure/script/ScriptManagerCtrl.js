@@ -109,6 +109,18 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 			  }
       });
 	  
+	  $scope.$on('ngGridEventEndCellEdit', function(){
+		  if($scope.scriptMetadata.inputs && $scope.selectedScript) {
+		    	//returns the metadata of a script if it already exists else creates a metadata data file
+				  scriptManagerService.saveScriptMetadata($scope.selectedScript, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
+					  if(!result) {
+						  $scope.statusColor = "red";
+						  $scope.status = "Error saving script metadata";
+					  }
+				  });
+			  }
+		 });
+	  
 	  /*** two way binding ***/
 //	  $scope.$watch('inputsAsString', function() {
 //		  if($scope.inputsAsString) {
