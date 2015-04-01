@@ -13,13 +13,13 @@
 	<div style="display: inline">
 			<ui-select ng-Model="ngModel.firstLevel" theme="select2" style="width: 100%;">
 		   		<ui-select-match allow-clear="true" placeholder="First Level">{{$select.selected.title}}</ui-select-match>
-				<ui-select-choices repeat="column in columns">
+				<ui-select-choices repeat="column in columns | filter : $select.search">
 		      			 <div ng-bind-html="column.title | highlight: $select.search"></div>
 		       	</ui-select-choices>
 			</ui-select>
 			<ui-select ng-Model="ngModel.secondLevel" theme="select2" style="width: 100%;">
 		   		<ui-select-match allow-clear="true" placeholder="Second Level">{{$select.selected.title}}</ui-select-match>
-				<ui-select-choices repeat="column in columns">
+				<ui-select-choices repeat="column in columns | filter : $select.search">
 		      			 <div ng-bind-html="column.title | highlight: $select.search"></div>
 		       	</ui-select-choices>
 			</ui-select>
