@@ -1,5 +1,5 @@
-FLASCC:=/Users/pkovac/bin/crossbridge/sdk
-FLEX:=/Users/pkovac/bin/flex
+FLASCC:=/cygdrive/c/flascc/sdk
+FLEX:=/cygdrive/c/flex
 AS3COMPILER:=asc2.jar
 BASE_CFLAGS:=-Werror -Wno-write-strings -Wno-trigraphs
 C_OBJS =strftime2.o strptime2.o timelocal.o

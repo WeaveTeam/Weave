@@ -99,23 +99,24 @@ void date_parse()
 
     if (strptime2(date_str, fmt, &tm) == date_str + strlen(date_str))
     {
-                /* If the date was incompletely specified, these fields won't be populated. 
-                   A date field comprised of only Hour/Minute/Second/Msecond might be a duration,
-                   and should be interpreted as UTC to avoid confusion. */
-                if (tm.tm.tm_year == INT_MAX &&
-                    tm.tm.tm_mon == INT_MAX &&
-                    tm.tm.tm_mday == INT_MAX)
-                {
-                    tm.tm.tm_year = tm.tm.tm_mon = 0;
-                    inline_nonreentrant_as3(
-                        "utc = true;"
-                    );
-                }
+		/* If the date was incompletely specified, these fields won't be populated.
+		   A date field comprised of only Hour/Minute/Second/Msecond might be a duration,
+		   and should be interpreted as UTC to avoid confusion. */
+		if (tm.tm.tm_year == INT_MAX &&
+			tm.tm.tm_mon == INT_MAX &&
+			tm.tm.tm_mday == INT_MAX)
+		{
+			inline_nonreentrant_as3(
+				"utc = true;"
+			);
+		}
 
-                if (tm.tm.tm_mday == INT_MIN) 
-                {
-                    tm.tm.tm_mday = 1;
-                }
+		if (tm.tm.tm_year == INT_MAX)
+			tm.tm.tm_year = 0;
+		if (tm.tm.tm_mon == INT_MAX)
+			tm.tm.tm_mon = 0;
+		if (tm.tm.tm_mday == INT_MAX)
+			tm.tm.tm_mday = 1;
 
 		inline_nonreentrant_as3(
 			"if (utc && !force_local)"

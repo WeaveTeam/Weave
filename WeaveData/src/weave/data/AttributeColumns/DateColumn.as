@@ -384,7 +384,9 @@ package weave.data.AttributeColumns
 			'%Y.%m.%d',
 			
 			'%H:%M',
+			'%H:%M.%Q',
 			'%H:%M:%S',
+			'%H:%M:%S.%Q',
 			'%a, %d %b %Y %H:%M:%S %z', // RFC_822
 			
 			// ISO_8601   http://www.thelinuxdaily.com/2014/03/c-function-to-validate-iso-8601-date-formats-using-strptime/
@@ -405,6 +407,7 @@ package weave.data.AttributeColumns
 			
 			"%Y-%b-%d %T",
 			"%Y-%b-%d %H:%M:%S",
+			"%Y-%b-%d %H:%M:%S.%Q",
 			"%d-%b-%Y %T",
 			"%d-%b-%Y %H:%M:%S",
 			"%d-%b-%Y %H:%M:%S.%Q",
