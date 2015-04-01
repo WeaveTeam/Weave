@@ -334,7 +334,8 @@ package weave.data.AttributeColumns
 			'EEE','%a',
 			'NN','%M', // note these %M appears after the M's were replaced above
 			'N','%-M',
-			'SS','%S'
+			'SS','%S',
+			'QQQ','%Q'
 			//,'S','%-S'
 		];
 		
