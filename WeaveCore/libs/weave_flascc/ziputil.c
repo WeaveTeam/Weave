@@ -90,7 +90,7 @@ void openZip()
 	{
 		free(zip_archive);
 		free(byteArray_ptr);
-		//tracef("Invalid archive. byteArray.length=%u", byteArray_len);
+		tracef("Invalid archive. byteArray.length=%u", byteArray_len);
 		AS3_Return(0);
 	}
 
