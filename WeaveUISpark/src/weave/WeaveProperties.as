@@ -353,7 +353,6 @@ package weave
 		public const showCopyright:LinkableBoolean = new LinkableBoolean(true);
 
 		// probing and selection
-		public const selectionBlurringAmount:LinkableNumber = new LinkableNumber(4);
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
 		
 		//selection location information
@@ -533,16 +532,12 @@ package weave
 		
 		
 		public const filter_callbacks:ICallbackCollection = new CallbackCollection();
-		public const filter_selectionBlur:BlurFilter = new BlurFilter();
 		public const filter_probeGlowInnerText:GlowFilter = new GlowFilter(0, 0.9, 2, 2, 255);
 		public const filter_probeGlowInner:GlowFilter = new GlowFilter(0, 0.9, 5, 5, 10);
 		public const filter_probeGlowOuter:GlowFilter = new GlowFilter(0, 0.7, 3, 3, 10);
 		public const filter_selectionShadow:DropShadowFilter = new DropShadowFilter(1, 45, 0, 0.5, 4, 4, 2);
 		private function updateFilters():void
 		{
-			filter_selectionBlur.blurX = selectionBlurringAmount.value;
-			filter_selectionBlur.blurY = selectionBlurringAmount.value;
-			
 			probeInnerGlow.copyTo(filter_probeGlowInnerText);
 			filter_probeGlowInnerText.blurX = 2;
 			filter_probeGlowInnerText.blurY = 2;
@@ -557,7 +552,6 @@ package weave
 			var objects:Array = [
 				enableBitmapFilters,
 				selectionAlphaAmount,
-				selectionBlurringAmount,
 				probeInnerGlow,
 				probeOuterGlow,
 				selectionDropShadow

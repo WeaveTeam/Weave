@@ -600,24 +600,11 @@ package weave.visualization.layers
 				{
 					subsetTask.completedBitmap.alpha = Weave.properties.selectionAlphaAmount.value;
 					subsetTask.bufferBitmap.alpha = Weave.properties.selectionAlphaAmount.value;
-					
-					if (Weave.properties.enableBitmapFilters.value)
-					{
-						subsetTask.completedBitmap.filters = [Weave.properties.filter_selectionBlur];
-						subsetTask.bufferBitmap.filters = [Weave.properties.filter_selectionBlur];
-					}
-					else
-					{
-						subsetTask.completedBitmap.filters = null;
-						subsetTask.bufferBitmap.filters = null;
-					}
 				}
 				else // no selection
 				{
 					subsetTask.completedBitmap.alpha = 1.0;
 					subsetTask.bufferBitmap.alpha = 1.0;
-					subsetTask.completedBitmap.filters = null;
-					subsetTask.bufferBitmap.filters = null;
 				}
 				
 				if (Weave.properties.enableBitmapFilters.value)
