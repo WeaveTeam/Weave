@@ -169,7 +169,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 						checkbox : true,
 						icon : false,
 						selectMode : 3,
-						children : treeData,
+						children : treeData
 					});
 					return;
 				}

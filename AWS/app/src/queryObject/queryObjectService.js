@@ -182,7 +182,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			GeographyFilter : {
 				stateColumn:{},
 				countyColumn:{},
-				metadataTable:{}
+				metadataTable:{},
+				filters:{}
 			},
 			openInNewWindow : false,
 			Reidentification : {
