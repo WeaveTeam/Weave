@@ -25,6 +25,7 @@ package weave.utils
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
+	import weave.api.core.DynamicState;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.compiler.Compiler;
@@ -397,6 +398,45 @@ package weave.utils
 			var t:Timer = new Timer(delay, 1);
 			t.addEventListener(TimerEvent.TIMER, function(..._):*{ func.apply(null, params); });
 			t.start();
+		}
+		
+		/**
+		 * Traverses a path in a session state using the logic used by SessionManager.
+		 * @param state A full session state.
+		 * @param path A path.
+		 * @return The session state at the specified path.
+		 */
+		public static function traverseStatePath(state:Object, path:Array):*
+		{
+			try
+			{
+				for each (var property:* in path)
+				{
+					if (DynamicState.isDynamicStateArray(state))
+					{
+						if (property is Number)
+							state = state[property][DynamicState.SESSION_STATE];
+						else
+						{
+							for each (var obj:Object in state)
+							{
+								if (obj[DynamicState.OBJECT_NAME] == property)
+								{
+									state = obj[DynamicState.SESSION_STATE];
+									break;
+								}
+							}
+						}
+					}
+					else
+						state = state[property];
+				}
+				return state;
+			}
+			catch (e:Error)
+			{
+				return undefined;
+			}
 		}
 	}
 }

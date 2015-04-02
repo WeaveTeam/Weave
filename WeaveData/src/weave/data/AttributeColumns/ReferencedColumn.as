@@ -109,7 +109,7 @@ package weave.data.AttributeColumns
 					_dataSource = null;
 				
 				var col:IAttributeColumn = null;
-				if (dataSourceName.value && !_dataSource)
+				if (dataSourceName.value && !_dataSource && dataSourceName.value != 'null')
 				{
 					// data source was named but not found
 				}
