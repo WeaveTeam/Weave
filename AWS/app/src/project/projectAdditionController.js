@@ -97,16 +97,21 @@ projectModule.controller('pjtAddtionInstanceCtrl', function($scope, $modalInstan
 				uploadedObjects : $scope.uploadedObjects
 		};
 		
-		console.log("being called");
+		if(additionParams.uploadedObjects.queryObjectJsons.length > 0){//only if something is uploaded, save it
+			
+			$scope.projectService.createNewProject(additionParams.userNameEntered,
+					additionParams.projectNameEntered,
+					additionParams.projectDescriptionEntered,
+					additionParams.uploadedObjects.queryObjectTitles,
+					additionParams.uploadedObjects.queryObjectJsons,
+					null);
+			
+			$modalInstance.close(additionParams);
+		}
+		else{
+			alert("Please upload a query object to create a project");
+		}
 		
-		$scope.projectService.createNewProject(additionParams.userNameEntered,
-											   additionParams.projectNameEntered,
-											   additionParams.projectDescriptionEntered,
-											   additionParams.uploadedObjects.queryObjectTitles,
-											   additionParams.uploadedObjects.queryObjectJsons,
-											null);
-		
-		 $modalInstance.close(additionParams);
 	 };
 	 
 	 $scope.remove = function(file){
