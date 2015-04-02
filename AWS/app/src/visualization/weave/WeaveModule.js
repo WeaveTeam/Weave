@@ -93,7 +93,6 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 	this.listOfTools = function(){
 		if(ws.weave && ws.weave.path ){
 			var tools =  ws.weave.path().libs('weave.api.ui.IVisTool').getValue('getNames(IVisTool)');
-			console.log("tools", tools);
 		}
 
 		return tools;
@@ -104,20 +103,27 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 		var selAttributes =[];
 		
 		if(ws.weave && ws.weave.path ){
-			//var plotLayers = ws.weave.path(vizTool, 'children', 'visualization', 'plotManager', 'plotters').getNames();
-			//var plotLayers = ws.weave.path( ws.weave.path(vizTool, 'children', 'visualization', 'plotManager', 'plotters', 'plot'));
-			var attrs = ws.weave.path(vizTool, 'children', 'visualization', 'plotManager', 'plotters', 'plot').getValue('getSelectableAttributeNames()');
-			for(var j in attrs){
-				selAttributes.push({plotLayer : 'plot', title : attrs[j]});
+			if(vizTool == 'MapTool'){//because we're naming the plot layers here
+				var plotLayers = ws.weave.path(vizTool, 'children', 'visualization', 'plotManager', 'plotters').getNames();
+				
+				for(var i in plotLayers)
+				{
+					var attrs = ws.weave.path(vizTool, 'children', 'visualization', 'plotManager', 'plotters', plotLayers[i]).getValue('getSelectableAttributeNames()');
+					for(var j in attrs){
+						selAttributes.push({plotLayer : plotLayers[i], title : attrs[j]});
+					}
+				}
+				
+			}
+			else{
+				
+				var attrs = ws.weave.path(vizTool, 'children', 'visualization', 'plotManager', 'plotters', 'plot').getValue('getSelectableAttributeNames()');
+				for(var j in attrs){
+					selAttributes.push({plotLayer : 'plot', title : attrs[j]});
+				}
 			}
 			
-//			for(var i in plotLayers)
-//			{
-//				var attrs = ws.weave.path(vizTool, 'children', 'visualization', 'plotManager', 'plotters', plotLayers[i]).getValue('getSelectableAttributeNames()');
-//				for(var j in attrs){
-//					selAttributes.push({plotLayer : plotLayers[i], title : attrs[j]});
-//				}
-//			}
+
 		}
 		
 		
@@ -181,6 +187,10 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			try{
 				if(state.enabled)
 				{
+					//add to the enabled tools collection
+					if($.inArray(this.toolsEnabled, state.title) == -1)
+						this.toolsEnabled.push(state.title);
+					
 					ws.weave.path(toolName)
 					.request('CompoundBarChartTool')
 					.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
@@ -193,6 +203,11 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 						negativeErrorColumns : state.negErr
 					});
 				} else {
+					//remove from enabled tool collection
+					if($.inArray(this.toolsEnabled, state.title)){
+						var index = this.toolsEnabled.indexOf(state.title);
+						this.toolsEnabled.splice(index, 1);
+					}
 					ws.weave.path(toolName).remove();
 				}
 			} catch(e)
@@ -214,13 +229,21 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 				if(!state.enabled)
 				{
 					ws.weave.path(toolName).remove();
+					//remove from enabled tool collection
+					if($.inArray(state.title,this.toolsEnabled)){
+						var index = this.toolsEnabled.indexOf(state.title);
+						this.toolsEnabled.splice(index, 1);
+					}
 					return "";
 				}
 				else{
 					
 				}
 				ws.weave.path(toolName).request('MapTool').state({ panelX : "0%", panelY : "0%", panelTitle : state.title, enableTitle : true });
-				;
+				//add to the enabled tools collection
+				if($.inArray(state.title, this.toolsEnabled) == -1)
+					this.toolsEnabled.push(state.title);
+				
 				//STATE LAYER
 				if(state.stateGeometryLayer)
 				{
@@ -318,8 +341,16 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			if(!state.enabled)
 			{
 				ws.weave.path(toolName).remove();
+				//remove from enabled tool collection
+				if($.inArray(state.title, this.toolsEnabled)){
+					var index = this.toolsEnabled.indexOf(state.title);
+					this.toolsEnabled.splice(index, 1);
+				}
 				return "";
 			}
+			//add to the enabled tools collection
+			if($.inArray(state.title, this.toolsEnabled) == -1)
+				this.toolsEnabled.push(state.title);
 			
 			ws.weave.path(toolName).request('ScatterPlotTool')
 			.state({ panelX : "50%", panelY : "50%", panelTitle : state.title, enableTitle : true})
@@ -339,8 +370,18 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 		if(ws.weave && ws.weave.path && state) {
 			if(!state.enabled) {
 				ws.weave.path(toolName).remove();
+
+				//remove from enabled tool collection
+				if($.inArray(state.title, this.toolsEnabled)){
+					var index = this.toolsEnabled.indexOf(state.title);
+					this.toolsEnabled.splice(index, 1);
+				}
 				return "";
 			}
+			//add to the enabled tools collection
+			if($.inArray(state.title, this.toolsEnabled) == -1)
+				this.toolsEnabled.push(state.title);
+			
 			ws.weave.path(toolName).request('AdvancedTableTool')
 			.state({ panelX : "50%", panelY : "0%", panelTitle : state.title, enableTitle : true})
 			.call(setQueryColumns, {columns: state.columns});

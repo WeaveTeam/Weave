@@ -5,15 +5,17 @@ AnalysisModule.controller("AttributeMenuCtrl", function($scope, WeaveService, $t
 
 	$scope.WeaveService = WeaveService;
 
-	$scope.$watch('tool.enabled', function(){
-		if($scope.tool.enabled)
-			$scope.openTools = WeaveService.listOfTools();
-	});
+//	$scope.$watch('tool.enabled', function(){
+//		if($scope.tool.enabled)
+//			$scope.openTools = WeaveService.listOfTools();
+//	});
 	
 	$scope.$watch('tool.selectedVizTool', function(){
 		//console.log("tools selected", $scope.tool.selectedVizTool);
-		if($scope.tool.selectedVizTool)
+		if($scope.tool.selectedVizTool){
+			$scope.vizAttributeColl = [];
 			$scope.vizAttributeColl = WeaveService.getSelectableAttributes($scope.tool.title, $scope.tool.selectedVizTool);
+		}
 	});
 	
 	$scope.$watch('tool', function() {

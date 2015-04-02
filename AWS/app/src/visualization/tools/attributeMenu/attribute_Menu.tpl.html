@@ -28,7 +28,7 @@
 				<td style="padding-left: 5px;">
 					<ui-select ng-model="tool.selectedVizTool" theme="select2" style="width: 100%;">
 				    	<ui-select-match allow-clear="true" placeholder="Select a tool...">{{$select.selected}}</ui-select-match>
-						<ui-select-choices  repeat="tool in openTools | filter : $select.search">
+						<ui-select-choices  repeat="tool in WeaveService.toolsEnabled| filter : $select.search">
 				       		 <div ng-bind-html="tool | highlight: $select.search"></div>
 				        </ui-select-choices>
 					</ui-select>
