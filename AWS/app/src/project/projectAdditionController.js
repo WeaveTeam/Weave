@@ -83,6 +83,13 @@ projectModule.controller('pjtAddtionInstanceCtrl', function($scope, $modalInstan
 	
 	//called when save button is hit.;
 	$scope.saveQueryObjects = function (projectNameEntered,projectDescriptionEntered, userNameEntered) {
+		if(!projectNameEntered)
+			projectNameEntered = "Example Project";
+		if(!projectDescriptionEntered)
+			projectDescriptionEntered = "These query object(s) belong to " + projectNameEntered;
+		if(!userNameEntered)
+			userNameEntered = "Awesome User";
+		
 		var additionParams = {
 				projectNameEntered : projectNameEntered,
 				userNameEntered :userNameEntered,
