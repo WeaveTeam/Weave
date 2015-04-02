@@ -294,13 +294,13 @@
 					<div class="databox" style="width: 25%;" ng-if="showToolMenu">
 						<div>
 							<div>
-								<ui-select ng-model="selectedToolToAdd" theme="select2" style="width: 59%;">
+								<ui-select ng-model="selectedToolToAdd.value" theme="select2" style="width: 59%;">
 									<ui-select-match allow-clear="true" placeholder="Add Tool...">{{$select.selected}}</ui-select-match>
 									<ui-select-choices repeat="tool in tool_options | filter :  $select.search">
 							       		 <div ng-bind-html="tool | highlight: $select.search"></div>
 							        </ui-select-choices>
 								</ui-select>
-								<button style = "width : 19%" class= "btn btn-sm btn-default" ng-click="addTool(selectedToolToAdd)">Add</button>
+								<button style = "width : 19%" class= "btn btn-sm btn-default" ng-click="addTool(selectedToolToAdd.value)">Add</button>
 								<button style = "width : 19%" class="btn btn-sm btn-default" ng-click="WeaveService.tileWindows()">Tile</button>
 							</div>
 							
@@ -319,7 +319,6 @@
 									</accordion-heading>
 									<div ng-include="tool.template_url"></div>
 								</accordion-group>
-								
 							</accordion>
 						</div>
 					</div>
@@ -342,10 +341,7 @@
 									<h6 style = "font-size: 13px" class="widget-description" ng-show = "tool.note"> {{widget_brick.note}} </h6>
 									<div class="" ng-include="tool.template_url"></div>
 							</div>
-							
-
 					</div>
-
 				</div>
 </div>
 

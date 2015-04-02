@@ -205,7 +205,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	});
 	 // starting position for the queryObject panel
-	 $("#queryObjectPanel" ).css({'top' : -1930, 'left' : 315});
+	 $("#queryObjectPanel" ).css({'top' : -1059, 'left' : 315});
 	
 	 
 	 $scope.$watch('queryService.queryObject.resultSet', function() {
