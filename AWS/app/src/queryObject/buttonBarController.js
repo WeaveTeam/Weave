@@ -57,7 +57,7 @@ QueryObject.controller("buttonBarController", function($scope, $modal, queryServ
     	var saveQueryObjectInstance = $modal.open($scope.opts);
     	saveQueryObjectInstance.result.then(function(params){//this takes only a single object
     	//console.log("params", params);
-    		queryService.getSessionState(params);
+    		queryService.getBase64SessionState(params);
     		
     	});
     };

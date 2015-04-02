@@ -391,8 +391,15 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 		}
 	};
 	
-	this.getSessionState = function()
+	//returns session state of Weave as objects
+	this.getSessionStateObjects = function(){
+		return ws.weave.path().getState();
+	};
+	
+	this.getBase64SessionState = function()
 	{
+//		var x = ws.weave.path().getState();
+//		console.log('x', x);
 		return ws.weave.path().getValue("\
 		        var e = new 'mx.utils.Base64Encoder'();\
 		        e.encodeBytes( Class('weave.Weave').createWeaveFileContent(true) );\
@@ -400,7 +407,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 		    ");
 	};
 	
-	this.setSessionHistory = function(base64encodedstring)
+	this.setSessionState = function(base64encodedstring)
 	{
 		ws.weave.path()
 		.vars({encoded: base64encodedstring})
