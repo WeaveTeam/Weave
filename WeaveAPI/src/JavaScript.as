@@ -261,6 +261,8 @@ package
 					
 					function cacheProxyFunction(id) {
 						var func = function() {
+							if (!flash[JSON_CALL])
+								throw new Error("Cannot use the JavaScript API of a Flash object after it has been removed from the DOM.");
 							var params = Array.prototype.slice.call(arguments);
 							var paramsJson = toJson(params);
 							var resultJson = flash[JSON_CALL](id, paramsJson);
