@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-    
-    This file is a part of Weave.
-    
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-    
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-    
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.Transforms
 {
@@ -24,7 +20,6 @@ package weave.data.Transforms
     import weave.api.data.IAttributeColumn;
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
-    import weave.api.detectLinkableObjectChange;
     import weave.api.newLinkableChild;
     import weave.api.registerLinkableChild;
     import weave.api.ui.ISelectableAttributes;
@@ -71,23 +66,19 @@ package weave.data.Transforms
             if (!_rootNode)
             {
                 var source:ForeignDataMappingTransform = this;
-                var dataColumnNames:Array = [];
-                
                 _rootNode = new ColumnTreeNode({
-                    source: source,
+                    source: dataColumns,
                     data: source,
                     label: WeaveAPI.globalHashMap.getName(this),
                     isBranch: true,
                     hasChildBranches: false,
                     children: function():Array {
-                        if (detectLinkableObjectChange(_rootNode, dataColumns))
-							dataColumnNames = dataColumns.getNames();
-                        return dataColumnNames.map(
+                        return dataColumns.getNames().map(
                             function(dataColumnName:String, ..._):* {
                                 var column:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
-                                var columnLabel:String = column.getMetadata(ColumnMetadata.TITLE);
+                                var title:String = column.getMetadata(ColumnMetadata.TITLE);
                                 var metadata:Object = {};
-                                metadata[ColumnMetadata.TITLE] = columnLabel;
+                                metadata[ColumnMetadata.TITLE] = title;
                                 metadata[DATA_COLUMNNAME_META] = dataColumnName;
                                 return generateHierarchyNode(metadata);
                             }
@@ -139,26 +130,92 @@ package weave.data.Transforms
 			proxyColumn.setMetadata(metadata);
 			
             var dataColumn:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
-            var equationColumn:EquationColumn = proxyColumn.getInternalColumn() as EquationColumn || new EquationColumn();
-
-			metadata[ColumnMetadata.TITLE] = "{dataColumn.getMetadata('title')}";
-			metadata[ColumnMetadata.DATA_TYPE] = "{dataColumn.getMetadata('dataType')}";
-            equationColumn.variables.requestObjectCopy("keyColumn", keyColumn);
-            equationColumn.variables.requestObjectCopy("dataColumn", dataColumn);
-            equationColumn.metadata.value = metadata;
-            equationColumn.filterByKeyType.value = true;
-            equationColumn.equation.value = <![CDATA[
-				function(key, dataType)
-				{
-					var kt = keyColumn.getMetadata('dataType');
-					if (kt == 'string')
-						kt = dataColumn.getMetadata('keyType');
-					var ln = keyColumn.getValueFromKey(key, String);
-					return dataColumn.getValueFromKey(getQKey(kt, ln), dataType);
-				}
-			]]>;
-
-            proxyColumn.setInternalColumn(equationColumn);
+            var foreignDataColumn:ForeignDataColumn = proxyColumn.getInternalColumn() as ForeignDataColumn || new ForeignDataColumn(this);
+			foreignDataColumn.setup(metadata, dataColumn);
+			
+            proxyColumn.setInternalColumn(foreignDataColumn);
         }
     }
+}
+
+import weave.api.data.ColumnMetadata;
+import weave.api.data.DataType;
+import weave.api.data.IAttributeColumn;
+import weave.api.data.IPrimitiveColumn;
+import weave.api.data.IQualifiedKey;
+import weave.api.registerLinkableChild;
+import weave.core.SessionManager;
+import weave.data.AttributeColumns.AbstractAttributeColumn;
+import weave.data.Transforms.ForeignDataMappingTransform;
+import weave.utils.ColumnUtils;
+import weave.utils.VectorUtils;
+
+internal class ForeignDataColumn extends AbstractAttributeColumn implements IPrimitiveColumn
+{
+	public function ForeignDataColumn(source:ForeignDataMappingTransform)
+	{
+		registerLinkableChild(this, source);
+		_keyColumn = source.keyColumn;
+	}
+	
+	private var _keyColumn:IAttributeColumn;
+	private var _dataColumn:IAttributeColumn;
+	private var _keyType:String;
+	
+	public function setup(metadata:Object, dataColumn:IAttributeColumn):void
+	{
+		if (_dataColumn && _dataColumn != dataColumn)
+			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _dataColumn);
+		
+		_metadata = copyValues(metadata);
+		_dataColumn = registerLinkableChild(this, dataColumn);
+		_keyType = _keyColumn.getMetadata(ColumnMetadata.DATA_TYPE);
+		if (_keyType == DataType.STRING)
+			_keyType = dataColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+		triggerCallbacks();
+	}
+	
+	override public function getMetadata(propertyName:String):String
+	{
+		return super.getMetadata(propertyName)
+			|| _dataColumn.getMetadata(propertyName);
+	}
+	
+	override public function getMetadataPropertyNames():Array
+	{
+		if (_dataColumn)
+			return VectorUtils.union(super.getMetadataPropertyNames(), _dataColumn.getMetadataPropertyNames());
+		return super.getMetadataPropertyNames();
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	override public function get keys():Array
+	{
+		return _keyColumn.keys;
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	override public function containsKey(key:IQualifiedKey):Boolean
+	{
+		return _dataColumn.containsKey(key);
+	}
+	
+	public function deriveStringFromNumber(value:Number):String
+	{
+		return ColumnUtils.deriveStringFromNumber(_dataColumn, value);
+	}
+	
+	/**
+	 * @inheritDoc
+	 */
+	override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
+	{
+		var localName:String = _keyColumn.getValueFromKey(key, String);
+		var foreignKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(_keyType, localName);
+		return _dataColumn.getValueFromKey(foreignKey, dataType);
+	}
 }

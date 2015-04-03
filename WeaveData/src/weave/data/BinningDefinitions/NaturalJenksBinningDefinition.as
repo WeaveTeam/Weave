@@ -1,21 +1,17 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.BinningDefinitions
 {
@@ -93,6 +89,7 @@ package weave.data.BinningDefinitions
 			}
 			
 			_sortedValues = new Array();
+			_numOfBins = numOfBins.value;
 			_keyCount = 0;
 			_previousSortedValues.length = 0;
 			
@@ -105,11 +102,11 @@ package weave.data.BinningDefinitions
 			_compoundIterateAll(-1); // reset compound task
 			
 			// high priority because not much can be done without data
-			WeaveAPI.StageUtils.startTask(asyncResultCallbacks, _compoundIterateAll, WeaveAPI.TASK_PRIORITY_HIGH, _handleJenksBreaks);
+			WeaveAPI.StageUtils.startTask(asyncResultCallbacks, _compoundIterateAll, WeaveAPI.TASK_PRIORITY_HIGH, _handleJenksBreaks, lang("Computing Natural Breaks binning for {0} values", _keys.length));
 		}
 		
 		private var _compoundIterateAll:Function = StageUtils.generateCompoundIterativeTask(_getValueFromKeys, _iterateSortedKeys, _iterateJenksBreaks);
-		
+		private var _numOfBins:int;
 		private var _keyCount:int = 0;
 		private var _keys:Array = []; 
 		private function _getValueFromKeys(stopTime:int):Number
@@ -154,7 +151,6 @@ package weave.data.BinningDefinitions
 			
 			_lower_class_limits = [];
 			_variance_combinations = [];
-			var numberOfBins:Number = numOfBins.value;
 			// Initialize and fill each matrix with zeroes
 			for (var i:int = 0; i < _sortedValues.length+1; i++)
 			{
@@ -163,7 +159,7 @@ package weave.data.BinningDefinitions
 				// despite these arrays having the same values, we need
 				// to keep them separate so that changing one does not change
 				// the other
-				for(var j:int =0; j < numberOfBins+1; j++)
+				for(var j:int =0; j < _numOfBins+1; j++)
 				{
 					temp1.push(0);
 					temp2.push(0);
@@ -172,7 +168,7 @@ package weave.data.BinningDefinitions
 				_variance_combinations.push(temp2);
 			}
 			
-			for (var k:int =1; k <numberOfBins + 1; k++)
+			for (var k:int =1; k <_numOfBins + 1; k++)
 			{
 				_lower_class_limits[1][k] = 1;
 				_variance_combinations[1][k] = 0;
@@ -250,7 +246,7 @@ package weave.data.BinningDefinitions
 					if(i4 !=0)
 					{
 						_p = 2;
-						for (; _p < numOfBins.value + 1; _p++)
+						for (; _p < _numOfBins + 1; _p++)
 						{
 							// if adding this element to an existing class
 							// will increase its variance beyond the limit, break
@@ -287,7 +283,7 @@ package weave.data.BinningDefinitions
 				{
 					value = data[k];
 					countNum++;
-					if (countNum >= numOfBins.value)
+					if (countNum >= _numOfBins)
 						break;
 				}
 			}
@@ -322,7 +318,7 @@ package weave.data.BinningDefinitions
 				_tempNumberClassifier.min.value = _previousSortedValues[minIndex];
 				
 				var maxIndex:Number;
-				if(iBin == numOfBins.value -1)
+				if(iBin == _numOfBins -1)
 				{
 					maxIndex = _previousSortedValues.length -1;
 				}

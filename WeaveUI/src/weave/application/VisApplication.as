@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.application
 {
@@ -39,6 +35,7 @@ package weave.application
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.containers.Canvas;
 	import mx.containers.VBox;
 	import mx.controls.Alert;
 	import mx.controls.Image;
@@ -671,6 +668,7 @@ package weave.application
 
 		private var menuBar:WeaveMenuBar = null;
 		private var historySlider:UIComponent = null;
+		private var spacer:Canvas = null;
 		
 		private function refreshMenu():void
 		{
@@ -688,11 +686,18 @@ package weave.application
 			if (!menuBar)
 			{
 				menuBar = new WeaveMenuBar();
+				menuBar.setStyle('backgroundColor', 0xe0e0e0);
 				this.addChildAt(menuBar, 0);
 			}
 			if (!historySlider)
 			{
 				historySlider = WeaveAPI.EditorManager.getNewEditor(Weave.history) as UIComponent;
+				historySlider.setStyle('backgroundColor', 0xe0e0e0);
+				historySlider.setStyle('backgroundAlpha', 1);
+				historySlider.setStyle('borderSides', 'top');
+				historySlider.setStyle('borderColor', 0xc0c0c0);
+				historySlider.setStyle('borderStyle', 'solid');
+				historySlider.setStyle('borderThickness', 1);
 				var shs:SessionHistorySlider = historySlider as SessionHistorySlider;
 				if (shs)
 					shs.squashActive.addImmediateCallback(this, function():void{
@@ -700,9 +705,21 @@ package weave.application
 					});
 				
 				if (historySlider)
-					this.addChildAt(historySlider, this.getChildIndex(visDesktop));
+					this.addChildAt(historySlider, 1);
 				else
 					reportError("Unable to get editor for SessionStateLog");
+			}
+			
+			if (!spacer)
+			{
+				// TODO - this functionality should be done in a ToolBarVBox class with verticalGap=1 and borderSides: 'bottom'
+				
+				spacer = new Canvas();
+				spacer.height = 1;
+	 			spacer.percentWidth = 100;
+				spacer.setStyle('backgroundAlpha', 1);
+				spacer.setStyle('backgroundColor', 0x808080);
+				this.addChildAt(spacer, this.getChildIndex(visDesktop));
 			}
 			
 			const alpha_full:Number = 1.0;
@@ -716,12 +733,16 @@ package weave.application
 				menuBar.refresh();
 			
 			// show/hide historySlider
+			historySlider.setStyle('borderStyle', showMenu ? 'solid' : 'none');
 			if (historySlider)
 			{
 				var showHistory:Boolean = Weave.properties.enableSessionHistoryControls.value || adminMode;
 				historySlider.visible = historySlider.includeInLayout = showHistory;
 				historySlider.alpha = Weave.properties.enableSessionHistoryControls.value ? alpha_full : alpha_partial;
 			}
+			
+			// show/hide spacer
+			spacer.visible = spacer.includeInLayout = showMenu || showHistory;
 		}
 
 		/**

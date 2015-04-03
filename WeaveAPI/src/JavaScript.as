@@ -1,10 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  *
- * This file is part of the Weave API.
+ * This file is part of Weave.
  *
- * The Initial Developer of the Weave API is the Institute for Visualization
+ * The Initial Developer of Weave is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
  * the Initial Developer. All Rights Reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -19,6 +19,7 @@ package
 	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
+	import flash.utils.getQualifiedClassName;
 
 	/**
 	 * An alternative to flash.external.ExternalInterface with workarounds for its limitations.
@@ -260,6 +261,8 @@ package
 					
 					function cacheProxyFunction(id) {
 						var func = function() {
+							if (!flash[JSON_CALL])
+								throw new Error("Cannot use the JavaScript API of a Flash object after it has been removed from the DOM.");
 							var params = Array.prototype.slice.call(arguments);
 							var paramsJson = toJson(params);
 							var resultJson = flash[JSON_CALL](id, paramsJson);
@@ -514,7 +517,7 @@ package
 			// separate function parameters from code
 			for each (var item:Object in paramsAndCode)
 			{
-				if (item.constructor == Object)
+				if (getQualifiedClassName(item) == 'Object')
 				{
 					// We assume that all the keys in the Object are valid JavaScript identifiers,
 					// since they are to be used in the code as variables.

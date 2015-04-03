@@ -1,10 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  *
- * This file is part of the Weave API.
+ * This file is part of Weave.
  *
- * The Initial Developer of the Weave API is the Institute for Visualization
+ * The Initial Developer of Weave is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
  * the Initial Developer. All Rights Reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -31,6 +31,7 @@ package weave.api.data
 		public static const PROJECTION:String = "projection";
 		public static const AGGREGATION:String = "aggregation";
 		public static const DATE_FORMAT:String = "dateFormat";
+		public static const OVERRIDE_BINS:String = "overrideBins";
 		public static const MIN:String = "min";
 		public static const MAX:String = "max";
 		

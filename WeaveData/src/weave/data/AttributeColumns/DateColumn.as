@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.AttributeColumns
 {
@@ -30,6 +26,9 @@ package weave.data.AttributeColumns
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
+	import weave.flascc.date_format;
+	import weave.flascc.date_parse;
+	import weave.flascc.dates_detect;
 	
 	/**
 	 * @author adufilie
@@ -55,6 +54,7 @@ package weave.data.AttributeColumns
 		private var _stringToNumberFunction:Function = null;
 		private var _numberToStringFunction:Function = null;
 		private var _dateFormat:String = null;
+		private var _useFlascc:Boolean = true;
 		
 		/**
 		 * @inheritDoc
@@ -63,6 +63,8 @@ package weave.data.AttributeColumns
 		{
 			if (propertyName == ColumnMetadata.DATA_TYPE)
 				return DataType.DATE;
+			if (propertyName == ColumnMetadata.DATE_FORMAT)
+				return _dateFormat;
 			return super.getMetadata(propertyName);
 		}
 
@@ -92,6 +94,15 @@ package weave.data.AttributeColumns
 			
 			// read dateFormat metadata
 			_dateFormat = getMetadata(ColumnMetadata.DATE_FORMAT);
+			if (!_dateFormat)
+			{
+				var possibleFormats:Array = detectDateFormats(dates);
+				StandardLib.sortOn(possibleFormats, 'length');
+				_dateFormat = possibleFormats.pop();
+			}
+			
+			_dateFormat = convertDateFormat_as_to_c(_dateFormat);
+			//_useFlascc = _dateFormat && _dateFormat.indexOf('%') >= 0;
 			
 			// compile the number format function from the metadata
 			_stringToNumberFunction = null;
@@ -147,6 +158,20 @@ package weave.data.AttributeColumns
 			triggerCallbacks();
 		}
 		
+		private function parseDate(string:String):Date
+		{
+			if (_useFlascc)
+				return weave.flascc.date_parse(string, _dateFormat);
+			return StandardLib.parseDate(string, _dateFormat);
+		}
+		
+		private function formatDate(value:Object):String
+		{
+			if (_useFlascc)
+				return weave.flascc.date_format(value as Date || new Date(value), _dateFormat);
+			return StandardLib.formatDate(value, _dateFormat);
+		}
+		
 		private function _asyncIterate(stopTime:int):Number
 		{
 			for (; _i < _keys.length; _i++)
@@ -164,16 +189,24 @@ package weave.data.AttributeColumns
 					if (_numberToStringFunction != null)
 					{
 						string = _numberToStringFunction(number);
-						date = StandardLib.parseDate(string, _dateFormat);
+						if (!string)
+							continue;
+						date = parseDate(string);
 					}
 					else
+					{
+						if (!isFinite(number))
+							continue;
 						date = new Date(number);
+					}
 				}
 				else
 				{
 					try
 					{
-						date = StandardLib.parseDate(string, _dateFormat);
+						if (!string)
+							continue;
+						date = parseDate(string);
 					}
 					catch (e:Error)
 					{
@@ -221,7 +254,7 @@ package weave.data.AttributeColumns
 				return _numberToStringFunction(number);
 			
 			if (_dateFormat)
-				return StandardLib.formatDate(number, _dateFormat);
+				return formatDate(number);
 			
 			return new Date(number).toString();
 		}
@@ -255,7 +288,7 @@ package weave.data.AttributeColumns
 					return '';
 				
 				if (_dateFormat)
-					string = StandardLib.formatDate(date, _dateFormat);
+					string = formatDate(date);
 				else
 					string = date.toString();
 				
@@ -274,5 +307,154 @@ package weave.data.AttributeColumns
 		{
 			return debugId(this) + '{recordCount: '+keys.length+', keyType: "'+getMetadata('keyType')+'", title: "'+getMetadata('title')+'"}';
 		}
+		
+		private static function convertDateFormat_as_to_c(format:String):String
+		{
+			if (!format || format.indexOf('%') >= 0)
+				return format;
+			return StandardLib.replace.apply(null, [format].concat(dateFormat_replacements_as_to_c));
+		}
+		
+		private static const dateFormat_replacements_as_to_c:Array = [
+			'YYYY','%Y',
+			'YY','%y',
+			'MMMM','%B',
+			'MMM','%b',
+			'MM','%m',
+			'M','%-m',
+			'DD','%d',
+			'D','%-d',
+			'E','%u',
+			'A','%p',
+			'JJ','%H',
+			'J','%-H',
+			'LL','%I',
+			'L','%-I',
+			'EEEE','%A', // note this %A is after the A was replaced above
+			'EEE','%a',
+			'NN','%M', // note these %M appears after the M's were replaced above
+			'N','%-M',
+			'SS','%S',
+			'QQQ','%Q'
+			//,'S','%-S'
+		];
+		
+		public static function detectDateFormats(dates:*):Array
+		{
+			return weave.flascc.dates_detect(dates, DATE_FORMAT_AUTO_DETECT);
+		}
+		
+		public static const DATE_FORMAT_ADDITIONAL_SUGGESTIONS:Array = [
+			"%Y"
+		];
+		public static const DATE_FORMAT_AUTO_DETECT:Array = [
+			'%d-%b-%y',
+			'%b-%d-%y',
+			'%d-%b-%Y',
+			'%b-%d-%Y',
+			'%Y-%b-%d',
+			
+			'%d/%b/%y',
+			'%b/%d/%y',
+			'%d/%b/%Y',
+			'%b/%d/%Y',
+			'%Y/%b/%d',
+			
+			'%d.%b.%y',
+			'%b.%d.%y',
+			'%d.%b.%Y',
+			'%b.%d.%Y',
+			'%Y.%b.%d',
+			
+			'%d-%m-%y',
+			'%m-%d-%y',
+			'%d-%m-%Y',
+			'%m-%d-%Y',
+			'%Y-%m-%d',
+			
+			'%d/%m/%y',
+			'%m/%d/%y',
+			'%d/%m/%Y',
+			'%m/%d/%Y',
+			'%Y/%m/%d',
+			
+			'%d.%m.%y',
+			'%m.%d.%y',
+			'%d.%m.%Y',
+			'%m.%d.%Y',
+			'%Y.%m.%d',
+			
+			'%H:%M',
+			'%H:%M.%Q',
+			'%H:%M:%S',
+			'%H:%M:%S.%Q',
+			'%a, %d %b %Y %H:%M:%S %z', // RFC_822
+			
+			// ISO_8601   http://www.thelinuxdaily.com/2014/03/c-function-to-validate-iso-8601-date-formats-using-strptime/
+			"%Y-%m-%d",
+			"%y-%m-%d",
+			"%Y-%m-%d %T",
+			"%y-%m-%d %T",
+			"%Y-%m-%dT%T",
+			"%y-%m-%dT%T",
+			"%Y-%m-%dT%TZ",
+			"%y-%m-%dT%TZ",
+			"%Y-%m-%d %TZ",
+			"%y-%m-%d %TZ",
+			"%Y%m%dT%TZ",
+			"%y%m%dT%TZ",
+			"%Y%m%d %TZ",
+			"%y%m%d %TZ",
+			
+			"%Y-%b-%d %T",
+			"%Y-%b-%d %H:%M:%S",
+			"%Y-%b-%d %H:%M:%S.%Q",
+			"%d-%b-%Y %T",
+			"%d-%b-%Y %H:%M:%S",
+			"%d-%b-%Y %H:%M:%S.%Q",
+			
+			/*
+			//https://code.google.com/p/datejs/source/browse/trunk/src/globalization/en-US.js
+			'M/d/yyyy',
+			'dddd, MMMM dd, yyyy',
+			"M/d/yyyy",
+			"dddd, MMMM dd, yyyy",
+			"h:mm tt",
+			"h:mm:ss tt",
+			"dddd, MMMM dd, yyyy h:mm:ss tt",
+			"yyyy-MM-ddTHH:mm:ss",
+			"yyyy-MM-dd HH:mm:ssZ",
+			"ddd, dd MMM yyyy HH:mm:ss GMT",
+			"MMMM dd",
+			"MMMM, yyyy",
+			
+			//http://www.java2s.com/Code/Android/Date-Type/parseDateforlistofpossibleformats.htm
+			"EEE, dd MMM yyyy HH:mm:ss z", // RFC_822
+			"EEE, dd MMM yyyy HH:mm zzzz",
+			"yyyy-MM-dd'T'HH:mm:ssZ",
+			"yyyy-MM-dd'T'HH:mm:ss.SSSzzzz", // Blogger Atom feed has millisecs also
+			"yyyy-MM-dd'T'HH:mm:sszzzz",
+			"yyyy-MM-dd'T'HH:mm:ss z",
+			"yyyy-MM-dd'T'HH:mm:ssz", // ISO_8601
+			"yyyy-MM-dd'T'HH:mm:ss",
+			"yyyy-MM-dd'T'HHmmss.SSSz",
+			
+			//http://stackoverflow.com/a/21737848
+			"M/d/yyyy", "MM/dd/yyyy",                                    
+			"d/M/yyyy", "dd/MM/yyyy", 
+			"yyyy/M/d", "yyyy/MM/dd",
+			"M-d-yyyy", "MM-dd-yyyy",                                    
+			"d-M-yyyy", "dd-MM-yyyy", 
+			"yyyy-M-d", "yyyy-MM-dd",
+			"M.d.yyyy", "MM.dd.yyyy",                                    
+			"d.M.yyyy", "dd.MM.yyyy", 
+			"yyyy.M.d", "yyyy.MM.dd",
+			"M,d,yyyy", "MM,dd,yyyy",                                    
+			"d,M,yyyy", "dd,MM,yyyy", 
+			"yyyy,M,d", "yyyy,MM,dd",
+			"M d yyyy", "MM dd yyyy",                                    
+			"d M yyyy", "dd MM yyyy", 
+			"yyyy M d", "yyyy MM dd" */
+		];
 	}
 }

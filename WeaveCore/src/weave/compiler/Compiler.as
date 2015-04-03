@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.compiler
 {
@@ -1177,10 +1173,11 @@ package weave.compiler
 			
 			// loop over keys in Array or Object
 			var lineBreakIndent:String = lineBreak + indent;
+			var valueIsArrayOrVector:Boolean = value is Array || isVector(value);
 			output = [];
-			if (value is Array)
+			if (valueIsArrayOrVector)
 			{
-				for (var i:int = 0; i < (value as Array).length; i++)
+				for (var i:int = 0; i < value.length; i++)
 					output.push(_stringify(String(i), value[i], replacer, lineBreakIndent, indent, json_values_only));
 			}
 			else if (value.constructor == Object)
@@ -1201,13 +1198,23 @@ package weave.compiler
 			}
 			
 			if (output.length == 0)
-				return value is Array ? "[]" : "{}";
+				return valueIsArrayOrVector ? "[]" : "{}";
 			
-			return (value is Array ? "[" : "{")
+			return (valueIsArrayOrVector ? "[" : "{")
 				+ lineBreakIndent
 				+ output.join(indent ? ',' + lineBreakIndent : ', ')
 				+ lineBreak
-				+ (value is Array ? "]" : "}");
+				+ (valueIsArrayOrVector ? "]" : "}");
+		}
+		
+		private static const VectorClass:Class = Object(new Vector.<Object>()).constructor;
+		
+		/**
+		 * Tests if an object is a Vector.
+		 */
+		private static function isVector(object:*):Boolean
+		{
+			return object is VectorClass || object is Vector.<int> || object is Vector.<uint> || object is Vector.<Number>;
 		}
 		
 		/**

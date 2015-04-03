@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.KeySets
 {
@@ -40,16 +36,27 @@ package weave.data.KeySets
 		{
 			includeMissingKeys.value = false;
 			includeMissingKeyTypes.value = true;
+			filters.childListCallbacks.addImmediateCallback(this, cacheValues);
 		}
 		
 		// option to include missing keys or not
-		public const includeMissingKeys:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
-		public const includeMissingKeyTypes:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+		public const includeMissingKeys:LinkableBoolean = newLinkableChild(this, LinkableBoolean, cacheValues);
+		public const includeMissingKeyTypes:LinkableBoolean = newLinkableChild(this, LinkableBoolean, cacheValues);
 		
 		public const included:KeySet = newLinkableChild(this, KeySet, handleIncludeChange);
 		public const excluded:KeySet = newLinkableChild(this, KeySet, handleExcludeChange);
 		
 		public const filters:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IKeyFilter));
+		
+		private var _includeMissingKeys:Boolean;
+		private var _includeMissingKeyTypes:Boolean;
+		private var _filters:Array;
+		private function cacheValues():void
+		{
+			_includeMissingKeys = includeMissingKeys.value;
+			_includeMissingKeyTypes = includeMissingKeyTypes.value;
+			_filters = filters.getObjects();
+		}
 
 		/**
 		 * This replaces the included and excluded keys in the filter with the parameters specified.
@@ -117,15 +124,15 @@ package weave.data.KeySets
 		 */
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			for each (var filter:IKeyFilter in filters.getObjects())
+			for each (var filter:IKeyFilter in _filters)
 				if (!filter.containsKey(key))
 					return false;
 			
-			if (includeMissingKeys.value || (includeMissingKeyTypes.value && !_includedKeyTypeMap[key.keyType]))
+			if (_includeMissingKeys || (_includeMissingKeyTypes && !_includedKeyTypeMap[key.keyType]))
 			{
 				if (excluded.containsKey(key))
 					return false;
-				if (!includeMissingKeyTypes.value && _excludedKeyTypeMap[key.keyType])
+				if (!_includeMissingKeyTypes && _excludedKeyTypeMap[key.keyType])
 					return false;
 				return true;
 			}
@@ -134,7 +141,7 @@ package weave.data.KeySets
 				if (included.containsKey(key))
 					return true;
 				// if includeMissingKeyTypes and keyType is missing
-				if (includeMissingKeyTypes.value && !_includedKeyTypeMap[key.keyType] && !_excludedKeyTypeMap[key.keyType])
+				if (_includeMissingKeyTypes && !_includedKeyTypeMap[key.keyType] && !_excludedKeyTypeMap[key.keyType])
 					return true;
 				return false;
 			}

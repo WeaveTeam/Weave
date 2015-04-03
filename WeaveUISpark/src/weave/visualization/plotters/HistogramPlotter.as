@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
@@ -33,13 +29,18 @@ package weave.visualization.plotters
 	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ISelectableAttributes;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
+	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.primitives.Bounds2D;
+	import weave.utils.BitmapText;
+	import weave.utils.ColumnUtils;
+	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -123,6 +124,15 @@ package weave.visualization.plotters
 		public const aggregationMethod:LinkableString = registerSpatialProperty(new LinkableString(AG_COUNT, verifyAggregationMethod));
 		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
+		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const valueLabelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
+		public const valueLabelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
+		public const valueLabelRelativeAngle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));		
+		public const valueLabelColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+		public const valueLabelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200, verifyLabelMaxWidth));
+		private function verifyLabelMaxWidth(value:Number):Boolean { return value > 0; }
+		private const _bitmapText:BitmapText = new BitmapText();		
+		
 		private static function verifyAggregationMethod(value:String):Boolean { return ENUM_AGGREGATION_METHODS.indexOf(value) >= 0; }
 		public static const ENUM_AGGREGATION_METHODS:Array = [AG_COUNT, AG_SUM, AG_MEAN];
 		public static const AG_COUNT:String = 'count';
@@ -201,24 +211,19 @@ package weave.visualization.plotters
 		 */
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
-			drawAll(task.recordKeys, task.dataBounds, task.screenBounds, task.buffer);
-			return 1;
-		}
-		private function drawAll(recordKeys:Array, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
-		{
 			var i:int;
 			
 			// convert record keys to bin keys
 			// save a mapping of each bin key found to a value of true
 			var binName:String;
 			var _tempBinKeyToSingleRecordKeyMap:Object = new Object();
-			for (i = 0; i < recordKeys.length; i++)
+			for (i = 0; i < task.recordKeys.length; i++)
 			{
-				binName = binnedColumn.getValueFromKey(recordKeys[i], String);
+				binName = binnedColumn.getValueFromKey(task.recordKeys[i], String);
 				var array:Array = _tempBinKeyToSingleRecordKeyMap[binName] as Array
 				if (!array)
 					array = _tempBinKeyToSingleRecordKeyMap[binName] = [];
-				array.push(recordKeys[i]);
+				array.push(task.recordKeys[i]);
 			}
 
 			var binNames:Array = [];
@@ -226,6 +231,8 @@ package weave.visualization.plotters
 				binNames.push(binName);
 			var allBinNames:Array = binnedColumn.binningDefinition.getBinNames();
 			
+			LinkableTextFormat.defaultTextFormat.copyTo(_bitmapText.textFormat);
+
 			// draw the bins
 			// BEGIN template code for defining a drawPlot() function.
 			//---------------------------------------------------------
@@ -254,7 +261,7 @@ package weave.visualization.plotters
 					tempBounds.setYRange(0, binHeight);
 					tempBounds.setCenteredXRange(binIndex, 1);
 				}
-				dataBounds.projectCoordsTo(tempBounds, screenBounds);
+				task.dataBounds.projectCoordsTo(tempBounds, task.screenBounds);
 	
 				// draw rectangle for bin
 				graphics.clear();
@@ -271,11 +278,43 @@ package weave.visualization.plotters
 				graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 				graphics.endFill();
 				// flush the tempShape "buffer" onto the destination BitmapData.
-				destination.draw(tempShape);
+				task.buffer.draw(tempShape);
+				
+				// draw value label
+				if (showValueLabels.value)
+				{
+					if (agCol)
+						_bitmapText.text = ColumnUtils.deriveStringFromNumber(agCol, binHeight);
+					else
+						_bitmapText.text = StandardLib.formatNumber(binHeight);
+					if (horizontalMode.value)
+					{
+						_bitmapText.x = tempBounds.getXMax();
+						_bitmapText.y = tempBounds.getYCenter();
+						_bitmapText.angle = 0;
+					}
+					else
+					{
+						_bitmapText.x = tempBounds.getXCenter();
+						_bitmapText.y = tempBounds.getYMax();
+						_bitmapText.angle = 270;
+					}
+					
+					_bitmapText.maxWidth = valueLabelMaxWidth.value;
+					_bitmapText.verticalAlign = valueLabelVerticalAlign.value;
+					_bitmapText.horizontalAlign = valueLabelHorizontalAlign.value;
+					
+					if (isFinite(valueLabelRelativeAngle.value))
+						_bitmapText.angle += valueLabelRelativeAngle.value;
+					
+					_bitmapText.textFormat.color = valueLabelColor.value;
+					
+					TextGlyphPlotter.drawInvisibleHalo(_bitmapText, task);
+					_bitmapText.draw(task.buffer);
+				}
 			}
 			
-			//---------------------------------------------------------
-			// END template code
+			return 1;
 		}
 		
 		private const tempBounds:IBounds2D = new Bounds2D(); // reusable temporary object
