@@ -152,10 +152,10 @@ QueryObject.service('runQueryService', ['errorLogService','$modal', function(err
 }]);
 
 
-QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQueryService',
+QueryObject.service("queryService", ['$q', '$rootScope', 'runQueryService',
                                      'dataServiceURL', 'adminServiceURL','projectManagementURL', 'scriptManagementURL','computationServiceURL',
                                      'BarChartTool', 'MapTool', 'DataTableTool', 'ScatterPlotTool', 'color_Column', 'key_Column','WeaveDataSource',
-                         function($q, scope, WeaveService, runQueryService, 
+                         function($q, scope, runQueryService, 
                         		 dataServiceURL, adminServiceURL, projectManagementURL, scriptManagementURL, computationServiceURL,
                         		 BarChartTool, MapTool, DataTableTool, ScatterPlotTool, color_Column, key_Column, WeaveDataSource) {
     
@@ -243,7 +243,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'WeaveService', 'runQue
 			dataTableList : [],
 			scriptList : [],
 			filterArray : [],
-			numericalColumns : []
+			numericalColumns : [],
+			weaveSessionState : null
 	};
 
 	this.crossTabQuery = {};

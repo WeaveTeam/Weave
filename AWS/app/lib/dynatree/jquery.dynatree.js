@@ -54,7 +54,7 @@ function _log(mode, msg) {
 			window.console.warn.apply(window.console, args);
 			break;
 		default:
-			window.console.log.apply(window.console, args);
+			//window.console.log.apply(window.console, args);
 			break;
 		}
 	} catch(e) {

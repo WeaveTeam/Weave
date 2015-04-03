@@ -30,7 +30,6 @@ dataStatsModule.service('statisticsService', ['$q','$rootScope', 'runQueryServic
 	//getting the list of datatables if they have not been retrieved yet
 	if(queryService.cache.dataTableList.length == 0){
 		queryService.getDataTableList(true);
-		console.log("got new list");
 	}
 	//cache object that will contain all diff analytic statistics for ONE datatable
 	this.cache= {
