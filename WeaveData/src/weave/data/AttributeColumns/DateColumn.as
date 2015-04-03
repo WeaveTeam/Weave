@@ -54,7 +54,6 @@ package weave.data.AttributeColumns
 		private var _stringToNumberFunction:Function = null;
 		private var _numberToStringFunction:Function = null;
 		private var _dateFormat:String = null;
-		private var _useFlascc:Boolean = true;
 		
 		/**
 		 * @inheritDoc
@@ -102,7 +101,6 @@ package weave.data.AttributeColumns
 			}
 			
 			_dateFormat = convertDateFormat_as_to_c(_dateFormat);
-			//_useFlascc = _dateFormat && _dateFormat.indexOf('%') >= 0;
 			
 			// compile the number format function from the metadata
 			_stringToNumberFunction = null;
@@ -141,6 +139,12 @@ package weave.data.AttributeColumns
 			_uniqueKeys.length = 0;
 			_reportedError = false;
 			
+			if (!_dateFormat)
+			{
+				_reportedError = true;
+				reportError(lang('No common date format could be determined from the column values. Attribute Column: {0}', Compiler.stringify(_metadata)));
+			}
+			
 			// high priority because not much can be done without data
 			WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, _asyncComplete);
 		}
@@ -160,14 +164,14 @@ package weave.data.AttributeColumns
 		
 		private function parseDate(string:String):Date
 		{
-			if (_useFlascc)
+			if (_dateFormat)
 				return weave.flascc.date_parse(string, _dateFormat);
-			return StandardLib.parseDate(string, _dateFormat);
+			return new Date(string);
 		}
 		
 		private function formatDate(value:Object):String
 		{
-			if (_useFlascc)
+			if (_dateFormat)
 				return weave.flascc.date_format(value as Date || new Date(value), _dateFormat);
 			return StandardLib.formatDate(value, _dateFormat);
 		}
