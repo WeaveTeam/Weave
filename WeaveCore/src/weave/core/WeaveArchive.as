@@ -21,7 +21,8 @@ package weave.core
 	import mx.core.IFlexDisplayObject;
 	import mx.graphics.codec.PNGEncoder;
 	
-	import weave.flascc.FlasCC;
+	import weave.flascc.readZip;
+	import weave.flascc.writeZip;
 	import weave.primitives.OrderedHashMap;
 	import weave.utils.BitmapUtils;
 
@@ -61,7 +62,7 @@ package weave.core
 		 */		
 		private function _readArchive(fileData:ByteArray):void
 		{
-			var zip:Object = FlasCC.call(weave.flascc.readZip, fileData, filterFilePathsToReadAsObject);
+			var zip:Object = weave.flascc.readZip(fileData, filterFilePathsToReadAsObject);
 			for (var path:String in zip)
 			{
 				var fileName:String = path.substr(path.indexOf('/') + 1);
@@ -91,7 +92,7 @@ package weave.core
 				zip[FOLDER_FILES + '/' + name] = files[name];
 			for (name in objects)
 				zip[FOLDER_AMF + '/' + name] = objects[name];
-			return FlasCC.call(weave.flascc.writeZip, zip);
+			return weave.flascc.writeZip(zip);
 		}
 		
 		public static const HISTORY_SYNC_DELAY:int = 100;

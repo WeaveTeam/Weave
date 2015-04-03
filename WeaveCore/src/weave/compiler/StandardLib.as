@@ -26,7 +26,8 @@ package weave.compiler
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
-	import weave.flascc.FlasCC;
+	import weave.flascc.atob;
+	import weave.flascc.btoa;
 	import weave.utils.AsyncSort;
 	import weave.utils.CustomDateFormatter;
 	import weave.utils.DebugTimer;
@@ -912,7 +913,7 @@ package weave.compiler
 		 */
 		public static function btoa(input:ByteArray):String
 		{
-			return FlasCC.call(weave.flascc.btoa, input);
+			return weave.flascc.btoa(input);
 		}
 		
 		/**
@@ -922,7 +923,7 @@ package weave.compiler
 		 */
 		public static function atob(input:String):ByteArray
 		{
-			return FlasCC.call(weave.flascc.atob, input);
+			return weave.flascc.atob(input);
 		}
 		
 		/**

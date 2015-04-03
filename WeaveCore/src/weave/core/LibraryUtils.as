@@ -132,7 +132,7 @@ import mx.rpc.events.ResultEvent;
 import weave.api.core.IDisposableObject;
 import weave.compiler.StandardLib;
 import weave.core.ClassUtils;
-import weave.flascc.FlasCC;
+import weave.flascc.readZip;
 
 /**
  * @private
@@ -216,7 +216,7 @@ internal class Library implements IDisposableObject
 		try
 		{
 			// Extract the files from the SWC archive
-			var swc:Object = FlasCC.call(weave.flascc.readZip, event.result as ByteArray);
+			var swc:Object = weave.flascc.readZip(event.result as ByteArray);
 			if (!swc)
 				throw new Error("Unable to read SWC archive");
 			_library_swf = swc["library.swf"];
