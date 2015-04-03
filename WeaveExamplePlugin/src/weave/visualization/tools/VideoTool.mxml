@@ -33,11 +33,14 @@
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.LinkableBoolean;
+			import weave.api.linkBindableProperty;
 			
-			public const videoURL:LinkableString = registerLinkableChild(this, new LinkableString("/videos/movie.mp4"), loadVideo);
+			public const videoURL:LinkableString = registerLinkableChild(this, new LinkableString(""), loadVideo);
 			public const rectangleColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xFF0000));
 			public const trackingColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10040115), updateTrackingColor);
 			public const trackingTolerance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.15), updateTrackingTolerance);
+			public const enableTracking:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateEnableTracking);
 			
 			
 			private var theVideo:Video; //Video container component
@@ -53,6 +56,7 @@
 			
 			override protected function childrenCreated():void
 			{
+				super.childrenCreated();
 				linkBindableProperty(rectangleColor, this.rectangleColorPicker, "selectedColor");
 				linkBindableProperty(trackingColor, this.trackingColorColorPicker, "selectedColor");
 				linkBindableProperty(trackingTolerance, this.trackingTolerancePicker, "value");
@@ -71,6 +75,7 @@
 				
 				//Rectangle draw timer.
 				keyFrameTimer.addEventListener(TimerEvent.TIMER, stepFrame);
+
 			}
 			
 			private function lastKeyFrameDetector(event:NetStatusEvent):void
@@ -91,6 +96,27 @@
 			}
 			
 			private var colorRect:Rectangle;
+
+			private function updateEnableTracking():void
+			{
+				if (!parent)
+				{
+					WeaveAPI.StageUtils.callLater(this, updateEnableTracking);
+					return;
+				}
+
+				if (enableTracking.value)
+				{
+					overlay.visible = true;
+					if (!keyFrameTimer.hasEventListener(TimerEvent.TIMER))
+						keyFrameTimer.addEventListener(TimerEvent.TIMER, stepFrame);
+				}
+				else
+				{
+					overlay.visible = false;
+					keyFrameTimer.removeEventListener(TimerEvent.TIMER, stepFrame);
+				}
+			}
 			
 			private function stepFrame(event:TimerEvent):void
 			{
@@ -129,7 +155,7 @@
 							vidConnection.checkPolicyFile = true;
 							vidConnection.addEventListener(NetStatusEvent.NET_STATUS, lastKeyFrameDetector);
 							//This is a hack for a metadata error that was occuring.
-							vidConnection.client={onMetaData:function(obj:Object):void{} }
+							vidConnection.client={onMetaData:function(obj:Object):void{} };
 							theVideo.attachNetStream(vidConnection);
 						}
 						
@@ -174,7 +200,7 @@
 					videoURL.value = videoURLInput.text;
 			}
 			
-			//Draws a recangle on the video overlay as specified by a classification algorithm.
+			//Draws a rectangle on the video overlay as specified by a classification algorithm.
 			public function drawClassifierRectangle(x:Number, y:Number, height:Number, width:Number):void
 			{
 				overlay.graphics.clear();
@@ -223,19 +249,22 @@
 				<mx:Button label="{lang('Play')}" click="playVideoPressed(event)"/>
 			</mx:HBox>
 			<mx:Button id="pauseButton" label="{lang('Pause')}" click="pauseOrResumeStream(event)"/>
-			<mx:HBox>
-				<mx:Label text="Rectangle identifier color:"/>
-				<mx:ColorPicker id="rectangleColorPicker"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label text="Color to identify:"/>
-				<mx:ColorPicker id="trackingColorColorPicker"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label text="Rectangle identifier color:"/>
-				<mx:NumericStepper id="trackingTolerancePicker" maximum="1" minimum="0"
-								   stepSize="0.01"/>
-			</mx:HBox>
+			<ui:CheckBoxWithNestedOptions id= "trackingCheckBox" label="{lang('Enable Color Tracking')}"
+							 creationComplete="linkBindableProperty(enableTracking, event.target, 'selected')">
+				<mx:HBox>
+					<mx:Label text="Rectangle identifier color:"/>
+					<mx:ColorPicker id="rectangleColorPicker"/>
+				</mx:HBox>
+				<mx:HBox>
+					<mx:Label text="Color to identify:"/>
+					<mx:ColorPicker id="trackingColorColorPicker"/>
+				</mx:HBox>
+				<mx:HBox>
+					<mx:Label text="Rectangle identifier color:"/>
+					<mx:NumericStepper id="trackingTolerancePicker" maximum="1" minimum="0"
+									   stepSize="0.01"/>
+				</mx:HBox>
+			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 	</ui:ControlPanel>
 </ui:DraggablePanel>
