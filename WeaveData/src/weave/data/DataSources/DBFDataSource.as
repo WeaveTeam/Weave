@@ -20,6 +20,7 @@ package weave.data.DataSources
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.StringUtil;
 	
 	import org.vanrijkom.dbf.DbfField;
 	import org.vanrijkom.dbf.DbfHeader;
@@ -270,7 +271,7 @@ package weave.data.DataSources
 			}
 			proxyColumn.setMetadata(metadata);
 
-			var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(getKeyType(), getColumnValues(keyColName.value)));
+			var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(getKeyType(), getColumnValues(keyColName.value, true)));
 			var data:Array = getColumnValues(columnName);
 
 			var newColumn:IAttributeColumn;
@@ -348,7 +349,7 @@ package weave.data.DataSources
 			}
 			return null;
 		}
-		private function getColumnValues(columnName:String):Array
+		private function getColumnValues(columnName:String, trimStrings:Boolean = false):Array
 		{
 			var values:Array = [];
 			if (columnName == THE_GEOM_COLUMN)
@@ -363,7 +364,10 @@ package weave.data.DataSources
 				if (columnName)
 				{
 					record = DbfTools.getRecord(dbfData, dbfHeader, i);
-					values.push( record.values[columnName] );
+					var value:* = record.values[columnName];
+					if (trimStrings)
+						value = StringUtil.trim(value);
+					values.push(value);
 				}
 				else
 					values.push(String(i + 1));
