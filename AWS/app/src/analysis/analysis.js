@@ -2,23 +2,6 @@
  * Handle all Analysis Tab related work - Controllers to handle Analysis Tab
  */
 'use strict';
-var tryParseJSON = function(jsonString){
-    try {
-        var o = JSON.parse(jsonString);
-
-        // Handle non-exception-throwing cases:
-        // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
-        // but... JSON.parse(null) returns 'null', and typeof null === "object", 
-        // so we must check for that, too.
-        if (o && typeof o === "object" && o !== null) {
-            return o;
-        }
-    }
-    catch (e) { }
-    return false;
-};
-
-
 var AnalysisModule = angular.module('aws.AnalysisModule', ['wu.masonry', 'ui.slider', 'ui.bootstrap']);
 
 //analysis service
@@ -56,6 +39,14 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.showToolMenu = false;
 
 	$("#queryObjectPanel" ).draggable().resizable();
+	
+	$scope.$watch(function() {
+		return WeaveService.weave;
+	}, function () {
+		if(WeaveService.weave) {
+			$scope.showToolMenu = true;
+		}
+	});
 
 	$scope.$watch('WeaveService.weaveWindow.closed', function() {
 		queryService.queryObject.properties.openInNewWindow = WeaveService.weaveWindow.closed;
@@ -230,7 +221,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 						reMappedValue : reMappedValue
 	
 					  });
-				 	//console.log("first iteration");
 				 }
 				 else
 				 {
@@ -242,7 +232,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 						 		{
 							 		oneObject.reMappedValue = reMappedValue;
 							 		matchFound = true;
-							 		//console.log("match found, hence overwrote", queryService.queryObject.IndicatorRemap );
 						 		}
 						 }
 					 
@@ -294,7 +283,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	}, function() {
 		if(WeaveService.checkWeaveReady()) 
 		{
-			$scope.showToolMenu = true;
+			//$scope.showToolMenu = true;
 			
 			if(queryService.cache.weaveSessionState) {
 				WeaveService.weave.path().state(queryService.cache.weaveSessionState);
@@ -370,62 +359,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	});
 	
 
-//	$scope.$watch(function () {
-//		return queryService.queryObject.BarChartTool.enabled;
-//	}, function(newVal, oldVal) {
-//		if(newVal != oldVal) {
-//			for(var i in AnalysisService.tool_list) {
-//				var tool = AnalysisService.tool_list[i];
-//				if(tool.id == "BarCharTool") {
-//					tool.enabled = newVal;
-//					break;
-//				}
-//			}
-//		}
-//	});
-	
-//	$scope.$watch(function () {
-//		return queryService.queryObject.MapTool.enabled;
-//	}, function(newVal, oldVal) {
-//		if(newVal != oldVal) {
-//			for(var i in AnalysisService.tool_list) {
-//				var tool = AnalysisService.tool_list[i];
-//				if(tool.id == "MapTool") {
-//					tool.enabled = newVal;
-//					break;
-//				}
-//			}
-//		}
-//	});
-	
-//	$scope.$watch(function () {
-//		return queryService.queryObject.ScatterPlotTool.enabled;
-//	}, function(newVal, oldVal) {
-//		if(newVal != oldVal) {
-//			for(var i in AnalysisService.tool_list) {
-//				var tool = AnalysisService.tool_list[i];
-//				if(tool.id == "ScatterPlotTool") {
-//					tool.enabled = newVal;
-//					break;
-//				}
-//			}
-//		}
-//	});
-//	
-//	$scope.$watch(function () {
-//		return queryService.queryObject.DataTableTool.enabled;
-//	}, function(newVal, oldVal) {
-//		if(newVal != oldVal) {
-//			for(var i in AnalysisService.tool_list) {
-//				var tool = AnalysisService.tool_list[i];
-//				if(tool.id == "DataTableTool") {
-//					tool.enabled = newVal;
-//					break;
-//				}
-//			}
-//		}
-//	});
-	
 	/************** watches for query validation******************/
 	$scope.$watchCollection(function() {
 		return [queryService.queryObject.scriptSelected,
