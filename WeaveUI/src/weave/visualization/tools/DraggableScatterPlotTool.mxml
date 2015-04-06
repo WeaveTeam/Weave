@@ -114,6 +114,12 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 					{
 						label: lang("Create Nested RadViz"),
 						click: createNestedRadViz
+					},{
+						label: lang('Lock all document positions'),
+						click: plotter.lockAllDataPoints
+					},{
+						label: lang('Unlock and reset all document positions'),
+						click: plotter.resetMovedDataPoints
 					}
 				];
 			}
@@ -192,31 +198,24 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 				sizeBinLegendTool.dynamicScatterPlotTool.globalName = Weave.root.getName(this);
 			}
 			
-			public function resetMovedPoints():void
-			{
-				plotter.resetMovedDataPoints();
-			}
-			
 		]]>
 	</mx:Script>
 	<editorFactory><mx:Component><ui:ControlPanel>
-									 <mx:Script>
-										 <![CDATA[
-											 import weave.api.linkBindableProperty;
-											 import weave.compiler.StandardLib;
-											 import weave.core.UIUtils;
-											 import weave.visualization.plotters.RegressionLinePlotter;
-										 ]]>
-									 </mx:Script>
-									 <mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
-										 <editors:DraggableScatterPlotEditor id="plotEditor" width="100%" creationComplete="plotEditor.setTarget(outerDocument.plotter)"/>
-									 </mx:VBox>
-									 <mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
-										 <mx:Button label="{lang('Show legend')}" click="outerDocument.createLegend()"/>
-										 <mx:Button label="{lang('Reset Moved Points')}" click="outerDocument.resetMovedPoints()"/>
-										 
-										 <ui:SelectableAttributesCheckBoxList id="selectedAttrList" creationComplete="selectedAttrList.setup(outerDocument, outerDocument.attributesToIncludeInProbe)"/>
-										 
-									 </mx:VBox>
-								 </ui:ControlPanel></mx:Component></editorFactory>
+		<mx:Script>
+			<![CDATA[
+				import weave.api.linkBindableProperty;
+				import weave.compiler.StandardLib;
+				import weave.core.UIUtils;
+				import weave.visualization.plotters.RegressionLinePlotter;
+			]]>
+		</mx:Script>
+		<mx:VBox id="VizControlsPanel" label="{lang('Visualization Controls')}">
+			<editors:DraggableScatterPlotEditor id="plotEditor" width="100%" creationComplete="plotEditor.setTarget(outerDocument.plotter)"/>
+		</mx:VBox>
+		<mx:VBox id="AdvancedPanel" label="{lang('Advanced')}">
+			<mx:Button label="{lang('Show legend')}" click="outerDocument.createLegend()"/>
+			<ui:SelectableAttributesCheckBoxList id="selectedAttrList" creationComplete="selectedAttrList.setup(outerDocument, outerDocument.attributesToIncludeInProbe)"/>
+			
+		</mx:VBox>
+	</ui:ControlPanel></mx:Component></editorFactory>
 </SimpleVisTool>

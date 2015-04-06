@@ -279,6 +279,21 @@ package weave.visualization.plotters
 				lv.setSessionState(null);
 		}
 		
+		public function lockAllDataPoints():void
+		{
+			var lv:LinkableVariable = getMovedDataPointsVariable();
+			if (lv)
+			{
+				var ss:Object = {};
+				for each (var key:IQualifiedKey in filteredKeySet.keys)
+				{
+					getCoordsFromRecordKey(key, tempPoint);
+					ss[key.localName] = {x: tempPoint.x, y: tempPoint.y};
+				}
+				lv.setSessionState(ss);
+			}
+		}
+		
 		private function getMovedDataPoint(key:IQualifiedKey):Object
 		{
 			var lv:LinkableVariable = getMovedDataPointsVariable();
