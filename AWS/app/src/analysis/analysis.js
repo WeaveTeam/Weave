@@ -56,15 +56,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.showToolMenu = false;
 
 	$("#queryObjectPanel" ).draggable().resizable();
-	
-	$scope.$watch(function() {
-		return WeaveService.weave;
-	}, function () {
-		if(WeaveService.weave) {
-			$scope.showToolMenu = true;
-		}
-	});
-	
+
 	$scope.$watch('WeaveService.weaveWindow.closed', function() {
 		queryService.queryObject.properties.openInNewWindow = WeaveService.weaveWindow.closed;
 	});
@@ -208,9 +200,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	 $("#queryObjectPanel" ).css({'top' : -1059, 'left' : 315});
 	
 	 
-	 $scope.$watch('queryService.queryObject.resultSet', function() {
-		 //console.log($scope.queryService.queryObject.resultSet);
-	 });//************************** query object editor end**********************************
+	 //************************** query object editor end**********************************
 	 
 	 //*******************************************Weave Analyst Mode*********************
 	 //when the mode is computation then a script has to be selected and analysis is run and results of computation can be visualized
@@ -304,6 +294,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	}, function() {
 		if(WeaveService.checkWeaveReady()) 
 		{
+			$scope.showToolMenu = true;
+			
 			if(queryService.cache.weaveSessionState) {
 				WeaveService.weave.path().state(queryService.cache.weaveSessionState);
 			}
