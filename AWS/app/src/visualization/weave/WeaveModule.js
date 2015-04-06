@@ -295,7 +295,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					if(state.labelLayer && state.stateGeometryLayer)
 					{
 						var labelLayer = state.labelLayer;
-						ws.weave.setSessionState([labelLayer.dataSourceName], {keyColName : "fips"});//TODO handle this
+						//ws.weave.setSessionState([labelLayer.dataSourceName], {keyColName : "fips"});
 						
 						var stateGeometryLayer = state.stateGeometryLayer;
 						
@@ -462,21 +462,17 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 		
 	};
 	
-	this.keyColumn = function(keyColumn) {
-		/*if(ws.checkWeaveReady() && keyColumn) {
-			if(keyColumn.name) {
-				ws.weave.setSessionState([keyColumn.dataSourceName], {keyColName : keyColumn.id});
-			}
-			else{
-				ws.weave.setSessionState([keyColumn.dataSourceName], {keyColName : "fips"});
-			}
-		}*/
-	};
-	
 	this.keyColumn = function(state){
+		console.log("keycolumn", state.keyColumn);
 		if(state.keyColumn)
 		{
-			
+			if(ws.checkWeaveReady()){
+				
+				ws.weave.setSessionState([state.keyColumn.dataSourceName], {keyColName : state.keyColumn.id});
+			}
+			else{//if weave is not ready
+				ws.setWeaveWindow(window);
+			}
 		}
 	};
 	

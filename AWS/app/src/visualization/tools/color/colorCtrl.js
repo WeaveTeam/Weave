@@ -9,5 +9,4 @@ AnalysisModule.controller("ColorCtrl", function($scope, WeaveService){
 			
 	}, true);
 	
-	//monitors the key column
 });
