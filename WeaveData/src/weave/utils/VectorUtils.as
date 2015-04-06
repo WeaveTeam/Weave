@@ -491,7 +491,7 @@ package weave.utils
 			else
 			{
 				keyIndex = 0;
-				for each (keyValue in keys)
+				for each (keyValue in object)
 				{
 					if (object is XML_Class)
 						item = String((object as XML_Class).attribute(keyValue));
