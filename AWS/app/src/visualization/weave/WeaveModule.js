@@ -160,35 +160,39 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 	
 	this.AttributeMenuTool = function(state, aToolName){
 		
-		/*var toolName = aToolName || ws.generateUniqueName("AttributeMenuTool");
-		
-		if(state == null)
-			return toolName;
-		
-		if(ws.checkWeaveReady()) && state) {
-			if(!state.enabled) {
-				ws.weave.path(toolName).remove();
-				return "";
-			}
-			ws.weave.path(toolName).request('AttributeMenuTool')
-			.state({ panelX : "50%", panelY : "0%", panelHeight: "15%", panelWidth :"50%",  panelTitle : state.title, enableTitle : true})
-			.call(setQueryColumns, {choices: state.columns});
-			
-			if(state.vizAttribute && state.selectedVizTool)
+		var toolName = aToolName || ws.generateUniqueName("AttributeMenuTool");
+		if(state && state.enabled){
+			if(ws.checkWeaveReady()){
+				
 				ws.weave.path(toolName).request('AttributeMenuTool')
-				.state({targetAttribute : state.vizAttribute.title , targetToolPath : [state.selectedVizTool]});
-		}*/
+				.state({ panelX : "50%", panelY : "0%", panelHeight: "15%", panelWidth :"50%",  panelTitle : state.title, enableTitle : true})
+				.call(setQueryColumns, {choices: state.columns});
+				
+				if(state.vizAttribute && state.selectedVizTool)
+					ws.weave.path(toolName).request('AttributeMenuTool')
+					.state({targetAttribute : state.vizAttribute.title , targetToolPath : [state.selectedVizTool]});
+			}
+			else{
+				ws.setWeaveWindow(window);
+			}
+		}
+		else{//if the tool is disabled
+			if(ws.checkWeaveReady())
+				ws.weave.path(toolName).remove();
+		}
+		
+		return toolName;
 	};
 	
 	this.BarChartTool = function(state, aToolName){
-		if(state.enabled){//if enabled
-			var toolName = aToolName || ws.generateUniqueName("BarChartTool");
-			
+		var toolName = aToolName || ws.generateUniqueName("BarChartTool");
+		
+		if(state && state.enabled){//if enabled
 			if(ws.checkWeaveReady())//if weave is ready
 				{
 					//add to the enabled tools collection
-					if($.inArray(state.title, this.toolsEnabled) == -1)
-						this.toolsEnabled.push(state.title);
+					if($.inArray(toolName, this.toolsEnabled) == -1)
+						this.toolsEnabled.push(toolName);
 					//create tool
 					ws.weave.path(toolName)
 					.request('CompoundBarChartTool')
@@ -213,24 +217,26 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			if(ws.checkWeaveReady())
 				{
 					//remove from enabled tool collection
-					if($.inArray(state.title, this.toolsEnabled)){
-						var index = this.toolsEnabled.indexOf(state.title);
+					if($.inArray(toolName, this.toolsEnabled) != -1){
+						var index = this.toolsEnabled.indexOf(toolName);
 						this.toolsEnabled.splice(index, 1);
 					}
-					ws.weave.path(state.title).remove();
+					ws.weave.path(toolName).remove();
 				}
 		}
+		
+		return toolName;
 	};
 	
 	this.MapTool = function(state, aToolName){
-		if(state.enabled){//if enabled
-			var toolName = aToolName || ws.generateUniqueName("MapTool");
+		var toolName = aToolName || ws.generateUniqueName("MapTool");
+		if(state && state.enabled){//if enabled
 			
 			if(ws.checkWeaveReady())//if weave is ready
 				{
 					//add to the enabled tools collection
-					if($.inArray(state.title, this.toolsEnabled) == -1)
-						this.toolsEnabled.push(state.title);
+					if($.inArray(toolName, this.toolsEnabled) == -1)
+						this.toolsEnabled.push(toolName);
 					//create tool
 					ws.weave.path(toolName).request('MapTool').state({ panelX : "0%", panelY : "0%", panelTitle : state.title, enableTitle : true });
 					
@@ -329,28 +335,29 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			if(ws.checkWeaveReady())
 				{
 					//remove from enabled tool collection
-					if($.inArray(state.title, this.toolsEnabled)){
-						var index = this.toolsEnabled.indexOf(state.title);
+					if($.inArray(toolName, this.toolsEnabled) != -1){
+						var index = this.toolsEnabled.indexOf(toolName);
 						this.toolsEnabled.splice(index, 1);
 					}
-					ws.weave.path(state.title).remove();
+					ws.weave.path(toolName).remove();
 				}
 		}
+		
+		return toolName;
 	};
 
 	this.ScatterPlotTool = function(state, aToolName){
 		
-		console.log("checking");
-		var x = 1;
+		console.log("toolcollection", this.toolsEnabled);
 		
-		if(state.enabled){//if enabled
-			var toolName = aToolName || ws.generateUniqueName("ScatterPlotTool");
+		var toolName = aToolName || ws.generateUniqueName("ScatterPlotTool");
+		if(state && state.enabled){//if enabled
 			
 			if(ws.checkWeaveReady())//if weave is ready
 				{
 					//add to the enabled tools collection
-					if($.inArray(state.title, this.toolsEnabled) == -1)
-						this.toolsEnabled.push(state.title);
+					if($.inArray(toolName, this.toolsEnabled) == -1)
+						this.toolsEnabled.push(toolName);
 					//create tool
 					ws.weave.path(toolName).request('ScatterPlotTool')
 					.state({ panelX : "50%", panelY : "50%", panelTitle : state.title, enableTitle : true})
@@ -364,28 +371,30 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			}
 		}
 		else{//if the tool is disabled
-			if(ws.checkWeaveReady())
+			if(ws.checkWeaveReady() && state)
 				{
 					//remove from enabled tool collection
-					if($.inArray(state.title, this.toolsEnabled)){
-						var index = this.toolsEnabled.indexOf(state.title);
+					if($.inArray(toolName, this.toolsEnabled) != -1){
+						var index = this.toolsEnabled.indexOf(toolName);
 						this.toolsEnabled.splice(index, 1);
 					}
-					ws.weave.path(state.title).remove();
+					ws.weave.path(toolName).remove();
 				}
 		}
+		
+		return toolName;
 	};
 	
 	this.DataTableTool = function(state, aToolName){
 
-		if(state.enabled){//if enabled
-			var toolName = aToolName || ws.generateUniqueName("DataTableTool");
-			
+		var toolName = aToolName || ws.generateUniqueName("DataTableTool");
+		
+		if(state && state.enabled){//if enabled
 			if(ws.checkWeaveReady())//if weave is ready
 				{
 					//add to the enabled tools collection
-					if($.inArray(state.title, this.toolsEnabled) == -1)
-						this.toolsEnabled.push(state.title);
+					if($.inArray(toolName, this.toolsEnabled) == -1)
+						this.toolsEnabled.push(toolName);
 					//create tool
 					ws.weave.path(toolName).request('AdvancedTableTool')
 					.state({ panelX : "50%", panelY : "0%", panelTitle : state.title, enableTitle : true})
@@ -401,13 +410,15 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			if(ws.checkWeaveReady())
 				{
 					//remove from enabled tool collection
-					if($.inArray(state.title, this.toolsEnabled)){
-						var index = this.toolsEnabled.indexOf(state.title);
+					if($.inArray(toolName, this.toolsEnabled) != -1){
+						var index = this.toolsEnabled.indexOf(toolName);
 						this.toolsEnabled.splice(index, 1);
 					}
-					ws.weave.path(state.title).remove();
+					ws.weave.path(toolName).remove();
 				}
 		}
+		
+		return toolName;
 	};
 	
 	this.ColorColumn = function(state){
