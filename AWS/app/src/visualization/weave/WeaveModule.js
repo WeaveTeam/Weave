@@ -210,14 +210,14 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			}
 		}
 		else{//if the tool is disabled
-			if(toolName && ws.weave.path(toolName).getType())
+			if(ws.checkWeaveReady())
 				{
 					//remove from enabled tool collection
 					if($.inArray(state.title, this.toolsEnabled)){
 						var index = this.toolsEnabled.indexOf(state.title);
 						this.toolsEnabled.splice(index, 1);
 					}
-					ws.weave.path(toolName).remove();
+					ws.weave.path(state.title).remove();
 				}
 		}
 	};
@@ -326,19 +326,23 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			}
 		}
 		else{//if the tool is disabled
-			if(toolName && ws.weave.path(toolName).getType())
+			if(ws.checkWeaveReady())
 				{
 					//remove from enabled tool collection
 					if($.inArray(state.title, this.toolsEnabled)){
 						var index = this.toolsEnabled.indexOf(state.title);
 						this.toolsEnabled.splice(index, 1);
 					}
-					ws.weave.path(toolName).remove();
+					ws.weave.path(state.title).remove();
 				}
 		}
 	};
 
 	this.ScatterPlotTool = function(state, aToolName){
+		
+		console.log("checking");
+		var x = 1;
+		
 		if(state.enabled){//if enabled
 			var toolName = aToolName || ws.generateUniqueName("ScatterPlotTool");
 			
@@ -360,14 +364,14 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			}
 		}
 		else{//if the tool is disabled
-			if(toolName && ws.weave.path(toolName).getType())
+			if(ws.checkWeaveReady())
 				{
 					//remove from enabled tool collection
 					if($.inArray(state.title, this.toolsEnabled)){
 						var index = this.toolsEnabled.indexOf(state.title);
 						this.toolsEnabled.splice(index, 1);
 					}
-					ws.weave.path(toolName).remove();
+					ws.weave.path(state.title).remove();
 				}
 		}
 	};
@@ -394,14 +398,14 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			}
 		}
 		else{//if the tool is disabled
-			if(toolName && ws.weave.path(toolName).getType())
+			if(ws.checkWeaveReady())
 				{
 					//remove from enabled tool collection
 					if($.inArray(state.title, this.toolsEnabled)){
 						var index = this.toolsEnabled.indexOf(state.title);
 						this.toolsEnabled.splice(index, 1);
 					}
-					ws.weave.path(toolName).remove();
+					ws.weave.path(state.title).remove();
 				}
 		}
 	};
