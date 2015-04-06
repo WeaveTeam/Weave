@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
 <ui:DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:tools="weave.visualization.tools.*"
 				   xmlns:ui="weave.ui.*"
@@ -17,11 +33,14 @@
 			import weave.api.ui.IVisTool;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
+			import weave.core.LinkableBoolean;
+			import weave.api.linkBindableProperty;
 			
-			public const videoURL:LinkableString = registerLinkableChild(this, new LinkableString("/videos/movie.mp4"), loadVideo);
+			public const videoURL:LinkableString = registerLinkableChild(this, new LinkableString(""), loadVideo);
 			public const rectangleColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xFF0000));
 			public const trackingColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10040115), updateTrackingColor);
 			public const trackingTolerance:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.15), updateTrackingTolerance);
+			public const enableTracking:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateEnableTracking);
 			
 			
 			private var theVideo:Video; //Video container component
@@ -37,6 +56,7 @@
 			
 			override protected function childrenCreated():void
 			{
+				super.childrenCreated();
 				linkBindableProperty(rectangleColor, this.rectangleColorPicker, "selectedColor");
 				linkBindableProperty(trackingColor, this.trackingColorColorPicker, "selectedColor");
 				linkBindableProperty(trackingTolerance, this.trackingTolerancePicker, "value");
@@ -55,6 +75,7 @@
 				
 				//Rectangle draw timer.
 				keyFrameTimer.addEventListener(TimerEvent.TIMER, stepFrame);
+
 			}
 			
 			private function lastKeyFrameDetector(event:NetStatusEvent):void
@@ -75,6 +96,27 @@
 			}
 			
 			private var colorRect:Rectangle;
+
+			private function updateEnableTracking():void
+			{
+				if (!parent)
+				{
+					WeaveAPI.StageUtils.callLater(this, updateEnableTracking);
+					return;
+				}
+
+				if (enableTracking.value)
+				{
+					overlay.visible = true;
+					if (!keyFrameTimer.hasEventListener(TimerEvent.TIMER))
+						keyFrameTimer.addEventListener(TimerEvent.TIMER, stepFrame);
+				}
+				else
+				{
+					overlay.visible = false;
+					keyFrameTimer.removeEventListener(TimerEvent.TIMER, stepFrame);
+				}
+			}
 			
 			private function stepFrame(event:TimerEvent):void
 			{
@@ -113,7 +155,7 @@
 							vidConnection.checkPolicyFile = true;
 							vidConnection.addEventListener(NetStatusEvent.NET_STATUS, lastKeyFrameDetector);
 							//This is a hack for a metadata error that was occuring.
-							vidConnection.client={onMetaData:function(obj:Object):void{} }
+							vidConnection.client={onMetaData:function(obj:Object):void{} };
 							theVideo.attachNetStream(vidConnection);
 						}
 						
@@ -158,7 +200,7 @@
 					videoURL.value = videoURLInput.text;
 			}
 			
-			//Draws a recangle on the video overlay as specified by a classification algorithm.
+			//Draws a rectangle on the video overlay as specified by a classification algorithm.
 			public function drawClassifierRectangle(x:Number, y:Number, height:Number, width:Number):void
 			{
 				overlay.graphics.clear();
@@ -207,19 +249,22 @@
 				<mx:Button label="{lang('Play')}" click="playVideoPressed(event)"/>
 			</mx:HBox>
 			<mx:Button id="pauseButton" label="{lang('Pause')}" click="pauseOrResumeStream(event)"/>
-			<mx:HBox>
-				<mx:Label text="Rectangle identifier color:"/>
-				<mx:ColorPicker id="rectangleColorPicker"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label text="Color to identify:"/>
-				<mx:ColorPicker id="trackingColorColorPicker"/>
-			</mx:HBox>
-			<mx:HBox>
-				<mx:Label text="Rectangle identifier color:"/>
-				<mx:NumericStepper id="trackingTolerancePicker" maximum="1" minimum="0"
-								   stepSize="0.01"/>
-			</mx:HBox>
+			<ui:CheckBoxWithNestedOptions id= "trackingCheckBox" label="{lang('Enable Color Tracking')}"
+							 creationComplete="linkBindableProperty(enableTracking, event.target, 'selected')">
+				<mx:HBox>
+					<mx:Label text="Rectangle identifier color:"/>
+					<mx:ColorPicker id="rectangleColorPicker"/>
+				</mx:HBox>
+				<mx:HBox>
+					<mx:Label text="Color to identify:"/>
+					<mx:ColorPicker id="trackingColorColorPicker"/>
+				</mx:HBox>
+				<mx:HBox>
+					<mx:Label text="Rectangle identifier color:"/>
+					<mx:NumericStepper id="trackingTolerancePicker" maximum="1" minimum="0"
+									   stepSize="0.01"/>
+				</mx:HBox>
+			</ui:CheckBoxWithNestedOptions>
 		</mx:VBox>
 	</ui:ControlPanel>
 </ui:DraggablePanel>

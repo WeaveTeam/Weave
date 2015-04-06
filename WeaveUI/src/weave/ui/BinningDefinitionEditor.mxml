@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 -->
 
 <!---
@@ -31,11 +27,13 @@
 		 width="100%"
 		 implements="weave.api.core.ILinkableObject,weave.api.ui.ILinkableObjectEditor"
 		 creationComplete="handleCreationComplete()"
-		 verticalGap="2" paddingLeft="3" paddingRight="3" paddingBottom="3" creationPolicy="all">
-		<mx:VBox id="radioVBox" borderStyle="solid" borderThickness="1" cornerRadius="10"
-				  paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="5">
+		 creationPolicy="all">
+	<mx:VBox>
+		<mx:HBox verticalAlign="middle" height="22">
+			<mx:Label text="{lang('Binning type:')}"/>
+		</mx:HBox>
+		<mx:VBox id="radioVBox" paddingLeft="20">
 			
-			<mx:Label fontWeight="bold" text="{lang('Binning type:')}"/>
 			<mx:RadioButtonGroup id="typeGroup" change="handleTypeRadio()"/>
 			
 			<mx:HBox width="100%" verticalAlign="middle">
@@ -49,10 +47,10 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%"/>
+			<!--<mx:HRule width="100%"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle">
-				<mx:RadioButton id="customRadio" label="{lang('Custom breaks')}" groupName="typeGroup" width="100%" data="{_customSplit}"/>
+				<mx:RadioButton id="customRadio" label="{lang('Custom breaks')}" groupName="typeGroup" data="{_customSplit}"/>
 				<mx:TextInput enabled="{customRadio.selected}" id="splitValues" width="100%"/>
 				<ui:HelpComponent label="{customRadio.label}">
 					Enter comma-separated custom break values for dividing the data into bins.
@@ -60,7 +58,7 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%"/>
+			<!--<mx:HRule width="100%"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="quantileRadio" label="{lang('Quantile')}" groupName="typeGroup" width="100%" data="{_quantile}"/>
@@ -72,7 +70,7 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%"/>
+			<!--<mx:HRule width="100%"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="equalIntervalRadio" label="{lang('Equal interval')}" groupName="typeGroup" width="100%" data="{_equalInterval}"/>
@@ -83,7 +81,7 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%"/>
+			<!--<mx:HRule width="100%"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="sdRadio" label="{lang('Standard deviations')}" groupName="typeGroup" width="100%" data="{_stdDev}"/>
@@ -92,7 +90,7 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 		
-			<mx:HRule width="100%"/>
+			<!--<mx:HRule width="100%"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="jenksRadio" label="{lang('Natural breaks')}" groupName="typeGroup" selected="true" width="100%" data="{_jenks}"/>
@@ -106,7 +104,7 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%"/>
+			<!--<mx:HRule width="100%"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle">
 				<mx:RadioButton id="catRadio" label="{lang('All categories (string values)')}" groupName="typeGroup" width="100%" data="{_category}"/>
@@ -115,7 +113,7 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 			
-			<mx:HRule width="100%" visible="{showNoneOption}" includeInLayout="{showNoneOption}"/>
+			<!--<mx:HRule width="100%" visible="{showNoneOption}" includeInLayout="{showNoneOption}"/>-->
 			
 			<mx:HBox width="100%" verticalAlign="middle" visible="{showNoneOption}" includeInLayout="{showNoneOption}">
 				<mx:RadioButton id="noneRadio" label="{lang('None')}" groupName="typeGroup" width="100%" data="{null}"/>
@@ -124,25 +122,26 @@
 				</ui:HelpComponent>
 			</mx:HBox>
 		</mx:VBox>
-		<mx:VBox width="100%" height="100%">
-			<mx:HBox id="overrideInputRangeBox" width="100%">
-				<mx:Label text="{lang('Override data range:')}"/>
-				<ui:TextInputWithPrompt id="overrideInputMin" prompt="{lang('min')}" width="100%"/>
-				<ui:TextInputWithPrompt id="overrideInputMax" prompt="{lang('max')}" width="100%"/>
-			</mx:HBox>
-			<mx:DataGrid id="binNameEditor"
-						 width="100%" height="100%" minWidth="0"
-						 draggableColumns="false" sortableColumns="false"
-						 selectable="{overrideNamesCheckBox.selected}"
-						 editable="{overrideNamesCheckBox.selected}"
-						 itemEditEnd="handleItemEdited(event)"
-						 dataProvider="{gridSource}">
-				<mx:columns>
-					<mx:DataGridColumn headerText="{lang('Bin names')}"/>
-				</mx:columns>
-			</mx:DataGrid>
-			<mx:CheckBox id="overrideNamesCheckBox" label="{lang('Edit and override names')}" change="handleOverrideCheckbox()"/>
-		</mx:VBox>
+	</mx:VBox>
+	<mx:VBox width="100%" height="100%">
+		<mx:HBox id="overrideInputRangeBox" width="100%" verticalAlign="middle">
+			<mx:Label text="{lang('Override data range:')}"/>
+			<ui:TextInputWithPrompt id="overrideInputMin" prompt="{lang('min')}" width="100%"/>
+			<ui:TextInputWithPrompt id="overrideInputMax" prompt="{lang('max')}" width="100%"/>
+		</mx:HBox>
+		<mx:DataGrid id="binNameEditor"
+					 width="100%" height="100%" minWidth="0"
+					 draggableColumns="false" sortableColumns="false"
+					 selectable="{overrideNamesCheckBox.selected}"
+					 editable="{overrideNamesCheckBox.selected}"
+					 itemEditEnd="handleItemEdited(event)"
+					 dataProvider="{gridSource}">
+			<mx:columns>
+				<mx:DataGridColumn headerText="{lang('Bin names')}"/>
+			</mx:columns>
+		</mx:DataGrid>
+		<mx:CheckBox id="overrideNamesCheckBox" label="{lang('Edit and override names')}" change="handleOverrideCheckbox()"/>
+	</mx:VBox>
 	
 	<mx:Script>
 		<![CDATA[
@@ -249,6 +248,8 @@
 				if (!binnedColumn)
 					return;
 				
+				var binsOverridden:Boolean = binnedColumn.binningDefinition.binsOverridden;
+				
 				// find the radio button with the same binning definition type
 				var def:IBinningDefinition = binnedColumn.binningDefinition.internalObject as IBinningDefinition;
 				var foundType:Boolean = false;
@@ -267,11 +268,11 @@
 						break;
 					}
 				}
-				radioVBox.enabled = foundType;
-				binNameEditor.alpha = foundType && localDef ? 1 : .5;
+				radioVBox.enabled = foundType && !binsOverridden;
+				binNameEditor.alpha = foundType && localDef ? 1 : .5; // translucent when no binning definition is given
 				var abd:AbstractBinningDefinition = def as AbstractBinningDefinition;
-				overrideNamesCheckBox.includeInLayout = overrideNamesCheckBox.visible = abd && abd.overrideBinNames;
-				overrideInputRangeBox.includeInLayout = overrideInputRangeBox.visible = abd && abd.overrideInputMin;
+				overrideNamesCheckBox.includeInLayout = overrideNamesCheckBox.visible = abd && abd.overrideBinNames && !binsOverridden;
+				overrideInputRangeBox.includeInLayout = overrideInputRangeBox.visible = abd && abd.overrideInputMin && !binsOverridden;
 				
 				// update bin names
 				gridSource.source = binnedColumn.binningDefinition.getBinNames();
@@ -279,6 +280,11 @@
 					overrideNamesCheckBox.selected = true;
 				else
 					overrideNamesCheckBox.selected = false;
+				
+				if (binsOverridden)
+					radioVBox.toolTip = lang('The binning cannot be changed because this attribute column specifies the "overrideBins" metadata.');
+				else
+					radioVBox.toolTip = null;
 			}
 			
 			// called when the 'bin name override' checkbox is clicked

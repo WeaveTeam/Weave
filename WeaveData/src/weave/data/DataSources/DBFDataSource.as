@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.DataSources
 {	
@@ -24,6 +20,7 @@ package weave.data.DataSources
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.StringUtil;
 	
 	import org.vanrijkom.dbf.DbfField;
 	import org.vanrijkom.dbf.DbfHeader;
@@ -274,7 +271,7 @@ package weave.data.DataSources
 			}
 			proxyColumn.setMetadata(metadata);
 
-			var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(getKeyType(), getColumnValues(keyColName.value)));
+			var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(getKeyType(), getColumnValues(keyColName.value, true)));
 			var data:Array = getColumnValues(columnName);
 
 			var newColumn:IAttributeColumn;
@@ -352,7 +349,7 @@ package weave.data.DataSources
 			}
 			return null;
 		}
-		private function getColumnValues(columnName:String):Array
+		private function getColumnValues(columnName:String, trimStrings:Boolean = false):Array
 		{
 			var values:Array = [];
 			if (columnName == THE_GEOM_COLUMN)
@@ -367,7 +364,10 @@ package weave.data.DataSources
 				if (columnName)
 				{
 					record = DbfTools.getRecord(dbfData, dbfHeader, i);
-					values.push( record.values[columnName] );
+					var value:* = record.values[columnName];
+					if (trimStrings)
+						value = StringUtil.trim(value);
+					values.push(value);
 				}
 				else
 					values.push(String(i + 1));

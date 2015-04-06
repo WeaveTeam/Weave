@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
@@ -32,6 +28,7 @@ package weave.visualization.plotters
 	
 	import org.openscales.proj4as.ProjConstants;
 	
+	import weave.Weave;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.data.IProjectionManager;
@@ -73,13 +70,6 @@ package weave.visualization.plotters
 		
 		public function WMSPlotter()
 		{
-			_textField.autoSize = "left";			
-			_textField.textColor = 0xFFFFFF;
-			_textField.thickness = 2;
-			_textField.background = true;
-			_textField.backgroundColor = 0x000000;
-			_textField.alpha = 0.2;
-			
 			//setting default WMS Map to Blue Marble
 			setProvider(WMSProviders.OPEN_STREET_MAP);
 		}
@@ -382,7 +372,9 @@ package weave.visualization.plotters
 		}
 		
 		private const bt:BitmapText = new BitmapText();
+		private const ct:ColorTransform = new ColorTransform();
 		private const rect:Rectangle = new Rectangle();
+		private const tempBounds:Bounds2D = new Bounds2D();
 		private function debugTileBounds(tileBounds:IBounds2D, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData, url:String, drawRect:Boolean):void
 		{
 			_tempScreenBounds.copyFrom(tileBounds);
@@ -403,16 +395,42 @@ package weave.visualization.plotters
 			bt.draw(destination);
 		}
 		
-		private const _textField:TextField = new TextField(); // reusable object
+		public const creditInfoTextColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
+		public const creditInfoBackgroundColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xFFFFFF));
+		public const creditInfoAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.5, isFinite));
+		
 		private function drawCreditText(destination:BitmapData):void
 		{
 			var _providerCredit:String = _service.getCreditInfo();
 			if (_providerCredit)
 			{
-				_textField.text = _providerCredit;
-				_tempMatrix.identity();
-				_tempMatrix.translate(0, destination.height - _textField.height);
-				destination.draw(_textField, _tempMatrix);
+				var textColor:Number = creditInfoTextColor.value;
+				if (!isFinite(textColor))
+					return;
+				
+				bt.textFormat.color = textColor;
+				bt.textFormat.font = Weave.properties.visTextFormat.font.value;
+				bt.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+				bt.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM;
+				bt.x = 0;
+				bt.y = destination.height;
+				bt.text = _providerCredit;
+				
+				var backgroundColor:Number = creditInfoBackgroundColor.value;
+				if (isFinite(backgroundColor))
+				{
+					bt.getUnrotatedBounds(tempBounds);
+					tempBounds.getRectangle(rect);
+					tempShape.graphics.clear();
+					tempShape.graphics.lineStyle(0, 0, 0);
+					tempShape.graphics.beginFill(backgroundColor, creditInfoAlpha.value);
+					tempShape.graphics.drawRect(rect.x, rect.y, rect.width, rect.height);
+					tempShape.graphics.endFill();
+					destination.draw(tempShape);
+				}
+				
+				ct.alphaMultiplier = creditInfoAlpha.value;
+				bt.draw(destination, null, ct);
 			}
 		}
 

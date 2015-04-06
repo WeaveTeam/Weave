@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.primitives
 {
@@ -172,10 +168,11 @@ package weave.primitives
 			if (key.length != dimensionality)
 				throw new Error("KDTree.insert key parameter must have same dimensionality as tree");
 
+			var newNode:KDNode;
 			if (autoBalance)
 			{
 				// add the node to the list of all nodes
-				var newNode:KDNode = getUnusedNode(key, obj);
+				newNode = getUnusedNode(key, obj);
 				allNodes.push(newNode);
 				// make sure the tree will balance itself before querying
 				needsBalancing = true;
@@ -207,6 +204,15 @@ package weave.primitives
 					}
 					// go down the tree
 					node = node.left;
+				}
+				else if (StandardLib.compare(key, node.key) == 0)
+				{
+					// identical key
+					if (node.siblings == null)
+						node.siblings = [];
+					newNode = getUnusedNode(key, obj, node.splitDimension);
+					node.siblings.push(newNode);
+					return newNode;
 				}
 				else // key >= location
 				{
@@ -296,7 +302,7 @@ package weave.primitives
 			{
 				// declare temp variables
 				var inRange:Boolean;
-				var node:KDNode, key:Array, keyVal:Number, dimension:int, location:Number;
+				var node:KDNode, sibling:KDNode, key:Array, keyVal:Number, dimension:int, location:Number;
 				// traverse the tree
 				// begin by putting the root node on the stack
 				var stackPos:int = 0;
@@ -342,9 +348,17 @@ package weave.primitives
 						{
 							// if sort dimension is specified, add node to query result array
 							if (sortDimension >= 0)
+							{
 								queryResult[resultCount++] = node;
+								for each (sibling in node.siblings)
+									queryResult[resultCount++] = sibling;
+							}
 							else // if no sort dimension specified, add object to result array
+							{
 								queryResult[resultCount++] = node.object;
+								for each (sibling in node.siblings)
+									queryResult[resultCount++] = sibling.object;
+							}
 							// avoid adding the object to the result more than once
 							ignoreList[node.object] = true;
 						}
@@ -375,7 +389,8 @@ package weave.primitives
 				StandardLib.sortOn(queryResult, getNodeSortValue, compareNodesDescending ? -1 : 1);
 				
 				// replace nodes with objects in queryResult
-				for (i = queryResult.length; i--;)
+				i = resultCount;
+				while (i--)
 					queryResult[i] = (queryResult[i] as KDNode).object;
 			}
 			return queryResult;
@@ -408,12 +423,16 @@ package weave.primitives
 		 * This function is used to save old nodes for later use.
 		 * @param node The node to save for later.
 		 */		
-		public static function saveUnusedNode(node:KDNode):void
+		private static function saveUnusedNode(node:KDNode):void
 		{
+			for each (var sibling:KDNode in node.siblings)
+				saveUnusedNode(sibling);
 			// clear all pointers stored in node
 			node.object = null;
 			node.left = null;
 			node.right = null;
+			if (node.siblings)
+				node.siblings.length = 0;
 			// save node
 			unusedNodes.push(node);
 		}
@@ -421,7 +440,7 @@ package weave.primitives
 		 * This function uses object pooling to get an instance of KDNode.
 		 * @return Either a previously saved unused node, or a new node.
 		 */
-		public static function getUnusedNode(key:Array, object:Object, splitDimension:int = 0):KDNode
+		private static function getUnusedNode(key:Array, object:Object, splitDimension:int = 0):KDNode
 		{
 			var node:KDNode;
 			// if no more unused nodes left, return new node

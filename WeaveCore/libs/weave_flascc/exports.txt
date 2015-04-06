@@ -21,3 +21,5 @@ createCSV
 atob
 btoa
 stringHash
+dates_detect
+dates_parse

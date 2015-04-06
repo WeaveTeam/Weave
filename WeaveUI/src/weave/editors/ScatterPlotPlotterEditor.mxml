@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
 <mx:VBox  xmlns:mx="http://www.adobe.com/2006/mxml"
 		  xmlns:ui="weave.ui.*"
 		  xmlns="weave.editors.*"
@@ -27,7 +43,8 @@
 			{
 				if (target)
 				{
-					unlinkBindableProperty(target.fill.alpha.defaultValue, alphaSlider, "value");
+					unlinkBindableProperty(target.fill.alpha.defaultValue, fillAlphaSlider, "value");
+					unlinkBindableProperty(target.line.alpha.defaultValue, lineAlphaSlider, "value");
 					unlinkBindableProperty(target.colorNegative, colorNegativePicker, 'selectedColor');
 					unlinkBindableProperty(target.colorPositive, colorPositivePicker, 'selectedColor');
 					unlinkBindableProperty(target.colorBySize, colorBySizeCheckBox, 'selected');
@@ -52,7 +69,8 @@
 					// make sure components are not null
 					if (!initialized)
 						initialize();
-					linkBindableProperty(target.fill.alpha.defaultValue, alphaSlider, "value");
+					linkBindableProperty(target.fill.alpha.defaultValue, fillAlphaSlider, "value");
+					linkBindableProperty(target.line.alpha.defaultValue, lineAlphaSlider, "value");
 					linkBindableProperty(target.colorNegative, colorNegativePicker, 'selectedColor');
 					linkBindableProperty(target.colorPositive, colorPositivePicker, 'selectedColor');
 					linkBindableProperty(target.colorBySize, colorBySizeCheckBox, 'selected');
@@ -176,7 +194,16 @@
 					mouseDown="event.target.setFocus(); event.stopImmediatePropagation();"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Point opacity')}">
-		<mx:HSlider id="alphaSlider" 
+		<mx:HSlider id="fillAlphaSlider"
+					width="100%" 
+					snapInterval="0.05"
+					tickInterval=".25"
+					dataTipFormatFunction="{(function():Function{return PlotterUtils.alphaSliderFormatFunction;}())}"
+					minimum="0" maximum="1"
+					liveDragging="true"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Outline opacity')}">
+		<mx:HSlider id="lineAlphaSlider"
 					width="100%" 
 					snapInterval="0.05"
 					tickInterval=".25"

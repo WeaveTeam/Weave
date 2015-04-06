@@ -13,7 +13,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "miniz.c"
+#include "miniz.h"
 #include <stdlib.h>
 #include "AS3/AS3.h"
 #include "tracef.h"
@@ -90,7 +90,7 @@ void openZip()
 	{
 		free(zip_archive);
 		free(byteArray_ptr);
-		//tracef("Invalid archive. byteArray.length=%u", byteArray_len);
+		tracef("Invalid archive. byteArray.length=%u", byteArray_len);
 		AS3_Return(0);
 	}
 

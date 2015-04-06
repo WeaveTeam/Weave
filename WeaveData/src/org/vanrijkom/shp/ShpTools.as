@@ -73,7 +73,10 @@ public class ShpTools
 		var records: Array = ShpTools.readRecords(src);				
 		var i: uint;
 		
-		for each(var p: ShpRecord in records) {			
+		for each(var p: ShpRecord in records) {
+			// added for Weave
+			if (!p.shape)
+				continue;
 			for each(var r: Array in (p.shape as ShpPolygon).rings) {
 				if (r.length) {
 					dest.moveTo(r[0].x*zoom,-r[0].y*zoom);
