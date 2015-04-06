@@ -33,6 +33,8 @@
 				width="100%" minWidth="22"/>
 	<mx:Script>
 		<![CDATA[
+			import mx.events.SliderEvent;
+			
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.ColumnMetadata;
 			import weave.api.data.DataType;
@@ -94,11 +96,9 @@
 			
 			private function handleSliderChange(event:SliderEvent):void
 			{
-				trace('handleSliderChange');
 				if (!numberFilter || !UIUtils.hasFocus(filterSlider))
 					return;
 				
-				trace('handleSliderChange ready');
 				var values:Array = filterSlider.values.concat();
 				var value:Number;
 				if (showMinThumb.value)
