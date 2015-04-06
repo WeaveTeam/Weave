@@ -461,26 +461,48 @@ package weave.utils
 		 * @param output Optionally specifies where to store the resulting items.
 		 * @return An Object (or Array) containing the properties/items/attributes specified by keysOrIndices.
 		 */
-		public static function getItems(object:*, keys:Array, output:* = null):*
+		public static function getItems(object:*, keys:Array = null, output:* = null):*
 		{
 			if (!output)
 				output = object is Array ? [] : {};
 			if (!object)
 				return output;
-			for (var keyIndex:* in keys)
+			
+			var keyIndex:*,
+				keyValue:*,
+				item:*;
+			if (keys)
 			{
-				var keyValue:* = keys[keyIndex];
-				
-				var item:*;
-				if (object is XML_Class)
-					item = String((object as XML_Class).attribute(keyValue));
-				else
-					item = object[keyValue];
-				
-				if (output is Array)
-					output[keyIndex] = item;
-				else
-					output[keyValue] = item;
+				for (keyIndex in keys)
+				{
+					keyValue = keys[keyIndex];
+					
+					if (object is XML_Class)
+						item = String((object as XML_Class).attribute(keyValue));
+					else
+						item = object[keyValue];
+					
+					if (output is Array)
+						output[keyIndex] = item;
+					else
+						output[keyValue] = item;
+				}
+			}
+			else
+			{
+				keyIndex = 0;
+				for each (keyValue in keys)
+				{
+					if (object is XML_Class)
+						item = String((object as XML_Class).attribute(keyValue));
+					else
+						item = object[keyValue];
+					
+					if (output is Array)
+						output[keyIndex++] = item;
+					else
+						output[keyValue] = item;
+				}
 			}
 			return output;
 		}
