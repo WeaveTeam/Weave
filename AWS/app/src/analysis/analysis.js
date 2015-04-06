@@ -302,7 +302,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.$watch(function() {
 		return WeaveService.weave;
 	}, function() {
-		if(WeaveService.weave && WeaveService.weave.WeavePath) 
+		if(WeaveService.checkWeaveReady()) 
 		{
 			if(queryService.cache.weaveSessionState) {
 				WeaveService.weave.path().state(queryService.cache.weaveSessionState);
@@ -325,7 +325,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 				WeaveService.weaveWindow.close();
 				setTimeout(loadFlashContent, 0);
 				WeaveService.setWeaveWindow(WeaveService.analysisWindow);
-				if($scope.queryService.cache.weaveSessionState)//TODO check with sessionhistory instead
+				if($scope.queryService.cache.weaveSessionState)//TODO check with sessionhistory instead// DONT ADD properties dynamically
 					WeaveService.weave.path().state($scope.queryService.cache.weaveSessionState);
 				
 			}
