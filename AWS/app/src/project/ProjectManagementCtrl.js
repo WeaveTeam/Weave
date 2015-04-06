@@ -17,27 +17,16 @@ angular.module('aws.project', [])
 	
 	$scope.insertQueryObjectStatus = 0;//count changes when single queryObject or multiple are added to the database
 	var nameOfQueryObjectToDelete = "";
-	//external directives
-	$scope.aside = {
-			title : 'Query Object Editor'
-			
-		};
-	$scope.aside2 = {
-			title : 'New Project'
-			
-		};
-
-	//TODO find way to identify button id in angular
-	$scope.load = function(buttonid, item){
-		if(buttonid == "newQueryObjectButton"){
-			$scope.currentJson = "";
-		}
-			
-		if(buttonid == "openQueryObjectButton"){
-			$scope.currentJson = item;
-		}
-	};
 	
+	//external directives
+//	$scope.aside = {
+//			title : 'Query Object Editor'
+//			
+//		};
+//	$scope.aside2 = {
+//			title : 'New Project'
+//			
+//		};
 
      //Watch for when record is inserted in db
      $scope.$watch(function(){
@@ -58,10 +47,7 @@ angular.module('aws.project', [])
       });
      
 	/****************Button Controls***************************************************************************************************************************************/
-     $scope.loadConstructedQueryObject = function(){
-     	$scope.currentJson = queryService.queryObject; 
-      };
-     
+
 	//deletes an entire Project along with all queryObjects within
 	$scope.deleteEntireProject = function(){
 		$scope.deleteProjectConfirmation($scope.currentProjectSelected);
@@ -89,34 +75,33 @@ angular.module('aws.project', [])
 		nameOfQueryObjectToDelete = item.queryObjectName; 
 		$scope.deleteQueryConfirmation($scope.projectService.cache.dataTable, nameOfQueryObjectToDelete);
 	};
-	
-	$scope.runQueryInAnalysisBuilder = function(item){
-		//TODO validate the query before running
-		//TODO handle query running executin vs non executing for now
-		//QueryHandlerService.run(item);
-	};
-	
+
 	$scope.openInAnalysis = function(queryObject) {
 		queryService.queryObject = queryObject;
-		console.log("in prjt ctrl", queryService.queryObject );
 		//TODO dont use rootscope
-		$rootScope.$broadcast('queryObjectloaded', 'hello');
+		$rootScope.$broadcast('queryObjectloaded', queryService.queryObject);
 		$location.path('/analysis'); 
 	};
 	
 	$rootScope.$on('queryObjectloaded', function(event,data){
 		//TODO dont use rootscope
+		console.log("receiving broadcast");
 		$rootScope.$watch(function(){
 			 return WeaveService.weave;
 		}, function(){
 			if(WeaveService.weave){
-				WeaveService.weave.path().state(queryService.queryObject.sessionState);
-				delete queryService.queryObject.sessionState;
+				WeaveService.weave.path().state(data.sessionState);//TODO fix this adding properties dynamically not GOOD
+				delete data.sessionState;//TODO fix this adding properties dynamically not GOOD
 			}
 		});
 			
 	});
 	
+	//called when the thumb-nail is clicked
+	/**
+	 *@param given a query object
+	 *@returns it returns the weave visualizations for it.
+	 */
 	$scope.returnSessionState = function(queryObject){
 		projectService.returnSessionState(queryObject).then(function(weaveSessionState){
 			var newWeave;
@@ -134,20 +119,14 @@ angular.module('aws.project', [])
 			   		$scope.$watch(function(){
 			   			return WeaveService.weave;
 			   		},function(){
-			   			if(WeaveService.weave && WeaveService.weave.WeavePath) 
-		   					WeaveService.setSessionHistory(weaveSessionState);
+			   			if(WeaveService.checkWeaveReady()) 
+		   					WeaveService.setBase64SessionState(weaveSessionState);
 			   		});
 		   		}
 			else{
 				console.log("Session state was not returned");
 			}
 		});
-	};
-	
-	
-	$scope.loadInAnalysis = function(queryObject){
-		console.log("setting queryObject");
-		queryService.queryObject = queryObject;
 	};
 	
 });
