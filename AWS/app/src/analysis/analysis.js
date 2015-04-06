@@ -193,12 +193,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	 
 	 //************************** query object editor end**********************************
 	 
-	 //*******************************************Weave Analyst Mode*********************
-	 //when the mode is computation then a script has to be selected and analysis is run and results of computation can be visualized
-	 //when the mode is visualize the original data can be visualized and the computation is by-passed
-	 //TODO handle hybrid
-	 $scope.analyst = {mode: "computation"};
-	 
 	//**********************************************************REMAPPING**************************************
 	 queryService.cache.shouldRemap = [];
 	 $scope.newValue= "";

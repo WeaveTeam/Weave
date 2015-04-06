@@ -32,16 +32,9 @@
 				</td>
 			
 				<td style="padding-left: 5px;">
-					<ui-select ng-if= "analyst.mode == 'computation'" ng-model="tool.heights" multiple theme="select2" style="width: 100%;">
+					<ui-select ng-model="tool.heights" multiple theme="select2" style="width: 100%;">
 				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
 						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
-				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
-				        </ui-select-choices>
-					</ui-select>
-					
-					<ui-select ng-if= "analyst.mode == 'visualize'" ng-model="tool.heights" multiple theme="select2" style="width: 100%;">
-				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
-						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
 				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
 				        </ui-select-choices>
 					</ui-select>
@@ -54,16 +47,9 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-				<ui-select ng-if= "analyst.mode == 'computation'" ng-model="tool.posErr" multiple theme="select2" style="width: 100%;">
+				<ui-select ng-model="tool.posErr" multiple theme="select2" style="width: 100%;">
 				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
 						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
-				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
-				        </ui-select-choices>
-					</ui-select>
-					
-					<ui-select ng-if= "analyst.mode == 'visualize'" ng-model="tool.posErr" multiple theme="select2" style="width: 100%;">
-				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
-						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
 				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
 				        </ui-select-choices>
 					</ui-select>
@@ -77,16 +63,9 @@
 			
 			<td style="padding-left: 5px;">
 
-				<ui-select ng-if= "analyst.mode == 'computation'" ng-model="tool.negErr" multiple theme="select2" style="width: 100%;">
+				<ui-select ng-model="tool.negErr" multiple theme="select2" style="width: 100%;">
 				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
 						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
-				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
-				        </ui-select-choices>
-					</ui-select>
-					
-					<ui-select ng-if= "analyst.mode == 'visualize'" ng-model="tool.negErr" multiple theme="select2" style="width: 100%;">
-				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
-						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
 				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
 				        </ui-select-choices>
 					</ui-select>
@@ -100,16 +79,9 @@
 			
 			<td style="padding-left: 5px;">
 
-				<ui-select  ng-if = "analyst.mode == 'computation'" ng-model="tool.sort" theme="select2" style="width: 100%;">
+				<ui-select ng-model="tool.sort" theme="select2" style="width: 100%;">
 			    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$select.selected.title}}</ui-select-match>
 					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
-			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
-			        </ui-select-choices>
-				</ui-select>
-				
-				<ui-select  ng-if= "analyst.mode == 'visualize'" ng-model="tool.sort" theme="select2" style="width: 100%;">
-			    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$select.selected.title}}</ui-select-match>
-					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
 			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
 			        </ui-select-choices>
 				</ui-select>
@@ -123,16 +95,9 @@
 			
 			<td style="padding-left: 5px;">
 
-				<ui-select ng-if= "analyst.mode == 'computation'" ng-model=tool.label theme="select2" style="width: 100%;">
+				<ui-select ng-model=tool.label theme="select2" style="width: 100%;">
 			    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$select.selected.title}}</ui-select-match>
 					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
-			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
-			        </ui-select-choices>
-				</ui-select>
-				
-				<ui-select  ng-if= "analyst.mode == 'visualize'" ng-model=tool.label theme="select2" style="width: 100%;">
-			    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$select.selected.title}}</ui-select-match>
-					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
 			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
 			        </ui-select-choices>
 				</ui-select>

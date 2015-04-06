@@ -74,17 +74,10 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-				<ui-select ng-if = "analyst.mode == 'computation'" ng-model="tool.labelLayer" theme="select2" style="width: 100%;">
+				<ui-select ng-model="tool.labelLayer" theme="select2" style="width: 100%;">
 			    	<ui-select-match allow-clear="true" placeholder="Choose Layer...">{{$select.selected.title}}</ui-select-match>
 					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
 			       		 <div ng-bind-html="column.title| highlight: $select.search"></div>
-			        </ui-select-choices>
-				</ui-select>
-				
-				<ui-select  ng-if= "analyst.mode == 'visualize'" ng-model="tool.labelLayer" theme="select2" style="width: 100%;">
-			    	<ui-select-match allow-clear="true" placeholder="Choose Layer...">{{$select.selected.title}}</ui-select-match>
-					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.cache.columns | filter : { title : $select.search }">
-			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
 			        </ui-select-choices>
 				</ui-select>
 			</td>
