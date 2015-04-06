@@ -18,39 +18,46 @@
 <mx:HBox xmlns="weave.editors.*" 
 		xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
 		implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject"
-		paddingLeft="4"
+		creationPolicy="all"
 		horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" verticalAlign="middle">
-	<ui:CustomCheckBox id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter();"/>
+	<ui:CustomCheckBox paddingLeft="4" id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter();"/>
 <!--	<mx:Button enabled="{filterEnable.selected}"
 			   width="24" icon="@Embed(source='/weave/resources/images/eject-inset.png')"
 			   toolTip="{lang('Select a column to be used for filtering the data.')}"
 			   click="AttributeSelectorPanel.open(numberFilter.column, lang('Filter'));"/>
 -->
 	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}"
-				thumbCount="2"
 				liveDragging="true"
 				mouseDown="event.target.setFocus(); event.stopPropagation()"
 				change="handleSliderChange(event);"
 				width="100%" minWidth="22"/>
 	<mx:Script>
 		<![CDATA[
-			import mx.events.SliderEvent;
-			
 			import weave.api.core.ILinkableObject;
-			import weave.api.linkBindableProperty;
+			import weave.api.data.ColumnMetadata;
+			import weave.api.data.DataType;
+			import weave.api.data.IColumnStatistics;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.utils.ColumnUtils;
+			import weave.utils.VectorUtils;
 
 			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const showMinThumb:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), invalidateDisplayList);
+			public const showMaxThumb:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), invalidateDisplayList);
+			public const forceDiscreteValues:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), invalidateDisplayList);
+			private var discreteValues:Array;
 			
 			override protected function childrenCreated():void
 			{
+				trace('childrenCreated');
 				super.childrenCreated();
 				
 				UIUtils.linkVisibility(this, showToggle, filterEnable);
@@ -87,31 +94,116 @@
 			
 			private function handleSliderChange(event:SliderEvent):void
 			{
+				trace('handleSliderChange');
 				if (!numberFilter || !UIUtils.hasFocus(filterSlider))
 					return;
-				numberFilter.min.value = filterSlider.values[0];
-				numberFilter.max.value = filterSlider.values[1];
+				
+				trace('handleSliderChange ready');
+				var values:Array = filterSlider.values.concat();
+				var value:Number;
+				if (showMinThumb.value)
+				{
+					value = values.shift();
+					numberFilter.min.value = discreteValues ? discreteValues[value] : value;
+				}
+				if (showMaxThumb.value)
+				{
+					value = values.shift();
+					numberFilter.max.value = discreteValues ? discreteValues[value] : value;
+				}
 			}
 
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
-				if (numberFilter)
+				var i:int;
+				var stats:IColumnStatistics = statsWatcher.target as IColumnStatistics;
+				var min:Number = stats ? stats.getMin() : NaN;
+				var max:Number = stats ? stats.getMax() : NaN;
+				var ready:Boolean = numberFilter && isFinite(min) && isFinite(max);
+				if (ready && (showMinThumb.value || showMaxThumb.value))
 				{
+					var column:DynamicColumn = numberFilter.column;
+					
 					enabled = true;
 					filterEnable.selected = numberFilter.enabled.value;
-					var column:DynamicColumn = numberFilter.column;
 					columnTitle = ColumnUtils.getTitle(column);
-					filterSlider.minimum = WeaveAPI.StatisticsCache.getColumnStatistics(column).getMin();
-					filterSlider.maximum = WeaveAPI.StatisticsCache.getColumnStatistics(column).getMax();
-					filterSlider.values = [numberFilter.min.value, numberFilter.max.value];
+					
+					var sliderMinValue:Number = numberFilter.min.value;
+					var sliderMaxValue:Number = numberFilter.max.value;
+					
+					var labels:Array = [];
+					if (column.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.STRING)
+					{
+						discreteValues = null;
+						filterSlider.minimum = min;
+						filterSlider.maximum = max;
+						filterSlider.tickInterval = 1;
+						filterSlider.snapInterval = 1;
+						for (i = min; i <= max; i++)
+							labels.push(ColumnUtils.deriveStringFromNumber(column, i) || '');
+					}
+					else if (forceDiscreteValues.value)
+					{
+						// get distinct numeric values and store as values in lookup
+						var lookup:Object = {};
+						for each (var key:IQualifiedKey in column.keys)
+						{
+							var number:Number = column.getValueFromKey(key, Number);
+							lookup[number] = number;
+						}
+						
+						// sort values from lookup and create labels for sorted values
+						discreteValues = VectorUtils.getItems(lookup, null, []);
+						StandardLib.sort(discreteValues);
+						
+						sliderMinValue = discreteValues.indexOf(sliderMinValue);
+						sliderMaxValue = discreteValues.indexOf(sliderMaxValue);
+						
+						filterSlider.minimum = 0;
+						filterSlider.maximum = discreteValues.length - 1;
+						filterSlider.tickInterval = 1;
+						filterSlider.snapInterval = 1;
+						for each (number in lookup)
+							labels.push(ColumnUtils.deriveStringFromNumber(column, number) || '');
+					}
+					else
+					{
+						discreteValues = null;
+						filterSlider.minimum = min;
+						filterSlider.maximum = max;
+						filterSlider.tickInterval = 0;
+						filterSlider.snapInterval = 0;
+						if (showMinThumb.value)
+							labels.push(ColumnUtils.deriveStringFromNumber(column, min) || '');
+						if (showMaxThumb.value)
+							labels.push(ColumnUtils.deriveStringFromNumber(column, max) || '');
+					}
+					
+					var values:Array = [];
+					var thumbCount:int = 0;
+					if (showMinThumb.value)
+						values[thumbCount++] = sliderMinValue;
+					if (showMaxThumb.value)
+						values[thumbCount++] = sliderMaxValue;
+					filterSlider.thumbCount = thumbCount;
+					filterSlider.values = values;
+					filterSlider.labels = labels;
+					filterSlider.invalidateDisplayList();
+					filterSlider.validateNow();
 				}
 				else
 				{
 					enabled = false;
 					filterEnable.selected = false;
+					filterSlider.labels = null;
 					filterSlider.minimum = 0;
 					filterSlider.maximum = 100;
-					filterSlider.values = [0, 100];
+					filterSlider.thumbCount = 1;
+					filterSlider.value = 0;
+					filterSlider.tickInterval = 0;
+					filterSlider.snapInterval = 0;
+					filterSlider.invalidateDisplayList();
+					filterSlider.validateNow();
 				}
 				
 				super.updateDisplayList.apply(this, arguments);
