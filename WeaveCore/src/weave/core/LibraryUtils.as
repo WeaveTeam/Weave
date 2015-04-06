@@ -229,6 +229,7 @@ internal class Library implements IDisposableObject
 			
 			// Dynamic creation of Flex classes doesn't work unless the library is loaded into the same application domain.
 			_swfLoader.loaderContext = new LoaderContext(false, ApplicationDomain.currentDomain);
+			_swfLoader.loaderContext.allowCodeImport = true;
 			_swfLoader.load(_library_swf);
 			
 			WeaveAPI.ProgressIndicator.addTask(_swfLoader);
