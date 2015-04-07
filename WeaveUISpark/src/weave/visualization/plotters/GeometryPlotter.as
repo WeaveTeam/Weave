@@ -35,14 +35,15 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.Compiler;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
@@ -71,7 +72,7 @@ package weave.visualization.plotters
 
 			linkSessionState(StreamedGeometryColumn.geometryMinimumScreenArea, pixellation);
 
-			setSingleKeySource(geometryColumn);
+			updateKeySources();
 			
 			// not every change to the geometries changes the keys
 			geometryColumn.removeCallback(_filteredKeySet.triggerCallbacks);
@@ -96,6 +97,17 @@ package weave.visualization.plotters
 		 * This is the reprojected geometry column to draw.
 		 */
 		public const geometryColumn:ReprojectedGeometryColumn = newLinkableChild(this, ReprojectedGeometryColumn);
+		
+		/**
+		 * Determines the Z order of geometries
+		 */
+		public const zOrderColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const zOrderAscending:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateKeySources);
+		
+		private function updateKeySources():void
+		{
+			setColumnKeySources([geometryColumn, zOrderColumn], [0, zOrderAscending.value ? 1 : -1]);
+		}
 		
 		/**
 		 *  This is the default URL path for images, when using images in place of points.
