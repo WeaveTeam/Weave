@@ -91,7 +91,7 @@ package weave.data
 				return null;
 				
 			// if there is no projection specified, return the original column
-			if (destinationProjectionSRS == null || destinationProjectionSRS == '')
+			if (!destinationProjectionSRS)
 				return geometryColumn;
 			
 			// check the cache
