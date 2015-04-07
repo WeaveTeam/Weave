@@ -14,6 +14,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include "AS3/AS3.h"
 #include "tracef.h"
 #include "uthash.h"
@@ -36,8 +37,23 @@ size_t findstr_maxlen = 0;
 char *findstr = NULL;
 entry_t *entry_table = NULL;
 
+inline bool isWhitespace(char c)
+{
+	switch (c)
+	{
+		case ' ':
+		case '\t':
+		case '\r':
+		case '\n':
+		case '\f':
+			return true;
+		default:
+			return false;
+	}
+}
+
 void stringHash() __attribute__((used,
-	annotate("as3sig:public function stringHash(str:String):int"),
+	annotate("as3sig:public function stringHash(str:String, trim:Boolean = false):int"),
 	annotate("as3package:weave.flascc")));
 void stringHash()
 {
