@@ -21,6 +21,7 @@ package weave.data.AttributeColumns
 	
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
+	import weave.api.data.DateFormat;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.reportError;
@@ -334,9 +335,9 @@ package weave.data.AttributeColumns
 			'J','%-H',
 			'LL','%I',
 			'L','%-I',
-			'EEEE','%A', // note this %A is after the A was replaced above
+			'EEEE','%A', // note that %A appears after the A replaced above
 			'EEE','%a',
-			'NN','%M', // note these %M appears after the M's were replaced above
+			'NN','%M', // note that %M and %-M appear after the M's replaced above
 			'N','%-M',
 			'SS','%S',
 			'QQQ','%Q'
@@ -345,120 +346,7 @@ package weave.data.AttributeColumns
 		
 		public static function detectDateFormats(dates:*):Array
 		{
-			return weave.flascc.dates_detect(dates, DATE_FORMAT_AUTO_DETECT);
+			return weave.flascc.dates_detect(dates, DateFormat.FOR_AUTO_DETECT);
 		}
-		
-		public static const DATE_FORMAT_ADDITIONAL_SUGGESTIONS:Array = [
-			"%Y"
-		];
-		public static const DATE_FORMAT_AUTO_DETECT:Array = [
-			'%d-%b-%y',
-			'%b-%d-%y',
-			'%d-%b-%Y',
-			'%b-%d-%Y',
-			'%Y-%b-%d',
-			
-			'%d/%b/%y',
-			'%b/%d/%y',
-			'%d/%b/%Y',
-			'%b/%d/%Y',
-			'%Y/%b/%d',
-			
-			'%d.%b.%y',
-			'%b.%d.%y',
-			'%d.%b.%Y',
-			'%b.%d.%Y',
-			'%Y.%b.%d',
-			
-			'%d-%m-%y',
-			'%m-%d-%y',
-			'%d-%m-%Y',
-			'%m-%d-%Y',
-			'%Y-%m-%d',
-			
-			'%d/%m/%y',
-			'%m/%d/%y',
-			'%d/%m/%Y',
-			'%m/%d/%Y',
-			'%Y/%m/%d',
-			
-			'%d.%m.%y',
-			'%m.%d.%y',
-			'%d.%m.%Y',
-			'%m.%d.%Y',
-			'%Y.%m.%d',
-			
-			'%H:%M',
-			'%H:%M.%Q',
-			'%H:%M:%S',
-			'%H:%M:%S.%Q',
-			'%a, %d %b %Y %H:%M:%S %z', // RFC_822
-			
-			// ISO_8601   http://www.thelinuxdaily.com/2014/03/c-function-to-validate-iso-8601-date-formats-using-strptime/
-			"%Y-%m-%d",
-			"%y-%m-%d",
-			"%Y-%m-%d %T",
-			"%y-%m-%d %T",
-			"%Y-%m-%dT%T",
-			"%y-%m-%dT%T",
-			"%Y-%m-%dT%TZ",
-			"%y-%m-%dT%TZ",
-			"%Y-%m-%d %TZ",
-			"%y-%m-%d %TZ",
-			"%Y%m%dT%TZ",
-			"%y%m%dT%TZ",
-			"%Y%m%d %TZ",
-			"%y%m%d %TZ",
-			
-			"%Y-%b-%d %T",
-			"%Y-%b-%d %H:%M:%S",
-			"%Y-%b-%d %H:%M:%S.%Q",
-			"%d-%b-%Y %T",
-			"%d-%b-%Y %H:%M:%S",
-			"%d-%b-%Y %H:%M:%S.%Q",
-			
-			/*
-			//https://code.google.com/p/datejs/source/browse/trunk/src/globalization/en-US.js
-			'M/d/yyyy',
-			'dddd, MMMM dd, yyyy',
-			"M/d/yyyy",
-			"dddd, MMMM dd, yyyy",
-			"h:mm tt",
-			"h:mm:ss tt",
-			"dddd, MMMM dd, yyyy h:mm:ss tt",
-			"yyyy-MM-ddTHH:mm:ss",
-			"yyyy-MM-dd HH:mm:ssZ",
-			"ddd, dd MMM yyyy HH:mm:ss GMT",
-			"MMMM dd",
-			"MMMM, yyyy",
-			
-			//http://www.java2s.com/Code/Android/Date-Type/parseDateforlistofpossibleformats.htm
-			"EEE, dd MMM yyyy HH:mm:ss z", // RFC_822
-			"EEE, dd MMM yyyy HH:mm zzzz",
-			"yyyy-MM-dd'T'HH:mm:ssZ",
-			"yyyy-MM-dd'T'HH:mm:ss.SSSzzzz", // Blogger Atom feed has millisecs also
-			"yyyy-MM-dd'T'HH:mm:sszzzz",
-			"yyyy-MM-dd'T'HH:mm:ss z",
-			"yyyy-MM-dd'T'HH:mm:ssz", // ISO_8601
-			"yyyy-MM-dd'T'HH:mm:ss",
-			"yyyy-MM-dd'T'HHmmss.SSSz",
-			
-			//http://stackoverflow.com/a/21737848
-			"M/d/yyyy", "MM/dd/yyyy",                                    
-			"d/M/yyyy", "dd/MM/yyyy", 
-			"yyyy/M/d", "yyyy/MM/dd",
-			"M-d-yyyy", "MM-dd-yyyy",                                    
-			"d-M-yyyy", "dd-MM-yyyy", 
-			"yyyy-M-d", "yyyy-MM-dd",
-			"M.d.yyyy", "MM.dd.yyyy",                                    
-			"d.M.yyyy", "dd.MM.yyyy", 
-			"yyyy.M.d", "yyyy.MM.dd",
-			"M,d,yyyy", "MM,dd,yyyy",                                    
-			"d,M,yyyy", "dd,MM,yyyy", 
-			"yyyy,M,d", "yyyy,MM,dd",
-			"M d yyyy", "MM dd yyyy",                                    
-			"d M yyyy", "dd MM yyyy", 
-			"yyyy M d", "yyyy MM dd" */
-		];
 	}
 }

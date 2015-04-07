@@ -21,6 +21,8 @@ package weave.api.data
 	 */
 	public class Aggregation
 	{
+		public static const ALL_TYPES:Array = [SAME, FIRST, LAST, MEAN, SUM, MIN, MAX, COUNT];
+		
 		public static const SAME:String = "same";
 		public static const FIRST:String = "first";
 		public static const LAST:String = "last";
