@@ -278,7 +278,7 @@ package weave.data.DataSources
 			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
 			if (dataType == DataType.GEOMETRY)
 			{
-				newColumn = new GeometryColumn();
+				newColumn = new GeometryColumn(metadata);
 				(newColumn as GeometryColumn).setGeometries(keysVector, Vector.<GeneralizedGeometry>(data));
 			}
 			else if (dataType == DataType.DATE)
