@@ -168,55 +168,52 @@ public class ComputationalServlet extends WeaveServlet
 				Object column_to_remap = null;//resetting it every time
 				Object castedOriginalValue = null;
 				Object castedRemappedValue = null;
-				column_to_remap = originalData.recordData[0][index];//TODO remove hardcode this has to be done only once
 				
 				//we need this to know which column to handle for remapping
-				for(int y = 0; y < remapValues.length; y++)
-				{
-					ReMapObjects singleObject = remapValues[y];
-					for(int t=0; t< fRows.columnIds.length; t++)
-					{
-						if(singleObject.columnsToRemapId == fRows.columnIds[t])
-						{
-							index = t;//use index to loop through data later while remapping
-							remapObject = remapValues[y];
-						}
-					}
-				}
-				
-				try{
-					castedOriginalValue = cast(remapObject.originalValue, column_to_remap.getClass());
-					//need to cast because client side sometimes sends integers as strings
-					castedRemappedValue = cast(remapObject.reMappedValue, column_to_remap.getClass());
-				}
-				catch(Exception e){
-					throw e;
-				}
+				remapObject = remapValues[c];
+
 				
 				for(int x = 0; x < originalData.recordData.length; x++)
 				{
-					if(originalData.recordData[x][index] == null){
+					Object valueToRemap = originalData.recordData[x][c];
+					if(valueToRemap == null){
 						continue;
 					}
 					
 					else{//for non-null values
 						
-						if(originalData.recordData[x][index].equals(castedOriginalValue))
-						{
-							//System.out.println(x);
-							originalData.recordData[x][index] = castedRemappedValue;
-							
+						// loop through the originalValues to find Match
+						for(int j = 0; j < remapObject.originalValues.length; j++) {
+							try{
+								castedOriginalValue = cast(remapObject.originalValues[j], valueToRemap.getClass());
+							}
+							catch(Exception e){
+								throw e;
+							}
+							if(valueToRemap.equals(castedOriginalValue)) {
+								index = j;
+								break;
+							}
 						}
 						
+						// replace with the newValue at index found
+						if(originalData.recordData[x][c].equals(castedOriginalValue))
+						{
+							try{
+								castedRemappedValue = cast(remapObject.reMappedValues[index], valueToRemap.getClass());
+							}
+							catch(Exception e){
+								throw e;
+							}
+							originalData.recordData[x][c] = castedRemappedValue;
+						}
 					}
-					
 				}
 				
 			}//loop ends for one remapObject
 		}
 			
 		//***************************end of REMAPPING********************************************
-			
 		return originalData;
 	}
 	
@@ -253,9 +250,9 @@ public class ComputationalServlet extends WeaveServlet
 	 */
 	public static class ReMapObjects
 	{
-		 public int columnsToRemapId;
-		 public  Object originalValue;
-		 public Object reMappedValue;
+		 public int columnId;
+		 public  Object[] originalValues;
+		 public Object[] reMappedValues;
 	}
 	
 	/**

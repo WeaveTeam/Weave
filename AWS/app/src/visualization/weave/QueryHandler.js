@@ -113,6 +113,29 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 		});
     	
     };
+    /**
+     * this function converts the columnRemap object into a
+     * java bean
+     */
+    this.handleColumnRemap = function(jsColumnRemap) {
+    	
+    	var remapObjects = [];
+    	for(id in jsColumnRemap) {
+    		remapObject = {
+				columnId : id,
+				originalValues : [],
+				reMappedValues : []
+    		};
+    		remapValues = jsColumnRemap[id];
+    		for(oldVal in remapValues)
+    		{
+    			remapObject.originalValues.push(oldVal);
+    			remapObject.reMappedValues.push(remapValues[oldVal]);
+    		}
+    		remapObjects.push(remapObject);
+    	}
+    	return remapObjects;
+    };
     
     /**
      * this function handles geography filters
@@ -249,6 +272,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			//handling script inputs
 			scriptInputObjects = this.handleScriptOptions(queryObject.scriptOptions);
 			
+			var remapObjects = this.handleColumnRemap(queryObject.columnRemap);
+			
 			//handles re-identification for aggregation scripts
 			this.handleReidentification(scriptInputObjects);
 
@@ -262,7 +287,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 				startTimer = new Date().getTime();
 				
 				//getting the data
-				queryService.getDataFromServer(scriptInputObjects, queryService.queryObject.IndicatorRemap).then(function(success) {
+				queryService.getDataFromServer(scriptInputObjects, remapObjects).then(function(success) {
 					if(success) {
 						time1 =  new Date().getTime() - startTimer;
 						startTimer = new Date().getTime();

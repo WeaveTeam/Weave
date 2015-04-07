@@ -223,6 +223,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 	};
 	
 	this.MapTool = function(state, aToolName){
+		console.log(state, aToolName);
 		if(state.enabled){//if enabled
 			var toolName = aToolName || ws.generateUniqueName("MapTool");
 			

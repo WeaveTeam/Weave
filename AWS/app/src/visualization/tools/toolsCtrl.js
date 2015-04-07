@@ -5,6 +5,10 @@ AnalysisModule.controller("toolsCtrl", function($scope, $filter,queryService, We
 	$scope.AnalysisService = AnalysisService;
 	$scope.selectedToolToAdd = {};
 	
+	
+	 $scope.$watch('selectedToolToAdd.value', function() {
+			console.log($scope.selectedToolToAdd.value); 
+		 });
 	$scope.tool_options = ["MapTool", "BarChartTool", "ScatterPlotTool", "DataTable"];
 
 	$scope.fixed_ids = ["MapTool", "BarChartTool", "ScatterPlotTool", "DataTableTool", "KeyColumn", "ColorColumn", "AttributeMenuTool"];
@@ -13,6 +17,7 @@ AnalysisModule.controller("toolsCtrl", function($scope, $filter,queryService, We
 		switch(name) {
 			case "MapTool":
 				var toolName = WeaveService.MapTool(null, "");
+				console.log(toolName);
 				queryService.queryObject.visualizations[toolName] = {
 					title : toolName,
 					template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html'
