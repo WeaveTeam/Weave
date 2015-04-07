@@ -476,6 +476,9 @@ internal class WorkerThread implements IDisposableObject
 				for (var geometryIndex:int = 0; geomArray && geometryIndex < geomArray.length; ++geometryIndex)
 				{
 					var oldGeometry:GeneralizedGeometry = geomArray[geometryIndex] as GeneralizedGeometry;
+					if (!oldGeometry)
+						continue;
+					
 					var geomParts:Vector.<Vector.<BLGNode>> = oldGeometry.getSimplifiedGeometry(); // no parameters = full list of vertices
 					var geomIsPolygon:Boolean = oldGeometry.geomType == GeometryType.POLYGON;
 	
@@ -533,7 +536,7 @@ internal class WorkerThread implements IDisposableObject
 			}
 			else
 			{
-				break;
+				return 1;
 			}
 		}
 		
