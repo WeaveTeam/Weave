@@ -135,6 +135,7 @@ A text editor to change the Session State on the fly.
 			import weave.core.ClassUtils;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableString;
+			import weave.core.LinkableSynchronizer;
 			import weave.core.StageUtils;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
@@ -208,6 +209,10 @@ A text editor to change the Session State on the fly.
 						shown: isObjectSelected,
 						label: lang('Copy path to selected object'),
 						click: copyPathToClipboard
+					}, {
+						shown: isObjectSelected,
+						label: lang('Link session state with another object'),
+						click: linkStatePath
 					}, {
 						shown: isObjectSelected,
 						label: lang('Watch selected object'),
@@ -795,6 +800,42 @@ A text editor to change the Session State on the fly.
 				}
 			}
 			
+			private function linkStatePath():void
+			{
+				var json:Object = ClassUtils.getClassDefinition('JSON');
+				if (!json)
+				{
+					reportError("JSON encoding is not supported by your version of Flash Player.");
+					return;
+				}
+				
+				var primaryPath:Array = sessionNav.getSelectedPath();
+				AlertTextBox.show(
+					"Link session state",
+					"Enter the path to the other object",
+					_lastCopiedPathStr,
+					validateInput,
+					handleInput
+				);
+				
+				function validateInput(input:String):Boolean
+				{
+					try {
+						return json.parse(input) is Array;
+					} catch (e:Error) { }
+					return false;
+				}
+				function handleInput(input:String):void
+				{
+					var otherPath:Array = json.parse(input) as Array;
+					var ls:LinkableSynchronizer = WeaveAPI.globalHashMap.requestObject(null, LinkableSynchronizer, false);
+					ls.primaryPath.setSessionState(primaryPath);
+					ls.secondaryPath.setSessionState(otherPath);
+				}
+			}
+			
+			private var _lastCopiedPathStr:String;
+			
 			private function copyPathToClipboard():void
 			{
 				var path:Array = sessionNav.getSelectedPath();
@@ -809,6 +850,7 @@ A text editor to change the Session State on the fly.
 					);
 					str = "[" + path.join(", ") + "]";
 				}
+				_lastCopiedPathStr = str;
 				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, str);
 			}
 			private function copyToClipboard():void
