@@ -81,6 +81,14 @@
 		//Message before TextBox
 		[Bindable] public var message:String = null;
 		
+		/**
+		 * May be null until children are created.
+		 */
+		public function getExpandButton():ExpandButton
+		{
+			return _expandButton;
+		}
+		
 		override protected function createChildren():void
 		{
 			super.createChildren();

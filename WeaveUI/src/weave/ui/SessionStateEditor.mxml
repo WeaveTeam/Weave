@@ -810,13 +810,14 @@ A text editor to change the Session State on the fly.
 				}
 				
 				var primaryPath:Array = sessionNav.getSelectedPath();
-				AlertTextBox.show(
+				var atb:AlertTextBox = AlertTextBox.show(
 					"Link session state",
 					"Enter the path to the other object",
 					_lastCopiedPathStr,
 					validateInput,
 					handleInput
 				);
+				atb.getExpandButton().expanded = true;
 				
 				function validateInput(input:String):Boolean
 				{
