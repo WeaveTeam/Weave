@@ -1,5 +1,5 @@
 AnalysisModule.controller('dataFilterCtrl', function($scope, queryService, $filter){
-	
+	$scope.queryService = queryService;
 	$scope.filtersModel = queryService.queryObject.filters;
 	$scope.treeFiltersModel = queryService.queryObject.treeFilters;
 	

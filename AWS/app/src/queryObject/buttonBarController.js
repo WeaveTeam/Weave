@@ -37,7 +37,7 @@ QueryObject.controller("buttonBarController", function($scope, $modal, queryServ
 	$scope.exportQuery = function() {
 		if(WeaveService.weave)
 		{
-			queryService.queryObject.sessionState = WeaveService.weave.path().getState();
+			$scope.queryService.queryObject.sessionState = WeaveService.weave.path().getState();
 		}
 		
 		var blob = new Blob([ angular.toJson(queryService.queryObject, true) ], {
@@ -57,7 +57,7 @@ QueryObject.controller("buttonBarController", function($scope, $modal, queryServ
     	var saveQueryObjectInstance = $modal.open($scope.opts);
     	saveQueryObjectInstance.result.then(function(params){//this takes only a single object
     	//console.log("params", params);
-    		queryService.getBase64SessionState(params);
+    		$scope.queryService.getBase64SessionState(params);
     		
     	});
     };
@@ -67,11 +67,11 @@ QueryObject.controller("buttonBarController", function($scope, $modal, queryServ
 	$scope.$watch('queryObjectUploaded.file', function(n, o) {
 		if($scope.queryObjectUploaded.file.content)
 		{
-			queryService.queryObject = angular.fromJson($scope.queryObjectUploaded.file.content);
+			$scope.queryService.queryObject = angular.fromJson($scope.queryObjectUploaded.file.content);
 			if(WeaveService.weave)
 			{
-				WeaveService.weave.path().state(queryService.queryObject.sessionState);
-				delete queryService.queryObject.sessionState;
+				WeaveService.weave.path().state($scope.queryService.queryObject.sessionState);
+				delete $scope.queryService.queryObject.sessionState;
 			}
 		}
     }, true);
