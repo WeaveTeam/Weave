@@ -46,13 +46,15 @@ package weave.core
 			var secondary:ILinkableObject = secondaryWatcher.target;
 			if (_primary != primary || _secondary != secondary)
 			{
-				if (_primary && _secondary)
-				{
+				// check individual objects since one may have been disposed
+				if (_primary)
 					WeaveAPI.SessionManager.getCallbackCollection(_primary).removeCallback(primaryCallback);
+				if (_secondary)
 					WeaveAPI.SessionManager.getCallbackCollection(_secondary).removeCallback(secondaryCallback);
-				}
+				
 				_primary = primary;
 				_secondary = secondary;
+				
 				if (primary && secondary)
 				{
 					WeaveAPI.SessionManager.getCallbackCollection(_secondary).addImmediateCallback(this, secondaryCallback);
