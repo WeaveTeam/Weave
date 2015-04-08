@@ -44,6 +44,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableNumber;
 			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
@@ -55,7 +56,13 @@
 			public const showMinThumb:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), invalidateDisplayList);
 			public const showMaxThumb:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), invalidateDisplayList);
 			public const forceDiscreteValues:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), invalidateDisplayList);
+			public const discreteValueLabelInterval:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, verifyUINT), invalidateDisplayList);
 			private var discreteValues:Array;
+			
+			private function verifyUINT(value:Number):Boolean
+			{
+				return value == uint(value);
+			}
 			
 			override protected function childrenCreated():void
 			{
@@ -163,8 +170,22 @@
 						filterSlider.maximum = discreteValues.length - 1;
 						filterSlider.tickInterval = 1;
 						filterSlider.snapInterval = 1;
-						for each (number in lookup)
-							labels.push(ColumnUtils.deriveStringFromNumber(column, number) || '');
+						var labelInterval:int = discreteValueLabelInterval.value;
+						if (labelInterval > 0)
+						{
+							for each (number in discreteValues)
+							{
+								if (labels.length % labelInterval == 0)
+									labels.push(ColumnUtils.deriveStringFromNumber(column, number) || '');
+								else
+									labels.push('');
+							}
+						}
+						else
+						{
+							labels.push(ColumnUtils.deriveStringFromNumber(column, discreteValues[0]) || '');
+							labels.push(ColumnUtils.deriveStringFromNumber(column, discreteValues[discreteValues.length - 1]) || '');
+						}
 					}
 					else
 					{
