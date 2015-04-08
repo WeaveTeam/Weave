@@ -31,7 +31,7 @@
 		</zip>
 	</target>
 
-	<target name="air"  depends="build"> 
+	<target name="air"  depends="build, desktop"> 
 		<copy todir="${WEAVE_DESTROOT}">
 			<fileset dir="${DESKTOP}/src/">
 				<include name="*.png"/>
@@ -91,7 +91,7 @@
 
 	<!-- This target will extract the swf files from the swc archives
 		and extract them to the WEAVE_DESTROOT -->
-	<target name="build" depends="client, desktop, admin, uispark, ui, data, core, api, services, exampleplugin">
+	<target name="build" depends="client, admin, uispark, ui, data, core, api, services, exampleplugin">
 		<mkdir dir="${WEAVE_DESTROOT}"/>
 		<build-html-wrapper project="${CLIENT}" swf="weave" title="Weave"/>
 		<build-html-wrapper project="${ADMIN}" swf="AdminConsole" title="Weave Admin Console"/>
@@ -105,7 +105,6 @@
 		<copy file="${basedir}/${CLIENT}/src/weaveStyle.css" tofile="${WEAVE_DESTROOT}/weaveStyle.css"/>
 		<copy file="${basedir}/${CLIENT}/html-template/playerProductInstall.swf" tofile="${WEAVE_DESTROOT}/playerProductInstall.swf"/>
 		<copy file="${basedir}/${CLIENT}/html-template/swfobject.js" tofile="${WEAVE_DESTROOT}/swfobject.js"/>
-		<copy file="${basedir}/${DESKTOP}/bin/${DESKTOP}.swf" tofile="${WEAVE_DESTROOT}/${DESKTOP}.swf"/>
 		<copy file="${basedir}/${ADMIN}/bin/AdminConsole.swf" tofile="${WEAVE_DESTROOT}/AdminConsole.swf"/>
 		<copy file="${basedir}/${UI}/src/weave/visualization/tools/CytoscapeWebPopout.html" tofile="${WEAVE_DESTROOT}/CytoscapeWebPopout.html"/>
 		<copy file="${basedir}/${SERVICES}/bin/${SERVICES}.war" tofile="${basedir}/${SERVICES}.war"/>
@@ -141,6 +140,7 @@
 	</target>
 	<target name="desktop" depends="ui">
 		<buildproject targetproject="${DESKTOP}" targetfileext="swf"/>
+		<copy file="${basedir}/${DESKTOP}/bin/${DESKTOP}.swf" tofile="${WEAVE_DESTROOT}/${DESKTOP}.swf"/>
 	</target>
 	<target name="servletutils">
 		<ant dir="${basedir}/${SERVLETUTILS}" target="build"/>
