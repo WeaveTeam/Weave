@@ -332,8 +332,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			value : {}
 	};
 	
-	$scope.showColumnInfo = function(column) {
-		$scope.columnToRemap = {value : column}; // bind this column to remap to the scope
+	$scope.showColumnInfo = function(column, param) {
+		$scope.columnToRemap = {value : param}; // bind this column to remap to the scope
 		if(column) {
 			$scope.description = column.description;
 			queryService.getEntitiesById([column.id], true).then(function (result) {
@@ -426,31 +426,30 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 	$scope.setValue = function(originalValue, newValue)
 	{
 		if(queryService.queryObject.columnRemap) {
-			if(queryService.queryObject.columnRemap[$scope.columnToRemap.value.id]) {
-				queryService.queryObject.columnRemap[$scope.columnToRemap.value.id][originalValue] = newValue;
+			if(queryService.queryObject.columnRemap[$scope.columnToRemap.value]) {
+				queryService.queryObject.columnRemap[$scope.columnToRemap.value][originalValue] = newValue;
 			} else {
-				queryService.queryObject.columnRemap[$scope.columnToRemap.value.id] = {};
-				queryService.queryObject.columnRemap[$scope.columnToRemap.value.id][originalValue] = newValue;
+				queryService.queryObject.columnRemap[$scope.columnToRemap.value] = {};
+				queryService.queryObject.columnRemap[$scope.columnToRemap.value][originalValue] = newValue;
 			}
 		} 
 	};
 	
-	$scope.$watchCollection("columnToRemap.value.id", function(newVal, oldVal) {
+	$scope.$watchCollection("columnToRemap.value", function(newVal, oldVal) {
 		if(newVal) {
 			var temp = [];
 			for(var key in queryService.queryObject.columnRemap[newVal]) {
 				temp.push(queryService.queryObject.columnRemap[newVal][key]);
 			}
 			$scope.values = temp;
-			console.log($scope.values);
 		}
 	});
 	
 	$scope.$watch('queryService.queryObject.columnRemap', function() {
-		if($scope.columnToRemap.value.id) {
+		if($scope.columnToRemap.value) {
 			$scope.values = [];
-			for(var key in queryService.queryObject.columnRemap[$scope.columnToRemap.value.id]) {
-				$scope.values.push(queryService.queryObject.columnRemap[$scope.columnToRemap.value.id][key]);
+			for(var key in queryService.queryObject.columnRemap[$scope.columnToRemap.value]) {
+				$scope.values.push(queryService.queryObject.columnRemap[$scope.columnToRemap.value][key]);
 			}
 		}
 	}, true);

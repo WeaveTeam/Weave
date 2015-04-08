@@ -2,6 +2,8 @@ package weave.servlets;
 
 import static weave.config.WeaveConfig.initWeaveConfig;
 
+import java.util.ArrayList;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
@@ -83,21 +85,24 @@ public class ComputationalServlet extends WeaveServlet
 				data = DataService.getFilteredRows(rows.columnIds, rows.filters, null);
 				//TODO handling filters still has to be done
 				
-				//REMAPPING
-				if(remapValues != null)//only if remapping needs to be done
-				{
-					data = remappingScriptInputData(remapValues, rows, data);//this function call will return the remapped data
-				}
-				
 				//transposition
 				columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
 				
+				if(remapValues != null)//only if remapping needs to be done
+				{
+					columnData = remapScriptInputData(rows.namesToAssign, columnData, remapValues);//this function call will return the remapped data
+				}
+
 				// if individual columns --> assign each columns to proper column name
 				if (type.equalsIgnoreCase(filteredRows))
 				{
+					// Once all the columns have been downloaded, we can 
+					// run the remapping of the values
+					
 					for(int x =  0; x < rows.namesToAssign.length;  x++) {
 						scriptInputs.put(rows.namesToAssign[x], columnData[x]);
 					}
+					
 				}
 				
 				//if multi columns --> assign each columns to proper column name
@@ -157,64 +162,42 @@ public class ComputationalServlet extends WeaveServlet
 	 * @param filtered rows needed for matching ids of columns that need to be remapped
 	 * @param originalData the original data matrix that needs to be overwritten
 	 */
-	private WeaveRecordList remappingScriptInputData(ReMapObjects[] remapValues, RowsObject fRows, WeaveRecordList originalData) throws Exception
+	private Object[][] remapScriptInputData(String[] columnNames, Object[][] columns, ReMapObjects[] remapObjects) throws Exception
 	{
-		if(remapValues.length > 0 ){
-			for(int c = 0; c < remapValues.length; c++)//for each of the remap columns
+		if(remapObjects.length > 0 ){
+			for(int i = 0; i < remapObjects.length; i++)//for each of the remap columns
 			{
-				int index = 0;
 				ReMapObjects remapObject = null;//use this object from the collection of the remapObjects for the remapping
 				//check the type of the original data to be remapped
-				Object column_to_remap = null;//resetting it every time
-				Object castedOriginalValue = null;
-				Object castedRemappedValue = null;
-				
-				//we need this to know which column to handle for remapping
-				remapObject = remapValues[c];
-
-				
-				for(int x = 0; x < originalData.recordData.length; x++)
+				//first column to remap
+				remapObject = remapObjects[i];
+				String columnNameToMatch = remapObject.columnName;
+				// find the matching column name
+				for(int j = 0; j < columnNames.length; j++)
 				{
-					Object valueToRemap = originalData.recordData[x][c];
-					if(valueToRemap == null){
-						continue;
-					}
-					
-					else{//for non-null values
-						
-						// loop through the originalValues to find Match
-						for(int j = 0; j < remapObject.originalValues.length; j++) {
-							try{
-								castedOriginalValue = cast(remapObject.originalValues[j], valueToRemap.getClass());
-							}
-							catch(Exception e){
-								throw e;
-							}
-							if(valueToRemap.equals(castedOriginalValue)) {
-								index = j;
-								break;
-							}
-						}
-						
-						// replace with the newValue at index found
-						if(originalData.recordData[x][c].equals(castedOriginalValue))
+					if(columnNameToMatch.equalsIgnoreCase(columnNames[j]))
+					{
+						// once we have the column to remap, use the remap values to remap the column
+						for(int k = 0; k < columns[j].length; k++)
 						{
-							try{
-								castedRemappedValue = cast(remapObject.reMappedValues[index], valueToRemap.getClass());
+							Object value = columns[j][k];
+							for(int l = 0; l < remapObject.originalValues.length; l++)
+							{
+								if(value == null)
+									continue;
+								if(value.equals(cast(remapObject.originalValues[l], value.getClass())))
+								{
+									columns[j][k] = cast(remapObject.reMappedValues[l], value.getClass());
+								}
 							}
-							catch(Exception e){
-								throw e;
-							}
-							originalData.recordData[x][c] = castedRemappedValue;
 						}
 					}
 				}
-				
-			}//loop ends for one remapObject
+			}
 		}
-			
+		
+		return columns;
 		//***************************end of REMAPPING********************************************
-		return originalData;
 	}
 	
 	
@@ -250,7 +233,7 @@ public class ComputationalServlet extends WeaveServlet
 	 */
 	public static class ReMapObjects
 	{
-		 public int columnId;
+		 public String columnName;
 		 public  Object[] originalValues;
 		 public Object[] reMappedValues;
 	}

@@ -120,13 +120,13 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     this.handleColumnRemap = function(jsColumnRemap) {
     	
     	var remapObjects = [];
-    	for(id in jsColumnRemap) {
+    	for(title in jsColumnRemap) {
     		remapObject = {
-				columnId : id,
+				columnName : title,
 				originalValues : [],
 				reMappedValues : []
     		};
-    		remapValues = jsColumnRemap[id];
+    		remapValues = jsColumnRemap[title];
     		for(oldVal in remapValues)
     		{
     			remapObject.originalValues.push(oldVal);
