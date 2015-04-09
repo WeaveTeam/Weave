@@ -130,7 +130,7 @@
 					return;
 				}
 				
-				setLastSliderValue(value + playStep.value);
+				setLastSliderValue(Math.min(value + playStep.value, filterSlider.maximum));
 			}
 			
 			private function getEnableLabel(columnTitle:String):String
