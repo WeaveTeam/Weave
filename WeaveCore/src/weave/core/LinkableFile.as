@@ -15,11 +15,14 @@
 
 package weave.core
 {
-	import weave.api.core.ILinkableVariable;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
-	import weave.api.registerLinkableChild;
+	
 	import mx.rpc.AsyncToken;
+	
+	import weave.api.core.ILinkableVariable;
+	import weave.api.registerLinkableChild;
+	
 	/**
 	 * This is a LinkableString that handles the process of managing a promise for file content from a URL.
 	 * @author pkovac
@@ -40,7 +43,7 @@ package weave.core
 		{
 			if (!url.value)
 				return null;
-			return WeaveAPI.URLRequestUtils.getURL(contentPromise, new URLRequest(url.value));
+			return WeaveAPI.URLRequestUtils.getURL(contentPromise, new URLRequest(url.value), 'binary', true);
 		}
 
 		public function get result():ByteArray

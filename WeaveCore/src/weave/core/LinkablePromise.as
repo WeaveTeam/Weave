@@ -84,7 +84,7 @@ package weave.core
 		
 		private var _task:Function;
 		private var _taskParams:Array;
-		private var _description:*; /* Function or String */
+		private var _description:Object; /* Function or String */
 		
 		private var _callbackCollection:ICallbackCollection;
 		private var _lazy:Boolean = true;
@@ -158,7 +158,7 @@ package weave.core
 			
 			
 			var _tmp_description:String = null;
-			if (_description as Function)
+			if (_description is Function)
 				_tmp_description = (_description as Function)();
 			else
 				_tmp_description = _description as String;

@@ -101,6 +101,7 @@ package weave.core
 		public static const ARCHIVE_SCREENSHOT_PNG:String = "screenshot.png";
 		public static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
 		public static const ARCHIVE_HISTORY_AMF:String = "history.amf";
+		public static const ARCHIVE_URL_CACHE_AMF:String = "url-cache.amf";
 		private static const _pngEncoder:PNGEncoder = new PNGEncoder();
 		
 		private static var _history:SessionStateLog;
@@ -122,7 +123,7 @@ package weave.core
 		{
 			var application:Object = WeaveAPI.topLevelApplication;
 			
-			// HACK
+			// HACK to support fixed workspace size
 			var component:IFlexDisplayObject = application.hasOwnProperty('visApp') ? application['visApp'] : application as IFlexDisplayObject;
 			
 			var bitmapData:BitmapData = BitmapUtils.getBitmapDataFromComponent(component, thumbnailSize, thumbnailSize);
@@ -172,6 +173,10 @@ package weave.core
 			// session history
 			var _history:Object = history.getSessionState();
 			output.objects[ARCHIVE_HISTORY_AMF] = _history;
+			
+			// TEMPORARY SOLUTION - url cache
+			if (WeaveAPI.URLRequestUtils['saveCache'])
+				output.objects[ARCHIVE_URL_CACHE_AMF] = WeaveAPI.URLRequestUtils.getCache();
 			
 			return output.serialize();
 		}
