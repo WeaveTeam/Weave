@@ -214,7 +214,13 @@ internal class ForeignDataColumn extends AbstractAttributeColumn implements IPri
 	 */
 	override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 	{
-		var localName:String = _keyColumn.getValueFromKey(key, String);
+		var localName:String;
+		// if the foreign key column is numeric, avoid using the formatted strings as keys
+		if (_keyColumn.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.NUMBER)
+			localName = _keyColumn.getValueFromKey(key, Number);
+		else
+			localName = _keyColumn.getValueFromKey(key, String);
+		
 		var foreignKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(_keyType, localName);
 		return _dataColumn.getValueFromKey(foreignKey, dataType);
 	}
