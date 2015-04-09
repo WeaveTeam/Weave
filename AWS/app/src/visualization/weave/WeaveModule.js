@@ -348,8 +348,6 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 
 	this.ScatterPlotTool = function(state, aToolName){
 		
-		console.log("toolcollection", this.toolsEnabled);
-		
 		var toolName = aToolName || ws.generateUniqueName("ScatterPlotTool");
 		if(state && state.enabled){//if enabled
 			
@@ -463,7 +461,6 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 	};
 	
 	this.keyColumn = function(state){
-		console.log("keycolumn", state.keyColumn);
 		if(state.keyColumn)
 		{
 			if(ws.checkWeaveReady()){

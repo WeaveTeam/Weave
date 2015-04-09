@@ -181,9 +181,11 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'runQueryService',
 			treeFilters : [],
 			GeographyFilter : {
 				stateColumn:{},
+				nestedStateColumn : {},
 				countyColumn:{},
-				metadataTable:{},
-				filters:{}
+				geometrySelected : null,
+				selectedStates : null,
+				selectedCounties : null
 			},
 			openInNewWindow : false,
 			Reidentification : {
