@@ -92,6 +92,7 @@ package weave.data.DataSources
 		public static const COLUMN_DOC_URL:String = 'url';
 		public static const COLUMN_DOC_THUMBNAIL:String = 'thumbnail';
 		public static const COLUMN_TOPIC:String = 'topic';
+		public static const COLUMN_USERTOPIC:String = 'user_topic';
 		public static const COLUMN_NODE_TYPE:String = 'type';
 		public static const COLUMN_NODE_X:String = 'x';
 		public static const COLUMN_NODE_Y:String = 'y';
@@ -278,6 +279,7 @@ package weave.data.DataSources
 				}
 				
 				if (table == TABLE_TOPICS && column == COLUMN_TOPIC)
+				{
 					rpc('getTopicWords', [collection], function(topicIdToWords:Object):Object {
 						_topicIdToWords[collection] = topicIdToWords;
 						var topicIDs:Array = VectorUtils.getKeys(topicIdToWords);
@@ -289,11 +291,36 @@ package weave.data.DataSources
 							cachedColumn.addImmediateCallback(null, function():void {
 								for each (var topicID:String in topicIDs)
 									getCachedColumn(collection, TABLE_DOC_WEIGHTS, topicID);
+								getCachedColumn(collection, TABLE_TOPICS, COLUMN_USERTOPIC);
 							});
 							setRecords(cachedColumn, keys, Vector.<String>(topicWords));
 						}, keys);
 						return topicIdToWords;
 					});
+
+				}
+				
+				if (table == TABLE_TOPICS && column == COLUMN_USERTOPIC)
+				{
+					var topicIdToWords:Object = _topicIdToWords[collection];
+					var topicIDs:Array = VectorUtils.getKeys(topicIdToWords);
+					var userTopics:Array = topicIDs.map(function(topicID:String, i:int, a:Array):String {
+						var collectionTopicOverrides:LinkableHashMap = topicNameOverrides.getObject(collection) as LinkableHashMap;
+						if (collectionTopicOverrides)
+						{
+							var overriddenTopicName:LinkableString = collectionTopicOverrides.requestObject(topicID, LinkableString, false);
+							if (overriddenTopicName && overriddenTopicName.value)
+							{
+								return overriddenTopicName.value;
+							}
+						}
+						return  lang('{0}: {1}', topicID, topicIdToWords[topicID].source.join(' '));
+					});
+					var keys:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+					(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(cachedColumn, getKeyType(collection), topicIDs, function():void {
+						setRecords(cachedColumn, keys, Vector.<String>(userTopics));
+					}, keys);
+				}
 				
 				if (table == TABLE_NODES || table == TABLE_DOC_WEIGHTS)
 					getTopicDocWeights(collection);
@@ -481,7 +508,8 @@ package weave.data.DataSources
 											hasChildBranches: false,
 											label: lang('Topics'),
 											children: getColumnNodeDescriptors(collection, TABLE_TOPICS, [
-												COLUMN_TOPIC
+												COLUMN_TOPIC,
+												COLUMN_USERTOPIC,
 											])
 										},
 										{
