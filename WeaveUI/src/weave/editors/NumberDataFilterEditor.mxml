@@ -224,7 +224,9 @@
 							}
 							
 							// sort values from lookup and create labels for sorted values
-							discreteValues = VectorUtils.getItems(lookup, null, []);
+							discreteValues = [];
+							for each (number in lookup)
+								discreteValues.push(number);
 							StandardLib.sort(discreteValues);
 							
 							sliderMinValue = discreteValues.indexOf(sliderMinValue);
