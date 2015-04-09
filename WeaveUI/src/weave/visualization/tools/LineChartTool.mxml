@@ -268,37 +268,36 @@
 					labelPlotter.dataX.removeObject();
 					return;
 				}
-				var lastColumn:IAttributeColumn;
+				
+				// find last Y column with keys (for labels)
+				var lastXCol:IAttributeColumn;
+				var lastYCol:IAttributeColumn;
 				var repeat:Boolean = false;
-				do
+				var iCol:int = _columns.length;
+				while (iCol-- && (!lastYCol || !lastYCol.keys.length))
 				{
-					repeat = false;
-					if( _columns.length == 0 )
-						break;
-					if(!_plotter.usingXAttributes)
-					{
-						var x:AlwaysDefinedColumn = labelPlotter.dataX.requestLocalObject(AlwaysDefinedColumn, false);
-					    x.defaultValue.value = (_columns.length) - 1;
-					}
-						
-					else
-					{
-						lastColumn= _xattrObjects.pop();
-						labelPlotter.dataX.requestLocalObjectCopy(lastColumn as ILinkableObject);
-					}
-					
-	
-					lastColumn= _columns.pop();
-					labelPlotter.dataY.requestLocalObjectCopy(lastColumn as ILinkableObject);
-					repeat = (labelPlotter.dataY.keys.length == 0);
-				} while (repeat);
+					lastXCol = _xattrObjects[iCol] as IAttributeColumn;
+					lastYCol = _columns[iCol] as IAttributeColumn;
+				}
+				
+				// set label x and y columns
+				if (!_plotter.usingXAttributes)
+				{
+					var x:AlwaysDefinedColumn = labelPlotter.dataX.requestLocalObject(AlwaysDefinedColumn, false);
+				    x.defaultValue.value = iCol;
+				}
+				else
+				{
+					labelPlotter.dataX.requestLocalObjectCopy(lastXCol as ILinkableObject);
+				}
+				labelPlotter.dataY.requestLocalObjectCopy(lastYCol as ILinkableObject);
 
 				if (labelPlotter.text.getInternalColumn() == null)
 				{
 					var headers:Array = ProbeTextUtils.probeHeaderColumns.getObjects();
 					for (var i:int = 0; i < headers.length; i++)
 					{
-						if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(lastColumn))
+						if (ColumnUtils.getKeyType(headers[i]) == ColumnUtils.getKeyType(lastYCol))
 						{
 							labelPlotter.text.requestLocalObjectCopy(headers[i]);
 							break;
