@@ -4,15 +4,12 @@
  **/
 var qh_module = angular.module('aws.QueryHandlerModule', []);
 
-qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService','runQueryService','geoService', '$window', '$modal',
-                                 function($q, scope, queryService, WeaveService, errorLogService,runQueryService,geoService, $window, $modal) {
+qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService','runQueryService', 'd3Service', '$window', '$modal',
+                                 function($q, scope, queryService, WeaveService, errorLogService,runQueryService,d3Service, $window, $modal) {
 	
-	//this.WeaveService.weaveWindow;
 	var scriptInputs = {};
 	var filters = {};
 	var scriptName = ""; 
-	
-	//var queryObject = queryService.queryObject;
 	var nestedFilterRequest = {and : []};
 	
 	var that = this; // point to this for async responses
@@ -119,97 +116,64 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
      **/
     this.handleGeographyFilters = function(incoming_qo){
     	var geoQuery = {};
-    	var currentGeo;
-    	var tempGeoFilter;
+    	geoQuery.or = [];
  
-    	incoming_qo.GeographyFilter.filters = geoService.selectedGeographies;
+    	if(incoming_qo.GeographyFilter.stateColumn.id)
+    		incoming_qo.GeographyFilter.selectedStates = d3Service.mapT.cache.selectedStates;
+    	if(incoming_qo.GeographyFilter.countyColumn.id)
+    		incoming_qo.GeographyFilter.selectedCounties = d3Service.mapT.cache.selectedCounties;
 
-		geoQuery.or = [];
 		
-		if(incoming_qo.GeographyFilter.hasOwnProperty("filters")) {
-			if(Object.keys(incoming_qo.GeographyFilter.filters).length !== 0)
+		
+			//state filter
+			if(!incoming_qo.GeographyFilter.countyColumn)
 			{
-				//state filter
-				if(!incoming_qo.GeographyFilter.countyColumn)
+				var states = [];
+				for(var state in incoming_qo.GeographyFilter.selectedStates)
 				{
-					var states = [];
-					for(var state in incoming_qo.GeographyFilter.filters)
-					{
-						states.push(state);
-					}
-					
-					
-					geoQuery = 	{
-									  cond : { 
-										  		f : incoming_qo.GeographyFilter.stateColumn.id, 
-										  		v : states
-									  		 }
-								};
-												
-					
-					console.log("geoQuery", geoQuery);
-				}
-				// state + county filter
-				else
-				{
-					for(var key in incoming_qo.GeographyFilter.filters)
-					{
-						var counties = [];
-						var singleState = incoming_qo.GeographyFilter.filters[key].counties;
-						console.log("single state", singleState);
-						
-						counties = Object.keys(singleState);
-						geoQuery.or.push({ and : [
-													{
-														  cond : { 
-															  		f : incoming_qo.GeographyFilter.nestedStateColumn.id, 
-															  		v : [key] 
-														  		 }
-													},
-													{
-														  cond: {
-															  		f : incoming_qo.GeographyFilter.countyColumn.id,
-															  		v : counties
-														  		}
-													}
-													]});
-					}
-					console.log("geoQuery", geoQuery);
+					states.push(state);
 				}
 				
 				
-//				for(var key in incoming_qo.GeographyFilter.filters)
-//				{
-//					var index = geoQuery.or.push({ and : [
-//					                                      {
-//					                                    	  cond : { 
-//					                                    		  		f : stateId, 
-//					                                    		  		v : [key] 
-//					                                    	  		 }
-//					                                      },
-//					                                      {
-//					                                    	  cond: {
-//					                                    		  		f : countyId, 
-//					                                    		  		v : []
-//					                                    	  		}
-//					                                      }
-//					                                      ]});
-//					console.log("geoQuery", geoQuery);
-//					for(var i in incoming_qo.GeographyFilter.filters[key].counties) 
-//					{
-//						var countyFilterValue = "";
-//						for(var key2 in incoming_qo.GeographyFilter.filters[key].counties[i]) 
-//						{
-//							countyFilterValue = key2;
-//						}
-//						geoQuery.or[index-1].and[1].cond.v.push(countyFilterValue);
-//					}
-//				}
+				geoQuery = 	{
+								  cond : { 
+									  		f : incoming_qo.GeographyFilter.stateColumn.id, 
+									  		v : states
+								  		 }
+							};
+											
+				
+				//console.log("geoQuery", geoQuery);
+				
+				nestedFilterRequest.and.push(geoQuery);
+			}
+			// state + county filter
+			else
+			{
+				for(var key in incoming_qo.GeographyFilter.selectedCounties)
+				{
+					geoQuery.or.push({ and : [
+												{
+													  cond : { 
+														  		f : incoming_qo.GeographyFilter.nestedStateColumn.id, 
+														  		v : key
+													  		 }
+												},
+												{
+													  cond: {
+														  		f : incoming_qo.GeographyFilter.countyColumn.id,
+														  		v : Object.keys(incoming_qo.GeographyFilter.selectedCounties[key].counties)
+													  		}
+												}
+												]});
+				}
+				//console.log("geoQuery", geoQuery);
 				if(geoQuery.or.length) {
 					nestedFilterRequest.and.push(geoQuery);
 				}
 			}
-		}
+			
+				
     };
     
 	/**
@@ -225,8 +189,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			var queryObject = incoming_queryObject;
 			var scriptInputObjects = [];//final collection of script input objects
 			
-			//TODO handle filters before handling script options
-			//handling geo filters
+			//HANDLING FILTERS
 			if(queryObject.GeographyFilter)
 			{
 				this.handleGeographyFilters(queryObject);
@@ -245,56 +208,55 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 				}
 			});
 	
-			console.log(nestedFilterRequest);
+			//console.log(nestedFilterRequest);
 			//handling script inputs
 			scriptInputObjects = this.handleScriptOptions(queryObject.scriptOptions);
 			
 			//handles re-identification for aggregation scripts
 			this.handleReidentification(scriptInputObjects);
 
-			//console.log("scriptInputObjects", scriptInputObjects);
-				scriptName = queryObject.scriptSelected;
-				 //var stringifiedQO = JSON.stringify(queryObject);
-				 //console.log("query", stringifiedQO);
-				 //console.log(JSON.parse(stringifiedQO));
-				queryService.queryObject.properties.queryDone = false;
-				queryService.queryObject.properties.queryStatus = "Loading data from database...";
-				startTimer = new Date().getTime();
+			scriptName = queryObject.scriptSelected;
+			 //var stringifiedQO = JSON.stringify(queryObject);
+			 //console.log("query", stringifiedQO);
+			 //console.log(JSON.parse(stringifiedQO));
+			queryService.queryObject.properties.queryDone = false;
+			queryService.queryObject.properties.queryStatus = "Loading data from database...";
+			startTimer = new Date().getTime();
 				
-				//getting the data
-				queryService.getDataFromServer(scriptInputObjects, queryService.queryObject.IndicatorRemap).then(function(success) {
-					if(success) {
-						time1 =  new Date().getTime() - startTimer;
-						startTimer = new Date().getTime();
-						queryService.queryObject.properties.queryStatus = "Running analysis...";
-						
-						//executing the script
-						queryService.runScript(scriptName).then(function(resultData) {
-							if(!angular.isUndefined(resultData))
-							{
-								console.log(resultData);
-								time2 = new Date().getTime() - startTimer;
-								queryService.queryObject.properties.queryDone = true;
-								queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
+			//getting the data
+			queryService.getDataFromServer(scriptInputObjects, queryService.queryObject.IndicatorRemap).then(function(success) {
+				if(success) {
+					time1 =  new Date().getTime() - startTimer;
+					startTimer = new Date().getTime();
+					queryService.queryObject.properties.queryStatus = "Running analysis...";
+					
+					//executing the script
+					queryService.runScript(scriptName).then(function(resultData) {
+						if(!angular.isUndefined(resultData))
+						{
+							console.log(resultData);
+							time2 = new Date().getTime() - startTimer;
+							queryService.queryObject.properties.queryDone = true;
+							queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
+							
+							if(WeaveService.weave){
 								
-								if(WeaveService.weave){
-									
-									//convert result into csvdata format
-									var formattedResult = WeaveService.createCSVDataFormat(resultData.resultData, resultData.columnNames);
-									//create the CSVDataSource]
-									var dsn = queryService.queryObject.Indicator ? queryService.queryObject.Indicator.title : "";
-									WeaveService.addCSVData(formattedResult, dsn, queryService.queryObject);
-								}
+								//convert result into csvdata format
+								var formattedResult = WeaveService.createCSVDataFormat(resultData.resultData, resultData.columnNames);
+								//create the CSVDataSource]
+								var dsn = queryService.queryObject.Indicator ? queryService.queryObject.Indicator.title : "";
+								WeaveService.addCSVData(formattedResult, dsn, queryService.queryObject);
 							}
-						}, function(error) {
-							queryService.queryObject.properties.queryDone = false;
-							queryService.queryObject.properties.queryStatus = "Error running script. See error log for details.";
-						});
-					}
-				}, function(error) {
-					queryService.queryObject.properties.queryDone = false;
-					queryService.queryObject.properties.queryStatus = "Error Loading data. See error log for details.";
-				});
+						}
+					}, function(error) {
+						queryService.queryObject.properties.queryDone = false;
+						queryService.queryObject.properties.queryStatus = "Error running script. See error log for details.";
+					});
+				}
+			}, function(error) {
+				queryService.queryObject.properties.queryDone = false;
+				queryService.queryObject.properties.queryStatus = "Error Loading data. See error log for details.";
+			});
 				
 			}//validation check
 		};

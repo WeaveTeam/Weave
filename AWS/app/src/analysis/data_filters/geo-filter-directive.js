@@ -17,17 +17,39 @@ AnalysisModule.directive('geoFilter', ['queryService', 'd3Service',  function fa
 				
 				$scope.queryService = queryService;
 				
-				$scope.geometry = {selected: ""};
 				
-				//renders layer once geography column is selected
-				$scope.renderLayer = function(){
-					if($scope.geometry.selected)
-						d3Service.renderLayer(dom_element_to_append_to, $scope.topoJsonPath, $scope.geometry.selected);
-					if($scope.geometry.selected == 'State')
+				$scope.initialize = function(){
+					
+					var config = {
+									container: dom_element_to_append_to, 
+									margin: {top:5,bottom:5,left:5,right:5},
+									fileName:$scope.topoJsonPath,
+									stateFile:"lib/us_states.csv",
+									countyFile:"lib/us_counties.csv"
+								};
+					
+					//d3Service.renderLayer(dom_element_to_append_to, $scope.topoJsonPath, $scope.queryService.queryObject.GeographyFilter.geometrySelected);
+					d3Service.createMap(config);
+				}();
+				
+				$scope.$watchCollection(
+						'[queryService.queryObject.GeographyFilter.stateColumn,queryService.queryObject.GeographyFilter.countyColumn]', 
+						function(){
+					
+						if($scope.queryService.queryObject.GeographyFilter.geometrySelected){
+						//d3Service.renderLayer(dom_element_to_append_to, $scope.topoJsonPath, $scope.queryService.queryObject.GeographyFilter.geometrySelected);
+						d3Service.renderMap($scope.queryService);
+					}
+					if($scope.queryService.queryObject.GeographyFilter.geometrySelected == 'State')
 						$scope.queryService.queryObject.GeographyFilter.countyColumn = "";
 					else
 						$scope.queryService.queryObject.GeographyFilter.stateColumn = '';
-					//console.log("ng-model", $scope.queryService.queryObject.GeographyFilter);
+					
+				});
+				
+				//renders layer once geography column is selected
+				$scope.renderLayer = function(){
+
 				};
 				
 			},

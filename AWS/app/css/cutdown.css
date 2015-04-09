@@ -943,11 +943,16 @@ select {
 	margin-right : 5px"
 }
 #states {
-  fill: #aaa;
+  fill: #335555;
 }
 
-#states .active {
-	fill:orange
+.geometryFill {
+	pointer-events: all;
+	fill: #335555;
+}
+
+.geometryFill.selected{
+	fill : yellow;
 }
 
 #state-borders {

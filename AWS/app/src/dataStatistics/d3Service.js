@@ -2,8 +2,21 @@
  *this service contains all the functions needed for D3 visualizations 
  *TODO move to an independent D3 module later 
  */
-dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoService){
+dataStatsModule.service('d3Service', ['$q','geoService',   function($q, geoService){
 	var that = this;
+	
+	this.mapT = new  d3_viz.mapTool();
+	
+	this.createMap = function(config){
+		this.mapT.intializeChart(config);
+	};
+	this.renderMap = function(queryService){
+		
+		this.mapT.renderLayer(queryService.queryObject.GeographyFilter.geometrySelected,
+							  queryService.queryObject.GeographyFilter.selectedStates,
+							  queryService.queryObject.GeographyFilter.selectedCounties	);
+		
+	};
 	
 	//is a pointer to the geomteries after being loaded the first time
 	this.cache = {
@@ -171,24 +184,32 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 			
 			
 			//adding map layer
-			g.selectAll("path")
+			this._states = g.selectAll("path")
 			.data(geometries)
 			.enter()
 			.append("path")
 			.attr("d", path)
-			.style("fill", "#335555")
+			.style("fill", "#335555");
+			
 			//handling selections							
+			this._states
 			.on('click', function(d){
 				//if it is selected for the first time
 				if(!(d.id in geoService.selectedGeographies)){
-					d3.select(this).style("fill", "yellow");
+					d.selected = true;
+					//d3.select(this).style("fill", "yellow");
 					geoService.selectedGeographies[d.id] = { title: d.properties.name };
 				}
 				//if already selected; remove it
 				else{
+					d.selected = false;
 					delete geoService.selectedGeographies[d.id];
-					d3.select(this).style("fill", "#335555");
+					//d3.select(this).style("fill", "#335555");
 				}
+				
+				this._states.classed("selected", function(d){
+					return d.selected;
+				})
 				
 			})
 			.on('mouseover', function(d){
@@ -235,60 +256,70 @@ dataStatsModule.service('d3Service', ['$q','geoService',  function($q, geoServic
 			
 			
 			function clicked(gElement, d) {
-				  var x, y, k;
-				  if (d && centered !== d) {
-				    var centroid = path.centroid(d);
-				    x = centroid[0];
-				    y = centroid[1];
-				    k = 2;
-				    centered = d;
-				    
-				    //find all counties belonging to d
-				    var c_in_selectedState= [];
-				    for(var i in geometries){
-				    	var county = geometries[i];
-				    	if(d.id == county.properties.stateId){
-				    		c_in_selectedState.push(county);
-				    	}
-				    }
-				    //drawing counties in d
-				    var gAr = d3.select(gElement);
-				    gAr.selectAll("path")
-				     .data(c_in_selectedState)
-				     .enter().append("g")
-				     .on('click', function(d){
-				    	 						console.log("counties",d);
-				    	 						d3.select(this).style("fill", "yellow");
-				    	 						counties[d.id] = d.properties.name;
-				    	 						geoService.selectedGeographies[d.properties.stateId] = {title : d.properties.state, counties : counties};
-				    	 						
-				    	 						
-			    	 						 })
-				     .on('mouseover', function(d){
-											tooltip.style('visibility', 'visible' ).text(d.properties.name + " (" + d.properties.stateAbbr + ")"); 
-										})
-					 .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
-					 .on('mouseout', function(){ tooltip.style('visibility', 'hidden');})
-				     .append("path")
-				     .attr("d", path)
-				     .attr("class", "countyBorders");
-				  } 
-				  
-				  else { 
-				    x = width / 2;
-				    y = height / 2;
-				    k = 1;
-				    centered = null;
-				  }
+				console.log("f.clickedState", f.clickedState);
+				console.log("boolean", f.clickedState != gElement);
+				if( f.clickedState != gElement){
+					var x, y, k;
+					  if (d && centered !== d) {
+						  
+					    var centroid = path.centroid(d);
+					    x = centroid[0];
+					    y = centroid[1];
+					    k = 2;
+					    centered = d;
+					    
+					    //find all counties belonging to d
+					    var c_in_selectedState= [];
+					    for(var i in geometries){
+					    	var county = geometries[i];
+					    	if(d.id == county.properties.stateId){
+					    		c_in_selectedState.push(county);
+					    	}
+					    }
+					    //drawing counties in d
+					    var gAr = d3.select(gElement);
+					    gAr.selectAll("path")
+					     .data(c_in_selectedState)
+					     .enter().append("g")
+					     .attr('class', 'blah')
+					     .on('click', function(d){
+					    	 						//console.log("counties",d);
+					    	 						d3.select(this).style("fill", "yellow");
+					    	 						counties[d.id] = d.properties.name;
+					    	 						geoService.selectedGeographies[d.properties.stateId] = {title : d.properties.state, counties : counties};
+					    	 						
+					    	 						
+				    	 						 })
+					     .on('mouseover', function(d){
+												tooltip.style('visibility', 'visible' ).text(d.properties.name + " (" + d.properties.stateAbbr + ")"); 
+											})
+						 .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+						 .on('mouseout', function(){ tooltip.style('visibility', 'hidden');})
+					     .append("path")
+					     .attr("d", path)
+					     .attr("class", "countyBorders");
+					  } 
+					  
+					  else { 
+					    x = width / 2;
+					    y = height / 2;
+					    k = 1;
+					    centered = null;
+					  
+					  }
 
-//				  f.selectAll("path")
-//				      .classed("active", centered && function(d) { return d === centered; });
+//					  f.selectAll("path")
+//					      .classed("active", centered && function(d) { return d === centered; });
 
-				  f.transition()
-				      .duration(750)
-				      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
-				      .style("stroke-width", 1.5 / k + "px");
+					  f.transition()
+					      .duration(750)
+					      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
+					      .style("stroke-width", 1.5 / k + "px");
+					}
+				f.clickedState = gElement;
+				
 				}
+				  
 			
 			
 		}
