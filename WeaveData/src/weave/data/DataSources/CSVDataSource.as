@@ -43,6 +43,7 @@ package weave.data.DataSources
 	import weave.core.LinkablePromise;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
+	import weave.core.LinkableFile;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -65,7 +66,6 @@ package weave.data.DataSources
 
 		public function CSVDataSource()
 		{
-			registerLinkableChild(rawDataPromise, url);
 		}
 
 		public const csvData:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), handleCSVDataChange);
@@ -75,25 +75,18 @@ package weave.data.DataSources
 		public const metadata:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, typeofIsObject));
 		private function typeofIsObject(value:Object):Boolean { return typeof value == 'object'; }
 		
-		public const url:LinkableString = newLinkableChild(this, LinkableString);
+		public const url:LinkableFile = newLinkableChild(this, LinkableFile, parseRawData);
 		
 		public const delimiter:LinkableString = registerLinkableChild(this, new LinkableString(',', verifyDelimiter), parseRawData);
 		private function verifyDelimiter(value:String):Boolean { return value && value.length == 1 && value != '"'; }
 		
-		private const rawDataPromise:LinkablePromise = registerLinkableChild(this, new LinkablePromise(getRawData, null, "Downloading CSV data"), parseRawData);
-		private function getRawData():AsyncToken
-		{
-			if (!url.value)
-				return null;
-			return WeaveAPI.URLRequestUtils.getURL(rawDataPromise, new URLRequest(url.value));
-		}
 		private function parseRawData():void
 		{
 			if (!url.value)
 				return;
 			
-			if (rawDataPromise.error)
-				reportError(rawDataPromise.error);
+			if (url.error)
+				reportError(url.error);
 			
 			if (detectLinkableObjectChange(parseRawData, delimiter))
 			{
@@ -105,7 +98,7 @@ package weave.data.DataSources
 			/*if (linkableObjectIsBusy(rawDataPromise))
 				return;*/
 			
-			csvParser.parseCSV(String(rawDataPromise.result || ''));
+			csvParser.parseCSV(String(url.result || ''));
 		}
 		
 		private var csvParser:CSVParser;
