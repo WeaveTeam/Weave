@@ -40,7 +40,7 @@
 							</button>
 							
 							<!-- CLEAR button --> 
-							<button class="btn btn-default wa_buttonBar" title = "Clear visualizations"> <span class = "fa fa-trash-o" ng-click = "clearSessionState()"></span></button>
+<!-- 							<button class="btn btn-default wa_buttonBar" title = "Clear Query Object" ng-click = "cleanQueryObject()"> <span class = "fa fa-refresh"></span></button> -->
 							
 							<!-- SAVE output visuals button -->	 
 							<button  class="btn btn-default wa_buttonBar"  title = "Save visualizations" ng-click="saveVisualizations()"> 
@@ -313,8 +313,12 @@
 							       		 <div ng-bind-html="tool | highlight: $select.search"></div>
 							        </ui-select-choices>
 								</ui-select>
-								<button style = "width : 19%" class= "btn btn-sm btn-default" ng-click="addTool(selectedToolToAdd.value)">Add</button>
-								<button style = "width : 19%" class="btn btn-sm btn-default" ng-click="WeaveService.tileWindows()">Tile</button>
+								<div style = "height: 40px" class = "btn-group" role = "group">
+									<button  class="btn btn-default" ng-click="addTool(selectedToolToAdd.value)"><i class="fa fa-plus-circle fa-lg" ></i> </button>
+									<!-- CLEAR button --> 
+<!-- 									<button class="btn btn-default" title = "Clear visualizations"> <span class = "fa fa-trash-o fa-lg" ng-click = "clearSessionState()"></span></button> -->
+									<button  class="btn btn-default" ng-click="WeaveService.tileWindows()">Tile</button>
+								</div>
 							</div>
 							
 							

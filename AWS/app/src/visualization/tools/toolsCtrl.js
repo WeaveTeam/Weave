@@ -32,7 +32,7 @@ AnalysisModule.controller("toolsCtrl", function($scope, $filter,queryService, We
 				break;
 			case "ScatterPlotTool":
 				var toolName = WeaveService.ScatterPlotTool(null, "");
-				queryService.queryObject.visualizations[toolName] = {
+				queryService.queryObject.visualizations[toolName] = { 
 					title : toolName,
 					template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html'
 				};
@@ -53,6 +53,13 @@ AnalysisModule.controller("toolsCtrl", function($scope, $filter,queryService, We
 				break;
 		}
 	};
+	
+
+	//clears the session state
+	$scope.clearSessionState = function(){
+		WeaveService.clearSessionState();
+	};
+	
 	
 	$scope.removeTool = function(toolId) {
 		WeaveService.weave.path(toolId).remove();

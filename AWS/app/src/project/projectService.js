@@ -150,7 +150,7 @@ angular.module('aws.project')
     this.returnSessionState = function(queryObject){
    	 var deferred = $q.defer();
    	 queryObject = angular.toJson(queryObject);
-   	 console.log("stringified queryObject", queryObject);
+   	 //console.log("stringified queryObject", queryObject);
    	 
    	 runQueryService.queryRequest(projectManagementURL, 'getSessionState', [queryObject], function(result){
     		
@@ -175,7 +175,6 @@ angular.module('aws.project')
     * So that the UI asynchronously wait for the data to be available...
     */
    this.deleteProject = function(projectName) {
-    console.log("currently selectec project", projectName);
    	var deferred = $q.defer();
    	runQueryService.queryRequest(projectManagementURL, 'deleteProjectFromDatabase', [projectName], function(result){
            

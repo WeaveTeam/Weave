@@ -47,12 +47,80 @@ QueryObject.controller("buttonBarController", function($scope, $modal, queryServ
 		});
 		saveAs(blob, "QueryObject.json");//TODO add a dialog to allow saving file name
 	};
-	
-	//clears the session state
-	$scope.clearSessionState = function(){
-		WeaveService.clearSessionState();
+	 
+	//cleans the queryObject
+	$scope.cleanQueryObject = function(){
+		queryService.queryObject = {
+				title : "Beta Query Object",
+				date : new Date(),
+	    		author : "",
+	    		dataTable : "",
+				ComputationEngine : "R",
+				Indicator : "",
+				columnRemap : {},
+				filters : [],
+				treeFilters : [],
+				GeographyFilter : {
+					stateColumn:{},
+					nestedStateColumn : {},
+					countyColumn:{},
+					geometrySelected : null,
+					selectedStates : null,
+					selectedCounties : null
+				},
+				openInNewWindow : false,
+				Reidentification : {
+					idPrevention :false,
+					threshold : 0
+				},
+				scriptOptions : {},
+				scriptSelected : "",
+				properties : {
+					linkIndicator : false,
+					validationStatus : "test",
+					isQueryValid : false
+				},
+				filterArray : [],
+				treeFilterArray : [],
+				visualizations : {
+					MapTool : {
+						title : 'MapTool',
+						template_url : 'src/visualization/tools/mapChart/map_chart.tpl.html',
+						enabled : false
+					},
+					BarChartTool : {
+						title : 'BarChartTool',
+						template_url : 'src/visualization/tools/barChart/bar_chart.tpl.html',
+						enabled : false
+					},
+					DataTableTool : {
+						title : 'DataTableTool',
+						template_url : 'src/visualization/tools/dataTable/data_table.tpl.html',
+						enabled : false
+					},
+					ScatterPlotTool : {
+						title : 'ScatterPlotTool',
+						template_url : 'src/visualization/tools/scatterPlot/scatter_plot.tpl.html',
+						enabled : false
+					},
+					AttributeMenuTool : {
+						title : 'AttributeMenuTool',
+						template_url : 'src/visualization/tools/attributeMenu/attribute_Menu.tpl.html',
+						enabled: false
+					},
+					ColorColumn : {
+						title : "ColorColumn",
+						template_url : 'src/visualization/tools/color/color_Column.tpl.html'
+					},
+					KeyColumn : {
+						title : "KeyColumn",
+						template_url : 'src/visualization/tools/color/key_Column.tpl.html'
+					}
+				},
+				resultSet : [],
+				weaveSessionState : null
+		};//TODO fix this   		
 	};
-	
 	
     $scope.saveVisualizations = function (projectEntered, queryTitleEntered, userName) {
     	
