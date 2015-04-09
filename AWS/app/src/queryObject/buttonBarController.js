@@ -3,9 +3,11 @@
  */
 var QueryObject = angular.module("aws.queryObject", []);
 
-QueryObject.controller("buttonBarController", function($scope, $modal, queryService, WeaveService, QueryHandlerService) {
+QueryObject.controller("buttonBarController", function($scope, $modal, queryService, WeaveService,projectService, QueryHandlerService) {
 	
 	$scope.queryService = queryService;
+	$scope.WeaveService = WeaveService;
+	$scope.projectService = projectService;
 	$scope.QueryHandlerService = QueryHandlerService;
 	
 	//structure for file upload
@@ -57,7 +59,7 @@ QueryObject.controller("buttonBarController", function($scope, $modal, queryServ
     	var saveQueryObjectInstance = $modal.open($scope.opts);
     	saveQueryObjectInstance.result.then(function(params){//this takes only a single object
     	//console.log("params", params);
-    		$scope.queryService.getBase64SessionState(params);
+    		$scope.projectService.getBase64SessionState(params);
     		
     	});
     };

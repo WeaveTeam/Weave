@@ -206,7 +206,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 						negativeErrorColumns : state.negErr
 					});
 					//capture session state
-					queryService.cache.weaveSessionState = ws.getSessionStateObjects();
+					queryService.queryObject.weaveSessionState = ws.getSessionStateObjects();
 				}
 			else{//if weave not ready
 				//setTimeout(ws.setWeaveWindow, 50, ws.analysisWindow);
@@ -324,7 +324,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					
 					
 					//capture session state
-					queryService.cache.weaveSessionState = ws.getSessionStateObjects();
+					queryService.queryObject.weaveSessionState = ws.getSessionStateObjects();
 				}
 			else{//if weave not ready
 				ws.setWeaveWindow(window);
@@ -361,7 +361,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					.push('children', 'visualization','plotManager', 'plotters', 'plot')
 					.call(setQueryColumns, {dataX : state.X, dataY : state.Y});
 					//capture session state
-					queryService.cache.weaveSessionState = ws.getSessionStateObjects();
+					queryService.queryObject.weaveSessionState = ws.getSessionStateObjects();
 				}
 			else{//if weave not ready
 				ws.setWeaveWindow(window);
@@ -397,7 +397,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					.state({ panelX : "50%", panelY : "0%", panelTitle : state.title, enableTitle : true})
 					.call(setQueryColumns, {columns: state.columns});
 					//capture session state
-					queryService.cache.weaveSessionState = ws.getSessionStateObjects();
+					queryService.queryObject.weaveSessionState = ws.getSessionStateObjects();
 				}
 			else{//if weave not ready
 				ws.setWeaveWindow(window);
@@ -448,7 +448,7 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 						ws.weave.path("ColorBinLegendTool").remove();
 					}
 					//capture session state
-					queryService.cache.weaveSessionState = ws.getSessionStateObjects();
+					queryService.queryObject.weaveSessionState = ws.getSessionStateObjects();
 				}
 			else{//if weave not ready
 				ws.setWeaveWindow(window);
@@ -465,6 +465,8 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 			if(ws.checkWeaveReady()){
 				
 				ws.weave.setSessionState([state.keyColumn.dataSourceName], {keyColName : state.keyColumn.id});
+				//capture session state
+				queryService.queryObject.weaveSessionState = ws.getSessionStateObjects();
 			}
 			else{//if weave is not ready
 				ws.setWeaveWindow(window);
