@@ -166,10 +166,33 @@ app.value('scriptManagementURL', '/WeaveAnalystServices/ScriptManagementServlet'
 app.value('computationServiceURL', '/WeaveAnalystServices/ComputationalServlet');
 app.value('WeaveDataSource', 'WeaveDataSource');
 
-app.controller('AWSController', function($scope, $state, authenticationService) {
+app.controller('AWSController', function($scope, $state, authenticationService, queryService, WeaveService) {
 	//for ng-route
 	//$scope.$route = $route;
 	$scope.state = $state;
 	$scope.authenticationService = authenticationService;
+	
+	$scope.$on('queryObjectloaded', function(event,incoming_queryObject){
+		queryService.queryObject = incoming_queryObject;
+		if(WeaveService.checkWeaveReady()){
+			if(incoming_queryObject.weaveSessionState)
+				WeaveService.weave.path().state(incoming_queryObject.weaveSessionState);
+		}
+			
+	});
+	
+	$scope.$watch(function() {
+		return WeaveService.weave;
+	}, function() {
+		if(WeaveService.checkWeaveReady()) 
+		{
+			//$scope.showToolMenu = true;
+			
+			if(queryService.queryObject.weaveSessionState) {
+				WeaveService.weave.path().state(queryService.queryObject.weaveSessionState);
+			}
+		}
+	});
+	
 
 });

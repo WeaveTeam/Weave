@@ -273,18 +273,18 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	});
 	
 	//*************************watch for Weave in different Weave windows*********************************************
-	$scope.$watch(function() {
-		return WeaveService.weave;
-	}, function() {
-		if(WeaveService.checkWeaveReady()) 
-		{
-			//$scope.showToolMenu = true;
-			
-			if(queryService.queryObject.weaveSessionState) {
-				WeaveService.weave.path().state(queryService.queryObject.weaveSessionState);
-			}
-		}
-	});
+//	$scope.$watch(function() {
+//		return WeaveService.weave;
+//	}, function() {
+//		if(WeaveService.checkWeaveReady()) 
+//		{
+//			//$scope.showToolMenu = true;
+//			
+//			if(queryService.queryObject.weaveSessionState) {
+//				WeaveService.weave.path().state(queryService.queryObject.weaveSessionState);
+//			}
+//		}
+//	});
 	
 	
 	//******************************managing weave and its session state**********************************************//
