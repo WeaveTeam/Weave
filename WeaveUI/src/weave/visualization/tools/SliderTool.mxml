@@ -29,8 +29,8 @@
 		<mx:HBox width="100%" label="{lang('Horizontal slider')}" minWidth="50">
 			<mx:VBox id="playControls" horizontalAlign="center" paddingTop="4">
 				<mx:Button
-					id="playButton" label="\u25B6" alpha="1.0"
-					fillAlphas="[1.0, 1.0, 1.0, 1.0]" 
+					id="playButton" label="&gt;" alpha="1.0"
+					fillAlphas="[1.0, 1.0, 1.0, 1.0]"
 					click="playButtonPushed()"/>
 				<mx:HSlider
 					id="speedSlider"
