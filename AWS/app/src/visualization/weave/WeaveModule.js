@@ -231,7 +231,6 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 	this.MapTool = function(state, aToolName){
 		var toolName = aToolName || ws.generateUniqueName("MapTool");
 		if(state && state.enabled){//if enabled
-			
 			if(ws.checkWeaveReady())//if weave is ready
 				{
 					//add to the enabled tools collection

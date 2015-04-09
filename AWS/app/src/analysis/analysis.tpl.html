@@ -167,7 +167,14 @@
 									        	</ui-select-choices>
 											</ui-select>
 											
-											<i ng-if="input.type == 'column'" style = "padding-left: 3px; padding-top:5px;" class="fa fa-pencil-square-o fa-lg"></i>
+											<a href="javascript: void(0)" 
+												ng-click="showColumnInfo(queryService.queryObject.scriptOptions[input.param], input.param)"
+											> 
+												<i  ng-if="input.type == 'column'" 
+													style = "padding-left: 3px; padding-top:5px;" 
+													class="fa fa-pencil-square-o fa-lg"
+												></i>
+											</a>
 											<!-- Remapping -->
 											
 											<!-- handling toggle input types -->
@@ -223,14 +230,20 @@
 				
 					<div style = "width:45%;height: 100%; float:left;">
 						<!-- REMAPPING -->
-					  	<div  style="overflow-y: scroll; height:60%">
-					      <table border="border: 1px solid #0000FF"  ng-show="queryService.queryObject.Indicator">
+						
+						<div style="height : 30px; margin-top:30px">
+							{{ description }}
+						</div>
+						
+					  	<div  style="overflow-y: scroll; height:200px;margin-top:15px">
+					  			
+					      <table border="border: 1px solid #0000FF"  ng-show="varValues.length">
 								<tr> 
 									<td  align="center">
 										Value
 									</td>
 									<td  align="center">
-										Description
+										Label
 									</td>
 									<td   align="center">
 										New Value
@@ -239,9 +252,9 @@
 								<tr ng-repeat="varValue in varValues">
 									<td width= "10%" style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
 									<td width= "40%" style="padding-left: 5px" > {{varValue.label}} </td>
-									<td width= "50%"> <input style ="width : 100%" 
-														ng-model="newValue"
-														ng-change="setRemapValue(varValue.value,newValue)"> 
+									<td width= "50%"> <input style ="width : 100%"
+														ng-model="values[$index]"
+														ng-change="setValue(varValue.value, values[$index])"> 
 														</input> </td>
 								</tr>
 							</table>

@@ -110,6 +110,29 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 		});
     	
     };
+    /**
+     * this function converts the columnRemap object into a
+     * java bean
+     */
+    this.handleColumnRemap = function(jsColumnRemap) {
+    	
+    	var remapObjects = [];
+    	for(title in jsColumnRemap) {
+    		remapObject = {
+				columnName : title,
+				originalValues : [],
+				reMappedValues : []
+    		};
+    		remapValues = jsColumnRemap[title];
+    		for(oldVal in remapValues)
+    		{
+    			remapObject.originalValues.push(oldVal);
+    			remapObject.reMappedValues.push(remapValues[oldVal]);
+    		}
+    		remapObjects.push(remapObject);
+    	}
+    	return remapObjects;
+    };
     
     /**
      * this function handles geography filters
@@ -212,6 +235,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			//handling script inputs
 			scriptInputObjects = this.handleScriptOptions(queryObject.scriptOptions);
 			
+			var remapObjects = this.handleColumnRemap(queryObject.columnRemap);
+			
 			//handles re-identification for aggregation scripts
 			this.handleReidentification(scriptInputObjects);
 
@@ -223,6 +248,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			queryService.queryObject.properties.queryStatus = "Loading data from database...";
 			startTimer = new Date().getTime();
 				
+			
 			//getting the data
 			queryService.getDataFromServer(scriptInputObjects, queryService.queryObject.IndicatorRemap).then(function(success) {
 				if(success) {
@@ -240,7 +266,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 							queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
 							
 							if(WeaveService.weave){
-								
+
 								//convert result into csvdata format
 								var formattedResult = WeaveService.createCSVDataFormat(resultData.resultData, resultData.columnNames);
 								//create the CSVDataSource]

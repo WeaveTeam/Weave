@@ -176,7 +176,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'runQueryService',
     		dataTable : "",
 			ComputationEngine : "R",
 			Indicator : "",
-			IndicatorRemap : [],
+			columnRemap : {},
 			filters : [],
 			treeFilters : [],
 			GeographyFilter : {
@@ -195,7 +195,7 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'runQueryService',
 			scriptOptions : {},
 			scriptSelected : "",
 			properties : {
-				linkIndicator : true,
+				linkIndicator : false,
 				validationStatus : "test",
 				isQueryValid : false
 			},

@@ -199,49 +199,50 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	 queryService.cache.remapValue = [];
 	 
 	 //checks for object in collection and accordingly updates
-	 $scope.setRemapValue= function(originalValue, reMappedValue)
-	 {
-		 var columnId = queryService.queryObject.Indicator.id;
-		 //TODO parameterize columnType
-		 var matchFound = false;//used to check if objects exist in queryService.queryObject.IndicatorRemap
-		 
-		if(reMappedValue)//handles empty or undefined values
-			{
-				 if(queryService.queryObject.IndicatorRemap.length == 0)//for the first time the array is filled
-				 {
-				 	queryService.queryObject.IndicatorRemap.push({
-						columnsToRemapId : parseInt(columnId),
-						originalValue : originalValue,
-						reMappedValue : reMappedValue
-	
-					  });
-				 }
-				 else
-				 {
-					//checking if the entity exists and update the required object
-					 for(var i in queryService.queryObject.IndicatorRemap)
-						 {
-						 	var oneObject = queryService.queryObject.IndicatorRemap[i];
-						 	if( oneObject.originalValue == originalValue)
-						 		{
-							 		oneObject.reMappedValue = reMappedValue;
-							 		matchFound = true;
-						 		}
-						 }
-					 
-				 	if(!matchFound)//if match is not found create new object
-				 		{
-				 			queryService.queryObject.IndicatorRemap.push({
-							columnsToRemapId : parseInt(columnId),
-							originalValue : originalValue,
-							reMappedValue : reMappedValue
-
-						  });
-				 			//console.log("match not found, hence new", queryService.queryObject.IndicatorRemap );
-				 		}
-				 }
-			}
-	 };
+//	 $scope.setRemapValue= function(columnToRemap, originalValue, reMappedValue)
+//	 {
+//		 
+//		 if(columnToRemap && originalValue && reMappedValue) {
+//			 queryService.queryObject.columnRemap.push({
+//				 columnsToRemapId : parseInt(columnId),
+//				 originalValue : originalValue,
+//				 reMappedValue : reMappedValue
+//			 });
+//		 }
+//		 var columnId = columnToRemap.id;
+//		 //TODO parameterize columnType
+//		 var matchFound = false;//used to check if objects exist in queryService.queryObject.IndicatorRemap
+//		 
+//		if(reMappedValue)//handles empty or undefined values
+//		{
+//			 	queryService.queryObject.columnRemap[columnId] = {
+//			 	};
+//		}
+//		 else
+//		 {
+//			//checking if the entity exists and update the required object
+//			 for(var key in queryService.queryObject.columnRemap)
+//			 {
+//				 	var oneObject = queryService.queryObject.columnRemap[key];
+//				 	if( oneObject.originalValue == originalValue)
+//			 		{
+//				 		oneObject.reMappedValue = reMappedValue;
+//				 		matchFound = true;
+//				 		//console.log("match found, hence overwrote", queryService.queryObject.IndicatorRemap );
+//			 		}
+//			 }
+//					 
+//			if(!matchFound)//if match is not found create new object
+//			{
+//				queryService.queryObject.columnRemap[columnId] = {
+//					columnsToRemapId : parseInt(columnId),
+//					originalValue : originalValue,
+//					reMappedValue : reMappedValue
+//				};
+//				 			//console.log("match not found, hence new", queryService.queryObject.IndicatorRemap );
+//			}
+//		}
+//	 };
 	 //**********************************************************REMAPPING END**************************************
 	
 	$scope.$watch("queryService.queryObject.dataTable", function(newVal, oldVal) {
@@ -327,12 +328,15 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		WeaveService[tool.id](queryService.queryObject[tool.id]); // temporary because the watch is not triggered
 	};
 	
+	$scope.columnToRemap = {
+			value : {}
+	};
 	
-	$scope.$watch('queryService.queryObject.Indicator', function() {
-		
-		if(queryService.queryObject.Indicator) {
-			$scope.IndicDescription = queryService.queryObject.Indicator.description;
-			queryService.getEntitiesById([queryService.queryObject.Indicator.id], true).then(function (result) {
+	$scope.showColumnInfo = function(column, param) {
+		$scope.columnToRemap = {value : param}; // bind this column to remap to the scope
+		if(column) {
+			$scope.description = column.description;
+			queryService.getEntitiesById([column.id], true).then(function (result) {
 				if(result.length) {
 					var resultMetadata = result[0];
 					if(resultMetadata.publicMetadata.hasOwnProperty("aws_metadata")) {
@@ -341,17 +345,18 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 							queryService.getDataMapping(metadata.varValues).then(function(result) {
 								$scope.varValues = result;
 							});
+						} else {
+							$scope.varValues = [];
 						}
 					}
 				}
 			});
 		} else {
 			// delete description and table if the indicator is clear
-			$scope.IndicDescription = "";
+			$scope.description = "";
 			$scope.varValues = [];
 		}
-	});
-	
+	};
 
 	/************** watches for query validation******************/
 	$scope.$watchCollection(function() {
@@ -410,15 +415,44 @@ AnalysisModule.config(function($selectProvider) {
 });
 
 
-
-
-
-
 //Script Options controller
 AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, $filter) {
 
 	// This sets the service variable to the queryService 
 	$scope.queryService = queryService;
+	
+	$scope.values = [];
+	
+	$scope.setValue = function(originalValue, newValue)
+	{
+		if(queryService.queryObject.columnRemap) {
+			if(queryService.queryObject.columnRemap[$scope.columnToRemap.value]) {
+				queryService.queryObject.columnRemap[$scope.columnToRemap.value][originalValue] = newValue;
+			} else {
+				queryService.queryObject.columnRemap[$scope.columnToRemap.value] = {};
+				queryService.queryObject.columnRemap[$scope.columnToRemap.value][originalValue] = newValue;
+			}
+		} 
+	};
+	
+	$scope.$watchCollection("columnToRemap.value", function(newVal, oldVal) {
+		if(newVal) {
+			var temp = [];
+			for(var key in queryService.queryObject.columnRemap[newVal]) {
+				temp.push(queryService.queryObject.columnRemap[newVal][key]);
+			}
+			$scope.values = temp;
+		}
+	});
+	
+	$scope.$watch('queryService.queryObject.columnRemap', function() {
+		if($scope.columnToRemap.value) {
+			$scope.values = [];
+			for(var key in queryService.queryObject.columnRemap[$scope.columnToRemap.value]) {
+				$scope.values.push(queryService.queryObject.columnRemap[$scope.columnToRemap.value][key]);
+			}
+		}
+	}, true);
 	
 	$scope.$watch('queryService.queryObject.ComputationEngine', function(){
 		if($scope.queryService.queryObject.ComputationEngine)
@@ -484,7 +518,6 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		return queryService.queryObject.scriptOptions;
 	}, function(newValue, oldValue) {
 		// run this only if the user chooses to link the indicator
-
 		if(queryService.queryObject.properties.linkIndicator) {
 			if(!angular.equals(newValue, oldValue)) {
 				var scriptOptions = newValue;
