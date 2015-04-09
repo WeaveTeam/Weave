@@ -44,7 +44,7 @@
 		<mx:Canvas label="{lang('Horizontal Slider')}">
 			<mx:HBox verticalAlign="middle" width="100%" height="100%">
 				<mx:VBox creationComplete="UIUtils.linkVisibility(this, showPlayButton, event.target)" horizontalAlign="center">
-					<mx:Button id="playButton" label="&gt;" toggle="true" toolTip="{lang('Play')}" click="handlePlayClick();"/>
+					<mx:Button id="playButton" label="\u25B6" toggle="true" toolTip="{lang('Play')}" click="handlePlayClick();"/>
 					<mx:HSlider id="playSlider" width="48" minWidth="0" minimum=".5" maximum="2" tickInterval="0.5" snapInterval="0.25" value=".75" dataTipFormatFunction="{formatPlayTip}" liveDragging="true"/>
 				</mx:VBox>
 				<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"

@@ -29,11 +29,13 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeyFilter;
+			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IVisTool;
+			import weave.core.CallbackCollection;
 			import weave.core.LinkableDynamicObject;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
@@ -44,7 +46,7 @@
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataFilter, "Data Filter");
 			
-			private const filter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter), handleFilterWatcher);
+			public const filter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter), handleFilterWatcher);
 			public const editor:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ILinkableObjectEditor), handleEditor, true);
 			
 			private var _editorStateMissing:Boolean = false;
@@ -146,6 +148,11 @@
 									type: WeaveMenuItem.TYPE_CHECK,
 									toggled: ndfe.forceDiscreteValues,
 									click: ndfe.forceDiscreteValues
+								},{
+									label: lang('Show play button'),
+									type: WeaveMenuItem.TYPE_CHECK,
+									toggled: ndfe.showPlayButton,
+									click: ndfe.showPlayButton
 								}
 							];
 						}
@@ -177,7 +184,7 @@
 			
 			private function initLater():void
 			{
-				if (filter.targetPath == null)
+				if (filter.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
 					filter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER, 'filters', WeaveAPI.globalHashMap.getName(this)];
 				if (!getFilter())
 					setFilterType(StringDataFilter, null);
