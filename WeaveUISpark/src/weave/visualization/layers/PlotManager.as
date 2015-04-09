@@ -205,17 +205,20 @@ package weave.visualization.layers
 		}
 		
 		private var _shouldUpdateZoom:Boolean = false;
+		private var _lazyUpdateZoom:Boolean = true;
 		
 		/**
 		 * This function will update the fullDataBounds and zoomBounds based on the current state of the layers.
 		 */
 		protected function updateZoom(now:Boolean = false):void
 		{
-			if (!now)
+			if (_lazyUpdateZoom && !now)
 			{
 				_shouldUpdateZoom = true;
 				return;
 			}
+			_lazyUpdateZoom = false;
+			_shouldUpdateZoom = false;
 			
 			// make sure callbacks only trigger once
 			getCallbackCollection(this).delayCallbacks();
@@ -300,6 +303,8 @@ package weave.visualization.layers
 			
 			getCallbackCollection(zoomBounds).resumeCallbacks();
 			getCallbackCollection(this).resumeCallbacks();
+			
+			_lazyUpdateZoom = true;
 		}
 		
 		/**
