@@ -44,9 +44,6 @@ A text editor to change the Session State on the fly.
 	 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"/>
 					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
 	 					<mx:TextInput id="linkNameInput" width="100%"/>
-	 					<mx:Button label="{lang('Link')}" click="linkSelectedObject();"/>
-	 					<mx:Button label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
-	 					<mx:Button id="nestedUnlinkButton" label="{lang('Nested unlink')}" click="unlinkNestedColumns()"/>
 						<ui:HelpComponent>
 							Type the name of a global object, then click the "Link" button to link the selected dynamic object to it.
 							Multiple dynamic objects can be linked to the same global object this way.
@@ -56,6 +53,9 @@ A text editor to change the Session State on the fly.
 							Once that is done, you can link the new color mapping to a new global name so that multiple tools can be linked to the new color mapping.
 							To link multiple tools, you will have to locate the color mapping in each tool and repeat the process.
 						</ui:HelpComponent>
+	 					<mx:Button label="{lang('Link')}" click="linkSelectedObject();"/>
+	 					<mx:Button label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 					<mx:Button id="nestedUnlinkButton" label="{lang('Nested unlink')}" click="unlinkNestedColumns()"/>
 	 				</mx:HBox>
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
