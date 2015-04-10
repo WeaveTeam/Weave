@@ -66,13 +66,13 @@ public class ComputationalServlet extends WeaveServlet
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean getDataFromServer(InputObjects[] inputObjects, ReMapObjects[] remapValues) throws Exception
+	public int getDataFromServer(InputObjects[] inputObjects, ReMapObjects[] remapValues) throws Exception
 	{
 		
 		WeaveRecordList data = new WeaveRecordList();
 		Object[][]columnData = null;
 		RowsObject rows = new RowsObject();
- 		
+ 		int numRows = 0;
 		//getting data
  		for(int i = 0; i < inputObjects.length; i++)//for every input 
 		{
@@ -84,7 +84,7 @@ public class ComputationalServlet extends WeaveServlet
 				rows = (RowsObject)cast(inputObjects[i].value, RowsObject.class);
 				data = DataService.getFilteredRows(rows.columnIds, rows.filters, null);
 				//TODO handling filters still has to be done
-				
+				numRows = data.recordData.length;
 				//transposition
 				columnData = (Object[][]) AWSUtils.transpose((Object)data.recordData);
 				
@@ -129,7 +129,7 @@ public class ComputationalServlet extends WeaveServlet
 			}
 		}
  		
-		return true;
+		return numRows;
 	}
 	
 	public Object runScript(String scriptName) throws Exception

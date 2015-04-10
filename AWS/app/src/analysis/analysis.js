@@ -492,7 +492,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		
 			var scriptMetadata = newValue[0];
 			var columns = newValue[1];
-			
+			console.log(scriptMetadata);
 			if(scriptMetadata && columns) {
 				if(scriptMetadata.hasOwnProperty("inputs")) {
 					for(var i in scriptMetadata.inputs) {

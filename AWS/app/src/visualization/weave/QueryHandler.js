@@ -287,11 +287,11 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 				startTimer = new Date().getTime();
 				
 				//getting the data
-				queryService.getDataFromServer(scriptInputObjects, remapObjects).then(function(success) {
-					if(success) {
+				queryService.getDataFromServer(scriptInputObjects, remapObjects).then(function(numRows) {
+					if(numRows > 0) {
 						time1 =  new Date().getTime() - startTimer;
 						startTimer = new Date().getTime();
-						queryService.queryObject.properties.queryStatus = "Running analysis...";
+						queryService.queryObject.properties.queryStatus = numRows + "returned. Running analysis...";
 						
 						//executing the script
 						queryService.runScript(scriptName).then(function(resultData) {
@@ -315,6 +315,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 							queryService.queryObject.properties.queryDone = false;
 							queryService.queryObject.properties.queryStatus = "Error running script. See error log for details.";
 						});
+					} else {
+						queryService.queryObject.properties.queryStatus = "Data request did not return any rows";
 					}
 				}, function(error) {
 					queryService.queryObject.properties.queryDone = false;
