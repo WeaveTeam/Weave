@@ -203,6 +203,7 @@
 						var sliderMaxValue:Number = numberFilter.max.value;
 						
 						var labels:Array = [];
+						var labelInterval:int = discreteValueLabelInterval.value;
 						if (column.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.STRING)
 						{
 							discreteValues = null;
@@ -210,8 +211,21 @@
 							filterSlider.maximum = max;
 							filterSlider.tickInterval = 1;
 							filterSlider.snapInterval = 1;
-							for (i = min; i <= max; i++)
-								labels.push(getLabelFromNumber(column, i));
+							if (labelInterval > 0)
+							{
+								for (i = min; i <= max; i++)
+								{
+									if (labels.length % labelInterval == 0)
+										labels.push(getLabelFromNumber(column, i));
+									else
+										labels.push('');
+								}
+							}
+							else
+							{
+								labels.push(getLabelFromNumber(column, min));
+								labels.push(getLabelFromNumber(column, max));
+							}
 						}
 						else if (forceDiscreteValues.value)
 						{
@@ -236,7 +250,6 @@
 							filterSlider.maximum = discreteValues.length - 1;
 							filterSlider.tickInterval = 1;
 							filterSlider.snapInterval = 1;
-							var labelInterval:int = discreteValueLabelInterval.value;
 							if (labelInterval > 0)
 							{
 								for each (number in discreteValues)
