@@ -33,7 +33,7 @@ package weave.data.hierarchy
 			var root:ILinkableHashMap = WeaveAPI.globalHashMap;
 			registerLinkableChild(this, root.childListCallbacks);
 			super({
-				source: rootNode,
+				dependency: rootNode,
 				label: lang('Data Sources'),
 				isBranch: true,
 				hasChildBranches: true,
@@ -49,7 +49,7 @@ package weave.data.hierarchy
 					var columns:Array = equationColumns.concat(csvColumns);
 					if (columns.length)
 						nodes.push({
-							source: root.childListCallbacks,
+							dependency: root.childListCallbacks,
 							label: function():String {
 								return csvColumns.length
 									? lang('Generated columns')
@@ -63,7 +63,7 @@ package weave.data.hierarchy
 									var meta:Object = {};
 									meta[AttributeColumnCache.GLOBAL_COLUMN_METADATA_NAME] = root.getName(column);
 									return {
-										source: column,
+										dependency: column,
 										label: function():String {
 											return column.getMetadata(ColumnMetadata.TITLE);
 										},

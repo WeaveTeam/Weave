@@ -83,14 +83,14 @@ package weave.data.DataSources
 		 * @param method Examples: "category", "category/series"
 		 * @param params Example: {category_id: 125}
 		 */
-		private function getJson(method:String, params:Object):Object
+		private function getJson(method:String, params:Object, handler:Function):void
 		{
-			return jsonCache.getJsonObject(getUrl(method, params));
+			jsonCache.getJsonObject(getUrl(method, params), handler);
 		}
 		
 		private var functionCache:Dictionary2D = new Dictionary2D();
 		
-		public function createCategoryNode(data:Object = null, ..._):ColumnTreeNode
+		public function createCategoryNode(data:Object = null):ColumnTreeNode
 		{
 			if (!data)
 			{
@@ -101,12 +101,13 @@ package weave.data.DataSources
 			if (!node)
 			{
 				node = new ColumnTreeNode({
-					source: this,
 					data: data,
 					label: data.name,
 					isBranch: true,
 					hasChildBranches: true,
 					children: function(node:ColumnTreeNode):Array {
+						// create array now, populate it later - data source will trigger callbacks when async call finishes
+						// also make sure we don't set the dependency property of this node or the children will get recalculated.
 						return [].concat(
 							getCategoryChildren(node),
 							getCategorySeries(node)
@@ -120,21 +121,22 @@ package weave.data.DataSources
 		
 		private function getCategoryChildren(node:ColumnTreeNode):Array
 		{
-			var result:Object = getJson('category/children', {category_id: node.data.id});
-			
-			if(!result.categories)
-				return [];
-			return result.categories.map(createCategoryNode);
+			var children:Array = [];
+			getJson('category/children', {category_id: node.data.id}, function(result:Object):void {
+				for each (var item:Object in result.categories)
+					children.push(createCategoryNode(item));
+			});
+			return children;
 		}
 		
 		private function getCategorySeries(node:ColumnTreeNode):Array
 		{
-			var result:Object = getJson('category/series', {category_id: node.data.id});
-			
-			if(!result.seriess)
-				return [];
-			
-			return result.seriess.map(createSeriesNode);
+			var children:Array = [];
+			getJson('category/series', {category_id: node.data.id}, function(result:Object):void {
+				for each (var item:Object in result.seriess)
+					children.push(createSeriesNode(item));
+			});
+			return children;
 		}
 		
 		public function getObservationsCSV(series_id:String):CSVDataSource
@@ -184,21 +186,21 @@ package weave.data.DataSources
 			reportError(event);
 		}
 			
-		public function createSeriesNode(data:Object, ..._):IWeaveTreeNode
+		public function createSeriesNode(data:Object):IWeaveTreeNode
 		{
 			var node:IWeaveTreeNode = functionCache.get(createSeriesNode, data.id);
 			if (!node)
 			{
 				node = new ColumnTreeNode({
 					label: data.title,
-					source: this,
+					dependency: this, //TODO - evaluate whether or not this is needed
 					data: data,
 					isBranch: true,
 					hasChildBranches: false,
 					children: function(node:ColumnTreeNode):Array {
 						var csv:CSVDataSource = getObservationsCSV(data.id);
 						var csvRoot:IWeaveTreeNode = csv.getHierarchyRoot();
-						node.source = csv;
+						node.dependency = csv;
 						return csvRoot.getChildren().map(function(csvNode:IColumnReference, ..._):IWeaveTreeNode {
 							var meta:Object = csvNode.getColumnMetadata();
 							meta[META_SERIES_ID] = data.id;
@@ -240,7 +242,7 @@ package weave.data.DataSources
 				return null;
 			
 			return new ColumnTreeNode({
-				source: this,
+				dataSource: this,
 				idFields: META_ID_FIELDS,
 				columnMetadata: metadata
 			});

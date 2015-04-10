@@ -73,7 +73,7 @@ package weave.data.Transforms
 				var partitionValues:Array = [];
 				
 				_rootNode = new ColumnTreeNode({
-					source: source,
+					dependency: source, //TODO - evaluate whether or not this is needed
 					data: source,
 					label: WeaveAPI.globalHashMap.getName(this),
 					isBranch: true,
@@ -90,7 +90,7 @@ package weave.data.Transforms
 						return partitionValues.map(
 							function(partitionValue:String, ..._):* {
 								return {
-									source: source,
+									dependency: source, //TODO - evaluate whether or not this is needed
 									data: partitionValue,
 									isBranch: true,
 									hasChildBranches: false,
@@ -122,7 +122,7 @@ package weave.data.Transforms
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
 			return new ColumnTreeNode({
-				source: this,
+				dataSource: this,
 				idFields: [PARTITION_VALUE_META, PARTITION_COLUMNNAME_META],
 				columnMetadata: metadata
 			});

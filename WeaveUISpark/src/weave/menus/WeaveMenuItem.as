@@ -166,7 +166,7 @@ package weave.menus
 			if (!items)
 				return null;
 			
-			// filter children based on "shown" status
+			// filter children based on "shown" status (makes a copy)
 			items = items.filter(_filterShown);
 			// remove leading separators
 			while (items.length && WeaveMenuItem(items[0]).type == TYPE_SEPARATOR)

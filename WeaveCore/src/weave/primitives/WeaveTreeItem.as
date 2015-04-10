@@ -98,7 +98,7 @@ package weave.primitives
 		protected var _recursion:Object = {}; // recursionName -> Boolean
 		private var _label:* = "";
 		private var _children:* = null;
-		private var _source:ILinkableObject = null;
+		private var _dependency:ILinkableObject = null;
 		
 		/**
 		 * Cached values that get invalidated when the source triggers callbacks.
@@ -263,9 +263,9 @@ package weave.primitives
 		 */
 		protected function isCached(id:String):Boolean
 		{
-			if (_source && WeaveAPI.SessionManager.objectWasDisposed(_source))
-				source = null;
-			return _source && _counter[id] === WeaveAPI.SessionManager.getCallbackCollection(_source).triggerCounter;
+			if (_dependency && WeaveAPI.SessionManager.objectWasDisposed(_dependency))
+				dependency = null;
+			return _dependency && _counter[id] === WeaveAPI.SessionManager.getCallbackCollection(_dependency).triggerCounter;
 		}
 		
 		/**
@@ -280,11 +280,11 @@ package weave.primitives
 			if (arguments.length == 1)
 				return _cache[id];
 			
-			if (_source && WeaveAPI.SessionManager.objectWasDisposed(_source))
-				source = null;
-			if (_source)
+			if (_dependency && WeaveAPI.SessionManager.objectWasDisposed(_dependency))
+				dependency = null;
+			if (_dependency)
 			{
-				_counter[id] = WeaveAPI.SessionManager.getCallbackCollection(_source).triggerCounter;
+				_counter[id] = WeaveAPI.SessionManager.getCallbackCollection(_dependency).triggerCounter;
 				_cache[id] = newValue;
 			}
 			return newValue;
@@ -330,7 +330,13 @@ package weave.primitives
 				return cache(id, null);
 			
 			var result:Array = items.map(_mapItems, childItemClass).filter(_filterItems);
-			return cache(id, result);
+			
+			// because nodes may populate their children asynchronously, put results in original array
+			var i:int = items.length = result.length;
+			while (i--)
+				items[i] = result[i];
+			
+			return cache(id, items);
 		}
 		
 		/**
@@ -348,17 +354,17 @@ package weave.primitives
 		 * A pointer to the ILinkableObject that created this node.
 		 * This is used to determine when to invalidate cached values.
 		 */
-		public function get source():ILinkableObject
+		public function get dependency():ILinkableObject
 		{
-			if (_source && WeaveAPI.SessionManager.objectWasDisposed(_source))
-				source = null;
-			return _source;
+			if (_dependency && WeaveAPI.SessionManager.objectWasDisposed(_dependency))
+				dependency = null;
+			return _dependency;
 		}
-		public function set source(value:ILinkableObject):void
+		public function set dependency(value:ILinkableObject):void
 		{
-			if (_source != value)
+			if (_dependency != value)
 				_counter = {};
-			_source = value;
+			_dependency = value;
 		}
 		
 		/**

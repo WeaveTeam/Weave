@@ -87,7 +87,7 @@ package weave.data.Transforms
 				var source:GroupedDataTransform = this;
 
 				_rootNode = new ColumnTreeNode({
-					source: source,
+					dependency: source, //TODO - evaluate whether or not this is needed
 					data: source,
 					label: WeaveAPI.globalHashMap.getName(this),
 					isBranch: true,
@@ -117,7 +117,7 @@ package weave.data.Transforms
 				return null;
 
 			return new ColumnTreeNode({
-				source: this,
+				dataSource: this,
 				idFields: [DATA_COLUMNNAME_META],
 				columnMetadata: metadata
 			});

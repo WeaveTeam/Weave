@@ -138,7 +138,7 @@ package weave.data.DataSources
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
 			return new ColumnTreeNode({
-				source: this,
+				dataSource: this,
 				idFields: [ANNOTATION_KEY_TYPE],
 				columnMetadata: metadata
 			});
@@ -198,7 +198,8 @@ package weave.data.DataSources
 			{
 				var source:AnnotationDataSource = this;
 				_rootNode = new ColumnTreeNode({
-					source: source,
+					dataSource: source,
+					dependency: source, //TODO - evaluate whether or not this is needed
 					data: source,
 					label: WeaveAPI.globalHashMap.getName(this),
 					isBranch: true,
