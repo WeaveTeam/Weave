@@ -27,13 +27,9 @@
 			paddingLeft="4"
 			label="{getEnableLabel(columnTitle)}"
 			change="toggleFilter();"/>
-<!--	<mx:Button enabled="{filterEnable.selected}"
-			   width="24" icon="@Embed(source='/weave/resources/images/eject-inset.png')"
-			   toolTip="{lang('Select a column to be used for filtering the data.')}"
-			   click="AttributeSelectorPanel.open(stringFilter.column, lang('Filter'));"/>
--->	
 	<ui:MenuToolViewStack id="menuStack"
 		enabled="{filterEnable.selected}"
+		allowMultipleSelection="true"
 		prompt="{lang('Select filter value...')}"/>
 	
 	<mx:Script>
