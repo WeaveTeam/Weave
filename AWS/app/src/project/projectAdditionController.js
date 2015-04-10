@@ -116,10 +116,18 @@ projectModule.controller('pjtAddtionInstanceCtrl', function($scope, $modalInstan
 	 
 	 $scope.remove = function(file){
 		 //removes the file from the uploaded collection
-		 $scope.uploadedObjects.queryObjectTitles.splice($.inArray(file, $scope.uploadedObjects.queryObjectTitles), 1);
+		 var index = $.inArray(file, $scope.uploadedObjects.queryObjectTitles);
+		 console.log("index", index);
+		 $scope.uploadedObjects.queryObjectTitles.splice(index, 1);
+		 $scope.uploadedObjects.queryObjectJsons.splice(index, 1);
+		 
 		 var countUploaded = $scope.uploadedObjects.queryObjectTitles.length;
 		 $scope.uploadStatus = countUploaded + " file(s) uploaded";
-		 if(countUploaded == 0)
+		 if(countUploaded == 0){
 			 $scope.uploadStatus = "";
+			 $scope.uploaded.QueryObject.filename = null;
+			 $scope.uploaded.QueryObject.content = null;
+			 
+		 }
 	 };
 });

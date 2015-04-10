@@ -32,7 +32,7 @@
 <!-- 			<td ng-if= "!uploadStatus"><font color="red" >No file uploaded</font></td> -->
 <!-- 			<td>{{uploadStatus}}</td>  -->
 			
-			<td> <label class='file-nput-btn' style="width:80px">Upload<input fileread="uploaded.QueryObject" class='file-upload' type='file'/></label></td>
+			<td> <label class='btn btn-primary' style = "width: 80px; height: 30px; float:left">Upload<input fileread="uploaded.QueryObject" class='file-upload' type='file'/></label></td>
 		</tr>
 		
 	
@@ -43,7 +43,7 @@
 			<ul ng-repeat="file in uploadedObjects.queryObjectTitles">
 				<li>
 					<span class="prj-txt-lbl"> {{file}}</span> 
-					<button type="button" class="close" ng-click ="remove(file)">Remove</button>
+					<button type="button" class="close" ng-click ="remove(file)"><i class="fa fa-times"></i></button>
 				</li>
 			</ul>
 		</td>
