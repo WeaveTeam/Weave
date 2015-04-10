@@ -15,34 +15,34 @@
 
 package weave.data.Transforms
 {
-    import weave.api.core.ILinkableHashMap;
-    import weave.api.data.ColumnMetadata;
-    import weave.api.data.IAttributeColumn;
-    import weave.api.data.IDataSource;
-    import weave.api.data.IWeaveTreeNode;
-    import weave.api.newLinkableChild;
-    import weave.api.registerLinkableChild;
-    import weave.api.ui.ISelectableAttributes;
-    import weave.core.LinkableHashMap;
-    import weave.data.AttributeColumns.DynamicColumn;
-    import weave.data.AttributeColumns.EquationColumn;
-    import weave.data.AttributeColumns.ProxyColumn;
-    import weave.data.DataSources.AbstractDataSource;
-    import weave.data.hierarchy.ColumnTreeNode;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IDataSource;
+	import weave.api.data.IWeaveTreeNode;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.ui.ISelectableAttributes;
+	import weave.core.LinkableHashMap;
+	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.EquationColumn;
+	import weave.data.AttributeColumns.ProxyColumn;
+	import weave.data.DataSources.AbstractDataSource;
+	import weave.data.hierarchy.ColumnTreeNode;
 
-    public class ForeignDataMappingTransform extends AbstractDataSource implements ISelectableAttributes
-    {
-        WeaveAPI.ClassRegistry.registerImplementation(IDataSource, ForeignDataMappingTransform, "Foreign Data Mapping");
+	public class ForeignDataMappingTransform extends AbstractDataSource implements ISelectableAttributes
+	{
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, ForeignDataMappingTransform, "Foreign Data Mapping");
 
-        public static const DATA_COLUMNNAME_META:String = "__DataColumnName__";
+		public static const DATA_COLUMNNAME_META:String = "__DataColumnName__";
 
-        public const keyColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
-        public const dataColumns:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
-        
+		public const keyColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const dataColumns:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+		
 
-        public function ForeignDataMappingTransform()
-        {
-        }
+		public function ForeignDataMappingTransform()
+		{
+		}
 
 		public function getSelectableAttributeNames():Array
 		{
@@ -53,44 +53,44 @@ package weave.data.Transforms
 			return [keyColumn, dataColumns];
 		}
 		
-        override protected function initialize():void
-        {
-            // recalculate all columns previously requested
-            refreshAllProxyColumns();
-            
-            super.initialize();
-        }
-        
-        override public function getHierarchyRoot():IWeaveTreeNode
-        {
-            if (!_rootNode)
-            {
-                var source:ForeignDataMappingTransform = this;
-                _rootNode = new ColumnTreeNode({
-                    source: dataColumns,
-                    data: source,
-                    label: WeaveAPI.globalHashMap.getName(this),
-                    isBranch: true,
-                    hasChildBranches: false,
-                    children: function():Array {
-                        return dataColumns.getNames().map(
-                            function(dataColumnName:String, ..._):* {
-                                var column:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
-                                var title:String = column.getMetadata(ColumnMetadata.TITLE);
-                                var metadata:Object = {};
-                                metadata[ColumnMetadata.TITLE] = title;
-                                metadata[DATA_COLUMNNAME_META] = dataColumnName;
-                                return generateHierarchyNode(metadata);
-                            }
-                        );
-                    }
-                });
-            }
-            return _rootNode;
-        }
+		override protected function initialize():void
+		{
+			// recalculate all columns previously requested
+			refreshAllProxyColumns();
+			
+			super.initialize();
+		}
+		
+		override public function getHierarchyRoot():IWeaveTreeNode
+		{
+			if (!_rootNode)
+			{
+				var source:ForeignDataMappingTransform = this;
+				_rootNode = new ColumnTreeNode({
+					source: dataColumns,
+					data: source,
+					label: WeaveAPI.globalHashMap.getName(this),
+					isBranch: true,
+					hasChildBranches: false,
+					children: function():Array {
+						return dataColumns.getNames().map(
+							function(dataColumnName:String, ..._):* {
+								var column:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
+								var title:String = column.getMetadata(ColumnMetadata.TITLE);
+								var metadata:Object = {};
+								metadata[ColumnMetadata.TITLE] = title;
+								metadata[DATA_COLUMNNAME_META] = dataColumnName;
+								return generateHierarchyNode(metadata);
+							}
+						);
+					}
+				});
+			}
+			return _rootNode;
+		}
 
-        override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
-        {
+		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
+		{
 			if (!metadata)
 				return null;
 			
@@ -99,12 +99,12 @@ package weave.data.Transforms
 			if (!metadata)
 				return null;
 			
-            return new ColumnTreeNode({
-                source: this,
-                idFields: [DATA_COLUMNNAME_META],
-                columnMetadata: metadata
-            });
-        }
+			return new ColumnTreeNode({
+				source: this,
+				idFields: [DATA_COLUMNNAME_META],
+				columnMetadata: metadata
+			});
+		}
 		
 		private function getColumnMetadata(dataColumnName:String, includeSourceColumnMetadata:Boolean = true):Object
 		{
@@ -117,10 +117,10 @@ package weave.data.Transforms
 			metadata[DATA_COLUMNNAME_META] = dataColumnName;
 			return metadata;
 		}
-        
-        override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
-        {
-            var dataColumnName:String = proxyColumn.getMetadata(DATA_COLUMNNAME_META);
+		
+		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
+		{
+			var dataColumnName:String = proxyColumn.getMetadata(DATA_COLUMNNAME_META);
 			var metadata:Object = getColumnMetadata(dataColumnName, false);
 			if (!metadata)
 			{
@@ -129,13 +129,13 @@ package weave.data.Transforms
 			}
 			proxyColumn.setMetadata(metadata);
 			
-            var dataColumn:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
-            var foreignDataColumn:ForeignDataColumn = proxyColumn.getInternalColumn() as ForeignDataColumn || new ForeignDataColumn(this);
+			var dataColumn:IAttributeColumn = dataColumns.getObject(dataColumnName) as IAttributeColumn;
+			var foreignDataColumn:ForeignDataColumn = proxyColumn.getInternalColumn() as ForeignDataColumn || new ForeignDataColumn(this);
 			foreignDataColumn.setup(metadata, dataColumn);
 			
-            proxyColumn.setInternalColumn(foreignDataColumn);
-        }
-    }
+			proxyColumn.setInternalColumn(foreignDataColumn);
+		}
+	}
 }
 
 import weave.api.data.ColumnMetadata;
@@ -169,9 +169,7 @@ internal class ForeignDataColumn extends AbstractAttributeColumn implements IPri
 		
 		_metadata = copyValues(metadata);
 		_dataColumn = registerLinkableChild(this, dataColumn);
-		_keyType = _keyColumn.getMetadata(ColumnMetadata.DATA_TYPE);
-		if (_keyType == DataType.STRING)
-			_keyType = dataColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+		_keyType = dataColumn.getMetadata(ColumnMetadata.KEY_TYPE);
 		triggerCallbacks();
 	}
 	
