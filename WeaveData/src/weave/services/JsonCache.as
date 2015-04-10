@@ -15,13 +15,7 @@
 
 package weave.services
 {
-	import flash.events.Event;
 	import flash.external.ExternalInterface;
-	import flash.net.URLRequest;
-	
-	import mx.rpc.events.FaultEvent;
-	import mx.rpc.events.ResultEvent;
-	import mx.utils.StringUtil;
 	
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
@@ -38,43 +32,26 @@ package weave.services
 		
 		public function clearCache():void
 		{
+			for each (var entry:CacheEntry in cache)
+				entry.dispose();
 			cache = {};
 			getCallbackCollection(this).triggerCallbacks();
 		}
 		
-		public function getJsonObject(url:String):Object
+		/**
+		 * @param url The URL to get JSON data
+		 * @param resultHandler 
+		 */
+		public function getJsonObject(url:String, resultHandler:Function = null):Object
 		{
-			if (!cache.hasOwnProperty(url))
+			var entry:CacheEntry = cache[url];
+			if (!entry)
 			{
-				cache[url] = {};
-				addAsyncResponder(
-					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url), URLRequestUtils.DATA_FORMAT_TEXT),
-					handleResponse,
-					handleResponse,
-					url
-				);
+				entry = new CacheEntry(this, url);
+				cache[url] = entry;
 			}
-			return cache[url];
-		}
-		
-		private function handleResponse(event:Event, url:String):void
-		{
-			var response:Object;
-			if (event is ResultEvent)
-			{
-				response = (event as ResultEvent).result;
-				response = parseJSON(response as String);
-				if (response)
-					cache[url] = response;
-			}
-			else
-			{
-				response = (event as FaultEvent).fault.content;
-				if (response)
-					reportError("Request failed: " + url + "\n" + StringUtil.trim(String(response)));
-				else
-					reportError(event);
-			}
+			entry.addHandler(resultHandler);
+			return entry.result;
 		}
 		
 		public static function parseJSON(json:String):Object
@@ -96,5 +73,84 @@ package weave.services
 			}
 			return null;
 		}
+	}
+}
+
+import flash.events.Event;
+import flash.net.URLRequest;
+
+import mx.rpc.events.FaultEvent;
+import mx.rpc.events.ResultEvent;
+import mx.utils.StringUtil;
+
+import weave.api.reportError;
+import weave.services.JsonCache;
+import weave.services.URLRequestUtils;
+import weave.services.addAsyncResponder;
+
+internal class CacheEntry
+{
+	public function CacheEntry(owner:JsonCache, url:String)
+	{
+		this.owner = owner;
+		this.url = url;
+		
+		addAsyncResponder(
+			WeaveAPI.URLRequestUtils.getURL(owner, new URLRequest(url), URLRequestUtils.DATA_FORMAT_TEXT),
+			handleResponse,
+			handleResponse
+		);
+	}
+	
+	public var owner:JsonCache;
+	public var url:String;
+	public var handlers:Array = [];
+	public var result:Object = {};
+	
+	private function handleResponse(event:Event, token:Object = null):void
+	{
+		// stop if disposed
+		if (!owner)
+			return;
+		
+		var response:Object;
+		if (event is ResultEvent)
+		{
+			response = (event as ResultEvent).result;
+			response = JsonCache.parseJSON(response as String);
+			// avoid storing a null value
+			if (response != null)
+				result = response;
+			// call handlers
+			while (handlers.length)
+				(handlers.pop() as Function).apply(null, [result]);
+			// stop further handlers from being added
+			handlers = null;
+		}
+		else
+		{
+			response = (event as FaultEvent).fault.content;
+			if (response)
+				reportError("Request failed: " + url + "\n" + StringUtil.trim(String(response)));
+			else
+				reportError(event);
+		}
+	}
+	
+	public function addHandler(handler:Function):void
+	{
+		if (handler == null)
+			return;
+		
+		if (handlers)
+			handlers.push(handler);
+		else
+			WeaveAPI.StageUtils.callLater(owner, handler, [result]);
+	}
+	
+	public function dispose():void
+	{
+		owner = null;
+		handlers = null;
 	}
 }
