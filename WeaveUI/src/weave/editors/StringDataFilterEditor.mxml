@@ -34,7 +34,6 @@
 -->	
 	<ui:MenuToolViewStack id="menuStack"
 		enabled="{filterEnable.selected}"
-		toolTip="{lang('Select a value used to filter the data.')}"
 		prompt="{lang('Select filter value...')}"/>
 	
 	<mx:Script>
