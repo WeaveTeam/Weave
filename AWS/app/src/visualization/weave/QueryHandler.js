@@ -253,7 +253,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 					if(numRows > 0) {
 						time1 =  new Date().getTime() - startTimer;
 						startTimer = new Date().getTime();
-						queryService.queryObject.properties.queryStatus = numRows + "returned. Running analysis...";
+						queryService.queryObject.properties.queryStatus = numRows + " records. Running analysis...";
 						
 						//executing the script
 						queryService.runScript(scriptName).then(function(resultData) {
