@@ -84,17 +84,33 @@ void stringHash()
 	);
 	size_t findstr_len = pos - (size_t)findstr;
 
+	size_t tmp_len = findstr_len;
+	char* tmp_str = findstr;
+	
+	/* Strip leading whitespace */
+	while (isWhitespace(*tmp_str)) 
+	{
+		tmp_str++;
+		tmp_len--;
+	}
+	/* Strip trailing whitespace */
+	while (isWhitespace(tmp_str[tmp_len-1])) 
+	{
+		tmp_str[tmp_len-1] = '\0';
+		tmp_len--;
+	}
+
 	// find matching entry
 	entry_t *entry;
-	HASH_FIND(hh, entry_table, findstr, findstr_len, entry);
+	HASH_FIND(hh, entry_table, tmp_str, tmp_len, entry);
 	if (!entry)
 	{
 		// no match, create entry
 		entry = (entry_t*)malloc(sizeof(entry_t));
-		entry->str = (char*)malloc(findstr_len + 1);
-		strncpy(entry->str, findstr, findstr_len + 1);
+		entry->str = (char*)malloc(tmp_len + 1);
+		strncpy(entry->str, tmp_str, tmp_len + 1);
 		entry->id = ++stringHashId;
-		HASH_ADD_KEYPTR(hh, entry_table, entry->str, findstr_len, entry);
+		HASH_ADD_KEYPTR(hh, entry_table, entry->str, tmp_len, entry);
 	}
 	AS3_Return(entry->id);
 }
