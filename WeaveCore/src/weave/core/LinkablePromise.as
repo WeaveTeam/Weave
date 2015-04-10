@@ -39,19 +39,21 @@ package weave.core
 	{
 		/**
 		 * Creates a LinkablePromise from an iterative task function.
-		 * @param asyncTask A function which is designed to be called repeatedly across multiple frames until it returns a value of 1.
+		 * @param initialize A function that should be called prior to starting the iterativeTask.
+		 * @param iterativeTask A function which is designed to be called repeatedly across multiple frames until it returns a value of 1.
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
 		 * @param description A description of the task as a String, or a function to call which returns a descriptive string.
 		 * Such a function has the signature function():String.
 		 * @see weave.api.core.IStageUtils#startTask()
 		 */
-		public static function fromIterativeTask(iterativeTask:Function, priority:uint, description:* = null, validateNow:Boolean = false):LinkablePromise
+		public static function fromIterativeTask(initialize:Function, iterativeTask:Function, priority:uint, description:* = null, validateNow:Boolean = false):LinkablePromise
 		{
 			var promise:LinkablePromise;
 			var asyncToken:AsyncToken;
 			
 			function asyncStart():AsyncToken
 			{
+				initialize();
 				WeaveAPI.StageUtils.startTask(promise, iterativeTask, priority, asyncComplete);
 				return asyncToken = new AsyncToken();
 			}
