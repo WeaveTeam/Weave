@@ -105,10 +105,10 @@
 				if (_linkedFilter != stringFilter)
 				{
 					if (_linkedFilter)
-						unlinkBindableProperty(_linkedFilter.stringValue, menuStack, 'chosenItem');
+						unlinkBindableProperty(_linkedFilter.stringValues, menuStack, 'chosenItems');
 					_linkedFilter = stringFilter;
 					if (_linkedFilter)
-						linkBindableProperty(_linkedFilter.stringValue, menuStack, 'chosenItem', 0, true);
+						linkBindableProperty(_linkedFilter.stringValues, menuStack, 'chosenItems', 0, true);
 				}
 				handleFilter();
 			}
@@ -133,7 +133,7 @@
 				{
 					enabled = true;
 					filterEnable.selected = stringFilter.enabled.value;
-					menuStack.chosenItem = stringFilter.stringValue.value;
+					menuStack.chosenItems = stringFilter.stringValues.getSessionState() as Array;
 				}
 				else
 				{

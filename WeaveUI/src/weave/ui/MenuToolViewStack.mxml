@@ -53,6 +53,7 @@
 	</mx:Canvas>
 	<mx:Script>
 		<![CDATA[
+			import weave.compiler.StandardLib;
 			import weave.core.UIUtils;
 
 			public static const LAYOUT_LIST:String = "List";
@@ -161,6 +162,24 @@
 					return;
 				
 				_chosenItem = item;
+				updateViews();
+				dispatchEvent(new Event("choiceChange"));
+			}
+			
+			[Bindable(event="choiceChange")]
+			public function get chosenItems():Array
+			{
+				// TEMPORARY SOLUTION - MULTI SELECT NOT SUPPORTED YET
+				return [_chosenItem];
+			}
+			
+			public function set chosenItems(items:Array):void
+			{
+				// TEMPORARY SOLUTION - MULTI SELECT NOT SUPPORTED YET
+				if (StandardLib.compare([_chosenItem], items) == 0)
+					return;
+				
+				_chosenItem = items[0];
 				updateViews();
 				dispatchEvent(new Event("choiceChange"));
 			}

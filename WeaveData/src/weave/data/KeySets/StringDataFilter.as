@@ -15,40 +15,66 @@
 
 package weave.data.KeySets
 {
+	import flash.utils.Dictionary;
+	
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
-	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.utils.VectorUtils;
 
 	public class StringDataFilter implements IKeyFilter
 	{
-		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), cacheValues);
-		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn, cacheValues);
-		public const stringValue:LinkableString = newLinkableChild(this, LinkableString, cacheValues);
-		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), cacheValues);
-		
-		private function cacheValues():void
-		{
-			_enabled = enabled.value;
-			_keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
-			_stringValue = stringValue.value;
-			_includeMissingKeyTypes = includeMissingKeyTypes.value;
-		}
+		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), _cacheVars);
+		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), _cacheVars);
+		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn, _resetKeyLookup);
+		public const stringValues:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray), _resetKeyLookup);
 		
 		private var _enabled:Boolean;
-		private var _keyType:String;
-		private var _stringValue:String;
 		private var _includeMissingKeyTypes:Boolean;
+		private var _stringLookup:Object;
+		private var _keyType:String;
+		private var _keyLookup:Dictionary = new Dictionary(true);
+		
+		private function verifyStringArray(array:Array):Boolean
+		{
+			return !array || !array.length || StandardLib.getArrayType(array) == String; 
+		}
+		
+		private function _cacheVars():void
+		{
+			_enabled = enabled.value;
+			_includeMissingKeyTypes = includeMissingKeyTypes.value;
+		}
+		private function _resetKeyLookup():void
+		{
+			VectorUtils.fillKeys(_stringLookup = {}, stringValues.getSessionState() as Array);
+			_keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
+			_keyLookup = new Dictionary(true);
+		}
 		
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			if (_includeMissingKeyTypes && key.keyType != _keyType)
+			if (!_enabled)
 				return true;
-			return !_enabled || column.getValueFromKey(key, String) == _stringValue;
+			
+			var cached:* = _keyLookup[key];
+			if (cached === undefined)
+			{
+				var value:String = column.getValueFromKey(key, String);
+				cached = _stringLookup.hasOwnProperty(value);
+				if (!cached && _includeMissingKeyTypes && key.keyType != _keyType)
+					cached = true;
+				_keyLookup[key] = cached;
+			}
+			return cached;
 		}
+		
+		[Deprecated] public function set stringValue(value:String):void { stringValues.setSessionState([value]); }
 	}
 }

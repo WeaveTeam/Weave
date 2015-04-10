@@ -143,7 +143,7 @@ package weave.data.Transforms
 			var filter:StringDataFilter = filteredColumn.filter.requestLocalObject(StringDataFilter, false);
 
 			filter.column.requestLocalObjectCopy(partitionColumn);
-			filter.stringValue.value = filterValue;
+			filter.stringValues.setSessionState([filterValue]);
 			filteredColumn.internalDynamicColumn.requestLocalObjectCopy(inputColumn);
 			
 			proxyColumn.setInternalColumn(filteredColumn);
