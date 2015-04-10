@@ -1,32 +1,21 @@
 angular.module('aws.project', [])
 .controller("ProjectManagementCtrl", function($scope,$rootScope, $filter, queryService, projectService, QueryHandlerService, WeaveService, $location){
 	$scope.projectService = projectService;
-	
 	//retrives project list
-	projectService.getListOfProjects();
+	$scope.projectService.getListOfProjects();
 	//projectlist
 	
-	//when a datatable is selected or changed
-	$scope.$watch('projectService.cache.dataTable', function(){
-		if($scope.projectService.cache.dataTable){
-			console.log("project Selected", $scope.projectService.cache.dataTable);
-			$scope.projectService.getListOfQueryObjects($scope.projectService.cache.dataTable);
+	//when a is selected or changed
+	$scope.$watch('projectService.cache.project.selected', function(){
+		if($scope.projectService.cache.project.selected){
+			console.log("project Selected", $scope.projectService.cache.project.selected);
+			$scope.projectService.getListOfQueryObjects($scope.projectService.cache.project.selected);
 		}
 	});
 	
 	
 	$scope.insertQueryObjectStatus = 0;//count changes when single queryObject or multiple are added to the database
 	var nameOfQueryObjectToDelete = "";
-	
-	//external directives
-//	$scope.aside = {
-//			title : 'Query Object Editor'
-//			
-//		};
-//	$scope.aside2 = {
-//			title : 'New Project'
-//			
-//		};
 
      //Watch for when record is inserted in db
      $scope.$watch(function(){
@@ -39,7 +28,7 @@ angular.module('aws.project', [])
 		 		{
     		 		alert("Query Object has been added");
     		 		queryService.cache.listofQueryObjectsInProject = [];
-	    			queryService.getListOfQueryObjectsInProject($scope.projectSelectorUI);//makes a new call
+	    			queryService.getListOfQueryObjectsInProject($scope.projectService.cache.project.selected);//makes a new call
 		 		}
 		 }
 	 
@@ -50,15 +39,15 @@ angular.module('aws.project', [])
 
 	//deletes an entire Project along with all queryObjects within
 	$scope.deleteEntireProject = function(){
-		$scope.deleteProjectConfirmation($scope.currentProjectSelected);
+		$scope.deleteProjectConfirmation($scope.projectService.cache.project.selected);
 	};
 	
 	
 	//additional checks for confirming deletion
-		$scope.deleteProjectConfirmation = function(currentProjectSelected){
-			var deletePopup = confirm("Are you sure you want to delete project " + projectService.data.projectSelectorUI + "?");
+		$scope.deleteProjectConfirmation = function(projectSelected){
+			var deletePopup = confirm("Are you sure you want to delete project " + projectSelected + "?");
 			if(deletePopup == true){
-				projectService.deleteProject(projectService.data.projectSelectorUI);
+				projectService.deleteProject(projectSelected);
 			}
 			
 		};
@@ -73,7 +62,7 @@ angular.module('aws.project', [])
 	//deletes a single queryObject within the currently selected Project
 	$scope.deleteSpecificQueryObject = function(item){
 		nameOfQueryObjectToDelete = item.queryObjectName; 
-		$scope.deleteQueryConfirmation($scope.projectService.cache.dataTable, nameOfQueryObjectToDelete);
+		$scope.deleteQueryConfirmation($scope.projectService.cache.project.selected, nameOfQueryObjectToDelete);
 	};
 
 	$scope.openInAnalysis = function(queryObject) {
@@ -89,9 +78,8 @@ angular.module('aws.project', [])
 		$rootScope.$watch(function(){
 			 return WeaveService.weave;
 		}, function(){
-			if(WeaveService.weave){
-				WeaveService.weave.path().state(data.sessionState);//TODO fix this adding properties dynamically not GOOD
-				delete data.sessionState;//TODO fix this adding properties dynamically not GOOD
+			if(WeaveService.checkWeaveReady()){
+				WeaveService.weave.path().state(data.weaveSessionState);//TODO fix this adding properties dynamically not GOOD
 			}
 		});
 			

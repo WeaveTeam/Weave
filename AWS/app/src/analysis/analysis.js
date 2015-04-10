@@ -280,8 +280,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		{
 			//$scope.showToolMenu = true;
 			
-			if(queryService.cache.weaveSessionState) {
-				WeaveService.weave.path().state(queryService.cache.weaveSessionState);
+			if(queryService.queryObject.weaveSessionState) {
+				WeaveService.weave.path().state(queryService.queryObject.weaveSessionState);
 			}
 		}
 	});

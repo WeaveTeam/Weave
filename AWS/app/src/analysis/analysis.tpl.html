@@ -283,7 +283,7 @@
 				<div ng-controller="dataFilterCtrl">
 					<div ng-include src="'src/analysis/data_filters/data_filters.html'"></div>
 					<!--Geography filter -->
-					<geo-Filter  ng-if="AnalysisService.showGeographyFilter" ng-model= "queryService.queryObject.GeographyFilter"></geo-Filter>
+					<geo-Filter  ng-if="queryService.queryObject.properties.showGeographyFilter" ng-model= "queryService.queryObject.GeographyFilter"></geo-Filter>
 				
 					<!--  regular column filter -->	
 					<filter  ng-repeat="filter in queryService.queryObject.filterArray" columns="queryService.cache.columns" ng-model='queryService.queryObject.filters[$index]'></filter>

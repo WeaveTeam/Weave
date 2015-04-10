@@ -8,7 +8,7 @@
 				</div>
 				<div class="widget-selectors">
 <!-- Project List -->	
-						<ui-select ng-model="projectService.cache.dataTable" popover-trigger="mouseenter" theme="select2" style="width : 100%">
+						<ui-select ng-model="projectService.cache.project.selected" popover-trigger="mouseenter" theme="select2" style="width : 100%">
 					    	<ui-select-match allow-clear="true" placeholder="Choose Indicator...">{{$select.selected}}</ui-select-match>
 							<ui-select-choices repeat="project in projectService.cache.listOfProjectsFromDatabase | filter : $select.search ">
 					       		 <div ng-bind-html="project | highlight: $select.search"></div>
@@ -16,11 +16,7 @@
 						</ui-select>			
 
 						<div style="display: inline-block; margin-left: 90px;">
-	<!-- 						<button id = "newQueryObjectButton" type="button" class="btn btn-sm new-project-button" data-template="src/queryObjectEditor/queryObjectEditPanel.html" -->
-	<!-- 						data-placement="right" data-animation="am-slide-right" bs-aside="aside" data-container="body" ng-click = "load('newQueryObjectButton')"> -->
-	<!-- 							New Query Object -->
-	<!-- 						</button> -->
-	
+
 							<button ng-controller = 'projectAdditionController' id = "newProjectButton"  type="button" class="btn btn-sm new-project-button" ng-click = "openAdditionPanel()">
 								Create a project
 							</button>
