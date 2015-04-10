@@ -82,35 +82,31 @@ void stringHash()
 		"ram_init.writeByte(0);"
 		: "=r"(pos) : "r"(findstr)
 	);
-	size_t findstr_len = pos - (size_t)findstr;
-
-	size_t tmp_len = findstr_len;
-	char* tmp_str = findstr;
+	size_t str_len = pos - (size_t)findstr;
+	char* str = findstr;
 	
 	/* Strip leading whitespace */
-	while (isWhitespace(*tmp_str)) 
+	while (isWhitespace(*str))
 	{
-		tmp_str++;
-		tmp_len--;
+		str++;
+		str_len--;
 	}
 	/* Strip trailing whitespace */
-	while (isWhitespace(tmp_str[tmp_len-1])) 
-	{
-		tmp_str[tmp_len-1] = '\0';
-		tmp_len--;
-	}
+	while (str_len > 0 && isWhitespace(str[str_len - 1]))
+		str_len--;
+	str[str_len] = '\0';
 
 	// find matching entry
 	entry_t *entry;
-	HASH_FIND(hh, entry_table, tmp_str, tmp_len, entry);
+	HASH_FIND(hh, entry_table, str, str_len, entry);
 	if (!entry)
 	{
 		// no match, create entry
 		entry = (entry_t*)malloc(sizeof(entry_t));
-		entry->str = (char*)malloc(tmp_len + 1);
-		strncpy(entry->str, tmp_str, tmp_len + 1);
+		entry->str = (char*)malloc(str_len + 1);
+		strncpy(entry->str, str, str_len + 1);
 		entry->id = ++stringHashId;
-		HASH_ADD_KEYPTR(hh, entry_table, entry->str, tmp_len, entry);
+		HASH_ADD_KEYPTR(hh, entry_table, entry->str, str_len, entry);
 	}
 	AS3_Return(entry->id);
 }
