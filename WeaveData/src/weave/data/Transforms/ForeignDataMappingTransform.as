@@ -212,6 +212,7 @@ internal class ForeignDataColumn extends AbstractAttributeColumn implements IPri
 	 */
 	override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 	{
+		//TODO - this should be cached
 		var localName:String;
 		// if the foreign key column is numeric, avoid using the formatted strings as keys
 		if (_keyColumn.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.NUMBER)
