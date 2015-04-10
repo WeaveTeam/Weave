@@ -179,15 +179,15 @@
 											
 											<!-- handling toggle input types -->
 											<div class="btn-group btn-toggle"
-												ng-if="input.type == 'options' && input.options.length == 2"
-												ng-init="queryService.queryObject.scriptOptions[input.param] = input.options[0]"
+												ng-if="input.type == 'options' && angular.fromJson(input.options).length == 2"
+												ng-init="queryService.queryObject.scriptOptions[input.param] = angular.fromJson(input.options)[0]"
 												ng-click="toggleButton(input)">
 												<button
-													ng-class="{'active btn-primary': queryService.queryObject.scriptOptions[input.param] == input.options[0]}"
-													class="btn btn-default">{{input.options[0]}}</button>
+													ng-class="{'active btn-primary': queryService.queryObject.scriptOptions[input.param] == angular.fromJson(input.options)[0]}"
+													class="btn btn-default">{{angular.fromJson(input.options)[0]}}</button>
 												<button
-													ng-class="{'active btn-primary': queryService.queryObject.scriptOptions[input.param] == input.options[1]}"
-													class="btn btn-default">{{input.options[1]}}</button>
+													ng-class="{'active btn-primary': queryService.queryObject.scriptOptions[input.param] == angular.fromJson(input.options)[1]}"
+													class="btn btn-default">{{angular.fromJson(input.options)[1]}}</button>
 											</div>
 											<!-- Handling boolean options -->
 											<div class="btn-group btn-toggle" style="width:100%; height:100%"

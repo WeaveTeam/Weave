@@ -212,6 +212,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			var queryObject = incoming_queryObject;
 			var scriptInputObjects = [];//final collection of script input objects
 			
+			nestedFilterRequest = {and : []}; // clear the nested filter object at each run.
+			
 			//HANDLING FILTERS
 			if(queryObject.GeographyFilter)
 			{
@@ -230,6 +232,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 					nestedFilterRequest.and.push(filter.nestedFilter);
 				}
 			});
+			
+			console.log(nestedFilterRequest);
 	
 			//console.log(nestedFilterRequest);
 			//handling script inputs
@@ -248,42 +252,42 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			queryService.queryObject.properties.queryStatus = "Loading data from database...";
 			startTimer = new Date().getTime();
 				
-			
-			//getting the data
-			queryService.getDataFromServer(scriptInputObjects, queryService.queryObject.IndicatorRemap).then(function(success) {
-				if(success) {
-					time1 =  new Date().getTime() - startTimer;
-					startTimer = new Date().getTime();
-					queryService.queryObject.properties.queryStatus = "Running analysis...";
-					
-					//executing the script
-					queryService.runScript(scriptName).then(function(resultData) {
-						if(!angular.isUndefined(resultData))
-						{
-							console.log(resultData);
-							time2 = new Date().getTime() - startTimer;
-							queryService.queryObject.properties.queryDone = true;
-							queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
-							
-							if(WeaveService.weave){
-
-								//convert result into csvdata format
-								var formattedResult = WeaveService.createCSVDataFormat(resultData.resultData, resultData.columnNames);
-								//create the CSVDataSource]
-								var dsn = queryService.queryObject.Indicator ? queryService.queryObject.Indicator.title : "";
-								WeaveService.addCSVData(formattedResult, dsn, queryService.queryObject);
+				//getting the data
+				queryService.getDataFromServer(scriptInputObjects, remapObjects).then(function(numRows) {
+					if(numRows > 0) {
+						time1 =  new Date().getTime() - startTimer;
+						startTimer = new Date().getTime();
+						queryService.queryObject.properties.queryStatus = numRows + " records. Running analysis...";
+						
+						//executing the script
+						queryService.runScript(scriptName).then(function(resultData) {
+							if(!angular.isUndefined(resultData))
+							{
+								console.log(resultData);
+								time2 = new Date().getTime() - startTimer;
+								queryService.queryObject.properties.queryDone = true;
+								queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
+								
+								if(WeaveService.weave){
+									
+									//convert result into csvdata format
+									var formattedResult = WeaveService.createCSVDataFormat(resultData.resultData, resultData.columnNames);
+									//create the CSVDataSource]
+									var dsn = queryService.queryObject.Indicator ? queryService.queryObject.Indicator.title : "";
+									WeaveService.addCSVData(formattedResult, dsn, queryService.queryObject);
+								}
 							}
-						}
-					}, function(error) {
-						queryService.queryObject.properties.queryDone = false;
-						queryService.queryObject.properties.queryStatus = "Error running script. See error log for details.";
-					});
-				}
-			}, function(error) {
-				queryService.queryObject.properties.queryDone = false;
-				queryService.queryObject.properties.queryStatus = "Error Loading data. See error log for details.";
-			});
-				
+						}, function(error) {
+							queryService.queryObject.properties.queryDone = false;
+							queryService.queryObject.properties.queryStatus = "Error running script. See error log for details.";
+						});
+					} else {
+						queryService.queryObject.properties.queryStatus = "Data request did not return any rows";
+					}
+				}, function(error) {
+					queryService.queryObject.properties.queryDone = false;
+					queryService.queryObject.properties.queryStatus = "Error Loading data. See error log for details.";
+				});
 			}//validation check
 		};
 }]);

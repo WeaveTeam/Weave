@@ -75,7 +75,11 @@ angular.module('aws.configure.script').service("scriptManagerService", ['$q', '$
 	          scope.$apply(function() {
 	            deferred.resolve(result);
 	          });
-	      });
+	      }, function(error) {
+				scope.$safeApply(function() {
+					deferred.reject(error);
+				});
+		  });
 	      return deferred.promise;	
 	  };
 	  

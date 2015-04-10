@@ -33,6 +33,67 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 					treeSelection : []
 			};
 			
+			// this 3 watches prevents the user from selecting
+			// the same column twice.
+			// TODO find a better way to do this
+			$scope.$watchCollection('columns', function() {
+				if($scope.columns.length) {
+					$scope.firstLevelColumns = $.map($scope.columns, function(column) {
+						if($scope.ngModel && $scope.ngModel.secondLevel) {
+							if(column.id != $scope.ngModel.secondLevel.id) 
+								return column;
+							else
+								console.log(column);
+						} else {
+							return column;
+						}
+					});
+					$scope.secondLevelColumns = $.map($scope.columns, function(column) {
+						if($scope.ngModel && $scope.ngModel.firstLevel) {
+							if(column.id != $scope.ngModel.firstLevel.id)
+								return column;
+							else
+								console.log(column);
+						} else {
+							return column;
+						}
+					});
+					
+				}
+			}, true);
+			
+			$scope.$watch(function() {
+				return $scope.ngModel.firstLevel;
+			}, function() {
+				if($scope.columns.length) {
+					$scope.secondLevelColumns = $.map($scope.columns, function(column) {
+						if($scope.ngModel && $scope.ngModel.firstLevel) {
+							if(column.id != $scope.ngModel.firstLevel.id)
+								return column;
+						} else {
+							return column;
+						}
+					});
+				}
+			});
+			
+			$scope.$watch(function() {
+				return $scope.ngModel.secondLevel;
+			}, function() {
+				if($scope.columns.length) {
+					$scope.firstLevelColumns = $.map($scope.columns, function(column) {
+						if($scope.ngModel && $scope.ngModel.secondLevel) {
+							if(column.id != $scope.ngModel.secondLevel.id) 
+								return column;
+						} else {
+							return column;
+						}
+					});
+				}
+			});
+			$scope.firstLevelColumns = [];
+			$scope.secondLevelColumns = [];
+			
 			$scope.$watchCollection(function() {
 				return [$scope.ngModel.firstLevel, $scope.ngModel.secondLevel];
 			}, function(newVal, oldVal) {
@@ -49,7 +110,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 									varValues = angular.fromJson(secondLevelEntity.publicMetadata.aws_metadata).varValues;
 									if(varValues) {
 										queryService.getDataMapping(varValues).then(function(secondLevel_metadata) {
-											treeData = convertToTreeData(secondLevel_metadata, firstLevel_metadata);
+											treeData = convertToTreeData(firstLevel_metadata, secondLevel_metadata);
 										});
 									}
 								});
@@ -169,8 +230,9 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 						checkbox : true,
 						icon : false,
 						selectMode : 3,
-						children : treeData
+						children : []
 					});
+					 $(tree).dynatree("getTree").reload();
 					return;
 				}
 				$(tree).dynatree({
@@ -208,7 +270,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 							} else {
 								// when the firstLevel doesn't have a childList, it's a one level tree
 								if(firstLevel.bSelected) {
-									treeSelection[i] = firstLevel.data.title;
+									treeSelection[i] = firstLevel.data.key;
 									// convert treeSelection to array in the case where it's 1D
 									treeSelection = $.map(treeSelection, function(value, index) {
 										return [value];

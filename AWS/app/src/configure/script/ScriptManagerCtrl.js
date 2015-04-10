@@ -88,7 +88,14 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 			  scriptManagerService.getScriptMetadata(newVal).then(function(result) {
 				  $scope.scriptMetadata.description = result.description;
 				  $scope.scriptMetadata.inputs = result.inputs;
-				  console.log("script metadata inputs", $scope.scriptMetadata.inputs);
+			  }, function(error) {
+				   // no metadata was found, so we create an empty metadata file
+				  scriptManagerService.saveScriptMetadata($scope.selectedScript, "{}").then(function(result) { 
+					  if(!result) {
+						  $scope.statusColor = "red";
+						  $scope.status = "Error saving script metadata";
+					  }
+				  });
 			  });
 			  //get the actual content of the script
 			  scriptManagerService.getScript(newVal).then(function(result) {
@@ -99,11 +106,11 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 	  //
 	  $scope.$watchCollection('scriptMetadata.inputs', function() {
 		    if($scope.scriptMetadata.inputs && $scope.selectedScript) {
-		    	//returns the metadata of a script if it already exists else creates a metadata data file
-				  scriptManagerService.saveScriptMetadata($scope.selectedScript, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
+		    	  //returns the metadata of a script if it already exists else creates a metadata data file
+				  scriptManagerService.saveScriptMetadata($scope.selectedScript, angular.toJson($scope.scriptMetadata), true).then(function(result) { 
 					  if(!result) {
 						  $scope.statusColor = "red";
-						  $scope.status = "Error saving script metadata";
+						  $scope.status = "Error creating new script metadata";
 					  }
 				  });
 			  }
@@ -112,7 +119,7 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 	  $scope.$on('ngGridEventEndCellEdit', function(){
 		  if($scope.scriptMetadata.inputs && $scope.selectedScript) {
 		    	//returns the metadata of a script if it already exists else creates a metadata data file
-				  scriptManagerService.saveScriptMetadata($scope.selectedScript, angular.toJson($scope.scriptMetadata, true)).then(function(result) { 
+				  scriptManagerService.saveScriptMetadata($scope.selectedScript, angular.toJson(angular.fromJson($scope.scriptMetadata), true)).then(function(result) { 
 					  if(!result) {
 						  $scope.statusColor = "red";
 						  $scope.status = "Error saving script metadata";
