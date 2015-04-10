@@ -49,7 +49,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 									varValues = angular.fromJson(secondLevelEntity.publicMetadata.aws_metadata).varValues;
 									if(varValues) {
 										queryService.getDataMapping(varValues).then(function(secondLevel_metadata) {
-											treeData = convertToTreeData(secondLevel_metadata, firstLevel_metadata);
+											treeData = convertToTreeData(firstLevel_metadata, secondLevel_metadata);
 										});
 									}
 								});
@@ -208,7 +208,7 @@ AnalysisModule.directive('treeFilter', function(queryService) {
 							} else {
 								// when the firstLevel doesn't have a childList, it's a one level tree
 								if(firstLevel.bSelected) {
-									treeSelection[i] = firstLevel.data.title;
+									treeSelection[i] = firstLevel.data.key;
 									// convert treeSelection to array in the case where it's 1D
 									treeSelection = $.map(treeSelection, function(value, index) {
 										return [value];

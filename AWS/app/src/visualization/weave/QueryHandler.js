@@ -212,6 +212,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			var queryObject = incoming_queryObject;
 			var scriptInputObjects = [];//final collection of script input objects
 			
+			nestedFilterRequest = {and : []}; // clear the nested filter object at each run.
+			
 			//HANDLING FILTERS
 			if(queryObject.GeographyFilter)
 			{
@@ -230,6 +232,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 					nestedFilterRequest.and.push(filter.nestedFilter);
 				}
 			});
+			
+			console.log(nestedFilterRequest);
 	
 			//console.log(nestedFilterRequest);
 			//handling script inputs
