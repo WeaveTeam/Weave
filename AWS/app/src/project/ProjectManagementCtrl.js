@@ -1,5 +1,5 @@
 angular.module('aws.project', [])
-.controller("ProjectManagementCtrl", function($scope,$rootScope, $filter, queryService, projectService, QueryHandlerService, WeaveService, $location){
+.controller("ProjectManagementCtrl", function($scope,$rootScope, $filter, queryService, projectService, WeaveService, $location){
 	$scope.projectService = projectService;
 	//retrives project list
 	$scope.projectService.getListOfProjects();
@@ -65,25 +65,28 @@ angular.module('aws.project', [])
 		$scope.deleteQueryConfirmation($scope.projectService.cache.project.selected, nameOfQueryObjectToDelete);
 	};
 
-	$scope.openInAnalysis = function(queryObject) {
-		queryService.queryObject = queryObject;
+	$scope.openInAnalysis = function(incoming_queryObject) {
+		//queryService.queryObject = queryObject;
 		//TODO dont use rootscope
-		$rootScope.$broadcast('queryObjectloaded', queryService.queryObject);
+		//$rootScope.$broadcast('queryObjectloaded', incoming_queryObject);
+		$scope.$emit("queryObjectloaded", incoming_queryObject);
 		$location.path('/analysis'); 
 	};
 	
-	$rootScope.$on('queryObjectloaded', function(event,data){
-		//TODO dont use rootscope
-		console.log("receiving broadcast");
-		$rootScope.$watch(function(){
-			 return WeaveService.weave;
-		}, function(){
-			if(WeaveService.checkWeaveReady()){
-				WeaveService.weave.path().state(data.weaveSessionState);//TODO fix this adding properties dynamically not GOOD
-			}
-		});
-			
-	});
+//	$rootScope.$on('queryObjectloaded', function(event,incoming_queryObject){
+//		//TODO dont use rootscope
+//		console.log("receiving broadcast");
+//		$rootScope.$watch(function(){
+//			 return WeaveService.weave;
+//		}, function(){
+//			queryService.queryObject = incoming_queryObject;
+//			if(WeaveService.checkWeaveReady()){
+//				if(incoming_queryObject.weaveSessionState)
+//					WeaveService.weave.path().state(incoming_queryObject.weaveSessionState);//TODO fix this adding properties dynamically not GOOD
+//			}
+//		});
+//			
+//	});
 	
 	//called when the thumb-nail is clicked
 	/**
