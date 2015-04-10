@@ -1,7 +1,7 @@
 <div style = "height: 100%">
 	
 	<div style="padding-top:2px;padding-bottom: 5px; width: 30%">
-		<ui-select ng-model="queryService.queryObject.dataTable" theme="select2" style="width: 100%;">
+		<ui-select ng-model="statisticsService.cache.dataTableSelected" theme="select2" style="width: 100%;" ng-change = "getStatistics()">
 	    <ui-select-match allow-clear="true" placeholder="Select a data table...">{{$select.selected.title}}</ui-select-match>
 		<ui-select-choices repeat="dataTable in queryService.cache.dataTableList | filter : { title : $select.search }">
 		       		 <div ng-bind-html="dataTable.title | highlight: $select.search"></div>
@@ -22,8 +22,6 @@
 	
 	<!-- PAGE CONTAINER -->
 			<div style = "width:100%; height: 100%" >
-
 				    <div style = "width:100%; height: 100%" ui-view></div>
-
 			</div>
 </div>

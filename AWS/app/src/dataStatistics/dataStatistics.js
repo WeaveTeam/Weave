@@ -28,11 +28,14 @@ dataStatsModule.service('statisticsService', ['$q','$rootScope', 'runQueryServic
 	var that = this;
 	
 	//getting the list of datatables if they have not been retrieved yet
+	//that is if the person visits this tab directly
 	if(queryService.cache.dataTableList.length == 0){
 		queryService.getDataTableList(true);
 	}
+	
 	//cache object that will contain all diff analytic statistics for ONE datatable
 	this.cache= {
+			dataTableSelected : null,
 			statsInputMetadata:[],
 			summaryStats : {statsData:[], columnDefinitions:[]},
 			correlationMatrix : [],
@@ -245,38 +248,20 @@ dataStatsModule.controller('dataStatsCtrl', function($scope,$filter,
 	    $('#datagridDiv').scrollTop($(this).scrollTop());
 	});
 	
-	//select2-sortable handlers
-	$scope.getItemId = function(item) {
-		return item.id;
-	};
 	
-	$scope.getItemText = function(item) {
-		return item.title;
+	$scope.getStatistics = function(){
+		if($scope.statisticsService.cache.dataTableSelected.id)
+			{
+				console.log("Async call made for getting statistics");
+				$scope.statisticsService.getStatsMetadata("getStatistics.R");
+				
+				$scope.queryService.getDataColumnsEntitiesFromId($scope.statisticsService.cache.dataTableSelected.id, true).then(function(result){
+					//getting column titles
+					$scope.statisticsService.getColumnTitles($scope.queryService.cache.numericalColumns);
+					//call for displaying summary stats once numerical columns are returned
+					$scope.statisticsService.calculateStats("getStatistics.R", $scope.queryService.cache.numericalColumns, summaryStatistics, true);
+				});
+			}
 	};
-	
-	//datatable
-	$scope.getDataTable = function(term, done) {
-		var values = $scope.queryService.cache.dataTableList;
-		done($filter('filter')(values, {title:term}, 'title'));
-	};
-
-	//runs when the datatable is changed
-	$scope.$watch(function(){
-		if ($scope.queryService.queryObject.dataTable)
-			return $scope.queryService.queryObject.dataTable.id;
-	}, function() {
-		if($scope.queryService.queryObject.dataTable.id){
-			console.log("Async call made for getting statistics");
-			
-			$scope.statisticsService.getStatsMetadata("getStatistics.R");
-			$scope.queryService.getDataColumnsEntitiesFromId(queryService.queryObject.dataTable.id, true).then(function(){
-				//getting column titles
-				$scope.statisticsService.getColumnTitles(queryService.cache.numericalColumns);
-			//call for displaying summary stats once numerical columns are returned
-				$scope.statisticsService.calculateStats("getStatistics.R", queryService.cache.numericalColumns, summaryStatistics, true);
-			});
-		}
-			
-	});
 	
 });
