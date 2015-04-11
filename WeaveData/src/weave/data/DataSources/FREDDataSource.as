@@ -17,7 +17,6 @@ package weave.data.DataSources
 {
     import flash.net.URLRequest;
     
-    import mx.charts.chartClasses.IColumn;
     import mx.rpc.events.FaultEvent;
     import mx.rpc.events.ResultEvent;
     
@@ -27,14 +26,9 @@ package weave.data.DataSources
     import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
-    import weave.api.newDisposableChild;
     import weave.api.newLinkableChild;
-    import weave.api.registerDisposableChild;
     import weave.api.registerLinkableChild;
     import weave.api.reportError;
-    import weave.compiler.Compiler;
-    import weave.compiler.StandardLib;
-    import weave.core.LinkablePromise;
     import weave.core.LinkableString;
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.hierarchy.ColumnTreeNode;
@@ -83,14 +77,14 @@ package weave.data.DataSources
 		 * @param method Examples: "category", "category/series"
 		 * @param params Example: {category_id: 125}
 		 */
-		private function getJson(method:String, params:Object):Object
+		private function getJson(method:String, params:Object, handler:Function):void
 		{
-			return jsonCache.getJsonObject(getUrl(method, params));
+			jsonCache.getJsonObject(getUrl(method, params), handler);
 		}
 		
 		private var functionCache:Dictionary2D = new Dictionary2D();
 		
-		public function createCategoryNode(data:Object = null, ..._):ColumnTreeNode
+		public function createCategoryNode(data:Object = null):ColumnTreeNode
 		{
 			if (!data)
 			{
@@ -101,40 +95,33 @@ package weave.data.DataSources
 			if (!node)
 			{
 				node = new ColumnTreeNode({
-					dependency: this,
 					data: data,
 					label: data.name,
 					isBranch: true,
 					hasChildBranches: true,
 					children: function(node:ColumnTreeNode):Array {
-						return [].concat(
-							getCategoryChildren(node),
-							getCategorySeries(node)
-						);
+						var children:Array = node.data.childNodes;
+						if (!children)
+						{
+							node.data.childNodes = children = [];
+							getJson('category/children', {category_id: node.data.id}, function(result:Object):void {
+								var nodes:Array = [];
+								for each (var item:Object in result.categories)
+									nodes.push(createCategoryNode(item));
+								// put categories first in the list
+								children.splice.apply(null, [0, 0].concat(nodes));
+							});
+							getJson('category/series', {category_id: node.data.id}, function(result:Object):void {
+								for each (var item:Object in result.seriess)
+									children.push(createSeriesNode(item));
+							});
+						}
+						return children;
 					}
 				});
 				functionCache.set(createCategoryNode, data.id, node);
 			}
 			return node;
-		}
-		
-		private function getCategoryChildren(node:ColumnTreeNode):Array
-		{
-			var result:Object = getJson('category/children', {category_id: node.data.id});
-			
-			if(!result.categories)
-				return [];
-			return result.categories.map(createCategoryNode);
-		}
-		
-		private function getCategorySeries(node:ColumnTreeNode):Array
-		{
-			var result:Object = getJson('category/series', {category_id: node.data.id});
-			
-			if(!result.seriess)
-				return [];
-			
-			return result.seriess.map(createSeriesNode);
 		}
 		
 		public function getObservationsCSV(series_id:String):CSVDataSource
@@ -184,21 +171,20 @@ package weave.data.DataSources
 			reportError(event);
 		}
 			
-		public function createSeriesNode(data:Object, ..._):IWeaveTreeNode
+		public function createSeriesNode(data:Object):IWeaveTreeNode
 		{
 			var node:IWeaveTreeNode = functionCache.get(createSeriesNode, data.id);
 			if (!node)
 			{
 				node = new ColumnTreeNode({
 					label: data.title,
-					dependency: this,
 					data: data,
 					isBranch: true,
 					hasChildBranches: false,
 					children: function(node:ColumnTreeNode):Array {
 						var csv:CSVDataSource = getObservationsCSV(data.id);
 						var csvRoot:IWeaveTreeNode = csv.getHierarchyRoot();
-						node.source = csv;
+						node.dependency = csv;
 						return csvRoot.getChildren().map(function(csvNode:IColumnReference, ..._):IWeaveTreeNode {
 							var meta:Object = csvNode.getColumnMetadata();
 							meta[META_SERIES_ID] = data.id;
