@@ -82,8 +82,6 @@ package weave.data.DataSources
 			jsonCache.getJsonObject(getUrl(method, params), handler);
 		}
 		
-		private var functionCache:Dictionary2D = new Dictionary2D();
-		
 		public function createCategoryNode(data:Object = null):ColumnTreeNode
 		{
 			if (!data)
@@ -91,46 +89,41 @@ package weave.data.DataSources
 				var name:String = WeaveAPI.globalHashMap.getName(this);
 				data = {id: 0, name: name};
 			}
-			var node:ColumnTreeNode = functionCache.get(createCategoryNode, data.id);
-			if (!node)
-			{
-				node = new ColumnTreeNode({
-					data: data,
-					label: data.name,
-					isBranch: true,
-					hasChildBranches: true,
-					children: function(node:ColumnTreeNode):Array {
-						var children:Array = node.data.childNodes;
-						if (!children)
-						{
-							node.data.childNodes = children = [];
-							getJson('category/children', {category_id: node.data.id}, function(result:Object):void {
-								var nodes:Array = [];
-								for each (var item:Object in result.categories)
-									nodes.push(createCategoryNode(item));
-								// put categories first in the list
-								children.splice.apply(null, [0, 0].concat(nodes));
-							});
-							getJson('category/series', {category_id: node.data.id}, function(result:Object):void {
-								for each (var item:Object in result.seriess)
-									children.push(createSeriesNode(item));
-							});
-						}
-						return children;
+			return new ColumnTreeNode({
+				data: data,
+				label: data.name,
+				isBranch: true,
+				hasChildBranches: true,
+				children: function(node:ColumnTreeNode):Array {
+					var children:Array = node.data.childNodes;
+					if (!children)
+					{
+						node.data.childNodes = children = [];
+						getJson('category/children', {category_id: node.data.id}, function(result:Object):void {
+							var nodes:Array = [];
+							for each (var item:Object in result.categories)
+								nodes.push(createCategoryNode(item));
+							// put categories first in the list
+							children.splice.apply(null, [0, 0].concat(nodes));
+						});
+						getJson('category/series', {category_id: node.data.id}, function(result:Object):void {
+							for each (var item:Object in result.seriess)
+								children.push(createSeriesNode(item));
+						});
 					}
-				});
-				functionCache.set(createCategoryNode, data.id, node);
-			}
-			return node;
+					return children;
+				}
+			});
 		}
 		
+		private var csvCache:Object = {};
 		public function getObservationsCSV(series_id:String):CSVDataSource
 		{
-			var csv:CSVDataSource = functionCache.get(getObservationsCSV, series_id);
+			var csv:CSVDataSource = csvCache[series_id];
 			if (!csv)
 			{
 				csv = newLinkableChild(this, CSVDataSource);
-				functionCache.set(getObservationsCSV, series_id, csv);
+				csvCache[series_id] = csv;
 				
 				var request1:URLRequest = new URLRequest(getUrl('series', {series_id: series_id}));
 				addAsyncResponder(
@@ -144,15 +137,17 @@ package weave.data.DataSources
 							function(event:ResultEvent, csv:CSVDataSource):void
 							{
 								var result:Object = JsonCache.parseJSON(event.result.toString());
-								var columnOrder:Array = ['date', 'realtime_start', 'realtime_end', 'value'];
+								var columnOrder:Array = ['date', 'value', 'realtime_start', 'realtime_end'];
 								var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(result.observations, columnOrder);
 								csv.csvData.setSessionState(rows);
+								csv.keyColName.value = 'date';
+								csv.keyType.value = DataType.DATE;
 								var valueTitle:String = lang("{0} ({1})", data.title, data.units);
 								var metadataArray:Array = [
-									{title: 'date', dataType: DataType.DATE, dateFormat: 'YYYY-MM-DD'},
-									{title: 'realtime_start', dataType: DataType.DATE, dateFormat: 'YYYY-MM-DD'},
-									{title: 'realtime_end', dataType: DataType.DATE, dateFormat: 'YYYY-MM-DD'},
+									{title: 'Date', dataType: DataType.DATE},
 									{title: valueTitle, dataType: DataType.NUMBER},
+									{title: 'realtime_start', dataType: DataType.DATE},
+									{title: 'realtime_end', dataType: DataType.DATE},
 								];
 								csv.metadata.setSessionState(metadataArray);
 							},
@@ -173,40 +168,29 @@ package weave.data.DataSources
 			
 		public function createSeriesNode(data:Object):IWeaveTreeNode
 		{
-			var node:IWeaveTreeNode = functionCache.get(createSeriesNode, data.id);
-			if (!node)
-			{
-				node = new ColumnTreeNode({
-					label: data.title,
-					data: data,
-					isBranch: true,
-					hasChildBranches: false,
-					children: function(node:ColumnTreeNode):Array {
-						var csv:CSVDataSource = getObservationsCSV(data.id);
-						var csvRoot:IWeaveTreeNode = csv.getHierarchyRoot();
-						node.dependency = csv;
-						return csvRoot.getChildren().map(function(csvNode:IColumnReference, ..._):IWeaveTreeNode {
-							var meta:Object = csvNode.getColumnMetadata();
-							meta[META_SERIES_ID] = data.id;
-							meta[META_COLUMN_NAME] = meta[CSVDataSource.METADATA_COLUMN_NAME];
-							return generateHierarchyNode(meta);
-						});
-					}
-				});
-				functionCache.set(createSeriesNode, data.id, node);
-			}
-			return node;
+			return new ColumnTreeNode({
+				label: data.title,
+				data: data,
+				isBranch: true,
+				hasChildBranches: false,
+				children: function(node:ColumnTreeNode):Array {
+					var csv:CSVDataSource = getObservationsCSV(data.id);
+					var csvRoot:IWeaveTreeNode = csv.getHierarchyRoot();
+					node.dependency = csv;
+					return csvRoot.getChildren().map(function(csvNode:IColumnReference, ..._):IWeaveTreeNode {
+						var meta:Object = csvNode.getColumnMetadata();
+						meta[META_SERIES_ID] = data.id;
+						meta[META_COLUMN_NAME] = meta[CSVDataSource.METADATA_COLUMN_NAME];
+						return generateHierarchyNode(meta);
+					});
+				}
+			});
 		}
-		
 		
         override public function getHierarchyRoot():IWeaveTreeNode
         {
-			
             if (!_rootNode)
-            {
-                var source:FREDDataSource = this;
                 _rootNode = createCategoryNode();
-            }
             return _rootNode;
         }
 		
