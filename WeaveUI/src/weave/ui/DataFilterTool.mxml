@@ -44,7 +44,7 @@
 			import weave.menus.WeaveMenuItem;
 			import weave.utils.ColumnUtils;
 			
-			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataFilter, "Data Filter");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataFilterTool, "Data Filter");
 			
 			public const filter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter), handleFilterWatcher);
 			public const editor:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ILinkableObjectEditor), handleEditor, true);
