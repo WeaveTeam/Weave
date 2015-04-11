@@ -191,7 +191,7 @@
 											</div>
 											
 											<ui-select ng-if="input.type == 'options' && input.options.length != 2" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;">
-											    <ui-select-match placeholder="Select Columns...">{{$item}}</ui-select-match>
+											    <ui-select-match placeholder="Select Columns...">{{$select.selected}}</ui-select-match>
 											    <ui-select-choices repeat="option in input.options | filter: $select.search">
 										      	      <div ng-bind-html="option | highlight: $select.search"></div>
 											    </ui-select-choices>

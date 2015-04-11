@@ -479,7 +479,7 @@ AnalysisModule.controller("ScriptsSettingsCtrl", function($scope, queryService, 
 		
 			// this check is necessary because when angular changes tabs, it triggers changes
 			// for the script selected or data table even if the user may not have change them.
-			if(angular.equals(newVal[0], oldVal[0]) || angular.equals(newVal[1], oldVal[1])) {
+			if(!angular.equals(newVal[0], oldVal[0]) || !angular.equals(newVal[1], oldVal[1])) {
 				queryService.queryObject.scriptOptions = {};
 			}
 	}, true);
