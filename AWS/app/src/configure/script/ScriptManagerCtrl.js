@@ -228,6 +228,8 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 	  
 	  //script METADATA grid editing
 	  $scope.addNewRow = function () {
+		 if(!$scope.scriptMetadata.inputs)
+			 $scope.scriptMetadata.inputs = [];
 		 $scope.scriptMetadata.inputs.push({param: '...', type: ' ', columnType : ' ', options : ' ', description : '...'});
 		 //so? do we add this object to the scriptMetadata json on the server??
 	 };
@@ -368,7 +370,7 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 				});
 			} else {
 				$scope.validText = "only .R or .do files are supported";
-				$scope.isScriptValid = false;;
+				$scope.isScriptValid = false;
 			}
 		} else {
 			$scope.validText = "";
