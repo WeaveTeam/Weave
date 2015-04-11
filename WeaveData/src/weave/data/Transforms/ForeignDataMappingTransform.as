@@ -32,7 +32,7 @@ package weave.data.Transforms
 
 	public class ForeignDataMappingTransform extends AbstractDataSource implements ISelectableAttributes
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, ForeignDataMappingTransform, "Foreign Data Mapping");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, ForeignDataMappingTransform, "Foreign data mapping");
 
 		public static const DATA_COLUMNNAME_META:String = "__DataColumnName__";
 

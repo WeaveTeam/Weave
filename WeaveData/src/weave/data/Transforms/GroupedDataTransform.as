@@ -43,7 +43,7 @@ package weave.data.Transforms
 
 	public class GroupedDataTransform extends AbstractDataSource implements ISelectableAttributes
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GroupedDataTransform, "Grouped Data Transform");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GroupedDataTransform, "Grouped data transform");
 
 		public static const DATA_COLUMNNAME_META:String = "__GroupedDataColumnName__";
 
