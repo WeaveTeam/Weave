@@ -206,7 +206,7 @@ package weave.menus
 		public function ToolsMenu()
 		{
 			super({
-				source: Weave.properties.toolToggles.childListCallbacks,
+				dependency: Weave.properties.toolToggles.childListCallbacks,
 				shown: Weave.properties.enableDynamicTools,
 				label: lang("Tools"),
 				children: function():Array

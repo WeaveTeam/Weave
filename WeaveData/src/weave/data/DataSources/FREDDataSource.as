@@ -101,7 +101,7 @@ package weave.data.DataSources
 			if (!node)
 			{
 				node = new ColumnTreeNode({
-					source: this,
+					dependency: this,
 					data: data,
 					label: data.name,
 					isBranch: true,
@@ -191,7 +191,7 @@ package weave.data.DataSources
 			{
 				node = new ColumnTreeNode({
 					label: data.title,
-					source: this,
+					dependency: this,
 					data: data,
 					isBranch: true,
 					hasChildBranches: false,
@@ -240,7 +240,7 @@ package weave.data.DataSources
 				return null;
 			
 			return new ColumnTreeNode({
-				source: this,
+				dataSource: this,
 				idFields: META_ID_FIELDS,
 				columnMetadata: metadata
 			});

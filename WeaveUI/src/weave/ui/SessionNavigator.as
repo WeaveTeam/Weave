@@ -33,12 +33,12 @@ package weave.ui
 			override protected function itemToUID(data:Object):String
 			{
 				if (data is WeaveTreeItem)
-					data = (data as WeaveTreeItem).source;
+					data = (data as WeaveTreeItem).dependency;
 				return super.itemToUID(data);
 			}
 			private function compareItems(a:WeaveTreeItem, b:WeaveTreeItem):Boolean
 			{
-				return (a && b) ? a.source === b.source : a === b;
+				return (a && b) ? a.dependency === b.dependency : a === b;
 			}
 			override public function getItemIndex(item:Object):int
 			{
@@ -50,7 +50,7 @@ package weave.ui
 					
 					var a:WeaveTreeItem = cursor.current as WeaveTreeItem;
 					var b:WeaveTreeItem = item as WeaveTreeItem;
-					if ((a && b) ? a.source === b.source : a === b)
+					if ((a && b) ? a.dependency === b.dependency : a === b)
 						break;
 					i++;
 				}
@@ -141,7 +141,7 @@ package weave.ui
 			private function nodeLabelFunction(item:WeaveTreeItem):String
 			{
 				// append class name to the label.
-				var label:String = getQualifiedClassName(item.source).split("::").pop();
+				var label:String = getQualifiedClassName(item.dependency).split("::").pop();
 				if (item.label)
 					label += ' ' + Compiler.encodeString(item.label);
 				return label;
@@ -171,7 +171,7 @@ package weave.ui
 			
 			public function getSelectedLinkableObject():ILinkableObject
 			{
-				return selectedTreeItem ? selectedTreeItem.source : null;
+				return selectedTreeItem ? selectedTreeItem.dependency : null;
 			}
 			
 			[Bindable("change")]

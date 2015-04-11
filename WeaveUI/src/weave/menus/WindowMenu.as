@@ -193,7 +193,7 @@ package weave.menus
 		public function WindowMenu()
 		{
 			super({
-				source: WeaveAPI.globalHashMap.childListCallbacks,
+				dependency: WeaveAPI.globalHashMap.childListCallbacks,
 				shown: {or: [SessionMenu.fn_adminMode, Weave.properties.enableWindowMenu]},
 				label: lang("Window"),
 				children: function():Array {

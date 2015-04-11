@@ -32,7 +32,7 @@ package weave.data.hierarchy
 	{
 		/**
 		 * The following properties are used for equality comparison, in addition to node class definitions:<br>
-		 * <code>source, data, idFields, columnMetadata</code><br>
+		 * <code>dependency, data, dataSource, idFields, columnMetadata</code><br>
 		 * The following properties are used by ColumnTreeNode but not for equality comparison:<br>
 		 * <code>label, children, isBranch, hasChildBranches</code><br>
 		 */
@@ -55,6 +55,11 @@ package weave.data.hierarchy
 				}
 			}
 		}
+		
+		/**
+		 * IDataSource for this node.
+		 */
+		public var dataSource:IDataSource = null;
 		
 		/**
 		 * Column metadata for this node.
@@ -113,13 +118,17 @@ package weave.data.hierarchy
 			if (Object(this).constructor != Object(that).constructor)
 				return false; // constructors differ
 			
-			// compare source
-			if (this.source != that.source)
-				return false; // source differs
+			// compare dependency
+			if (this.dependency != that.dependency)
+				return false; // dependency differs
 			
 			// compare data
 			if (StandardLib.compare(this.data, that.data) != 0)
 				return false; // data differs
+			
+			// compare dataSource
+			if (this.dataSource != that.dataSource)
+				return false; // dataSource differs
 			
 			// compare idFields
 			if (StandardLib.compare(this.idFields, that.idFields) != 0)
@@ -196,7 +205,7 @@ package weave.data.hierarchy
 		 */
 		public function getDataSource():IDataSource
 		{
-			return source as IDataSource;
+			return dataSource;
 		}
 		
 		/**

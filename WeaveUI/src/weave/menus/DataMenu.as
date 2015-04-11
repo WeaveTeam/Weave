@@ -65,7 +65,7 @@ package weave.menus
 				click: function():void {
 					var sources:Array = WeaveAPI.globalHashMap.getObjects(IDataSource);
 					for each (var source:IDataSource in sources)
-					source.refreshHierarchy();
+						source.refreshHierarchy();
 				},
 				enabled: function():Boolean { return WeaveAPI.globalHashMap.getObjects(IDataSource).length > 0; }
 			},{
@@ -128,7 +128,7 @@ package weave.menus
 		});
 		
 		public static const kMeansClusteringItem:WeaveMenuItem = new WeaveMenuItem({
-			source: WeaveAPI.globalHashMap.childListCallbacks,
+			dependency: WeaveAPI.globalHashMap.childListCallbacks,
 			shown: [Weave.properties.showKMeansClustering],
 			label: lang("K-means clustering"),
 			children: function():Array {

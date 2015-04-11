@@ -67,7 +67,7 @@ package weave.data.Transforms
 			{
 				var source:ForeignDataMappingTransform = this;
 				_rootNode = new ColumnTreeNode({
-					source: dataColumns,
+					dependency: dataColumns, //TODO - evaluate whether or not this is needed
 					data: source,
 					label: WeaveAPI.globalHashMap.getName(this),
 					isBranch: true,
@@ -100,7 +100,7 @@ package weave.data.Transforms
 				return null;
 			
 			return new ColumnTreeNode({
-				source: this,
+				dataSource: this,
 				idFields: [DATA_COLUMNNAME_META],
 				columnMetadata: metadata
 			});
