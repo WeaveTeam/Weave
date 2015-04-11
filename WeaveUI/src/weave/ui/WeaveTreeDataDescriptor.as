@@ -23,6 +23,7 @@ package weave.ui
     
     import weave.api.data.IWeaveTreeNode;
     import weave.api.data.IWeaveTreeNodeWithEditableChildren;
+    import weave.utils.VectorUtils;
     
 	/**
 	 * Tells a Tree control how to work with IWeaveTreeNode objects.
@@ -78,10 +79,10 @@ package weave.ui
 			
 			var childView:ArrayCollection = _childViews[node] as ArrayCollection;
 			if (!childView)
-				_childViews[node] = childView = new ArrayCollection();
+				_childViews[node] = childView = new ArrayCollection([]);
 			
-			if (childView.source != childArray)
-				childView.source = childArray;
+			// need to re-use the childView.source Array to prevent infinite recursion due to event dispatch
+			VectorUtils.copy(childArray, childView.source);
 			
 			if (displayMode == DISPLAY_MODE_ALL && nodeFilter == null)
 			{
