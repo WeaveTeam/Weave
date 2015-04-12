@@ -149,8 +149,17 @@ package weave.utils
 		public static function getKeys(hashMap:Object):Array
 		{
 			var keys:Array = [];
-			for (var key:* in hashMap)
-				keys.push(key);
+			if (hashMap is Dictionary)
+			{
+				for (var key:* in hashMap)
+					keys.push(key);
+			}
+			else
+			{
+				// workaround for when the string looks like a Number, var key:* will give you a Number instead of a String
+				for (var stringKey:String in hashMap)
+					keys.push(stringKey);
+			}
 			return keys;
 		}
 
