@@ -61,7 +61,7 @@
 			private var _linkedFilter:StringDataFilter;
 			
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString("List"), handleLayoutMode, true);
-			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			
 			override protected function childrenCreated():void
 			{

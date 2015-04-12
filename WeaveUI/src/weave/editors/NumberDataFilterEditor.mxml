@@ -52,7 +52,7 @@
 			import weave.utils.VectorUtils;
 
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const showMinThumb:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), invalidateDisplayList);
 			public const showMaxThumb:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), invalidateDisplayList);
 			public const forceDiscreteValues:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), invalidateDisplayList);
