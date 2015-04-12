@@ -641,7 +641,10 @@ internal class CustomAsyncToken extends AsyncToken
 	 */
 	public function addRelevantContext(context:Object):void
 	{
-		WeaveAPI.ProgressIndicator.addTask(this, context as ILinkableObject);
+		var desc:String = "URL request";
+		if (loader)
+			desc += ": " + loader.urlRequest.url;
+		WeaveAPI.ProgressIndicator.addTask(this, context as ILinkableObject, desc);
 		relevantContexts.push(context);
 	}
 	
