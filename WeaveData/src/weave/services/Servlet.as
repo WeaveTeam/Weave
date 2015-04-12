@@ -234,7 +234,7 @@ package weave.services
 		 * This is a mapping of AsyncToken objects to URLLoader objects. 
 		 * This mapping is necessary so a client with an AsyncToken can cancel the loader. 
 		 */		
-		private const _asyncTokenData:Dictionary = new Dictionary();
+		private var _asyncTokenData:Dictionary = new Dictionary();
 		
 		private function resultHandler(event:ResultEvent, token:AsyncToken):void
 		{
@@ -256,12 +256,14 @@ package weave.services
 		
 		public function dispose():void
 		{
-			var fault:Fault = new Fault('Notification', 'Servlet was disposed', null);
+//			var fault:Fault = new Fault('Notification', 'Servlet was disposed', null);
 			for each (var token:AsyncToken in VectorUtils.getKeys(_asyncTokenData))
 			{
-				var event:FaultEvent = new FaultEvent(FaultEvent.FAULT, false, true, fault, token);
-				faultHandler(event, token);
+				cancelLoaderFromToken(token);
+//				var event:FaultEvent = new FaultEvent(FaultEvent.FAULT, false, true, fault, token);
+//				faultHandler(event, token);
 			}
+			_asyncTokenData = new Dictionary();
 		}
 	}
 }
