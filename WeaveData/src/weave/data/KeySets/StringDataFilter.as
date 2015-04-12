@@ -37,7 +37,7 @@ package weave.data.KeySets
 		
 		private var _enabled:Boolean;
 		private var _includeMissingKeyTypes:Boolean;
-		private var _stringLookup:Object;
+		private var _stringLookup:Object = {};
 		private var _keyType:String;
 		private var _keyLookup:Dictionary = new Dictionary(true);
 		
