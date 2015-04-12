@@ -230,12 +230,12 @@ package
 				"weave.visualization.plotters.styles"
 			);
 			
-			ClassUtils.registerDeprecatedClass("DataFilter", DataFilterTool);
 			ClassUtils.registerDeprecatedClass("EmptyTool", CustomTool);
 			ClassUtils.registerDeprecatedClass("WMSPlotter2", WMSPlotter);
 			ClassUtils.registerDeprecatedClass("SessionedTextArea", SessionedTextBox);
 			ClassUtils.registerDeprecatedClass("weave.visualization.tools.DataTableTool", AdvancedTableTool);
 			ClassUtils.registerDeprecatedClass("weave.api.ui.IObjectWithSelectableAttributes", ISelectableAttributes);
+			ClassUtils.registerDeprecatedClass("weave.ui.DataFilter", DataFilterTool);
 		}();
 	}
 }
