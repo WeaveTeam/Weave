@@ -256,7 +256,6 @@ metadataModule.config(function($provide){
 	  */
 	 var updateMetadata = function(metadata) {
 		 var jsonaws_metadata = angular.toJson(convertToMetadataFormat(metadata));
-		 console.log("updating metadata", $scope.selectedDataTableId);
 		 if(angular.isDefined($scope.selectedDataTableId))
 			 {
 						 queryService.updateEntity($scope.authenticationService.user, 
@@ -270,6 +269,7 @@ metadataModule.config(function($provide){
 				 				   });
 			 }
 		 
+		 alert("Metadata Updated for id : " + $scope.selectedDataTableId);
 	 };
 	 
 	 /**
