@@ -210,7 +210,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			var queryObject = incoming_queryObject;
 			var scriptInputObjects = [];//final collection of script input objects
 			
-			usSpinnerService.spin('spinner-1');
+			usSpinnerService.spin('roundtrip-spinner');
 			
 			nestedFilterRequest = {and : []}; // clear the nested filter object at each run.
 			
@@ -276,7 +276,7 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 									var dsn = queryService.queryObject.Indicator ? queryService.queryObject.Indicator.title : "";
 									WeaveService.addCSVData(formattedResult, dsn, queryService.queryObject);
 									
-									usSpinnerService.stop('spinner-1');
+									usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
 								}
 							}
 						}, function(error) {
