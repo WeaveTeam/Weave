@@ -3,6 +3,8 @@
 		<div class="prj-contents" style="width: 100%; padding-left: 40px;">
 			<div style="width: 90%;  height: 100%;" class="panel panel-default">
 
+<span us-spinner="{radius:30, width:8, length: 16}" spinner-key="spinner-1"></span>
+
 				<div class="panel-heading">
 					<h2>Manage Query Object and Projects</h2>
 				</div>
@@ -65,17 +67,16 @@
 											</li>
 										</ul>
 									</div>
- <!-- Contains the picture -->		<!-- div style="display : table-cell" ng-repeat = "pic in thumbnailsToDisplay"-->
-										<div style="display : table-cell">
+ <!-- Contains the picture -->		<!-- div style="display : table-cell" ng-repeat = "pic in thumbnailsToDisplay"  ng-class = "{'clickMe' : status}" ng-mouseenter = "status = true" ng-mouseLeave = "status =false"-->
+										<div id = "blah">
 											<img width = "150" height = "100" 
 												 ng-src= "{{item.thumbnail || 'css/img/ImageUnavailable.png'}}" 
-												 style="border: 1px solid #000000;"
+												 
 												 ng-click = "returnSessionState(item.queryObject)">
 											 </img>
 										</div>
 								</div>
 								<div class="query-btn-holder">
-								
 										<button ng-click = "deleteSpecificQueryObject(item)" class="btn btn-sm query-button">
 											Delete
 										</button>

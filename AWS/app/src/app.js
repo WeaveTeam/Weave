@@ -4,6 +4,7 @@ var app = angular.module('aws', [//'aws.router', // for app structure (can be cl
                                  //'aws.analysis', 
                                  'ngAnimate', // Angular Library
                                  'ngSanitize',
+                                 'angularSpinner',
                                  'mgcrea.ngStrap',
                                  'ui.select',
                                  'ui.bootstrap',
@@ -166,9 +167,34 @@ app.value('scriptManagementURL', '/WeaveAnalystServices/ScriptManagementServlet'
 app.value('computationServiceURL', '/WeaveAnalystServices/ComputationalServlet');
 app.value('WeaveDataSource', 'WeaveDataSource');
 
-app.controller('AWSController', function($scope, $state, authenticationService, queryService, WeaveService) {
+app.controller('AWSController', function($scope,$rootScope, $state, authenticationService,usSpinnerService, queryService, WeaveService) {
 	//for ng-route
 	//$scope.$route = $route;
+	
+	
+	 $scope.startSpin = function() {
+    if (!$scope.spinneractive) {
+    	console.log("starting spinner");
+      usSpinnerService.spin('spinner-1');
+    }
+  };
+
+  $scope.stopSpin = function() {
+    if ($scope.spinneractive) {
+    	console.log("stoppingg spinner");
+      usSpinnerService.stop('spinner-1');
+    }
+  };
+  $scope.spinneractive = false;
+
+  $rootScope.$on('us-spinner:spin', function(event, key) {
+    $scope.spinneractive = true;
+  });
+
+  $rootScope.$on('us-spinner:stop', function(event, key) {
+    $scope.spinneractive = false;
+  });
+
 	$scope.state = $state;
 	$scope.authenticationService = authenticationService;
 	

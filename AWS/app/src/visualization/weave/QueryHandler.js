@@ -4,8 +4,8 @@
  **/
 var qh_module = angular.module('aws.QueryHandlerModule', []);
 
-qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService','runQueryService', 'd3Service', '$window', '$modal',
-                                 function($q, scope, queryService, WeaveService, errorLogService,runQueryService,d3Service, $window, $modal) {
+qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','WeaveService','errorLogService','runQueryService', 'd3Service','usSpinnerService', '$window', '$modal',
+                                 function($q, scope, queryService, WeaveService, errorLogService,runQueryService,d3Service,usSpinnerService, $window, $modal) {
 	
 	var scriptInputs = {};
 	var filters = {};
@@ -166,7 +166,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 							};
 											
 				
-				//console.log("geoQuery", geoQuery);
 				
 				nestedFilterRequest.and.push(geoQuery);
 			}
@@ -190,7 +189,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 												}
 												]});
 				}
-				//console.log("geoQuery", geoQuery);
 				if(geoQuery.or.length) {
 					nestedFilterRequest.and.push(geoQuery);
 				}
@@ -211,6 +209,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 			
 			var queryObject = incoming_queryObject;
 			var scriptInputObjects = [];//final collection of script input objects
+			
+			usSpinnerService.spin('spinner-1');
 			
 			nestedFilterRequest = {and : []}; // clear the nested filter object at each run.
 			
@@ -275,6 +275,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 									//create the CSVDataSource]
 									var dsn = queryService.queryObject.Indicator ? queryService.queryObject.Indicator.title : "";
 									WeaveService.addCSVData(formattedResult, dsn, queryService.queryObject);
+									
+									usSpinnerService.stop('spinner-1');
 								}
 							}
 						}, function(error) {

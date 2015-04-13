@@ -1,9 +1,10 @@
 angular.module('aws.project', [])
-.controller("ProjectManagementCtrl", function($scope,$rootScope, $filter, queryService, projectService, WeaveService, $location){
+.controller("ProjectManagementCtrl", function($scope,$rootScope, $filter, queryService, projectService, WeaveService, usSpinnerService, $location){
 	$scope.projectService = projectService;
 	//retrives project list
 	$scope.projectService.getListOfProjects();
 	//projectlist
+	
 	
 	//when a is selected or changed
 	$scope.$watch('projectService.cache.project.selected', function(){

@@ -76,7 +76,7 @@ QueryObject.value('key_Column', {
 										template_url : 'src/visualization/tools/color/key_Column.tpl.html',
 										description : 'Set the key column in Weave'
 });
-QueryObject.service('runQueryService', ['errorLogService','$modal', function(errorLogService, $modal){
+QueryObject.service('runQueryService', ['errorLogService','usSpinnerService','$modal', function(errorLogService, usSpinnerService, $modal){
 
 	/**
 	 * This function is a wrapper for making a request to a JSON RPC servlet
@@ -90,6 +90,8 @@ QueryObject.service('runQueryService', ['errorLogService','$modal', function(err
 	 */
 	this.queryRequest = function(url, method, params, resultHandler, errorHandler, queryId)
 	{
+//		console.log("starting spinner");
+//		usSpinnerService.spin('spinner-1');
 	    var request = {
 	        jsonrpc: "2.0",
 	        id: queryId || "no_id",
@@ -111,10 +113,15 @@ QueryObject.service('runQueryService', ['errorLogService','$modal', function(err
 	        	errorLogService.logInErrorLog(response.error.message);
 	        	//open the error log
 	        	$modal.open(errorLogService.errorLogModalOptions);
-	        	if(errorHandler)
+	        	if(errorHandler){
+//	        		console.log("stopping spinner");
+//	        		usSpinnerService.stop('spinner-1');
 	        		return errorHandler(response.error, queryId);
+	        	}
 	        }
 	        else if (resultHandler){
+//	        	console.log("stopping spinner");
+//	        	usSpinnerService.stop('spinner-1');
 	            return resultHandler(response.result, queryId);
 	        }
 	    }
