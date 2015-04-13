@@ -1,6 +1,23 @@
 var scriptUploaded;
 var scriptModule = angular.module('aws.configure.script', ['ngGrid', 'mk.editablespan']);
 
+var tryParseJSON = function(jsonString){
+    try {
+        var o = JSON.parse(jsonString);
+
+        // Handle non-exception-throwing cases:
+        // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+        // but... JSON.parse(null) returns 'null', and typeof null === "object", 
+        // so we must check for that, too.
+        if (o && typeof o === "object" && o !== null) {
+            return o;
+        }
+    }
+    catch (e) { }
+
+    return false;
+};
+
 scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptManagerService, queryService,authenticationService) {
 	//needed for dynatree
 	var scripts = [
@@ -119,6 +136,17 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 	  $scope.$on('ngGridEventEndCellEdit', function(){
 		  if($scope.scriptMetadata.inputs && $scope.selectedScript) {
 		    	//returns the metadata of a script if it already exists else creates a metadata data file
+			 	for(var i in $scope.scriptMetadata.inputs) {
+			 		var input = $scope.scriptMetadata.inputs[i];
+			 		if(input && input.options)
+			 		{
+			 			test = tryParseJSON(input.options); // if the data is entered as a json array
+			 			if(test) 
+			 				input.options = tryParseJSON(input.options); // we jsonparse it
+			 			if(!test && typeof input.options == 'string')
+			 				input.options = input.options.split(','); // otherwise if it's a list we turn it into an array
+			 		}
+			 	}
 				  scriptManagerService.saveScriptMetadata($scope.selectedScript, angular.toJson(angular.fromJson($scope.scriptMetadata), true)).then(function(result) { 
 					  if(!result) {
 						  $scope.statusColor = "red";
@@ -200,6 +228,8 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 	  
 	  //script METADATA grid editing
 	  $scope.addNewRow = function () {
+		 if(!$scope.scriptMetadata.inputs)
+			 $scope.scriptMetadata.inputs = [];
 		 $scope.scriptMetadata.inputs.push({param: '...', type: ' ', columnType : ' ', options : ' ', description : '...'});
 		 //so? do we add this object to the scriptMetadata json on the server??
 	 };
@@ -247,7 +277,7 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 	 
 	 //this is the modal for the wizard for creating and saving new scripts
     $scope.saveNewScript = function (content, metadata) {
-    	$modal.open({
+    	var modal = $modal.open({
 			 backdrop: false,
 	         backdropClick: true,
 	         dialogFade: true,
@@ -255,10 +285,13 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 	         templateUrl: 'src/configure/script/uploadNewScript.html',
 	         controller: 'AddScriptDialogInstanceCtrl'
 		});
+    	
+    	modal.result.then(function() {
+    		$scope.refreshScripts();
+    	});
     };
    
-    
-    //this controller deals with the scripting wizard
+    //this controller deals with the script wizard
 }).controller('AddScriptDialogInstanceCtrl', function ($rootScope, $scope, $modalInstance, scriptManagerService) {
 	  
 	 $scope.fileName = "";
@@ -337,7 +370,7 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 				});
 			} else {
 				$scope.validText = "only .R or .do files are supported";
-				$scope.isScriptValid = false;;
+				$scope.isScriptValid = false;
 			}
 		} else {
 			$scope.validText = "";
@@ -376,13 +409,11 @@ scriptModule.controller("ScriptManagerCtrl", function($scope, $modal, scriptMana
 							$scope.uploadSuccessful = "failure";
 						}
 					});
-					$scope.$parent.$parent.refreshScripts(); // tell the other controller to refresh the list of scripts
 				}
 			}
-				
 		} else if (n == 1) {
 			$scope.isValidMetadata = true;
-			$scope.uploadSucessful = "na";
+			$scope.uploadSuccessful = "na";
 			if($scope.scriptUploaded.script.filename) {
 				scriptManagerService.scriptExists($scope.scriptUploaded.script.filename).then(function(result) {
 					if(result) {
