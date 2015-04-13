@@ -238,7 +238,11 @@ dataStatsModule.controller('dataStatsCtrl', function($scope,$filter,
 	$scope.$watch(function(){
 		return $scope.statisticsService.cache.summaryStats.statsData;
 	}, function(){
-		if($scope.statisticsService.cache.summaryStats.statsData &&  $scope.queryService.cache.numericalColumns && $scope.statisticsService.cache.statsInputMetadata.inputs){
+		
+		if($scope.statisticsService.cache.summaryStats.statsData &&  
+		   $scope.queryService.cache.numericalColumns && 
+		   $scope.statisticsService.cache.statsInputMetadata.inputs){
+			
 			$scope.columnDefinitions = $scope.statisticsService.cache.summaryStats.columnDefinitions;
 			$scope.statsData = $scope.statisticsService.cache.summaryStats.statsData;
 		}

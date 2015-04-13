@@ -68,7 +68,7 @@
 				<td>List Control</td>
 				<td>
 					<ul ng-repeat = "attr in tool.columns">
-					<li ng-class = "{'activeListItem' :status}" ng-mouseEnter = "status= true" ng-mouseleave = "status = false"
+					<li ng-class = "{'activeListItem' :status}" ng-mouseenter = "status= true" ng-mouseleave = "status = false"
 					ng-click = "setAttributes(attr)">
 					{{attr.title}}</li>
 					</ul>
