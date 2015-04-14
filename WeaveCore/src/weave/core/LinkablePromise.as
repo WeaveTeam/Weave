@@ -53,7 +53,8 @@ package weave.core
 			
 			function asyncStart():AsyncToken
 			{
-				initialize();
+				if (initialize != null)
+					initialize();
 				WeaveAPI.StageUtils.startTask(promise, iterativeTask, priority, asyncComplete);
 				return asyncToken = new AsyncToken();
 			}
