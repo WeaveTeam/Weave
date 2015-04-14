@@ -42,7 +42,7 @@ package weave.data.AttributeColumns
 		}
 		
 		private const _uniqueKeys:Array = new Array();
-		private var _keyToDate:Dictionary = new Dictionary();
+		private var _keyToData:Dictionary = new Dictionary();
 		
 		// temp variables for async task
 		private var _i:int;
@@ -55,6 +55,7 @@ package weave.data.AttributeColumns
 		private var _stringToNumberFunction:Function = null;
 		private var _numberToStringFunction:Function = null;
 		private var _dateFormat:String = null;
+		private var _durationMode:Boolean = false;
 		
 		/**
 		 * @inheritDoc
@@ -81,7 +82,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return _keyToDate[key] != undefined;
+			return _keyToData[key] != undefined;
 		}
 		
 		public function setRecords(keys:Vector.<IQualifiedKey>, dates:Vector.<String>):void
@@ -136,7 +137,7 @@ package weave.data.AttributeColumns
 			_i = 0;
 			_keys = keys;
 			_dates = dates;
-			_keyToDate = new Dictionary();
+			_keyToData = new Dictionary();
 			_uniqueKeys.length = 0;
 			_reportedError = false;
 			
@@ -163,17 +164,49 @@ package weave.data.AttributeColumns
 			triggerCallbacks();
 		}
 		
-		private function parseDate(string:String):Date
+		private function parseDate(string:String):Object
 		{
 			if (_dateFormat)
 				return weave.flascc.date_parse(string, _dateFormat);
 			return new Date(string);
 		}
 		
+		private static const SECOND:Number = 1000;
+		private static const MINUTE:Number = 60 * 1000;
+		private static const HOUR:Number = 60 * 60 * 1000;
+		
 		private function formatDate(value:Object):String
 		{
 			if (_dateFormat)
-				return weave.flascc.date_format(value as Date || new Date(value), _dateFormat);
+			{
+				if (value is Number && !_durationMode)
+					value = new Date(value);
+				
+				if (value is Number)
+				{
+					// TEMPORARY SOLUTION
+					var n:Number = Math.floor(value as Number);
+					var milliseconds:Number = n % 1000;
+					n = Math.floor(n / 1000);
+					var seconds:Number = n % 60;
+					n = Math.floor(n / 60);
+					var minutes:Number = n % 60;
+					n = Math.floor(n / 60);
+					var hours:Number = n;
+					var obj:Object = {
+						milliseconds: milliseconds,
+						seconds: seconds,
+						minutes: minutes,
+						hours: hours
+					};
+					return weave.flascc.date_format(obj, _dateFormat);
+				}
+				else
+				{
+					var date:Date = value as Date || new Date(value);
+					return weave.flascc.date_format(date, _dateFormat);
+				}
+			}
 			return StandardLib.formatDate(value, _dateFormat);
 		}
 		
@@ -187,7 +220,7 @@ package weave.data.AttributeColumns
 				// get values for this iteration
 				var key:IQualifiedKey = _keys[_i];
 				var string:String = _dates[_i];
-				var date:Date;
+				var value:Object;
 				if (_stringToNumberFunction != null)
 				{
 					var number:Number = _stringToNumberFunction(string);
@@ -196,13 +229,13 @@ package weave.data.AttributeColumns
 						string = _numberToStringFunction(number);
 						if (!string)
 							continue;
-						date = parseDate(string);
+						value = parseDate(string);
 					}
 					else
 					{
 						if (!isFinite(number))
 							continue;
-						date = new Date(number);
+						value = number;
 					}
 				}
 				else
@@ -211,7 +244,7 @@ package weave.data.AttributeColumns
 					{
 						if (!string)
 							continue;
-						date = parseDate(string);
+						value = parseDate(string);
 					}
 					catch (e:Error)
 					{
@@ -225,18 +258,19 @@ package weave.data.AttributeColumns
 								string,
 								Compiler.stringify(_metadata)
 							);
-							reportError(err);
+							reportError(err, null, e);
 						}
 						continue;
 					}
 				}
 				
 				// keep track of unique keys
-				if (_keyToDate[key] === undefined)
+				if (_keyToData[key] === undefined)
 				{
+					_durationMode = value is Number;
 					_uniqueKeys.push(key);
 					// save key-to-data mapping
-					_keyToDate[key] = date;
+					_keyToData[key] = value;
 				}
 				else if (!_reportedError)
 				{
@@ -271,11 +305,11 @@ package weave.data.AttributeColumns
 		{
 			var number:Number;
 			var string:String;
-			var date:Date;
+			var value:*;
 			
 			if (dataType == Number)
 			{
-				number = _keyToDate[key];
+				number = _keyToData[key];
 				return number;
 			}
 			
@@ -283,29 +317,32 @@ package weave.data.AttributeColumns
 			{
 				if (_numberToStringFunction != null)
 				{
-					number = _keyToDate[key];
+					number = _keyToData[key];
 					return _numberToStringFunction(number);
 				}
 				
-				date = _keyToDate[key];
+				value = _keyToData[key];
 				
-				if (!date)
+				if (value === undefined)
 					return '';
 				
 				if (_dateFormat)
-					string = formatDate(date);
+					string = formatDate(value);
 				else
-					string = date.toString();
+					string = value.toString();
 				
 				return string;
 			}
 			
-			date = _keyToDate[key];
+			value = _keyToData[key];
+			
+			if (!dataType || dataType == Array)
+				return value != null ? [value] : null;
 			
 			if (dataType)
-				return date as DataType;
+				return value as dataType;
 			
-			return date;
+			return value;
 		}
 
 		override public function toString():String
