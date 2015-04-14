@@ -276,6 +276,7 @@ internal class QKeyGetter
 	
 	private function asyncComplete():void
 	{
-		asyncCallback();
+		if (asyncCallback != null)
+			asyncCallback();
 	}
 }

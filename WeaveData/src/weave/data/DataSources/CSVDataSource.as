@@ -24,6 +24,7 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
 	
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
@@ -40,10 +41,11 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.core.CallbackCollection;
+	import weave.core.LinkableFile;
 	import weave.core.LinkablePromise;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
-	import weave.core.LinkableFile;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -141,6 +143,7 @@ package weave.data.DataSources
 		private var cachedDataTypes:Object = {};
 		private var columnIds:Array = [];
 		private var keysVector:Vector.<IQualifiedKey>;
+		private const keysCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
 		
 		protected function handleParsedRows(rows:Array):void
 		{
@@ -171,7 +174,7 @@ package weave.data.DataSources
 				var keyTypeString:String = keyType.value;
 				
 				keysVector = new Vector.<IQualifiedKey>();
-				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(this, keyType.value, keyStrings, getCallbackCollection(this).triggerCallbacks, keysVector);
+				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keysCallbacks, keyType.value, keyStrings, null, keysVector);
 			}
 		}
 		
@@ -336,7 +339,7 @@ package weave.data.DataSources
 		override protected function get initializationComplete():Boolean
 		{
 			// make sure csv data is set before column requests are handled.
-			return super.initializationComplete && parsedRows && keysVector;
+			return super.initializationComplete && parsedRows && keysVector && !linkableObjectIsBusy(keysCallbacks);
 		}
 		
 		/**
