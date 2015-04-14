@@ -60,7 +60,7 @@
 			private const columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleColumn, true);
 			private var _linkedFilter:StringDataFilter;
 			
-			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString("List"), handleLayoutMode, true);
+			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(MenuToolViewStack.LAYOUT_LIST), handleLayoutMode, true);
 			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			
 			override protected function childrenCreated():void
