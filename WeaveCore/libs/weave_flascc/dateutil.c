@@ -17,6 +17,7 @@
 #include <string.h>
 #include <time.h>
 #include <limits.h>
+#include <stdbool.h>
 #include "strptime2.h"
 #include "strftime2.h"
 #include "AS3/AS3.h"
@@ -156,6 +157,7 @@ void dates_detect()
 
     size_t idx;
     char* tmp;
+    bool foundNonNull = false;
 
     for (idx = 0; idx < dates_n; idx++)
     {
@@ -164,7 +166,14 @@ void dates_detect()
                 "%0 = date ? CModule.mallocString(date) : 0;"
                 : "=r"(tmp) : "r"(idx)
         );
+        if (tmp)
+        	foundNonNull = true;
         dates[idx] = tmp;
+    }
+
+    if (!foundNonNull)
+    {
+    	AS3_ReturnAS3Var([]);
     }
 
     for (idx = 0; idx < formats_n; idx++)

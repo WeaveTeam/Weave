@@ -51,7 +51,6 @@ package weave.api.data
 			'%m-%d-%y',
 			'%d-%m-%Y',
 			'%m-%d-%Y',
-			'%Y-%m-%d',
 			
 			'%d/%m/%y',
 			'%m/%d/%y',
