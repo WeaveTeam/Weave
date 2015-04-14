@@ -583,6 +583,12 @@ package weave.data.DataSources
 			return outputArrayOrVector;
 		}
 
+		/**
+		 * Attempts to convert a list of Strings to Numbers. If successful, returns the Numbers.
+		 * @param strings The String values.
+		 * @param forced Always return a Vector of Numbers, whether or not the Strings look like Numbers.
+		 * @return Either a Vector of Numbers or null
+		 */
 		private function stringsToNumbers(strings:Vector.<String>, forced:Boolean):Vector.<Number>
 		{
 			var numbers:Vector.<Number> = new Vector.<Number>(strings.length);
