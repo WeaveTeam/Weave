@@ -412,10 +412,9 @@ package weave.services
 			var success:Boolean = JavaScript.exec(
 				{
 					url: weaveUrl + '?' + StandardLib.replace(URLUtil.objectToString(params, '&'), '%2F', '/'),
-					target: ADMIN_SESSION_WINDOW_NAME_PREFIX + createWeaveSession(),
-					windowParams: 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1'
+					target: ADMIN_SESSION_WINDOW_NAME_PREFIX + createWeaveSession()
 				},
-				'return !!window.open(url, target, windowParams);'
+				'return !!window.open(url, target);'
 			);
 			if (!success)
 				Alert.show("Please enable popups in your web browser.", "Popup blocked")
