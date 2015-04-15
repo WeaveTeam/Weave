@@ -40,7 +40,8 @@ package weave.services
 		
 		/**
 		 * @param url The URL to get JSON data
-		 * @param resultHandler 
+		 * @param resultHandler A function that will receive the resulting Object as its first parameter
+		 * @return The cached Object.
 		 */
 		public function getJsonObject(url:String, resultHandler:Function = null):Object
 		{
@@ -123,7 +124,7 @@ internal class CacheEntry
 				result = response;
 			// call handlers
 			while (handlers.length)
-				(handlers.pop() as Function).apply(null, [result]);
+				(handlers.shift() as Function).apply(null, [result]);
 			// stop further handlers from being added
 			handlers = null;
 		}
@@ -145,7 +146,7 @@ internal class CacheEntry
 		if (handlers)
 			handlers.push(handler);
 		else
-			WeaveAPI.StageUtils.callLater(owner, handler, [result]);
+			handler(result);
 	}
 	
 	public function dispose():void
