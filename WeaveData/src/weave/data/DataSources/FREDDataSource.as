@@ -77,9 +77,9 @@ package weave.data.DataSources
 		 * @param method Examples: "category", "category/series"
 		 * @param params Example: {category_id: 125}
 		 */
-		private function getJson(method:String, params:Object, handler:Function):void
+		private function getJson(method:String, params:Object, resultHandler:Function, faultHandler:Function = null):void
 		{
-			jsonCache.getJsonObject(getUrl(method, params), handler);
+			jsonCache.getJsonObject(getUrl(method, params), resultHandler, faultHandler);
 		}
 		
 		public function createCategoryNode(data:Object = null):ColumnTreeNode
@@ -125,45 +125,35 @@ package weave.data.DataSources
 				csv = newLinkableChild(this, CSVDataSource);
 				csvCache[series_id] = csv;
 				
-				var request1:URLRequest = new URLRequest(getUrl('series', {series_id: series_id}));
-				addAsyncResponder(
-					WeaveAPI.URLRequestUtils.getURL(csv, request1),
-					function(event:ResultEvent, csv:CSVDataSource):void {
-						var data:Object = JsonCache.parseJSON(event.result.toString());
-						data = data.seriess[0];
-						var request2:URLRequest = new URLRequest(getUrl('series/observations', {series_id: series_id}));
-						addAsyncResponder(
-							WeaveAPI.URLRequestUtils.getURL(csv, request2),
-							function(event:ResultEvent, csv:CSVDataSource):void
-							{
-								var result:Object = JsonCache.parseJSON(event.result.toString());
-								var columnOrder:Array = ['date', 'value', 'realtime_start', 'realtime_end'];
-								var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(result.observations, columnOrder);
-								csv.csvData.setSessionState(rows);
-								csv.keyColName.value = 'date';
-								csv.keyType.value = DataType.DATE;
-								var valueTitle:String = lang("{0} ({1})", data.title, data.units);
-								var metadataArray:Array = [
-									{title: 'Date', dataType: DataType.DATE},
-									{title: valueTitle, dataType: DataType.NUMBER},
-									{title: 'realtime_start', dataType: DataType.DATE},
-									{title: 'realtime_end', dataType: DataType.DATE},
-								];
-								csv.metadata.setSessionState(metadataArray);
-							},
-							handleFault,
-							csv
-						);
-					},
-					handleFault,
-					csv
-				);
+				var taskToken:Object = {};
+				WeaveAPI.SessionManager.assignBusyTask(taskToken, csv);
+				
+				getJson('series', {series_id: series_id}, function(result1:Object):void {
+					var seriesData:Object = result1.seriess[0];
+					getJson('series/observations', {series_id: series_id}, function(result2:Object):void {
+						WeaveAPI.SessionManager.unassignBusyTask(taskToken);
+						var columnOrder:Array = ['date', 'value', 'realtime_start', 'realtime_end'];
+						var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(result2.observations, columnOrder);
+						csv.csvData.setSessionState(rows);
+						csv.keyColName.value = 'date';
+						csv.keyType.value = DataType.DATE;
+						var valueTitle:String = lang("{0} ({1})", seriesData.title, seriesData.units);
+						var metadataArray:Array = [
+							{title: 'Date', dataType: DataType.DATE},
+							{title: valueTitle, dataType: DataType.NUMBER},
+							{title: 'realtime_start', dataType: DataType.DATE},
+							{title: 'realtime_end', dataType: DataType.DATE},
+						];
+						csv.metadata.setSessionState(metadataArray);
+					}, handleFault);
+				}, handleFault);
+				
+				function handleFault(result:Object):void
+				{
+					WeaveAPI.SessionManager.unassignBusyTask(taskToken);
+				}
 			}
 			return csv;
-		}
-		private function handleFault(event:FaultEvent, token:Object = null):void
-		{
-			reportError(event);
 		}
 			
 		public function createSeriesNode(data:Object):IWeaveTreeNode

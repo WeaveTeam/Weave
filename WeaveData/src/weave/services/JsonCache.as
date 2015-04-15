@@ -43,7 +43,7 @@ package weave.services
 		 * @param resultHandler A function that will receive the resulting Object as its first parameter
 		 * @return The cached Object.
 		 */
-		public function getJsonObject(url:String, resultHandler:Function = null):Object
+		public function getJsonObject(url:String, resultHandler:Function = null, faultHandler:Function = null):Object
 		{
 			var entry:CacheEntry = cache[url];
 			if (!entry)
@@ -51,7 +51,7 @@ package weave.services
 				entry = new CacheEntry(this, url);
 				cache[url] = entry;
 			}
-			entry.addHandler(resultHandler);
+			entry.addHandler(resultHandler, faultHandler);
 			return entry.result;
 		}
 		
@@ -107,6 +107,7 @@ internal class CacheEntry
 	public var url:String;
 	public var handlers:Array = [];
 	public var result:Object = {};
+	public var success:Boolean = false;
 	
 	private function handleResponse(event:Event, token:Object = null):void
 	{
@@ -117,36 +118,52 @@ internal class CacheEntry
 		var response:Object;
 		if (event is ResultEvent)
 		{
+			success = true;
 			response = (event as ResultEvent).result;
 			response = JsonCache.parseJSON(response as String);
 			// avoid storing a null value
 			if (response != null)
 				result = response;
-			// call handlers
-			while (handlers.length)
-				(handlers.shift() as Function).apply(null, [result]);
-			// stop further handlers from being added
-			handlers = null;
 		}
 		else
 		{
+			success = false;
 			response = (event as FaultEvent).fault.content;
 			if (response)
 				reportError("Request failed: " + url + "\n" + StringUtil.trim(String(response)));
 			else
 				reportError(event);
 		}
+		
+		// call handlers
+		while (handlers.length)
+		{
+			var obj:Object = handlers.shift();
+			if (event is ResultEvent && obj[RESULT] is Function)
+				(obj[RESULT] as Function).apply(null, [result]);
+			if (event is FaultEvent && obj[FAULT] is Function)
+				(obj[FAULT] as Function).apply(null, [result]);
+		}
+		// stop further handlers from being added
+		handlers = null;
 	}
 	
-	public function addHandler(handler:Function):void
+	private static const RESULT:int = 0; // index of resultHandler in handlers item
+	private static const FAULT:int = 1; // index of faultHandler in handlers item
+	
+	public function addHandler(resultHandler:Function, faultHandler:Function):void
 	{
-		if (handler == null)
-			return;
-		
 		if (handlers)
-			handlers.push(handler);
+		{
+			handlers.push([resultHandler, faultHandler]);
+		}
 		else
-			handler(result);
+		{
+			if (success && resultHandler is Function)
+				resultHandler(result);
+			if (!success && faultHandler is Function)
+				faultHandler(result);
+		}
 	}
 	
 	public function dispose():void
