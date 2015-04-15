@@ -110,7 +110,7 @@
 				subMenuButton.data = [
 					{
 						data: [StringDataFilter],
-						label: lang("String filter"),
+						label: lang("Discrete values"),
 						type: WeaveMenuItem.TYPE_RADIO,
 						toggled: isToggled,
 						children: MenuToolViewStack.LAYOUTS.map(function(layout:String, i:int, a:Array):Object {
@@ -124,7 +124,7 @@
 						})
 					},{
 						data: [NumberDataFilter],
-						label: lang("Number filter"),
+						label: lang("Continuous range"),
 						type: WeaveMenuItem.TYPE_RADIO,
 						toggled: isToggled,
 						click: onClick,
