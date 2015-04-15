@@ -127,6 +127,9 @@
 							// create files to override app/storage locations
 							writeFileString(appCopyFolder.resolvePath(INSTALL_DIR), installPath);
 							writeFileString(appCopyFolder.resolvePath(STORAGE_DIR), storagePath);
+							
+							// success
+							break;
 						}
 						catch (e:Error)
 						{
