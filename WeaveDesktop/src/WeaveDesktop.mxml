@@ -107,6 +107,7 @@
 					
 					// make a copy of the app folder
 					var appCopyFolder:File;
+					var appFile:File;
 					const MAX_SESSIONS:int = 10;
 					for (var i:int = 1; i < MAX_SESSIONS; i++)
 					{
@@ -114,11 +115,15 @@
 						{
 							appCopyFolder = new File(storagePath).resolvePath(appId + '.temp' + i);
 							
-							// this will fail if the application is in use
-							getAppFile(appCopyFolder).deleteFile();
+							appFile = getAppFile(appCopyFolder);
+							
+							// if the app already exists, attempt to delete it since it will fail if the application is in use
+							if (appFile.exists)
+								appFile.deleteFile();
 							
 							// copy the entire app folder
 							new File(installPath).copyTo(appCopyFolder, true);
+							
 							// create files to override app/storage locations
 							writeFileString(appCopyFolder.resolvePath(INSTALL_DIR), installPath);
 							writeFileString(appCopyFolder.resolvePath(STORAGE_DIR), storagePath);
