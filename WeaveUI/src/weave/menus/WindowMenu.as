@@ -21,9 +21,6 @@ package weave.menus
 	import mx.controls.Alert;
 	
 	import weave.Weave;
-	import weave.api.core.ILinkableObject;
-	import weave.api.detectLinkableObjectChange;
-	import weave.compiler.StandardLib;
 	import weave.editors.WeavePropertiesEditor;
 	import weave.ui.DraggablePanel;
 
