@@ -15,6 +15,8 @@
 
 package weave.primitives
 {
+	import flash.debugger.enterDebugger;
+	
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
 	
@@ -39,7 +41,7 @@ package weave.primitives
 				items = [].concat.apply(null, items);
 			}
 			
-			return items.map(_mapItems, WeaveTreeItem_implementation).filter(_filterItems);
+			return items.map(_mapItems, WeaveTreeItem_implementation).filter(_filterItemsRemoveNulls);
 		};
 		
 		/**
@@ -66,7 +68,7 @@ package weave.primitives
 		/**
 		 * Filters out null items.
 		 */
-		private static function _filterItems(item:Object, i:*, a:*):Boolean
+		private static function _filterItemsRemoveNulls(item:Object, i:*, a:*):Boolean
 		{
 			return item != null;
 		}
@@ -315,22 +317,33 @@ package weave.primitives
 		}
 		
 		/**
-		 * Gets a filtered copy of the child menu items.
-		 * When this property is accessed, refresh() will be called except if refresh() is already being called.
+		 * Gets the Array of child menu items and modifies it in place if necessary to create nodes from descriptors or remove null items.
 		 * This property is checked by Flex's default data descriptor.
 		 */
 		public function get children():Array
 		{
 			const id:String = 'children';
+			
+			var items:Array;
 			if (isCached(id))
-				return _cache[id];
+				items = _cache[id];
+			else
+				items = getObject(_children, id) as Array;
 			
-			var items:Array = getObject(_children, id) as Array;
-			if (!items)
-				return cache(id, null);
+			if (items)
+			{
+				// overwrite original array to support filling it asynchronously
+				var iOut:int = 0;
+				for (var i:int = 0; i < items.length; i++)
+				{
+					var item:Object = _mapItems.call(childItemClass, items[i], i, items);
+					if (item != null)
+						items[iOut++] = item;
+				}
+				items.length = iOut;
+			}
 			
-			var result:Array = items.map(_mapItems, childItemClass).filter(_filterItems);
-			return cache(id, result);
+			return cache(id, items);
 		}
 		
 		/**
