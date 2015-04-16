@@ -26,6 +26,7 @@ package weave.data.DataSources
     import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
+    import weave.api.data.IDataSource_Service;
     import weave.api.newLinkableChild;
     import weave.api.registerLinkableChild;
     import weave.api.reportError;
@@ -36,7 +37,7 @@ package weave.data.DataSources
     import weave.services.JsonCache;
     import weave.services.addAsyncResponder;
 
-    public class FREDDataSource extends AbstractDataSource 
+    public class FREDDataSource extends AbstractDataSource implements IDataSource_Service
     {
         WeaveAPI.ClassRegistry.registerImplementation(IDataSource, FREDDataSource, "Federal Reserve Economic Data");
 
