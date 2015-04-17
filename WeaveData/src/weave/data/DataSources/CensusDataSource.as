@@ -39,6 +39,7 @@ package weave.data.DataSources
     import weave.services.JsonCache;
     import weave.services.addAsyncResponder;
     import weave.utils.DataSourceUtils;
+    import weave.utils.DebugUtils;
     import weave.core.CallbackCollection;
 
     public class CensusDataSource extends AbstractDataSource implements IDataSource_Service
@@ -310,7 +311,7 @@ package weave.data.DataSources
         		var key_column:Array = new Array(rows.length - 1);
         		var key_column_indices:Array = new Array(columns.length);
         		var data_column_index:int = columns.indexOf(variable_name);
-        		for (var idx:int = 0; idx < key_column_names.lenght; idx++)
+        		for (var idx:int = 0; idx < key_column_names.length; idx++)
         		{
         			key_column_indices[idx] = columns.indexOf(key_column_names[idx]);
         		}
