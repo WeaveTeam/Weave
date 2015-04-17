@@ -90,22 +90,18 @@ package weave.data.DataSources
 				isBranch: true,
 				hasChildBranches: true,
 				children: function(node:ColumnTreeNode):Array {
-					var children:Array = node.data.childNodes;
-					if (!children)
-					{
-						node.data.childNodes = children = [];
-						getJson('category/children', {category_id: node.data.id}, function(result:Object):void {
-							var nodes:Array = [];
-							for each (var item:Object in result.categories)
-								nodes.push(createCategoryNode(item));
-							// put categories first in the list
-							children.splice.apply(null, [0, 0].concat(nodes));
-						});
-						getJson('category/series', {category_id: node.data.id}, function(result:Object):void {
-							for each (var item:Object in result.seriess)
-								children.push(createSeriesNode(item));
-						});
-					}
+					var children:Array = [];
+					getJson('category/children', {category_id: node.data.id}, function(result:Object):void {
+						var nodes:Array = [];
+						for each (var item:Object in result.categories)
+							nodes.push(createCategoryNode(item));
+						// put categories first in the list
+						children.splice.apply(null, [0, 0].concat(nodes));
+					});
+					getJson('category/series', {category_id: node.data.id}, function(result:Object):void {
+						for each (var item:Object in result.seriess)
+							children.push(createSeriesNode(item));
+					});
 					return children;
 				}
 			});

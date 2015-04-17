@@ -35,7 +35,9 @@ package weave.data.hierarchy
 		 * <code>dependency, data, dataSource, idFields, columnMetadata</code><br>
 		 * The following properties are used by ColumnTreeNode but not for equality comparison:<br>
 		 * <code>label, children, isBranch, hasChildBranches</code><br>
-		 * @params An values for the properties of this ColumnTreeNode. The <code>dataSource</code> property is required.
+		 * @params An values for the properties of this ColumnTreeNode.
+		 *         Either the <code>dataSource</code> property or the <code>dependency</code> property must be specified.
+		 *         If no <code>dependency</code> property is given, <code>dataSource.hierarchyRefresh</code> will be used as the dependency.
 		 */
 		public function ColumnTreeNode(params:Object)
 		{

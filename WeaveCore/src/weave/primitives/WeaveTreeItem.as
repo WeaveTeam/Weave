@@ -318,6 +318,7 @@ package weave.primitives
 		
 		/**
 		 * Gets the Array of child menu items and modifies it in place if necessary to create nodes from descriptors or remove null items.
+		 * If this tree item specifies a dependency, the Array can be filled asynchronously.
 		 * This property is checked by Flex's default data descriptor.
 		 */
 		public function get children():Array
