@@ -22,6 +22,7 @@ package weave.data.DataSources
     
     import weave.compiler.StandardLib;
     import weave.compiler.Compiler;
+    import WeaveAPI;
     import weave.api.data.ColumnMetadata;
     import weave.api.data.DataType;
     import weave.api.data.IAttributeColumn;
@@ -40,6 +41,7 @@ package weave.data.DataSources
     import weave.services.addAsyncResponder;
     import weave.utils.DataSourceUtils;
     import weave.utils.DebugUtils;
+    import weave.utils.VectorUtils;
     import weave.core.CallbackCollection;
 
     public class CensusDataSource extends AbstractDataSource implements IDataSource_Service
@@ -63,7 +65,7 @@ package weave.data.DataSources
 
         private static const WEB_SERVICE:String = "__CensusDataSource__webService";
 
-        private static const META_ID_FIELDS:Array = [WEB_SERVICE, GEOGRAPHY_NAME, VARIABLE_NAME];
+        private static const META_ID_FIELDS:Array = [WEB_SERVICE, GEOGRAPHY_NAME, VARIABLE_NAME, GEOGRAPHY_REQUIRES];
 
         public function CensusDataSource()
         {
@@ -80,10 +82,10 @@ package weave.data.DataSources
         }
         
 		private const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
-		private const hierarchyRefresh:CallbackCollection = newLinkableChild(this, CallbackCollection);
 		
 		public const keyTypeOverride:LinkableString = newLinkableChild(this, LinkableString);
 		public const apiKey:LinkableString = registerLinkableChild(this, new LinkableString(""));
+		private var nodeCache:Object = {};
 		
 		/**
 		 * @param method Examples: "category", "category/series"
@@ -113,7 +115,7 @@ package weave.data.DataSources
 			var data:Object = {id:0, name: name};
 			var children:Array = [];
 			return new ColumnTreeNode({
-				dependency: hierarchyRefresh,
+				dataSource: this,
 				data: data,
 				label: data.name,
 				isBranch: true,
@@ -140,7 +142,7 @@ package weave.data.DataSources
 		public function createDataSetNode(data:Object):ColumnTreeNode
 		{
 			return new ColumnTreeNode({
-				dependency: hierarchyRefresh,
+				dataSource: this,
 				data: data,
 				label: data.label,
 				isBranch: true,
@@ -156,7 +158,7 @@ package weave.data.DataSources
 								var metadata:Object = {};
 								metadata[VARIABLES_LINK] = data[VARIABLES_LINK];
 								metadata[WEB_SERVICE] = data[WEB_SERVICE];
-								metadata[GEOGRAPHY_REQUIRES] = geography.requires;
+								metadata[GEOGRAPHY_REQUIRES] = WeaveAPI.CSVParser.createCSVRow(geography.requires || []);
 								metadata[GEOGRAPHY_NAME] = geography.name;
 								metadata[GEOGRAPHY_LEVEL_ID] = geography.geoLevelId;
 								children.push(createGeographyNode(metadata));
@@ -174,7 +176,7 @@ package weave.data.DataSources
 		public function createGeographyNode(data:Object):ColumnTreeNode
 		{
 			return new ColumnTreeNode({
-				dependency: hierarchyRefresh,
+				dataSource: this,
 				data: data,
 				label: data[GEOGRAPHY_NAME],
 				isBranch: true,
@@ -224,7 +226,7 @@ package weave.data.DataSources
 		public function createConceptNode(data:Object):ColumnTreeNode
 		{
 			return new ColumnTreeNode({
-				dependency: hierarchyRefresh,
+				dataSource: this,
 				data: data,
 				label: data.name || "No Table",
 				isBranch: true,
@@ -235,7 +237,7 @@ package weave.data.DataSources
 					{
 						children.push(createVariableNode(node.data.variables[key]));
 					}
-					StandardLib.sortOn(children, "label");
+					//StandardLib.sortOn(children, "label");
 					return children;
 				}
 			});
@@ -244,13 +246,13 @@ package weave.data.DataSources
 
 		public function createVariableNode(data:Object):ColumnTreeNode
 		{
-			return new ColumnTreeNode({
+			return setIndexedNode(data, new ColumnTreeNode({
 				dataSource: this,
 				columnMetadata: data,
 				label: data.label,
 				isBranch: false,
 				hasChildBranches: false
-			});
+			}));
 		}
 
 		private function handleFault(event:FaultEvent, token:Object = null):void
@@ -264,10 +266,22 @@ package weave.data.DataSources
                 _rootNode = createTopLevelNode();
             return _rootNode;
         }
+
+        private var _indexedNodes:Object = {};
+        private function setIndexedNode(metadata:Object, node:IWeaveTreeNode):ColumnTreeNode
+        {
+        	var key:String = Compiler.stringify(VectorUtils.getItems(metadata, META_ID_FIELDS));
+        	return _indexedNodes[key] = node;
+        }
+        private function getIndexedNode(metadata:Object):ColumnTreeNode
+        {
+        	var key:String = Compiler.stringify(VectorUtils.getItems(metadata, META_ID_FIELDS));
+        	return _indexedNodes[key];
+        }
 		
 		override public function findHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
-			return null;
+			return getIndexedNode(metadata);
 		}
 		
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
@@ -289,15 +303,17 @@ package weave.data.DataSources
         	var web_service:String = metadata[WEB_SERVICE];
         	var geography_name:String = metadata[GEOGRAPHY_NAME];
         	var variable_name:String = metadata[VARIABLE_NAME];
-        	var geography_requires:Array = metadata[GEOGRAPHY_REQUIRES];
+        	var key_column_names:Array = WeaveAPI.CSVParser.parseCSVRow(metadata[GEOGRAPHY_REQUIRES]);
+
+        	if (key_column_names)
+        		key_column_names.push(geography_name);
+        	else 
+        		key_column_names = [geography_name];
 
         	var params:Object = {
         		get: variable_name,
         		"for": geography_name + ":*"
         	};
-
-        	var key_column_names:Array = geography_requires ? geography_requires.slice(0) : [];
-        	key_column_names.push(geography_name);
 
         	metadata[ColumnMetadata.KEY_TYPE] =  key_column_names.join(0);
 
