@@ -15,34 +15,23 @@
 
 package weave.data.DataSources
 {
-    import flash.net.URLRequest;
-    
     import mx.rpc.events.FaultEvent;
-    import mx.rpc.events.ResultEvent;
     
-    import weave.compiler.StandardLib;
-    import weave.compiler.Compiler;
-    import WeaveAPI;
     import weave.api.data.ColumnMetadata;
-    import weave.api.data.DataType;
-    import weave.api.data.IAttributeColumn;
-    import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IDataSource_Service;
     import weave.api.data.IWeaveTreeNode;
     import weave.api.newLinkableChild;
     import weave.api.registerLinkableChild;
     import weave.api.reportError;
+    import weave.compiler.Compiler;
+    import weave.compiler.StandardLib;
     import weave.core.LinkableString;
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.hierarchy.ColumnTreeNode;
-    import weave.primitives.Dictionary2D;
     import weave.services.JsonCache;
-    import weave.services.addAsyncResponder;
     import weave.utils.DataSourceUtils;
-    import weave.utils.DebugUtils;
     import weave.utils.VectorUtils;
-    import weave.core.CallbackCollection;
 
     public class CensusDataSource extends AbstractDataSource implements IDataSource_Service
     {
@@ -186,9 +175,10 @@ package weave.data.DataSources
 					jsonCache.getJsonObject(data[VARIABLES_LINK], function(result:Object):void
 						{
 							data.cache = result;
+							var key:String;
 							var concepts:Object = {};
 							/* Build a hierarchy out of 'concepts', roughly speaking, tables. */
-							for (var key:String in result.variables)
+							for (key in result.variables)
 							{
 								if (key == "for" || key == "in") continue;
 								var column:Object = result.variables[key];
@@ -208,7 +198,7 @@ package weave.data.DataSources
 								concepts[concept_name][key] = metadata;
 							}
 
-							for (var key:String in concepts)
+							for (key in concepts)
 							{
 								children.push(createConceptNode({
 									variables: concepts[key],
@@ -321,13 +311,14 @@ package weave.data.DataSources
         	
         	jsonCache.getJsonObject(getUrl(web_service, params), function(result:Object):void
         	{
+				var idx:int;
         		var columns:Array = result[0] as Array;
         		var rows:Array = result as Array;
         		var data_column:Array = new Array(rows.length - 1);
         		var key_column:Array = new Array(rows.length - 1);
         		var key_column_indices:Array = new Array(columns.length);
         		var data_column_index:int = columns.indexOf(variable_name);
-        		for (var idx:int = 0; idx < key_column_names.length; idx++)
+        		for (idx = 0; idx < key_column_names.length; idx++)
         		{
         			key_column_indices[idx] = columns.indexOf(key_column_names[idx]);
         		}
@@ -336,7 +327,7 @@ package weave.data.DataSources
         			var row:Array = rows[row_idx+1];
         			var key_values:Array = new Array(key_column_indices.length);
 
-        			for (var idx:int = 0; idx < key_column_indices.length; idx++)
+        			for (idx = 0; idx < key_column_indices.length; idx++)
         			{
         				key_values[idx] = row[key_column_indices[idx]];
         			}
