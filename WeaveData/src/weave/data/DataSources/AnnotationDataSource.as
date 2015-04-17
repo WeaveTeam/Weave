@@ -198,14 +198,13 @@ package weave.data.DataSources
 			{
 				var source:AnnotationDataSource = this;
 				_rootNode = new ColumnTreeNode({
-					dataSource: source,
-					dependency: source, //TODO - evaluate whether or not this is needed
-					data: source,
+					dependency: annotations,
 					label: WeaveAPI.globalHashMap.getName(this),
 					isBranch: true,
 					hasChildBranches: false,
 					children: function():Array {
-						if (!keyTypes) updateKeyTypes();
+						if (!keyTypes)
+							updateKeyTypes();
 						return keyTypes.map(function (keyType:String, ..._):IWeaveTreeNode
 						{
 							var meta:Object = {};

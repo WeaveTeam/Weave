@@ -96,7 +96,7 @@ package weave.data.DataSources
 			return StandardLib.getArrayType(array) == String;
 		}
 		
-		override public function refreshHierarchy():void
+		override protected function refreshHierarchy():void
 		{
 			super.refreshHierarchy();
 			entityCache.invalidateAll();

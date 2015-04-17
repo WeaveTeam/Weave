@@ -67,7 +67,7 @@ package weave.data.Transforms
 			{
 				var source:ForeignDataMappingTransform = this;
 				_rootNode = new ColumnTreeNode({
-					dependency: dataColumns, //TODO - evaluate whether or not this is needed
+					dependency: dataColumns,
 					data: source,
 					label: WeaveAPI.globalHashMap.getName(this),
 					isBranch: true,

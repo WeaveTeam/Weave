@@ -271,7 +271,6 @@ package weave.data.DataSources
 
                 _rootNode = new ColumnTreeNode({
 					dataSource: source,
-					dependency: source, //TODO - evaluate whether or not this is needed
                     data: source,
                     label: WeaveAPI.globalHashMap.getName(this),
                     isBranch: true,

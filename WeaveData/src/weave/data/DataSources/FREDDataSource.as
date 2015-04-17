@@ -15,27 +15,20 @@
 
 package weave.data.DataSources
 {
-    import flash.net.URLRequest;
-    
-    import mx.rpc.events.FaultEvent;
-    import mx.rpc.events.ResultEvent;
-    
     import weave.api.data.ColumnMetadata;
     import weave.api.data.DataType;
     import weave.api.data.IAttributeColumn;
     import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
-    import weave.api.data.IWeaveTreeNode;
     import weave.api.data.IDataSource_Service;
+    import weave.api.data.IWeaveTreeNode;
+    import weave.api.disposeObject;
     import weave.api.newLinkableChild;
     import weave.api.registerLinkableChild;
-    import weave.api.reportError;
     import weave.core.LinkableString;
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.hierarchy.ColumnTreeNode;
-    import weave.primitives.Dictionary2D;
     import weave.services.JsonCache;
-    import weave.services.addAsyncResponder;
 
     public class FREDDataSource extends AbstractDataSource implements IDataSource_Service
     {
@@ -91,6 +84,7 @@ package weave.data.DataSources
 				data = {id: 0, name: name};
 			}
 			return new ColumnTreeNode({
+				dataSource: this,
 				data: data,
 				label: data.name,
 				isBranch: true,
@@ -115,6 +109,13 @@ package weave.data.DataSources
 					return children;
 				}
 			});
+		}
+		
+		override protected function refreshHierarchy():void
+		{
+			for each (var csv:CSVDataSource in csvCache)
+				disposeObject(csv);
+			csvCache = {};
 		}
 		
 		private var csvCache:Object = {};
@@ -160,6 +161,7 @@ package weave.data.DataSources
 		public function createSeriesNode(data:Object):IWeaveTreeNode
 		{
 			return new ColumnTreeNode({
+				dataSource: this,
 				label: data.title,
 				data: data,
 				isBranch: true,
@@ -167,7 +169,7 @@ package weave.data.DataSources
 				children: function(node:ColumnTreeNode):Array {
 					var csv:CSVDataSource = getObservationsCSV(data.id);
 					var csvRoot:IWeaveTreeNode = csv.getHierarchyRoot();
-					node.dependency = csv;
+					node.dependency = csv; // refresh children when csv triggers callbacks
 					return csvRoot.getChildren().map(function(csvNode:IColumnReference, ..._):IWeaveTreeNode {
 						var meta:Object = csvNode.getColumnMetadata();
 						meta[META_SERIES_ID] = data.id;

@@ -50,7 +50,7 @@
 												label: lang('Refresh hierarchy'),
 												click: function():void {
 													if (data is IDataSource)
-														(data as IDataSource).refreshHierarchy();
+														(data as IDataSource).hierarchyRefresh.triggerCallbacks();
 												}
 											},
 											WeaveMenuItem.TYPE_SEPARATOR,
@@ -381,7 +381,7 @@
 							editor.applyChanges();
 							removeEditor();
 							if (refreshCheck.selected)
-								dataSource.refreshHierarchy();
+								dataSource.hierarchyRefresh.triggerCallbacks();
 							tabNav.selectedChild = browseTab;
 						}
 					}

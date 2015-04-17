@@ -69,28 +69,23 @@ package weave.data.Transforms
 		{
 			if (!_rootNode)
 			{
-				var source:PartitionDataTransform = this;
-				var partitionValues:Array = [];
-				
 				_rootNode = new ColumnTreeNode({
-					dependency: source, //TODO - evaluate whether or not this is needed
-					data: source,
+					dependency: partitionColumn,
 					label: WeaveAPI.globalHashMap.getName(this),
 					isBranch: true,
 					hasChildBranches: true,
 					children: function():Array {
-						if (detectLinkableObjectChange(_rootNode, partitionColumn))
-							partitionValues = VectorUtils.union(
-								partitionColumn.keys.map(
-									function(key:IQualifiedKey, ..._):String {
-										return partitionColumn.getValueFromKey(key, String);
-									}
-								)
-							);
+						var partitionValues:Array = VectorUtils.union(
+							partitionColumn.keys.map(
+								function(key:IQualifiedKey, ..._):String {
+									return partitionColumn.getValueFromKey(key, String);
+								}
+							)
+						);
 						return partitionValues.map(
 							function(partitionValue:String, ..._):* {
 								return {
-									dependency: source, //TODO - evaluate whether or not this is needed
+									dependency: inputColumns,
 									data: partitionValue,
 									isBranch: true,
 									hasChildBranches: false,
