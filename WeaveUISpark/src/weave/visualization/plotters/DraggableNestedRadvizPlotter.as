@@ -375,31 +375,34 @@ package weave.visualization.plotters
 			return 1;
 		}
 		
-		private var keyBeingDragged:IQualifiedKey;
-		public function get isDragging():Boolean { return _isDragging; }
-		private var _isDragging:Boolean = false;
-		
-		public function startPointDrag(key:IQualifiedKey):void
+		private var dragStart:Point = new Point();
+		private const keysBeingDragged:Array = [];
+		public function get isDragging():Boolean
 		{
-			if (key.keyType == TOPIC_KEY_TYPE && topicColumnNames.indexOf(key.localName) >= 0)
-			{
-				keyBeingDragged = key;
-				_isDragging = true;
-			}
+			return keysBeingDragged.length > 0;
 		}
 		
-		public function updatePointDrag(tempDragPoint:Point):void
+		public function startPointDrag(startPoint:Point, keys:Array):void
 		{
-			if (keyBeingDragged != null)
-				moveTopicPoint(keyBeingDragged.localName, tempDragPoint);
+			dragStart = startPoint.clone();
+			keysBeingDragged.length = 0;
+			for each (var key:IQualifiedKey in keys)
+				if (key.keyType == TOPIC_KEY_TYPE && topicColumnNames.indexOf(key.localName) >= 0)
+					keysBeingDragged.push(key);
+		}
+		
+		public function updatePointDrag(midPoint:Point):void
+		{
+			for each (var key:IQualifiedKey in keysBeingDragged)
+				moveTopicPoint(key.localName, midPoint.subtract(dragStart));
+			dragStart = midPoint.clone();
 		}
 		
 		public function stopPointDrag(endPoint:Point):void
 		{
-			_isDragging = false;
-			if (keyBeingDragged != null)
-				moveTopicPoint(keyBeingDragged.localName, endPoint);
-			keyBeingDragged = null;
+			for each (var key:IQualifiedKey in keysBeingDragged)
+				moveTopicPoint(key.localName, endPoint.subtract(dragStart));
+			keysBeingDragged.length = 0;
 		}
 		
 		public function resetMovedDataPoints():void
@@ -421,8 +424,9 @@ package weave.visualization.plotters
 			return point;
 		}
 		
-		private function moveTopicPoint(topicID:String, point:Point):void
+		private function moveTopicPoint(topicID:String, delta:Point):void
 		{
+			var point:Point = getTopicPoint(topicID).add(delta);
 			var x:Number = point.x;
 			var y:Number = point.y;
 			if (gridSnap.value > 0)

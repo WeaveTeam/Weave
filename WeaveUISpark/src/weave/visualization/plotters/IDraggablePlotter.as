@@ -27,8 +27,8 @@ package weave.visualization.plotters
 	public interface IDraggablePlotter extends IPlotter
 	{
 		function get isDragging():Boolean;
-		function startPointDrag(key:IQualifiedKey):void;
-		function updatePointDrag(tempDragPoint:Point):void;
+		function startPointDrag(startPoint:Point, keys:Array):void;
+		function updatePointDrag(dragPoint:Point):void;
 		function stopPointDrag(endPoint:Point):void;
 		function resetMovedDataPoints():void;
 	}

@@ -241,35 +241,35 @@ package weave.visualization.plotters
 			graphics.endFill();
 		}
 		
-		private var keyBeingDragged:IQualifiedKey;
-		public function get isDragging():Boolean { return _isDragging; }
-		private var _isDragging:Boolean = false;
-		
-		public function startPointDrag(key:IQualifiedKey):void
+		private var dragStart:Point;
+		private const keysBeingDragged:Array = [];
+		public function get isDragging():Boolean
 		{
-			if( !dataX.containsKey(key) )
-				return;
-			keyBeingDragged = key;
-			//trace("Dragging Started  " + keyBeingDragged.localName);
-			_isDragging = true;
+			return keysBeingDragged.length > 0;
 		}
 		
-		public function updatePointDrag(tempDragPoint:Point):void
+		public function startPointDrag(startPoint:Point, keys:Array):void
+		{
+			dragStart = startPoint.clone();
+			keysBeingDragged.length = 0;
+			for each (var key:IQualifiedKey in keys)
+				if (dataX.containsKey(key))
+					keysBeingDragged.push(key);
+		}
+		
+		public function updatePointDrag(midPoint:Point):void
 		{
 			return; // disabled
-			if (keyBeingDragged != null)
-				moveDataPoint(keyBeingDragged, tempDragPoint);
+			for each (var key:IQualifiedKey in keysBeingDragged)
+				moveDataPoint(key, midPoint.subtract(dragStart));
+			dragStart = midPoint.clone();
 		}
 		
 		public function stopPointDrag(endPoint:Point):void
 		{
-			//trace("Dragging End  " + keyBeingDragged.localName);
-			_isDragging = false;
-			if (keyBeingDragged != null)
-				moveDataPoint(keyBeingDragged, endPoint);
-			keyBeingDragged = null;
-			
-			//Insert send points to R code here.
+			for each (var key:IQualifiedKey in keysBeingDragged)
+				moveDataPoint(key, endPoint.subtract(dragStart));
+			keysBeingDragged.length = 0;
 		}
 		
 		public function resetMovedDataPoints():void
@@ -330,11 +330,13 @@ package weave.visualization.plotters
 			return registerSpatialProperty(lv);
 		}
 		
-		private function moveDataPoint(key:IQualifiedKey, point:Point):void
+		private function moveDataPoint(key:IQualifiedKey, delta:Point):void
 		{
 			var lv:LinkableVariable = getMovedDataPointsVariable();
 			if (!lv)
 				return;
+			getCoordsFromRecordKey(key, tempPoint);
+			var point:Point = tempPoint.add(delta);
 			var ss:Object = lv.getSessionState() || {};
 			ss[key.localName] = {x: point.x, y: point.y};
 			lv.setSessionState(ss);
