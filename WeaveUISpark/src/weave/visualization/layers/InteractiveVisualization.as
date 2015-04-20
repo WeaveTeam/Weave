@@ -27,6 +27,7 @@ package weave.visualization.layers
 	import flash.ui.Keyboard;
 	import flash.ui.Multitouch;
 	import flash.ui.MultitouchInputMode;
+	import flash.utils.Dictionary;
 	
 	import spark.components.Group;
 	
@@ -854,13 +855,20 @@ package weave.visualization.layers
 				
 					if( mouseDown && !selectionRectangleExists)
 					{
-						if( keys.length == 1 && !draggingPlotter.isDragging)
-							draggingPlotter.startPointDrag(keys[0]);
+						if (keys.length == 1 && !draggingPlotter.isDragging)
+						{
+							var dragKeys:Array = _dragKeys[settings];
+							if (!dragKeys || !dragKeys.length)
+								dragKeys = keys;
+							draggingPlotter.startPointDrag(getMouseDataCoordinates(), dragKeys);
+						}
 					}
 					else
 					{
 						if( draggingPlotter.isDragging )
 							draggingPlotter.stopPointDrag(getMouseDataCoordinates());
+						else if (!mouseDown)
+							_dragKeys[settings] = getSelectionKeys(name).concat();
 					}
 					
 					if (draggingPlotter.isDragging)
@@ -956,6 +964,13 @@ package weave.visualization.layers
 			}
 		}
 		
+		private var _dragKeys:Dictionary = new Dictionary(true); // LayerSettings -> Array
+		protected function getSelectionKeys(layerName:String):Array
+		{
+			var settings:LayerSettings = plotManager.getLayerSettings(layerName);
+			var keySet:KeySet = settings.selectionFilter.internalObject as KeySet;
+			return keySet ? keySet.keys : [];
+		}
 		protected function setSelectionKeys(layerName:String, keys:Array):void
 		{
 			if (!Weave.properties.enableToolSelection.value || !enableSelection.value)
