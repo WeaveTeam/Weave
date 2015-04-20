@@ -141,7 +141,7 @@ package weave.data.AttributeColumns
 			_uniqueKeys.length = 0;
 			_reportedError = false;
 			
-			if (!_dateFormat)
+			if (!_dateFormat && _keys.length)
 			{
 				_reportedError = true;
 				reportError(lang('No common date format could be determined from the column values. Attribute Column: {0}', Compiler.stringify(_metadata)));

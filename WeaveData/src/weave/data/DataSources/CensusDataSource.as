@@ -35,7 +35,7 @@ package weave.data.DataSources
 
     public class CensusDataSource extends AbstractDataSource implements IDataSource_Service
     {
-        WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CensusDataSource, "Census.gov Data Source");
+        WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CensusDataSource, "Census.gov");
 
         private static const baseUrl:String = "http://api.census.gov/";
 
