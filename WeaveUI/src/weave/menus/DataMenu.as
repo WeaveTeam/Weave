@@ -19,6 +19,7 @@ package weave.menus
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.Weave;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
@@ -61,11 +62,15 @@ package weave.menus
 				click: function():void { DraggablePanel.openStaticInstance(DataSourceManager); }
 			},{
 				shown: Weave.properties.enableRefreshHierarchies,
-				label: lang("Refresh all data source hierarchies"),
+				label: lang("Refresh all data sources"),
 				click: function():void {
-					var sources:Array = WeaveAPI.globalHashMap.getObjects(IDataSource);
-					for each (var source:IDataSource in sources)
-						source.refreshHierarchy();
+					var ghm:ILinkableHashMap = WeaveAPI.globalHashMap;
+					var dataSources:Array = ghm.getObjects(IDataSource);
+					for each (var dataSource:IDataSource in dataSources)
+					{
+						dataSource.hierarchyRefresh.triggerCallbacks();
+						ghm.requestObjectCopy(ghm.getName(dataSource), dataSource);
+					}
 				},
 				enabled: function():Boolean { return WeaveAPI.globalHashMap.getObjects(IDataSource).length > 0; }
 			},{
