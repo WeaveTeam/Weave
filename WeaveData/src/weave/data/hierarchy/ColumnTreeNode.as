@@ -23,18 +23,22 @@ package weave.data.hierarchy
     import weave.primitives.WeaveTreeItem;
 
 	/**
+	 * A node in a tree whose leaves identify attribute columns.
 	 * The following properties are used for equality comparison, in addition to node class definitions:<br>
-	 * <code>source, data, idFields, columnMetadata</code><br>
+	 * <code>dataSource, data, idFields, columnMetadata</code><br>
 	 * The following properties are used by ColumnTreeNode but not for equality comparison:<br>
 	 * <code>label, children, isBranch, hasChildBranches</code><br>
 	 */
 	[RemoteClass] public class ColumnTreeNode extends WeaveTreeItem implements IWeaveTreeNode, IColumnReference
 	{
 		/**
-		 * The following properties are used for equality comparison, in addition to node class definitions:<br>
-		 * <code>dependency, data, dataSource, idFields, columnMetadata</code><br>
-		 * The following properties are used by ColumnTreeNode but not for equality comparison:<br>
-		 * <code>label, children, isBranch, hasChildBranches</code><br>
+		 * This constructor accepts a special parameter named <code>columnMetadata</code> which has
+		 * the same effect as including the following parameter-value pairs:
+		 *     <code>{isBranch: false, hasChildBranches: false, data: columnMetadata}</code><br>
+		 * The following properties are used for equality comparison, in addition to node class definitions:
+		 *     <code>dependency, data, dataSource, idFields</code><br>
+		 * The following properties are used by ColumnTreeNode but not for equality comparison:
+		 *     <code>label, children, isBranch, hasChildBranches</code><br>
 		 * @params An values for the properties of this ColumnTreeNode.
 		 *         Either the <code>dataSource</code> property or the <code>dependency</code> property must be specified.
 		 *         If no <code>dependency</code> property is given, <code>dataSource.hierarchyRefresh</code> will be used as the dependency.
@@ -45,7 +49,13 @@ package weave.data.hierarchy
 			
 			for (var key:String in params)
 			{
-				if (this[key] is Function && this.hasOwnProperty('_' + key))
+				if (key == 'columnMetadata')
+				{
+					this._isBranch = false;
+					this._hasChildBranches = false;
+					this.data = params[key];
+				}
+				else if (this[key] is Function && this.hasOwnProperty('_' + key))
 					this['_' + key] = params[key];
 				else
 					this[key] = params[key];
@@ -60,11 +70,6 @@ package weave.data.hierarchy
 		 * IDataSource for this node.
 		 */
 		public var dataSource:IDataSource = null;
-		
-		/**
-		 * Column metadata for this node.
-		 */
-		public var columnMetadata:Object = null;
 		
 		/**
 		 * A list of columnMetadata fields to use for node equality tests.
@@ -99,8 +104,10 @@ package weave.data.hierarchy
 		override public function get label():String
 		{
 			var str:String = super.label;
-			if (!str && columnMetadata)
-				str = columnMetadata[ColumnMetadata.TITLE];
+			if (!str && data)
+				str = (typeof data == 'object' && data.hasOwnProperty(ColumnMetadata.TITLE))
+					? data[ColumnMetadata.TITLE]
+					: data.toString();
 			return str;
 		}
 		
@@ -116,15 +123,11 @@ package weave.data.hierarchy
 			
 			// compare constructor
 			if (Object(this).constructor != Object(that).constructor)
-				return false; // constructors differ
+				return false; // constructor differs
 			
 			// compare dependency
 			if (this.dependency != that.dependency)
 				return false; // dependency differs
-			
-			// compare data
-			if (StandardLib.compare(this.data, that.data) != 0)
-				return false; // data differs
 			
 			// compare dataSource
 			if (this.dataSource != that.dataSource)
@@ -134,20 +137,17 @@ package weave.data.hierarchy
 			if (StandardLib.compare(this.idFields, that.idFields) != 0)
 				return false; // idFields differs
 			
-			// compare columnMetadata
-			if (this.columnMetadata == that.columnMetadata)
-				return true; // columnMetadata equal or both null
-			if (!this.columnMetadata || !that.columnMetadata)
-				return false; // columnMetadata differs
-			if (this.idFields) // partial columnMetadata comparison
+			// compare data
+			if (this.idFields) // partial data comparison
 			{
 				for each (var field:String in idFields)
-					if (StandardLib.compare(this.columnMetadata[field], that.columnMetadata[field]) != 0)
-						return false; // columnMetadata differs
-				return true; // columnMetadata equivalent
+					if (StandardLib.compare(this.data[field], that.data[field]) != 0)
+						return false; // data differs
 			}
-			else // full columnMetadata comparison
-				return StandardLib.compare(this.columnMetadata, that.columnMetadata) == 0;
+			else if (StandardLib.compare(this.data, that.data) != 0) // full data comparison
+				return false; // data differs
+			
+			return true;
 		}
 		
 		/**
@@ -170,7 +170,7 @@ package weave.data.hierarchy
 			if (__isBranch != null)
 				return cache(id, getBoolean(__isBranch, id));
 			else
-				return cache(id, getChildren() != null);
+				return cache(id, _children != null); // assume that if children property was defined that this is a branch
 		}
 		
 		/**
@@ -213,7 +213,9 @@ package weave.data.hierarchy
 		 */
 		public function getColumnMetadata():Object
 		{
-			return columnMetadata;
+			if (isBranch())
+				return null;
+			return data;
 		}
 	}
 }

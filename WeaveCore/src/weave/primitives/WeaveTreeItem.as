@@ -98,9 +98,9 @@ package weave.primitives
 		 */
 		protected var childItemClass:Class; // IMPORTANT - no initial value
 		protected var _recursion:Object = {}; // recursionName -> Boolean
-		private var _label:* = "";
-		private var _children:* = null;
-		private var _dependency:ILinkableObject = null;
+		protected var _label:* = "";
+		protected var _children:* = null;
+		protected var _dependency:ILinkableObject = null;
 		
 		/**
 		 * Cached values that get invalidated when the source triggers callbacks.
@@ -306,8 +306,8 @@ package weave.primitives
 				return _cache[id];
 			
 			var str:String = getString(_label, id);
-			if (!str && data != null)
-				str = String(data);
+			if (!str && data is String)
+				str = data as String;
 			return cache(id, str);
 		}
 		public function set label(value:*):void

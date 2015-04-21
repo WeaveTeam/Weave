@@ -114,7 +114,6 @@ package weave.menus
 		private var _enabled:* = true;
 		private var _shown:* = true;
 		private var _toggled:* = false;
-		private var _children:* = null;
 		
 		/**
 		 * This property is checked by Flex's default data descriptor.
