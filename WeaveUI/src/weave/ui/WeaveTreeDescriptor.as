@@ -30,13 +30,13 @@ package weave.ui
 	 * 
 	 * @author adufilie
 	 */
-    public class WeaveTreeDataDescriptor implements ITreeDataDescriptor
+    public class WeaveTreeDescriptor implements ITreeDataDescriptor
     {
 		public static const DISPLAY_MODE_ALL:uint = 0;
 		public static const DISPLAY_MODE_BRANCHES:uint = 1;
 		public static const DISPLAY_MODE_LEAVES:uint = 2;
 		
-		public function WeaveTreeDataDescriptor()
+		public function WeaveTreeDescriptor()
 		{
 		}
 		
