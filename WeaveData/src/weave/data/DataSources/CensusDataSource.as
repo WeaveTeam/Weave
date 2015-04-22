@@ -27,6 +27,7 @@ package weave.data.DataSources
     import weave.compiler.Compiler;
     import weave.compiler.StandardLib;
     import weave.core.LinkableString;
+    import weave.core.LinkableVariable;
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.hierarchy.ColumnTreeNode;
     import weave.services.JsonCache;
@@ -47,14 +48,14 @@ package weave.data.DataSources
         private static const GEOGRAPHY_LINK:String = "__CensusDataSource__geographyLink";
         private static const VARIABLES_LINK:String = "__CensusDataSource__variablesLink";
 
+
         private static const GEOGRAPHY_REQUIRES:String = "__CensusDataSource__geographyRequires";
         private static const GEOGRAPHY_NAME:String = "__CensusDataSource__geographyName";
+        private static const CONCEPT_NAME:String = "__CensusDataSource__conceptName";
         private static const GEOGRAPHY_LEVEL_ID:String = "__CensusDataSource__geoLevelId";
         private static const VARIABLE_NAME:String = "__CensusDataSource__variableName";
 
         private static const WEB_SERVICE:String = "__CensusDataSource__webService";
-
-        private static const META_ID_FIELDS:Array = [WEB_SERVICE, GEOGRAPHY_NAME, VARIABLE_NAME, GEOGRAPHY_REQUIRES];
 
         public function CensusDataSource()
         {
@@ -72,7 +73,7 @@ package weave.data.DataSources
         
 		private const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
 		
-		public const keyTypeOverride:LinkableString = newLinkableChild(this, LinkableString);
+		public const keyTypeOverride:LinkableVariable = newLinkableChild(this, LinkableVariable);
 		public const apiKey:LinkableString = registerLinkableChild(this, new LinkableString(""));
 		private var nodeCache:Object = {};
 		
@@ -133,6 +134,7 @@ package weave.data.DataSources
 				dataSource: this,
 				data: data,
 				label: data.label,
+				idFields: [WEB_SERVICE],
 				hasChildBranches: true,
 				children: function(node:ColumnTreeNode):Array {
 					var children:Array = [];
@@ -166,12 +168,12 @@ package weave.data.DataSources
 				dataSource: this,
 				data: data,
 				label: data[GEOGRAPHY_NAME],
+				idFields: [WEB_SERVICE, GEOGRAPHY_NAME, GEOGRAPHY_REQUIRES],
 				hasChildBranches: true,
 				children: function (node:ColumnTreeNode):Array {
 					const children:Array = [];
 					jsonCache.getJsonObject(data[VARIABLES_LINK], function(result:Object):void
 						{
-							data.cache = result;
 							var key:String;
 							var concepts:Object = {};
 							/* Build a hierarchy out of 'concepts', roughly speaking, tables. */
@@ -186,21 +188,19 @@ package weave.data.DataSources
 
 								
 
-								var metadata:Object = {};
-								metadata[WEB_SERVICE] = data[WEB_SERVICE];
-								metadata[GEOGRAPHY_NAME] = data[GEOGRAPHY_NAME];
-								metadata[GEOGRAPHY_REQUIRES] = data[GEOGRAPHY_REQUIRES];
+								var metadata:Object = VectorUtils.getItems(data, node.idFields);
 								metadata[VARIABLE_NAME] = key;
-								metadata.label = column.label;
+								metadata[CONCEPT_NAME] = concept_name;
+								metadata[ColumnMetadata.TITLE] = column.label;
 								concepts[concept_name][key] = metadata;
 							}
 
 							for (key in concepts)
 							{
-								children.push(createConceptNode({
-									variables: concepts[key],
-									name: key
-								}));
+								var concept_metadata:Object = VectorUtils.getItems(data, node.idFields);
+								concept_metadata[CONCEPT_NAME] = key;
+								concept_metadata.variables = concepts[key];
+								children.push(createConceptNode(concept_metadata));
 							}
 							StandardLib.sortOn(children, "label");
 						}
@@ -215,15 +215,16 @@ package weave.data.DataSources
 			return new ColumnTreeNode({
 				dataSource: this,
 				data: data,
-				label: data.name || "No Table",
+				label: data[CONCEPT_NAME] || "No Table",
 				hasChildBranches: false,
+				idFields: [WEB_SERVICE, GEOGRAPHY_NAME, GEOGRAPHY_REQUIRES, CONCEPT_NAME],
 				children: function (node:ColumnTreeNode):Array {
 					var children:Array = [];
 					for (var key:String in node.data.variables)
 					{
 						children.push(createVariableNode(node.data.variables[key]));
 					}
-					//StandardLib.sortOn(children, "label");
+					StandardLib.sortOn(children, "label");
 					return children;
 				}
 			});
@@ -232,12 +233,12 @@ package weave.data.DataSources
 
 		public function createVariableNode(data:Object):ColumnTreeNode
 		{
-			return setIndexedNode(data, new ColumnTreeNode({
+			return new ColumnTreeNode({
 				dataSource: this,
 				data: data,
-				label: data.label,
+				idFields: [WEB_SERVICE, GEOGRAPHY_NAME, GEOGRAPHY_REQUIRES, CONCEPT_NAME, VARIABLE_NAME],
 				hasChildBranches: false
-			}));
+			});
 		}
 
 		private function handleFault(event:FaultEvent, token:Object = null):void
@@ -251,23 +252,6 @@ package weave.data.DataSources
                 _rootNode = createTopLevelNode();
             return _rootNode;
         }
-
-        private var _indexedNodes:Object = {};
-        private function setIndexedNode(metadata:Object, node:IWeaveTreeNode):ColumnTreeNode
-        {
-        	var key:String = Compiler.stringify(VectorUtils.getItems(metadata, META_ID_FIELDS));
-        	return _indexedNodes[key] = node;
-        }
-        private function getIndexedNode(metadata:Object):ColumnTreeNode
-        {
-        	var key:String = Compiler.stringify(VectorUtils.getItems(metadata, META_ID_FIELDS));
-        	return _indexedNodes[key];
-        }
-		
-		override public function findHierarchyNode(metadata:Object):IWeaveTreeNode
-		{
-			return getIndexedNode(metadata);
-		}
 		
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
@@ -276,7 +260,7 @@ package weave.data.DataSources
 			
 			return new ColumnTreeNode({
 				dataSource: this,
-				idFields: META_ID_FIELDS,
+				idFields: [WEB_SERVICE, GEOGRAPHY_NAME, GEOGRAPHY_REQUIRES, CONCEPT_NAME, VARIABLE_NAME],
 				data: metadata
 			});
 		}
@@ -300,7 +284,7 @@ package weave.data.DataSources
         		"for": geography_name + ":*"
         	};
 
-        	metadata[ColumnMetadata.KEY_TYPE] =  key_column_names.join(0);
+        	metadata[ColumnMetadata.KEY_TYPE] =  key_column_names.join("");
 
         	proxyColumn.setMetadata(metadata);
         	
