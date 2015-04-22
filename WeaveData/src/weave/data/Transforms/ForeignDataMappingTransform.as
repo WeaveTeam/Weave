@@ -64,13 +64,11 @@ package weave.data.Transforms
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!_rootNode)
-			{
-				var source:ForeignDataMappingTransform = this;
 				_rootNode = new ColumnTreeNode({
+					dataSource: this,
 					dependency: dataColumns,
-					data: source,
+					data: this,
 					label: WeaveAPI.globalHashMap.getName(this),
-					isBranch: true,
 					hasChildBranches: false,
 					children: function():Array {
 						return dataColumns.getNames().map(
@@ -85,7 +83,6 @@ package weave.data.Transforms
 						);
 					}
 				});
-			}
 			return _rootNode;
 		}
 
@@ -102,7 +99,7 @@ package weave.data.Transforms
 			return new ColumnTreeNode({
 				dataSource: this,
 				idFields: [DATA_COLUMNNAME_META],
-				columnMetadata: metadata
+				data: metadata
 			});
 		}
 		

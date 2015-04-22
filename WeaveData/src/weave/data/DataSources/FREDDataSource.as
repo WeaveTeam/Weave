@@ -87,7 +87,6 @@ package weave.data.DataSources
 				dataSource: this,
 				data: data,
 				label: data.name,
-				isBranch: true,
 				hasChildBranches: true,
 				children: function(node:ColumnTreeNode):Array {
 					var children:Array = [];
@@ -160,7 +159,6 @@ package weave.data.DataSources
 				dataSource: this,
 				label: data.title,
 				data: data,
-				isBranch: true,
 				hasChildBranches: false,
 				children: function(node:ColumnTreeNode):Array {
 					var csv:CSVDataSource = getObservationsCSV(data.id);
@@ -201,7 +199,7 @@ package weave.data.DataSources
 			return new ColumnTreeNode({
 				dataSource: this,
 				idFields: META_ID_FIELDS,
-				columnMetadata: metadata
+				data: metadata
 			});
 		}
         

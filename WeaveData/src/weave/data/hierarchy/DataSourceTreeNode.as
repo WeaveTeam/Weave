@@ -17,61 +17,37 @@ package weave.data.hierarchy
 {
     import weave.api.core.ILinkableHashMap;
     import weave.api.core.ILinkableObject;
-    import weave.api.data.ColumnMetadata;
-    import weave.api.data.IAttributeColumn;
     import weave.api.data.IDataSource;
+    import weave.api.data.IWeaveTreeNode;
     import weave.api.registerLinkableChild;
     import weave.data.AttributeColumnCache;
-    import weave.data.AttributeColumns.CSVColumn;
-    import weave.data.AttributeColumns.EquationColumn;
 
-    public class DataSourceTreeNode extends ColumnTreeNode implements ILinkableObject
+    public class DataSourceTreeNode extends WeaveTreeDescriptorNode implements ILinkableObject
     {
 		public function DataSourceTreeNode()
 		{
 			var rootNode:DataSourceTreeNode = this;
 			var root:ILinkableHashMap = WeaveAPI.globalHashMap;
 			registerLinkableChild(this, root.childListCallbacks);
+			
 			super({
 				dependency: rootNode,
 				label: lang('Data Sources'),
-				isBranch: true,
 				hasChildBranches: true,
 				children: function():Array {
-					var nodes:Array = root.getObjects(IDataSource).map(
+					var sources:Array = root.getObjects(IDataSource).concat(AttributeColumnCache.globalColumnDataSource);
+					var nodes:Array = sources.map(
 						function(ds:IDataSource, ..._):* {
 							registerLinkableChild(rootNode, ds);
 							return ds.getHierarchyRoot();
 						}
 					);
-					var equationColumns:Array = root.getObjects(EquationColumn);
-					var csvColumns:Array = root.getObjects(CSVColumn);
-					var columns:Array = equationColumns.concat(csvColumns);
-					if (columns.length)
-						nodes.push({
-							dependency: root.childListCallbacks,
-							label: function():String {
-								return csvColumns.length
-									? lang('Generated columns')
-									: lang('Equations');
-							},
-							isBranch: true,
-							hasChildBranches: false,
-							children: columns.map(
-								function(column:IAttributeColumn, ..._):* {
-									registerLinkableChild(rootNode, column);
-									var meta:Object = {};
-									meta[AttributeColumnCache.GLOBAL_COLUMN_METADATA_NAME] = root.getName(column);
-									return {
-										dependency: column,
-										label: function():String {
-											return column.getMetadata(ColumnMetadata.TITLE);
-										},
-										columnMetadata: meta
-									};
-								}
-							)
-						});
+					
+					// only show global columns node if it has at least one child
+					var globalColumnsNode:IWeaveTreeNode = nodes[nodes.length - 1];
+					if (!globalColumnsNode.getChildren().length)
+						nodes.pop();
+					
 					return nodes;
 				}
 			});

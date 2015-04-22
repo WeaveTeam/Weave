@@ -140,7 +140,7 @@ package weave.data.DataSources
 			return new ColumnTreeNode({
 				dataSource: this,
 				idFields: [ANNOTATION_KEY_TYPE],
-				columnMetadata: metadata
+				data: metadata
 			});
 		}
 
@@ -195,12 +195,10 @@ package weave.data.DataSources
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!_rootNode)
-			{
-				var source:AnnotationDataSource = this;
 				_rootNode = new ColumnTreeNode({
+					dataSource: this,
 					dependency: annotations,
 					label: WeaveAPI.globalHashMap.getName(this),
-					isBranch: true,
 					hasChildBranches: false,
 					children: function():Array {
 						if (!keyTypes)
@@ -222,7 +220,6 @@ package weave.data.DataSources
 						})
 					}
 				});
-			}
 			return _rootNode;
 		}
 	}

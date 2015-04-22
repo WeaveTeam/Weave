@@ -28,11 +28,6 @@ package weave.data
 	public class AttributeColumnCache implements IAttributeColumnCache
 	{
 		/**
-		 * The metadata property name used to identify a column appearing in WeaveAPI.globalHashMap.
-		 */
-		public static const GLOBAL_COLUMN_METADATA_NAME:String = 'name';
-
-		/**
 		 * @inheritDoc
 		 */
 		public function getColumn(dataSource:IDataSource, metadata:Object):IAttributeColumn
@@ -43,16 +38,7 @@ package weave.data
 			
 			// special case - if dataSource is null, use WeaveAPI.globalHashMap
 			if (dataSource == null)
-			{
-				if (!metadata)
-					return null;
-				var name:String;
-				if (typeof metadata == 'object')
-					name = metadata[GLOBAL_COLUMN_METADATA_NAME];
-				else
-					name = String(metadata);
-				return WeaveAPI.globalHashMap.getObject(name) as IAttributeColumn;
-			}
+				return globalColumnDataSource.getAttributeColumn(metadata);
 
 			// Get the column pointer associated with the hash value.
 			var hashCode:String = Compiler.stringify(metadata);
@@ -74,5 +60,119 @@ package weave.data
 		}
 		
 		private const d2d_dataSource_metadataHash:Dictionary2D = new Dictionary2D(true, true);
+		
+		private static var _globalColumnDataSource:IDataSource;
+		
+		public static function get globalColumnDataSource():IDataSource
+		{
+			if (!_globalColumnDataSource)
+				_globalColumnDataSource = new GlobalColumnDataSource();
+			return _globalColumnDataSource;
+		}
+	}
+}
+
+import weave.api.core.ICallbackCollection;
+import weave.api.data.ColumnMetadata;
+import weave.api.data.IAttributeColumn;
+import weave.api.data.IDataSource;
+import weave.api.data.IWeaveTreeNode;
+import weave.api.getCallbackCollection;
+import weave.api.registerLinkableChild;
+import weave.data.AttributeColumns.CSVColumn;
+import weave.data.AttributeColumns.EquationColumn;
+import weave.data.hierarchy.ColumnTreeNode;
+
+internal class GlobalColumnDataSource implements IDataSource
+{
+	public function GlobalColumnDataSource()
+	{
+		registerLinkableChild(this, WeaveAPI.globalHashMap.childListCallbacks);
+		
+		var source:IDataSource = this;
+		_rootNode = new ColumnTreeNode({
+			dataSource: source,
+			label: function():String {
+				return WeaveAPI.globalHashMap.getObjects(CSVColumn).length
+				? lang('Generated columns')
+				: lang('Equations');
+			},
+			hasChildBranches: false,
+			children: function():Array {
+				return getGlobalColumns().map(function(column:IAttributeColumn, ..._):* {
+					registerLinkableChild(source, column);
+					return createColumnNode(WeaveAPI.globalHashMap.getName(column));
+				});
+			}
+		});
+	}
+	
+	/**
+	 * The metadata property name used to identify a column appearing in WeaveAPI.globalHashMap.
+	 */
+	public static const NAME:String = 'name';
+	
+	private var _rootNode:ColumnTreeNode;
+	
+	private function getGlobalColumns():Array
+	{
+		var csvColumns:Array = WeaveAPI.globalHashMap.getObjects(CSVColumn);
+		var equationColumns:Array = WeaveAPI.globalHashMap.getObjects(EquationColumn);
+		return equationColumns.concat(csvColumns);
+	}
+	private function createColumnNode(name:String):ColumnTreeNode
+	{
+		var column:IAttributeColumn = getAttributeColumn(meta);
+		if (!column)
+			return null;
+		
+		var meta:Object = {};
+		meta[NAME] = name;
+		return new ColumnTreeNode({
+			dataSource: this,
+			dependency: column,
+			label: function():String {
+				return column.getMetadata(ColumnMetadata.TITLE);
+			},
+			data: meta,
+			idFields: [NAME]
+		});
+	}
+	
+	public function get hierarchyRefresh():ICallbackCollection
+	{
+		return getCallbackCollection(this);
+	}
+	
+	public function getHierarchyRoot():IWeaveTreeNode
+	{
+		return _rootNode;
+	}
+	
+	public function findHierarchyNode(metadata:Object):IWeaveTreeNode
+	{
+		if (metadata && metadata.hasOwnProperty(NAME))
+		{
+			var node:ColumnTreeNode = createColumnNode(metadata[NAME]);
+			if (!node)
+			{
+				var path:Array = _rootNode.findPathToNode(node);
+				if (path)
+					return path[path.length - 1];
+			}
+		}
+		return null;
+	}
+	
+	public function getAttributeColumn(metadata:Object):IAttributeColumn
+	{
+		if (!metadata)
+			return null;
+		var name:String;
+		if (typeof metadata == 'object')
+			name = metadata[NAME];
+		else
+			name = String(metadata);
+		return WeaveAPI.globalHashMap.getObject(name) as IAttributeColumn;
 	}
 }

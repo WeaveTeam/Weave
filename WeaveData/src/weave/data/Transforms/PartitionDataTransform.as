@@ -68,11 +68,10 @@ package weave.data.Transforms
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!_rootNode)
-			{
 				_rootNode = new ColumnTreeNode({
+					dataSource: this,
 					dependency: partitionColumn,
 					label: WeaveAPI.globalHashMap.getName(this),
-					isBranch: true,
 					hasChildBranches: true,
 					children: function():Array {
 						var partitionValues:Array = VectorUtils.union(
@@ -87,7 +86,6 @@ package weave.data.Transforms
 								return {
 									dependency: inputColumns,
 									data: partitionValue,
-									isBranch: true,
 									hasChildBranches: false,
 									children: function():Array {
 										return inputColumns.getNames().map(
@@ -110,7 +108,6 @@ package weave.data.Transforms
 						);
 					}
 				});
-			}
 			return _rootNode;
 		}
 
@@ -119,7 +116,7 @@ package weave.data.Transforms
 			return new ColumnTreeNode({
 				dataSource: this,
 				idFields: [PARTITION_VALUE_META, PARTITION_COLUMNNAME_META],
-				columnMetadata: metadata
+				data: metadata
 			});
 		}
 		

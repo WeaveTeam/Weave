@@ -107,7 +107,6 @@ package weave.data.DataSources
 				dataSource: this,
 				data: data,
 				label: data.name,
-				isBranch: true,
 				hasChildBranches: true,
 				children: function(node:ColumnTreeNode):Array {
 					jsonCache.getJsonObject(baseUrl+"data.json", function(result:Object):void
@@ -134,7 +133,6 @@ package weave.data.DataSources
 				dataSource: this,
 				data: data,
 				label: data.label,
-				isBranch: true,
 				hasChildBranches: true,
 				children: function(node:ColumnTreeNode):Array {
 					var children:Array = [];
@@ -168,7 +166,6 @@ package weave.data.DataSources
 				dataSource: this,
 				data: data,
 				label: data[GEOGRAPHY_NAME],
-				isBranch: true,
 				hasChildBranches: true,
 				children: function (node:ColumnTreeNode):Array {
 					const children:Array = [];
@@ -219,7 +216,6 @@ package weave.data.DataSources
 				dataSource: this,
 				data: data,
 				label: data.name || "No Table",
-				isBranch: true,
 				hasChildBranches: false,
 				children: function (node:ColumnTreeNode):Array {
 					var children:Array = [];
@@ -238,9 +234,8 @@ package weave.data.DataSources
 		{
 			return setIndexedNode(data, new ColumnTreeNode({
 				dataSource: this,
-				columnMetadata: data,
+				data: data,
 				label: data.label,
-				isBranch: false,
 				hasChildBranches: false
 			}));
 		}
@@ -282,7 +277,7 @@ package weave.data.DataSources
 			return new ColumnTreeNode({
 				dataSource: this,
 				idFields: META_ID_FIELDS,
-				columnMetadata: metadata
+				data: metadata
 			});
 		}
         

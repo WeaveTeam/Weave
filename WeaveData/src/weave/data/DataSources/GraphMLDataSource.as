@@ -85,7 +85,7 @@ package weave.data.DataSources
             return new ColumnTreeNode({
                 dataSource: this,
                 idFields: [GRAPH_GROUP_META, GRAPH_ID_META],
-                columnMetadata: metadata
+				data: metadata
             });
         }
 
@@ -273,7 +273,6 @@ package weave.data.DataSources
 					dataSource: source,
                     data: source,
                     label: WeaveAPI.globalHashMap.getName(this),
-                    isBranch: true,
                     hasChildBranches: true,
                     children: function():Array {
                         return [GraphMLConverter.NODE, GraphMLConverter.EDGE].map(
@@ -283,7 +282,6 @@ package weave.data.DataSources
 									dependency: source, //TODO - evaluate whether or not this is needed
                                     data: group,
                                     label: group == GraphMLConverter.NODE ? "Nodes" : "Edges",
-                                    isBranch: true,
                                     hasChildBranches: false,
                                     children: function ():Array {
                                         var groupProperties:Array = group == GraphMLConverter.NODE ? nodeProperties : edgeProperties;
