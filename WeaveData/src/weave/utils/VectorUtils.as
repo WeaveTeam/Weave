@@ -21,6 +21,8 @@ package weave.utils
 	import mx.collections.ICollectionView;
 	import mx.collections.IViewCursor;
 	
+	import weave.compiler.StandardLib;
+	
 	/**
 	 * This class contains static functions that manipulate Vectors and Arrays.
 	 * Functions with * as parameter types support both Vector and Array.
@@ -498,6 +500,24 @@ package weave.utils
 			output.length = keys ? keys.length : 0;
 			
 			return output;
+		}
+		
+		/**
+		 * Compares a list of properties in two objects
+		 * @param object1 The first object
+		 * @param object2 The second object
+		 * @param propertyNames A list of names of properties to compare
+		 * @return -1, 0, or 1
+		 */
+		public static function compareProperties(object1:Object, object2:Object, propertyNames:Array):int
+		{
+			for each (var name:String in propertyNames)
+			{
+				var result:int = StandardLib.compare(object1[name], object2[name]);
+				if (result)
+					return result;
+			}
+			return 0;
 		}
 		
 		/**
