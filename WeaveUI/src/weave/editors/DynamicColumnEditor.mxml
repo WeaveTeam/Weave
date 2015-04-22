@@ -51,6 +51,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
+			import weave.data.AttributeColumnCache;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.hierarchy.DataSourceTreeNode;
@@ -212,7 +213,7 @@
 			
 			private function handleReferencedColumn():void
 			{
-				var ds:IDataSource = referencedColumn.getDataSource();
+				var ds:IDataSource = referencedColumn.getDataSource() || AttributeColumnCache.globalColumnDataSource;
 				if (ds)
 				{
 					var meta:Object = referencedColumn.metadata.getSessionState();

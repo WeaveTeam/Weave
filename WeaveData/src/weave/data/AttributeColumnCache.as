@@ -122,7 +122,7 @@ internal class GlobalColumnDataSource implements IDataSource
 	}
 	private function createColumnNode(name:String):ColumnTreeNode
 	{
-		var column:IAttributeColumn = getAttributeColumn(meta);
+		var column:IAttributeColumn = getAttributeColumn(name);
 		if (!column)
 			return null;
 		
@@ -151,16 +151,14 @@ internal class GlobalColumnDataSource implements IDataSource
 	
 	public function findHierarchyNode(metadata:Object):IWeaveTreeNode
 	{
-		if (metadata && metadata.hasOwnProperty(NAME))
-		{
-			var node:ColumnTreeNode = createColumnNode(metadata[NAME]);
-			if (!node)
-			{
-				var path:Array = _rootNode.findPathToNode(node);
-				if (path)
-					return path[path.length - 1];
-			}
-		}
+		var column:IAttributeColumn = getAttributeColumn(metadata);
+		if (!column)
+			return null;
+		var name:String = WeaveAPI.globalHashMap.getName(column);
+		var node:ColumnTreeNode = createColumnNode(name);
+		var path:Array = _rootNode.findPathToNode(node);
+		if (path)
+			return path[path.length - 1];
 		return null;
 	}
 	
@@ -172,7 +170,7 @@ internal class GlobalColumnDataSource implements IDataSource
 		if (typeof metadata == 'object')
 			name = metadata[NAME];
 		else
-			name = String(metadata);
+			name = metadata as String;
 		return WeaveAPI.globalHashMap.getObject(name) as IAttributeColumn;
 	}
 }
