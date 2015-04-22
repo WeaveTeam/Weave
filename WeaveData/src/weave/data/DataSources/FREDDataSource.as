@@ -34,22 +34,6 @@ package weave.data.DataSources
     {
         WeaveAPI.ClassRegistry.registerImplementation(IDataSource, FREDDataSource, "Federal Reserve Economic Data");
 
-        
-
-        public function FREDDataSource()
-        {
-        }
-
-		
-		
-        override protected function initialize():void
-        {
-            // recalculate all columns previously requested
-            //refreshAllProxyColumns();
-            
-            super.initialize();
-        }
-        
 		private const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
 		
 		public const apiKey:LinkableString = registerLinkableChild(this, new LinkableString("fa99c080bdbd1d486a55e7cb6ab7acbb"));
@@ -74,36 +58,6 @@ package weave.data.DataSources
 		private function getJson(method:String, params:Object, resultHandler:Function, faultHandler:Function = null):void
 		{
 			jsonCache.getJsonObject(getUrl(method, params), resultHandler, faultHandler);
-		}
-		
-		public function createCategoryNode(data:Object = null):ColumnTreeNode
-		{
-			if (!data)
-			{
-				var name:String = WeaveAPI.globalHashMap.getName(this);
-				data = {id: 0, name: name};
-			}
-			return new ColumnTreeNode({
-				dataSource: this,
-				data: data,
-				label: data.name,
-				hasChildBranches: true,
-				children: function(node:ColumnTreeNode):Array {
-					var children:Array = [];
-					getJson('category/children', {category_id: node.data.id}, function(result:Object):void {
-						var nodes:Array = [];
-						for each (var item:Object in result.categories)
-							nodes.push(createCategoryNode(item));
-						// put categories first in the list
-						children.splice.apply(null, [0, 0].concat(nodes));
-					});
-					getJson('category/series', {category_id: node.data.id}, function(result:Object):void {
-						for each (var item:Object in result.seriess)
-							children.push(createSeriesNode(item));
-					});
-					return children;
-				}
-			});
 		}
 		
 		override protected function refreshHierarchy():void
@@ -152,13 +106,54 @@ package weave.data.DataSources
 			}
 			return csv;
 		}
-			
+		
+		override public function getHierarchyRoot():IWeaveTreeNode
+		{
+			if (!_rootNode)
+				_rootNode = createCategoryNode();
+			return _rootNode;
+		}
+		
+		public function createCategoryNode(data:Object = null):ColumnTreeNode
+		{
+			if (!data)
+			{
+				var name:String = WeaveAPI.globalHashMap.getName(this);
+				data = {id: 0, name: name};
+			}
+			data[META_CATEGORY_ID] = data.id;
+			return new ColumnTreeNode({
+				dataSource: this,
+				data: data,
+				idFields: [META_CATEGORY_ID],
+				label: data.name,
+				hasChildBranches: true,
+				children: function(node:ColumnTreeNode):Array {
+					var children:Array = [];
+					getJson('category/children', {category_id: node.data.id}, function(result:Object):void {
+						var nodes:Array = [];
+						for each (var item:Object in result.categories)
+							nodes.push(createCategoryNode(item));
+						// put categories first in the list
+						children.splice.apply(null, [0, 0].concat(nodes));
+					});
+					getJson('category/series', {category_id: node.data.id}, function(result:Object):void {
+						for each (var item:Object in result.seriess)
+							children.push(createSeriesNode(item));
+					});
+					return children;
+				}
+			});
+		}
+		
 		public function createSeriesNode(data:Object):IWeaveTreeNode
 		{
+			data[META_SERIES_ID] = data.id;
 			return new ColumnTreeNode({
 				dataSource: this,
 				label: data.title,
 				data: data,
+				idFields: [META_SERIES_ID],
 				hasChildBranches: false,
 				children: function(node:ColumnTreeNode):Array {
 					var csv:CSVDataSource = getObservationsCSV(data.id);
@@ -174,22 +169,9 @@ package weave.data.DataSources
 			});
 		}
 		
-        override public function getHierarchyRoot():IWeaveTreeNode
-        {
-            if (!_rootNode)
-                _rootNode = createCategoryNode();
-            return _rootNode;
-        }
-		
+		public static const META_CATEGORY_ID:String = 'FRED_category_id';
 		public static const META_SERIES_ID:String = 'FRED_series_id';
 		public static const META_COLUMN_NAME:String = 'FRED_column_name';
-		
-		public static const META_ID_FIELDS:Array = [META_SERIES_ID, META_COLUMN_NAME];
-		
-		override public function findHierarchyNode(metadata:Object):IWeaveTreeNode
-		{
-			return null;
-		}
 		
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
@@ -198,11 +180,13 @@ package weave.data.DataSources
 			
 			return new ColumnTreeNode({
 				dataSource: this,
-				idFields: META_ID_FIELDS,
+				idFields: [META_SERIES_ID, META_COLUMN_NAME],
 				data: metadata
 			});
 		}
-        
+		
+		//TODO - use http://api.stlouisfed.org/docs/fred/series_categories.html
+		
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
         {
             var series:String = proxyColumn.getMetadata(META_SERIES_ID);
