@@ -22,11 +22,11 @@ package weave.data.hierarchy
     import weave.api.registerLinkableChild;
     import weave.data.AttributeColumnCache;
 
-    public class DataSourceTreeNode extends WeaveTreeDescriptorNode implements ILinkableObject
+    public class WeaveRootDataTreeNode extends WeaveTreeDescriptorNode implements ILinkableObject
     {
-		public function DataSourceTreeNode()
+		public function WeaveRootDataTreeNode()
 		{
-			var rootNode:DataSourceTreeNode = this;
+			var rootNode:WeaveRootDataTreeNode = this;
 			var root:ILinkableHashMap = WeaveAPI.globalHashMap;
 			registerLinkableChild(this, root.childListCallbacks);
 			

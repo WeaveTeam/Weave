@@ -54,7 +54,7 @@
 			import weave.data.AttributeColumnCache;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
-			import weave.data.hierarchy.DataSourceTreeNode;
+			import weave.data.hierarchy.WeaveRootDataTreeNode;
 			import weave.data.hierarchy.EntityNodeSearch;
 			import weave.utils.EventUtils;
 			
@@ -124,7 +124,7 @@
 				
 				registerLinkableChild(this, explorer);
 
-				explorer.rootNode = new DataSourceTreeNode();
+				explorer.rootNode = new WeaveRootDataTreeNode();
 				
 				explorer.folderView.dragEnabled = false;
 				explorer.fileView.dragEnabled = true;
