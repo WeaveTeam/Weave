@@ -281,7 +281,7 @@ package weave.data.DataSources
 
         	var newPromise:LinkablePromise = new LinkablePromise(function():*
         	{
-        		weaveTrace("Promise called.");
+				if (result == null) return;
 				var idx:int;
         		var columns:Array = result[0] as Array;
         		var rows:Array = result as Array;
@@ -290,7 +290,7 @@ package weave.data.DataSources
         		var key_column_indices:Array = new Array(columns.length);
         		var data_column_index:int = columns.indexOf(variable_name);
 
-        		var tmp_key_type:String = key_column_names.join("");
+        		var tmp_key_type:String = WeaveAPI.CSVParser.createCSVRow(key_column_names);
         		var key_overrides:Object = keyTypeOverride.getSessionState();
         		if (key_overrides && key_overrides[tmp_key_type])
         		{
@@ -322,11 +322,12 @@ package weave.data.DataSources
 
         	registerLinkableChild(proxyColumn, newPromise);
         	registerLinkableChild(newPromise, keyTypeOverride);
-        	
+
         	jsonCache.getJsonObject(getUrl(web_service, params), function (json_result:Object):void
         		{
         			result = json_result;
         			getCallbackCollection(newPromise).triggerCallbacks();
+					newPromise.validate();
         		}
         	);
         }
