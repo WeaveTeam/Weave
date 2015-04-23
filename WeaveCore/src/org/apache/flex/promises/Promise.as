@@ -17,6 +17,8 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+// Modified for Weave (changed everything private into protected)
+
 package org.apache.flex.promises
 {
 
@@ -51,11 +53,11 @@ public class Promise implements IThenable
 	//
 	//--------------------------------------------------------------------------
 	
-	private var handlers_:Vector.<Handler>;
+	protected var handlers_:Vector.<Handler>;
 	
-	private var state_:PromiseState;
+	protected var state_:PromiseState;
 	
-	private var value_:*;
+	protected var value_:*;
 	
 	
 	
@@ -69,7 +71,7 @@ public class Promise implements IThenable
 	//    doResolve_
 	//----------------------------------
 	
-	private function doResolve_(fn:Function, onFulfilled:Function, 
+	protected function doResolve_(fn:Function, onFulfilled:Function, 
 								onRejected:Function):void
 	{
 		var done:Boolean = false;
@@ -113,7 +115,7 @@ public class Promise implements IThenable
 	//    fulfill_
 	//----------------------------------
 	
-	private function fulfill_(result:*):void
+	protected function fulfill_(result:*):void
 	{
 		state_ = PromiseState.FULFILLED;
 		
@@ -126,7 +128,7 @@ public class Promise implements IThenable
 	//    handle_
 	//----------------------------------
 	
-	private function handle_(handler:Handler):void
+	protected function handle_(handler:Handler):void
 	{
 		if (state_ === PromiseState.PENDING)
 		{
@@ -152,7 +154,7 @@ public class Promise implements IThenable
 	//    processHandlers_
 	//----------------------------------
 	
-	private function processHandlers_():void
+	protected function processHandlers_():void
 	{
 		for (var i:int = 0, n:int = handlers_.length; i < n; i++)
 		{
@@ -164,7 +166,7 @@ public class Promise implements IThenable
 	//    reject_
 	//----------------------------------
 	
-	private function reject_(error:*):void
+	protected function reject_(error:*):void
 	{
 		state_ = PromiseState.REJECTED;
 		
@@ -177,7 +179,7 @@ public class Promise implements IThenable
 	//    resolve_
 	//----------------------------------
 	
-	private function resolve_(result:*):void
+	protected function resolve_(result:*):void
 	{
 		try 
 		{
