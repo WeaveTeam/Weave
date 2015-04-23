@@ -235,7 +235,6 @@ package
 			ClassUtils.registerDeprecatedClass("SessionedTextArea", SessionedTextBox);
 			ClassUtils.registerDeprecatedClass("weave.visualization.tools.DataTableTool", AdvancedTableTool);
 			ClassUtils.registerDeprecatedClass("weave.api.ui.IObjectWithSelectableAttributes", ISelectableAttributes);
-			ClassUtils.registerDeprecatedClass("weave.ui.DataFilter", DataFilterTool);
 		}();
 	}
 }

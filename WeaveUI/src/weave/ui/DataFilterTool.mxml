@@ -18,7 +18,7 @@
 <DraggablePanel xmlns="weave.ui.*" 
 				layout="vertical" verticalAlign="middle"
 				xmlns:mx="http://www.adobe.com/2006/mxml" 
-				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes, weave.api.core.ILinkableObjectWithNewProperties"
+				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				>
 	<mx:Script>
@@ -29,7 +29,6 @@
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IKeyFilter;
-			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
@@ -48,8 +47,6 @@
 			
 			public const filter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter), handleFilterWatcher);
 			public const editor:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ILinkableObjectEditor), handleEditor, true);
-			
-			private var _editorStateMissing:Boolean = false;
 			
 			private function getFilter():IKeyFilter
 			{
@@ -188,10 +185,6 @@
 					filter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER, 'filters', WeaveAPI.globalHashMap.getName(this)];
 				if (!getFilter())
 					setFilterType(StringDataFilter, null);
-				
-				if (_editorStateMissing && editor.target is StringDataFilterEditor)
-					(editor.target as StringDataFilterEditor).layoutMode.value = MenuToolViewStack.LAYOUT_COMBO;
-				_editorStateMissing = false;
 			}
 			
 			override public function dispose():void
@@ -269,27 +262,6 @@
 			public function getSelectableAttributes():Array
 			{
 				return getFilterColumn() ? [getFilterColumn()] : [];
-			}
-			
-			public function handleMissingSessionStateProperty(newState:Object, missingProperty:String):void
-			{
-				if (missingProperty == 'editor')
-				{
-					_editorStateMissing = true;
-					var sdfe:StringDataFilterEditor = editor.target as StringDataFilterEditor;
-					var ndfe:NumberDataFilterEditor = editor.target as NumberDataFilterEditor;
-					if (sdfe)
-					{
-						sdfe.layoutMode.value = MenuToolViewStack.LAYOUT_COMBO;
-						sdfe.showToggle.value = true;
-					}
-					else if (ndfe)
-					{
-						ndfe.showToggle.value = true;
-					}
-					else
-						callLater(initLater);
-				}
 			}
 		]]>
 	</mx:Script>
