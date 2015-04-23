@@ -107,7 +107,6 @@ package weave
 			_toggleToolsMenuItem("TreeTool", false);
 			_toggleToolsMenuItem("CytoscapeWebTool", false);
 			_toggleToolsMenuItem("CustomGraphicsTool", false);
-			_toggleToolsMenuItem("DataFilter", false);
 			_toggleToolsMenuItem("KeyMappingTool", false);
 			
 			panelTitleTextFormat.font.value = "Verdana";

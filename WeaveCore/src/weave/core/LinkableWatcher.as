@@ -208,19 +208,21 @@ package weave.core
 						// 2. avoid watching the root hash map (and registering the root as a child of the watcher)
 						node = (node as ILinkableHashMap).childListCallbacks;
 					}
-					_foundTarget = false;
 					if (node is ILinkableDynamicObject)
 					{
-						if (_target != null)
-						{
-							// path dependency code will detect changes to this node
-							internalSetTarget(null);
-							// must trigger here because _foundtarget is false
-							sm.getCallbackCollection(this).triggerCallbacks();
-						}
+						// path dependency code will detect changes to this node, so we don't need to set the target
+						node = null;
 					}
-					else
-						internalSetTarget(node);
+					
+					var lostTarget:Boolean = _foundTarget;
+					_foundTarget = false;
+					
+					internalSetTarget(node);
+					
+					// must trigger here when we lose the target because internalSetTarget() won't trigger when _foundTarget is false
+					if (lostTarget)
+						sm.getCallbackCollection(this).triggerCallbacks();
+					
 					return;
 				}
 			}

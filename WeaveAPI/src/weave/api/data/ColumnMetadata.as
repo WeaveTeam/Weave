@@ -52,16 +52,16 @@ package weave.api.data
 			switch (propertyName)
 			{
 				case ColumnMetadata.ENTITY_TYPE:
-					return [EntityType.TABLE, EntityType.COLUMN, EntityType.HIERARCHY, EntityType.CATEGORY];
+					return EntityType.ALL_TYPES;
 				
 				case ColumnMetadata.DATA_TYPE:
-					return [DataType.NUMBER, DataType.STRING, DataType.DATE, DataType.GEOMETRY];
+					return DataType.ALL_TYPES;
 				
 				case ColumnMetadata.DATE_FORMAT:
-					return ['YYYY', 'YYYY-MM-DD', 'HH:NN:SS'];
+					return DateFormat.getSuggestions();
 				
 				case ColumnMetadata.AGGREGATION:
-					return [Aggregation.SAME, Aggregation.FIRST, Aggregation.LAST, Aggregation.MEAN, Aggregation.SUM, Aggregation.MIN, Aggregation.MAX, Aggregation.COUNT];
+					return Aggregation.ALL_TYPES;
 				
 				default:
 					return [];

@@ -23,19 +23,20 @@ package weave.ui
     
     import weave.api.data.IWeaveTreeNode;
     import weave.api.data.IWeaveTreeNodeWithEditableChildren;
+    import weave.utils.VectorUtils;
     
 	/**
 	 * Tells a Tree control how to work with IWeaveTreeNode objects.
 	 * 
 	 * @author adufilie
 	 */
-    public class WeaveTreeDataDescriptor implements ITreeDataDescriptor
+    public class WeaveTreeDescriptor implements ITreeDataDescriptor
     {
 		public static const DISPLAY_MODE_ALL:uint = 0;
 		public static const DISPLAY_MODE_BRANCHES:uint = 1;
 		public static const DISPLAY_MODE_LEAVES:uint = 2;
 		
-		public function WeaveTreeDataDescriptor()
+		public function WeaveTreeDescriptor()
 		{
 		}
 		
@@ -78,10 +79,10 @@ package weave.ui
 			
 			var childView:ArrayCollection = _childViews[node] as ArrayCollection;
 			if (!childView)
-				_childViews[node] = childView = new ArrayCollection();
+				_childViews[node] = childView = new ArrayCollection([]);
 			
-			if (childView.source != childArray)
-				childView.source = childArray;
+			// need to re-use the childView.source Array to prevent infinite recursion due to event dispatch
+			VectorUtils.copy(childArray, childView.source);
 			
 			if (displayMode == DISPLAY_MODE_ALL && nodeFilter == null)
 			{

@@ -26,7 +26,8 @@ package weave.compiler
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
-	import weave.flascc.FlasCC;
+	import weave.flascc.atob;
+	import weave.flascc.btoa;
 	import weave.utils.AsyncSort;
 	import weave.utils.CustomDateFormatter;
 	import weave.utils.DebugTimer;
@@ -717,6 +718,20 @@ package weave.compiler
 		}
 		
 		/**
+		 * Checks if all items in an Array are instances of a given type.
+		 * @param a An Array of items to test
+		 * @param type A type to check for
+		 * @return true if each item in the Array is an object of the given type.
+		 */
+		public static function arrayIsType(a:Array, type:Class):Boolean
+		{
+			for each (var item:Object in a)
+				if (!(item is type))
+					return false;
+			return true;
+		}
+		
+		/**
 		 * This will perform a log transformation on a normalized value to produce another normalized value.
 		 * @param normValue A number between 0 and 1.
 		 * @param factor The log factor to use.
@@ -912,7 +927,7 @@ package weave.compiler
 		 */
 		public static function btoa(input:ByteArray):String
 		{
-			return FlasCC.call(weave.flascc.btoa, input);
+			return weave.flascc.btoa(input);
 		}
 		
 		/**
@@ -922,7 +937,7 @@ package weave.compiler
 		 */
 		public static function atob(input:String):ByteArray
 		{
-			return FlasCC.call(weave.flascc.atob, input);
+			return weave.flascc.atob(input);
 		}
 		
 		/**

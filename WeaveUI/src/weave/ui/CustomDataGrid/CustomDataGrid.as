@@ -25,6 +25,7 @@ package weave.ui.CustomDataGrid
 	import mx.controls.listClasses.IListItemRenderer;
 	import mx.controls.listClasses.ListBaseContentHolder;
 	import mx.core.EventPriority;
+	import mx.core.IFactory;
 	import mx.core.ILayoutDirectionElement;
 	import mx.core.SpriteAsset;
 	import mx.core.mx_internal;
@@ -53,9 +54,20 @@ package weave.ui.CustomDataGrid
 			headerClass = CustomDataGridHeader;
 			// add this event listener before the one in super()
 			addEventListener(DataGridEvent.HEADER_RELEASE, headerReleaseHandler, false, EventPriority.DEFAULT_HANDLER);
-			setStyle('defaultDataGridItemRenderer', CustomDataGridItemRenderer);
 			super();
 		}
+		
+		private var firstTimeAccessItemRenderer:Boolean = true;
+		override public function get itemRenderer():IFactory
+		{
+			if (firstTimeAccessItemRenderer && !getStyle("defaultDataGridItemRenderer"))
+			{
+				setStyle("defaultDataGridItemRenderer", CustomDataGridItemRenderer);
+				firstTimeAccessItemRenderer = false;
+			}
+			return super.itemRenderer;
+		}
+		
 		private var in_destroyItemEditor:Boolean = false;
 		override public function destroyItemEditor():void
 		{

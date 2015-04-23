@@ -15,53 +15,25 @@
 
 package weave.data.DataSources
 {
-    import flash.net.URLRequest;
-    
-    import mx.charts.chartClasses.IColumn;
-    import mx.rpc.events.FaultEvent;
-    import mx.rpc.events.ResultEvent;
-    
     import weave.api.data.ColumnMetadata;
     import weave.api.data.DataType;
     import weave.api.data.IAttributeColumn;
     import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
+    import weave.api.data.IDataSource_Service;
     import weave.api.data.IWeaveTreeNode;
-    import weave.api.newDisposableChild;
+    import weave.api.disposeObject;
     import weave.api.newLinkableChild;
-    import weave.api.registerDisposableChild;
     import weave.api.registerLinkableChild;
-    import weave.api.reportError;
-    import weave.compiler.Compiler;
-    import weave.compiler.StandardLib;
-    import weave.core.LinkablePromise;
     import weave.core.LinkableString;
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.hierarchy.ColumnTreeNode;
-    import weave.primitives.Dictionary2D;
     import weave.services.JsonCache;
-    import weave.services.addAsyncResponder;
 
-    public class FREDDataSource extends AbstractDataSource 
+    public class FREDDataSource extends AbstractDataSource implements IDataSource_Service
     {
         WeaveAPI.ClassRegistry.registerImplementation(IDataSource, FREDDataSource, "Federal Reserve Economic Data");
 
-        
-
-        public function FREDDataSource()
-        {
-        }
-
-		
-		
-        override protected function initialize():void
-        {
-            // recalculate all columns previously requested
-            //refreshAllProxyColumns();
-            
-            super.initialize();
-        }
-        
 		private const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
 		
 		public const apiKey:LinkableString = registerLinkableChild(this, new LinkableString("fa99c080bdbd1d486a55e7cb6ab7acbb"));
@@ -83,156 +55,123 @@ package weave.data.DataSources
 		 * @param method Examples: "category", "category/series"
 		 * @param params Example: {category_id: 125}
 		 */
-		private function getJson(method:String, params:Object):Object
+		private function getJson(method:String, params:Object, resultHandler:Function, faultHandler:Function = null):void
 		{
-			return jsonCache.getJsonObject(getUrl(method, params));
+			jsonCache.getJsonObject(getUrl(method, params), resultHandler, faultHandler);
 		}
 		
-		private var functionCache:Dictionary2D = new Dictionary2D();
+		override protected function refreshHierarchy():void
+		{
+			for each (var csv:CSVDataSource in csvCache)
+				disposeObject(csv);
+			csvCache = {};
+		}
 		
-		public function createCategoryNode(data:Object = null, ..._):ColumnTreeNode
+		private var csvCache:Object = {};
+		public function getObservationsCSV(series_id:String):CSVDataSource
+		{
+			var csv:CSVDataSource = csvCache[series_id];
+			if (!csv)
+			{
+				csv = newLinkableChild(this, CSVDataSource);
+				csvCache[series_id] = csv;
+				
+				var taskToken:Object = {};
+				WeaveAPI.SessionManager.assignBusyTask(taskToken, csv);
+				
+				getJson('series', {series_id: series_id}, function(result1:Object):void {
+					var seriesData:Object = result1.seriess[0];
+					getJson('series/observations', {series_id: series_id}, function(result2:Object):void {
+						WeaveAPI.SessionManager.unassignBusyTask(taskToken);
+						var columnOrder:Array = ['date', 'value', 'realtime_start', 'realtime_end'];
+						var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(result2.observations, columnOrder);
+						csv.csvData.setSessionState(rows);
+						csv.keyColName.value = 'date';
+						csv.keyType.value = DataType.DATE;
+						var valueTitle:String = lang("{0} ({1})", seriesData.title, seriesData.units);
+						var metadataArray:Array = [
+							{title: 'Date', dataType: DataType.DATE},
+							{title: valueTitle, dataType: DataType.NUMBER},
+							{title: 'realtime_start', dataType: DataType.DATE},
+							{title: 'realtime_end', dataType: DataType.DATE},
+						];
+						csv.metadata.setSessionState(metadataArray);
+					}, handleFault);
+				}, handleFault);
+				
+				function handleFault(result:Object):void
+				{
+					WeaveAPI.SessionManager.unassignBusyTask(taskToken);
+				}
+			}
+			return csv;
+		}
+		
+		override public function getHierarchyRoot():IWeaveTreeNode
+		{
+			if (!_rootNode)
+				_rootNode = createCategoryNode();
+			return _rootNode;
+		}
+		
+		public function createCategoryNode(data:Object = null):ColumnTreeNode
 		{
 			if (!data)
 			{
 				var name:String = WeaveAPI.globalHashMap.getName(this);
 				data = {id: 0, name: name};
 			}
-			var node:ColumnTreeNode = functionCache.get(createCategoryNode, data.id);
-			if (!node)
-			{
-				node = new ColumnTreeNode({
-					source: this,
-					data: data,
-					label: data.name,
-					isBranch: true,
-					hasChildBranches: true,
-					children: function(node:ColumnTreeNode):Array {
-						return [].concat(
-							getCategoryChildren(node),
-							getCategorySeries(node)
-						);
-					}
-				});
-				functionCache.set(createCategoryNode, data.id, node);
-			}
-			return node;
+			data[META_CATEGORY_ID] = data.id;
+			return new ColumnTreeNode({
+				dataSource: this,
+				data: data,
+				idFields: [META_CATEGORY_ID],
+				label: data.name,
+				hasChildBranches: true,
+				children: function(node:ColumnTreeNode):Array {
+					var children:Array = [];
+					getJson('category/children', {category_id: node.data.id}, function(result:Object):void {
+						var nodes:Array = [];
+						for each (var item:Object in result.categories)
+							nodes.push(createCategoryNode(item));
+						// put categories first in the list
+						children.splice.apply(null, [0, 0].concat(nodes));
+					});
+					getJson('category/series', {category_id: node.data.id}, function(result:Object):void {
+						for each (var item:Object in result.seriess)
+							children.push(createSeriesNode(item));
+					});
+					return children;
+				}
+			});
 		}
 		
-		private function getCategoryChildren(node:ColumnTreeNode):Array
+		public function createSeriesNode(data:Object):IWeaveTreeNode
 		{
-			var result:Object = getJson('category/children', {category_id: node.data.id});
-			
-			if(!result.categories)
-				return [];
-			return result.categories.map(createCategoryNode);
+			data[META_SERIES_ID] = data.id;
+			return new ColumnTreeNode({
+				dataSource: this,
+				label: data.title,
+				data: data,
+				idFields: [META_SERIES_ID],
+				hasChildBranches: false,
+				children: function(node:ColumnTreeNode):Array {
+					var csv:CSVDataSource = getObservationsCSV(data.id);
+					var csvRoot:IWeaveTreeNode = csv.getHierarchyRoot();
+					node.dependency = csv; // refresh children when csv triggers callbacks
+					return csvRoot.getChildren().map(function(csvNode:IColumnReference, ..._):IWeaveTreeNode {
+						var meta:Object = csvNode.getColumnMetadata();
+						meta[META_SERIES_ID] = data.id;
+						meta[META_COLUMN_NAME] = meta[CSVDataSource.METADATA_COLUMN_NAME];
+						return generateHierarchyNode(meta);
+					});
+				}
+			});
 		}
 		
-		private function getCategorySeries(node:ColumnTreeNode):Array
-		{
-			var result:Object = getJson('category/series', {category_id: node.data.id});
-			
-			if(!result.seriess)
-				return [];
-			
-			return result.seriess.map(createSeriesNode);
-		}
-		
-		public function getObservationsCSV(series_id:String):CSVDataSource
-		{
-			var csv:CSVDataSource = functionCache.get(getObservationsCSV, series_id);
-			if (!csv)
-			{
-				csv = newLinkableChild(this, CSVDataSource);
-				functionCache.set(getObservationsCSV, series_id, csv);
-				
-				var request1:URLRequest = new URLRequest(getUrl('series', {series_id: series_id}));
-				addAsyncResponder(
-					WeaveAPI.URLRequestUtils.getURL(csv, request1),
-					function(event:ResultEvent, csv:CSVDataSource):void {
-						var data:Object = JsonCache.parseJSON(event.result.toString());
-						data = data.seriess[0];
-						var request2:URLRequest = new URLRequest(getUrl('series/observations', {series_id: series_id}));
-						addAsyncResponder(
-							WeaveAPI.URLRequestUtils.getURL(csv, request2),
-							function(event:ResultEvent, csv:CSVDataSource):void
-							{
-								var result:Object = JsonCache.parseJSON(event.result.toString());
-								var columnOrder:Array = ['date', 'realtime_start', 'realtime_end', 'value'];
-								var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(result.observations, columnOrder);
-								csv.csvData.setSessionState(rows);
-								var valueTitle:String = lang("{0} ({1})", data.title, data.units);
-								var metadataArray:Array = [
-									{title: 'date', dataType: DataType.DATE, dateFormat: 'YYYY-MM-DD'},
-									{title: 'realtime_start', dataType: DataType.DATE, dateFormat: 'YYYY-MM-DD'},
-									{title: 'realtime_end', dataType: DataType.DATE, dateFormat: 'YYYY-MM-DD'},
-									{title: valueTitle, dataType: DataType.NUMBER},
-								];
-								csv.metadata.setSessionState(metadataArray);
-							},
-							handleFault,
-							csv
-						);
-					},
-					handleFault,
-					csv
-				);
-			}
-			return csv;
-		}
-		private function handleFault(event:FaultEvent, token:Object = null):void
-		{
-			reportError(event);
-		}
-			
-		public function createSeriesNode(data:Object, ..._):IWeaveTreeNode
-		{
-			var node:IWeaveTreeNode = functionCache.get(createSeriesNode, data.id);
-			if (!node)
-			{
-				node = new ColumnTreeNode({
-					label: data.title,
-					source: this,
-					data: data,
-					isBranch: true,
-					hasChildBranches: false,
-					children: function(node:ColumnTreeNode):Array {
-						var csv:CSVDataSource = getObservationsCSV(data.id);
-						var csvRoot:IWeaveTreeNode = csv.getHierarchyRoot();
-						node.source = csv;
-						return csvRoot.getChildren().map(function(csvNode:IColumnReference, ..._):IWeaveTreeNode {
-							var meta:Object = csvNode.getColumnMetadata();
-							meta[META_SERIES_ID] = data.id;
-							meta[META_COLUMN_NAME] = meta[CSVDataSource.METADATA_COLUMN_NAME];
-							return generateHierarchyNode(meta);
-						});
-					}
-				});
-				functionCache.set(createSeriesNode, data.id, node);
-			}
-			return node;
-		}
-		
-		
-        override public function getHierarchyRoot():IWeaveTreeNode
-        {
-			
-            if (!_rootNode)
-            {
-                var source:FREDDataSource = this;
-                _rootNode = createCategoryNode();
-            }
-            return _rootNode;
-        }
-		
+		public static const META_CATEGORY_ID:String = 'FRED_category_id';
 		public static const META_SERIES_ID:String = 'FRED_series_id';
 		public static const META_COLUMN_NAME:String = 'FRED_column_name';
-		
-		public static const META_ID_FIELDS:Array = [META_SERIES_ID, META_COLUMN_NAME];
-		
-		override public function findHierarchyNode(metadata:Object):IWeaveTreeNode
-		{
-			return null;
-		}
 		
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
@@ -240,12 +179,14 @@ package weave.data.DataSources
 				return null;
 			
 			return new ColumnTreeNode({
-				source: this,
-				idFields: META_ID_FIELDS,
-				columnMetadata: metadata
+				dataSource: this,
+				idFields: [META_SERIES_ID, META_COLUMN_NAME],
+				data: metadata
 			});
 		}
-        
+		
+		//TODO - use http://api.stlouisfed.org/docs/fred/series_categories.html
+		
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
         {
             var series:String = proxyColumn.getMetadata(META_SERIES_ID);

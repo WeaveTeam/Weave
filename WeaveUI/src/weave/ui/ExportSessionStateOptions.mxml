@@ -52,6 +52,10 @@
 			<mx:CheckBox id="saveScreenshot"
 						 label="{lang('Save screenshot to be displayed during startup')}"
 						 selected="false"/>
+			<mx:CheckBox id="saveUrlCache"
+						 label="{lang('Save cached images')}"
+						 creationComplete="saveUrlCache.selected = (WeaveAPI.URLRequestUtils as URLRequestUtils).saveCache;"
+						 change="(WeaveAPI.URLRequestUtils as URLRequestUtils).saveCache = saveUrlCache.selected;"/><!-- temporary hack -->
 			<mx:CheckBox id="saveHistory"
 						 label="{lang('Save history')}"
 						 selected="false"/>
@@ -68,6 +72,7 @@
 			import weave.core.LinkableBoolean;
 			import weave.core.UIUtils;
 			import weave.core.WeaveArchive;
+			import weave.services.URLRequestUtils;
 			import weave.utils.EventUtils;
 			
 			private const padding:Number = 5;
@@ -112,6 +117,7 @@
 				saveHistory.enabled = !xml;
 				saveScreenshot.selected = !xml && !!WeaveAPI.URLRequestUtils.getLocalFile(WeaveArchive.ARCHIVE_SCREENSHOT_PNG);
 				saveScreenshot.enabled = !xml;
+				saveUrlCache.enabled = !xml;
 				fixFileName();
 			}
 			

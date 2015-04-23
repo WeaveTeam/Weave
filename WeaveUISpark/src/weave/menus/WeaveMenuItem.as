@@ -114,7 +114,6 @@ package weave.menus
 		private var _enabled:* = true;
 		private var _shown:* = true;
 		private var _toggled:* = false;
-		private var _children:* = null;
 		
 		/**
 		 * This property is checked by Flex's default data descriptor.
@@ -166,7 +165,7 @@ package weave.menus
 			if (!items)
 				return null;
 			
-			// filter children based on "shown" status
+			// filter children based on "shown" status (makes a copy)
 			items = items.filter(_filterShown);
 			// remove leading separators
 			while (items.length && WeaveMenuItem(items[0]).type == TYPE_SEPARATOR)

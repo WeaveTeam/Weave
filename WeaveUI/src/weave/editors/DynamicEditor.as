@@ -209,7 +209,7 @@ internal class ComponentUpdater
 	private function update():void
 	{
 		// stop if nothing changed
-		if (!detectLinkableObjectChange(update, tree.source))
+		if (!detectLinkableObjectChange(update, tree.dependency))
 			return;
 		
 		vbox.label = lang(tree.label);
@@ -218,12 +218,12 @@ internal class ComponentUpdater
 		
 		var subtrees:Array = tree.children || [];
 		
-		if (!(tree.source is ILinkableHashMap))
+		if (!(tree.dependency is ILinkableHashMap))
 		{
 			// sort by class, then by name
 			StandardLib.sort(subtrees, function(st1:WeaveTreeItem, st2:WeaveTreeItem):int {
-				var c1:Class = Object(st1.source).constructor;
-				var c2:Class = Object(st2.source).constructor;
+				var c1:Class = Object(st1.dependency).constructor;
+				var c2:Class = Object(st2.dependency).constructor;
 				var l1:String = st1.label;
 				var l2:String = st2.label;
 				return ObjectUtil.stringCompare(String(c1), String(c2))
@@ -232,11 +232,11 @@ internal class ComponentUpdater
 		}
 		
 		// editors for enumerated selectable attributes should appear first
-		var sa:ISelectableAttributes = tree.source as ISelectableAttributes;
+		var sa:ISelectableAttributes = tree.dependency as ISelectableAttributes;
 		if (sa)
 		{
 			// this code adds duplicate items to the subtrees array
-			var lookup:Dictionary = VectorUtils.createLookup(subtrees, 'source');
+			var lookup:Dictionary = VectorUtils.createLookup(subtrees, 'dependency');
 			var names:Array = sa.getSelectableAttributeNames();
 			subtrees = sa.getSelectableAttributes()
 				.map(function(attr:*, i:*, a:*):WeaveTreeItem{
@@ -259,7 +259,7 @@ internal class ComponentUpdater
 				continue;
 			ignore[subtree] = true;
 			
-			var childTarget:ILinkableObject = subtree.source;
+			var childTarget:ILinkableObject = subtree.dependency;
 			
 			// create component if necessary
 			component = cachedComponents[childTarget];

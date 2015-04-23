@@ -96,7 +96,7 @@ package weave.data.DataSources
 			return StandardLib.getArrayType(array) == String;
 		}
 		
-		override public function refreshHierarchy():void
+		override protected function refreshHierarchy():void
 		{
 			super.refreshHierarchy();
 			entityCache.invalidateAll();
@@ -471,7 +471,7 @@ package weave.data.DataSources
 				query = _service.getColumnFromMetadata(params);
 			}
 			addAsyncResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, proxyColumn);
-			WeaveAPI.ProgressIndicator.addTask(query, proxyColumn);
+			WeaveAPI.ProgressIndicator.addTask(query, proxyColumn, "Requesting column from server: " + Compiler.stringify(params));
 		}
 		
 		/**

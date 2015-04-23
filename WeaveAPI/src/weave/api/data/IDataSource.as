@@ -15,6 +15,7 @@
 
 package weave.api.data
 {
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	
 	/**
@@ -25,9 +26,11 @@ package weave.api.data
 	public interface IDataSource extends ILinkableObject
 	{
 		/**
-		 * Refreshes the attribute hierarchy.
+		 * When explicitly triggered, this will force the hierarchy to be refreshed.
+		 * This should not be used to determine when the hierarchy is updated.
+		 * For that purpose, add a callback directly to the IDataSource instead.
 		 */
-		function refreshHierarchy():void
+		function get hierarchyRefresh():ICallbackCollection;
 		
 		/**
 		 * Gets the root node of the attribute hierarchy, which should have descendant nodes that implement IColumnReference.

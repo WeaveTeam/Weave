@@ -39,18 +39,22 @@ package weave.core
 	{
 		/**
 		 * Creates a LinkablePromise from an iterative task function.
-		 * @param asyncTask A function which is designed to be called repeatedly across multiple frames until it returns a value of 1.
+		 * @param initialize A function that should be called prior to starting the iterativeTask.
+		 * @param iterativeTask A function which is designed to be called repeatedly across multiple frames until it returns a value of 1.
 		 * @param priority The task priority, which should be one of the static constants in WeaveAPI.
-		 * @param description A description of the task.
+		 * @param description A description of the task as a String, or a function to call which returns a descriptive string.
+		 * Such a function has the signature function():String.
 		 * @see weave.api.core.IStageUtils#startTask()
 		 */
-		public static function fromIterativeTask(iterativeTask:Function, priority:uint, description:String = null, validateNow:Boolean = false):LinkablePromise
+		public static function fromIterativeTask(initialize:Function, iterativeTask:Function, priority:uint, description:* = null, validateNow:Boolean = false):LinkablePromise
 		{
 			var promise:LinkablePromise;
 			var asyncToken:AsyncToken;
 			
 			function asyncStart():AsyncToken
 			{
+				if (initialize != null)
+					initialize();
 				WeaveAPI.StageUtils.startTask(promise, iterativeTask, priority, asyncComplete);
 				return asyncToken = new AsyncToken();
 			}
@@ -66,9 +70,10 @@ package weave.core
 		/**
 		 * @param task A function to invoke, which may return an AsyncToken.
 		 * @param taskParams Parameters to pass to the task function.
-		 * @param description A description of the task.
+		 * @param description A description of the task as a String, or a function to call which returns a descriptive string.
+		 * Such a function has the signature function():String.
 		 */
-		public function LinkablePromise(task:Function, taskParams:Array = null, description:String = null, validateNow:Boolean = false)
+		public function LinkablePromise(task:Function, taskParams:Array = null, description:* = null, validateNow:Boolean = false)
 		{
 			_task = task;
 			_taskParams = taskParams;
@@ -82,7 +87,7 @@ package weave.core
 		
 		private var _task:Function;
 		private var _taskParams:Array;
-		private var _description:String;
+		private var _description:Object; /* Function or String */
 		
 		private var _callbackCollection:ICallbackCollection;
 		private var _lazy:Boolean = true;
@@ -154,8 +159,15 @@ package weave.core
 				return;
 			}
 			
+			
+			var _tmp_description:String = null;
+			if (_description is Function)
+				_tmp_description = (_description as Function)();
+			else
+				_tmp_description = _description as String;
+
 			// mark as busy starting now because we plan to start the task inside _groupedCallback()
-			WeaveAPI.ProgressIndicator.addTask(_groupedCallback, this, _description);
+			WeaveAPI.ProgressIndicator.addTask(_groupedCallback, this, _tmp_description);
 		}
 		
 		private function _groupedCallback():void
@@ -167,7 +179,7 @@ package weave.core
 			
 			try
 			{
-				var invokeResult:Object = _task.apply(null, _taskParams);
+				var invokeResult:* = _task.apply(null, _taskParams);
 				_asyncToken = invokeResult as AsyncToken;
 				if (_asyncToken)
 				{

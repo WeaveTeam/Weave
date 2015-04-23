@@ -271,7 +271,7 @@ package weave.visualization.plotters
 				{
 					var colorBinCol:BinnedColumn = internalColorColumn ? internalColorColumn.getInternalColumn() as BinnedColumn : null;
 					if (colorBinCol && !colorBinCol.binningDefinition.internalObject)
-						fillStyleParams[0] = internalColorColumn.ramp.getColorFromNorm(binIndex / (allBinNames.length - 1));
+						fillStyleParams[0] = internalColorColumn.getColorFromDataValue(binIndex);
 					if (isFinite(fillStyleParams[0]))
 						graphics.beginFill.apply(graphics, fillStyleParams);
 				}

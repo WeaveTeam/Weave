@@ -85,7 +85,11 @@ package weave.services
 		public function saveLocalFile(name:String, content:ByteArray):String
 		{
 			_localFiles[name] = content;
-			return LOCAL_FILE_URL_SCHEME + name;
+			var url:String = LOCAL_FILE_URL_SCHEME + name;
+			var urlLoader:CustomURLLoader = _requestURLToLoader[url] as CustomURLLoader;
+			if (urlLoader)
+				urlLoader.applyResult(content);
+			return url;
 		}
 		
 		/**
@@ -102,6 +106,10 @@ package weave.services
 		public function removeLocalFile(name:String):void
 		{
 			delete _localFiles[name];
+			var url:String = LOCAL_FILE_URL_SCHEME + name;
+			var urlLoader:CustomURLLoader = _requestURLToLoader[url] as CustomURLLoader;
+			if (urlLoader)
+				urlLoader.applyFault(new Fault('FileError', lang('File removed: {0}', url)));
 		}
 
 		/**
@@ -117,7 +125,7 @@ package weave.services
 		/**
 		 * @inheritDoc
 		 */
-		public function getURL(relevantContext:Object, request:URLRequest, dataFormat:String = "binary"):AsyncToken
+		public function getURL(relevantContext:Object, request:URLRequest, dataFormat:String = "binary", allowMultipleEvents:Boolean = false):AsyncToken
 		{
 			var urlLoader:CustomURLLoader;
 			var fault:Fault;
@@ -126,9 +134,16 @@ package weave.services
 			{
 				var fileName:String = request.url.substr(LOCAL_FILE_URL_SCHEME.length);
 				
-				// If it's a local file, we still need to return a new URLLoader.
+				// If it's a local file, we still need to create a URLLoader.
 				// CustomURLLoader doesn't load if the last parameter to the constructor is false.
-				urlLoader = new CustomURLLoader(request, dataFormat, false);
+				if (allowMultipleEvents)
+					urlLoader = _requestURLToLoader[request.url] as CustomURLLoader;
+				if (!urlLoader)
+				{
+					urlLoader = new CustomURLLoader(request, dataFormat, false);
+					if (allowMultipleEvents)
+						_requestURLToLoader[request.url] = urlLoader;
+				}
 				urlLoader.asyncToken.addRelevantContext(relevantContext);
 				
 				if (_localFiles.hasOwnProperty(fileName))
@@ -196,8 +211,18 @@ package weave.services
 			if (loader == null || loader.isClosed)
 			{
 				// make the request and add handler function that will load the content
-				var customAsyncToken:CustomAsyncToken = getURL(null, request, DATA_FORMAT_BINARY) as CustomAsyncToken;
-				loader = customAsyncToken.loader as CustomURLLoader;
+				var customAsyncToken:CustomAsyncToken;
+				if (useCache && _rawCache.hasOwnProperty(request.url))
+				{
+					loader = new CustomURLLoader(request, DATA_FORMAT_BINARY, false);
+					customAsyncToken = loader.asyncToken;
+					WeaveAPI.StageUtils.callLater(relevantContext, loader.applyResult, [_rawCache[request.url]]);
+				}
+				else
+				{
+					customAsyncToken = getURL(null, request, DATA_FORMAT_BINARY) as CustomAsyncToken;
+					loader = customAsyncToken.loader as CustomURLLoader;
+				}
 				if (!loader)
 					reportError('URLLoader missing from CustomAsyncToken', null, customAsyncToken);
 				addAsyncResponder(customAsyncToken, handleGetContentResult, handleGetContentFault, request.url);
@@ -209,15 +234,51 @@ package weave.services
 		}
 		
 		/**
+		 * Maps a URL to the raw ByteArray downloaded from a URL via getContent().
+		 */
+		private var _rawCache:Object = {};
+		
+		/**
+		 * TEMPORARY SOLUTION
+		 */
+		public var saveCache:Boolean = false;
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getCache():Object
+		{
+			return _rawCache;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function setCache(urlCache:Object):void
+		{
+			try
+			{
+				urlCache['']; // test if it's a dynamic object
+				_rawCache = urlCache;
+				saveCache = true;
+			}
+			catch (e:Error)
+			{
+				_rawCache = {};
+				saveCache = false;
+			}
+		}
+		
+		/**
 		 * This maps a URL to the content that was downloaded from that URL.
-		 */		
-		private const _contentCache:Object = new Object();
+		 */
+		private const _contentCache:Object = {};
 		
 		/**
 		 * A mapping of URL Strings to CustomURLLoaders.
 		 * This mapping is necessary for cached requests to return the active request.
 		 */
-		private const _requestURLToLoader:Object = new Object();
+		private const _requestURLToLoader:Object = {};
 		
 		/**
 		 * This function gets called asynchronously from getContent().
@@ -242,6 +303,8 @@ package weave.services
 					reportError('Content is null and URLLoader is missing in handleGetContentResult() for ' + url);
 				return;
 			}
+			
+			_rawCache[url] = bytes;
 
 			var handleLoaderComplete:Function = function (completeEvent:Event):void
 			{
@@ -578,7 +641,10 @@ internal class CustomAsyncToken extends AsyncToken
 	 */
 	public function addRelevantContext(context:Object):void
 	{
-		WeaveAPI.ProgressIndicator.addTask(this, context as ILinkableObject);
+		var desc:String = "URL request";
+		if (loader)
+			desc += ": " + loader.urlRequest.url;
+		WeaveAPI.ProgressIndicator.addTask(this, context as ILinkableObject, desc);
 		relevantContexts.push(context);
 	}
 	

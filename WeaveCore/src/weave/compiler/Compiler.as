@@ -784,7 +784,7 @@ package weave.compiler
 			}
 			
 			// handle numbers
-			var foundNumber:Object = numberRegex.exec(expression.substr(index))
+			var foundNumber:Object = numberRegex.exec(expression.substr(index));
 			if (foundNumber)
 				return foundNumber[0];
 

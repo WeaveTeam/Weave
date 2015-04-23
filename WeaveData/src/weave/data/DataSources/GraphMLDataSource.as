@@ -83,9 +83,9 @@ package weave.data.DataSources
         override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
         {
             return new ColumnTreeNode({
-                source: this,
+                dataSource: this,
                 idFields: [GRAPH_GROUP_META, GRAPH_ID_META],
-                columnMetadata: metadata
+				data: metadata
             });
         }
 
@@ -270,19 +270,18 @@ package weave.data.DataSources
                 var source:GraphMLDataSource = this;
 
                 _rootNode = new ColumnTreeNode({
-                    source: source,
+					dataSource: source,
                     data: source,
                     label: WeaveAPI.globalHashMap.getName(this),
-                    isBranch: true,
                     hasChildBranches: true,
                     children: function():Array {
                         return [GraphMLConverter.NODE, GraphMLConverter.EDGE].map(
                             function(group:String, ..._):Object {
                                 return {
-                                    source: source,
+									dataSource: source,
+									dependency: source, //TODO - evaluate whether or not this is needed
                                     data: group,
                                     label: group == GraphMLConverter.NODE ? "Nodes" : "Edges",
-                                    isBranch: true,
                                     hasChildBranches: false,
                                     children: function ():Array {
                                         var groupProperties:Array = group == GraphMLConverter.NODE ? nodeProperties : edgeProperties;

@@ -182,6 +182,9 @@ package weave.core
 			//var className:String = getQualifiedClassName(objectToCopy);
 			var classDef:Class = Object(objectToCopy).constructor; //ClassUtils.getClassDefinition(className);
 			var sessionState:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
+			//  if the name refers to the same object, remove the existing object so it can be replaced with a new one.
+			if (name == getName(objectToCopy))
+				removeObject(name);
 			var object:ILinkableObject = requestObject(name, classDef, false);
 			if (object != null)
 				WeaveAPI.SessionManager.setSessionState(object, sessionState);

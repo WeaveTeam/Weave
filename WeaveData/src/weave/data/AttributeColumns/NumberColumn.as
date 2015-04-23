@@ -45,7 +45,9 @@ package weave.data.AttributeColumns
 			return super.getMetadata(propertyName);
 		}
 
-		public function setRecords(keys:Vector.<IQualifiedKey>, numericData:Vector.<Number>):void
+		//TODO - implement IBaseColumn
+		public function setRecords(keys:Vector.<IQualifiedKey>, numericData:Object):void
+		//public function setRecords(keys:Vector.<IQualifiedKey>, numericData:Vector.<Number>):void
 		{
 			dataTask.begin(keys, numericData);
 

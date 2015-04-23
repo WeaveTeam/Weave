@@ -38,10 +38,11 @@ package weave.api.services
 		 * @param relevantContext Specifies an object that the async handlers are relevant to.  If the object is disposed via WeaveAPI.SessionManager.dispose() before the download finishes, the async handler functions will not be called.  This parameter may be null.
 		 * @param request The URL to get.
 		 * @param dataFormat The value to set as the dataFormat property of a URLLoader object.
+		 * @param allowMultipleEvents If true, gives the AsyncToken permission to dispatch additional result or fault events when the file is reloaded at a later time.
 		 * @return An AsyncToken with a <code>loader</code> property which points to the URLLoader used to perform the HTTP GET request.
 		 * @see weave.api.core.IProgressIndicator#addTask()
 		 */
-		function getURL(relevantContext:Object, request:URLRequest, dataFormat:String = "binary"):AsyncToken;
+		function getURL(relevantContext:Object, request:URLRequest, dataFormat:String = "binary", allowMultipleEvents:Boolean = false):AsyncToken;
 
 		/**
 		 * This function will download content from a URL and call the given handler functions when it completes or a fault occurrs.
@@ -83,5 +84,17 @@ package weave.api.services
 		 * @return An Array of file names.
 		 */
 		function getLocalFileNames():Array;
+		
+		/**
+		 * Gets the URL cache.
+		 * @return An Object mapping a URL to the corresponding cached file content.
+		 */
+		function getCache():Object;
+		
+		/**
+		 * Sets the URL cache.
+		 * @param cache An Object mapping a URL to the corresponding cached file content.
+		 */
+		function setCache(cache:Object):void;
 	}
 }
