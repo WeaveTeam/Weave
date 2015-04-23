@@ -24,10 +24,12 @@ package weave.data.DataSources
     import weave.api.newLinkableChild;
     import weave.api.registerLinkableChild;
     import weave.api.reportError;
+    import weave.api.getCallbackCollection;
     import weave.compiler.Compiler;
     import weave.compiler.StandardLib;
     import weave.core.LinkableString;
     import weave.core.LinkableVariable;
+    import weave.core.LinkablePromise;
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.hierarchy.ColumnTreeNode;
     import weave.services.JsonCache;
@@ -222,22 +224,11 @@ package weave.data.DataSources
 					var children:Array = [];
 					for (var key:String in node.data.variables)
 					{
-						children.push(createVariableNode(node.data.variables[key]));
+						children.push(generateHierarchyNode(node.data.variables[key]));
 					}
 					StandardLib.sortOn(children, "label");
 					return children;
 				}
-			});
-		}
-
-
-		public function createVariableNode(data:Object):ColumnTreeNode
-		{
-			return new ColumnTreeNode({
-				dataSource: this,
-				data: data,
-				idFields: [WEB_SERVICE, GEOGRAPHY_NAME, GEOGRAPHY_REQUIRES, CONCEPT_NAME, VARIABLE_NAME],
-				hasChildBranches: false
 			});
 		}
 
@@ -286,10 +277,11 @@ package weave.data.DataSources
 
         	metadata[ColumnMetadata.KEY_TYPE] =  key_column_names.join("");
 
-        	proxyColumn.setMetadata(metadata);
-        	
-        	jsonCache.getJsonObject(getUrl(web_service, params), function(result:Object):void
+        	var result:Object = null;
+
+        	var newPromise:LinkablePromise = new LinkablePromise(function():*
         	{
+        		weaveTrace("Promise called.");
 				var idx:int;
         		var columns:Array = result[0] as Array;
         		var rows:Array = result as Array;
@@ -297,6 +289,17 @@ package weave.data.DataSources
         		var key_column:Array = new Array(rows.length - 1);
         		var key_column_indices:Array = new Array(columns.length);
         		var data_column_index:int = columns.indexOf(variable_name);
+
+        		var tmp_key_type:String = key_column_names.join("");
+        		var key_overrides:Object = keyTypeOverride.getSessionState();
+        		if (key_overrides && key_overrides[tmp_key_type])
+        		{
+        			tmp_key_type = key_overrides[tmp_key_type];
+        		}
+        		metadata[ColumnMetadata.KEY_TYPE] =  tmp_key_type;
+        		
+
+        		proxyColumn.setMetadata(metadata);
         		for (idx = 0; idx < key_column_names.length; idx++)
         		{
         			key_column_indices[idx] = columns.indexOf(key_column_names[idx]);
@@ -313,8 +316,19 @@ package weave.data.DataSources
         			key_column[row_idx] = key_values.join("");
         			data_column[row_idx] = row[data_column_index];
         		}
+
         		DataSourceUtils.initColumn(proxyColumn, key_column, data_column);
-        	});
+        	}, null, lang("Constructing CensusDataSource column."));
+
+        	registerLinkableChild(proxyColumn, newPromise);
+        	registerLinkableChild(newPromise, keyTypeOverride);
+        	
+        	jsonCache.getJsonObject(getUrl(web_service, params), function (json_result:Object):void
+        		{
+        			result = json_result;
+        			getCallbackCollection(newPromise).triggerCallbacks();
+        		}
+        	);
         }
     }
 }

@@ -179,7 +179,7 @@ package weave.core
 			
 			try
 			{
-				var invokeResult:Object = _task.apply(null, _taskParams);
+				var invokeResult:* = _task.apply(null, _taskParams);
 				_asyncToken = invokeResult as AsyncToken;
 				if (_asyncToken)
 				{
