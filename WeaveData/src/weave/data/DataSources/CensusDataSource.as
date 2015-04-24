@@ -21,20 +21,21 @@ package weave.data.DataSources
     import weave.api.data.IDataSource;
     import weave.api.data.IDataSource_Service;
     import weave.api.data.IWeaveTreeNode;
+    import weave.api.getCallbackCollection;
     import weave.api.newLinkableChild;
     import weave.api.registerLinkableChild;
     import weave.api.reportError;
-    import weave.api.getCallbackCollection;
     import weave.compiler.Compiler;
     import weave.compiler.StandardLib;
+    import weave.core.LinkablePromise;
     import weave.core.LinkableString;
     import weave.core.LinkableVariable;
-    import weave.core.LinkablePromise;
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.hierarchy.ColumnTreeNode;
     import weave.services.JsonCache;
     import weave.utils.DataSourceUtils;
     import weave.utils.VectorUtils;
+    import weave.utils.WeavePromise;
 
     public class CensusDataSource extends AbstractDataSource implements IDataSource_Service
     {
@@ -277,59 +278,47 @@ package weave.data.DataSources
 
         	metadata[ColumnMetadata.KEY_TYPE] =  key_column_names.join("");
 
-        	var result:Object = null;
-
-        	var newPromise:LinkablePromise = new LinkablePromise(function():*
-        	{
-				if (result == null) return;
-				var idx:int;
-        		var columns:Array = result[0] as Array;
-        		var rows:Array = result as Array;
-        		var data_column:Array = new Array(rows.length - 1);
-        		var key_column:Array = new Array(rows.length - 1);
-        		var key_column_indices:Array = new Array(columns.length);
-        		var data_column_index:int = columns.indexOf(variable_name);
-
-        		var tmp_key_type:String = WeaveAPI.CSVParser.createCSVRow(key_column_names);
-        		var key_overrides:Object = keyTypeOverride.getSessionState();
-        		if (key_overrides && key_overrides[tmp_key_type])
-        		{
-        			tmp_key_type = key_overrides[tmp_key_type];
-        		}
-        		metadata[ColumnMetadata.KEY_TYPE] =  tmp_key_type;
-        		
-
-        		proxyColumn.setMetadata(metadata);
-        		for (idx = 0; idx < key_column_names.length; idx++)
-        		{
-        			key_column_indices[idx] = columns.indexOf(key_column_names[idx]);
-        		}
-        		for (var row_idx:int = 0; row_idx < data_column.length; row_idx++)
-        		{
-        			var row:Array = rows[row_idx+1];
-        			var key_values:Array = new Array(key_column_indices.length);
-
-        			for (idx = 0; idx < key_column_indices.length; idx++)
-        			{
-        				key_values[idx] = row[key_column_indices[idx]];
-        			}
-        			key_column[row_idx] = key_values.join("");
-        			data_column[row_idx] = row[data_column_index];
-        		}
-
-        		DataSourceUtils.initColumn(proxyColumn, key_column, data_column);
-        	}, null, lang("Constructing CensusDataSource column."));
-
-        	registerLinkableChild(proxyColumn, newPromise);
-        	registerLinkableChild(newPromise, keyTypeOverride);
-
-        	jsonCache.getJsonObject(getUrl(web_service, params), function (json_result:Object):void
-        		{
-        			result = json_result;
-        			getCallbackCollection(newPromise).triggerCallbacks();
-					newPromise.validate();
-        		}
-        	);
+			jsonCache.getJsonPromise(proxyColumn, getUrl(web_service, params))
+				.depend(keyTypeOverride)
+				.then(function(result:Object):void {
+					if (result == null)
+						return;
+					var idx:int;
+					var columns:Array = result[0] as Array;
+					var rows:Array = result as Array;
+					var data_column:Array = new Array(rows.length - 1);
+					var key_column:Array = new Array(rows.length - 1);
+					var key_column_indices:Array = new Array(columns.length);
+					var data_column_index:int = columns.indexOf(variable_name);
+					
+					var tmp_key_type:String = WeaveAPI.CSVParser.createCSVRow(key_column_names);
+					var key_overrides:Object = keyTypeOverride.getSessionState();
+					if (key_overrides && key_overrides[tmp_key_type])
+					{
+						tmp_key_type = key_overrides[tmp_key_type];
+					}
+					metadata[ColumnMetadata.KEY_TYPE] =  tmp_key_type;
+					
+					proxyColumn.setMetadata(metadata);
+					for (idx = 0; idx < key_column_names.length; idx++)
+					{
+						key_column_indices[idx] = columns.indexOf(key_column_names[idx]);
+					}
+					for (var row_idx:int = 0; row_idx < data_column.length; row_idx++)
+					{
+						var row:Array = rows[row_idx+1];
+						var key_values:Array = new Array(key_column_indices.length);
+						
+						for (idx = 0; idx < key_column_indices.length; idx++)
+						{
+							key_values[idx] = row[key_column_indices[idx]];
+						}
+						key_column[row_idx] = key_values.join("");
+						data_column[row_idx] = row[data_column_index];
+					}
+					
+					DataSourceUtils.initColumn(proxyColumn, key_column, data_column);
+				});
         }
     }
 }
