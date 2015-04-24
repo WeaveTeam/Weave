@@ -24,6 +24,7 @@ package weave.core
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
+	import weave.api.registerLinkableChild;
 	
 	/**
 	 * Use this class to build dependency trees involving asynchronous calls.
@@ -231,6 +232,17 @@ package weave.core
 			
 			_selfTriggeredCount = _callbackCollection.triggerCounter + 1;
 			_callbackCollection.triggerCallbacks();
+		}
+		
+		/**
+		 * Registers dependencies of the LinkablePromise.
+		 */
+		public function depend(dependency:ILinkableObject, ...otherDependencies):LinkablePromise
+		{
+			otherDependencies.unshift(dependency);
+			for each (dependency in otherDependencies)
+				registerLinkableChild(this, dependency);
+			return this;
 		}
 		
 		public function dispose():void
