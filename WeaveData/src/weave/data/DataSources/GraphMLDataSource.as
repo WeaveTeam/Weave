@@ -118,7 +118,7 @@ package weave.data.DataSources
             handleEdgeKeyPropertyChange();
 
             refreshAllProxyColumns();
-            refreshHierarchy(); // this triggers callbacks
+            hierarchyRefresh.triggerCallbacks();
         }
 
         private function handleGraphMLDownloadError(event:FaultEvent, token:Object = null):void
