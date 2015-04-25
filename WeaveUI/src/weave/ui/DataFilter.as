@@ -15,10 +15,6 @@
 
 package weave.ui
 {
-	import avmplus.getQualifiedClassName;
-	
-	import weave.api.core.DynamicState;
-	import weave.api.objectWasDisposed;
 	import weave.editors.StringDataFilterEditor;
 
 	[ExcludeClass]
@@ -27,25 +23,9 @@ package weave.ui
 	{
 		public function DataFilter()
 		{
-			super();
-			callLater(init);
-		}
-		
-		private function init():void
-		{
-			if (objectWasDisposed(this))
-				return;
-			
-			editor.setSessionState([
-				DynamicState.create(
-					null,
-					getQualifiedClassName(StringDataFilterEditor),
-					{
-						layoutMode: MenuToolViewStack.LAYOUT_COMBO,
-						showToggle: true
-					}
-				)
-			], true);
+			var sdfe:StringDataFilterEditor = editor.requestLocalObject(StringDataFilterEditor, false);
+			sdfe.layoutMode.value = MenuToolViewStack.LAYOUT_COMBO;
+			sdfe.showToggle.value = true;
 		}
 	}
 }
