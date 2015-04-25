@@ -15,35 +15,37 @@
 
 package weave.ui
 {
+	import avmplus.getQualifiedClassName;
+	
+	import weave.api.core.DynamicState;
 	import weave.api.objectWasDisposed;
-	import weave.editors.NumberDataFilterEditor;
 	import weave.editors.StringDataFilterEditor;
 
-	[Deprecated] [ExcludeClass] public class DataFilter extends DataFilterTool
+	[ExcludeClass]
+	[Deprecated(replacement="weave.ui.DataFilterTool")]
+	public class DataFilter extends DataFilterTool
 	{
 		public function DataFilter()
 		{
 			super();
 			callLater(init);
 		}
+		
 		private function init():void
 		{
 			if (objectWasDisposed(this))
 				return;
 			
-			var sdfe:StringDataFilterEditor = editor.target as StringDataFilterEditor;
-			var ndfe:NumberDataFilterEditor = editor.target as NumberDataFilterEditor;
-			if (sdfe)
-			{
-				sdfe.layoutMode.value = MenuToolViewStack.LAYOUT_COMBO;
-				sdfe.showToggle.value = true;
-			}
-			else if (ndfe)
-			{
-				ndfe.showToggle.value = true;
-			}
-			else
-				callLater(init);
+			editor.setSessionState([
+				DynamicState.create(
+					null,
+					getQualifiedClassName(StringDataFilterEditor),
+					{
+						layoutMode: MenuToolViewStack.LAYOUT_COMBO,
+						showToggle: true
+					}
+				)
+			], true);
 		}
 	}
 }
