@@ -51,9 +51,10 @@
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
+			import weave.data.AttributeColumnCache;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
-			import weave.data.hierarchy.DataSourceTreeNode;
+			import weave.data.hierarchy.WeaveRootDataTreeNode;
 			import weave.data.hierarchy.EntityNodeSearch;
 			import weave.utils.EventUtils;
 			
@@ -123,7 +124,7 @@
 				
 				registerLinkableChild(this, explorer);
 
-				explorer.rootNode = new DataSourceTreeNode();
+				explorer.rootNode = new WeaveRootDataTreeNode();
 				
 				explorer.folderView.dragEnabled = false;
 				explorer.fileView.dragEnabled = true;
@@ -212,7 +213,7 @@
 			
 			private function handleReferencedColumn():void
 			{
-				var ds:IDataSource = referencedColumn.getDataSource();
+				var ds:IDataSource = referencedColumn.getDataSource() || AttributeColumnCache.globalColumnDataSource;
 				if (ds)
 				{
 					var meta:Object = referencedColumn.metadata.getSessionState();

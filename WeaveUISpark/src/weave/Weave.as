@@ -45,6 +45,7 @@ package weave
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
+	import weave.services.URLRequestUtils;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -394,6 +395,12 @@ package weave
 				var _history:Object = archive.objects[WeaveArchive.ARCHIVE_HISTORY_AMF];
 				if (!_history)
 					throw new Error("Weave session history not found.");
+				
+				var urlCache:Object = archive.objects[WeaveArchive.ARCHIVE_URL_CACHE_AMF];
+				if (urlCache)
+					WeaveAPI.URLRequestUtils.setCache(urlCache);
+				else if ((WeaveAPI.URLRequestUtils as URLRequestUtils).saveCache) // temporary hack
+					WeaveAPI.URLRequestUtils.setCache(null);
 				
 				// remove all local files and replace with list from archive
 				for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())

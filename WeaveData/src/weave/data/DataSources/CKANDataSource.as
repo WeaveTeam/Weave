@@ -59,13 +59,13 @@ package weave.data.DataSources
 			super.initialize();
 		}
 		
-		override public function refreshHierarchy():void
+		override protected function refreshHierarchy():void
 		{
 			getCallbackCollection(this).delayCallbacks();
 			for (var url:String in _dataSourceCache)
 			{
 				var ds:IDataSource = _dataSourceCache[url];
-				ds.refreshHierarchy();
+				ds.hierarchyRefresh.triggerCallbacks();
 			}
 			super.refreshHierarchy();
 			getCallbackCollection(this).resumeCallbacks();

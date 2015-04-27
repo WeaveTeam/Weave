@@ -15,6 +15,8 @@
 
 package weave.data.KeySets
 {
+	import flash.utils.Dictionary;
+	
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
@@ -26,35 +28,47 @@ package weave.data.KeySets
 
 	public class NumberDataFilter implements IKeyFilter
 	{
-		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), cacheValues);
-		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn, cacheValues);
-		public const min:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-Infinity), cacheValues);
-		public const max:LinkableNumber = registerLinkableChild(this, new LinkableNumber(Infinity), cacheValues);
-		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), cacheValues);
+		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), _cacheVars);
+		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), _cacheVars);
+		public const min:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-Infinity), _resetKeyLookup);
+		public const max:LinkableNumber = registerLinkableChild(this, new LinkableNumber(Infinity), _resetKeyLookup);
+		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn, _resetKeyLookup);
 
-		private function cacheValues():void
-		{
-			_enabled = enabled.value;
-			_keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
-			_min = min.value;
-			_max = max.value;
-			_includeMissingKeyTypes = includeMissingKeyTypes.value;
-		}
-		
 		private var _enabled:Boolean;
-		private var _keyType:String;
+		private var _includeMissingKeyTypes:Boolean;
 		private var _min:Number;
 		private var _max:Number;
-		private var _includeMissingKeyTypes:Boolean;
+		private var _keyType:String;
+		private var _keyLookup:Dictionary = new Dictionary(true);
+
+		private function _cacheVars():void
+		{
+			_enabled = enabled.value;
+			_includeMissingKeyTypes = includeMissingKeyTypes.value;
+		}
+		private function _resetKeyLookup():void
+		{
+			_min = min.value;
+			_max = max.value;
+			_keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
+			_keyLookup = new Dictionary(true);
+		}
 
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
 			if (!_enabled)
 				return true;
-			if (_includeMissingKeyTypes && key.keyType != _keyType)
-				return true;
-			var value:Number = column.getValueFromKey(key, Number);
-			return value >= _min && value <= _max;
+			
+			var cached:* = _keyLookup[key];
+			if (cached === undefined)
+			{
+				var value:Number = column.getValueFromKey(key, Number);
+				cached = value >= _min && value <= _max;
+				if (!cached && _includeMissingKeyTypes && key.keyType != _keyType)
+					cached = true;
+				_keyLookup[key] = cached;
+			}
+			return cached;
 		}
 	}
 }

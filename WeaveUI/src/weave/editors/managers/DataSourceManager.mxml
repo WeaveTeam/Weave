@@ -47,10 +47,16 @@
 													SessionStateEditor.openDefaultEditor(data as IDataSource);
 												}
 											},{
-												label: lang('Refresh hierarchy'),
+												label: lang('Refresh'),
 												click: function():void {
-													if (data is IDataSource)
-														(data as IDataSource).refreshHierarchy();
+													var ds:IDataSource = data as IDataSource;
+													if (ds)
+													{
+														ds.hierarchyRefresh.triggerCallbacks();
+														// TEMPORARY SOLUTION until all data sources behave correctly - force creating a new copy
+														var ghm:ILinkableHashMap = WeaveAPI.globalHashMap;
+														ghm.requestObjectCopy(ghm.getName(ds), ds);
+													}
 												}
 											},
 											WeaveMenuItem.TYPE_SEPARATOR,
@@ -381,7 +387,7 @@
 							editor.applyChanges();
 							removeEditor();
 							if (refreshCheck.selected)
-								dataSource.refreshHierarchy();
+								dataSource.hierarchyRefresh.triggerCallbacks();
 							tabNav.selectedChild = browseTab;
 						}
 					}

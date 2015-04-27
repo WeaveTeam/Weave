@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -981,32 +982,21 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	////////////////
 	// Data import
 
+	private Pattern doublePattern = Pattern.compile("(0|0?\\.[0-9]+|[1-9][0-9]*(\\.[0-9]+)?)([eE][-+]?[0-9]+)?");
+	private Pattern intPattern = Pattern.compile("0|[1-9][0-9]*");
+	
 	private boolean valueIsInt(String value)
 	{
-		try
-		{
-			return Integer.toString(Integer.parseInt(value)).equals(value);
-		}
-		catch (Exception e)
-		{
-			return false;
-		}
+		return intPattern.matcher(value).matches();
 	}
-
+	
 	/**
 	 * @param value
 	 * @return true if the value can be parsed as an int or double without losing information including leading zeros or whitespace padding.
 	 */
 	private boolean valueIsDouble(String value)
 	{
-		try
-		{
-			return Double.toString(Double.parseDouble(value)).equals(value) || valueIsInt(value);
-		}
-		catch (Exception e)
-		{
-			return false;
-		}
+		return doublePattern.matcher(value).matches();
 	}
 	
 	private boolean isDuplicateItem(String[] items, int index)

@@ -26,16 +26,46 @@
 
 	<target name="dist" depends="build">
 		<zip destfile="weave.zip">
-			<zipfileset dir="${WEAVE_DESTROOT}" prefix="ROOT"/>
+			<zipfileset dir="${WEAVE_DESTROOT}" prefix="ROOT" excludes="${DESKTOP}.swf ${DESKTOP}.air *.png defaults.xml"/>
 			<zipfileset file="${basedir}/WeaveServices.war"/>
 		</zip>
 	</target>
-	
-	<target name="deploy_war">
-		<zip destfile="weave.zip">
-			<zipfileset dir="${WEAVE_DESTROOT}" prefix="ROOT"/>
-			<zipfileset file="${basedir}/WeaveServices.war"/>
-		</zip>
+
+	<target name="air"  depends="build, desktop"> 
+		<copy todir="${WEAVE_DESTROOT}">
+			<fileset dir="${DESKTOP}/src/">
+				<include name="*.png"/>
+			</fileset>
+			<fileset dir="${CLIENT}/configurations">
+				<include name="defaults.xml"/>
+			</fileset>
+		</copy>
+		<path id="FILE-LIST">
+			<fileset dir="${WEAVE_DESTROOT}">
+				<include name="*" />
+				<exclude name="${CLIENT}.swf"/>
+				<exclude name="${DESKTOP}.air"/>
+			</fileset>
+		</path>
+		<pathconvert pathsep=" " property="FILE-LIST.csv"
+			refid="FILE-LIST"/>
+			<java 
+				jar ="${ADT_JAR}" 
+				fork = "true"  
+				dir ="${WEAVE_DESTROOT}"   
+				failonerror="true"> 
+				<arg value="-package"/> 
+				<arg value="-storetype"/> 
+				<arg value="pkcs12"/> 
+				<arg value="-keystore"/> 
+				<arg value="${AIR_CERT}"/> 
+				<arg value="-storepass"/>
+				<arg value="${AIR_CERT_PASS}"/>
+				<arg value="${DESKTOP}"/> 
+				<arg value="${basedir}/${DESKTOP}/src/WeaveDesktop-app.xml"/> 
+				<arg line="${FILE-LIST.csv}"/> 
+				<!--  <arg value="icons/*.png"/>  -->
+			</java> 
 	</target>
 	
 	<target name="install" depends="build">
@@ -46,6 +76,10 @@
 			<include name="*.html"/>
 			<include name="*.js"/>
 			<include name="*.css"/>
+			<exclude name="${DESKTOP}.swf"/>
+			<exclude name="${DESKTOP}.air"/>
+			<exclude name="*.png"/>
+			<exclude name="defaults.xml"/>
 			</fileset>
 		</copy>
 		<copy todir="${WEAVE_DOCROOT}/../">
@@ -106,6 +140,10 @@
 	<target name="admin" depends="ui">
 		<buildproject targetproject="${ADMIN}" targetfileext="swf"/>
 	</target>
+	<target name="desktop" depends="ui">
+		<buildproject targetproject="${DESKTOP}" targetfileext="swf"/>
+		<copy file="${basedir}/${DESKTOP}/bin/${DESKTOP}.swf" tofile="${WEAVE_DESTROOT}/${DESKTOP}.swf"/>
+	</target>
 	<target name="servletutils">
 		<ant dir="${basedir}/${SERVLETUTILS}" target="build"/>
 	</target>
@@ -119,6 +157,7 @@
 		<ant dir="${basedir}/${DOCMAPSERVICE}" target="dist"/>
 	</target>
 
+
 	<!-- This target calls the clean targets of each project's build file -->
 	<target name="clean">
 		<echo message="Cleaning all projects..."/>
@@ -127,6 +166,7 @@
 			<fileset file="${basedir}/weave.zip"/>
 		</delete>
 		<ant dir="${basedir}/${CLIENT}" target="clean" />
+		<ant dir="${basedir}/${DESKTOP}" target="clean" />
 		<ant dir="${basedir}/${ADMIN}" target="clean" />
 		<ant dir="${basedir}/${API}" target="clean" />
 		<ant dir="${basedir}/${CORE}" target="clean" />

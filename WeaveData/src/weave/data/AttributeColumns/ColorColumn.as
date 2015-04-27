@@ -25,6 +25,7 @@ package weave.data.AttributeColumns
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.primitives.ColorRamp;
 	
@@ -52,6 +53,54 @@ package weave.data.AttributeColumns
 		private var _internalColumnStats:IColumnStatistics;
 		
 		public const ramp:ColorRamp = newLinkableChild(this, ColorRamp);
+		public const rampCenterAtZero:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), cacheState);
+		
+		private var _rampCenterAtZero:Boolean;
+		private function cacheState():void
+		{
+			_rampCenterAtZero = rampCenterAtZero.value;
+		}
+		
+		public function getDataMin():Number
+		{
+			if (_rampCenterAtZero)
+			{
+				var dataMin:Number = _internalColumnStats.getMin();
+				var dataMax:Number = _internalColumnStats.getMax();
+				return -Math.max(Math.abs(dataMin), Math.abs(dataMax));
+			}
+			return _internalColumnStats.getMin();
+		}
+		public function getDataMax():Number
+		{
+			if (_rampCenterAtZero)
+			{
+				var dataMin:Number = _internalColumnStats.getMin();
+				var dataMax:Number = _internalColumnStats.getMax();
+				return Math.max(Math.abs(dataMin), Math.abs(dataMax));
+			}
+			return _internalColumnStats.getMax();
+		}
+		public function getColorFromDataValue(value:Number):Number
+		{
+			var dataMin:Number = _internalColumnStats.getMin();
+			var dataMax:Number = _internalColumnStats.getMax();
+			var norm:Number;
+			if (dataMin == dataMax)
+			{
+				norm = isFinite(value) ? 0.5 : NaN;
+			}
+			else if (_rampCenterAtZero)
+			{
+				var absMax:Number = Math.max(Math.abs(dataMin), Math.abs(dataMax));
+				norm = (value + absMax) / (2 * absMax);
+			}
+			else
+			{
+				norm = (value - dataMin) / (dataMax - dataMin);
+			}
+			return ramp.getColorFromNorm(norm);
+		}
 		
 		/**
 		 * This is a CSV containing specific colors associated with record keys.
@@ -99,15 +148,8 @@ package weave.data.AttributeColumns
 			}
 			else
 			{
-				var dataMin:Number = _internalColumnStats.getMin();
-				var dataMax:Number = _internalColumnStats.getMax();
 				var value:Number = internalDynamicColumn.getValueFromKey(key, Number);
-				var norm:Number;
-				if (dataMin == dataMax)
-					norm = isFinite(value) ? 0 : NaN;
-				else
-					norm = (value - dataMin) / (dataMax - dataMin);
-				color = ramp.getColorFromNorm(norm);
+				color = getColorFromDataValue(value);
 			}
 			
 			if (dataType == Number)

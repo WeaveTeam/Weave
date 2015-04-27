@@ -232,10 +232,16 @@ package weave.visualization.plotters
 			lineStyle.beginLineStyle(null, tempShape.graphics);
 			tempShape.graphics.drawRect(tempBounds.getXNumericMin(), tempBounds.getYNumericMin(), tempBounds.getXCoverage() - 1, tempBounds.getYCoverage() - 1);
 			
-			var minLabel:String = ColumnUtils.deriveStringFromNumber(dataColumn, stats.getMin());
+			var minLabel:String = ColumnUtils.deriveStringFromNumber(dataColumn, colorColumn.getDataMin());
 			LegendUtils.renderLegendItemText(destination, minLabel, screenBounds, _shapeSize + labelGap, null, reverseOrder.value ? BitmapText.VERTICAL_ALIGN_BOTTOM : BitmapText.VERTICAL_ALIGN_TOP);
 			
-			var maxLabel:String = ColumnUtils.deriveStringFromNumber(dataColumn, stats.getMax());
+			if (colorColumn.rampCenterAtZero.value)
+			{
+				var midLabel:String = ColumnUtils.deriveStringFromNumber(dataColumn, 0);
+				LegendUtils.renderLegendItemText(destination, midLabel, screenBounds, _shapeSize + labelGap, null, BitmapText.VERTICAL_ALIGN_MIDDLE);
+			}
+			
+			var maxLabel:String = ColumnUtils.deriveStringFromNumber(dataColumn, colorColumn.getDataMax());
 			LegendUtils.renderLegendItemText(destination, maxLabel, screenBounds, _shapeSize + labelGap, null, reverseOrder.value ? BitmapText.VERTICAL_ALIGN_TOP : BitmapText.VERTICAL_ALIGN_BOTTOM);
 			
 			destination.draw(tempShape);
@@ -262,8 +268,6 @@ package weave.visualization.plotters
 			var xShapeOffset:Number = _shapeSize / 2; 
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(colorColumn.internalDynamicColumn);
 			statsWatcher.target = stats;
-			var internalMin:Number = stats.getMin();
-			var internalMax:Number = stats.getMax();
 			var binCount:int = binnedColumn.numberOfBins;
 			for (var iBin:int = 0; iBin < binCount; ++iBin)
 			{
@@ -283,7 +287,7 @@ package weave.visualization.plotters
 				
 				// draw circle
 				var iColorIndex:int = reverseOrder.value ? (binCount - 1 - iBin) : iBin;
-				var color:Number = colorColumn.ramp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
+				var color:Number = colorColumn.getColorFromDataValue(iBin);
 				var xMin:Number = tempBounds.getXNumericMin(); 
 				var yMin:Number = tempBounds.getYNumericMin();
 				var xMax:Number = tempBounds.getXNumericMax(); 

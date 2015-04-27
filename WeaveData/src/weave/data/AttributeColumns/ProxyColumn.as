@@ -184,7 +184,9 @@ package weave.data.AttributeColumns
 			
 		override public function toString():String
 		{
-			return debugId(this) + '( ' + (getInternalColumn() ? getInternalColumn() : super.toString()) + ' )';
+			if (getInternalColumn())
+				return debugId(this) + '( ' + getInternalColumn() + ' )';
+			return super.toString();
 		}
 	}
 }

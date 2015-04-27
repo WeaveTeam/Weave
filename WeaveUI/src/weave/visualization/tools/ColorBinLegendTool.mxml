@@ -168,11 +168,13 @@
 				<mx:HSlider liveDragging="true" minimum="10" maximum="100" tickInterval="10" snapInterval="5" width="100%" dataTipFormatFunction="{Math.round}"
 							creationComplete="linkBindableProperty(outerDocument._plotter.shapeSize, event.target, 'value')"/>
 			</ui:Indent>
+			<ui:CustomCheckBox id="centerAtZero" label="{lang('Center color ramp at zero')}" change="handleCenterAtZero()"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 		<mx:Script>
 			<![CDATA[
 				import weave.api.linkBindableProperty;
+				import weave.data.AttributeColumns.ColorColumn;
 				import weave.visualization.plotters.ColorBinLegendPlotter;
 				
 				override protected function childrenCreated():void
@@ -187,11 +189,21 @@
 					linkBindableProperty(outerDocument._plotter.reverseOrder, legendControls.reverseOrderCheck, 'selected');
 					linkBindableProperty(outerDocument._plotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
 					linkBindableProperty(outerDocument._plotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
+					
 					legendControls.chkShowLegendAttrName.addEventListener(Event.CHANGE, toggleShowAttributeName);
+				}
+				
+				private function handleCenterAtZero():void
+				{
+					var cc:ColorColumn = outerDocument._plotter.getInternalColorColumn();
+					if (cc)
+						cc.rampCenterAtZero.value = centerAtZero.selected;
 				}
 				
 				private function colorColumnCallback():void
 				{
+					var cc:ColorColumn = outerDocument._plotter.getInternalColorColumn();
+					centerAtZero.selected = cc && cc.rampCenterAtZero.value;
 					binEditor.setTarget(outerDocument.internalBinnedColumn);
 					cRampEditor.colorRamp = outerDocument.internalColorRamp;
 				}

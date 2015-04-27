@@ -24,6 +24,8 @@ package weave.data.DataSources
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
+	import weave.core.CallbackCollection;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.utils.HierarchyUtils;
 	
@@ -57,6 +59,25 @@ package weave.data.DataSources
 		 * ProxyColumn -> (true if pending, false if not pending)
 		 */
 		protected var _proxyColumns:Dictionary = new Dictionary(true);
+		
+		private const _hierarchyRefresh:ICallbackCollection = newLinkableChild(this, CallbackCollection, refreshHierarchy);
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get hierarchyRefresh():ICallbackCollection
+		{
+			return _hierarchyRefresh;
+		}
+		
+		/**
+		 * Sets _rootNode to null and triggers callbacks.
+		 * @inheritDoc
+		 */
+		protected function refreshHierarchy():void
+		{
+			_rootNode = null;
+		}
 		
 		/**
 		 * This function must be implemented by classes that extend AbstractDataSource.
@@ -110,16 +131,6 @@ package weave.data.DataSources
 			_initializeCalled = true;
 
 			handleAllPendingColumnRequests();
-		}
-		
-		/**
-		 * Sets _rootNode to null and triggers callbacks.
-		 * @inheritDoc
-		 */
-		public function refreshHierarchy():void
-		{
-			_rootNode = null;
-			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**

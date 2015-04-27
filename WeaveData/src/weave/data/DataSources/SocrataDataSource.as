@@ -62,7 +62,7 @@ package weave.data.DataSources
 			super.initialize();
 		}
 		
-		override public function refreshHierarchy():void
+		override protected function refreshHierarchy():void
 		{
 			getCallbackCollection(this).delayCallbacks();
 			jsonCache.clearCache();

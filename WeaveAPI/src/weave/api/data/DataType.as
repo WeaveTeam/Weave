@@ -21,6 +21,8 @@ package weave.api.data
 	 */
 	public class DataType
 	{
+		public static const ALL_TYPES:Array = [NUMBER, STRING, DATE, GEOMETRY];
+		
 		public static const NUMBER:String = "number";
 		public static const STRING:String = "string";
 		public static const DATE:String = "date";

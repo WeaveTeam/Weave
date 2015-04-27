@@ -68,31 +68,24 @@ package weave.data.Transforms
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!_rootNode)
-			{
-				var source:PartitionDataTransform = this;
-				var partitionValues:Array = [];
-				
 				_rootNode = new ColumnTreeNode({
-					source: source,
-					data: source,
+					dataSource: this,
+					dependency: partitionColumn,
 					label: WeaveAPI.globalHashMap.getName(this),
-					isBranch: true,
 					hasChildBranches: true,
 					children: function():Array {
-						if (detectLinkableObjectChange(_rootNode, partitionColumn))
-							partitionValues = VectorUtils.union(
-								partitionColumn.keys.map(
-									function(key:IQualifiedKey, ..._):String {
-										return partitionColumn.getValueFromKey(key, String);
-									}
-								)
-							);
+						var partitionValues:Array = VectorUtils.union(
+							partitionColumn.keys.map(
+								function(key:IQualifiedKey, ..._):String {
+									return partitionColumn.getValueFromKey(key, String);
+								}
+							)
+						);
 						return partitionValues.map(
 							function(partitionValue:String, ..._):* {
 								return {
-									source: source,
+									dependency: inputColumns,
 									data: partitionValue,
-									isBranch: true,
 									hasChildBranches: false,
 									children: function():Array {
 										return inputColumns.getNames().map(
@@ -115,16 +108,15 @@ package weave.data.Transforms
 						);
 					}
 				});
-			}
 			return _rootNode;
 		}
 
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
 			return new ColumnTreeNode({
-				source: this,
+				dataSource: this,
 				idFields: [PARTITION_VALUE_META, PARTITION_COLUMNNAME_META],
-				columnMetadata: metadata
+				data: metadata
 			});
 		}
 		
@@ -143,7 +135,7 @@ package weave.data.Transforms
 			var filter:StringDataFilter = filteredColumn.filter.requestLocalObject(StringDataFilter, false);
 
 			filter.column.requestLocalObjectCopy(partitionColumn);
-			filter.stringValue.value = filterValue;
+			filter.stringValues.setSessionState([filterValue]);
 			filteredColumn.internalDynamicColumn.requestLocalObjectCopy(inputColumn);
 			
 			proxyColumn.setInternalColumn(filteredColumn);

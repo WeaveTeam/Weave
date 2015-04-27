@@ -271,14 +271,14 @@ package weave.data.DataSources
 			}
 			proxyColumn.setMetadata(metadata);
 
-			var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(getKeyType(), getColumnValues(keyColName.value, true)));
+			var keysVector:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(getKeyType(), getColumnValues(keyColName.value)));
 			var data:Array = getColumnValues(columnName);
 
 			var newColumn:IAttributeColumn;
 			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
 			if (dataType == DataType.GEOMETRY)
 			{
-				newColumn = new GeometryColumn();
+				newColumn = new GeometryColumn(metadata);
 				(newColumn as GeometryColumn).setGeometries(keysVector, Vector.<GeneralizedGeometry>(data));
 			}
 			else if (dataType == DataType.DATE)
@@ -349,7 +349,7 @@ package weave.data.DataSources
 			}
 			return null;
 		}
-		private function getColumnValues(columnName:String, trimStrings:Boolean = false):Array
+		private function getColumnValues(columnName:String):Array
 		{
 			var values:Array = [];
 			if (columnName == THE_GEOM_COLUMN)
@@ -365,8 +365,6 @@ package weave.data.DataSources
 				{
 					record = DbfTools.getRecord(dbfData, dbfHeader, i);
 					var value:* = record.values[columnName];
-					if (trimStrings)
-						value = StringUtil.trim(value);
 					values.push(value);
 				}
 				else

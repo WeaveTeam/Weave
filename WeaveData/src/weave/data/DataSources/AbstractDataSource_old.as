@@ -123,11 +123,10 @@ package weave.data.DataSources
 		/**
 		 * @inheritDoc
 		 */
-		override public function refreshHierarchy():void
+		override protected function refreshHierarchy():void
 		{
 			_rootNode = null;
 			_attributeHierarchy.setSessionState(null);
-			getCallbackCollection(this).triggerCallbacks();
 		}
 
 		/**

@@ -135,10 +135,18 @@
 				// called whenever a global object gets added/removed/reordered
 				private function handleGlobalListChange():void
 				{
+					if (!parent)
+					{
+						callLater(handleGlobalListChange);
+						return;
+					}
+					
 					// update the list of tools
 					var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, ISelectableAttributes);
+					
 					// two filter passes because the filter function may modify the array on the first pass
 					descendants = descendants.filter(outerDocument.filterDescendants).filter(outerDocument.filterDescendants).map(objectToPathString);
+					
 					StandardLib.sort(descendants);
 					if (StandardLib.compare(_prevDescendants, descendants) != 0)
 						targetToolCombo.dataProvider = _prevDescendants = descendants;

@@ -70,6 +70,7 @@ package
 	import weave.ui.ColorRampEditor;
 	import weave.ui.DataFilter;
 	import weave.ui.DocumentSummaryComponent;
+	import weave.ui.DataFilterTool;
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
 	import weave.ui.SchafersMissingDataTool;
@@ -193,7 +194,7 @@ package
 				DocumentSummaryComponent,
 				DraggableScatterPlotTool,
 				SchafersMissingDataTool,
-				DataFilter,
+				DataFilterTool,
 				AdvancedTableTool,
 				GaugeTool,
 				HistogramTool,

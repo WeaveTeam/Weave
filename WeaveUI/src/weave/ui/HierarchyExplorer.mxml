@@ -51,7 +51,7 @@
 			import weave.utils.EventUtils;
 			import weave.utils.VectorUtils;
 			
-			[Bindable] private var DISPLAY_MODE_BRANCHES:uint = WeaveTreeDataDescriptor.DISPLAY_MODE_BRANCHES;
+			[Bindable] private var DISPLAY_MODE_BRANCHES:uint = WeaveTreeDescriptor.DISPLAY_MODE_BRANCHES;
 			private const rootWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 			
 			private function isNonNull(value:String):Boolean { return value != null; }

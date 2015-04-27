@@ -23,7 +23,8 @@
 				width="100%" height="100%">
 	<mx:Canvas label="{lang('List')}">
 		<mx:List id="choiceList" width="100%" height="100%"
-				 change="chosenItem = choiceList.selectedItem;"
+				 allowMultipleSelection="{allowMultipleSelection}"
+				 change="chosenItems = choiceList.selectedItems;"
 				 backgroundAlpha="0" borderStyle="none"
 				 />
 	</mx:Canvas>
@@ -51,28 +52,38 @@
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:HBox>
 	</mx:Canvas>
+	<mx:Canvas label="{lang('Checklist')}">
+		<ui:CheckBoxList id="choiceCheckBoxList"
+						 paddingLeft="4"
+						 allowMultipleSelection="{allowMultipleSelection}"
+						 valueCommit="chosenItems = choiceCheckBoxList.selectedItems;"
+						 />
+	</mx:Canvas>
 	<mx:Script>
 		<![CDATA[
+			import weave.compiler.StandardLib;
 			import weave.core.UIUtils;
 
 			public static const LAYOUT_LIST:String = "List";
 			public static const LAYOUT_COMBO:String = "ComboBox";
 			public static const LAYOUT_VSLIDER:String = "VSlider";
 			public static const LAYOUT_HSLIDER:String = "HSlider";
+			public static const LAYOUT_CHECKBOXLIST:String = "CheckBoxList";
 			
-			public static const LAYOUTS:Array = [LAYOUT_LIST, LAYOUT_COMBO, LAYOUT_VSLIDER, LAYOUT_HSLIDER];
-			private static const layoutLabels:Array = [lang('List'), lang('Combo Box'), lang('Vertical Slider'), lang('Horizontal Slider')];
+			public static const LAYOUTS:Array = [LAYOUT_LIST, LAYOUT_COMBO, LAYOUT_VSLIDER, LAYOUT_HSLIDER, LAYOUT_CHECKBOXLIST];
+			private static const layoutLabels:Array = [lang('List'), lang('Combo Box'), lang('Vertical Slider'), lang('Horizontal Slider'), lang('Checklist')];
 			public static function layoutLabelFunction(layoutMode:String):String
 			{
 				return layoutLabels[LAYOUTS.indexOf(layoutMode)];
 			}
 			
+			[Bindable] public var allowMultipleSelection:Boolean = false;
 			[Bindable] public var alwaysShowPrompt:Boolean = false;
 			[Bindable] public var prompt:String;
 			
 			private var _choices:Array = [];
 			private var _labelFunction:Function;
-			private var _chosenItem:Object = null;
+			private var _chosenItems:Array = [];
 			
 			public function set layoutMode(name:String):void
 			{
@@ -101,9 +112,11 @@
 			{
 				choiceCombo.dataProvider = _choices;
 				choiceList.dataProvider = _choices;
+				choiceCheckBoxList.dataProvider = _choices;
 				
 				choiceCombo.labelFunction = _labelFunction;
 				choiceList.labelFunction = _labelFunction;
+				choiceCheckBoxList.labelFunction = _labelFunction;
 				
 				// get a list of labels
 				var labels:Array;
@@ -128,13 +141,29 @@
 			private function updateViews():void
 			{
 				// need to check each item for equality because indexOf() won't work comparing String vs Number
-				var chosenIndex:int = _choices.length;
-				while (chosenIndex--)
-					if (_choices[chosenIndex] == _chosenItem)
-						break;
+				var chosenIndices:Array = [];
+				var chosenIndex:int = -1;
+				var actualChosenItems:Array = [];
+				for each (var item:Object in _chosenItems)
+				{
+					chosenIndex = _choices.length;
+					while (chosenIndex--)
+						if (_choices[chosenIndex] == item)
+							break;
+					if (chosenIndex >= 0)
+					{
+						chosenIndices.push(chosenIndex);
+						actualChosenItems.push(_choices[chosenIndex]);
+					}
+				}
+				if (chosenIndices.length)
+					chosenIndex = chosenIndices[0];
 				
-				if (choiceList.selectedIndex != chosenIndex)
-					choiceList.selectedIndex = chosenIndex;
+				if (StandardLib.compare(choiceList.selectedIndices, chosenIndices) != 0)
+					choiceList.selectedIndices = chosenIndices;
+				
+				if (StandardLib.compare(choiceCheckBoxList.selectedItems, actualChosenItems) != 0)
+					choiceCheckBoxList.selectedItems = actualChosenItems;
 				
 				if (alwaysShowPrompt)
 					choiceCombo.selectedIndex = -1;
@@ -152,15 +181,28 @@
 			[Bindable(event="choiceChange")]
 			public function get chosenItem():Object
 			{
-				return _chosenItem;
+				return _chosenItems[0];
 			}
 			
 			public function set chosenItem(item:Object):void
 			{
-				if (_chosenItem == item)
+				chosenItems = [item];
+			}
+			
+			[Bindable(event="choiceChange")]
+			public function get chosenItems():Array
+			{
+				return _chosenItems;
+			}
+			
+			public function set chosenItems(items:Array):void
+			{
+				if (!items)
+					items = [];
+				if (StandardLib.compare(_chosenItems, items) == 0)
 					return;
 				
-				_chosenItem = item;
+				_chosenItems = items.concat();
 				updateViews();
 				dispatchEvent(new Event("choiceChange"));
 			}
