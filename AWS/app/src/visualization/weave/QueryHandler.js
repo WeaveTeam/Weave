@@ -282,13 +282,16 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 						}, function(error) {
 							queryService.queryObject.properties.queryDone = false;
 							queryService.queryObject.properties.queryStatus = "Error running script. See error log for details.";
+							usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
 						});
 					} else {
 						queryService.queryObject.properties.queryStatus = "Data request did not return any rows";
+						usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
 					}
 				}, function(error) {
 					queryService.queryObject.properties.queryDone = false;
 					queryService.queryObject.properties.queryStatus = "Error Loading data. See error log for details.";
+					usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
 				});
 			}//validation check
 		};
