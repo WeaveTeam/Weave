@@ -21,13 +21,10 @@ package weave.data.DataSources
     import weave.api.data.IDataSource;
     import weave.api.data.IDataSource_Service;
     import weave.api.data.IWeaveTreeNode;
-    import weave.api.getCallbackCollection;
     import weave.api.newLinkableChild;
     import weave.api.registerLinkableChild;
     import weave.api.reportError;
-    import weave.compiler.Compiler;
     import weave.compiler.StandardLib;
-    import weave.core.LinkablePromise;
     import weave.core.LinkableString;
     import weave.core.LinkableVariable;
     import weave.data.AttributeColumns.ProxyColumn;
@@ -35,7 +32,6 @@ package weave.data.DataSources
     import weave.services.JsonCache;
     import weave.utils.DataSourceUtils;
     import weave.utils.VectorUtils;
-    import weave.utils.WeavePromise;
 
     public class CensusDataSource extends AbstractDataSource implements IDataSource_Service
     {
@@ -47,10 +43,8 @@ package weave.data.DataSources
         private static const VARIABLES_DATA:String = "__CensusDataSource__variablesData";
         private static const GEOGRAPHY_DATA:String = "__CensusDataSource__geographyData";
 
-
         private static const GEOGRAPHY_LINK:String = "__CensusDataSource__geographyLink";
         private static const VARIABLES_LINK:String = "__CensusDataSource__variablesLink";
-
 
         private static const GEOGRAPHY_REQUIRES:String = "__CensusDataSource__geographyRequires";
         private static const GEOGRAPHY_NAME:String = "__CensusDataSource__geographyName";
@@ -63,8 +57,6 @@ package weave.data.DataSources
         public function CensusDataSource()
         {
         }
-
-		
 		
         override protected function initialize():void
         {
@@ -93,14 +85,6 @@ package weave.data.DataSources
 				paramsStr += (paramsStr ? '&' : '?') + key + '=' + params[key];
 			return serviceUrl + paramsStr;
 		}
-		/**
-		 * @param method Examples: "category", "category/series"
-		 * @param params Example: {category_id: 125}
-		 */
-		private function getJson(method:String, params:Object, handler:Function):void
-		{
-			jsonCache.getJsonObject(getUrl(method, params), handler);
-		}
 
 		public function createTopLevelNode():ColumnTreeNode
 		{
@@ -113,7 +97,7 @@ package weave.data.DataSources
 				label: data.name,
 				hasChildBranches: true,
 				children: function(node:ColumnTreeNode):Array {
-					jsonCache.getJsonObject(baseUrl+"data.json", function(result:Object):void
+					jsonCache.getJsonObject(baseUrl + "data.json", function(result:Object):void
 						{
 							data.result = result;
 							for each (var dataSet:Object in result)
@@ -125,7 +109,8 @@ package weave.data.DataSources
 								metadata.label = dataSet.title;
 								children.push(createDataSetNode(metadata));
 							} 
-						});
+						}
+					);
 					return children;
 				}
 			});
@@ -189,8 +174,6 @@ package weave.data.DataSources
 
 								concepts[concept_name] = concepts[concept_name] || {};
 
-								
-
 								var metadata:Object = VectorUtils.getItems(data, node.idFields);
 								metadata[VARIABLE_NAME] = key;
 								metadata[CONCEPT_NAME] = concept_name;
@@ -207,7 +190,7 @@ package weave.data.DataSources
 							}
 							StandardLib.sortOn(children, "label");
 						}
-						);
+					);
 					return children;
 				}
 			})
