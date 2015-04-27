@@ -24,6 +24,7 @@ package weave.core
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
+	import weave.api.registerLinkableChild;
 	
 	/**
 	 * Use this class to build dependency trees involving asynchronous calls.
@@ -64,19 +65,17 @@ package weave.core
 				asyncToken.mx_internal::applyResult(ResultEvent.createEvent(null, asyncToken));
 			}
 			
-			return promise = new LinkablePromise(asyncStart, null, description, validateNow);
+			return promise = new LinkablePromise(asyncStart, description, validateNow);
 		}
 		
 		/**
-		 * @param task A function to invoke, which may return an AsyncToken.
-		 * @param taskParams Parameters to pass to the task function.
+		 * @param task A function to invoke, which must take zero parameters and may return an AsyncToken.
 		 * @param description A description of the task as a String, or a function to call which returns a descriptive string.
 		 * Such a function has the signature function():String.
 		 */
-		public function LinkablePromise(task:Function, taskParams:Array = null, description:* = null, validateNow:Boolean = false)
+		public function LinkablePromise(task:Function, description:* = null, validateNow:Boolean = false)
 		{
 			_task = task;
-			_taskParams = taskParams;
 			_description = description;
 			_callbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
 			_callbackCollection.addImmediateCallback(null, _immediateCallback);
@@ -86,7 +85,6 @@ package weave.core
 		}
 		
 		private var _task:Function;
-		private var _taskParams:Array;
 		private var _description:Object; /* Function or String */
 		
 		private var _callbackCollection:ICallbackCollection;
@@ -179,7 +177,7 @@ package weave.core
 			
 			try
 			{
-				var invokeResult:* = _task.apply(null, _taskParams);
+				var invokeResult:* = _task.apply(null);
 				_asyncToken = invokeResult as AsyncToken;
 				if (_asyncToken)
 				{
@@ -231,6 +229,17 @@ package weave.core
 			
 			_selfTriggeredCount = _callbackCollection.triggerCounter + 1;
 			_callbackCollection.triggerCallbacks();
+		}
+		
+		/**
+		 * Registers dependencies of the LinkablePromise.
+		 */
+		public function depend(dependency:ILinkableObject, ...otherDependencies):LinkablePromise
+		{
+			otherDependencies.unshift(dependency);
+			for each (dependency in otherDependencies)
+				registerLinkableChild(this, dependency);
+			return this;
 		}
 		
 		public function dispose():void

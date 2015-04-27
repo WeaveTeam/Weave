@@ -21,6 +21,7 @@ package weave.services
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
 	import weave.core.ClassUtils;
+	import weave.utils.WeavePromise;
 
 	public class JsonCache implements ILinkableObject
 	{
@@ -53,6 +54,13 @@ package weave.services
 			}
 			entry.addHandler(resultHandler, faultHandler);
 			return entry.result;
+		}
+		
+		public function getJsonPromise(relevantContext:Object, url:String):WeavePromise
+		{
+			return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):void {
+				getJsonObject(url, resolve, reject);
+			});
 		}
 		
 		public static function parseJSON(json:String):Object

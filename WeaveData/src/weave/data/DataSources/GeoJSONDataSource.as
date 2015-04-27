@@ -35,6 +35,7 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableFile;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -54,7 +55,7 @@ package weave.data.DataSources
 		{
 		}
 
-		public const url:LinkableString = newLinkableChild(this, LinkableString);
+		public const url:LinkableFile = newLinkableChild(this, LinkableFile, handleFile);
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
 		public const keyProperty:LinkableString = newLinkableChild(this, LinkableString);
 		
@@ -106,18 +107,6 @@ package weave.data.DataSources
 		{
 			_rootNode = null;
 			
-			if (detectLinkableObjectChange(initialize, url))
-			{
-				jsonData = null;
-				if (url.value)
-					addAsyncResponder(
-						WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), URLLoaderDataFormat.TEXT),
-						handleDownload,
-						handleDownloadError,
-						url.value
-					);
-			}
-			
 			if (detectLinkableObjectChange(initialize, keyType, keyProperty))
 			{
 				if (jsonData)
@@ -130,14 +119,22 @@ package weave.data.DataSources
 			super.initialize();
 		}
 		
-		/**
-		 * Called when the CSV data is downloaded from a URL.
-		 */
-		private function handleDownload(event:ResultEvent, requestedUrl:String):void
+		private function handleFile():void
 		{
-			// ignore old results
-			if (requestedUrl != url.value)
+			if (linkableObjectIsBusy(url))
 				return;
+			
+			jsonData = null;
+			
+			if (!url.result)
+			{
+				hierarchyRefresh.triggerCallbacks();
+				
+				if (url.error)
+					reportError(url.error);
+				
+				return;
+			}
 			
 			try
 			{
@@ -152,7 +149,8 @@ package weave.data.DataSources
 				}
 				
 				// parse the json
-				var obj:Object = json.parse(event.result);
+				var str:String = String(url.result);
+				var obj:Object = json.parse(str);
 				
 				// make sure it's valid GeoJSON
 				if (!GeoJSON.isGeoJSONObject(obj))
@@ -161,21 +159,12 @@ package weave.data.DataSources
 				// parse data
 				jsonData = new GeoJSONData(obj, getKeyType(), keyProperty.value);
 				
-				refreshHierarchy(); // this triggers callbacks
+				hierarchyRefresh.triggerCallbacks();
 			}
 			catch (e:Error)
 			{
 				reportError(e);
 			}
-		}
-		
-		/**
-		 * Called when the data fails to download from a URL.
-		 */
-		private function handleDownloadError(event:FaultEvent, requestedUrl:String):void
-		{
-			if (requestedUrl == url.value)
-				reportError(event);
 		}
 		
 		/**

@@ -35,7 +35,7 @@ package weave.core
 
 		public function LinkableFile(defaultValue:String = null, taskDescription:* = null)
 		{
-			contentPromise = registerLinkableChild(this, new LinkablePromise(requestContent, null, taskDescription));
+			contentPromise = registerLinkableChild(this, new LinkablePromise(requestContent, taskDescription));
 			url = registerLinkableChild(contentPromise, new LinkableString(defaultValue));
 		}
 
