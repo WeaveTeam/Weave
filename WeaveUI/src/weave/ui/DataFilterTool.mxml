@@ -133,23 +133,19 @@
 								{
 									label: lang('Show selector for minimum value'),
 									type: WeaveMenuItem.TYPE_CHECK,
-									toggled: ndfe.showMinThumb,
-									click: ndfe.showMinThumb
+									toggled: ndfe.showMinThumb
 								},{
 									label: lang('Show selector for maximum value'),
 									type: WeaveMenuItem.TYPE_CHECK,
-									toggled: ndfe.showMaxThumb,
-									click: ndfe.showMaxThumb
+									toggled: ndfe.showMaxThumb
 								},{
 									label: lang('Force discrete values'),
 									type: WeaveMenuItem.TYPE_CHECK,
-									toggled: ndfe.forceDiscreteValues,
-									click: ndfe.forceDiscreteValues
+									toggled: ndfe.forceDiscreteValues
 								},{
 									label: lang('Show play button'),
 									type: WeaveMenuItem.TYPE_CHECK,
-									toggled: ndfe.showPlayButton,
-									click: ndfe.showPlayButton
+									toggled: ndfe.showPlayButton
 								}
 							];
 						}
