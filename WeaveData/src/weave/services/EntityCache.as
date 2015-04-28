@@ -20,6 +20,7 @@ package weave.services
     import mx.rpc.events.ResultEvent;
     
     import weave.api.core.ICallbackCollection;
+    import weave.api.core.IDisposableObject;
     import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
     import weave.api.data.EntityType;
@@ -37,7 +38,7 @@ package weave.services
 	/**
 	 * Provides an interface to a set of cached Entity objects.
 	 */
-    public class EntityCache implements ILinkableObject
+    public class EntityCache implements ILinkableObject, IDisposableObject
     {
 		/**
 		 * A special flag value to represent a root node, which doesn't actually exist.
@@ -108,6 +109,8 @@ package weave.services
 		{
 			//trace('invalidate',id, alsoInvalidateRelatives, entityCache[id]);
 			callbacks.delayCallbacks();
+			
+			WeaveAPI.SessionManager.assignBusyTask(delayedCallback, this);
 			
 			// trigger callbacks if we haven't previously decided to fetch this id
 			if (!idsToFetch[id])
@@ -220,6 +223,8 @@ package weave.services
 					splicedIds
 				);
 			}
+			
+			WeaveAPI.SessionManager.unassignBusyTask(delayedCallback);
         }
 		
 		private function handleIdsToInvalidate(event:ResultEvent, alsoInvalidateRelatives:Boolean):void
@@ -498,6 +503,11 @@ package weave.services
 		private function handleServiceFault(event:FaultEvent, token:Object = null):void
 		{
 			reportError(event);
+		}
+		
+		public function dispose():void
+		{
+			WeaveAPI.SessionManager.unassignBusyTask(delayedCallback);
 		}
     }
 }
