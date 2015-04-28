@@ -693,7 +693,7 @@ weave.WeaveTreeNode.prototype.hasChildBranches = function() {
 };
 weave.WeaveTreeNode.prototype.getChildren = function() {
 	return this
-		._eval('var lookup = ' + weaveTreeNodeLookup + '; node.getChildren().map(child => {\
+		._eval('var lookup = ' + weaveTreeNodeLookup + ', children = node.getChildren(); return children && children.map(child => {\
 				if (!lookup[child])\
 					lookup[ (lookup[child] = ++' + weaveTreeNodeSerial + ') ] = child;\
 				return lookup[child];\
