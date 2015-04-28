@@ -88,7 +88,7 @@ package weave.core
 				var typedNode:XMLNode = encodeValue(sessionState, new QName("", className), parentNode);
 				if (objectName != null)
 					typedNode = setAttributeAndReplaceNode(typedNode, "name", objectName);
-				if (packageName && WeaveXMLDecoder.defaultPackages.indexOf(packageName) < 0)
+				if (packageName && Compiler.defaultPackages.indexOf(packageName) < 0)
 					typedNode = setAttributeAndReplaceNode(typedNode, "package", packageName);
 				return typedNode;
 			}

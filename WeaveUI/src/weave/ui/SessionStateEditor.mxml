@@ -44,9 +44,6 @@ A text editor to change the Session State on the fly.
 	 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"/>
 					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
 	 					<mx:TextInput id="linkNameInput" width="100%"/>
-	 					<mx:Button label="{lang('Link')}" click="linkSelectedObject();"/>
-	 					<mx:Button label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
-	 					<mx:Button id="nestedUnlinkButton" label="{lang('Nested unlink')}" click="unlinkNestedColumns()"/>
 						<ui:HelpComponent>
 							Type the name of a global object, then click the "Link" button to link the selected dynamic object to it.
 							Multiple dynamic objects can be linked to the same global object this way.
@@ -56,6 +53,9 @@ A text editor to change the Session State on the fly.
 							Once that is done, you can link the new color mapping to a new global name so that multiple tools can be linked to the new color mapping.
 							To link multiple tools, you will have to locate the color mapping in each tool and repeat the process.
 						</ui:HelpComponent>
+	 					<mx:Button label="{lang('Link')}" click="linkSelectedObject();"/>
+	 					<mx:Button label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 					<mx:Button id="nestedUnlinkButton" label="{lang('Nested unlink')}" click="unlinkNestedColumns()"/>
 	 				</mx:HBox>
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
@@ -135,6 +135,7 @@ A text editor to change the Session State on the fly.
 			import weave.core.ClassUtils;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableString;
+			import weave.core.LinkableSynchronizer;
 			import weave.core.StageUtils;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
@@ -208,6 +209,10 @@ A text editor to change the Session State on the fly.
 						shown: isObjectSelected,
 						label: lang('Copy path to selected object'),
 						click: copyPathToClipboard
+					}, {
+						shown: isObjectSelected,
+						label: lang('Link session state with another object'),
+						click: linkStatePath
 					}, {
 						shown: isObjectSelected,
 						label: lang('Watch selected object'),
@@ -345,7 +350,7 @@ A text editor to change the Session State on the fly.
 				if (object != null)
 					_currentSelectedObject = object;
 				else
-					_currentSelectedObject = sessionNav.selectedTreeItem.source;
+					_currentSelectedObject = sessionNav.selectedTreeItem.dependency;
 
 				loadSessionStateInView();
 				_textModified = false;
@@ -403,7 +408,7 @@ A text editor to change the Session State on the fly.
 					
 					for each (var node:WeaveTreeItem in sessionNav.selectedTreeItem.children)
 					{
-						childObject = node.source as ILinkableObject;
+						childObject = node.dependency as ILinkableObject;
 						if (childObject is ILinkableVariable)
 						{
 							tempValue = getSessionState(childObject);
@@ -488,9 +493,9 @@ A text editor to change the Session State on the fly.
 				var vsp:Number = gridEditor.verticalScrollPosition;
 				if (selectedTreeItem)
 				{
-					if (console.context == selectedTreeItem.source)
+					if (console.context == selectedTreeItem.dependency)
 						return; // no change
-					console.context = selectedTreeItem.source;
+					console.context = selectedTreeItem.dependency;
 				}
 				else
 					console.context = null;
@@ -593,7 +598,7 @@ A text editor to change the Session State on the fly.
 					var item:WeaveTreeItem = sessionNav.selectedTreeItem;
 					if (!item)
 						return;
-					var parent:ILinkableObject = getLinkableOwner(item.source);
+					var parent:ILinkableObject = getLinkableOwner(item.dependency);
 					if (!parent)
 						return;
 					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
@@ -608,13 +613,13 @@ A text editor to change the Session State on the fly.
 				var item:WeaveTreeItem = sessionNav.selectedTreeItem;
 				if (!item)
 					return;
-				var parent:ILinkableObject = getLinkableOwner(item.source);
+				var parent:ILinkableObject = getLinkableOwner(item.dependency);
 				if (!parent)
 					return;
 				var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 				var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 				
-				var oldObject:ILinkableObject = item.source;
+				var oldObject:ILinkableObject = item.dependency;
 				if (hashMap)
 					hashMap.removeObject(hashMap.getName(oldObject));
 				else if (dynamicObject)
@@ -795,6 +800,43 @@ A text editor to change the Session State on the fly.
 				}
 			}
 			
+			private function linkStatePath():void
+			{
+				var json:Object = ClassUtils.getClassDefinition('JSON');
+				if (!json)
+				{
+					reportError("JSON encoding is not supported by your version of Flash Player.");
+					return;
+				}
+				
+				var primaryPath:Array = sessionNav.getSelectedPath();
+				var atb:AlertTextBox = AlertTextBox.show(
+					"Link session state",
+					"Enter the path to the other object",
+					_lastCopiedPathStr,
+					validateInput,
+					handleInput
+				);
+				atb.getExpandButton().expanded = true;
+				
+				function validateInput(input:String):Boolean
+				{
+					try {
+						return json.parse(input) is Array;
+					} catch (e:Error) { }
+					return false;
+				}
+				function handleInput(input:String):void
+				{
+					var otherPath:Array = json.parse(input) as Array;
+					var ls:LinkableSynchronizer = WeaveAPI.globalHashMap.requestObject(null, LinkableSynchronizer, false);
+					ls.primaryPath.setSessionState(primaryPath);
+					ls.secondaryPath.setSessionState(otherPath);
+				}
+			}
+			
+			private var _lastCopiedPathStr:String;
+			
 			private function copyPathToClipboard():void
 			{
 				var path:Array = sessionNav.getSelectedPath();
@@ -809,6 +851,7 @@ A text editor to change the Session State on the fly.
 					);
 					str = "[" + path.join(", ") + "]";
 				}
+				_lastCopiedPathStr = str;
 				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, str);
 			}
 			private function copyToClipboard():void

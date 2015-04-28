@@ -132,7 +132,7 @@ import mx.rpc.events.ResultEvent;
 import weave.api.core.IDisposableObject;
 import weave.compiler.StandardLib;
 import weave.core.ClassUtils;
-import weave.flascc.FlasCC;
+import weave.flascc.readZip;
 
 /**
  * @private
@@ -216,7 +216,7 @@ internal class Library implements IDisposableObject
 		try
 		{
 			// Extract the files from the SWC archive
-			var swc:Object = FlasCC.call(weave.flascc.readZip, event.result as ByteArray);
+			var swc:Object = weave.flascc.readZip(event.result as ByteArray);
 			if (!swc)
 				throw new Error("Unable to read SWC archive");
 			_library_swf = swc["library.swf"];
@@ -229,6 +229,7 @@ internal class Library implements IDisposableObject
 			
 			// Dynamic creation of Flex classes doesn't work unless the library is loaded into the same application domain.
 			_swfLoader.loaderContext = new LoaderContext(false, ApplicationDomain.currentDomain);
+			_swfLoader.loaderContext.allowCodeImport = true;
 			_swfLoader.load(_library_swf);
 			
 			WeaveAPI.ProgressIndicator.addTask(_swfLoader);

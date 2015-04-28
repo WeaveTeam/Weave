@@ -138,9 +138,9 @@ package weave.data.DataSources
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
 			return new ColumnTreeNode({
-				source: this,
+				dataSource: this,
 				idFields: [ANNOTATION_KEY_TYPE],
-				columnMetadata: metadata
+				data: metadata
 			});
 		}
 
@@ -195,16 +195,14 @@ package weave.data.DataSources
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!_rootNode)
-			{
-				var source:AnnotationDataSource = this;
 				_rootNode = new ColumnTreeNode({
-					source: source,
-					data: source,
+					dataSource: this,
+					dependency: annotations,
 					label: WeaveAPI.globalHashMap.getName(this),
-					isBranch: true,
 					hasChildBranches: false,
 					children: function():Array {
-						if (!keyTypes) updateKeyTypes();
+						if (!keyTypes)
+							updateKeyTypes();
 						return keyTypes.map(function (keyType:String, ..._):IWeaveTreeNode
 						{
 							var meta:Object = {};
@@ -222,7 +220,6 @@ package weave.data.DataSources
 						})
 					}
 				});
-			}
 			return _rootNode;
 		}
 	}

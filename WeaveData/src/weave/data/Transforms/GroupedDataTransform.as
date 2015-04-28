@@ -43,7 +43,7 @@ package weave.data.Transforms
 
 	public class GroupedDataTransform extends AbstractDataSource implements ISelectableAttributes
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GroupedDataTransform, "Grouped Data Transform");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GroupedDataTransform, "Grouped data transform");
 
 		public static const DATA_COLUMNNAME_META:String = "__GroupedDataColumnName__";
 
@@ -83,14 +83,11 @@ package weave.data.Transforms
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!_rootNode)
-			{
-				var source:GroupedDataTransform = this;
-
 				_rootNode = new ColumnTreeNode({
-					source: source,
-					data: source,
+					dataSource: this,
+					dependency: dataColumns.childListCallbacks,
+					data: this,
 					label: WeaveAPI.globalHashMap.getName(this),
-					isBranch: true,
 					hasChildBranches: false,
 					children: function():Array {
 						return dataColumns.getNames().map(
@@ -102,7 +99,6 @@ package weave.data.Transforms
 						);
 					}
 				});
-			}
 			return _rootNode;
 		}
 
@@ -117,9 +113,9 @@ package weave.data.Transforms
 				return null;
 
 			return new ColumnTreeNode({
-				source: this,
+				dataSource: this,
 				idFields: [DATA_COLUMNNAME_META],
-				columnMetadata: metadata
+				data: metadata
 			});
 		}
 		

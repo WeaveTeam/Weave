@@ -17,16 +17,17 @@
 #include <string.h>
 #include <time.h>
 #include <limits.h>
+#include <stdbool.h>
 #include "strptime2.h"
 #include "strftime2.h"
 #include "AS3/AS3.h"
 #include "tracef.h"
 
 #define DATE_FORMAT_MAX (1024)
-void date_format() __attribute((used,
-            annotate("as3sig:public function date_format(date:Date, fmt:String):String"),
-            annotate("as3package:weave.flascc")));
 
+void date_format() __attribute((used,
+            annotate("as3sig:public function date_format(date:Object, fmt:String):String"),
+            annotate("as3package:weave.flascc")));
 void date_format()
 {
     char *fmt;
@@ -74,10 +75,17 @@ void date_format()
     AS3_ReturnAS3Var(output);
 }
 
+/**
+ * Parses a date string and returns a Date object or a Number.
+ * @param date The date string
+ * @param fmt The format string
+ * @param force_utc Set to true to force numeric UTC return value
+ * @param force_local Set to true to force Date return value, which uses local time
+ * @return A Date object for local time or a Number for UTC.
+ */
 void date_parse() __attribute((used,
-            annotate("as3sig:public function date_parse(date:String, fmt:String, utc:Boolean = false, force_local:Boolean = false):Date"),
+            annotate("as3sig:public function date_parse(date:String, fmt:String, force_utc:Boolean = false, force_local:Boolean = false):*"),
             annotate("as3package:weave.flascc")));
-
 void date_parse()
 {
     char *date_str;
@@ -85,7 +93,7 @@ void date_parse()
     inline_as3(
         "if (!date)"
         "	return null;"
-        "var output:Date = null;"
+        "var output:* = null;"
         "%0 = CModule.mallocString(date);"
         "%1 = CModule.mallocString(fmt);"
         : "=r"(date_str), "=r"(fmt)
@@ -105,7 +113,7 @@ void date_parse()
 			tm.tm.tm_mday == INT_MAX)
 		{
 			inline_nonreentrant_as3(
-				"utc = true;"
+				"force_utc = true;"
 			);
 		}
 
@@ -117,8 +125,8 @@ void date_parse()
 			tm.tm.tm_mday = 1;
 
 		inline_nonreentrant_as3(
-			"if (utc && !force_local)"
-			"    output = new Date(Date.UTC(%0,%1,%2,%3,%4,%5,%6));"
+			"if (force_utc && !force_local)"
+			"    output = Date.UTC(%0,%1,%2,%3,%4,%5,%6);"
 			"else"
 			"    output = new Date(%0,%1,%2,%3,%4,%5,%6);"
 			: : "r"(tm.tm.tm_year + 1900),
@@ -156,6 +164,7 @@ void dates_detect()
 
     size_t idx;
     char* tmp;
+    bool foundNonNull = false;
 
     for (idx = 0; idx < dates_n; idx++)
     {
@@ -164,7 +173,14 @@ void dates_detect()
                 "%0 = date ? CModule.mallocString(date) : 0;"
                 : "=r"(tmp) : "r"(idx)
         );
+        if (tmp)
+        	foundNonNull = true;
         dates[idx] = tmp;
+    }
+
+    if (!foundNonNull)
+    {
+    	AS3_ReturnAS3Var([]);
     }
 
     for (idx = 0; idx < formats_n; idx++)

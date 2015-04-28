@@ -44,7 +44,7 @@ package weave.ui
     {
 		public function WeaveTree()
 		{
-			_dataDescriptor = new WeaveTreeDataDescriptor();
+			_dataDescriptor = new WeaveTreeDescriptor();
 			setStyle('openDuration', 0);
 			dragEnabled = true;
 			allowMultipleSelection = true;
@@ -64,9 +64,9 @@ package weave.ui
 		/**
 		 * The dataDescriptor for this WeaveTree.
 		 */
-		public function get weaveTreeDataDescriptor():WeaveTreeDataDescriptor
+		public function get weaveTreeDataDescriptor():WeaveTreeDescriptor
 		{
-			return _dataDescriptor as WeaveTreeDataDescriptor;
+			return _dataDescriptor as WeaveTreeDescriptor;
 		}
 		
 		/**

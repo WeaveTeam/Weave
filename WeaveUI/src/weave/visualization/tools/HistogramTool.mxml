@@ -178,17 +178,27 @@
 		<mx:Script>
 			<![CDATA[
 				import weave.api.linkBindableProperty;
+				import weave.api.ui.IPlotter;
 				import weave.visualization.plotters.HistogramPlotter;
 				
 				override protected function childrenCreated():void
 				{
 					super.childrenCreated();
-					columnToAggregateComponent.dynamicObject = outerDocument.plotter.columnToAggregate;
-					outerDocument.plotter.columnToAggregate.addGroupedCallback(this, function():void {
-						agMethodCombo.enabled = outerDocument.plotter.columnToAggregate.getInternalColumn() != null;
+					var plotter:HistogramPlotter = outerDocument.plotter;
+					columnToAggregateComponent.dynamicObject = plotter.columnToAggregate;
+					plotter.columnToAggregate.addGroupedCallback(this, function():void {
+						agMethodCombo.enabled = plotter.columnToAggregate.getInternalColumn() != null;
 					}, true);
 					
-					outerDocument.plotter.fillStyle.color.internalDynamicColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
+					plotter.fillStyle.color.internalDynamicColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
+					
+					//TODO
+					plotter.showValueLabels;
+					plotter.valueLabelHorizontalAlign;
+					plotter.valueLabelVerticalAlign;
+					plotter.valueLabelRelativeAngle;		
+					plotter.valueLabelColor;
+					plotter.valueLabelMaxWidth;
 				}
 				
 				private function handleDynamicColorColumnChange():void

@@ -33,15 +33,10 @@ package weave.data.AttributeColumns
 	 */
 	public class ReprojectedGeometryColumn extends ExtendedDynamicColumn
 	{
-		private function debugTrace(..._):void { } // comment this line to enable debugging
-		
 		public function ReprojectedGeometryColumn()
 		{
 			// force the internal column to always be a ReferencedColumn
 			addImmediateCallback(this, updateReprojectedColumn);
-			
-			var self:Object = this;
-			boundingBoxCallbacks.addImmediateCallback(this, function():void{ debugTrace(self, 'boundingBoxCallbacks', boundingBoxCallbacks); });
 		}
 		
 		/**
@@ -55,7 +50,7 @@ package weave.data.AttributeColumns
 			if (propertyName == ColumnMetadata.PROJECTION)
 			{
 				var srs:String = projectionSRS.value;
-				if (srs != null && srs != '')
+				if (srs)
 					return srs;
 			}
 			
@@ -93,9 +88,6 @@ package weave.data.AttributeColumns
 			
 			// get the callback target that should trigger boundingBoxCallbacks
 			var newTarget:ILinkableObject = _unprojectedColumn ? _unprojectedColumn.boundingBoxCallbacks : _reprojectedColumn;
-			
-			debugTrace(this, '_unprojectedColumn =', _unprojectedColumn);
-			debugTrace(this, 'target =', newTarget);
 			
 			boundingBoxCallbacksTriggerWatcher.target = newTarget;
 		}

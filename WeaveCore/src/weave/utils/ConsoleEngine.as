@@ -75,16 +75,7 @@ package weave.utils
 		};
 		
 		
-		private const symbolTable:Object = [consoleMethods, new ProxyObject(getClassDef, getClassDef, null)];
-		
-		private function getClassDef(className:String):Object
-		{
-			className = WeaveXMLDecoder.getClassName(className);
-			try {
-				return getDefinitionByName(className);
-			} catch (e:Error) { }
-			return null;
-		}
+		private const symbolTable:Object = consoleMethods;
 		
 		private function styleProxy(component:UIComponent):ProxyObject
 		{

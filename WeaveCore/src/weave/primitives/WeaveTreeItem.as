@@ -15,6 +15,8 @@
 
 package weave.primitives
 {
+	import flash.debugger.enterDebugger;
+	
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
 	
@@ -39,7 +41,7 @@ package weave.primitives
 				items = [].concat.apply(null, items);
 			}
 			
-			return items.map(_mapItems, WeaveTreeItem_implementation).filter(_filterItems);
+			return items.map(_mapItems, WeaveTreeItem_implementation).filter(_filterItemsRemoveNulls);
 		};
 		
 		/**
@@ -66,7 +68,7 @@ package weave.primitives
 		/**
 		 * Filters out null items.
 		 */
-		private static function _filterItems(item:Object, i:*, a:*):Boolean
+		private static function _filterItemsRemoveNulls(item:Object, i:*, a:*):Boolean
 		{
 			return item != null;
 		}
@@ -96,9 +98,9 @@ package weave.primitives
 		 */
 		protected var childItemClass:Class; // IMPORTANT - no initial value
 		protected var _recursion:Object = {}; // recursionName -> Boolean
-		private var _label:* = "";
-		private var _children:* = null;
-		private var _source:ILinkableObject = null;
+		protected var _label:* = "";
+		protected var _children:* = null;
+		protected var _dependency:ILinkableObject = null;
 		
 		/**
 		 * Cached values that get invalidated when the source triggers callbacks.
@@ -263,9 +265,9 @@ package weave.primitives
 		 */
 		protected function isCached(id:String):Boolean
 		{
-			if (_source && WeaveAPI.SessionManager.objectWasDisposed(_source))
-				source = null;
-			return _source && _counter[id] === WeaveAPI.SessionManager.getCallbackCollection(_source).triggerCounter;
+			if (_dependency && WeaveAPI.SessionManager.objectWasDisposed(_dependency))
+				dependency = null;
+			return _dependency && _counter[id] === WeaveAPI.SessionManager.getCallbackCollection(_dependency).triggerCounter;
 		}
 		
 		/**
@@ -280,11 +282,11 @@ package weave.primitives
 			if (arguments.length == 1)
 				return _cache[id];
 			
-			if (_source && WeaveAPI.SessionManager.objectWasDisposed(_source))
-				source = null;
-			if (_source)
+			if (_dependency && WeaveAPI.SessionManager.objectWasDisposed(_dependency))
+				dependency = null;
+			if (_dependency)
 			{
-				_counter[id] = WeaveAPI.SessionManager.getCallbackCollection(_source).triggerCounter;
+				_counter[id] = WeaveAPI.SessionManager.getCallbackCollection(_dependency).triggerCounter;
 				_cache[id] = newValue;
 			}
 			return newValue;
@@ -304,8 +306,8 @@ package weave.primitives
 				return _cache[id];
 			
 			var str:String = getString(_label, id);
-			if (!str && data != null)
-				str = String(data);
+			if (!str && data is String)
+				str = data as String;
 			return cache(id, str);
 		}
 		public function set label(value:*):void
@@ -315,22 +317,34 @@ package weave.primitives
 		}
 		
 		/**
-		 * Gets a filtered copy of the child menu items.
-		 * When this property is accessed, refresh() will be called except if refresh() is already being called.
+		 * Gets the Array of child menu items and modifies it in place if necessary to create nodes from descriptors or remove null items.
+		 * If this tree item specifies a dependency, the Array can be filled asynchronously.
 		 * This property is checked by Flex's default data descriptor.
 		 */
 		public function get children():Array
 		{
 			const id:String = 'children';
+			
+			var items:Array;
 			if (isCached(id))
-				return _cache[id];
+				items = _cache[id];
+			else
+				items = getObject(_children, id) as Array;
 			
-			var items:Array = getObject(_children, id) as Array;
-			if (!items)
-				return cache(id, null);
+			if (items)
+			{
+				// overwrite original array to support filling it asynchronously
+				var iOut:int = 0;
+				for (var i:int = 0; i < items.length; i++)
+				{
+					var item:Object = _mapItems.call(childItemClass, items[i], i, items);
+					if (item != null)
+						items[iOut++] = item;
+				}
+				items.length = iOut;
+			}
 			
-			var result:Array = items.map(_mapItems, childItemClass).filter(_filterItems);
-			return cache(id, result);
+			return cache(id, items);
 		}
 		
 		/**
@@ -348,21 +362,22 @@ package weave.primitives
 		 * A pointer to the ILinkableObject that created this node.
 		 * This is used to determine when to invalidate cached values.
 		 */
-		public function get source():ILinkableObject
+		public function get dependency():ILinkableObject
 		{
-			if (_source && WeaveAPI.SessionManager.objectWasDisposed(_source))
-				source = null;
-			return _source;
+			if (_dependency && WeaveAPI.SessionManager.objectWasDisposed(_dependency))
+				dependency = null;
+			return _dependency;
 		}
-		public function set source(value:ILinkableObject):void
+		public function set dependency(value:ILinkableObject):void
 		{
-			if (_source != value)
+			if (_dependency != value)
 				_counter = {};
-			_source = value;
+			_dependency = value;
 		}
 		
 		/**
 		 * This can be any data associated with this tree item.
+		 * For example, it can be used to store state information if the tree is populated asynchronously.
 		 */
 		public var data:Object = null;
 	}

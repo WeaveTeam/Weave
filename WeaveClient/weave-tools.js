@@ -275,3 +275,89 @@ function enableWeaveVisLayer(weave, toolName, layerName, enable)
 {
 	weave.path(toolName).pushLayerSettings(layerName).state('visible', enable);
 }
+
+/**
+ * Deterministic JSON encoding
+ * @param value The value to stringify
+ * @param replacer A replacer function that you would give to JSON.stringify()
+ * @param indent An indent value that you would give to JSON.stringify()
+ * @param json_values_only Set this to true to change NaN and undefined values to null
+ * @returns A JSON string
+ */
+function weaveStringify(value, replacer, indent, json_values_only)
+{
+	if (typeof indent == 'number')
+	{
+		var str = ' ';
+		while (str.length < indent)
+			str += str;
+		indent = str.substr(0, indent);
+	}
+	if (!indent)
+		indent = '';
+	return _weaveStringify("", value, replacer, indent ? '\n' : '', indent, json_values_only);
+}
+function _weaveStringify(key, value, replacer, lineBreak, indent, json_values_only)
+{
+	if (replacer != null)
+		value = replacer(key, value);
+	
+	var output;
+	var item;
+	var key;
+	
+	if (typeof value == 'string')
+		return _weaveEncodeString(value);
+	
+	// non-string primitives
+	if (value == null || typeof value != 'object')
+	{
+		if (json_values_only && (value === undefined || !isFinite(value)))
+			value = null;
+		if (value == null)
+			return 'null';
+		return value + '';
+	}
+	
+	// loop over keys in Array or Object
+	var lineBreakIndent = lineBreak + indent;
+	var valueIsArray = Array.isArray(value);
+	output = [];
+	if (valueIsArray)
+	{
+		for (var i = 0; i < value.length; i++)
+			output.push(_weaveStringify(String(i), value[i], replacer, lineBreakIndent, indent, json_values_only));
+	}
+	else
+	{
+		for (key in value)
+			output.push(_weaveEncodeString(key) + ": " + _weaveStringify(key, value[key], replacer, lineBreakIndent, indent, json_values_only));
+		// sort keys
+		output.sort();
+	}
+	
+	if (output.length == 0)
+		return valueIsArray ? "[]" : "{}";
+	
+	return (valueIsArray ? "[" : "{")
+		+ lineBreakIndent
+		+ output.join(indent ? ',' + lineBreakIndent : ', ')
+		+ lineBreak
+		+ (valueIsArray ? "]" : "}");
+}
+var WEAVE_ENCODE_LOOKUP = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\'};
+function _weaveEncodeString(string, quote)
+{
+	if (!quote)
+		quote = '"';
+	if (string == null)
+		return 'null';
+	var result = new Array(string.length);
+	for (var i = 0; i < string.length; i++)
+	{
+		var chr = string.charAt(i);
+		var esc = chr == quote ? quote : WEAVE_ENCODE_LOOKUP[chr];
+		result[i] = esc ? '\\' + esc : chr;
+	}
+	return quote + result.join('') + quote;
+}

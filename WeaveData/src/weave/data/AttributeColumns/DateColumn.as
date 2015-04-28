@@ -21,6 +21,7 @@ package weave.data.AttributeColumns
 	
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
+	import weave.api.data.DateFormat;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.reportError;
@@ -41,7 +42,7 @@ package weave.data.AttributeColumns
 		}
 		
 		private const _uniqueKeys:Array = new Array();
-		private var _keyToDate:Dictionary = new Dictionary();
+		private var _keyToData:Dictionary = new Dictionary();
 		
 		// temp variables for async task
 		private var _i:int;
@@ -54,7 +55,7 @@ package weave.data.AttributeColumns
 		private var _stringToNumberFunction:Function = null;
 		private var _numberToStringFunction:Function = null;
 		private var _dateFormat:String = null;
-		private var _useFlascc:Boolean = true;
+		private var _durationMode:Boolean = false;
 		
 		/**
 		 * @inheritDoc
@@ -81,7 +82,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return _keyToDate[key] != undefined;
+			return _keyToData[key] != undefined;
 		}
 		
 		public function setRecords(keys:Vector.<IQualifiedKey>, dates:Vector.<String>):void
@@ -102,7 +103,6 @@ package weave.data.AttributeColumns
 			}
 			
 			_dateFormat = convertDateFormat_as_to_c(_dateFormat);
-			//_useFlascc = _dateFormat && _dateFormat.indexOf('%') >= 0;
 			
 			// compile the number format function from the metadata
 			_stringToNumberFunction = null;
@@ -137,9 +137,15 @@ package weave.data.AttributeColumns
 			_i = 0;
 			_keys = keys;
 			_dates = dates;
-			_keyToDate = new Dictionary();
+			_keyToData = new Dictionary();
 			_uniqueKeys.length = 0;
 			_reportedError = false;
+			
+			if (!_dateFormat && _keys.length)
+			{
+				_reportedError = true;
+				reportError(lang('No common date format could be determined from the column values. Attribute Column: {0}', Compiler.stringify(_metadata)));
+			}
 			
 			// high priority because not much can be done without data
 			WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, _asyncComplete);
@@ -158,17 +164,49 @@ package weave.data.AttributeColumns
 			triggerCallbacks();
 		}
 		
-		private function parseDate(string:String):Date
+		private function parseDate(string:String):Object
 		{
-			if (_useFlascc)
+			if (_dateFormat)
 				return weave.flascc.date_parse(string, _dateFormat);
-			return StandardLib.parseDate(string, _dateFormat);
+			return new Date(string);
 		}
+		
+		private static const SECOND:Number = 1000;
+		private static const MINUTE:Number = 60 * 1000;
+		private static const HOUR:Number = 60 * 60 * 1000;
 		
 		private function formatDate(value:Object):String
 		{
-			if (_useFlascc)
-				return weave.flascc.date_format(value as Date || new Date(value), _dateFormat);
+			if (_dateFormat)
+			{
+				if (value is Number && !_durationMode)
+					value = new Date(value);
+				
+				if (value is Number)
+				{
+					// TEMPORARY SOLUTION
+					var n:Number = Math.floor(value as Number);
+					var milliseconds:Number = n % 1000;
+					n = Math.floor(n / 1000);
+					var seconds:Number = n % 60;
+					n = Math.floor(n / 60);
+					var minutes:Number = n % 60;
+					n = Math.floor(n / 60);
+					var hours:Number = n;
+					var obj:Object = {
+						milliseconds: milliseconds,
+						seconds: seconds,
+						minutes: minutes,
+						hours: hours
+					};
+					return weave.flascc.date_format(obj, _dateFormat);
+				}
+				else
+				{
+					var date:Date = value as Date || new Date(value);
+					return weave.flascc.date_format(date, _dateFormat);
+				}
+			}
 			return StandardLib.formatDate(value, _dateFormat);
 		}
 		
@@ -182,7 +220,7 @@ package weave.data.AttributeColumns
 				// get values for this iteration
 				var key:IQualifiedKey = _keys[_i];
 				var string:String = _dates[_i];
-				var date:Date;
+				var value:Object;
 				if (_stringToNumberFunction != null)
 				{
 					var number:Number = _stringToNumberFunction(string);
@@ -191,13 +229,13 @@ package weave.data.AttributeColumns
 						string = _numberToStringFunction(number);
 						if (!string)
 							continue;
-						date = parseDate(string);
+						value = parseDate(string);
 					}
 					else
 					{
 						if (!isFinite(number))
 							continue;
-						date = new Date(number);
+						value = number;
 					}
 				}
 				else
@@ -206,7 +244,7 @@ package weave.data.AttributeColumns
 					{
 						if (!string)
 							continue;
-						date = parseDate(string);
+						value = parseDate(string);
 					}
 					catch (e:Error)
 					{
@@ -220,18 +258,19 @@ package weave.data.AttributeColumns
 								string,
 								Compiler.stringify(_metadata)
 							);
-							reportError(err);
+							reportError(err, null, e);
 						}
 						continue;
 					}
 				}
 				
 				// keep track of unique keys
-				if (_keyToDate[key] === undefined)
+				if (_keyToData[key] === undefined)
 				{
+					_durationMode = value is Number;
 					_uniqueKeys.push(key);
 					// save key-to-data mapping
-					_keyToDate[key] = date;
+					_keyToData[key] = value;
 				}
 				else if (!_reportedError)
 				{
@@ -266,11 +305,11 @@ package weave.data.AttributeColumns
 		{
 			var number:Number;
 			var string:String;
-			var date:Date;
+			var value:*;
 			
 			if (dataType == Number)
 			{
-				number = _keyToDate[key];
+				number = _keyToData[key];
 				return number;
 			}
 			
@@ -278,29 +317,32 @@ package weave.data.AttributeColumns
 			{
 				if (_numberToStringFunction != null)
 				{
-					number = _keyToDate[key];
+					number = _keyToData[key];
 					return _numberToStringFunction(number);
 				}
 				
-				date = _keyToDate[key];
+				value = _keyToData[key];
 				
-				if (!date)
+				if (value === undefined)
 					return '';
 				
 				if (_dateFormat)
-					string = formatDate(date);
+					string = formatDate(value);
 				else
-					string = date.toString();
+					string = value.toString();
 				
 				return string;
 			}
 			
-			date = _keyToDate[key];
+			value = _keyToData[key];
+			
+			if (!dataType || dataType == Array)
+				return value != null ? [value] : null;
 			
 			if (dataType)
-				return date as DataType;
+				return value as dataType;
 			
-			return date;
+			return value;
 		}
 
 		override public function toString():String
@@ -330,9 +372,9 @@ package weave.data.AttributeColumns
 			'J','%-H',
 			'LL','%I',
 			'L','%-I',
-			'EEEE','%A', // note this %A is after the A was replaced above
+			'EEEE','%A', // note that %A appears after the A replaced above
 			'EEE','%a',
-			'NN','%M', // note these %M appears after the M's were replaced above
+			'NN','%M', // note that %M and %-M appear after the M's replaced above
 			'N','%-M',
 			'SS','%S',
 			'QQQ','%Q'
@@ -341,120 +383,7 @@ package weave.data.AttributeColumns
 		
 		public static function detectDateFormats(dates:*):Array
 		{
-			return weave.flascc.dates_detect(dates, DATE_FORMAT_AUTO_DETECT);
+			return weave.flascc.dates_detect(dates, DateFormat.FOR_AUTO_DETECT);
 		}
-		
-		public static const DATE_FORMAT_ADDITIONAL_SUGGESTIONS:Array = [
-			"%Y"
-		];
-		public static const DATE_FORMAT_AUTO_DETECT:Array = [
-			'%d-%b-%y',
-			'%b-%d-%y',
-			'%d-%b-%Y',
-			'%b-%d-%Y',
-			'%Y-%b-%d',
-			
-			'%d/%b/%y',
-			'%b/%d/%y',
-			'%d/%b/%Y',
-			'%b/%d/%Y',
-			'%Y/%b/%d',
-			
-			'%d.%b.%y',
-			'%b.%d.%y',
-			'%d.%b.%Y',
-			'%b.%d.%Y',
-			'%Y.%b.%d',
-			
-			'%d-%m-%y',
-			'%m-%d-%y',
-			'%d-%m-%Y',
-			'%m-%d-%Y',
-			'%Y-%m-%d',
-			
-			'%d/%m/%y',
-			'%m/%d/%y',
-			'%d/%m/%Y',
-			'%m/%d/%Y',
-			'%Y/%m/%d',
-			
-			'%d.%m.%y',
-			'%m.%d.%y',
-			'%d.%m.%Y',
-			'%m.%d.%Y',
-			'%Y.%m.%d',
-			
-			'%H:%M',
-			'%H:%M.%Q',
-			'%H:%M:%S',
-			'%H:%M:%S.%Q',
-			'%a, %d %b %Y %H:%M:%S %z', // RFC_822
-			
-			// ISO_8601   http://www.thelinuxdaily.com/2014/03/c-function-to-validate-iso-8601-date-formats-using-strptime/
-			"%Y-%m-%d",
-			"%y-%m-%d",
-			"%Y-%m-%d %T",
-			"%y-%m-%d %T",
-			"%Y-%m-%dT%T",
-			"%y-%m-%dT%T",
-			"%Y-%m-%dT%TZ",
-			"%y-%m-%dT%TZ",
-			"%Y-%m-%d %TZ",
-			"%y-%m-%d %TZ",
-			"%Y%m%dT%TZ",
-			"%y%m%dT%TZ",
-			"%Y%m%d %TZ",
-			"%y%m%d %TZ",
-			
-			"%Y-%b-%d %T",
-			"%Y-%b-%d %H:%M:%S",
-			"%Y-%b-%d %H:%M:%S.%Q",
-			"%d-%b-%Y %T",
-			"%d-%b-%Y %H:%M:%S",
-			"%d-%b-%Y %H:%M:%S.%Q",
-			
-			/*
-			//https://code.google.com/p/datejs/source/browse/trunk/src/globalization/en-US.js
-			'M/d/yyyy',
-			'dddd, MMMM dd, yyyy',
-			"M/d/yyyy",
-			"dddd, MMMM dd, yyyy",
-			"h:mm tt",
-			"h:mm:ss tt",
-			"dddd, MMMM dd, yyyy h:mm:ss tt",
-			"yyyy-MM-ddTHH:mm:ss",
-			"yyyy-MM-dd HH:mm:ssZ",
-			"ddd, dd MMM yyyy HH:mm:ss GMT",
-			"MMMM dd",
-			"MMMM, yyyy",
-			
-			//http://www.java2s.com/Code/Android/Date-Type/parseDateforlistofpossibleformats.htm
-			"EEE, dd MMM yyyy HH:mm:ss z", // RFC_822
-			"EEE, dd MMM yyyy HH:mm zzzz",
-			"yyyy-MM-dd'T'HH:mm:ssZ",
-			"yyyy-MM-dd'T'HH:mm:ss.SSSzzzz", // Blogger Atom feed has millisecs also
-			"yyyy-MM-dd'T'HH:mm:sszzzz",
-			"yyyy-MM-dd'T'HH:mm:ss z",
-			"yyyy-MM-dd'T'HH:mm:ssz", // ISO_8601
-			"yyyy-MM-dd'T'HH:mm:ss",
-			"yyyy-MM-dd'T'HHmmss.SSSz",
-			
-			//http://stackoverflow.com/a/21737848
-			"M/d/yyyy", "MM/dd/yyyy",                                    
-			"d/M/yyyy", "dd/MM/yyyy", 
-			"yyyy/M/d", "yyyy/MM/dd",
-			"M-d-yyyy", "MM-dd-yyyy",                                    
-			"d-M-yyyy", "dd-MM-yyyy", 
-			"yyyy-M-d", "yyyy-MM-dd",
-			"M.d.yyyy", "MM.dd.yyyy",                                    
-			"d.M.yyyy", "dd.MM.yyyy", 
-			"yyyy.M.d", "yyyy.MM.dd",
-			"M,d,yyyy", "MM,dd,yyyy",                                    
-			"d,M,yyyy", "dd,MM,yyyy", 
-			"yyyy,M,d", "yyyy,MM,dd",
-			"M d yyyy", "MM dd yyyy",                                    
-			"d M yyyy", "dd MM yyyy", 
-			"yyyy M d", "yyyy MM dd" */
-		];
 	}
 }

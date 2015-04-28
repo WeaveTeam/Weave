@@ -20,6 +20,7 @@ package weave.data.DataSources
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.StringUtil;
 	
 	import org.vanrijkom.dbf.DbfField;
 	import org.vanrijkom.dbf.DbfHeader;
@@ -277,7 +278,7 @@ package weave.data.DataSources
 			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
 			if (dataType == DataType.GEOMETRY)
 			{
-				newColumn = new GeometryColumn();
+				newColumn = new GeometryColumn(metadata);
 				(newColumn as GeometryColumn).setGeometries(keysVector, Vector.<GeneralizedGeometry>(data));
 			}
 			else if (dataType == DataType.DATE)
@@ -363,7 +364,8 @@ package weave.data.DataSources
 				if (columnName)
 				{
 					record = DbfTools.getRecord(dbfData, dbfHeader, i);
-					values.push( record.values[columnName] );
+					var value:* = record.values[columnName];
+					values.push(value);
 				}
 				else
 					values.push(String(i + 1));

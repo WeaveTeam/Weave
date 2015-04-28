@@ -21,7 +21,8 @@ package weave.core
 	import mx.core.IFlexDisplayObject;
 	import mx.graphics.codec.PNGEncoder;
 	
-	import weave.flascc.FlasCC;
+	import weave.flascc.readZip;
+	import weave.flascc.writeZip;
 	import weave.primitives.OrderedHashMap;
 	import weave.utils.BitmapUtils;
 
@@ -61,7 +62,7 @@ package weave.core
 		 */		
 		private function _readArchive(fileData:ByteArray):void
 		{
-			var zip:Object = FlasCC.call(weave.flascc.readZip, fileData, filterFilePathsToReadAsObject);
+			var zip:Object = weave.flascc.readZip(fileData, filterFilePathsToReadAsObject);
 			for (var path:String in zip)
 			{
 				var fileName:String = path.substr(path.indexOf('/') + 1);
@@ -91,7 +92,7 @@ package weave.core
 				zip[FOLDER_FILES + '/' + name] = files[name];
 			for (name in objects)
 				zip[FOLDER_AMF + '/' + name] = objects[name];
-			return FlasCC.call(weave.flascc.writeZip, zip);
+			return weave.flascc.writeZip(zip);
 		}
 		
 		public static const HISTORY_SYNC_DELAY:int = 100;
@@ -100,6 +101,7 @@ package weave.core
 		public static const ARCHIVE_SCREENSHOT_PNG:String = "screenshot.png";
 		public static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
 		public static const ARCHIVE_HISTORY_AMF:String = "history.amf";
+		public static const ARCHIVE_URL_CACHE_AMF:String = "url-cache.amf";
 		private static const _pngEncoder:PNGEncoder = new PNGEncoder();
 		
 		private static var _history:SessionStateLog;
@@ -121,7 +123,7 @@ package weave.core
 		{
 			var application:Object = WeaveAPI.topLevelApplication;
 			
-			// HACK
+			// HACK to support fixed workspace size
 			var component:IFlexDisplayObject = application.hasOwnProperty('visApp') ? application['visApp'] : application as IFlexDisplayObject;
 			
 			var bitmapData:BitmapData = BitmapUtils.getBitmapDataFromComponent(component, thumbnailSize, thumbnailSize);
@@ -171,6 +173,10 @@ package weave.core
 			// session history
 			var _history:Object = history.getSessionState();
 			output.objects[ARCHIVE_HISTORY_AMF] = _history;
+			
+			// TEMPORARY SOLUTION - url cache
+			if (WeaveAPI.URLRequestUtils['saveCache'])
+				output.objects[ARCHIVE_URL_CACHE_AMF] = WeaveAPI.URLRequestUtils.getCache();
 			
 			return output.serialize();
 		}

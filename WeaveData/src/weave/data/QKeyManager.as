@@ -71,7 +71,7 @@ package weave.data
 			for (var i:int = iStart; i < iEnd; i++)
 			{
 				var localName:* = keyStrings[i];
-				var hash:int = stringHash(localName); // using stringHash improves lookup speed for a large number of strings
+				var hash:int = stringHash(localName, true); // using stringHash improves lookup speed for a large number of strings
 				var qkey:* = keyLookup[hash];
 				if (qkey === undefined)
 				{
@@ -276,6 +276,7 @@ internal class QKeyGetter
 	
 	private function asyncComplete():void
 	{
-		asyncCallback();
+		if (asyncCallback != null)
+			asyncCallback();
 	}
 }

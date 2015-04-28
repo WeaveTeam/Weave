@@ -21,6 +21,8 @@ package weave.utils
 	import mx.collections.ICollectionView;
 	import mx.collections.IViewCursor;
 	
+	import weave.compiler.StandardLib;
+	
 	/**
 	 * This class contains static functions that manipulate Vectors and Arrays.
 	 * Functions with * as parameter types support both Vector and Array.
@@ -149,8 +151,17 @@ package weave.utils
 		public static function getKeys(hashMap:Object):Array
 		{
 			var keys:Array = [];
-			for (var key:* in hashMap)
-				keys.push(key);
+			if (hashMap is Dictionary)
+			{
+				for (var key:* in hashMap)
+					keys.push(key);
+			}
+			else
+			{
+				// workaround for when the string looks like a Number, var key:* will give you a Number instead of a String
+				for (var stringKey:String in hashMap)
+					keys.push(stringKey);
+			}
 			return keys;
 		}
 
@@ -467,11 +478,15 @@ package weave.utils
 				output = object is Array ? [] : {};
 			if (!object)
 				return output;
-			for (var keyIndex:* in keys)
+			
+			var keyIndex:*,
+				keyValue:*,
+				item:*;
+			
+			for (keyIndex in keys)
 			{
-				var keyValue:* = keys[keyIndex];
+				keyValue = keys[keyIndex];
 				
-				var item:*;
 				if (object is XML_Class)
 					item = String((object as XML_Class).attribute(keyValue));
 				else
@@ -482,7 +497,27 @@ package weave.utils
 				else
 					output[keyValue] = item;
 			}
+			output.length = keys ? keys.length : 0;
+			
 			return output;
+		}
+		
+		/**
+		 * Compares a list of properties in two objects
+		 * @param object1 The first object
+		 * @param object2 The second object
+		 * @param propertyNames A list of names of properties to compare
+		 * @return -1, 0, or 1
+		 */
+		public static function compareProperties(object1:Object, object2:Object, propertyNames:Array):int
+		{
+			for each (var name:String in propertyNames)
+			{
+				var result:int = StandardLib.compare(object1[name], object2[name]);
+				if (result)
+					return result;
+			}
+			return 0;
 		}
 		
 		/**

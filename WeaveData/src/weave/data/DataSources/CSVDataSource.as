@@ -24,6 +24,7 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
 	
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
@@ -40,6 +41,8 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.core.CallbackCollection;
+	import weave.core.LinkableFile;
 	import weave.core.LinkablePromise;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
@@ -65,7 +68,6 @@ package weave.data.DataSources
 
 		public function CSVDataSource()
 		{
-			registerLinkableChild(rawDataPromise, url);
 		}
 
 		public const csvData:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), handleCSVDataChange);
@@ -75,25 +77,18 @@ package weave.data.DataSources
 		public const metadata:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, typeofIsObject));
 		private function typeofIsObject(value:Object):Boolean { return typeof value == 'object'; }
 		
-		public const url:LinkableString = newLinkableChild(this, LinkableString);
+		public const url:LinkableFile = newLinkableChild(this, LinkableFile, parseRawData);
 		
 		public const delimiter:LinkableString = registerLinkableChild(this, new LinkableString(',', verifyDelimiter), parseRawData);
 		private function verifyDelimiter(value:String):Boolean { return value && value.length == 1 && value != '"'; }
 		
-		private const rawDataPromise:LinkablePromise = registerLinkableChild(this, new LinkablePromise(getRawData, null, "Downloading CSV data"), parseRawData);
-		private function getRawData():AsyncToken
-		{
-			if (!url.value)
-				return null;
-			return WeaveAPI.URLRequestUtils.getURL(rawDataPromise, new URLRequest(url.value));
-		}
 		private function parseRawData():void
 		{
 			if (!url.value)
 				return;
 			
-			if (rawDataPromise.error)
-				reportError(rawDataPromise.error);
+			if (url.error)
+				reportError(url.error);
 			
 			if (detectLinkableObjectChange(parseRawData, delimiter))
 			{
@@ -105,7 +100,7 @@ package weave.data.DataSources
 			/*if (linkableObjectIsBusy(rawDataPromise))
 				return;*/
 			
-			csvParser.parseCSV(String(rawDataPromise.result || ''));
+			csvParser.parseCSV(String(url.result || ''));
 		}
 		
 		private var csvParser:CSVParser;
@@ -148,6 +143,7 @@ package weave.data.DataSources
 		private var cachedDataTypes:Object = {};
 		private var columnIds:Array = [];
 		private var keysVector:Vector.<IQualifiedKey>;
+		private const keysCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
 		
 		protected function handleParsedRows(rows:Array):void
 		{
@@ -178,7 +174,7 @@ package weave.data.DataSources
 				var keyTypeString:String = keyType.value;
 				
 				keysVector = new Vector.<IQualifiedKey>();
-				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(this, keyType.value, keyStrings, getCallbackCollection(this).triggerCallbacks, keysVector);
+				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keysCallbacks, keyType.value, keyStrings, null, keysVector);
 			}
 		}
 		
@@ -343,7 +339,7 @@ package weave.data.DataSources
 		override protected function get initializationComplete():Boolean
 		{
 			// make sure csv data is set before column requests are handled.
-			return super.initializationComplete && parsedRows && keysVector;
+			return super.initializationComplete && parsedRows && keysVector && !linkableObjectIsBusy(keysCallbacks);
 		}
 		
 		/**
@@ -587,6 +583,12 @@ package weave.data.DataSources
 			return outputArrayOrVector;
 		}
 
+		/**
+		 * Attempts to convert a list of Strings to Numbers. If successful, returns the Numbers.
+		 * @param strings The String values.
+		 * @param forced Always return a Vector of Numbers, whether or not the Strings look like Numbers.
+		 * @return Either a Vector of Numbers or null
+		 */
 		private function stringsToNumbers(strings:Vector.<String>, forced:Boolean):Vector.<Number>
 		{
 			var numbers:Vector.<Number> = new Vector.<Number>(strings.length);

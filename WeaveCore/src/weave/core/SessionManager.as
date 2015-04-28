@@ -223,7 +223,7 @@ package weave.core
 		{
 			var treeItem:WeaveTreeItem = new WeaveTreeItem();
 			treeItem.label = objectName;
-			treeItem.source = root;
+			treeItem.dependency = root;
 			treeItem.children = getTreeItemChildren;
 			treeItem.data = objectTypeFilter;
 			return treeItem;
@@ -231,7 +231,7 @@ package weave.core
 		
 		private function getTreeItemChildren(treeItem:WeaveTreeItem):Array
 		{
-			var object:ILinkableObject = treeItem.source;
+			var object:ILinkableObject = treeItem.dependency;
 			var objectTypeFilter:* = treeItem.data;
 			var children:Array = [];
 			var names:Array = [];
@@ -1199,7 +1199,7 @@ package weave.core
 		}
 		private function _getPath(tree:WeaveTreeItem, descendant:ILinkableObject):Array
 		{
-			if (tree.source == descendant)
+			if (tree.dependency == descendant)
 				return [];
 			for each (var child:WeaveTreeItem in tree.children)
 			{

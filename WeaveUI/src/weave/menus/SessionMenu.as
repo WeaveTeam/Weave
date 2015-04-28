@@ -29,10 +29,8 @@ package weave.menus
 	import weave.api.getLinkableDescendants;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.reportError;
-	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.KeySets.KeySet;
-	import weave.menus.WeaveMenuItem;
 	import weave.ui.AlertTextBox;
 	import weave.ui.AlertTextBoxEvent;
 	import weave.ui.DraggablePanel;
@@ -245,6 +243,16 @@ package weave.menus
 						shown: fn_adminService,
 						label: lang("Save session state to server"),
 						click: saveSessionStateToServer
+					},{
+						label: lang("New session"),
+						shown: function():Boolean {
+							const possible:String = 'openNewSessionPossible';
+							return WeaveAPI.topLevelApplication.hasOwnProperty(possible)
+								&& WeaveAPI.topLevelApplication[possible]();
+						},
+						click: function():void {
+							WeaveAPI.topLevelApplication['openNewSession']()
+						}
 					}
 				]
 			});

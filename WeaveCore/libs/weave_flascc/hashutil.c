@@ -14,6 +14,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include "AS3/AS3.h"
 #include "tracef.h"
 #include "uthash.h"
@@ -36,8 +37,23 @@ size_t findstr_maxlen = 0;
 char *findstr = NULL;
 entry_t *entry_table = NULL;
 
+inline bool isWhitespace(char c)
+{
+	switch (c)
+	{
+		case ' ':
+		case '\t':
+		case '\r':
+		case '\n':
+		case '\f':
+			return true;
+		default:
+			return false;
+	}
+}
+
 void stringHash() __attribute__((used,
-	annotate("as3sig:public function stringHash(str:String):int"),
+	annotate("as3sig:public function stringHash(str:String, trim:Boolean = false):int"),
 	annotate("as3package:weave.flascc")));
 void stringHash()
 {
@@ -66,19 +82,31 @@ void stringHash()
 		"ram_init.writeByte(0);"
 		: "=r"(pos) : "r"(findstr)
 	);
-	size_t findstr_len = pos - (size_t)findstr;
+	size_t str_len = pos - (size_t)findstr;
+	char* str = findstr;
+	
+	/* Strip leading whitespace */
+	while (isWhitespace(*str))
+	{
+		str++;
+		str_len--;
+	}
+	/* Strip trailing whitespace */
+	while (str_len > 0 && isWhitespace(str[str_len - 1]))
+		str_len--;
+	str[str_len] = '\0';
 
 	// find matching entry
 	entry_t *entry;
-	HASH_FIND(hh, entry_table, findstr, findstr_len, entry);
+	HASH_FIND(hh, entry_table, str, str_len, entry);
 	if (!entry)
 	{
 		// no match, create entry
 		entry = (entry_t*)malloc(sizeof(entry_t));
-		entry->str = (char*)malloc(findstr_len + 1);
-		strncpy(entry->str, findstr, findstr_len + 1);
+		entry->str = (char*)malloc(str_len + 1);
+		strncpy(entry->str, str, str_len + 1);
 		entry->id = ++stringHashId;
-		HASH_ADD_KEYPTR(hh, entry_table, entry->str, findstr_len, entry);
+		HASH_ADD_KEYPTR(hh, entry_table, entry->str, str_len, entry);
 	}
 	AS3_Return(entry->id);
 }

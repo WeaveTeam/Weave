@@ -18,12 +18,13 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import flash.text.TextFormatAlign;
 	
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotter;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
@@ -73,7 +74,7 @@ package weave.visualization.plotters
 		
 		public const color:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
 		public const text:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		public const textFormatAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));
+		public const textFormatAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT, verifyTextFormatAlign));
 		public const hAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_CENTER));
 		public const vAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
 		public const angle:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
@@ -84,6 +85,16 @@ package weave.visualization.plotters
 		public const alignToDataMax:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number', 'string', 'column']));
+		
+		private function verifyTextFormatAlign(value:String):Boolean
+		{
+			return [
+				TextFormatAlign.CENTER,
+				TextFormatAlign.JUSTIFY,
+				TextFormatAlign.LEFT,
+				TextFormatAlign.RIGHT
+			].indexOf(value) >= 0;
+		}
 
 		/**
 		 * Draws the graphics onto BitmapData.

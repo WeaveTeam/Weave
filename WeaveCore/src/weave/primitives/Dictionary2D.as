@@ -24,10 +24,11 @@ package weave.primitives
 	 */
 	public class Dictionary2D
 	{
-		public function Dictionary2D(weakPrimaryKeys:Boolean = false, weakSecondaryKeys:Boolean = false)
+		public function Dictionary2D(weakPrimaryKeys:Boolean = false, weakSecondaryKeys:Boolean = false, defaultType:Class = null)
 		{
 			dictionary = new Dictionary(weakPrimaryKeys);
 			weak2 = weakSecondaryKeys;
+			this.defaultType = defaultType;
 		}
 		
 		/**
@@ -36,6 +37,7 @@ package weave.primitives
 		public var dictionary:Dictionary;
 		
 		private var weak2:Boolean; // used as a constructor parameter for nested Dictionaries
+		private var defaultType:Class; // used for creating objects automatically via get()
 		
 		/**
 		 * 
@@ -46,7 +48,15 @@ package weave.primitives
 		public function get(key1:Object, key2:Object):*
 		{
 			var d2:* = dictionary[key1];
-			return d2 ? d2[key2] : undefined;
+			if (d2)
+				return d2[key2];
+			if (defaultType)
+			{
+				var value:* = new defaultType();
+				set(key1, key2, value);
+				return value;
+			}
+			return undefined;
 		}
 		
 		/**

@@ -236,7 +236,9 @@ package weave.data.KeySets
 			
 			for (; _i < _asyncInput.length; ++_i)
 			{
-				if (getTimer() > stopTime || !_asyncFilter)
+				if (!_asyncFilter)
+					return 1;
+				if (getTimer() > stopTime)
 					return _i / _asyncInput.length;
 				
 				var key:IQualifiedKey = _asyncInput[_i] as IQualifiedKey;
