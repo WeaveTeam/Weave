@@ -109,9 +109,12 @@ private function queryChanged():void
 
     savedQueriesList.selectedItem = query;
 
-	var token:ProxyAsyncToken = new ProxyAsyncToken(_service.invokeAsyncMethod, ["searchContent", [collection, query]], null, false);
-	addAsyncResponder(token, handleQueryResults, handleFault, {service: _service, params: [collection, query]});
-	token.invoke();
+    _source.searchRecords(collection, query).then(
+        function(result:ArrayCollection)
+        {
+            var keyType = _source.getKeyType(collection);
+            _selection.replaceKeys(WeaveAPI.QKeyManager.getQKeys(keyType, result.source));
+        });
 }
 
 private function savedQueriesChanged():void

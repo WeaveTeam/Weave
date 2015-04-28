@@ -22,7 +22,9 @@ package weave.data.DataSources
 	import avmplus.getQualifiedClassName;
 	
 	import flash.geom.Point;
+	import mx.collections.ArrayCollection;
 	
+	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
@@ -42,6 +44,7 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerDisposableChild;
+	import weave.utils.WeavePromise;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
@@ -72,7 +75,6 @@ package weave.data.DataSources
 			rServiceUrl.addImmediateCallback(this, handleRURLChange, true);
 		}
 		
-		private static const DEFAULT_BASE_URL:String = '/WeaveServices';
 		private static const DEFAULT_SERVLET_NAME:String = '/DocumentMapService';
 		
 		public static const META_COLLECTION:String = 'DocumentMapDataSource_collection';
@@ -159,7 +161,7 @@ package weave.data.DataSources
 		}
 
 		
-		override public function refreshHierarchy():void
+		override protected function refreshHierarchy():void
 		{
 			_cache = {};
 			super.refreshHierarchy();
@@ -195,7 +197,7 @@ package weave.data.DataSources
 		{
 			return columnNames.map(function(column:String, i:int, a:Array):Object {
 				return {
-					source: this,
+					dataSource: this,
 					idFields: META_ID_FIELDS,
 					columnMetadata: getColumnMetadata(collection, table, column)
 				};
@@ -482,10 +484,10 @@ package weave.data.DataSources
 			var source:DocumentMapDataSource = this;
 			if (!_rootNode)
 				_rootNode = new ColumnTreeNode({
-					source: _listCollectionsCallbacks, // avoids recreating collection categories (tree collapse bug)
+					dataSource: source,
+					dependency: _listCollectionsCallbacks, // avoids recreating collection categories (tree collapse bug)
 					data: {source: source},
 					label: WeaveAPI.globalHashMap.getName(this),
-					isBranch: true,
 					children: function():Array {
 						var children:Array = rpc('listCollections', [], function(collections:Array):Array {
 							_collections = collections;
@@ -495,16 +497,16 @@ package weave.data.DataSources
 								var keyType:String = getKeyType(collection);
 
 								return {
-									source: _listCollectionsCallbacks, // avoids recreating collection categories (tree collapse bug)
+									dependency: _listCollectionsCallbacks, // avoids recreating collection categories (tree collapse bug)
 									data: {source: source, collection: collection},
-									isBranch: true,
+									dataSource: source,
 									hasChildBranches: true,
 									label: collection,
 									children: [
 										{
-											source: _listCollectionsCallbacks, // avoids recreating collection categories (tree collapse bug)
+											dependency: _listCollectionsCallbacks, // avoids recreating collection categories (tree collapse bug)
+											dataSource: source,
 											data: {source: source, collection: collection, table: 'topics'},
-											isBranch: true,
 											hasChildBranches: false,
 											label: lang('Topics'),
 											children: getColumnNodeDescriptors(collection, TABLE_TOPICS, [
@@ -513,9 +515,8 @@ package weave.data.DataSources
 											])
 										},
 										{
-											source: source, // causes children refresh when data source triggers callbacks
+											dataSource: source, // causes children refresh when data source triggers callbacks
 											data: {source: source, collection: collection, table: 'documents'},
-											isBranch: true,
 											hasChildBranches: false,
 											label: lang('Documents'),
 											children: function():Array {
@@ -533,9 +534,9 @@ package weave.data.DataSources
 											}
 										},
 										{
-											source: _listCollectionsCallbacks, // avoids recreating collection categories (tree collapse bug)
+											dependency: _listCollectionsCallbacks, // avoids recreating collection categories (tree collapse bug)
 											data: {source: source, collection: collection, table: 'nodes'},
-											isBranch: true,
+											dataSource: source,
 											hasChildBranches: false,
 											label: lang('Nodes'),
 											children: getColumnNodeDescriptors(collection, TABLE_NODES, [
@@ -607,10 +608,23 @@ package weave.data.DataSources
 			else
 				throw new Error("Unsupported column type " + getQualifiedClassName(column));
 		}
-	}
-}
 
-internal class DocumentCollection
-{
-	
+		public function searchRecords(collection:String, query:String):WeavePromise
+		{
+			return new WeavePromise(this, function (resolve:Function, reject:Function):void
+				{
+					var token:AsyncToken = _service.invokeAsyncMethod("searchContent", [collection, query]); 
+					addAsyncResponder(token, function (event:ResultEvent, token:Object):void
+					{
+						var ac:ArrayCollection = event.result as ArrayCollection;
+						resolve(ac);
+					},
+					function (event:FaultEvent, token:Object):void
+					{
+						reject(event);
+					});
+				}
+			);
+		}
+	}
 }
