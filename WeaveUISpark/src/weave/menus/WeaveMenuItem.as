@@ -15,6 +15,7 @@
 
 package weave.menus
 {
+	import weave.api.core.ILinkableVariable;
 	import weave.core.LinkableBoolean;
 	import weave.primitives.WeaveTreeItem;
 	
@@ -124,6 +125,18 @@ package weave.menus
 		}
 		public function set toggled(value:*):void
 		{
+			// Here we check if _toggled is a special value before setting it because
+			// we don't want DefaultDataDescriptor.setToggled() to overwrite it.
+			if (value is Boolean)
+			{
+				if (_toggled is ILinkableVariable)
+				{
+					(_toggled as ILinkableVariable).setSessionState(value);
+					return;
+				}
+				if (_toggled is Function)
+					return;
+			}
 			_toggled = value;
 		}
 		

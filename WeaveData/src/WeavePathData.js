@@ -662,3 +662,50 @@ weave.WeavePath.prototype.setColumns = function(metadataMapping, dataSourceName)
 			this.remove(metadataMapping.length);
 	return this;
 };
+
+////////////////////////////////////
+
+var weaveTreeNodeSerial = 'WEAVE_TREE_NODE_SERIAL';
+var weaveTreeNodeLookup = 'WEAVE_TREE_NODE_LOOKUP';
+// create lookup
+weave.evaluateExpression(null, '0', null, null, weaveTreeNodeSerial);
+weave.evaluateExpression(null, 'new Dictionary()', null, null, weaveTreeNodeLookup);
+
+/**
+ * Implements the following interfaces: IWeaveTreeNode, IColumnReference
+ */
+weave.WeaveTreeNode = function(serial) {
+	this.serial = serial | 0; // default - root node
+	if (this.serial == 0 && this._eval('!node'))
+		this._eval(weaveTreeNodeLookup + '[0] = new "weave.data.hierarchy.WeaveRootDataTreeNode"(); return;');
+};
+weave.WeaveTreeNode.prototype._eval = function(script) {
+	return weave.evaluateExpression(null, 'var node = ' + weaveTreeNodeLookup + '[' + this.serial + ']; ' + script);
+};
+weave.WeaveTreeNode.prototype.getLabel = function() {
+	return this._eval('node.getLabel()');
+};
+weave.WeaveTreeNode.prototype.isBranch = function() {
+	return this._eval('node.isBranch()');
+};
+weave.WeaveTreeNode.prototype.hasChildBranches = function() {
+	return this._eval('node.hasChildBranches()');
+};
+weave.WeaveTreeNode.prototype.getChildren = function() {
+	return this
+		._eval('var lookup = ' + weaveTreeNodeLookup + '; node.getChildren().map(child => {\
+				if (!lookup[child])\
+					lookup[ (lookup[child] = ' + weaveTreeNodeSerial + '++) ] = child;\
+				return lookup[child];\
+		})')
+		.map(function(serial) { return new weave.WeaveTreeNode(serial); });
+};
+weave.WeaveTreeNode.prototype.getDataSource = function() {
+	return this._eval('node is IColumnReference ? node.getDataSource() : null');
+};
+weave.WeaveTreeNode.prototype.getDataSourceName = function() {
+	return this._eval('node is IColumnReference ? WeaveAPI.globalHashMap.getName(node.getDataSource()) : null');
+};
+weave.WeaveTreeNode.prototype.getColumnMetadata = function() {
+	return this._eval('node is IColumnReference ? node.getColumnMetadata() : null');
+};
