@@ -54,6 +54,7 @@ package weave.data.DataSources
 
         private static const GEOGRAPHY_REQUIRES:String = "__CensusDataSource__geographyRequires";
         private static const GEOGRAPHY_NAME:String = "__CensusDataSource__geographyName";
+		private static const GEOGRAPHY_FILTERS:String = "__CensusDataSource__geographyFilters";
         private static const CONCEPT_NAME:String = "__CensusDataSource__conceptName";
         private static const GEOGRAPHY_LEVEL_ID:String = "__CensusDataSource__geoLevelId";
         private static const VARIABLE_NAME:String = "__CensusDataSource__variableName";
@@ -86,8 +87,8 @@ package weave.data.DataSources
 		 */
 		private function getUrl(serviceUrl:String, params:Object):String
 		{
-			//params['api_key'] = apiKey.value;
-			//params['file_type'] = 'json';
+			if (apiKey.value) params['key'] = apiKey.value; 
+			 
 			var paramsStr:String = '';
 			for (var key:String in params)
 				paramsStr += (paramsStr ? '&' : '?') + key + '=' + params[key];
@@ -130,7 +131,7 @@ package weave.data.DataSources
 				}
 			});
 		}
-
+		private const _defaultKeyTypes:Object = {};
 		public function createDataSetNode(data:Object):ColumnTreeNode
 		{
 			return new ColumnTreeNode({
@@ -148,9 +149,11 @@ package weave.data.DataSources
 							for each (var geography:Object in result.fips)
 							{
 								var metadata:Object = {};
+								var defaultKeyType:String = WeaveAPI.CSVParser.createCSVRow((geography.requires as Array || []).concat([geography.name])); 
+								_defaultKeyTypes[defaultKeyType] = true;
 								metadata[VARIABLES_LINK] = data[VARIABLES_LINK];
 								metadata[WEB_SERVICE] = data[WEB_SERVICE];
-								metadata[GEOGRAPHY_REQUIRES] = WeaveAPI.CSVParser.createCSVRow(geography.requires || []);
+								metadata[GEOGRAPHY_REQUIRES] = defaultKeyType;
 								metadata[GEOGRAPHY_NAME] = geography.name;
 								metadata[GEOGRAPHY_LEVEL_ID] = geography.geoLevelId;
 								children.push(createGeographyNode(metadata));
@@ -158,8 +161,6 @@ package weave.data.DataSources
 							StandardLib.sortOn(children, function (obj:Object):String { return obj.data[GEOGRAPHY_LEVEL_ID]; });
 						}
 					);
-
-					
 					return children;
 				}
 			});
@@ -171,11 +172,32 @@ package weave.data.DataSources
 				dataSource: this,
 				data: data,
 				label: data[GEOGRAPHY_NAME],
-				idFields: [WEB_SERVICE, GEOGRAPHY_NAME, GEOGRAPHY_REQUIRES],
+				idFields: [WEB_SERVICE, GEOGRAPHY_REQUIRES],
 				hasChildBranches: true,
 				children: function (node:ColumnTreeNode):Array {
 					const children:Array = [];
-					jsonCache.getJsonObject(data[VARIABLES_LINK], function(result:Object):void
+					
+					return children;
+				}
+			})
+		}
+		
+		private var lookupTable:Object = {};
+		public function createFilteredGeographyNode(data:Object):ColumnTreeNode
+		{
+			var filters:Array = WeaveAPI.CSVParser.parseCSVRow(data[GEOGRAPHY_FILTERS]);
+			var requires:Array = WeaveAPI.CSVParser.parseCSVRow(data[GEOGRAPHY_REQUIRES]);
+
+			return new ColumnTreeNode({
+				dataSource: this,
+				data: data,
+				label: filters[ filters.length-1 ], /* TODO: Lookup label based on FIPS mappings */
+				idFields: [WEB_SERVICE, GEOGRAPHY_REQUIRES, GEOGRAPHY_FILTERS],
+				children: function (node:ColumnTreeNode):Array {
+					const children:Array = [];
+					if (filters.length == requires.length - 1)
+					{
+						jsonCache.getJsonObject(data[VARIABLES_LINK], function(result:Object):void
 						{
 							var key:String;
 							var concepts:Object = {};
@@ -184,20 +206,20 @@ package weave.data.DataSources
 							{
 								if (key == "for" || key == "in") continue;
 								var column:Object = result.variables[key];
-
-								var concept_name:String = column.concept || null;
-
-								concepts[concept_name] = concepts[concept_name] || {};
-
 								
-
+								var concept_name:String = column.concept || null;
+								
+								concepts[concept_name] = concepts[concept_name] || {};
+								
+								
+								
 								var metadata:Object = VectorUtils.getItems(data, node.idFields);
 								metadata[VARIABLE_NAME] = key;
 								metadata[CONCEPT_NAME] = concept_name;
 								metadata[ColumnMetadata.TITLE] = column.label;
 								concepts[concept_name][key] = metadata;
 							}
-
+							
 							for (key in concepts)
 							{
 								var concept_metadata:Object = VectorUtils.getItems(data, node.idFields);
@@ -206,11 +228,15 @@ package weave.data.DataSources
 								children.push(createConceptNode(concept_metadata));
 							}
 							StandardLib.sortOn(children, "label");
-						}
-						);
-					return children;
+						});
+					}
+					else
+					{
+						var level:String = requires[filters.length - 1];
+						
+					}
 				}
-			})
+			});
 		}
 
 		public function createConceptNode(data:Object):ColumnTreeNode
@@ -219,8 +245,8 @@ package weave.data.DataSources
 				dataSource: this,
 				data: data,
 				label: data[CONCEPT_NAME] || "No Table",
-				hasChildBranches: false,
-				idFields: [WEB_SERVICE, GEOGRAPHY_NAME, GEOGRAPHY_REQUIRES, CONCEPT_NAME],
+				hasChildBranches: true,
+				idFields: [WEB_SERVICE, GEOGRAPHY_REQUIRES, GEOGRAPHY_FILTERS, CONCEPT_NAME],
 				children: function (node:ColumnTreeNode):Array {
 					var children:Array = [];
 					for (var key:String in node.data.variables)
@@ -232,6 +258,20 @@ package weave.data.DataSources
 				}
 			});
 		}
+		
+		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
+		{
+			if (!metadata)
+				return null;
+			
+			return new ColumnTreeNode({
+				dataSource: this,
+				idFields: [WEB_SERVICE, GEOGRAPHY_REQUIRES, GEOGRAPHY_FILTERS, CONCEPT_NAME, VARIABLE_NAME],
+				data: metadata
+			});
+		}
+		
+
 
 		private function handleFault(event:FaultEvent, token:Object = null):void
 		{
@@ -244,32 +284,15 @@ package weave.data.DataSources
                 _rootNode = createTopLevelNode();
             return _rootNode;
         }
-		
-		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
-		{
-			if (!metadata)
-				return null;
-			
-			return new ColumnTreeNode({
-				dataSource: this,
-				idFields: [WEB_SERVICE, GEOGRAPHY_NAME, GEOGRAPHY_REQUIRES, CONCEPT_NAME, VARIABLE_NAME],
-				data: metadata
-			});
-		}
         
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
         {   
         	var metadata:Object = ColumnMetadata.getAllMetadata(proxyColumn);
         	
         	var web_service:String = metadata[WEB_SERVICE];
-        	var geography_name:String = metadata[GEOGRAPHY_NAME];
         	var variable_name:String = metadata[VARIABLE_NAME];
         	var key_column_names:Array = WeaveAPI.CSVParser.parseCSVRow(metadata[GEOGRAPHY_REQUIRES]);
-
-        	if (key_column_names)
-        		key_column_names.push(geography_name);
-        	else 
-        		key_column_names = [geography_name];
+			var geography_name:String = key_column_names[key_column_names.length - 1];
 
         	var params:Object = {
         		get: variable_name,
