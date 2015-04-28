@@ -45,9 +45,9 @@ package weave.data.hierarchy
 		 */
 		public function ColumnTreeNode(params:Object)
 		{
-			childItemClass = ColumnTreeNode;
-			
 			super(params);
+			
+			childItemClass = ColumnTreeNode;
 			
 			if (!dataSource)
 				throw new Error('ColumnTreeNode constructor: "dataSource" parameter is required');
