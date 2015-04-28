@@ -113,7 +113,7 @@
 <!-- 				</div> -->
 				
 				
-				
+				<column-selector ng-model="test" hierarchy="hierarchy"></column-selector>
 				
 <!--Calculations -->
 				<div class="databox" style="width: 50%">
@@ -313,10 +313,10 @@
 <!-- VIZ TOOL WIDGETS -->	
 		<div ng-controller= "toolsCtrl">
 				<div class="row " style="height: 50%; clear:both" ng-if="!queryService.queryObject.properties.openInNewWindow">
-					<div class="databox" style="width: 25%;" ng-if="!showToolMenu">
+					<div class="databox" style="width: 25%;" ng-if="!weaveReady">
 						
 					</div>
-					<div class="databox" style="width: 25%;" ng-if="showToolMenu">
+					<div class="databox" style="width: 25%;" ng-if="weaveReady">
 						<div>
 							<div>
 								<ui-select ng-model="selectedToolToAdd.value" theme="select2" style="width: 59%;">

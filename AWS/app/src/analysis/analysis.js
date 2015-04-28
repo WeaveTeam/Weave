@@ -36,7 +36,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.WeaveService = WeaveService;
 	$scope.QueryHandlerService = QueryHandlerService;
 	
-	$scope.showToolMenu = false;
+	$scope.weaveReady = false;
 
 	$("#queryObjectPanel" ).draggable().resizable();
 	
@@ -44,13 +44,59 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		return WeaveService.weave;
 	}, function () {
 		if(WeaveService.weave) {
-			$scope.showToolMenu = true;
+			$scope.weaveReady = true;
+			var weave = WeaveService.weave;
+			if(weave) {
+				var weaveTreeNode = new weave.WeaveTreeNode();
+				
+				weave.path('CensusDataSource').request("CensusDataSource");
+				
+				weaveTreeIsBusy = weaveTreeNode._eval('() => WeaveAPI.SessionManager.linkableObjectIsBusy(node)');
+				
+				$scope.hierarchy = {
+					minExpandLevel: 1,
+					clickFolderMode: 1,
+					children: [createDynatreeNode(weaveTreeNode)],
+					onLazyRead : function(node) {
+						var getTreeAsync = function(){
+							var children = node.data.weaveNode.getChildren();
+							if(children)
+								children = children.map(createDynatreeNode);
+							if (weaveTreeIsBusy()) {
+								setTimeout(getTreeAsync, 500);
+								return;
+							}
+							node.removeChildren();
+							node.setLazyNodeStatus(DTNodeStatus_Ok);
+							if(children)
+								node.addChild(children);
+						}; 
+						
+						setTimeout(getTreeAsync, 500);
+					},
+					keyBoard : true,
+					debugLevel: 0
+				};
+				console.hierarchy = $scope.hierarchy;
+			}
 		}
 	});
-
+	
+	var weaveTreeIsBusy = null;
+	var createDynatreeNode = function(wNode) {
+		return {
+			title : wNode.getLabel(),
+			isLazy : wNode.isBranch(),
+			isFolder : wNode.isBranch(),
+			weaveNode : wNode
+		};
+	};
+	
 	$scope.$watch('WeaveService.weaveWindow.closed', function() {
 		queryService.queryObject.properties.openInNewWindow = WeaveService.weaveWindow.closed;
 	});
+	
+	
 	
 	//************************** query object editor**********************************
 	var expandedNodes = null;
@@ -278,7 +324,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 //	}, function() {
 //		if(WeaveService.checkWeaveReady()) 
 //		{
-//			//$scope.showToolMenu = true;
+//			//$scope.weaveReady = true;
 //			
 //			if(queryService.queryObject.weaveSessionState) {
 //				WeaveService.weave.path().state(queryService.queryObject.weaveSessionState);
