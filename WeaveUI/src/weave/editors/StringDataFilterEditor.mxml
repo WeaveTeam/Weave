@@ -27,6 +27,7 @@
 			paddingLeft="4"
 			label="{getEnableLabel(columnTitle)}"
 			change="toggleFilter();"/>
+	<ui:PlayButton id="playButton" enabled="{filterEnable.selected}"/>
 	<ui:MenuToolViewStack id="menuStack"
 		enabled="{filterEnable.selected}"
 		allowMultipleSelection="true"
@@ -34,6 +35,8 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
@@ -42,6 +45,7 @@
 			import weave.api.unlinkBindableProperty;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
@@ -62,12 +66,16 @@
 			
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(MenuToolViewStack.LAYOUT_LIST), handleLayoutMode, true);
 			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
+				UIUtils.linkVisibility(this, showPlayButton, playButton);
 				UIUtils.linkVisibility(this, showToggle, filterEnable);
+				BindingUtils.bindSetter(handlePlayStep, playButton, 'step');
+				playButton.button.addEventListener(MouseEvent.CLICK, handlePlayClick);
 			}
 			
 			public function get stringFilter():StringDataFilter
@@ -115,6 +123,47 @@
 			{
 				if (stringFilter)
 					stringFilter.enabled.value = filterEnable.selected;
+			}
+			
+			private function setMenuChosenIndex(index:int):void
+			{
+				if (_linkedFilter)
+					_linkedFilter.stringValues.setSessionState([menuStack.choices[index]]);
+				else
+					menuStack.chosenIndex = index;
+			}
+			
+			private function handlePlayClick(event:MouseEvent):void
+			{
+				if (playButton.button.selected)
+				{
+					// if slider is at maximum, reset slider to minimum
+					var value:Number = menuStack.chosenIndex;
+					var max:Number = menuStack.choices.length - 1;
+					if (!isFinite(value) || value >= max)
+						setMenuChosenIndex(0);
+				}
+			}
+			
+			private function handlePlayStep(step:int):void
+			{
+				if (!showPlayButton.value || !stringFilter || !stringFilter.enabled.value)
+					return;
+				
+				// we can actually ignore the step number because we only care that it has stepped.
+				
+				var value:Number = menuStack.chosenIndex;
+				var max:Number = menuStack.choices.length - 1;
+				
+				// stop playing at end
+				if (!isFinite(value) || value >= max)
+				{
+					// stop playing at end
+					playButton.button.selected = false;
+					return;
+				}
+				
+				setMenuChosenIndex(Math.min(value + 1, max));
 			}
 			
 			private function handleFilter():void

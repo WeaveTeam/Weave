@@ -182,6 +182,7 @@ package weave.visualization.plotters
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const positiveErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const negativeErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		public const errorIsRelative:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const zoomToSubsetBars:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
@@ -259,6 +260,7 @@ package weave.visualization.plotters
 				var _heightColumns:Array;
 				var _posErrCols:Array;
 				var _negErrCols:Array;
+				var _errorIsRelative:Boolean;
 				var _groupingMode:String;
 				var _horizontalMode:Boolean;
 				var _groupBySortColumn:Boolean;
@@ -280,6 +282,7 @@ package weave.visualization.plotters
 						_heightColumns = heightColumns.getObjects();
 						_posErrCols = positiveErrorColumns.getObjects();
 						_negErrCols = negativeErrorColumns.getObjects();
+						_errorIsRelative = errorIsRelative.value;
 						_groupingMode = getActualGroupingMode();
 						_horizontalMode = horizontalMode.value;
 						_groupBySortColumn = groupBySortColumn.value;
@@ -516,7 +519,12 @@ package weave.visualization.plotters
 										var right:Number = center + width / 4;
 										var top:Number;
 										var bottom:Number;
-										if (height >= 0)
+										if (!_errorIsRelative)
+										{
+											top = errorPlusVal;
+											bottom = errorMinusVal;
+										}
+										else if (height >= 0)
 										{
 											top = yMax + errorPlusVal;
 											bottom = yMax - errorMinusVal;

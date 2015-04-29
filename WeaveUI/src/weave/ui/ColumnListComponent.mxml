@@ -20,7 +20,7 @@
 		 verticalGap="0" creationPolicy="all"
 		 width="100%" height="100%"
 		 implements="weave.api.core.ILinkableObject, weave.api.ui.ILinkableObjectEditor">
-	<mx:HBox width="100%" id="titleHBox" horizontalGap="0">
+	<mx:HBox width="100%" id="titleHBox" horizontalGap="0" verticalAlign="middle">
 		<mx:Label text="{label}" fontWeight="bold"/>
 		<HelpComponent id="help" visible="false" includeInLayout="false"/>
 		<mx:HBox width="100%" id="selectorControls">

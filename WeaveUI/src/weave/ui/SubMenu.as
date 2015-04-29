@@ -23,7 +23,9 @@ package weave.ui
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.UIComponent;
+	import mx.core.mx_internal;
 	import mx.events.MenuEvent;
+	import mx.managers.PopUpManager;
 	
 	import weave.compiler.StandardLib;
 	import weave.menus.WeaveMenuItem;
@@ -159,6 +161,18 @@ package weave.ui
 		
 		public var matchParentWidth:Boolean = false;
 		public var alignRight:Boolean = false;
+		
+		override public function show(xShow:Object=null, yShow:Object=null):void
+		{
+			if ((collection && collection.length == 0) || (parentMenu && !parentMenu.visible) || visible)
+				return;
+			
+			// fixes a bug where super.show() may put SessionManager in an unusable state
+			if (mx_internal::parentDisplayObject)
+				PopUpManager.addPopUp(this, mx_internal::parentDisplayObject, false);
+				
+			super.show(xShow, yShow);
+		}
 		
 		public function showSubMenu():void
 		{
