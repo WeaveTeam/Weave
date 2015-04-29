@@ -16,7 +16,6 @@
 package weave.menus
 {
 	import weave.api.core.ILinkableVariable;
-	import weave.core.LinkableBoolean;
 	import weave.primitives.WeaveTreeItem;
 	
 	/**
@@ -95,7 +94,7 @@ package weave.menus
 		}
 		
 		/**
-		 * This can be either a Function or a LinkableBoolean.
+		 * This can be either a Function or an ILinkableVariable to be treated as a boolean setting.
 		 * The Function signature can be like function():void or function(item:WeaveMenuItem):void.
 		 * Instead of reading this property directly, call runClickFunction().
 		 * @see #runClickFunction()
@@ -202,16 +201,16 @@ package weave.menus
 		/**
 		 * If the click property is set to a Function, it will be called like click.call(this)
 		 *   or click.call(this, this) if the former produces an ArgumentError.
-		 * If the click property is set to a LinkableBoolean, it will be toggled.
+		 * If the click property is set to an ILinkableVariable, it will be toggled as a boolean.
 		 */
 		public function runClickFunction():void
 		{
 			if (click is Function)
 				evalFunction(click as Function);
 			
-			var lb:LinkableBoolean = click as LinkableBoolean;
-			if (lb)
-				lb.value = !lb.value;
+			var lv:ILinkableVariable = click as ILinkableVariable;
+			if (lv)
+				lv.setSessionState(!lv.getSessionState());
 		}
 	}
 }

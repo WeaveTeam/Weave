@@ -15,8 +15,6 @@
 
 package weave.primitives
 {
-	import flash.debugger.enterDebugger;
-	
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
 	
@@ -161,9 +159,6 @@ package weave.primitives
 		 */
 		protected function isSimpleObject(object:*, singlePropertyName:String):Boolean
 		{
-			if (!(object is Object) || object.constructor != Object)
-				return false;
-			
 			var found:Boolean = false;
 			for (var key:* in object)
 			{
@@ -238,21 +233,28 @@ package weave.primitives
 		{
 			try
 			{
-				// first try calling the function with no parameters
-				return func.call(this);
-			}
-			catch (e:*)
-			{
-				if (!(e is ArgumentError))
+				try
 				{
-					if (e is Error)
-						trace((e as Error).getStackTrace());
-					throw e;
+					// first try calling the function with no parameters
+					return func.call(this);
 				}
+				catch (e:*)
+				{
+					if (!(e is ArgumentError))
+					{
+						if (e is Error)
+							trace((e as Error).getStackTrace());
+						throw e;
+					}
+				}
+				
+				// on ArgumentError, pass in this WeaveTreeItem as the first parameter
+				return func.call(this, this);
 			}
-			
-			// on ArgumentError, pass in this WeaveTreeItem as the first parameter
-			return func.call(this, this);
+			catch (e:Error)
+			{
+				WeaveAPI.ErrorManager.reportError(e);
+			}
 		}
 		
 		//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----//----
