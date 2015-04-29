@@ -21,7 +21,7 @@
 		creationPolicy="all"
 		horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" verticalAlign="middle">
 	<ui:CustomCheckBox paddingLeft="4" id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter();"/>
-	<ui:PlayButton id="playButton"/>
+	<ui:PlayButton id="playButton" enabled="{filterEnable.selected}"/>
 	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}"
 				liveDragging="true"
 				mouseDown="event.target.setFocus(); event.stopPropagation()"
@@ -115,7 +115,7 @@
 			
 			private function handlePlayStep(step:int):void
 			{
-				if (!showPlayButton.value)
+				if (!showPlayButton.value || !numberFilter || !numberFilter.enabled.value)
 					return;
 				
 				// we can actually ignore the step number because we only care that it has stepped.
@@ -184,6 +184,9 @@
 
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
+				if (numberFilter && filterEnable.selected != numberFilter.enabled.value)
+					filterEnable.selected = numberFilter.enabled.value;
+				
 				if (detectLinkableObjectChange(updateDisplayList, showMinThumb, showMaxThumb, forceDiscreteValues, discreteValueLabelInterval, statsWatcher))
 				{
 					var i:int;
@@ -196,7 +199,6 @@
 						var column:DynamicColumn = numberFilter.column;
 						
 						enabled = true;
-						filterEnable.selected = numberFilter.enabled.value;
 						columnTitle = ColumnUtils.getTitle(column);
 						
 						var sliderMinValue:Number = numberFilter.min.value;
