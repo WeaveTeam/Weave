@@ -113,8 +113,6 @@
 <!-- 				</div> -->
 				
 				
-				<column-selector ng-model="test" hierarchy="hierarchy"></column-selector>
-				
 <!--Calculations -->
 				<div class="databox" style="width: 50%">
 	
@@ -156,12 +154,16 @@
 									</td>
 		
 									<td>
-											<ui-select ng-if="input.type == 'column' && input.columnType && input.columnType != 'all' && input.columnType != ' '" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;">
-									    		<ui-select-match allow-clear="true" placeholder="Select column...">{{$select.selected.title}}</ui-select-match>
-												<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search, columnType : input.columnType }">
-									       			 <div ng-bind-html="column.title | highlight: $select.search"></div>
-									        	</ui-select-choices>
-											</ui-select>
+											<div droppable style="background-color : white; color : black; border: 1px solid; width : 80%; height:25px" ng-Model="test">
+												<p>{{test.data.title}}</p>
+											</div>
+											
+<!-- 											<ui-select ng-if="input.type == 'column' && input.columnType && input.columnType != 'all' && input.columnType != ' '" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;"> -->
+<!-- 									    		<ui-select-match allow-clear="true" placeholder="Select column...">{{$select.selected.title}}</ui-select-match> -->
+<!-- 												<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search, columnType : input.columnType }"> -->
+<!-- 									       			 <div ng-bind-html="column.title | highlight: $select.search"></div> -->
+<!-- 									        	</ui-select-choices> -->
+<!-- 											</ui-select> -->
 											
 											<!--  handle the case where the column doesn't have a column type in which case we don't filter by columnType -->
 											<ui-select ng-if="input.type == 'column' && (!input.columnType || input.columnType == 'all' || input.columnType == ' ')" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;">
@@ -171,14 +173,14 @@
 									        	</ui-select-choices>
 											</ui-select>
 											
-											<a href="javascript: void(0)" 
-												ng-click="showColumnInfo(queryService.queryObject.scriptOptions[input.param], input.param)"
-											> 
-												<i  ng-if="input.type == 'column'" 
-													style = "padding-left: 3px; padding-top:5px;" 
-													class="fa fa-pencil-square-o fa-lg"
-												></i>
-											</a>
+<!-- 											<a href="javascript: void(0)"  -->
+<!-- 												ng-click="showColumnInfo(queryService.queryObject.scriptOptions[input.param], input.param)" -->
+<!-- 											>  -->
+<!-- 												<i  ng-if="input.type == 'column'"  -->
+<!-- 													style = "padding-left: 3px; padding-top:5px;"  -->
+<!-- 													class="fa fa-pencil-square-o fa-lg" -->
+<!-- 												></i> -->
+<!-- 											</a> -->
 											<!-- Remapping -->
 											
 											<!-- handling toggle input types -->
@@ -243,32 +245,35 @@
 					<div style = "width:45%;height: 100%; float:left;">
 						<!-- REMAPPING -->
 						
-						<div style="height : 30px; margin-top:30px">
-							{{ description }}
-						</div>
+						<div id="hierarchyTree" style="width: 100%; height: 100%; overflow:hidden; float:left"></div>
 						
-					  	<div  style="overflow-y: scroll; height:200px;margin-top:15px">
+						
+<!-- 						<div style="height : 30px; margin-top:30px"> -->
+<!-- 							{{ description }} -->
+<!-- 						</div> -->
+						
+<!-- 					  	<div  style="overflow-y: scroll; height:200px;margin-top:15px"> -->
 					  			
-					      <table border="border: 1px solid #0000FF"  ng-show="varValues.length">
-								<tr> 
-									<td  align="center">
-										Value
-									</td>
-									<td  align="center">
-										Label
-									</td>
-									<td   align="center">
-										New Value
-									</td>
-								 </tr>
-								<tr ng-repeat="varValue in varValues">
-									<td width= "10%" style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td> 
-									<td width= "40%" style="padding-left: 5px" > {{varValue.label}} </td>
-									<td width= "50%"> <input style ="width : 100%"
-														ng-model="values[$index]"
-														ng-change="setValue(varValue.value, values[$index])"> 
-														</input> </td>
-								</tr>
+<!-- 					      <table border="border: 1px solid #0000FF"  ng-show="varValues.length"> -->
+<!-- 								<tr>  -->
+<!-- 									<td  align="center"> -->
+<!-- 										Value -->
+<!-- 									</td> -->
+<!-- 									<td  align="center"> -->
+<!-- 										Label -->
+<!-- 									</td> -->
+<!-- 									<td   align="center"> -->
+<!-- 										New Value -->
+<!-- 									</td> -->
+<!-- 								 </tr> -->
+<!-- 								<tr ng-repeat="varValue in varValues"> -->
+<!-- 									<td width= "10%" style="padding-left: 5px; padding-right: 5px"> {{varValue.value}} </td>  -->
+<!-- 									<td width= "40%" style="padding-left: 5px" > {{varValue.label}} </td> -->
+<!-- 									<td width= "50%"> <input style ="width : 100%" -->
+<!-- 														ng-model="values[$index]" -->
+<!-- 														ng-change="setValue(varValue.value, values[$index])">  -->
+<!-- 														</input> </td> -->
+<!-- 								</tr> -->
 							</table>
 					  	</div>
 					

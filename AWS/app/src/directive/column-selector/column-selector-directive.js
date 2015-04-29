@@ -21,18 +21,6 @@ AnalysisModule.directive('columnSelector', function(queryService) {
 		$scope.closeSelector = function () {
 			$scope.show = false;
 		};
-		
-		$scope.$watch('hierarchy', function(newVal) {
-			console.log(newVal);
-			updateTree(newVal);
-		}, true);
-		
-		function updateTree(rootNode) {
-			if(!rootNode)
-				return;
-			$(tree).dynatree(rootNode);
-		};
-		
 	}
 	
 	return {

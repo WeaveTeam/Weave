@@ -44,7 +44,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		return WeaveService.weave;
 	}, function () {
 		if(WeaveService.weave) {
-			$scope.weaveReady = true;
 			var weave = WeaveService.weave;
 			if(weave) {
 				var weaveTreeNode = new weave.WeaveTreeNode();
@@ -53,7 +52,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 				
 				weaveTreeIsBusy = weaveTreeNode._eval('() => WeaveAPI.SessionManager.linkableObjectIsBusy(node)');
 				
-				$scope.hierarchy = {
+				$scope.dataSourceTree = {
 					minExpandLevel: 1,
 					clickFolderMode: 1,
 					children: [createDynatreeNode(weaveTreeNode)],
@@ -74,10 +73,31 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 						
 						setTimeout(getTreeAsync, 500);
 					},
+					dnd : {
+						revert : false,
+						
+						onDragStart : function(node) {
+							
+							if(node.data.isFolder) {
+								return false;
+							}
+							return true;
+						},
+						onDragStop : function(node) {
+							
+						}
+					},
 					keyBoard : true,
 					debugLevel: 0
 				};
-				console.hierarchy = $scope.hierarchy;
+
+				console.dataSourceTree = $scope.dataSourceTree;
+				
+				$scope.$watch('dataSourceTree', function(dataSourceTree) {
+						if(dataSourceTree)
+							$('#hierarchyTree').dynatree(dataSourceTree);
+				}, true);
+				
 			}
 		}
 	});
@@ -91,6 +111,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			weaveNode : wNode
 		};
 	};
+	
+	
 	
 	$scope.$watch('WeaveService.weaveWindow.closed', function() {
 		queryService.queryObject.properties.openInNewWindow = WeaveService.weaveWindow.closed;
@@ -140,9 +162,10 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	
 	$scope.$watch('queryService.queryObject', function () {
 		
+		scrolledPosition = $(".dynatree-container").scrollTop();
+
 		if(expandedNodes) {
 			expandedNodes = [];
-			scrolledPosition = $(".dynatree-container").scrollTop();
 			activeNode = $("#queryObjTree").dynatree("getActiveNode");
 			$("#queryObjTree").dynatree("getTree").visit(function(node) {
 				if(node.bExpanded)
