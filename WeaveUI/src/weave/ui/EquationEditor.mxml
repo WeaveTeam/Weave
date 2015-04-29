@@ -138,15 +138,16 @@
 					var item:Object;
 					for each (item in classInfo.traits.variables)
 					{
-						if (item.access == 'readonly' && item.name != 'VERSION')
+						if (!item.uri && item.access == 'readonly' && item.name != 'VERSION')
 							constants.push(item);
 					}
 					for each (item in classInfo.traits.methods)
 					{
-						functions.push(item);
+						if (!item.uri)
+							functions.push(item);
 					}
 					
-					functions.sortOn("name",Array.CASEINSENSITIVE);
+					functions.sortOn("name", Array.CASEINSENSITIVE);
 					
 					var listVBox:VBox = new VBox();
 					listVBox.percentWidth = 100;

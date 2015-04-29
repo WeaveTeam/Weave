@@ -56,7 +56,7 @@ package weave.services
 			var info:* = DescribeType.getInfo(this, DescribeType.METHOD_FLAGS);
 			for each (var item:Object in info.traits.methods)
 			{
-				var func:Function = this[item.name] as Function;
+				var func:Function = item.uri ? null : this[item.name] as Function;
 				if (func != null)
 					propertyNameLookup[func] = item.name;
 			}

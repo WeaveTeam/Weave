@@ -15,6 +15,8 @@
 
 package weave.utils
 {
+	import avmplus.DescribeType;
+	
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.TimerEvent;
@@ -437,6 +439,34 @@ package weave.utils
 			{
 				return undefined;
 			}
+		}
+		
+		public static function copyProperties(object:Object):Object
+		{
+			var result:Object = {};
+			for each (var list:Array in DescribeType.getInfo(object, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
+			for each (var item:Object in list)
+			if (item.access != 'writeonly')
+			{
+				try
+				{
+					var name:* = item.uri ? new QName(item.uri, item.name) : item.name;
+					result[String(name)] = object[name];
+				}
+				catch (e:Error)
+				{
+				}
+			}
+			return result;
+		}
+		
+		public static function stringifyProperties(object:Object):String
+		{
+			var keys:Array = [];
+			for (var key:String in object)
+				keys.push(key);
+			StandardLib.sortOn(keys, function(key:String):String { return key.split('::').pop(); });
+			return keys.map(function(key:String, i:int, a:Array):String { return '\t' + key + ': ' + debugId(object[key]); }).join('\n');
 		}
 	}
 }

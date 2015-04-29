@@ -1213,7 +1213,7 @@ package weave.compiler
 			{
 				for each (var list:Array in DescribeType.getInfo(value, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
 					for each (item in list)
-						if (item.access != 'writeonly')
+						if (item.access != 'writeonly' && !item.uri) // ignore properties with namespaces
 							output.push(encodeString(item.name) + ": " + _stringify(item.name, value[item.name], replacer, lineBreakIndent, indent, json_values_only));
 				// sort keys
 				StandardLib.sort(output);
