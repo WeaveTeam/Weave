@@ -110,9 +110,9 @@ private function queryChanged():void
     savedQueriesList.selectedItem = query;
 
     _source.searchRecords(collection, query).then(
-        function(result:ArrayCollection)
+        function(result:ArrayCollection):void
         {
-            var keyType = _source.getKeyType(collection);
+            var keyType:String = _source.getKeyType(collection);
             _selection.replaceKeys(WeaveAPI.QKeyManager.getQKeys(keyType, result.source));
         });
 }
