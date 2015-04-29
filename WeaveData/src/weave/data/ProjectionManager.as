@@ -406,19 +406,17 @@ internal class WorkerThread implements IDisposableObject
 		}
 		
 		// set metadata on proxy column
-		//TODO: this metadata may not be sufficient... IAttributeColumn may need a way to list available metadata property names
-		// or provide another column to get metadata from
-		var metadata:XML = <attribute
-			title={ ColumnUtils.getTitle(unprojectedColumn) }
-			keyType={ ColumnUtils.getKeyType(unprojectedColumn) }
-			dataType={ DataType.GEOMETRY }
-			projection={ destinationProjSRS }
-		/>;
+		var metadata:Object = ColumnMetadata.getAllMetadata(unprojectedColumn);
+		metadata[ColumnMetadata.DATA_TYPE] = DataType.GEOMETRY;
+		metadata[ColumnMetadata.PROJECTION] = destinationProjSRS;
 		reprojectedColumn.setMetadata(metadata);
 		
-		// try to find internal StreamedGeometryColumn(s)
-		var streamedColumn:StreamedGeometryColumn;
+		// wake up any columns such as ReferencedColumn that wait before registering child columns
+		var streamedColumn:StreamedGeometryColumn = ColumnUtils.hack_findNonWrapperColumn(unprojectedColumn) as StreamedGeometryColumn;
+		// try to find other internal StreamedGeometryColumn(s)
 		var streamedColumns:Array = getLinkableDescendants(unprojectedColumn, StreamedGeometryColumn);
+		if (streamedColumn)
+			streamedColumns.unshift(streamedColumn);
 		
 		// Request the full unprojected detail because we don't know how much unprojected
 		// detail we need to display the appropriate amount of reprojected detail.
