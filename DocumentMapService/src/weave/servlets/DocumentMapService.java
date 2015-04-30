@@ -53,7 +53,7 @@ public class DocumentMapService extends WeaveServlet
 	{
 		if (_solr == null)
 		{
-			_solr = new HttpSolrServer("http://localhost:8080/solr/docmaps");
+			_solr = new HttpSolrClient("http://localhost:8983/solr/docmaps");
 		}
 		
 		return _solr;
@@ -90,11 +90,13 @@ public class DocumentMapService extends WeaveServlet
 			ServletContext application = config.getServletContext();
 			Path collectionsPath = Paths.get(application.getInitParameter("collectionsPath"));
 			ArrayList<String> collectionList = new ArrayList<String>();
-			try (DirectoryStream<Path> stream = Files.newDirectoryStream(collectionsPath)) {
+			try {
+				DirectoryStream<Path> stream = Files.newDirectoryStream(collectionsPath);
 				for (Path entry: stream) {
 					collectionList.add(entry.getFileName().toString());
 				}
-			} catch (DirectoryIteratorException ex) {
+			}
+			catch (DirectoryIteratorException ex) {
 				// I/O error encounted during the iteration, the cause is an IOException
 				throw ex.getCause();
 			}

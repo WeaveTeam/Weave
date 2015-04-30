@@ -321,7 +321,7 @@ public class DocumentCollection
 	}
 
 	private static int SEARCH_CHUNK_SIZE = 100;
-	public List<String> searchContent(String words) throws SolrServerException
+	public List<String> searchContent(String words) throws SolrServerException, IOException
 	{
 		List<String> results = new LinkedList<String>();
 		SolrQuery query = new SolrQuery();
