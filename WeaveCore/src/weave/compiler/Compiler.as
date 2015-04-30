@@ -17,6 +17,7 @@ package weave.compiler
 {
 	import avmplus.DescribeType;
 	
+	import flash.system.ApplicationDomain;
 	import flash.utils.Dictionary;
 	import flash.utils.Proxy;
 	import flash.utils.flash_proxy;
@@ -282,6 +283,11 @@ package weave.compiler
 		public static const deprecatedClassReplacements:Object = {};
 		
 		/**
+		 * The list of packages to check when looking up class definitions.
+		 */
+		public static const defaultPackages:Array = [];
+		
+		/**
 		 * First checks deprecatedClassReplacements, then getDefinitionByName().
 		 * @param name The name used to look up a definition.
 		 * @return The corresponding object.
@@ -291,7 +297,23 @@ package weave.compiler
 		{
 			if (name.indexOf("::") >= 0)
 				name = StandardLib.replace(name, "::", ".");
-			return deprecatedClassReplacements[name] as Class || getDefinitionByName(name);
+			
+			// return cached definition if present
+			var def:Object = deprecatedClassReplacements[name];
+			if (def)
+				return def;
+			
+			// if it's not a fully qualified name, check the default packages
+			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
+			for (var i:int = -1; i < defaultPackages.length; i++)
+			{
+				var qname:String = i < 0 ? name : (defaultPackages[i] + "::" + name);
+				if (domain.hasDefinition(qname))
+					return domain.getDefinition(qname);
+			}
+			
+			// this will throw a meaningful error if there is no definition
+			return domain.getDefinition(name);
 		}
 		
 		/**
@@ -1191,7 +1213,7 @@ package weave.compiler
 			{
 				for each (var list:Array in DescribeType.getInfo(value, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
 					for each (item in list)
-						if (item.access != 'writeonly')
+						if (item.access != 'writeonly' && !item.uri) // ignore properties with namespaces
 							output.push(encodeString(item.name) + ": " + _stringify(item.name, value[item.name], replacer, lineBreakIndent, indent, json_values_only));
 				// sort keys
 				StandardLib.sort(output);

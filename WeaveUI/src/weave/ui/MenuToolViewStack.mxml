@@ -84,10 +84,16 @@
 			private var _choices:Array = [];
 			private var _labelFunction:Function;
 			private var _chosenItems:Array = [];
+			private var _derived_chosenIndex:int = -1;
 			
 			public function set layoutMode(name:String):void
 			{
 				this.selectedIndex = LAYOUTS.indexOf(name);
+			}
+			
+			public function get choices():Array
+			{
+				return _choices;
 			}
 			
 			public function set choices(items:Array):void
@@ -158,6 +164,7 @@
 				}
 				if (chosenIndices.length)
 					chosenIndex = chosenIndices[0];
+				_derived_chosenIndex = chosenIndex;
 				
 				if (StandardLib.compare(choiceList.selectedIndices, chosenIndices) != 0)
 					choiceList.selectedIndices = chosenIndices;
@@ -176,6 +183,17 @@
 				var vIndex:int = _choices.length - 1 - chosenIndex;
 				if (choiceVSlider.value != vIndex)
 					choiceVSlider.value = vIndex;
+			}
+			
+			[Bindable(event="choiceChange")]
+			public function get chosenIndex():int
+			{
+				return _derived_chosenIndex;
+			}
+			
+			public function set chosenIndex(value:int):void
+			{
+				chosenItem = _choices[value];
 			}
 			
 			[Bindable(event="choiceChange")]

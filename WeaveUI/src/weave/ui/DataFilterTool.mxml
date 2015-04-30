@@ -133,23 +133,15 @@
 								{
 									label: lang('Show selector for minimum value'),
 									type: WeaveMenuItem.TYPE_CHECK,
-									toggled: ndfe.showMinThumb,
-									click: ndfe.showMinThumb
+									toggled: ndfe.showMinThumb
 								},{
 									label: lang('Show selector for maximum value'),
 									type: WeaveMenuItem.TYPE_CHECK,
-									toggled: ndfe.showMaxThumb,
-									click: ndfe.showMaxThumb
+									toggled: ndfe.showMaxThumb
 								},{
 									label: lang('Force discrete values'),
 									type: WeaveMenuItem.TYPE_CHECK,
-									toggled: ndfe.forceDiscreteValues,
-									click: ndfe.forceDiscreteValues
-								},{
-									label: lang('Show play button'),
-									type: WeaveMenuItem.TYPE_CHECK,
-									toggled: ndfe.showPlayButton,
-									click: ndfe.showPlayButton
+									toggled: ndfe.forceDiscreteValues
 								}
 							];
 						}
@@ -158,7 +150,6 @@
 					{
 						label: lang("Show filter toggle CheckBox"),
 						type: WeaveMenuItem.TYPE_CHECK,
-						groupName: 'showToggle',
 						toggled: function():Boolean {
 							var _editor:ILinkableObjectEditor = getEditor();
 							return _editor && getSessionState(_editor)['showToggle'];
@@ -166,7 +157,32 @@
 						click: function():void {
 							var _editor:ILinkableObjectEditor = getEditor();
 							if (_editor)
-								setSessionState(_editor, {showToggle: !getSessionState(_editor)['showToggle']}, false);
+							{
+								var shown:Boolean = getSessionState(_editor)['showToggle'];
+								setSessionState(_editor, {"showToggle": !shown}, false);
+								// when hiding toggle, enable filter
+								if (shown)
+								{
+									var sdf:StringDataFilter = getFilter() as StringDataFilter;
+									var ndf:NumberDataFilter = getFilter() as NumberDataFilter;
+									if (sdf)
+										sdf.enabled.value = true;
+									if (ndf)
+										ndf.enabled.value = true;
+								}
+							}
+						}
+					},{
+						label: lang("Show play button"),
+						type: WeaveMenuItem.TYPE_CHECK,
+						toggled: function():Boolean {
+							var _editor:ILinkableObjectEditor = getEditor();
+							return _editor && getSessionState(_editor)['showPlayButton'];
+						},
+						click: function():void {
+							var _editor:ILinkableObjectEditor = getEditor();
+							if (_editor)
+								setSessionState(_editor, {"showPlayButton": !getSessionState(_editor)['showPlayButton']}, false);
 						}
 					},
 					WeaveMenuItem.TYPE_SEPARATOR,

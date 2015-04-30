@@ -323,6 +323,7 @@ import weave.api.data.IAttributeColumn;
 import weave.api.data.IColumnWrapper;
 import weave.api.data.IProjector;
 import weave.api.data.IQualifiedKey;
+import weave.api.getLinkableDescendants;
 import weave.api.newDisposableChild;
 import weave.api.registerDisposableChild;
 import weave.data.AttributeColumns.GeometryColumn;
@@ -405,30 +406,27 @@ internal class WorkerThread implements IDisposableObject
 		}
 		
 		// set metadata on proxy column
-		//TODO: this metadata may not be sufficient... IAttributeColumn may need a way to list available metadata property names
-		// or provide another column to get metadata from
-		var metadata:XML = <attribute
-				title={ ColumnUtils.getTitle(unprojectedColumn) }
-		keyType={ ColumnUtils.getKeyType(unprojectedColumn) }
-		dataType={ DataType.GEOMETRY }
-		projection={ destinationProjSRS }
-		/>;
+		var metadata:Object = ColumnMetadata.getAllMetadata(unprojectedColumn);
+		metadata[ColumnMetadata.DATA_TYPE] = DataType.GEOMETRY;
+		metadata[ColumnMetadata.PROJECTION] = destinationProjSRS;
 		reprojectedColumn.setMetadata(metadata);
 		
-		// try to find an internal StreamedGeometryColumn
-		var internalColumn:IAttributeColumn = unprojectedColumn;
-		while (!(internalColumn is StreamedGeometryColumn) && internalColumn is IColumnWrapper)
-			internalColumn = (internalColumn as IColumnWrapper).getInternalColumn();
-		var streamedGeomColumn:StreamedGeometryColumn = internalColumn as StreamedGeometryColumn;
-		if (streamedGeomColumn)
-		{
-			// Request the full unprojected detail because we don't know how much unprojected
-			// detail we need to display the appropriate amount of reprojected detail. 
-			streamedGeomColumn.requestGeometryDetail(streamedGeomColumn.collectiveBounds, 0);
-			// if still downloading the tiles, do not reproject
-			if (streamedGeomColumn.isStillDownloading())
+		// wake up any columns such as ReferencedColumn that wait before registering child columns
+		var streamedColumn:StreamedGeometryColumn = ColumnUtils.hack_findNonWrapperColumn(unprojectedColumn) as StreamedGeometryColumn;
+		// try to find other internal StreamedGeometryColumn(s)
+		var streamedColumns:Array = getLinkableDescendants(unprojectedColumn, StreamedGeometryColumn);
+		if (streamedColumn)
+			streamedColumns.unshift(streamedColumn);
+		
+		// Request the full unprojected detail because we don't know how much unprojected
+		// detail we need to display the appropriate amount of reprojected detail.
+		for each (streamedColumn in streamedColumns)
+			streamedColumn.requestGeometryDetail(streamedColumn.collectiveBounds, 0);
+		
+		// if still downloading the tiles, do not reproject
+		for each (streamedColumn in streamedColumns)
+			if (streamedColumn.isStillDownloading())
 				return; // done
-		}
 		
 		// initialize variables before calling processGeometries()
 		keys = unprojectedColumn.keys; // all keys
