@@ -114,6 +114,7 @@ private function queryChanged():void
         {
             var keyType:String = _source.getKeyType(collection);
             _selection.replaceKeys(WeaveAPI.QKeyManager.getQKeys(keyType, result.source));
+			searchPanel.resultList.dataProvider = result;
         });
 }
 
@@ -157,7 +158,7 @@ override protected function childrenCreated():void
 {
     super.childrenCreated();
 
-    linkBindableProperty(searchQuery, searchBox, 'text', 100, false);
+    linkBindableProperty(searchQuery, searchPanel.searchBox, 'text', 100, false);
     BindingUtils.bindSetter(savedQuerySelected, savedQueriesList, "selectedItem", true);
 
     return;
@@ -176,13 +177,15 @@ public function getSelectableAttributeNames():Array
 ]]>
 </mx:Script>
 <mx:VBox>
-    <mx:HBox>
+    <mx:HBox includeInLayout="false" visible="false">
         <ui:TextInputWithPrompt id="searchBox" prompt="{lang('Search')}"/>
         <mx:Button label="{lang('+')}" click="saveQuery()"/>
         <mx:Button label="{lang('-')}" click="removeQuery()" enabled="{savedQueriesList.selectedItem}"/>
     </mx:HBox>
-    <mx:List width="100%" id="savedQueriesList"/>
-    
+    <mx:List width="100%" id="savedQueriesList" includeInLayout="false" visible="false"/>
+    <ui:DocMapSearchPanel id="searchPanel">
+		
+	</ui:DocMapSearchPanel>
 </mx:VBox>
 <ui:ControlPanel>
         <mx:VBox label="{lang('Attributes')}">
