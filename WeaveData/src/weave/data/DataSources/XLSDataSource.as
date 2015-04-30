@@ -15,6 +15,7 @@
 
 package weave.data.DataSources
 {
+	import com.as3xls.xls.Cell;
 	import com.as3xls.xls.ExcelFile;
 	
 	import flash.net.URLRequest;
@@ -184,10 +185,22 @@ package weave.data.DataSources
 			values.length = xlsSheetsArray[0].values.length - 1;
 			for (var i:int = 0; i < values.length; i++)
 			{
-				if (columnIndex < 0)
-					values[i] = String(i + 1);
-				else
-					values[i] = xlsSheetsArray[0].values[i + 1][columnIndex];
+				try
+				{
+					if (columnIndex < 0)
+					{
+						values[i] = String(i + 1);
+					}
+					else
+					{
+						var cell:Cell = xlsSheetsArray[0].values[i + 1][columnIndex];
+						values[i] = cell.value;
+					}
+				}
+				catch (e:Error)
+				{
+					values[i] = e.toString();
+				}
 			}
 			return values;
 		}
