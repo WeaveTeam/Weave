@@ -69,8 +69,8 @@ package
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.ColorRampEditor;
 	import weave.ui.DataFilter;
-	import weave.ui.DocumentSummaryComponent;
 	import weave.ui.DataFilterTool;
+	import weave.ui.DocumentSummaryComponent;
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
 	import weave.ui.SchafersMissingDataTool;
@@ -98,6 +98,7 @@ package
 	import weave.visualization.tools.DataStatisticsTool;
 	import weave.visualization.tools.DataStatisticsToolEditor;
 	import weave.visualization.tools.DimensionSliderTool;
+	import weave.visualization.tools.DocMapSearchManager;
 	import weave.visualization.tools.DocMapSearchTool;
 	import weave.visualization.tools.DraggableScatterPlotTool;
 	import weave.visualization.tools.GaugeTool;
@@ -219,7 +220,8 @@ package
 				KeyMappingTool,
 				DocMapSearchTool,
 				LayerSettingsTool,
-				ParallelCoordinatesTool
+				ParallelCoordinatesTool,
+				DocMapSearchManager
 			]);
 			
 			/**

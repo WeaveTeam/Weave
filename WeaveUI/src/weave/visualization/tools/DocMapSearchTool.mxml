@@ -8,34 +8,32 @@
                    <mx:Script>
 <![CDATA[
 
-import weave.Weave;
-
-import weave.api.data.IQualifiedKey;
-import weave.api.linkBindableProperty;
-import weave.api.newLinkableChild;
-import weave.api.registerLinkableChild;
-import weave.api.detectLinkableObjectChange;
-import weave.api.ui.IVisTool;
-import weave.core.LinkableVariable;
-import weave.core.LinkableString;
-import weave.core.LinkableNumber;
-import weave.data.AttributeColumns.DynamicColumn;
-import weave.data.KeySets.KeySet;
-import weave.data.DataSources.DocumentMapDataSource;
-import weave.utils.ColumnUtils;
-import weave.utils.VectorUtils;
-import weave.api.disposeObject;
-import weave.api.objectWasDisposed;
-import weave.api.reportError;
-
 import mx.binding.utils.BindingUtils;
+import mx.collections.ArrayCollection;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
-import mx.collections.ArrayCollection;
 
+import weave.Weave;
+import weave.api.data.IQualifiedKey;
+import weave.api.detectLinkableObjectChange;
+import weave.api.disposeObject;
+import weave.api.linkBindableProperty;
+import weave.api.newLinkableChild;
+import weave.api.objectWasDisposed;
+import weave.api.registerLinkableChild;
+import weave.api.reportError;
+import weave.api.ui.IVisTool;
+import weave.core.LinkableNumber;
+import weave.core.LinkableString;
+import weave.core.LinkableVariable;
+import weave.data.AttributeColumns.DynamicColumn;
+import weave.data.DataSources.DocumentMapDataSource;
+import weave.data.KeySets.KeySet;
 import weave.services.AMF3Servlet;
 import weave.services.ProxyAsyncToken;
 import weave.services.addAsyncResponder;
+import weave.utils.ColumnUtils;
+import weave.utils.VectorUtils;
 
 private const _probe:KeySet = Weave.defaultProbeKeySet;
 private const _selection:KeySet = Weave.defaultSelectionKeySet;
@@ -110,11 +108,11 @@ private function queryChanged():void
     savedQueriesList.selectedItem = query;
 
     _source.searchRecords(collection, query).then(
-        function(result:ArrayCollection):void
+        function(result:Array):void
         {
             var keyType:String = _source.getKeyType(collection);
-            _selection.replaceKeys(WeaveAPI.QKeyManager.getQKeys(keyType, result.source));
-			searchPanel.resultList.dataProvider = result;
+            _selection.replaceKeys(result);
+			//searchPanel.resultList.dataProvider = new ArrayCollection(result);
         });
 }
 
@@ -183,9 +181,9 @@ public function getSelectableAttributeNames():Array
         <mx:Button label="{lang('-')}" click="removeQuery()" enabled="{savedQueriesList.selectedItem}"/>
     </mx:HBox>
     <mx:List width="100%" id="savedQueriesList" includeInLayout="false" visible="false"/>
-    <ui:DocMapSearchComponent id="searchPanel">
+    <ui:DocMapSearchRenderer id="searchPanel">
 		
-	</ui:DocMapSearchComponent>
+	</ui:DocMapSearchRenderer>
 </mx:VBox>
 <ui:ControlPanel>
         <mx:VBox label="{lang('Attributes')}">

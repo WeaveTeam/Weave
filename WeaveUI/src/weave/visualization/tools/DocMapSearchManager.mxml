@@ -1,0 +1,99 @@
+<SimpleVisTool xmlns="weave.visualization.tools.*"
+       xmlns:mx="http://www.adobe.com/2006/mxml"
+       xmlns:ui="weave.ui.*" 
+       implements="weave.api.ui.IVisTool, weave.api.ui.ISelectableAttributes"
+       title="{lang('Document Collection Search')}" xmlns:editors="weave.editors.*" xmlns:s="library://ns.adobe.com/flex/spark">
+	<s:DataGroup id="searchContainer" itemRenderer="weave.ui.DocMapSearchRenderer" width="100%" height="100%">
+		<s:layout>
+			<ui:DocMapSearchLayout zoomBounds="{visualization.plotManager.zoomBounds}"/>
+		</s:layout>
+	</s:DataGroup>
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.core.BitmapAsset;
+			
+			import weave.Weave;
+			import weave.api.getCallbackCollection;
+			import weave.ui.DocMapSearchQuery;
+			import weave.ui.DocMapSearchRenderer;
+			import weave.visualization.plotters.SingleImagePlotter;
+		
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DocMapSearchManager, "Document Map Search Manager");
+			
+			override protected function inConstructor():void
+			{
+				super.inConstructor();
+				
+				visualization.enableZoomAndPan.value = true;
+				visualization.plotManager.maxZoomLevel.value = 5;
+				visualization.plotManager.enableAutoZoomToExtent.value = false;
+				visualization.plotManager.enableFixedAspectRatio.value = true;
+				
+				var imagePlotter:SingleImagePlotter = visualization.plotManager.plotters.requestObject('Background image', SingleImagePlotter, false);
+				imagePlotter.defaultImage = (new Weave.WeaveBackgroundImage() as BitmapAsset).bitmapData;
+				imagePlotter.dataX.value = 0;
+				imagePlotter.dataY.value = 0;
+				imagePlotter.useImageSize.value = true;
+				imagePlotter.verticalAlign.value = 'top';
+				imagePlotter.horizontalAlign.value = 'left';
+				
+				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, function():void {
+					if (searchContainer)
+						searchContainer.invalidateDisplayList();
+				});
+			}
+			
+			override protected function childrenCreated():void
+			{
+			    super.childrenCreated();
+				
+				children.childListCallbacks.addGroupedCallback(this, handleChildren, true);
+				searchContainer.clipAndEnableScrolling = true;
+				
+				enableSubMenu.value = true;
+				subMenuButton.data = [
+					{
+						label: lang("New query"),
+						click: function():void {
+							var query:DocMapSearchQuery = children.requestObject(null, DocMapSearchQuery, false);
+						}
+					},{
+						label: lang("Remove query"),
+						dependency: children.childListCallbacks,
+						children: function():Array {
+							return children.getObjects(DocMapSearchQuery).map(function(query:DocMapSearchQuery, i:int, a:Array):Object {
+								return {
+									label: query.getLabel(),
+									click: function():void { children.removeObject(children.getName(query)); }
+								};
+							});
+						}
+					}
+				];
+			}
+			
+			private function handleChildren():void
+			{
+				searchContainer.dataProvider = new ArrayCollection(children.getObjects(DocMapSearchQuery));
+			}
+			
+			override public function getSelectableAttributes():Array
+			{
+			    return [];
+			}
+			
+			override public function getSelectableAttributeNames():Array
+			{
+			    return [];
+			}
+		]]>
+	</mx:Script>
+	<editorFactory>
+		<mx:Component>
+			<ui:ControlPanel>
+		        <editors:WindowSettingsEditor target="{this}"/>
+			</ui:ControlPanel>
+		</mx:Component>
+	</editorFactory>
+</SimpleVisTool>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer
+		 xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:ui="weave.ui.*">
+	<s:Group>
+		<s:layout>
+			<s:VerticalLayout/>
+		</s:layout>
+		<s:Group>
+			<s:layout>
+				<s:HorizontalLayout/>
+			</s:layout>
+			<s:Image id="moveGrip" creationComplete="moveGrip.source = MoveIcon;"/>
+			<s:TextInput id="searchBox"/>
+			<!-- <s:Button id="closeButton"/> -->
+		</s:Group>
+		<s:List id="resultList">
+			<s:layout>
+				<s:TileLayout/>
+			</s:layout>
+			<s:itemRenderer>
+				<fx:Component>
+					<s:ItemRenderer>
+						<s:Group>
+							<s:layout>
+								<s:HorizontalLayout/>
+							</s:layout>
+							<s:BitmapImage id="bitmapImage"/>
+							<s:Label id="title"/>
+						</s:Group>
+						
+						<fx:Script>
+							<![CDATA[
+								import weave.api.data.IQualifiedKey;
+								override public function set data(value:Object):void
+								{
+									super.data = value;
+									var key:IQualifiedKey = value as IQualifiedKey;
+									var query:DocMapSearchQuery = outerDocument.query;
+									bitmapImage.source = query.getImage(key);
+									title.text = query.getTitle(key);
+								}
+							]]>
+						</fx:Script>
+					</s:ItemRenderer>
+				</fx:Component>
+			</s:itemRenderer>
+		</s:List>
+	</s:Group>
+	<fx:Script>
+	<![CDATA[
+		import mx.collections.ArrayCollection;
+		
+		import weave.api.getCallbackCollection;
+		import weave.api.linkBindableProperty;
+		import weave.api.unlinkBindableProperty;
+		
+		[Embed(source="/weave/resources/images/panMode.png")]
+		private static var MoveIcon:Class;
+		
+		[Bindable] public var showLabels:Boolean = false;
+		[Bindable] public var showThumbnails:Boolean = true;
+		
+		override protected function createChildren():void
+		{
+			super.createChildren();
+			
+			moveGrip.addEventListener(MouseEvent.MOUSE_DOWN, startMove);
+		}
+		
+		private function startMove(event:MouseEvent):void
+		{
+			
+		}
+		
+		public function get query():DocMapSearchQuery
+		{
+			return data as DocMapSearchQuery;
+		}
+		
+		override public function set data(value:Object):void
+		{
+			if (query == value)
+				return;
+			
+			if (query)
+			{
+				unlinkBindableProperty(query.queryString, searchBox, 'text');
+				getCallbackCollection(query).removeCallback(handleQuery);
+			}
+			
+			super.data = value as DocMapSearchQuery;
+			
+			if (query)
+			{
+				linkBindableProperty(query.queryString, searchBox, 'text');
+				getCallbackCollection(query).addGroupedCallback(this, handleQuery);
+			}
+		}
+		
+		private function handleQuery():void
+		{
+			resultList.dataProvider = new ArrayCollection(query.getKeys());
+		}
+	]]>
+	</fx:Script>
+</s:ItemRenderer>

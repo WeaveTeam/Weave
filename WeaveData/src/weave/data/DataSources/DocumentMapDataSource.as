@@ -204,7 +204,7 @@ package weave.data.DataSources
 			}, this);
 		}
 		
-		private function getColumnMetadata(collection:String, table:String, column:String):Object
+		public function getColumnMetadata(collection:String, table:String, column:String):Object
 		{
 			var dataType:String = DataType.STRING;
 			if (table == TABLE_DOC_METADATA && column == COLUMN_DOC_MODIFIED_TIME)
@@ -622,8 +622,9 @@ package weave.data.DataSources
 					var token:AsyncToken = _service.invokeAsyncMethod("searchContent", [collection, query]); 
 					addAsyncResponder(token, function (event:ResultEvent, token:Object):void
 					{
-						var ac:ArrayCollection = event.result as ArrayCollection;
-						resolve(ac);
+						var localNames:Array = (event.result as ArrayCollection).source;
+						var keys:Array = WeaveAPI.QKeyManager.getQKeys(getKeyType(collection), localNames);
+						resolve(keys);
 					},
 					function (event:FaultEvent, token:Object):void
 					{
