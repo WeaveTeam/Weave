@@ -112,7 +112,6 @@ private function queryChanged():void
         {
             var keyType:String = _source.getKeyType(collection);
             _selection.replaceKeys(result);
-			//searchPanel.resultList.dataProvider = new ArrayCollection(result);
         });
 }
 
@@ -156,7 +155,7 @@ override protected function childrenCreated():void
 {
     super.childrenCreated();
 
-    linkBindableProperty(searchQuery, searchPanel.searchBox, 'text', 100, false);
+    linkBindableProperty(searchQuery, searchBox, 'text', 100, false);
     BindingUtils.bindSetter(savedQuerySelected, savedQueriesList, "selectedItem", true);
 
     return;
@@ -175,15 +174,12 @@ public function getSelectableAttributeNames():Array
 ]]>
 </mx:Script>
 <mx:VBox>
-    <mx:HBox includeInLayout="false" visible="false">
+    <mx:HBox>
         <ui:TextInputWithPrompt id="searchBox" prompt="{lang('Search')}"/>
         <mx:Button label="{lang('+')}" click="saveQuery()"/>
         <mx:Button label="{lang('-')}" click="removeQuery()" enabled="{savedQueriesList.selectedItem}"/>
     </mx:HBox>
-    <mx:List width="100%" id="savedQueriesList" includeInLayout="false" visible="false"/>
-    <ui:DocMapSearchRenderer id="searchPanel">
-		
-	</ui:DocMapSearchRenderer>
+    <mx:List width="100%" id="savedQueriesList"/>
 </mx:VBox>
 <ui:ControlPanel>
         <mx:VBox label="{lang('Attributes')}">
