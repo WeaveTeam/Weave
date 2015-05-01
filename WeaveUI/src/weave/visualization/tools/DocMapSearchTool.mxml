@@ -183,9 +183,9 @@ public function getSelectableAttributeNames():Array
         <mx:Button label="{lang('-')}" click="removeQuery()" enabled="{savedQueriesList.selectedItem}"/>
     </mx:HBox>
     <mx:List width="100%" id="savedQueriesList" includeInLayout="false" visible="false"/>
-    <ui:DocMapSearchPanel id="searchPanel">
+    <ui:DocMapSearchComponent id="searchPanel">
 		
-	</ui:DocMapSearchPanel>
+	</ui:DocMapSearchComponent>
 </mx:VBox>
 <ui:ControlPanel>
         <mx:VBox label="{lang('Attributes')}">
