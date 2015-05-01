@@ -39,12 +39,14 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	$scope.weaveReady = false;
 
 	$("#queryObjectPanel" ).draggable().resizable();
+	$("#hierarchyPanel" ).draggable().resizable();
 	
 	$scope.$watch(function() {
 		return WeaveService.weave;
 	}, function () {
 		if(WeaveService.weave) {
 			var weave = WeaveService.weave;
+			$scope.weaveReady = true;
 			if(weave) {
 				var weaveTreeNode = new weave.WeaveTreeNode();
 				
@@ -52,23 +54,38 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 				
 				weaveTreeIsBusy = weaveTreeNode._eval('() => WeaveAPI.SessionManager.linkableObjectIsBusy(node)');
 				
-				$scope.dataSourceTree = {
+				queryService.cache.hierarchy = {
 					minExpandLevel: 1,
 					clickFolderMode: 1,
 					children: [createDynatreeNode(weaveTreeNode)],
 					onLazyRead : function(node) {
 						var getTreeAsync = function(){
-							var children = node.data.weaveNode.getChildren();
-							if(children)
+							var children = [];
+							var leaves = [];
+							
+							node.data.weaveNode.getChildren().forEach(function(child) {
+								if(child.isBranch())
+									children.push(child);
+								else
+									leaves.push(child);
+							});
+							
+							
+							if(children.length)
 								children = children.map(createDynatreeNode);
+							
 							if (weaveTreeIsBusy()) {
 								setTimeout(getTreeAsync, 500);
 								return;
 							}
 							node.removeChildren();
 							node.setLazyNodeStatus(DTNodeStatus_Ok);
-							if(children)
+							if(children.length)
 								node.addChild(children);
+
+							if(leaves.length) {
+								$('#columnsTree').dynatree(createColumnTree(leaves));
+							}
 						}; 
 						
 						setTimeout(getTreeAsync, 500);
@@ -91,24 +108,45 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 					debugLevel: 0
 				};
 
-				console.dataSourceTree = $scope.dataSourceTree;
-				
-				$scope.$watch('dataSourceTree', function(dataSourceTree) {
-						if(dataSourceTree)
-							$('#hierarchyTree').dynatree(dataSourceTree);
+				$scope.$watch('queryService.cache.hierarchy', function(hierarchy) {
+					if(hierarchy) {
+						$('#hierarchyTree').dynatree(hierarchy);
+					}
 				}, true);
-				
 			}
 		}
 	});
 	
 	var weaveTreeIsBusy = null;
 	var createDynatreeNode = function(wNode) {
+		if(!wNode)
+			return;
 		return {
 			title : wNode.getLabel(),
 			isLazy : wNode.isBranch(),
 			isFolder : wNode.isBranch(),
 			weaveNode : wNode
+		};
+	};
+	
+	var createColumnTree = function(columns) {
+		return {
+			minExpandLevel: 1,
+			clickFolderMode: 1,
+			children: columns.map(createDynatreeNode),
+			dnd : {
+				revert : false,
+				
+				onDragStart : function(node) {
+					
+					if(node.data.isFolder) {
+						return false;
+					}
+					return true;
+				}
+			},
+			keyBoard : true,
+			debugLevel: 0,
 		};
 	};
 	

@@ -1,26 +1,26 @@
 AnalysisModule.directive('columnSelector', function(queryService) {
 	
-	function link($scope, element, attrs, ngModel, ngModelCtrl) {
-//		var panel = element.find('#panel');
-//		panel.draggrable().resizable({
-//			 maxHeight: 300,
-//		     maxWidth: 250,
-//		     minHeight: 80,
-//		     minWidth: 180
-//		});
+	function link($scope, element, attrs) {
+		
+		$scope.showHierarchy = function() {
+			queryService.queryObject.properties.showHierarchy = true;
+		};
+
+		$scope.clear = function() {
+			if($scope.model)
+				$scope.model.selected = "";
+		};
+		
+		$scope.$watch('model.selected', function(model) { 
+			$scope.ngModel = model;
+		}, true);
+		
+		element.find("#panel").draggable().resizable();
 	}
 	
-	function controller($scope, $element, $rootScope, $filter) {
+	function controller($scope, $element) {
+			
 		
-		var tree = $element.find("#hierarchyTree");
-		
-		$scope.showSelector = function() {
-			$scope.show = !$scope.show;
-		};
-		
-		$scope.closeSelector = function () {
-			$scope.show = false;
-		};
 	}
 	
 	return {
@@ -29,10 +29,9 @@ AnalysisModule.directive('columnSelector', function(queryService) {
 		templateUrl : 'src/directive/column-selector/column_selector.tpl.html',
 		link : link,
 		controller : controller,
-		require : 'ngModel',
 		scope : {
-			hierarchy : '=',
-			ngModel : '='
+			ngModel : '=',
+			hierarchy : '='
 		}
 	};
 });

@@ -19,6 +19,16 @@
 	text-align: center;
 }
 
+.droppable {
+	background-color : white; 
+	color : black; 
+	border: 1px solid; 
+	width : 80%; 
+	height:100%;
+	align : center;
+	margin : 5px;
+}
+
 .myaside {
 	z-index: 1049;
 	margin-left :20px;
