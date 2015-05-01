@@ -36,7 +36,7 @@
 				<mx:itemRenderer>
 					<mx:Component>
 						<mx:HBox horizontalScrollPolicy="off" verticalAlign="middle" initialize="UIUtils.pad(this, 2);">
-							<mx:Label id="lbl" width="100%"/>
+							<mx:Label id="lbl" width="100%" minWidth="0"/>
 							<ui:MenuButton id="menu" toolTip="{lang('Menu')}" smallIcon="true" width="20" height="20">
 								<ui:initialize>
 									<![CDATA[
