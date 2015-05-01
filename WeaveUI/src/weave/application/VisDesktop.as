@@ -37,9 +37,6 @@ package weave.application
 		{
 		}
 		
-		[Embed(source="/weave/resources/images/weave-icon-large.png", mimeType="image/png")]
-		private static const WeaveBackgroundImage:Class;
-		
 		internal function get workspace():Group
 		{
 			return manager as Group;
@@ -52,7 +49,7 @@ package weave.application
 		{
 			super.createChildren();
 			
-			backgroundImage.source = WeaveBackgroundImage;
+			backgroundImage.source = Weave.WeaveBackgroundImage;
 			backgroundImage.alpha = 0.1;
 			backgroundImage.percentWidth = 100;
 			backgroundImage.percentHeight = 100;
