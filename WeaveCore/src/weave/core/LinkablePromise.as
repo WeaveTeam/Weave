@@ -25,6 +25,7 @@ package weave.core
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.registerLinkableChild;
+	import weave.utils.WeavePromise;
 	
 	/**
 	 * Use this class to build dependency trees involving asynchronous calls.
@@ -178,7 +179,10 @@ package weave.core
 			try
 			{
 				var invokeResult:* = _task.apply(null);
-				_asyncToken = invokeResult as AsyncToken;
+				if (invokeResult is WeavePromise)
+					_asyncToken = (invokeResult as WeavePromise).getAsyncToken();
+				else
+					_asyncToken = invokeResult as AsyncToken;
 				if (_asyncToken)
 				{
 					_asyncToken.addResponder(new AsyncResponder(_handleResult, _handleFault, _asyncToken));
