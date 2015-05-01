@@ -29,8 +29,9 @@
 	</ui:Paragraph>
 	<ui:IndentTextInput id="xInput" label="{lang('X')}"/>
 	<ui:IndentTextInput id="yInput" label="{lang('Y')}"/>
-	<ui:IndentTextInput id="widthInput" label="{lang('Width')}"/>
-	<ui:IndentTextInput id="heightInput" label="{lang('Height')}"/>
+	<ui:IndentTextInput id="widthInput" label="{lang('Width')}" alpha="{useImageSizeCheck.selected ? 0.5 : 1}"/>
+	<ui:IndentTextInput id="heightInput" label="{lang('Height')}" alpha="{useImageSizeCheck.selected ? 0.5 : 1}"/>
+	<ui:CustomCheckBox id="useImageSizeCheck" label="{lang('Use image coordinates')}"/>
 	<ui:Indent label="Alignment">
 		<ui:AlignmentControl id="alignmentInput"/>
 	</ui:Indent>
@@ -63,6 +64,7 @@
 				linkBindableProperty(_plotter.dataY, yInput, "text");
 				linkBindableProperty(_plotter.dataWidth, widthInput, "text");
 				linkBindableProperty(_plotter.dataHeight, heightInput, "text");
+				linkBindableProperty(_plotter.useImageSize, useImageSizeCheck, "selected");
 				linkBindableProperty(_plotter.horizontalAlign, alignmentInput, 'horizontalAlign');
 				linkBindableProperty(_plotter.verticalAlign, alignmentInput, 'verticalAlign');
 			}
@@ -113,6 +115,7 @@
 					var localAnchorPoint:Point = tool.visualization.globalToLocal(anchorPoint);
 					pm.zoomBounds.projectScreenToData(localAnchorPoint);
 					
+					plotter.imageURL.value = SingleImagePlotter.RED_CIRCLE_IMAGE_URL;
 					plotter.dataX.value = localAnchorPoint.x;
 					plotter.dataY.value = localAnchorPoint.y;
 					
