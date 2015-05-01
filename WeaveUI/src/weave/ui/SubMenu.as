@@ -169,7 +169,10 @@ package weave.ui
 			
 			// fixes a bug where super.show() may put SessionManager in an unusable state
 			if (mx_internal::parentDisplayObject)
+			{
 				PopUpManager.addPopUp(this, mx_internal::parentDisplayObject, false);
+				this.parent.setChildIndex(this, this.parent.numChildren - 1);
+			}
 				
 			super.show(xShow, yShow);
 		}

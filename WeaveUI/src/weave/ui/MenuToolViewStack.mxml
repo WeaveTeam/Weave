@@ -46,7 +46,7 @@
 	<mx:Canvas label="{lang('Horizontal Slider')}">
 		<mx:HBox verticalAlign="middle" width="100%" height="100%">
 			<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
-						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
+						width="100%" height="100%" snapInterval="1" minimum="0" minWidth="0" showDataTip="false"
 						change="if (UIUtils.hasFocus(choiceHSlider)) chosenItem = _choices[choiceHSlider.value];"
 						mouseDown="choiceHSlider.setFocus()"
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->

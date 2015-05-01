@@ -1202,7 +1202,7 @@ package weave.compiler
 				for (var i:int = 0; i < value.length; i++)
 					output.push(_stringify(String(i), value[i], replacer, lineBreakIndent, indent, json_values_only));
 			}
-			else if (value.constructor == Object)
+			else if (getQualifiedClassName(value) == 'Object')
 			{
 				for (key in value)
 					output.push(encodeString(key) + ": " + _stringify(key, value[key], replacer, lineBreakIndent, indent, json_values_only));
@@ -2915,7 +2915,7 @@ package weave.compiler
 		 */
 		public static function cast(object:Object, type:Class):*
 		{
-			if (object is type || object === null || object.constructor != Object)
+			if (object is type || object === null || getQualifiedClassName(object) != 'Object')
 				return type(object);
 			var newObj:Object = new type();
 			for (var key:String in object)
