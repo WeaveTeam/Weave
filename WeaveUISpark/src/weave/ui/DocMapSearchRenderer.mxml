@@ -151,7 +151,7 @@
 			
 			if (query)
 			{
-				linkBindableProperty(query.queryString, searchBox, 'text');
+				linkBindableProperty(query.queryString, searchBox, 'text', 500);
 				getCallbackCollection(query).addGroupedCallback(this, handleQuery);
 			}
 		}
