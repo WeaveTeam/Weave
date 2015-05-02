@@ -21,6 +21,7 @@ package weave.ui
 	
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
@@ -74,10 +75,10 @@ package weave.ui
 		public const queryString:LinkableString = newLinkableChild(this, LinkableString);
 		public const x:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const y:LinkableNumber = newLinkableChild(this, LinkableNumber);
-		public const dataSourceName:LinkableString = newLinkableChild(this, LinkableString, updateColumns);
-		public const collectionName:LinkableString = newLinkableChild(this, LinkableString, updateColumns);
+		public const dataSourceName:LinkableString = newLinkableChild(this, LinkableString);
+		public const collectionName:LinkableString = newLinkableChild(this, LinkableString);
 		
-		private const _dataSourceWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(DocumentMapDataSource), updateColumns);
+		private const _dataSourceWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(DocumentMapDataSource));
 		private const _imageColumn:ImageColumn = newLinkableChild(this, ImageColumn);
 		private const _titleColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn);
 		private const _urlColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn);
@@ -85,36 +86,47 @@ package weave.ui
 		
 		private function getDataSource():DocumentMapDataSource
 		{
+			validate();
 			return _dataSourceWatcher.target as DocumentMapDataSource;
 		}
 		
-		private function updateColumns():void
+		private function validate():void
 		{
-			_dataSourceWatcher.targetPath = [dataSourceName.value];
-			var ds:DocumentMapDataSource = getDataSource();
-			
-			var imgRef:ReferencedColumn = _imageColumn.requestLocalObject(ReferencedColumn, true);
-			imgRef.setColumnReference(ds, ds && ds.getColumnMetadata(collectionName.value, DocumentMapDataSource.TABLE_DOC_FILES, DocumentMapDataSource.COLUMN_DOC_THUMBNAIL));
-			_urlColumn.setColumnReference(ds, ds && ds.getColumnMetadata(collectionName.value, DocumentMapDataSource.TABLE_DOC_FILES, DocumentMapDataSource.COLUMN_DOC_URL));
-			
-			_titleColumn.setColumnReference(ds, ds && ds.getColumnMetadata(collectionName.value, DocumentMapDataSource.TABLE_DOC_METADATA, DocumentMapDataSource.COLUMN_DOC_TITLE));
-			_modtimeColumn.setColumnReference(ds, ds && ds.getColumnMetadata(collectionName.value, DocumentMapDataSource.TABLE_DOC_METADATA, DocumentMapDataSource.COLUMN_DOC_MODIFIED_TIME));
+			if (detectLinkableObjectChange(validate, dataSourceName, collectionName, _dataSourceWatcher))
+			{
+				_dataSourceWatcher.targetPath = [dataSourceName.value];
+				var ds:DocumentMapDataSource = getDataSource();
+				
+				var imgRef:ReferencedColumn = _imageColumn.requestLocalObject(ReferencedColumn, true);
+				imgRef.setColumnReference(ds, ds && ds.getColumnMetadata(collectionName.value, DocumentMapDataSource.TABLE_DOC_FILES, DocumentMapDataSource.COLUMN_DOC_THUMBNAIL));
+				_urlColumn.setColumnReference(ds, ds && ds.getColumnMetadata(collectionName.value, DocumentMapDataSource.TABLE_DOC_FILES, DocumentMapDataSource.COLUMN_DOC_URL));
+				
+				_titleColumn.setColumnReference(ds, ds && ds.getColumnMetadata(collectionName.value, DocumentMapDataSource.TABLE_DOC_METADATA, DocumentMapDataSource.COLUMN_DOC_TITLE));
+				_modtimeColumn.setColumnReference(ds, ds && ds.getColumnMetadata(collectionName.value, DocumentMapDataSource.TABLE_DOC_METADATA, DocumentMapDataSource.COLUMN_DOC_MODIFIED_TIME));
+			}
 		}
 		
 		public function getImage(key:IQualifiedKey):BitmapData
 		{
+			validate();
 			return _imageColumn.getValueFromKey(key, BitmapData);
 		}
+		
 		public function getTitle(key:IQualifiedKey):String
 		{
+			validate();
 			return _titleColumn.getValueFromKey(key, String);
 		}
+		
 		public function getUrl(key:IQualifiedKey):String
 		{
+			validate();
 			return _urlColumn.getValueFromKey(key, String);
 		}
+		
 		public function getModTime(key:IQualifiedKey):Date
 		{
+			validate();
 			return _modtimeColumn.getValueFromKey(key, Date);
 		}
 	}

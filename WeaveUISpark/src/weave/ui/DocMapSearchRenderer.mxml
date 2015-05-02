@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
 <s:ItemRenderer
 		 xmlns:fx="http://ns.adobe.com/mxml/2009"
 		 xmlns:s="library://ns.adobe.com/flex/spark"
@@ -28,7 +44,7 @@
 							<s:layout>
 								<s:HorizontalLayout paddingBottom="2" paddingTop="2" paddingRight="2" paddingLeft="2"/>
 							</s:layout>
-							<s:BitmapImage scaleMode="letterbox" id="bitmapImage" width="96" height="96"/>
+							<s:BitmapImage scaleMode="letterbox" id="bitmapImage" width="64" height="64"/>
 							<s:Label id="title" 
 									 includeInLayout="{outerDocument.showLabels}" 
 									 visible="{outerDocument.showLabels}"/>
@@ -80,6 +96,7 @@
 	<fx:Script>
 	<![CDATA[
 		import weave.utils.VectorUtils;
+		import mx.events.DragEvent;
 		import mx.collections.ArrayCollection;
 		
 		import weave.Weave;
@@ -97,14 +114,21 @@
 		{
 			super.createChildren();
 			
-			moveGrip.addEventListener(MouseEvent.MOUSE_DOWN, startMove);
-			
 			Weave.defaultSelectionKeySet.addGroupedCallback(this, updateSelection, true);
+			moveGrip.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
 		}
 		
-		private function startMove(event:MouseEvent):void
+		private function onMouseDown(event:MouseEvent):void
 		{
-			
+			stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+			startDrag();
+		}
+		
+		private function onMouseUp(event:MouseEvent):void
+		{
+			stopDrag();
+			stage.removeEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+			dispatchEvent(new DragEvent(DragEvent.DRAG_COMPLETE, true, true, this));
 		}
 		
 		public function get query():DocMapSearchQuery
@@ -134,7 +158,7 @@
 		
 		private function updateSelection():void
 		{
-//			resultList.selectedItems = Weave.defaultSelectionKeySet.keys;
+			resultList.selectedItems = Vector.<Object>(Weave.defaultSelectionKeySet.keys);
 		}
 		
 		private function onSelection():void

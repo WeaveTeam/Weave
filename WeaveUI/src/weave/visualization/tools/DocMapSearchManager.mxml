@@ -3,7 +3,8 @@
        xmlns:ui="weave.ui.*" 
        implements="weave.api.ui.IVisTool, weave.api.ui.ISelectableAttributes"
        title="{lang('Document Collection Search')}" xmlns:editors="weave.editors.*" xmlns:s="library://ns.adobe.com/flex/spark">
-	<s:DataGroup id="searchContainer" itemRenderer="weave.ui.DocMapSearchRenderer" width="100%" height="100%">
+	<s:DataGroup id="searchContainer" itemRenderer="weave.ui.DocMapSearchRenderer" width="100%" height="100%"
+				 dragComplete="handleDragComplete(event);">
 		<s:layout>
 			<ui:DocMapSearchLayout zoomBounds="{visualization.plotManager.zoomBounds}"/>
 		</s:layout>
@@ -12,60 +13,82 @@
 		<![CDATA[
 			import mx.collections.ArrayCollection;
 			import mx.core.BitmapAsset;
+			import mx.core.IVisualElement;
+			import mx.events.DragEvent;
 			
 			import weave.Weave;
 			import weave.api.getCallbackCollection;
+			import weave.api.registerLinkableChild;
+			import weave.core.LinkableHashMap;
+			import weave.data.DataSources.DocumentMapDataSource;
+			import weave.menus.WeaveMenuItem;
 			import weave.ui.DocMapSearchQuery;
 			import weave.ui.DocMapSearchRenderer;
+			import weave.visualization.layers.LayerSettings;
 			import weave.visualization.plotters.SingleImagePlotter;
 		
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DocMapSearchManager, "Document Map Search Manager");
+			
+			public const queries:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(DocMapSearchQuery));
 			
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
 				
 				visualization.enableZoomAndPan.value = true;
+				visualization.enableSelection.value = false;
 				visualization.plotManager.maxZoomLevel.value = 5;
 				visualization.plotManager.enableAutoZoomToExtent.value = false;
 				visualization.plotManager.enableFixedAspectRatio.value = true;
+				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = true;
 				
-				var imagePlotter:SingleImagePlotter = visualization.plotManager.plotters.requestObject('Background image', SingleImagePlotter, false);
+				const BACKGROUND_IMAGE:String = 'Background image';
+				var imagePlotter:SingleImagePlotter = visualization.plotManager.plotters.requestObject(BACKGROUND_IMAGE, SingleImagePlotter, false);
 				imagePlotter.defaultImage = (new Weave.WeaveBackgroundImage() as BitmapAsset).bitmapData;
 				imagePlotter.dataX.value = 0;
 				imagePlotter.dataY.value = 0;
 				imagePlotter.useImageSize.value = true;
 				imagePlotter.verticalAlign.value = 'top';
 				imagePlotter.horizontalAlign.value = 'left';
+				var layerSettings:LayerSettings = visualization.plotManager.layerSettings.getObject(BACKGROUND_IMAGE) as LayerSettings;
+				layerSettings.selectable.value = false;
 				
-				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, function():void {
-					if (searchContainer)
-						searchContainer.invalidateDisplayList();
-				});
+				queries.addGroupedCallback(this, invalidateSearchDisplay);
+				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, invalidateSearchDisplay);
+				
+				createNewQuery();
+			}
+			
+			private function invalidateSearchDisplay():void
+			{
+				if (searchContainer)
+					searchContainer.invalidateDisplayList();
 			}
 			
 			override protected function childrenCreated():void
 			{
 			    super.childrenCreated();
 				
-				children.childListCallbacks.addGroupedCallback(this, handleChildren, true);
+				queries.childListCallbacks.addGroupedCallback(this, handleQueryList, true);
 				searchContainer.clipAndEnableScrolling = true;
+				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_DOWN, this, handleMouseDown);
 				
 				enableSubMenu.value = true;
 				subMenuButton.data = [
+					_docCollectionMenu,
+					WeaveMenuItem.TYPE_SEPARATOR,
 					{
 						label: lang("New query"),
-						click: function():void {
-							var query:DocMapSearchQuery = children.requestObject(null, DocMapSearchQuery, false);
-						}
+						click: createNewQuery
 					},{
 						label: lang("Remove query"),
-						dependency: children.childListCallbacks,
+						dependency: queries,
+						enabled: function():Boolean { return queries.getNames().length > 0; },
 						children: function():Array {
-							return children.getObjects(DocMapSearchQuery).map(function(query:DocMapSearchQuery, i:int, a:Array):Object {
+							return queries.getObjects().map(function(query:DocMapSearchQuery, i:int, a:Array):Object {
 								return {
 									label: query.getLabel(),
-									click: function():void { children.removeObject(children.getName(query)); }
+									click: function():void { queries.removeObject(queries.getName(query)); }
 								};
 							});
 						}
@@ -73,9 +96,111 @@
 				];
 			}
 			
-			private function handleChildren():void
+			private function createNewQuery():void
 			{
-				searchContainer.dataProvider = new ArrayCollection(children.getObjects(DocMapSearchQuery));
+				var ds:DocumentMapDataSource;
+				var query:DocMapSearchQuery;
+				var dataSourceName:String;
+				var collectionName:String;
+				
+				if (!WeaveAPI.globalHashMap.getNames(DocumentMapDataSource).length)
+				{
+					ds = WeaveAPI.globalHashMap.requestObject(WeaveAPI.ClassRegistry.getDisplayName(DocumentMapDataSource), DocumentMapDataSource, false);
+				}
+				
+				for each (query in queries.getObjects())
+				{
+					dataSourceName = query.dataSourceName.value;
+					collectionName = query.collectionName.value;
+					break;
+				}
+				if (!dataSourceName || !collectionName)
+				{
+					dataSourceName = WeaveAPI.globalHashMap.getNames(DocumentMapDataSource)[0];
+					ds = WeaveAPI.globalHashMap.getObject(dataSourceName) as DocumentMapDataSource;
+					collectionName = (ds && ds.getCollectionNames()[0]) as String;
+				}
+				
+				query = queries.requestObject(null, DocMapSearchQuery, false);
+				query.dataSourceName.value = dataSourceName;
+				query.collectionName.value = collectionName;
+				_lastQueryCreated = query;
+			}
+			
+			private var _lastQueryCreated:DocMapSearchQuery;
+			
+			private const _docCollectionMenu:Object = {
+				label: lang("Set document collection"),
+				dependency: WeaveAPI.globalHashMap.childListCallbacks,
+				enabled: function():Boolean { return WeaveAPI.globalHashMap.getNames(DocumentMapDataSource).length > 0; },
+				children: function():Array {
+					return WeaveAPI.globalHashMap.getObjects(DocumentMapDataSource).map(function(ds:DocumentMapDataSource, i:int, a:Array):Object {
+						return {
+							label: WeaveAPI.globalHashMap.getName(ds),
+							enabled: function():Boolean { return ds.getCollectionNames().length > 0; },
+							dependency: ds,
+							children: function():Array {
+								return ds.getCollectionNames().map(function(name:String, i:int, a:Array):Object {
+									return {
+										label: name,
+										click: function():void {
+											if (!queries.getObjects().length)
+												createNewQuery();
+											for each (var query:DocMapSearchQuery in queries.getObjects())
+											{
+												query.dataSourceName.value = WeaveAPI.globalHashMap.getName(ds);
+												query.collectionName.value = name;
+											}
+										}
+									};
+								});
+							}
+						};
+					});
+				}
+			};
+			
+			private function handleQueryList():void
+			{
+				searchContainer.dataProvider = new ArrayCollection(queries.getObjects());
+				
+				if (_lastQueryCreated)
+				{
+					searchContainer.validateNow();
+					for (var i:int = 0; i < searchContainer.numElements; i++)
+					{
+						var element:IVisualElement = searchContainer.getElementAt(i);
+						var renderer:DocMapSearchRenderer = element as DocMapSearchRenderer;
+						if (renderer && renderer.data == _lastQueryCreated)
+						{
+							renderer.searchBox.setFocus();
+							break;
+						}
+					}
+					_lastQueryCreated = null;
+				}
+			}
+			
+			private function handleMouseDown():void
+			{
+				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
+				var target:DisplayObject = event.target as DisplayObject;
+				if (!searchContainer.contains(target))
+					return;
+				while (target && !(target is DocMapSearchRenderer))
+					target = target.parent;
+				
+				if (target is DocMapSearchRenderer)
+					queries.setNameOrder([queries.getName((target as DocMapSearchRenderer).query)]);
+			}
+			
+			private function handleDragComplete(event:DragEvent):void
+			{
+				var renderer:DocMapSearchRenderer = event.dragInitiator as DocMapSearchRenderer;
+				var p:Point = new Point(renderer.x, renderer.y);
+				visualization.plotManager.zoomBounds.projectScreenToData(p);
+				renderer.query.x.value = p.x;
+				renderer.query.y.value = p.y;
 			}
 			
 			override public function getSelectableAttributes():Array

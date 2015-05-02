@@ -28,6 +28,11 @@ package weave.ui
 	
 	public class DocMapSearchLayout extends LayoutBase
 	{
+		public function DocMapSearchLayout()
+		{
+			useVirtualLayout = true; // fixes bug where reordering data messes up actively dragged item
+		}
+		
 		public var zoomBounds:ZoomBounds;
 		public const tempPoint:Point = new Point();
 		

@@ -474,7 +474,13 @@ package weave.data.DataSources
 		
 		// avoids recreating collection categories (tree collapse bug)
 		private const _listCollectionsCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
-		public var _collections:Array;
+		private var _collections:Array;
+		
+		public function getCollectionNames():Array
+		{
+			getHierarchyRoot().getChildren();
+			return _collections || [];
+		}
 		
 		public function getListCollectionCallbacks():ICallbackCollection 
 		{
