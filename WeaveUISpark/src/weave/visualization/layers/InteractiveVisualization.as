@@ -163,7 +163,10 @@ package weave.visualization.layers
 			}
 			if (!enableSelection.value && isModeSelection(_mouseMode))
 			{
-				_mouseMode = null;//Weave.properties.toolInteractions.defaultDragMode.value;
+				if (enableZoomAndPan.value)
+					_mouseMode = InteractionController.PAN;
+				else
+					_mouseMode = null;//Weave.properties.toolInteractions.defaultDragMode.value;
 			}
 			
 			updateMouseCursor();
