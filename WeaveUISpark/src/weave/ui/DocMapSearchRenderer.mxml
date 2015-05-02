@@ -7,31 +7,39 @@
 		<s:layout>
 			<s:VerticalLayout/>
 		</s:layout>
-		<s:Group>
+		<s:Group width="100%">
 			<s:layout>
 				<s:HorizontalLayout/>
 			</s:layout>
 			<s:Image id="moveGrip" creationComplete="moveGrip.source = MoveIcon;"/>
-			<s:TextInput id="searchBox"/>
-			<!-- <s:Button id="closeButton"/> -->
+			<s:TextInput id="searchBox"  width="100%"/>
+			<s:Label text="({resultList.dataProvider ? resultList.dataProvider.length : 0})" 
+					 includeInLayout="{!!resultList.dataProvider}"
+					 visible="{!!resultList.dataProvider}"/>
 		</s:Group>
-		<s:List id="resultList">
+		<s:List id="resultList" change="onSelection()" allowMultipleSelection="true">
 			<s:layout>
-				<s:TileLayout/>
+				<s:TileLayout requestedColumnCount="3" requestedRowCount="3"/>
 			</s:layout>
 			<s:itemRenderer>
 				<fx:Component>
 					<s:ItemRenderer>
-						<s:Group>
+						<s:Group doubleClickEnabled="true" doubleClick="onDoubleClick()" rollOver="onMouseEnter()" rollOut="onMouseOut()">
 							<s:layout>
-								<s:HorizontalLayout/>
+								<s:HorizontalLayout paddingBottom="2" paddingTop="2" paddingRight="2" paddingLeft="2"/>
 							</s:layout>
-							<s:BitmapImage id="bitmapImage"/>
-							<s:Label id="title"/>
+							<s:BitmapImage scaleMode="letterbox" id="bitmapImage" width="96" height="96"/>
+							<s:Label id="title" 
+									 includeInLayout="{outerDocument.showLabels}" 
+									 visible="{outerDocument.showLabels}"/>
 						</s:Group>
 						
 						<fx:Script>
 							<![CDATA[
+								import flash.events.MouseEvent;
+								import flash.net.navigateToURL;
+								
+								import weave.Weave;
 								import weave.api.data.IQualifiedKey;
 								override public function set data(value:Object):void
 								{
@@ -40,6 +48,27 @@
 									var query:DocMapSearchQuery = outerDocument.query;
 									bitmapImage.source = query.getImage(key);
 									title.text = query.getTitle(key);
+								}
+								
+								public function get key():IQualifiedKey
+								{
+									return data as IQualifiedKey; 
+								}
+								
+								private function onDoubleClick():void
+								{
+									var url:String = outerDocument.query.getUrl(key);
+									navigateToURL(new URLRequest(url), '_blank');
+								}
+								
+								private function onMouseEnter():void
+								{
+									Weave.defaultProbeKeySet.replaceKeys([key]);
+								}
+								
+								private function onMouseOut():void
+								{
+									Weave.defaultProbeKeySet.clearKeys();	
 								}
 							]]>
 						</fx:Script>
@@ -50,8 +79,10 @@
 	</s:Group>
 	<fx:Script>
 	<![CDATA[
+		import weave.utils.VectorUtils;
 		import mx.collections.ArrayCollection;
 		
+		import weave.Weave;
 		import weave.api.getCallbackCollection;
 		import weave.api.linkBindableProperty;
 		import weave.api.unlinkBindableProperty;
@@ -67,6 +98,8 @@
 			super.createChildren();
 			
 			moveGrip.addEventListener(MouseEvent.MOUSE_DOWN, startMove);
+			
+			Weave.defaultSelectionKeySet.addGroupedCallback(this, updateSelection, true);
 		}
 		
 		private function startMove(event:MouseEvent):void
@@ -99,9 +132,21 @@
 			}
 		}
 		
+		private function updateSelection():void
+		{
+//			resultList.selectedItems = Weave.defaultSelectionKeySet.keys;
+		}
+		
+		private function onSelection():void
+		{
+			Weave.defaultSelectionKeySet.replaceKeys(VectorUtils.copy(resultList.selectedItems));
+		}
+		
 		private function handleQuery():void
 		{
+			var keys:Array = query.getKeys();
 			resultList.dataProvider = new ArrayCollection(query.getKeys());
+//			resultList.selectedItems = query.getKeys();
 		}
 	]]>
 	</fx:Script>
