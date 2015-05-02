@@ -35,6 +35,7 @@ package weave.core
 		public function Synchronizer(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void
 		{
 			sm.registerDisposableChild(bindableParent, this);
+			sm.registerDisposableChild(linkableVariable, this);
 			this.linkableVariable = linkableVariable;
 			this.bindableParent = bindableParent;
 			this.bindablePropertyName = bindablePropertyName;
@@ -55,12 +56,21 @@ package weave.core
 			
 			// when the session state changes, set the bindable property
 			if (this.callbackCollection)
+			{
 				this.callbackCollection.addImmediateCallback(bindableParent, synchronize);
+				this.callbackCollection.addDisposeCallback(bindableParent, linkableVariableDisposeCallback);
+			}
+		}
+		
+		private function linkableVariableDisposeCallback():void
+		{
+			WeaveAPI.SessionManager.disposeObject(this);
 		}
 		
 		public function dispose():void
 		{
-			this.callbackCollection.removeCallback(synchronize);
+			if (this.callbackCollection)
+				this.callbackCollection.removeCallback(synchronize);
 			if (this.watcher)
 				this.watcher.unwatch();
 			
