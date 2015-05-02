@@ -84,7 +84,7 @@ package weave.ui
 		private const _urlColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn);
 		private const _modtimeColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn);
 		
-		private function getDataSource():DocumentMapDataSource
+		public function getDataSource():DocumentMapDataSource
 		{
 			validate();
 			return _dataSourceWatcher.target as DocumentMapDataSource;

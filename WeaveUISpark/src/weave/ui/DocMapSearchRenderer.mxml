@@ -29,7 +29,7 @@
 			</s:layout>
 			<s:Image id="moveGrip" creationComplete="moveGrip.source = MoveIcon;"/>
 			<s:TextInput id="searchBox"  width="100%"/>
-			<s:Label text="({resultList.dataProvider ? resultList.dataProvider.length : 0})" 
+			<s:Label id="resultCountLabel" text="({resultList.dataProvider ? resultList.dataProvider.length : 0})" 
 					 includeInLayout="{!!resultList.dataProvider}"
 					 visible="{!!resultList.dataProvider}"/>
 		</s:Group>
@@ -95,6 +95,8 @@
 	</s:Group>
 	<fx:Script>
 	<![CDATA[
+		import spark.filters.GlowFilter;
+		import weave.data.DataSources.DocumentMapDataSource;
 		import weave.utils.VectorUtils;
 		import mx.events.DragEvent;
 		import mx.collections.ArrayCollection;
@@ -114,6 +116,8 @@
 		{
 			super.createChildren();
 			
+			moveGrip.filters = [new GlowFilter(0xFFFFFF)];
+			resultCountLabel.filters = [new GlowFilter(0xFFFFFF, .5, 2, 2, 10)];
 			Weave.defaultSelectionKeySet.addGroupedCallback(this, updateSelection, true);
 			moveGrip.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
 		}
@@ -168,6 +172,11 @@
 		
 		private function handleQuery():void
 		{
+			if (query.collectionName.value && query.getDataSource())
+				searchBox.errorString = null;
+			else
+				searchBox.errorString = !query.collectionName.value ? lang("No document collection selected") : lang("No data source selected");
+			
 			var keys:Array = query.getKeys();
 			resultList.dataProvider = new ArrayCollection(query.getKeys());
 //			resultList.selectedItems = query.getKeys();
