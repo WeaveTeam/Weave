@@ -217,7 +217,6 @@
 	<editorFactory>
 		<mx:Component>
 			<ui:ControlPanel>
-		        <editors:WindowSettingsEditor target="{this}"/>
 			</ui:ControlPanel>
 		</mx:Component>
 	</editorFactory>
