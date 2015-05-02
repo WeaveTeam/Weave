@@ -126,7 +126,7 @@ package weave.utils
 				{
 					var fault:Fault = new Fault("Error", "Broken promise");
 					fault.content = error;
-					asyncToken.mx_internal::applyFault(FaultEvent.createEvent(error, asyncToken));
+					asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault, asyncToken));
 				}
 			);
 			return asyncToken;
