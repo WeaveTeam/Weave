@@ -21,19 +21,21 @@
 		 xmlns:ui="weave.ui.*">
 	<s:Group>
 		<s:layout>
-			<s:VerticalLayout/>
+			<s:VerticalLayout gap="0"/>
 		</s:layout>
-		<s:Group width="100%">
-			<s:layout>
-				<s:HorizontalLayout/>
-			</s:layout>
-			<s:Image id="moveGrip" creationComplete="moveGrip.source = MoveIcon;"/>
-			<s:TextInput id="searchBox"  width="100%"/>
-			<s:Label id="resultCountLabel" text="({resultList.dataProvider ? resultList.dataProvider.length : 0})" 
-					 includeInLayout="{!!resultList.dataProvider}"
-					 visible="{!!resultList.dataProvider}"/>
-		</s:Group>
-		<s:List id="resultList" change="onSelection()" allowMultipleSelection="true">
+		<s:BorderContainer borderStyle="inset" backgroundAlpha="1" width="100%" minHeight="0">
+			<s:Group width="100%">
+				<s:layout>
+					<s:HorizontalLayout verticalAlign="middle" paddingLeft="4" paddingRight="4"/>
+				</s:layout>
+				<s:Image id="moveGrip" creationComplete="moveGrip.source = MoveIcon;"/>
+				<s:TextInput id="searchBox"  width="100%" borderVisible="false"/>
+				<s:Label id="resultCountLabel" text="({resultList.dataProvider ? resultList.dataProvider.length : 0})" 
+						 includeInLayout="{!!resultList.dataProvider}"
+						 visible="{!!resultList.dataProvider}"/>
+			</s:Group>
+		</s:BorderContainer>
+		<s:List id="resultList" change="onSelection()" allowMultipleSelection="true" visible="{resultList.dataProvider.length > 0}">
 			<s:layout>
 				<s:TileLayout requestedColumnCount="3" requestedRowCount="3"/>
 			</s:layout>
@@ -115,9 +117,7 @@
 		override protected function createChildren():void
 		{
 			super.createChildren();
-			
-			moveGrip.filters = [new GlowFilter(0xFFFFFF)];
-			resultCountLabel.filters = [new GlowFilter(0xFFFFFF, .5, 2, 2, 10)];
+			resultList.dataProvider = new ArrayCollection();
 			Weave.defaultSelectionKeySet.addGroupedCallback(this, updateSelection, true);
 			moveGrip.addEventListener(MouseEvent.MOUSE_DOWN, onMouseDown);
 		}
@@ -158,6 +158,9 @@
 				linkBindableProperty(query.queryString, searchBox, 'text', 500);
 				getCallbackCollection(query).addGroupedCallback(this, handleQuery);
 			}
+			
+			handleQuery();
+			updateSelection();
 		}
 		
 		private function updateSelection():void
@@ -178,7 +181,7 @@
 				searchBox.errorString = !query.collectionName.value ? lang("No document collection selected") : lang("No data source selected");
 			
 			var keys:Array = query.getKeys();
-			resultList.dataProvider = new ArrayCollection(query.getKeys());
+			(resultList.dataProvider as ArrayCollection).source = query.getKeys();
 //			resultList.selectedItems = query.getKeys();
 		}
 	]]>

@@ -30,7 +30,6 @@ package weave.ui
 	{
 		public function DocMapSearchLayout()
 		{
-			useVirtualLayout = true; // fixes bug where reordering data messes up actively dragged item
 		}
 		
 		public var zoomBounds:ZoomBounds;

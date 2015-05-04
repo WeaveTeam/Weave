@@ -20,6 +20,7 @@
 			import weave.api.getCallbackCollection;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableHashMap;
+			import weave.core.UIUtils;
 			import weave.data.DataSources.DocumentMapDataSource;
 			import weave.menus.WeaveMenuItem;
 			import weave.ui.DocMapSearchQuery;
@@ -69,9 +70,9 @@
 			{
 			    super.childrenCreated();
 				
+				searchContainer.dataProvider = new ArrayCollection();
 				queries.childListCallbacks.addGroupedCallback(this, handleQueryList, true);
 				searchContainer.clipAndEnableScrolling = true;
-				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_DOWN, this, handleMouseDown);
 				
 				enableSubMenu.value = true;
 				subMenuButton.data = [
@@ -162,26 +163,22 @@
 			
 			private function handleQueryList():void
 			{
-				searchContainer.dataProvider = new ArrayCollection(queries.getObjects());
+				(searchContainer.dataProvider as ArrayCollection).source = queries.getObjects();
 				
-				if (_lastQueryCreated)
+				if (UIUtils.hasFocus(searchContainer))
 				{
 					searchContainer.validateNow();
-					for (var i:int = 0; i < searchContainer.numElements; i++)
+					if (searchContainer.numElements)
 					{
-						var element:IVisualElement = searchContainer.getElementAt(i);
+						var element:IVisualElement = searchContainer.getElementAt(searchContainer.numElements - 1);
 						var renderer:DocMapSearchRenderer = element as DocMapSearchRenderer;
-						if (renderer && renderer.data == _lastQueryCreated)
-						{
+						if (renderer)
 							renderer.searchBox.setFocus();
-							break;
-						}
 					}
-					_lastQueryCreated = null;
 				}
 			}
 			
-			private function handleMouseDown():void
+			private function bringRendererToForeground():void
 			{
 				var event:MouseEvent = WeaveAPI.StageUtils.mouseEvent;
 				var target:DisplayObject = event.target as DisplayObject;
