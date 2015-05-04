@@ -66,7 +66,7 @@ package weave.ui
 				tempPoint.y = query.y.value;
 				zoomBounds.projectDataToScreen(tempPoint);
 				
-				layoutElement.setLayoutBoundsPosition(tempPoint.x, tempPoint.y);
+				layoutElement.setLayoutBoundsPosition(Math.round(tempPoint.x), Math.round(tempPoint.y));
 			}
 		}
 	}
