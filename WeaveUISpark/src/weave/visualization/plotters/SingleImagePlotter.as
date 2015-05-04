@@ -38,6 +38,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
+	import weave.utils.BitmapUtils;
 
 	/**
 	 * A plotter for drawing a single image onto a tool.
@@ -55,7 +56,7 @@ package weave.visualization.plotters
 		
 		public function set defaultImage(value:BitmapData):void
 		{
-			if (_bitmapData == MISSING_IMAGE || _bitmapData == _defaultImage)
+			if (_bitmapData == BitmapUtils.MISSING_IMAGE || _bitmapData == _defaultImage)
 				_bitmapData = value;
 			_defaultImage = value;
 		}
@@ -63,7 +64,7 @@ package weave.visualization.plotters
 		private var _defaultImage:BitmapData;
 		
 		// these vars store info on the image
-		private var _bitmapData:BitmapData = MISSING_IMAGE;
+		private var _bitmapData:BitmapData = BitmapUtils.MISSING_IMAGE;
 		private var _imgScreenBounds:Bounds2D = new Bounds2D();
 		private var _imgDataBounds:Bounds2D = new Bounds2D();
 		
@@ -144,7 +145,7 @@ package weave.visualization.plotters
 				}
 				else
 				{
-					_bitmapData = _defaultImage || MISSING_IMAGE;
+					_bitmapData = _defaultImage || BitmapUtils.MISSING_IMAGE;
 				}
 			}
 			
@@ -231,7 +232,7 @@ package weave.visualization.plotters
 			if (objectWasDisposed(this) || url != imageURL.value)
 				return;
 			
-			_bitmapData = MISSING_IMAGE;
+			_bitmapData = BitmapUtils.MISSING_IMAGE;
 			reportError(event);
 		}
 		
@@ -247,15 +248,6 @@ package weave.visualization.plotters
 		
 		
 		
-		[Embed(source="/weave/resources/images/missing.png")]
-		private static var _missingImageClass:Class;
-		private static var _missingImage:BitmapData;
-		private static function get MISSING_IMAGE():BitmapData
-		{
-			if (!_missingImage)
-				_missingImage = (new _missingImageClass() as BitmapAsset).bitmapData;
-			return _missingImage;
-		}
 		
 		[Embed(source='/weave/resources/images/red-circle.png')]
 		private static var _redCircle:Class;
