@@ -23,6 +23,7 @@ package weave.utils
 	import flash.utils.ByteArray;
 	
 	import mx.core.IFlexDisplayObject;
+	import mx.core.BitmapAsset;
 	import mx.graphics.ImageSnapshot;
 	import mx.graphics.codec.PNGEncoder;
 	
@@ -74,6 +75,16 @@ package weave.utils
 //		
 		// reusable temporary objects
 		private static var tempMatrix:Matrix = new Matrix();
+
+		[Embed(source="/weave/resources/images/missing.png")]
+		private static var _missingImageClass:Class;
+		private static var _missingImage:BitmapData;
+		public static function get MISSING_IMAGE():BitmapData
+		{
+			if (!_missingImage)
+				_missingImage = (new _missingImageClass() as BitmapAsset).bitmapData;
+			return _missingImage;
+		}
 		
 		/**
 		 * This function will draw an image centered on an x,y coordinate.
