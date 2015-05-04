@@ -181,9 +181,25 @@
 				searchBox.errorString = !query.collectionName.value ? lang("No document collection selected") : lang("No data source selected");
 			
 			var keys:Array = query.getKeys();
+			_vscroll = resultList.scroller.verticalScrollBar.value;
 			(resultList.dataProvider as ArrayCollection).source = query.getKeys();
+			invalidateDisplayList();
 //			resultList.selectedItems = query.getKeys();
 		}
+		
+		private var _vscroll:Number = NaN;
+		
+		override protected function updateDisplayList(w:Number, h:Number):void
+		{
+			super.updateDisplayList(w, h);
+			if (isFinite(_vscroll))
+			{
+				resultList.scroller.verticalScrollBar.value = _vscroll;
+				_vscroll = NaN;
+				resultList.validateNow();
+			}
+		}
+		
 	]]>
 	</fx:Script>
 </s:ItemRenderer>
