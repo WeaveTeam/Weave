@@ -159,7 +159,7 @@ package weave.core
 			var bindableValue:Object = bindableParent[bindablePropertyName];
 			if (uiComponent && !(bindableValue is Boolean))
 			{
-				if (UIUtils.hasFocus(uiComponent))
+				if (watcher && UIUtils.hasFocus(uiComponent))
 				{
 					if (linkableVariable is LinkableVariable)
 					{
@@ -212,7 +212,7 @@ package weave.core
 			}
 			
 			// if the linkable variable's callbacks are delayed, delay synchronization
-			if (sm.getCallbackCollection(linkableVariable).callbacksAreDelayed)
+			if (watcher && sm.getCallbackCollection(linkableVariable).callbacksAreDelayed)
 			{
 				// firstParam is ignored when callingLater=true
 				WeaveAPI.StageUtils.callLater(this, synchronize, [firstParam, true]);
