@@ -157,10 +157,10 @@
 			{
 				linkBindableProperty(query.queryString, searchBox, 'text', 500);
 				getCallbackCollection(query).addGroupedCallback(this, handleQuery);
+				
+				handleQuery();
+				updateSelection();
 			}
-			
-			handleQuery();
-			updateSelection();
 		}
 		
 		private function updateSelection():void
