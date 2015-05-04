@@ -166,6 +166,7 @@ override protected function childrenCreated():void
     super.childrenCreated();
 
     linkBindableProperty(searchQuery, searchBox, 'text', 100, false);
+    linkBindableProperty(useSubsetting, enableSubsettingCheckbox, 'selected');
     BindingUtils.bindSetter(savedQuerySelected, savedQueriesList, "selectedItem", true);
 
     return;
@@ -191,19 +192,17 @@ public function getSelectableAttributeNames():Array
     </mx:HBox>
     <mx:List width="100%" id="savedQueriesList"/>
 </mx:VBox>
-<!-- ui:ControlPanel>
-        <mx:VBox label="{lang('Attributes')}">
-        
-
-        </mx:VBox>
-        <mx:VBox label="{lang('Advanced')}">
-            <mx:CheckBox id="enableProbingCheckBox" label="{lang('Enable mouseover linking')}"/>
-            <ui:Indent>
-                <mx:CheckBox id="probeIncludesChildrenCheckBox" enabled="{enableProbingCheckBox.selected}" label="{lang('Linking includes all children.')}"/>
-            </ui:Indent>
-            <mx:CheckBox id="selectIncludesChildrenCheckBox" label="{lang('Include children in selections.')}"/>
-            <mx:CheckBox id="expandToShowSelectedCheckBox" label="{lang('Expand to show selected children.')}" visible="false"/>
+<ui:ControlPanel>
+        <mx:VBox label="{lang('Visualization Controls')}">
+            <mx:CheckBox id="enableSubsettingCheckbox" label="{lang('Use search results as subset instead of selection.')}"/>
+            <mx:HBox width="100%">
+                <mx:Label text="{lang('Collection name:')}"/>
+                <mx:TextInput id="collectionNameInput"
+                          width="100%"
+                          toolTip="{lang('The name of the document collection to search.')}"
+                          creationComplete="linkBindableProperty(collectionName, collectionNameInput, 'text', 300, false);"/>
+            </mx:HBox>
         </mx:VBox>
         <editors:WindowSettingsEditor target="{this}"/>
-</ui:ControlPanel -->
+</ui:ControlPanel>
 </ui:DraggablePanel>
