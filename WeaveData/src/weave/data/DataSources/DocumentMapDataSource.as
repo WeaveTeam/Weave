@@ -277,7 +277,7 @@ package weave.data.DataSources
 					(eq.requestVariable('url', LinkableString, true) as LinkableString).value = url.value;
 					(eq.requestVariable('method', LinkableString, true) as LinkableString).value = methodName;
 					(eq.requestVariable('collection', LinkableString, true) as LinkableString).value = collection;
-					eq.equation.value = "titleColumn.containsKey(key) ? `{ url.value }?method={ method.value }&collectionName={ collection.value }&document={ key.localName }` : undefined";
+					eq.equation.value = "titleColumn.containsKey(key) ? `{ url.value + (url.value.substr(-1) == '/' ? '' : '/') + replace(key.localName, '\\\\', '/').split('/').pop() }?method={ method.value }&collectionName={ collection.value }&document={ key.localName }` : undefined";
 				}
 				
 				if (table == TABLE_TOPICS && column == COLUMN_TOPIC)
