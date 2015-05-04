@@ -35,7 +35,7 @@
 						 visible="{!!resultList.dataProvider}"/>
 			</s:Group>
 		</s:BorderContainer>
-		<s:List id="resultList" change="onSelection()" allowMultipleSelection="true" visible="{resultList.dataProvider.length > 0}">
+		<s:List id="resultList" change="onSelection()" allowMultipleSelection="true" visible="{resultList.dataProvider.length > 0}" typicalItem="-1">
 			<s:layout>
 				<s:TileLayout requestedColumnCount="3" requestedRowCount="3"/>
 			</s:layout>
@@ -46,7 +46,7 @@
 							<s:layout>
 								<s:HorizontalLayout paddingBottom="2" paddingTop="2" paddingRight="2" paddingLeft="2"/>
 							</s:layout>
-							<s:BitmapImage scaleMode="letterbox" id="bitmapImage" width="64" height="64"/>
+							<s:BitmapImage scaleMode="letterbox" id="bitmapImage" width="{outerDocument.thumbnailSize}" height="{outerDocument.thumbnailSize}"/>
 							<s:Label id="title" 
 									 includeInLayout="{outerDocument.showLabels}" 
 									 visible="{outerDocument.showLabels}"/>
@@ -56,6 +56,7 @@
 							<![CDATA[
 								import flash.events.MouseEvent;
 								import flash.net.navigateToURL;
+								import weave.utils.BitmapUtils;
 								
 								import weave.Weave;
 								import weave.api.data.IQualifiedKey;
@@ -64,8 +65,8 @@
 									super.data = value;
 									var key:IQualifiedKey = value as IQualifiedKey;
 									var query:DocMapSearchQuery = outerDocument.query;
-									bitmapImage.source = query.getImage(key);
-									title.text = query.getTitle(key);
+									bitmapImage.source = (value is Number) ?  BitmapUtils.MISSING_IMAGE : query.getImage(key);
+									title.text = (value is Number) ? "Of Cabbages And Kings: A Talk of Many Things" : query.getTitle(key);
 								}
 								
 								public function get key():IQualifiedKey
@@ -113,6 +114,7 @@
 		
 		[Bindable] public var showLabels:Boolean = false;
 		[Bindable] public var showThumbnails:Boolean = true;
+		[Bindable] public var thumbnailSize:int = 64;
 		
 		override protected function createChildren():void
 		{
@@ -148,7 +150,9 @@
 			if (query)
 			{
 				unlinkBindableProperty(query.queryString, searchBox, 'text');
+				unlinkBindableProperty(query.thumbnailSize, this, 'thumbnailSize');
 				getCallbackCollection(query).removeCallback(handleQuery);
+				getCallbackCollection(query.thumbnailSize).removeCallback(handleSizeChange);
 			}
 			
 			super.data = value as DocMapSearchQuery;
@@ -156,11 +160,23 @@
 			if (query)
 			{
 				linkBindableProperty(query.queryString, searchBox, 'text', 500);
+				linkBindableProperty(query.thumbnailSize, this, 'thumbnailSize');
 				getCallbackCollection(query).addGroupedCallback(this, handleQuery);
+				getCallbackCollection(query.thumbnailSize).addGroupedCallback(this, handleSizeChange, true);
 				
 				handleQuery();
 				updateSelection();
 			}
+		}
+
+		private function handleSizeChange():void
+		{
+//			if (!resultList)
+//			{
+//				callLater(handleSizeChange);
+//				return;
+//			}
+//			resultList.typicalItem = resultList.typicalItem as Number + 1;
 		}
 		
 		private function updateSelection():void

@@ -32,7 +32,9 @@ package weave.ui
 	import weave.core.LinkablePromise;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
+	import weave.core.LinkableNumber;
 	import weave.core.LinkableWatcher;
+	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.DataSources.DocumentMapDataSource;
@@ -81,6 +83,8 @@ package weave.ui
 		public const y:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const dataSourceName:LinkableString = newLinkableChild(this, LinkableString);
 		public const collectionName:LinkableString = newLinkableChild(this, LinkableString);
+		public const showAsList:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
+		public const thumbnailSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(64));
 		
 		private const _dataSourceWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(DocumentMapDataSource));
 		private const _imageColumn:ImageColumn = newLinkableChild(this, ImageColumn);
