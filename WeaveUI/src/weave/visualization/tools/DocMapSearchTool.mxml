@@ -43,9 +43,11 @@ import weave.api.ui.IVisTool;
 import weave.core.LinkableNumber;
 import weave.core.LinkableString;
 import weave.core.LinkableVariable;
+import weave.core.LinkableBoolean;
 import weave.data.AttributeColumns.DynamicColumn;
 import weave.data.DataSources.DocumentMapDataSource;
 import weave.data.KeySets.KeySet;
+import weave.data.KeySets.KeyFilter;
 import weave.services.AMF3Servlet;
 import weave.services.ProxyAsyncToken;
 import weave.services.addAsyncResponder;
@@ -54,12 +56,14 @@ import weave.utils.VectorUtils;
 
 private const _probe:KeySet = Weave.defaultProbeKeySet;
 private const _selection:KeySet = Weave.defaultSelectionKeySet;
+private const _subset:KeyFilter = Weave.defaultSubsetKeyFilter;
 
 WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DocMapSearchTool, "Document Collection Search");
 
 public const searchQuery:LinkableString = newLinkableChild(this, LinkableString, queryChanged, true);
 public const collectionName:LinkableString = newLinkableChild(this, LinkableString, queryChanged, true);
 public const savedQueries:LinkableVariable = newLinkableChild(this, LinkableVariable, savedQueriesChanged, true);
+public const useSubsetting:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 
 private var _service:AMF3Servlet = null;
 private var _source:DocumentMapDataSource = null;
@@ -83,37 +87,20 @@ private function updateService():void
     }
 }
 
-private function handleQueryResults(event:ResultEvent, token:Object):void
-{
-	if (token.service != _service)
-		return;
-
-	var ac:ArrayCollection = event.result as ArrayCollection;
-	var results:Array = ac.source;
-	
-	var params:Array = token.params as Array;
-
-	var keyType:String = _source.getKeyType(params[0]);
-
-	_selection.replaceKeys(WeaveAPI.QKeyManager.getQKeys(keyType, results));
-
-	return;
-}
-
-private function handleFault(event:FaultEvent, token:Object = null):void
-{
-	if (objectWasDisposed(_service))
-		return;
-	reportError(event);
-}
-
 private function queryChanged():void
 {
 	if (!collectionName.value) return;
 
 	if (!searchQuery.value)
 	{
-		_selection.clearKeys();
+        if (useSubsetting.value)
+        {
+	       _subset.replaceKeys(true, true, null, null);
+        }
+        else
+        {
+          _selection.clearKeys();
+        }
 		return;
 	}
 
@@ -127,8 +114,14 @@ private function queryChanged():void
     _source.searchRecords(collection, query).then(
         function(result:Array):void
         {
-            var keyType:String = _source.getKeyType(collection);
-            _selection.replaceKeys(result);
+            if (useSubsetting.value)
+            {
+                _subset.replaceKeys(false, true, result, null);
+            }
+            else
+            {
+                _selection.replaceKeys(result);
+            }
         });
 }
 
@@ -198,19 +191,19 @@ public function getSelectableAttributeNames():Array
     </mx:HBox>
     <mx:List width="100%" id="savedQueriesList"/>
 </mx:VBox>
-<ui:ControlPanel>
+<!-- ui:ControlPanel>
         <mx:VBox label="{lang('Attributes')}">
         
 
         </mx:VBox>
-        <!-- mx:VBox label="{lang('Advanced')}">
+        <mx:VBox label="{lang('Advanced')}">
             <mx:CheckBox id="enableProbingCheckBox" label="{lang('Enable mouseover linking')}"/>
             <ui:Indent>
                 <mx:CheckBox id="probeIncludesChildrenCheckBox" enabled="{enableProbingCheckBox.selected}" label="{lang('Linking includes all children.')}"/>
             </ui:Indent>
             <mx:CheckBox id="selectIncludesChildrenCheckBox" label="{lang('Include children in selections.')}"/>
             <mx:CheckBox id="expandToShowSelectedCheckBox" label="{lang('Expand to show selected children.')}" visible="false"/>
-        </mx:VBox -->
+        </mx:VBox>
         <editors:WindowSettingsEditor target="{this}"/>
-    </ui:ControlPanel>
+</ui:ControlPanel -->
 </ui:DraggablePanel>

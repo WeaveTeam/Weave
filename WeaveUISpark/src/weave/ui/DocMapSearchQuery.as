@@ -19,6 +19,7 @@ package weave.ui
 	
 	import mx.collections.ArrayCollection;
 	
+	import weave.Weave;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
@@ -35,6 +36,8 @@ package weave.ui
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.DataSources.DocumentMapDataSource;
+	import weave.data.KeySets.FilteredKeySet;
+	import weave.data.KeySets.KeySet;
 	import weave.utils.WeavePromise;
 	
 	public class DocMapSearchQuery implements ILinkableObject
@@ -42,6 +45,8 @@ package weave.ui
 		public function DocMapSearchQuery()
 		{
 			promise.depend(queryString, collectionName, dataSourceName);
+			_filteredKeys.setSingleKeySource(_keys);
+			_filteredKeys.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 		}
 		
 		private const promise:LinkablePromise = registerLinkableChild(this, new LinkablePromise(makePromise, describePromise), handlePromise);
@@ -58,7 +63,8 @@ package weave.ui
 		}
 		private function handlePromise():void
 		{
-			_keys = promise.result as Array;
+			if (promise.result is Array)
+				_keys.replaceKeys(promise.result as Array);
 		}
 		
 		public function getLabel():String
@@ -67,10 +73,8 @@ package weave.ui
 		}
 		public function getKeys():Array
 		{
-			return _keys;
+			return _filteredKeys.keys;
 		}
-		
-		private var _keys:Array;
 		
 		public const queryString:LinkableString = newLinkableChild(this, LinkableString);
 		public const x:LinkableNumber = newLinkableChild(this, LinkableNumber);
@@ -83,7 +87,9 @@ package weave.ui
 		private const _titleColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn);
 		private const _urlColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn);
 		private const _modtimeColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn);
-		
+		private const _filteredKeys:FilteredKeySet = newLinkableChild(this, FilteredKeySet);
+		private const _keys:KeySet = newLinkableChild(this, KeySet);
+
 		public function getDataSource():DocumentMapDataSource
 		{
 			validate();
