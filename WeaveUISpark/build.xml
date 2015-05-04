@@ -30,7 +30,6 @@
 			debug="${DEBUG}"
 			incremental="true"
 		>
-			<theme file="${FLEX_HOME}/frameworks/themes/Halo/halo.swc"/>  
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.as"/>			
 			<include-sources dir="${SOURCE_DIR}" includes="**/*.mxml"/>
 			<source-path path-element="${SOURCE_DIR}"/>
