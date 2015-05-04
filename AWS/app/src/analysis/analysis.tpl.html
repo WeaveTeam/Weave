@@ -154,7 +154,7 @@
 									</td>
 		
 									<td>
-											<column-selector ng-if="input.type == 'column'" hierarchy="queryService.cache.hierarchy" ng-model="queryService.queryObject.scriptOptions[input.param]"></column-selector>
+											<column-selector ng-if="input.type == 'column'" multiple hierarchy="queryService.cache.hierarchy" ng-model="queryService.queryObject.scriptOptions[input.param]"></column-selector>
 <!-- 											<ui-select ng-if="input.type == 'column' && input.columnType && input.columnType != 'all' && input.columnType != ' '" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;"> -->
 <!-- 									    		<ui-select-match allow-clear="true" placeholder="Select column...">{{$select.selected.title}}</ui-select-match> -->
 <!-- 												<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search, columnType : input.columnType }"> -->
@@ -163,12 +163,12 @@
 <!-- 											</ui-select> -->
 											
 											<!--  handle the case where the column doesn't have a column type in which case we don't filter by columnType -->
-											<ui-select ng-if="input.type == 'column' && (!input.columnType || input.columnType == 'all' || input.columnType == ' ')" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;">
-									    		<ui-select-match allow-clear="true" placeholder="Select column...">{{$select.selected.title}}</ui-select-match>
-												<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search }">
-									       			 <div ng-bind-html="column.title | highlight: $select.search"></div>
-									        	</ui-select-choices>
-											</ui-select>
+<!-- 											<ui-select ng-if="input.type == 'column' && (!input.columnType || input.columnType == 'all' || input.columnType == ' ')" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;"> -->
+<!-- 									    		<ui-select-match allow-clear="true" placeholder="Select column...">{{$select.selected.title}}</ui-select-match> -->
+<!-- 												<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search }"> -->
+<!-- 									       			 <div ng-bind-html="column.title | highlight: $select.search"></div> -->
+<!-- 									        	</ui-select-choices> -->
+<!-- 											</ui-select> -->
 											
 <!-- 											<a href="javascript: void(0)"  -->
 <!-- 												ng-click="showColumnInfo(queryService.queryObject.scriptOptions[input.param], input.param)" -->
@@ -423,8 +423,6 @@
 				<input type="text" style="width:100%; margin-bottom:5px" value="Search Columns"/>
 				<div id="columnsTree" style="width: 100%; height: 80%; overflow:hidden; float:left"></div>
 			</div>
-			<button></button>
-			<button></button>
 		</div>		
 	</div>
 </div>

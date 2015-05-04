@@ -29,6 +29,14 @@
 	margin : 5px;
 }
 
+.pill {
+	background-color : white; 
+	color : black; 
+	border: 1px solid; 
+	float : left;
+	margin : 2px;
+}
+
 .myaside {
 	z-index: 1049;
 	margin-left :20px;

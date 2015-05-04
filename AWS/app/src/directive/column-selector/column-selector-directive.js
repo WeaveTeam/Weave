@@ -16,6 +16,7 @@ AnalysisModule.directive('columnSelector', function(queryService) {
 		}, true);
 		
 		element.find("#panel").draggable().resizable();
+		
 	}
 	
 	function controller($scope, $element) {
@@ -26,7 +27,9 @@ AnalysisModule.directive('columnSelector', function(queryService) {
 	return {
 		restrict : 'E',
 		transclude : true,
-		templateUrl : 'src/directive/column-selector/column_selector.tpl.html',
+		templateUrl : function(tElement, tAttrs) {
+	      return angular.isDefined(tAttrs.multiple) ? 'src/directive/column-selector/column_selector-multiple.tpl.html' : 'src/directive/column-selector/column_selector.tpl.html';
+	    },
 		link : link,
 		controller : controller,
 		scope : {

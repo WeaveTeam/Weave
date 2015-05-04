@@ -50,7 +50,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			if(weave) {
 				var weaveTreeNode = new weave.WeaveTreeNode();
 				
-				weave.path('CensusDataSource').request("CensusDataSource");
+//				weave.path('CensusDataSource').request("CensusDataSource");
 				
 				weaveTreeIsBusy = weaveTreeNode._eval('() => WeaveAPI.SessionManager.linkableObjectIsBusy(node)');
 				
@@ -85,10 +85,14 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 
 							if(leaves.length) {
 								$('#columnsTree').dynatree(createColumnTree(leaves));
+								$('#columnsTree').dynatree("getTree").reload();
 							}
 						}; 
 						
 						setTimeout(getTreeAsync, 500);
+					},
+					onActivate : function(node) {
+						console.log(node.getChildren());
 					},
 					dnd : {
 						revert : false,
