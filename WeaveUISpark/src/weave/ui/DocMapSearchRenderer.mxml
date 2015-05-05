@@ -43,8 +43,12 @@
 				id="resultList" change="onSelection()" allowMultipleSelection="true" 
 				visible="{resultList.dataProvider.length > 0}" 
 				typicalItem="false"
-				width="{paneWidth || NaN}"
-				height="{paneHeight || NaN}">
+				render="onResultListRender()"
+				mouseDown="onResultListMouseDown(event)"
+				mouseMove="onResultListMouseMoveSetCursor(event)"
+				rollOut="setCursor(null)"
+				width="{paneWidth}"
+				height="{paneHeight}">
 			<s:itemRenderer>
 				<fx:Component>
 					<s:ItemRenderer>
@@ -120,6 +124,8 @@
 	</s:Group>
 	<fx:Script>
 	<![CDATA[
+		import weave.utils.CustomCursorManager;
+		import weave.core.UIUtils;
 		import spark.filters.GlowFilter;
 		import weave.data.DataSources.DocumentMapDataSource;
 		import weave.utils.VectorUtils;
@@ -136,8 +142,8 @@
 
 		[Bindable] public var thumbnailSize:int = 64;
 		[Bindable] public var showAsList:Boolean = false;
-		[Bindable] public var paneHeight:Number = 0;
-		[Bindable] public var paneWidth:Number = 0;
+		[Bindable] public var paneHeight:Number = NaN;
+		[Bindable] public var paneWidth:Number = NaN;
 		
 		override protected function createChildren():void
 		{
@@ -172,12 +178,14 @@
 			
 			if (query)
 			{
+				onResultListMouseUp();
 				unlinkBindableProperty(query.queryString, searchBox, 'text');
 				unlinkBindableProperty(query.thumbnailSize, this, 'thumbnailSize');
 				unlinkBindableProperty(query.showAsList, this, 'showAsList');
 				unlinkBindableProperty(query.paneWidth, this, 'paneWidth');
 				unlinkBindableProperty(query.paneHeight, this, 'paneHeight');
 				getCallbackCollection(query).removeCallback(handleQuery);
+				getCallbackCollection(query.showAsList).removeCallback(handleSizeChange);
 				getCallbackCollection(query.thumbnailSize).removeCallback(handleSizeChange);
 			}
 			
@@ -191,6 +199,7 @@
 				linkBindableProperty(query.paneWidth, this, 'paneWidth');
 				linkBindableProperty(query.paneHeight, this, 'paneHeight');
 				getCallbackCollection(query).addGroupedCallback(this, handleQuery);
+				getCallbackCollection(query.showAsList).addGroupedCallback(this, handleSizeChange, true);
 				getCallbackCollection(query.thumbnailSize).addGroupedCallback(this, handleSizeChange, true);
 				
 				handleQuery();
@@ -205,6 +214,9 @@
 				callLater(handleSizeChange);
 				return;
 			}
+			
+			resultList.width = paneWidth;
+			resultList.height = paneHeight;
 			resultList.typicalItem = !resultList.typicalItem;
 		}
 		
@@ -245,6 +257,72 @@
 			}
 		}
 		
+		//////////////////////////
+		public static const CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT:String = "resizeTLBR";
+		[Embed(source="/weave/resources/images/resize_TL-BR.png")] private static var _resizeTLBRCursor:Class;
+		CustomCursorManager.registerEmbeddedCursor(CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT, _resizeTLBRCursor, NaN, NaN);
+		private function onResultListRender():void
+		{
+			resultList.graphics.clear();
+			var w:Number = resultList.width;
+			var h:Number = resultList.height;
+			var d:Number = 16;
+			var b:Number = 4;
+			UIUtils.drawInvisiblePolygon(resultList, [w,h, w-d,h, w-d,h+b, w+b,h+b, w+b,h-d, w,h-d]);
+		}
+		private var cursorId:int = 0;
+		private function setCursor(name:String):void
+		{
+			var newId:int = name ? CustomCursorManager.showCursor(name) : 0;
+			if (cursorId)
+				CustomCursorManager.removeCursor(cursorId);
+			cursorId = newId;
+		}
+		private var resizeQuery:DocMapSearchQuery;
+		private var mouseResizeOffset:Point = new Point();
+		private function onResultListMouseMoveSetCursor(event:MouseEvent):void
+		{
+			if (!event.buttonDown)
+			{
+				mouseResizeOffset.x = resultList.width - resultList.mouseX;
+				mouseResizeOffset.y = resultList.height - resultList.mouseY;
+				if (mouseResizeOffset.x < 0 || mouseResizeOffset.y < 0)
+					setCursor(CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT);
+				else
+					setCursor(null);
+			}
+		}
+		private function onResultListMouseDown(event:MouseEvent):void
+		{
+			mouseResizeOffset.x = resultList.width - resultList.mouseX;
+			mouseResizeOffset.y = resultList.height - resultList.mouseY;
+			if (mouseResizeOffset.x < 0 || mouseResizeOffset.y < 0)
+			{
+				resizeQuery = query;
+				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_MOVE, query, onResultListMouseMove);
+				WeaveAPI.StageUtils.addEventCallback(MouseEvent.MOUSE_UP, query, onResultListMouseUp);
+				setCursor(CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT);
+			}
+		}
+		private function onResultListMouseMove():void
+		{
+			// hack to get around other code calling hack_removeAllCursors()
+			setCursor(CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT);
+			
+			resultList.width = resultList.mouseX + mouseResizeOffset.x;
+			resultList.height = resultList.mouseY + mouseResizeOffset.y;
+		}
+		private function onResultListMouseUp():void
+		{
+			setCursor(null);
+			if (query && query == resizeQuery)
+			{
+				query.paneWidth.value = resultList.width;
+				query.paneHeight.value = resultList.height;
+			}
+			WeaveAPI.StageUtils.removeEventCallback(MouseEvent.MOUSE_MOVE, onResultListMouseMove);
+			WeaveAPI.StageUtils.removeEventCallback(MouseEvent.MOUSE_UP, onResultListMouseUp);
+		}
 	]]>
 	</fx:Script>
 </s:ItemRenderer>
