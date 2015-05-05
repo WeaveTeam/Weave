@@ -21,7 +21,7 @@
 		 xmlns:ui="weave.ui.*">
 	<fx:Declarations>
 		<s:TileLayout id="tileResultLayout" requestedColumnCount="3" requestedRowCount="3"/>
-		<s:VerticalLayout id="verticalResultLayout"/>
+		<s:VerticalLayout id="verticalResultLayout" requestedRowCount="6"/>
 	</fx:Declarations>
 	<s:Group>
 		<s:layout>
@@ -39,7 +39,12 @@
 						 visible="{!!resultList.dataProvider}"/>
 			</s:Group>
 		</s:BorderContainer>
-		<s:List layout="{showAsList ? verticalResultLayout : tileResultLayout}" id="resultList" change="onSelection()" allowMultipleSelection="true" visible="{resultList.dataProvider.length > 0}" typicalItem="false">
+		<s:List layout="{showAsList ? verticalResultLayout : tileResultLayout}" 
+				id="resultList" change="onSelection()" allowMultipleSelection="true" 
+				visible="{resultList.dataProvider.length > 0}" 
+				typicalItem="false"
+				width="{paneWidth || NaN}"
+				height="{paneHeight || NaN}">
 			<s:itemRenderer>
 				<fx:Component>
 					<s:ItemRenderer>
@@ -48,8 +53,14 @@
 								<s:HorizontalLayout paddingBottom="2" paddingTop="2" paddingRight="2" paddingLeft="2"/>
 							</s:layout>
 							<s:BitmapImage scaleMode="letterbox" id="bitmapImage" width="{outerDocument.thumbnailSize}" height="{outerDocument.thumbnailSize}"/>
-							<s:Label id="title" 
-									 includeInLayout="{outerDocument.showAsList}" 
+							<s:TextArea id="title"
+									 editable="false"
+									 selectable="true"
+									 borderVisible="false"
+									 includeInLayout="{outerDocument.showAsList}"
+									 height="{outerDocument.thumbnailSize}"
+									 verticalScrollPolicy="off"
+									 horizontalScrollPolicy="off"
 									 visible="{outerDocument.showAsList}"/>
 						</s:Group>
 						
@@ -111,11 +122,11 @@
 		
 		[Embed(source="/weave/resources/images/panMode.png")]
 		private static var MoveIcon:Class;
-		
-		[Bindable] public var showLabels:Boolean = false;
-		[Bindable] public var showThumbnails:Boolean = true;
+
 		[Bindable] public var thumbnailSize:int = 64;
 		[Bindable] public var showAsList:Boolean = false;
+		[Bindable] public var paneHeight:Number = 0;
+		[Bindable] public var paneWidth:Number = 0;
 		
 		override protected function createChildren():void
 		{
@@ -153,6 +164,8 @@
 				unlinkBindableProperty(query.queryString, searchBox, 'text');
 				unlinkBindableProperty(query.thumbnailSize, this, 'thumbnailSize');
 				unlinkBindableProperty(query.showAsList, this, 'showAsList');
+				unlinkBindableProperty(query.paneWidth, this, 'paneWidth');
+				unlinkBindableProperty(query.paneHeight, this, 'paneHeight');
 				getCallbackCollection(query).removeCallback(handleQuery);
 				getCallbackCollection(query.thumbnailSize).removeCallback(handleSizeChange);
 			}
@@ -164,6 +177,8 @@
 				linkBindableProperty(query.queryString, searchBox, 'text', 500);
 				linkBindableProperty(query.thumbnailSize, this, 'thumbnailSize');
 				linkBindableProperty(query.showAsList, this, 'showAsList');
+				linkBindableProperty(query.paneWidth, this, 'paneWidth');
+				linkBindableProperty(query.paneHeight, this, 'paneHeight');
 				getCallbackCollection(query).addGroupedCallback(this, handleQuery);
 				getCallbackCollection(query.thumbnailSize).addGroupedCallback(this, handleSizeChange, true);
 				
