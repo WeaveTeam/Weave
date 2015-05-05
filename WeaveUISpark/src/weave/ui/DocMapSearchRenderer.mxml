@@ -19,9 +19,13 @@
 		 xmlns:fx="http://ns.adobe.com/mxml/2009"
 		 xmlns:s="library://ns.adobe.com/flex/spark"
 		 xmlns:ui="weave.ui.*">
+	<fx:Declarations>
+		<s:TileLayout id="tileResultLayout" requestedColumnCount="3" requestedRowCount="3"/>
+		<s:VerticalLayout id="verticalResultLayout"/>
+	</fx:Declarations>
 	<s:Group>
 		<s:layout>
-			<s:VerticalLayout gap="0"/>
+			<s:VerticalLayout gap="0" horizontalAlign="center"/>
 		</s:layout>
 		<s:BorderContainer borderStyle="inset" backgroundAlpha="1" width="100%" minHeight="0">
 			<s:Group width="100%">
@@ -35,10 +39,7 @@
 						 visible="{!!resultList.dataProvider}"/>
 			</s:Group>
 		</s:BorderContainer>
-		<s:List id="resultList" change="onSelection()" allowMultipleSelection="true" visible="{resultList.dataProvider.length > 0}" typicalItem="-1">
-			<s:layout>
-				<s:TileLayout requestedColumnCount="3" requestedRowCount="3"/>
-			</s:layout>
+		<s:List layout="{showAsList ? verticalResultLayout : tileResultLayout}" id="resultList" change="onSelection()" allowMultipleSelection="true" visible="{resultList.dataProvider.length > 0}" typicalItem="false">
 			<s:itemRenderer>
 				<fx:Component>
 					<s:ItemRenderer>
@@ -48,8 +49,8 @@
 							</s:layout>
 							<s:BitmapImage scaleMode="letterbox" id="bitmapImage" width="{outerDocument.thumbnailSize}" height="{outerDocument.thumbnailSize}"/>
 							<s:Label id="title" 
-									 includeInLayout="{outerDocument.showLabels}" 
-									 visible="{outerDocument.showLabels}"/>
+									 includeInLayout="{outerDocument.showAsList}" 
+									 visible="{outerDocument.showAsList}"/>
 						</s:Group>
 						
 						<fx:Script>
@@ -63,10 +64,9 @@
 								override public function set data(value:Object):void
 								{
 									super.data = value;
-									var key:IQualifiedKey = value as IQualifiedKey;
 									var query:DocMapSearchQuery = outerDocument.query;
-									bitmapImage.source = (value is Number) ?  BitmapUtils.MISSING_IMAGE : query.getImage(key);
-									title.text = (value is Number) ? "Of Cabbages And Kings: A Talk of Many Things" : query.getTitle(key);
+									bitmapImage.source = key ? query.getImage(key) : BitmapUtils.MISSING_IMAGE;
+									title.text = key ? query.getTitle(key) : "Of Cabbages And Kings: A Talk of Many Things";
 								}
 								
 								public function get key():IQualifiedKey
@@ -115,6 +115,7 @@
 		[Bindable] public var showLabels:Boolean = false;
 		[Bindable] public var showThumbnails:Boolean = true;
 		[Bindable] public var thumbnailSize:int = 64;
+		[Bindable] public var showAsList:Boolean = false;
 		
 		override protected function createChildren():void
 		{
@@ -151,6 +152,7 @@
 			{
 				unlinkBindableProperty(query.queryString, searchBox, 'text');
 				unlinkBindableProperty(query.thumbnailSize, this, 'thumbnailSize');
+				unlinkBindableProperty(query.showAsList, this, 'showAsList');
 				getCallbackCollection(query).removeCallback(handleQuery);
 				getCallbackCollection(query.thumbnailSize).removeCallback(handleSizeChange);
 			}
@@ -161,6 +163,7 @@
 			{
 				linkBindableProperty(query.queryString, searchBox, 'text', 500);
 				linkBindableProperty(query.thumbnailSize, this, 'thumbnailSize');
+				linkBindableProperty(query.showAsList, this, 'showAsList');
 				getCallbackCollection(query).addGroupedCallback(this, handleQuery);
 				getCallbackCollection(query.thumbnailSize).addGroupedCallback(this, handleSizeChange, true);
 				
@@ -171,12 +174,12 @@
 
 		private function handleSizeChange():void
 		{
-//			if (!resultList)
-//			{
-//				callLater(handleSizeChange);
-//				return;
-//			}
-//			resultList.typicalItem = resultList.typicalItem as Number + 1;
+			if (!resultList)
+			{
+				callLater(handleSizeChange);
+				return;
+			}
+			resultList.typicalItem = !resultList.typicalItem;
 		}
 		
 		private function updateSelection():void
