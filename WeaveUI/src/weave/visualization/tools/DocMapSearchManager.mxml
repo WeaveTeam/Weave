@@ -214,6 +214,43 @@
 	<editorFactory>
 		<mx:Component>
 			<ui:ControlPanel>
+				<mx:VBox label="{lang('Appearance')}">
+					<ui:CustomCheckBox id="listViewCheck" label="{lang('List view (thumbnail and title)')}"
+									   change="if (UIUtils.hasFocus(listViewCheck)) onListViewCheck()"/>
+					<ui:Indent label="{lang('Thumbnail size')}">
+						<ui:CustomHSlider id="thumbnailSizeSlider" width="100%" snapInterval="1" minimum="16" maximum="256" liveDragging="true"
+										  change="if (UIUtils.hasFocus(thumbnailSizeSlider)) onThumbnailSizeSliderChange()"/>
+					</ui:Indent>
+				</mx:VBox>
+				<mx:Script>
+					<![CDATA[
+						import weave.core.UIUtils;
+						import weave.ui.DocMapSearchQuery;
+						
+						override protected function childrenCreated():void
+						{
+							super.childrenCreated();
+							
+							for each (var query:DocMapSearchQuery in outerDocument.queries.getObjects())
+							{
+								listViewCheck.selected = query.showAsList.value;
+								thumbnailSizeSlider.value = query.thumbnailSize.value;
+								break;
+							}
+						}
+						
+						private function onListViewCheck():void
+						{
+							for each (var query:DocMapSearchQuery in outerDocument.queries.getObjects())
+								query.showAsList.value = listViewCheck.selected;
+						}
+						private function onThumbnailSizeSliderChange():void
+						{
+							for each (var query:DocMapSearchQuery in outerDocument.queries.getObjects())
+								query.thumbnailSize.value = thumbnailSizeSlider.value;
+						}
+					]]>
+				</mx:Script>
 			</ui:ControlPanel>
 		</mx:Component>
 	</editorFactory>
