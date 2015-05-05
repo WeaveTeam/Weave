@@ -84,8 +84,8 @@ package weave.ui
 		public const collectionName:LinkableString = newLinkableChild(this, LinkableString);
 		public const showAsList:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		public const thumbnailSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(64));
-		public const paneHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
-		public const paneWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
+		public const height:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
+		public const width:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
 		
 		private const _dataSourceWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(DocumentMapDataSource));
 		private const _imageColumn:ImageColumn = newLinkableChild(this, ImageColumn);

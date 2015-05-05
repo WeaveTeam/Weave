@@ -182,8 +182,8 @@
 				unlinkBindableProperty(query.queryString, searchBox, 'text');
 				unlinkBindableProperty(query.thumbnailSize, this, 'thumbnailSize');
 				unlinkBindableProperty(query.showAsList, this, 'showAsList');
-				unlinkBindableProperty(query.paneWidth, this, 'paneWidth');
-				unlinkBindableProperty(query.paneHeight, this, 'paneHeight');
+				unlinkBindableProperty(query.width, this, 'paneWidth');
+				unlinkBindableProperty(query.height, this, 'paneHeight');
 				getCallbackCollection(query).removeCallback(handleQuery);
 				getCallbackCollection(query.showAsList).removeCallback(handleSizeChange);
 				getCallbackCollection(query.thumbnailSize).removeCallback(handleSizeChange);
@@ -196,8 +196,8 @@
 				linkBindableProperty(query.queryString, searchBox, 'text', 500);
 				linkBindableProperty(query.thumbnailSize, this, 'thumbnailSize');
 				linkBindableProperty(query.showAsList, this, 'showAsList');
-				linkBindableProperty(query.paneWidth, this, 'paneWidth');
-				linkBindableProperty(query.paneHeight, this, 'paneHeight');
+				linkBindableProperty(query.width, this, 'paneWidth');
+				linkBindableProperty(query.height, this, 'paneHeight');
 				getCallbackCollection(query).addGroupedCallback(this, handleQuery);
 				getCallbackCollection(query.showAsList).addGroupedCallback(this, handleSizeChange, true);
 				getCallbackCollection(query.thumbnailSize).addGroupedCallback(this, handleSizeChange, true);
@@ -241,7 +241,6 @@
 			_vscroll = resultList.scroller.verticalScrollBar.value;
 			(resultList.dataProvider as ArrayCollection).source = query.getKeys();
 			invalidateDisplayList();
-//			resultList.selectedItems = query.getKeys();
 		}
 		
 		private var _vscroll:Number = NaN;
@@ -317,8 +316,8 @@
 			setCursor(null);
 			if (query && query == resizeQuery)
 			{
-				query.paneWidth.value = resultList.width;
-				query.paneHeight.value = resultList.height;
+				query.width.value = resultList.width;
+				query.height.value = resultList.height;
 			}
 			WeaveAPI.StageUtils.removeEventCallback(MouseEvent.MOUSE_MOVE, onResultListMouseMove);
 			WeaveAPI.StageUtils.removeEventCallback(MouseEvent.MOUSE_UP, onResultListMouseUp);
