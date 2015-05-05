@@ -48,11 +48,13 @@
 			<s:itemRenderer>
 				<fx:Component>
 					<s:ItemRenderer>
-						<s:Group doubleClickEnabled="true" doubleClick="onDoubleClick()" rollOver="onMouseEnter()" rollOut="onMouseOut()">
+						<s:Group id="mainGroup" doubleClickEnabled="true" doubleClick="onDoubleClick()" rollOver="onMouseEnter()" rollOut="onMouseOut()">
 							<s:layout>
 								<s:HorizontalLayout paddingBottom="2" paddingTop="2" paddingRight="2" paddingLeft="2"/>
 							</s:layout>
-							<s:BitmapImage scaleMode="letterbox" id="bitmapImage" width="{outerDocument.thumbnailSize}" height="{outerDocument.thumbnailSize}"/>
+							<s:Group id="bitmapGroup">
+								<s:BitmapImage scaleMode="letterbox" id="bitmapImage" width="{outerDocument.thumbnailSize}" height="{outerDocument.thumbnailSize}"/>
+							</s:Group>
 							<s:TextArea id="title"
 									 editable="false"
 									 selectable="true"
@@ -63,15 +65,70 @@
 									 horizontalScrollPolicy="off"
 									 visible="{outerDocument.showAsList}"/>
 						</s:Group>
-						
 						<fx:Script>
 							<![CDATA[
-								import flash.events.MouseEvent;
-								import flash.net.navigateToURL;
-								import weave.utils.BitmapUtils;
+								import mx.core.UIComponent;
+								import mx.events.ToolTipEvent;
+								
+								import spark.components.BorderContainer;
 								
 								import weave.Weave;
 								import weave.api.data.IQualifiedKey;
+								import weave.utils.BitmapUtils;
+								
+								override protected function childrenCreated():void
+								{
+									super.childrenCreated();
+									
+									bitmapGroup.toolTip = ' ';
+									bitmapGroup.addEventListener(ToolTipEvent.TOOL_TIP_SHOWN, onToolTipShown);
+									bitmapGroup.addEventListener(ToolTipEvent.TOOL_TIP_HIDE, onToolTipHide);
+								}
+								
+								private static var staticBitmapBorder:BorderContainer;
+								private static var staticBitmap:BitmapImage;
+								private function onToolTipShown(event:ToolTipEvent):void
+								{
+									var bitmapData:BitmapData = bitmapImage.source as BitmapData;
+									if (bitmapData)
+									{
+										if (!staticBitmapBorder)
+										{
+											staticBitmapBorder = new BorderContainer();
+											staticBitmap = new BitmapImage();
+											staticBitmapBorder.addElement(staticBitmap);
+										}
+										staticBitmap.source = bitmapData;
+										staticBitmapBorder.x = 0;
+										staticBitmapBorder.y = 0;
+										staticBitmapBorder.width = bitmapData.width + 2;
+										staticBitmapBorder.height = bitmapData.height + 2;
+										(event.toolTip as UIComponent).addChild(staticBitmapBorder);
+										
+										// reposition so it's on the screen
+										var p:Point = event.toolTip.localToGlobal(new Point(0, 0));
+										var stage:Stage = event.toolTip.stage as Stage;
+										var sw:Number = stage.stageWidth;
+										var sh:Number = stage.stageHeight;
+										if (p.x + bitmapData.width > sw)
+											p.x = stage.mouseX - bitmapData.width;
+										if (p.y + bitmapData.height > sh)
+											p.y = stage.mouseY - bitmapData.height;
+										p = event.toolTip.parent.globalToLocal(p);
+										event.toolTip.x = p.x;
+										event.toolTip.y = p.y;
+									}
+									else
+									{
+										event.toolTip.visible = false;
+									}
+								}
+								private function onToolTipHide(event:ToolTipEvent):void
+								{
+									if ((event.toolTip as UIComponent).contains(staticBitmapBorder))
+										(event.toolTip as UIComponent).removeChild(staticBitmapBorder);
+								}
+								
 								override public function set data(value:Object):void
 								{
 									super.data = value;
