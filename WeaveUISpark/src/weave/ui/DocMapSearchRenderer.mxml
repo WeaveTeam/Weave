@@ -295,6 +295,7 @@
 			{
 				if (mouseBeyondListArea())
 				{
+					event.stopPropagation();
 					mouseResizeOffset.x = resultList.width - resultList.mouseX;
 					mouseResizeOffset.y = resultList.height - resultList.mouseY;
 					setCursor(CURSOR_RESIZE_TOPLEFT_BOTTOMRIGHT);
@@ -307,6 +308,7 @@
 		{
 			if (mouseBeyondListArea())
 			{
+				event.stopPropagation();
 				query.width.value = NaN;
 				query.height.value = NaN;
 			}
@@ -315,6 +317,7 @@
 		{
 			if (mouseBeyondListArea())
 			{
+				event.stopPropagation();
 				mouseResizeOffset.x = resultList.width - resultList.mouseX;
 				mouseResizeOffset.y = resultList.height - resultList.mouseY;
 				resizeQuery = query;
