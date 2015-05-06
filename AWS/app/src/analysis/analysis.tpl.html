@@ -14,12 +14,16 @@
 			<div ng-class="{'unvalidatedUI' : !queryService.queryObject.dataTable, 'validatedUI' : queryService.queryObject.dataTable}"
 							 title = "Red flags indicate required selections for query validation">
 						
-							<ui-select ng-model="queryService.queryObject.dataTable" theme="select2" style="width: 97%;">
-							    <ui-select-match allow-clear="true" placeholder="Select a data table...">{{$select.selected.title}}</ui-select-match>
-								<ui-select-choices repeat="dataTable in queryService.cache.dataTableList | filter : { title : $select.search }">
- 							       		 <div ng-bind-html="dataTable.title | highlight: $select.search"></div>
- 							        </ui-select-choices>
-							</ui-select>
+<!-- 							<ui-select ng-model="queryService.queryObject.dataTable" theme="select2" style="width: 97%;"> -->
+<!-- 							    <ui-select-match allow-clear="true" placeholder="Select a data table...">{{$select.selected.title}}</ui-select-match> -->
+<!-- 								<ui-select-choices repeat="dataTable in queryService.cache.dataTableList | filter : { title : $select.search }"> -->
+<!--  							       		 <div ng-bind-html="dataTable.title | highlight: $select.search"></div> -->
+<!--  							        </ui-select-choices> -->
+<!-- 							</ui-select> -->
+							
+							<button style="width : 100%;" type="button" ng-click="queryService.queryObject.properties.showHierarchy = true" class="btn btn-primary new-project-button">
+									<span style="color:white">Show Data Sources</span>
+							</button>
 								 
 			</div>
 						
@@ -146,7 +150,7 @@
 					
 						<br><br>
 						
-<!-- Script options -->	<div style = "width: 100%; height:200px; overflow:visible" class= "tool-bar">
+<!-- Script options -->	<div style = "width: 100%; height:200px; overflow:scroll" class= "tool-bar">
 							<table style="width:100%">
 								<tr ng-repeat="input in queryService.cache.scriptMetadata.inputs">
 									<td align="right" width=10%>
@@ -154,7 +158,7 @@
 									</td>
 		
 									<td>
-											<column-selector ng-if="input.type == 'column'" hierarchy="queryService.cache.hierarchy" ng-model="queryService.queryObject.scriptOptions[input.param]"></column-selector>
+											<column-selector style="float:left; width:80%" ng-if="input.type == 'column'" hierarchy="queryService.cache.hierarchy" ng-model="queryService.queryObject.scriptOptions[input.param]"></column-selector>
 <!-- 											<ui-select ng-if="input.type == 'column' && input.columnType && input.columnType != 'all' && input.columnType != ' '" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;"> -->
 <!-- 									    		<ui-select-match allow-clear="true" placeholder="Select column...">{{$select.selected.title}}</ui-select-match> -->
 <!-- 												<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search, columnType : input.columnType }"> -->
@@ -170,14 +174,14 @@
 <!-- 									        	</ui-select-choices> -->
 <!-- 											</ui-select> -->
 											
-<!-- 											<a href="javascript: void(0)"  -->
-<!-- 												ng-click="showColumnInfo(queryService.queryObject.scriptOptions[input.param], input.param)" -->
-<!-- 											>  -->
-<!-- 												<i  ng-if="input.type == 'column'"  -->
-<!-- 													style = "padding-left: 3px; padding-top:5px;"  -->
-<!-- 													class="fa fa-pencil-square-o fa-lg" -->
-<!-- 												></i> -->
-<!-- 											</a> -->
+											<a href="javascript: void(0)" 
+												ng-click="showColumnInfo(queryService.queryObject.scriptOptions[input.param], input.param)"
+											> 
+												<i  ng-if="input.type == 'column'" 
+													style = "padding-left: 3px; padding-top:5px;" 
+													class="fa fa-pencil-square-o fa-lg"
+												></i>
+											</a>
 											<!-- Remapping -->
 											
 											<!-- handling toggle input types -->

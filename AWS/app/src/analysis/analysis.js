@@ -50,7 +50,7 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			if(weave) {
 				var weaveTreeNode = new weave.WeaveTreeNode();
 				
-//				weave.path('CensusDataSource').request("CensusDataSource");
+				weave.path('CensusDataSource').request("CensusDataSource");
 				
 				weaveTreeIsBusy = weaveTreeNode._eval('() => WeaveAPI.SessionManager.linkableObjectIsBusy(node)');
 				
@@ -447,21 +447,16 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		$scope.columnToRemap = {value : param}; // bind this column to remap to the scope
 		if(column) {
 			$scope.description = column.description;
-			queryService.getEntitiesById([column.id], true).then(function (result) {
-				if(result.length) {
-					var resultMetadata = result[0];
-					if(resultMetadata.publicMetadata.hasOwnProperty("aws_metadata")) {
-						var metadata = angular.fromJson(resultMetadata.publicMetadata.aws_metadata);
-						if(metadata.hasOwnProperty("varValues")) {
-							queryService.getDataMapping(metadata.varValues).then(function(result) {
-								$scope.varValues = result;
-							});
-						} else {
-							$scope.varValues = [];
-						}
-					}
+			if(column.aws_metadata) {
+				var metadata = angular.fromJson(column.aws_metadata);
+				if(metadata.varValues) {
+					queryService.getDataMapping(metadata.varValues).then(function(result) {
+						$scope.varValues = result;
+					});
+				} else {
+					$scope.varValues = [];
 				}
-			});
+			}
 		} else {
 			// delete description and table if the indicator is clear
 			$scope.description = "";

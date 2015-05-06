@@ -32,12 +32,14 @@
 				</td>
 			
 				<td style="padding-left: 5px;">
-					<ui-select  ng-model="tool.X" theme="select2" style="width: 100%;">
-				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$select.selected.title}}</ui-select-match>
-						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
-				       		 <div ng-bind-html="column.title| highlight: $select.search"></div>
-				        </ui-select-choices>
-					</ui-select>
+					<column-selector style="float:left; width:100%" ng-model="tool.X"></column-selector>
+					
+<!-- 					<ui-select  ng-model="tool.X" theme="select2" style="width: 100%;"> -->
+<!-- 				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$select.selected.title}}</ui-select-match> -->
+<!-- 						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }"> -->
+<!-- 				       		 <div ng-bind-html="column.title| highlight: $select.search"></div> -->
+<!-- 				        </ui-select-choices> -->
+<!-- 					</ui-select> -->
 				</td>
 			</tr>
 		
@@ -48,13 +50,14 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-
-				<ui-select  ng-model="tool.Y" theme="select2" style="width: 100%;">
-			    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$select.selected.title}}</ui-select-match>
-					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
-			       		 <div ng-bind-html="column.title| highlight: $select.search"></div>
-			        </ui-select-choices>
-				</ui-select>
+				<column-selector style="float:left; width:100%" ng-model="tool.Y"></column-selector>
+				
+<!-- 				<ui-select  ng-model="tool.Y" theme="select2" style="width: 100%;"> -->
+<!-- 			    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$select.selected.title}}</ui-select-match> -->
+<!-- 					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }"> -->
+<!-- 			       		 <div ng-bind-html="column.title| highlight: $select.search"></div> -->
+<!-- 			        </ui-select-choices> -->
+<!-- 				</ui-select> -->
 			</td>
 		</tr>
 	</table>

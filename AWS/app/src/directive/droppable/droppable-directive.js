@@ -9,7 +9,6 @@ AnalysisModule.directive('droppable', function() {
 		element.css('-khtml-user-select', 'none'); 
 		element.css('-webkit-user-select', 'none');
 
-		element.html("&nbsp drop column here...");
 		
 		var multiple = angular.isDefined(attrs.multiple);
 		
@@ -26,12 +25,21 @@ AnalysisModule.directive('droppable', function() {
 						if(weaveNode) {
 							if(multiple) {
 								if(!$scope.ngModel) {
-									$scope.ngModel = [weaveNode.getColumnMetadata()];
+									$scope.ngModel = [{
+										dataSourceName : weaveNode.getDataSourceName(),
+										metadata : weaveNode.getColumnMetadata()
+									}];
 								} else {
-									$scope.ngModel.push(weaveNode.getColumnMetadata());
+									$scope.ngModel.push({
+										dataSourceName : weaveNode.getDataSourceName(),
+										metadata : weaveNode.getColumnMetadata()
+									});
 								}
 							} else {
-								$scope.ngModel = weaveNode.getColumnMetadata();
+								$scope.ngModel = {
+										dataSourceName : weaveNode.getDataSourceName(),
+										metadata : weaveNode.getColumnMetadata()
+									};
 							}
 							$scope.$apply();
 						}
@@ -47,7 +55,7 @@ AnalysisModule.directive('droppable', function() {
 					if($scope.ngModel.length) {
 						element.html('');
 						$scope.ngModel.forEach(function(model, index) {
-							element.append('&nbsp <div class="pill">' + model.title + '<span id=' + index +' style="cursor : default; color:gray; margin-top:3px" class="glyphicon glyphicon-remove"></span></div');
+							element.append('&nbsp <div class="pill">' + model.metadata.title + '<span id=' + index +' style="cursor : default; color:gray; margin-top:3px" class="glyphicon glyphicon-remove"></span></div');
 							var closebtn = element.find($('[id ='+ index + ']'));
 							closebtn.on('click', function() {
 								$scope.ngModel.splice(index, 1);
@@ -55,13 +63,16 @@ AnalysisModule.directive('droppable', function() {
 							});
 						});
 					} else {
-						element.html('&nbsp drop column here...');
+						element.html('&nbsp drop columns here...');
 					}
 				} else {
-					element.html('&nbsp' + $scope.ngModel.title);
+					element.html('&nbsp' + $scope.ngModel.metadata.title);
 				}
 			} else {
-				element.html('&nbsp drop column here...');
+				if(multiple)
+					element.html('&nbsp drop columns here...');
+				else
+					element.html('&nbsp drop column here...');
 			}
 		}, true);
 		

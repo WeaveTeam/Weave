@@ -359,7 +359,9 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					ws.weave.path(toolName).request('ScatterPlotTool')
 					.state({ panelX : "50%", panelY : "50%", panelTitle : state.title, enableTitle : true})
 					.push('children', 'visualization','plotManager', 'plotters', 'plot')
-					.call(setQueryColumns, {dataX : state.X, dataY : state.Y});
+					.push('dataX').setColumn(state.X.metadata, state.X.dataSourceName)
+					.pop()
+					.push('dataY').setColumn(state.Y.metadata, state.Y.dataSourceName);
 					//capture session state
 					queryService.queryObject.weaveSessionState = ws.getSessionStateObjects();
 				}
