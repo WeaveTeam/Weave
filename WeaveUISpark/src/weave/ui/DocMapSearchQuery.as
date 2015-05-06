@@ -18,6 +18,8 @@ package weave.ui
 	import flash.display.BitmapData;
 	
 	import mx.collections.ArrayCollection;
+	import mx.rpc.Fault;
+	import mx.rpc.events.FaultEvent;
 	
 	import weave.Weave;
 	import weave.api.core.ILinkableObject;
@@ -66,6 +68,13 @@ package weave.ui
 		{
 			if (promise.result is Array)
 				_keys.replaceKeys(promise.result as Array);
+			if (promise.error)
+			{
+				var e:* = promise.error;
+				while (e is Fault && (e as Fault).content is FaultEvent)
+					e = (e as Fault).content;
+				reportError(e);
+			}
 		}
 		
 		public function getLabel():String
