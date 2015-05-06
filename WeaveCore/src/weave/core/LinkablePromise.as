@@ -248,6 +248,7 @@ package weave.core
 		
 		public function dispose():void
 		{
+			WeaveAPI.ProgressIndicator.removeTask(_groupedCallback);
 			_lazy = true;
 			_invalidated = true;
 			_asyncToken = null;
