@@ -1,6 +1,6 @@
 // copied from http://techpuzzl.wordpress.com/2010/01/24/maxheap-and-minheap-implementations-in-java/
 
-package weave.utils;
+package bst;
 import java.util.*;
 
 public class MinHeap<E extends Comparable<E>> {
