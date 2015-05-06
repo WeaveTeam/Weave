@@ -277,9 +277,9 @@ package weave.utils
 					var sw:Number = stage.stageWidth;
 					var sh:Number = stage.stageHeight;
 					if (p.x + bitmapData.width > sw)
-						p.x = stage.mouseX - bitmapData.width;
+						p.x = stage.mouseX - bitmapData.width - 2;
 					if (p.y + bitmapData.height > sh)
-						p.y = stage.mouseY - bitmapData.height;
+						p.y = stage.mouseY - bitmapData.height - 2;
 					p = event.toolTip.parent.globalToLocal(p);
 					event.toolTip.x = p.x;
 					event.toolTip.y = p.y;
