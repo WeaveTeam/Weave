@@ -167,7 +167,7 @@ package weave.ui
 			if ((collection && collection.length == 0) || (parentMenu && !parentMenu.visible) || visible)
 				return;
 			
-			// fixes a bug where super.show() may put SessionManager in an unusable state
+			// fixes a bug where super.show() may put SystemManager in an unusable state
 			if (mx_internal::parentDisplayObject)
 			{
 				PopUpManager.addPopUp(this, mx_internal::parentDisplayObject, false);
