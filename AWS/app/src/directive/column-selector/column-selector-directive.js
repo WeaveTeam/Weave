@@ -15,13 +15,6 @@ AnalysisModule.directive('columnSelector', function(queryService) {
 			$scope.ngModel = model;
 		}, true);
 		
-		element.find("#panel").draggable().resizable();
-		
-	}
-	
-	function controller($scope, $element) {
-			
-		
 	}
 	
 	return {
@@ -31,10 +24,8 @@ AnalysisModule.directive('columnSelector', function(queryService) {
 	      return angular.isDefined(tAttrs.multiple) ? 'src/directive/column-selector/column_selector-multiple.tpl.html' : 'src/directive/column-selector/column_selector.tpl.html';
 	    },
 		link : link,
-		controller : controller,
 		scope : {
 			ngModel : '=',
-			hierarchy : '='
 		}
 	};
 });
