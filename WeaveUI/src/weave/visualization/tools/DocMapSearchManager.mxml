@@ -103,6 +103,8 @@
 				var query:DocMapSearchQuery;
 				var dataSourceName:String;
 				var collectionName:String;
+				var showAsList:Boolean;
+				var thumbnailSize:Number;
 				
 				if (!WeaveAPI.globalHashMap.getNames(DocumentMapDataSource).length)
 				{
@@ -113,6 +115,8 @@
 				{
 					dataSourceName = query.dataSourceName.value;
 					collectionName = query.collectionName.value;
+					showAsList = query.showAsList.value;
+					thumbnailSize = query.thumbnailSize.value;
 					break;
 				}
 				if (!dataSourceName || !collectionName)
@@ -125,6 +129,9 @@
 				query = queries.requestObject(null, DocMapSearchQuery, false);
 				query.dataSourceName.value = dataSourceName;
 				query.collectionName.value = collectionName;
+				query.showAsList.value = showAsList;
+				if (isFinite(thumbnailSize))
+					query.thumbnailSize.value = thumbnailSize;
 				_lastQueryCreated = query;
 			}
 			

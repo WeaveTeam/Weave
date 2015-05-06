@@ -17,7 +17,6 @@ package weave.ui
 {
 	import flash.display.BitmapData;
 	
-	import mx.collections.ArrayCollection;
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	
@@ -28,13 +27,10 @@ package weave.ui
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
-	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkablePromise;
 	import weave.core.LinkableString;
-	import weave.core.LinkableVariable;
 	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.ImageColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
@@ -48,8 +44,8 @@ package weave.ui
 		public function DocMapSearchQuery()
 		{
 			promise.depend(queryString, collectionName, dataSourceName);
-			_filteredKeys.setSingleKeySource(_keys);
-			_filteredKeys.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
+			filteredKeys.setSingleKeySource(_keys);
+			filteredKeys.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 		}
 		
 		private const promise:LinkablePromise = registerLinkableChild(this, new LinkablePromise(makePromise, describePromise), handlePromise);
@@ -81,10 +77,6 @@ package weave.ui
 		{
 			return queryString.value;
 		}
-		public function getKeys():Array
-		{
-			return _filteredKeys.keys;
-		}
 		
 		public const queryString:LinkableString = newLinkableChild(this, LinkableString);
 		public const x:LinkableNumber = newLinkableChild(this, LinkableNumber);
@@ -95,13 +87,13 @@ package weave.ui
 		public const thumbnailSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(64));
 		public const height:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
 		public const width:LinkableNumber = registerLinkableChild(this, new LinkableNumber());
+		public const filteredKeys:FilteredKeySet = newLinkableChild(this, FilteredKeySet);
 		
 		private const _dataSourceWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(DocumentMapDataSource));
 		private const _imageColumn:ImageColumn = newLinkableChild(this, ImageColumn);
 		private const _titleColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn);
 		private const _urlColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn);
 		private const _modtimeColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn);
-		private const _filteredKeys:FilteredKeySet = newLinkableChild(this, FilteredKeySet);
 		private const _keys:KeySet = newLinkableChild(this, KeySet);
 
 		public function getDataSource():DocumentMapDataSource

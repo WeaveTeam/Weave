@@ -242,9 +242,8 @@
 			else
 				searchBox.errorString = !query.collectionName.value ? lang("No document collection selected") : lang("No data source selected");
 			
-			var keys:Array = query.getKeys();
 			_vscroll = resultList.scroller.verticalScrollBar.value;
-			(resultList.dataProvider as ArrayCollection).source = query.getKeys();
+			(resultList.dataProvider as ArrayCollection).source = query.filteredKeys.keys;
 			invalidateDisplayList();
 		}
 		
