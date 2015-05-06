@@ -53,8 +53,8 @@
 				height="{paneHeight}">
 			<s:itemRenderer>
 				<fx:Component>
-					<s:ItemRenderer>
-						<s:Group id="mainGroup" doubleClickEnabled="true" doubleClick="onDoubleClick()" rollOver="onMouseEnter()" rollOut="onMouseOut()">
+					<s:ItemRenderer width="100%">
+						<s:Group id="mainGroup" doubleClickEnabled="true" doubleClick="onDoubleClick()" rollOver="onMouseEnter()" rollOut="onMouseOut()" width="100%">
 							<s:layout>
 								<s:HorizontalLayout paddingBottom="2" paddingTop="2" paddingRight="2" paddingLeft="2"/>
 							</s:layout>
