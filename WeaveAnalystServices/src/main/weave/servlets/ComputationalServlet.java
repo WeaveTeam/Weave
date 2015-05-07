@@ -2,7 +2,9 @@ package weave.servlets;
 
 import static weave.config.WeaveConfig.initWeaveConfig;
 
+import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -154,6 +156,17 @@ public class ComputationalServlet extends WeaveServlet
 		//clearing scriptInputs before every successive run
 		scriptInputs.clear();
 		return resultData;
+	}
+	
+	private static class KeysAndColumns
+	{
+		public String[] keys;
+		public Map<String, Object[]> columns;
+	}
+	
+	public Object runScriptWithInputs(String scriptName, Map<String, Object> simpleInputs, Map<String, KeysAndColumns> columnData) throws RemoteException
+	{
+		return null;
 	}
 	
 	//*******************************REMAPPING OF REQUIRED COLUMNS*******************************
