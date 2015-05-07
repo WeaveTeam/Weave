@@ -124,18 +124,7 @@
 								type: WeaveMenuItem.TYPE_RADIO,
 								toggled: isToggled
 							};
-						}).concat(
-							WeaveMenuItem.TYPE_SEPARATOR,
-							{
-								label: lang("Create and copy tool title macro for filter values"),
-								enabled: function():Boolean { 
-									return filter.target is StringDataFilter;
-								},
-								click: function():void {
-									Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, getPanelTitleMacroScript());
-								}
-							}
-						)
+						})
 					},{
 						data: [NumberDataFilter],
 						label: lang("Continuous range"),
@@ -204,6 +193,13 @@
 					},
 					WeaveMenuItem.TYPE_SEPARATOR,
 					{
+						label: lang("Create and copy macro for tool titles"),
+						click: function():void {
+							Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, getPanelTitleMacroScript());
+						}
+					},
+					WeaveMenuItem.TYPE_SEPARATOR,
+					{
 						label: lang("Edit session state"),
 						click: toggleControlPanel
 					}
@@ -214,16 +210,30 @@
 				
 			public function getPanelTitleMacroScript():String
 			{
-				var lf:LinkableFunction = Weave.properties.macros.requestObject("getFilterValues", LinkableFunction, false);
-				lf.value = StandardLib.unIndent("\
-					function(nameOrPath){\n\
-					var path = nameOrPath as Array || ['defaultSubsetKeyFilter', 'filters', nameOrPath];\n\
-					var filter = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path);\n\
-					if (filter is StringDataFilter && filter.enabled.value)\n\
-					return filter.stringValues.getSessionState() || [];\n\
-					return [];\n\
-					}\
-				");
+				var macroName:String = 'getFilterText';
+				if (!Weave.properties.macros.getObject(macroName))
+				{
+					var lf:LinkableFunction = Weave.properties.macros.requestObject(macroName, LinkableFunction, false);
+					lf.value = StandardLib.unIndent('\
+						function(nameOrPath){\n\
+							var path = nameOrPath as Array || ["defaultSubsetKeyFilter", "filters", nameOrPath];\n\
+							var filter = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path);\n\
+							if (filter is StringDataFilter && filter.enabled.value)\n\
+							{\n\
+								var values = filter.stringValues.getSessionState() || [];\n\
+								if (values.length)\n\
+									return `({ values.join(", ") })`;\n\
+							}\n\
+							else if (filter is NumberDataFilter && filter.enabled.value)\n\
+							{\n\
+								var min = ColumnUtils.deriveStringFromNumber(filter.column, filter.min.value);\n\
+								var max = ColumnUtils.deriveStringFromNumber(filter.column, filter.max.value);\n\
+								return `[{min}, {max}]`;\n\
+							}\n\
+							return "";\n\
+						}\
+					');
+				}
 				
 				var path:Array = filter.targetPath;
 				var pathStr:String = Compiler.stringify(path);
@@ -232,7 +242,7 @@
 				if (StandardLib.compare(path, ['defaultSubsetKeyFilter', 'filters', name]) == 0)
 					pathStr = Compiler.stringify(name);
 				
-				return '{getFilterValues('+pathStr+').join(", ")}';
+				return '{' + macroName + '(' + pathStr + ')}';
 			}
 			
 			private function initLater():void
