@@ -112,7 +112,7 @@ package weave.data.DataSources
 		public const fixedNodePositions:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableVariable), updateNodePositions, true);
 		private function updateTitles():void
 		{
-			for each (var collection:String in _collections)
+			for each (var collection:String in _collectionNames)
 			{
 				for each (var topicID:String in getTopicIDs(collection))
 				{
@@ -126,7 +126,7 @@ package weave.data.DataSources
 				return;
 			disposeObject(_service);
 			_service = registerLinkableChild(this, new AMF3Servlet(url.value));
-			_listCollectionsCallbacks.triggerCallbacks();
+			hierarchyRefresh.triggerCallbacks();
 		}
 		
 		private function handleRURLChange():void
@@ -459,7 +459,7 @@ package weave.data.DataSources
 		private function updateNodePositions():void
 		{
 			getHierarchyRoot().getChildren();
-			for each (var collection:String in _collections)
+			for each (var collection:String in _collectionNames)
 			{
 				var updateNodes:Function = _cache[updateNodes_cacheName(collection)] as Function;
 				if (updateNodes == null)
@@ -473,18 +473,12 @@ package weave.data.DataSources
 		}
 		
 		// avoids recreating collection categories (tree collapse bug)
-		private const _listCollectionsCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
-		private var _collections:Array;
+		private var _collectionNames:Array;
 		
 		public function getCollectionNames():Array
 		{
 			getHierarchyRoot().getChildren();
-			return _collections || [];
-		}
-		
-		public function getListCollectionCallbacks():ICallbackCollection 
-		{
-			return _listCollectionsCallbacks;
+			return _collectionNames || [];
 		}
 		
 		/**
@@ -496,41 +490,37 @@ package weave.data.DataSources
 			if (!_rootNode)
 				_rootNode = new ColumnTreeNode({
 					dataSource: source,
-					dependency: _listCollectionsCallbacks, // avoids recreating collection categories (tree collapse bug)
 					data: {dataSource: source},
 					label: WeaveAPI.globalHashMap.getName(this),
+					hasChildBranches: true,
 					children: function():Array {
-						var children:Array = rpc('listCollections', [], function(collections:Array):Array {
-							_collections = collections;
-							_listCollectionsCallbacks.triggerCallbacks(); // avoids recreating collection categories (tree collapse bug)
+						var children:Array = [];
+						rpc('listCollections', [], function(collectionNames:Array):Array {
+							_collectionNames = collectionNames;
 							updateNodePositions();
-							return collections.map(function(collection:String, i:int, a:Array):* {
-								var keyType:String = getKeyType(collection);
-
-								return new ColumnTreeNode({
+							for each (var collection:String in collectionNames)
+							{
+								children.push({
+									label: collection,
 									dataSource: source,
-									dependency: _listCollectionsCallbacks, // avoids recreating collection categories (tree collapse bug)
 									data: {dataSource: source, collection: collection},
 									hasChildBranches: true,
-									label: collection,
 									children: [
-										new ColumnTreeNode({
-											dependency: _listCollectionsCallbacks, // avoids recreating collection categories (tree collapse bug)
-											data: {dataSource: source, collection: collection, table: 'topics'},
-											dataSource: source,
-											hasChildBranches: false,
+										{
 											label: lang('Topics'),
+											dataSource: source,
+											data: {dataSource: source, collection: collection, table: 'topics'},
+											hasChildBranches: false,
 											children: getColumnNodeDescriptors(collection, TABLE_TOPICS, [
 												COLUMN_TOPIC,
 												COLUMN_USERTOPIC,
 											])
-										}),
-										new ColumnTreeNode({
+										},{
+											label: lang('Documents'),
 											dataSource: source,
 											dependency: source,
 											data: {dataSource: source, collection: collection, table: 'documents'},
 											hasChildBranches: false,
-											label: lang('Documents'),
 											children: function():Array {
 												return [].concat(
 													getColumnNodeDescriptors(collection, TABLE_DOC_METADATA, [
@@ -544,25 +534,22 @@ package weave.data.DataSources
 													getColumnNodeDescriptors(collection, TABLE_DOC_WEIGHTS, getTopicIDs(collection))
 												);
 											}
-										}),
-										new ColumnTreeNode({
-											dependency: _listCollectionsCallbacks, // avoids recreating collection categories (tree collapse bug)
+										},{
+											label: lang('Nodes'),
 											dataSource: source,
 											data: {dataSource: source, collection: collection, table: 'nodes'},
 											hasChildBranches: false,
-											label: lang('Nodes'),
 											children: getColumnNodeDescriptors(collection, TABLE_NODES, [
 												COLUMN_NODE_TYPE,
 												COLUMN_NODE_X,
 												COLUMN_NODE_Y
 											])
-										})
+										}
 									]
 								});
-							});
+							}
+							return children;
 						});
-						if (!children)
-							WeaveAPI.StageUtils.callLater(source, _listCollectionsCallbacks.triggerCallbacks);
 						return children;
 					}
 				});
