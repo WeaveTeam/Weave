@@ -115,6 +115,11 @@ package weave.menus
 		private var _shown:* = true;
 		private var _toggled:* = false;
 		
+		override public function get label():String
+		{
+			return super.label || " ";
+		}
+		
 		/**
 		 * This property is checked by Flex's default data descriptor.
 		 */

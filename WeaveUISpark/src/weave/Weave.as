@@ -54,6 +54,9 @@ package weave
 	{
 		SparkClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
 		
+		[Embed(source="/weave/resources/images/weave-icon-large.png", mimeType="image/png")]
+		public static const WeaveBackgroundImage:Class;
+		
 		public static var debug:Boolean = false;
 		
 		private static var _root:ILinkableHashMap = null; // root object of Weave

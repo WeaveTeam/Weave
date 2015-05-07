@@ -37,6 +37,11 @@ package weave.core
 		{
 			setSessionState(value);
 		}
+		
+		override public function getSessionState():Object
+		{
+			return Number(_sessionStateExternal);
+		}
 
 		override public function setSessionState(value:Object):void
 		{

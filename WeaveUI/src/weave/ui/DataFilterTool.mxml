@@ -25,6 +25,9 @@
 		<![CDATA[
 			import avmplus.getQualifiedClassName;
 			
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
+			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
@@ -34,8 +37,11 @@
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IVisTool;
+			import weave.compiler.Compiler;
+			import weave.compiler.StandardLib;
 			import weave.core.CallbackCollection;
 			import weave.core.LinkableDynamicObject;
+			import weave.core.LinkableFunction;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
 			import weave.editors.NumberDataFilterEditor;
@@ -118,7 +124,18 @@
 								type: WeaveMenuItem.TYPE_RADIO,
 								toggled: isToggled
 							};
-						})
+						}).concat(
+							WeaveMenuItem.TYPE_SEPARATOR,
+							{
+								label: lang("Create and copy tool title macro for filter values"),
+								enabled: function():Boolean { 
+									return filter.target is StringDataFilter;
+								},
+								click: function():void {
+									Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, getPanelTitleMacroScript());
+								}
+							}
+						)
 					},{
 						data: [NumberDataFilter],
 						label: lang("Continuous range"),
@@ -193,6 +210,29 @@
 				];
 				
 				callLater(initLater);
+			}
+				
+			public function getPanelTitleMacroScript():String
+			{
+				var lf:LinkableFunction = Weave.properties.macros.requestObject("getFilterValues", LinkableFunction, false);
+				lf.value = StandardLib.unIndent("\
+					function(nameOrPath){\n\
+					var path = nameOrPath as Array || ['defaultSubsetKeyFilter', 'filters', nameOrPath];\n\
+					var filter = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path);\n\
+					if (filter is StringDataFilter && filter.enabled.value)\n\
+					return filter.stringValues.getSessionState() || [];\n\
+					return [];\n\
+					}\
+				");
+				
+				var path:Array = filter.targetPath;
+				var pathStr:String = Compiler.stringify(path);
+				
+				var name:String = path[path.length - 1];
+				if (StandardLib.compare(path, ['defaultSubsetKeyFilter', 'filters', name]) == 0)
+					pathStr = Compiler.stringify(name);
+				
+				return '{getFilterValues('+pathStr+').join(", ")}';
 			}
 			
 			private function initLater():void
@@ -281,4 +321,13 @@
 			}
 		]]>
 	</mx:Script>
+	<!--<editorFactory>
+		<mx:Component>
+			<ControlPanel>
+				<mx:VBox width="100%">
+					
+				</mx:VBox>
+			</ControlPanel>
+		</mx:Component>
+	</editorFactory>-->
 </DraggablePanel>

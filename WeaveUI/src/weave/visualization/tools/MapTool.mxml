@@ -663,7 +663,7 @@
 			public function addMarker(name:String,url:String,x:Number,y:Number,width:Number=NaN,height:Number=NaN):void
 			{
 				var marker:SingleImagePlotter = visualization.plotManager.plotters.requestObject(name, SingleImagePlotter, false);
-				marker.imageURL.value = url;
+				marker.imageURL.value = url || SingleImagePlotter.RED_CIRCLE_IMAGE_URL;
 				marker.dataX.value = x;
 				marker.dataY.value = y;
 				marker.dataWidth.value = width;

@@ -15,6 +15,12 @@
 
 package weave.utils
 {
+	import mx.core.mx_internal;
+	import mx.rpc.AsyncToken;
+	import mx.rpc.Fault;
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
+	
 	import org.apache.flex.promises.Promise;
 	import org.apache.flex.promises.enums.PromiseState;
 	import org.apache.flex.promises.vo.Handler;
@@ -106,6 +112,24 @@ package weave.utils
 		override protected function newPromise(resolver:Function):Promise
 		{
 			return new WeavePromise(this.rootPromise, resolver);
+		}
+		
+		public function getAsyncToken():AsyncToken
+		{
+			var asyncToken:AsyncToken = new AsyncToken();
+			then(
+				function(result:*):void
+				{
+					asyncToken.mx_internal::applyResult(ResultEvent.createEvent(result, asyncToken));
+				},
+				function(error:*):void
+				{
+					var fault:Fault = new Fault("Error", "Broken promise");
+					fault.content = error;
+					asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault, asyncToken));
+				}
+			);
+			return asyncToken;
 		}
 	}
 }

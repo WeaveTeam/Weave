@@ -32,14 +32,16 @@ package weave.core
 	 */
 	internal class Synchronizer implements IDisposableObject
 	{
-		public function Synchronizer(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void
+		public function Synchronizer(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false, ignoreFocus:Boolean = false):void
 		{
 			sm.registerDisposableChild(bindableParent, this);
+			sm.registerDisposableChild(linkableVariable, this);
 			this.linkableVariable = linkableVariable;
 			this.bindableParent = bindableParent;
 			this.bindablePropertyName = bindablePropertyName;
 			this.delay = delay;
 			this.onlyWhenFocused = onlyWhenFocused;
+			this.ignoreFocus = ignoreFocus;
 			this.callbackCollection = sm.getCallbackCollection(linkableVariable);
 			this.uiComponent = bindableParent as UIComponent;
 			
@@ -55,12 +57,21 @@ package weave.core
 			
 			// when the session state changes, set the bindable property
 			if (this.callbackCollection)
+			{
 				this.callbackCollection.addImmediateCallback(bindableParent, synchronize);
+				this.callbackCollection.addDisposeCallback(bindableParent, linkableVariableDisposeCallback);
+			}
+		}
+		
+		private function linkableVariableDisposeCallback():void
+		{
+			WeaveAPI.SessionManager.disposeObject(this);
 		}
 		
 		public function dispose():void
 		{
-			this.callbackCollection.removeCallback(synchronize);
+			if (this.callbackCollection)
+				this.callbackCollection.removeCallback(synchronize);
 			if (this.watcher)
 				this.watcher.unwatch();
 			
@@ -80,6 +91,7 @@ package weave.core
 		private var bindablePropertyName:String;
 		private var delay:uint;
 		private var onlyWhenFocused:Boolean;
+		private var ignoreFocus:Boolean;
 		private var watcher:ChangeWatcher;
 		private var uiComponent:UIComponent;
 		private var useLinkableValue:Boolean = true;
@@ -149,7 +161,7 @@ package weave.core
 			var bindableValue:Object = bindableParent[bindablePropertyName];
 			if (uiComponent && !(bindableValue is Boolean))
 			{
-				if (UIUtils.hasFocus(uiComponent))
+				if (watcher && !ignoreFocus && UIUtils.hasFocus(uiComponent))
 				{
 					if (linkableVariable is LinkableVariable)
 					{
@@ -190,7 +202,7 @@ package weave.core
 						return;
 					}
 				}
-				else if (!useLinkableValue && onlyWhenFocused && !callingLater)
+				else if (!useLinkableValue && !ignoreFocus && onlyWhenFocused && !callingLater)
 				{
 					// component does not have focus, so ignore the bindableValue.
 					return;
@@ -202,7 +214,7 @@ package weave.core
 			}
 			
 			// if the linkable variable's callbacks are delayed, delay synchronization
-			if (sm.getCallbackCollection(linkableVariable).callbacksAreDelayed)
+			if (watcher && sm.getCallbackCollection(linkableVariable).callbacksAreDelayed)
 			{
 				// firstParam is ignored when callingLater=true
 				WeaveAPI.StageUtils.callLater(this, synchronize, [firstParam, true]);
