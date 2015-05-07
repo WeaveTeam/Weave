@@ -162,7 +162,7 @@
 					sourceName.toolTip = lang("Source name is not editable once added to the session. If needed, delete the source and add it again with the new name.");
 
 					collectionMenu.data = {
-						dependency: target.getListCollectionCallbacks(),
+						dependency: target,
 						children: function():Array {
 							return target.getCollectionNames().map(function(collection:String, i:int, a:Array):Object {
 								return {
