@@ -261,6 +261,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 						
 						//executing the script
 						queryService.runScript(scriptName).then(function(resultData) {
+							usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
+
 							if(!angular.isUndefined(resultData))
 							{
 								console.log(resultData);
@@ -276,7 +278,6 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 									var dsn = queryService.queryObject.Indicator ? queryService.queryObject.Indicator.title : "";
 									WeaveService.addCSVData(formattedResult, dsn, queryService.queryObject);
 									
-									usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
 								}
 							}
 						}, function(error) {
