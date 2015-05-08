@@ -23,7 +23,6 @@ package
 	import weave.api.core.ISessionManager;
 	import weave.api.core.IStageUtils;
 	import weave.api.ui.IEditorManager;
-	import weave.compiler.Compiler;
 	import weave.core.ClassUtils;
 	import weave.core.EditorManager;
 	import weave.core.ErrorManager;

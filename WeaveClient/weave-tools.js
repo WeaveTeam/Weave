@@ -250,7 +250,7 @@ function setWeaveColumnId(weave, path, columnId, dataSourceName, sqlParams)
 		path = weave.path(path);
 	
 	if (!dataSourceName)
-		dataSourceName = weave.evaluateExpression([], 'this.getNames(WeaveDataSource)[0]', null, ['weave.data.DataSources::WeaveDataSource']);
+		dataSourceName = weave.evaluateExpression([], 'this.getNames(WeaveDataSource)[0]');
 	
 	var metadata = {"sqlParams": sqlParams};
 	if (typeof columnId == 'object')
