@@ -278,9 +278,9 @@ package weave.compiler
 		}
 		
 		/**
-		 * Add keys to this dictionary for deprecated library replacements using dot notation rather than "::" package notation.
+		 * Add keys to this dictionary for class alias names or deprecated library replacements using dot notation (".") rather than "::" package notation.
 		 */
-		public static const deprecatedClassReplacements:Object = {};
+		public static const classAliases:Object = {};
 		
 		/**
 		 * The list of packages to check when looking up class definitions.
@@ -293,15 +293,16 @@ package weave.compiler
 		 * @return The corresponding object.
 		 * @throws Error If there is no definition corresponding to the name.
 		 */
-		private static function getDefinition(name:String):Object
+		public static function getDefinition(name:String):Object
 		{
-			if (name.indexOf("::") >= 0)
-				name = StandardLib.replace(name, "::", ".");
-			
 			// return cached definition if present
-			var def:Object = deprecatedClassReplacements[name];
+			var def:Object = classAliases[name];
 			if (def)
 				return def;
+			
+			var altName:String = name; // altName possibly uses colon notation
+			if (name.indexOf("::") >= 0)
+				name = StandardLib.replace(name, "::", ".");
 			
 			// if it's not a fully qualified name, check the default packages
 			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
@@ -309,7 +310,13 @@ package weave.compiler
 			{
 				var qname:String = i < 0 ? name : (defaultPackages[i] + "::" + name);
 				if (domain.hasDefinition(qname))
-					return domain.getDefinition(qname);
+				{
+					// cache definition for next time
+					def = domain.getDefinition(qname);
+					classAliases[name] = def;
+					classAliases[altName] = def;
+					return def;
+				}
 			}
 			
 			// this will throw a meaningful error if there is no definition
