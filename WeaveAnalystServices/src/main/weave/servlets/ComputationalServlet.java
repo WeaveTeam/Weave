@@ -10,6 +10,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import org.apache.commons.io.FilenameUtils;
+import org.rosuda.REngine.REXP;
 
 import weave.beans.WeaveRecordList;
 import weave.config.AwsContextParams;
@@ -164,9 +165,25 @@ public class ComputationalServlet extends WeaveServlet
 		public Map<String, Object[]> columns;
 	}
 	
-	public Object runScriptWithInputs(String scriptName, Map<String, Object> simpleInputs, Map<String, KeysAndColumns> columnData) throws RemoteException
+	public Object runScriptWithInputs(String scriptName, Map<String, Object> simpleInputs, Map<String, KeysAndColumns> columnData) throws Exception
 	{
-		return null;
+		
+		Object resultData = null;
+		
+		for(String key : simpleInputs.keySet()) {
+			scriptInputs.put(key, simpleInputs.get(key));
+		}
+		
+		for(String k : columnData.keySet()) {
+			KeysAndColumns keyAndColumn = columnData.get(k);
+			for(String key : keyAndColumn.columns.keySet())
+				scriptInputs.put(key, keyAndColumn.columns.get(key));
+		}
+		
+		resultData = runScript(scriptName);
+		
+		return resultData;
+		
 	}
 	
 	//*******************************REMAPPING OF REQUIRED COLUMNS*******************************

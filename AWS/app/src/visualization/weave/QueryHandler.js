@@ -197,6 +197,22 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 				
     };
     
+    
+    this.run = function(queryObject) {
+    	if(queryObject.properties.isQueryValid) {
+    		if(WeaveService.weave)
+			{
+    			var rDataSourceName = WeaveService.generateUniqueName("RDataSource");
+				var rDataSourcePath = weave.path(rDataSource).request("RDataSource");
+				
+				rDataSourcePath.push(inputs)
+							   .call(setQueryColumns , {
+								   	scriptInputs : queryObject.scriptOptions.columnInputs
+							   })
+							   .push(simpleInputs).state(queryObject.scriptOptions.simpleInputs);
+			}
+    	}
+    };
 	/**
 	 * this function processes the received queryObject and makes the async call for running the script
 	 */
