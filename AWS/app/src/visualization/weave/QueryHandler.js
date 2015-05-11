@@ -203,112 +203,122 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     		if(WeaveService.weave)
 			{
     			var rDataSourceName = WeaveService.generateUniqueName("RDataSource");
-				var rDataSourcePath = weave.path(rDataSource).request("RDataSource");
+				var rDataSourcePath = weave.path(rDataSourceName).request("RDataSource");
 				
-				rDataSourcePath.push(inputs)
-							   .call(setQueryColumns , {
-								   	scriptInputs : queryObject.scriptOptions.columnInputs
-							   })
-							   .push(simpleInputs).state(queryObject.scriptOptions.simpleInputs);
+				var inputsPath = rDataSourcePath.push("inputs");
+				for(var key in queryObject.scriptOptions)
+				{
+					var input = queryObject.scriptOptions[key];
+					// check if the input is a column
+					if(typeof input == "object") {
+						if(input.dataSourceName && input.metadata) {
+							inputsPath.push(key).request("DynamicColumn").setColumn(input.metadata, input.dataSourceName);
+						}
+					} else {
+						inputsPath.push(key).request("LinkableVariable").state(input);
+					}
+				}
+				
+				rDataSourcePath.push("scriptName").state(queryObject.scriptSelected);
 			}
     	}
     };
 	/**
 	 * this function processes the received queryObject and makes the async call for running the script
 	 */
-	this.run = function(incoming_queryObject) {
-		if(incoming_queryObject.properties.isQueryValid) {
-			var time1;
-			var time2;
-			var startTimer;
-			var endTimer;
-			
-			var queryObject = incoming_queryObject;
-			var scriptInputObjects = [];//final collection of script input objects
-			
-			usSpinnerService.spin('roundtrip-spinner');
-			
-			nestedFilterRequest = {and : []}; // clear the nested filter object at each run.
-			
-			//HANDLING FILTERS
-			if(queryObject.GeographyFilter)
-			{
-				this.handleGeographyFilters(queryObject);
-			}
-			
-			queryService.queryObject.filters.forEach(function(filter) {
-				if(filter.nestedFilter && filter.nestedFilter.cond) {
-					nestedFilterRequest.and.push(filter.nestedFilter);
-				}
-			});
-			
-			queryService.queryObject.treeFilters.forEach(function(filter) {
-				if(filter.nestedFilter && ((filter.nestedFilter.or && filter.nestedFilter.or.length)
-									   || (filter.nestedFilter.cond))) {
-					nestedFilterRequest.and.push(filter.nestedFilter);
-				}
-			});
-			
-			console.log(nestedFilterRequest);
-	
-			//console.log(nestedFilterRequest);
-			//handling script inputs
-			scriptInputObjects = this.handleScriptOptions(queryObject.scriptOptions);
-			
-			var remapObjects = this.handleColumnRemap(queryObject.columnRemap);
-			
-			//handles re-identification for aggregation scripts
-			this.handleReidentification(scriptInputObjects);
-
-			scriptName = queryObject.scriptSelected;
-			 //var stringifiedQO = JSON.stringify(queryObject);
-			 //console.log("query", stringifiedQO);
-			 //console.log(JSON.parse(stringifiedQO));
-			queryService.queryObject.properties.queryDone = false;
-			queryService.queryObject.properties.queryStatus = "Loading data from database...";
-			startTimer = new Date().getTime();
-				
-				//getting the data
-				queryService.getDataFromServer(scriptInputObjects, remapObjects).then(function(numRows) {
-					if(numRows > 0) {
-						time1 =  new Date().getTime() - startTimer;
-						startTimer = new Date().getTime();
-						queryService.queryObject.properties.queryStatus = numRows + " records. Running analysis...";
-						
-						//executing the script
-						queryService.runScript(scriptName).then(function(resultData) {
-							if(!angular.isUndefined(resultData))
-							{
-								console.log(resultData);
-								time2 = new Date().getTime() - startTimer;
-								queryService.queryObject.properties.queryDone = true;
-								queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
-								
-								if(WeaveService.weave){
-									
-									//convert result into csvdata format
-									var formattedResult = WeaveService.createCSVDataFormat(resultData.resultData, resultData.columnNames);
-									//create the CSVDataSource]
-									var dsn = queryService.queryObject.Indicator ? queryService.queryObject.Indicator.title : "";
-									WeaveService.addCSVData(formattedResult, dsn, queryService.queryObject);
-									
-									usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
-								}
-							}
-						}, function(error) {
-							queryService.queryObject.properties.queryDone = false;
-							queryService.queryObject.properties.queryStatus = "Error running script. See error log for details.";
-							usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
-						});
-					} else {
-						queryService.queryObject.properties.queryStatus = "Data request did not return any rows";
-						usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
-					}
-				}, function(error) {
-					queryService.queryObject.properties.queryDone = false;
-					queryService.queryObject.properties.queryStatus = "Error Loading data. See error log for details.";
-					usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
-				});
-			}//validation check
-		};
+//	this.run = function(incoming_queryObject) {
+//		if(incoming_queryObject.properties.isQueryValid) {
+//			var time1;
+//			var time2;
+//			var startTimer;
+//			var endTimer;
+//			
+//			var queryObject = incoming_queryObject;
+//			var scriptInputObjects = [];//final collection of script input objects
+//			
+//			usSpinnerService.spin('roundtrip-spinner');
+//			
+//			nestedFilterRequest = {and : []}; // clear the nested filter object at each run.
+//			
+//			//HANDLING FILTERS
+//			if(queryObject.GeographyFilter)
+//			{
+//				this.handleGeographyFilters(queryObject);
+//			}
+//			
+//			queryService.queryObject.filters.forEach(function(filter) {
+//				if(filter.nestedFilter && filter.nestedFilter.cond) {
+//					nestedFilterRequest.and.push(filter.nestedFilter);
+//				}
+//			});
+//			
+//			queryService.queryObject.treeFilters.forEach(function(filter) {
+//				if(filter.nestedFilter && ((filter.nestedFilter.or && filter.nestedFilter.or.length)
+//									   || (filter.nestedFilter.cond))) {
+//					nestedFilterRequest.and.push(filter.nestedFilter);
+//				}
+//			});
+//			
+//			console.log(nestedFilterRequest);
+//	
+//			//console.log(nestedFilterRequest);
+//			//handling script inputs
+//			scriptInputObjects = this.handleScriptOptions(queryObject.scriptOptions);
+//			
+//			var remapObjects = this.handleColumnRemap(queryObject.columnRemap);
+//			
+//			//handles re-identification for aggregation scripts
+//			this.handleReidentification(scriptInputObjects);
+//
+//			scriptName = queryObject.scriptSelected;
+//			 //var stringifiedQO = JSON.stringify(queryObject);
+//			 //console.log("query", stringifiedQO);
+//			 //console.log(JSON.parse(stringifiedQO));
+//			queryService.queryObject.properties.queryDone = false;
+//			queryService.queryObject.properties.queryStatus = "Loading data from database...";
+//			startTimer = new Date().getTime();
+//				
+//				//getting the data
+//				queryService.getDataFromServer(scriptInputObjects, remapObjects).then(function(numRows) {
+//					if(numRows > 0) {
+//						time1 =  new Date().getTime() - startTimer;
+//						startTimer = new Date().getTime();
+//						queryService.queryObject.properties.queryStatus = numRows + " records. Running analysis...";
+//						
+//						//executing the script
+//						queryService.runScript(scriptName).then(function(resultData) {
+//							if(!angular.isUndefined(resultData))
+//							{
+//								console.log(resultData);
+//								time2 = new Date().getTime() - startTimer;
+//								queryService.queryObject.properties.queryDone = true;
+//								queryService.queryObject.properties.queryStatus = "Data Load: "+(time1/1000).toPrecision(2)+"s" + ",   Analysis: "+(time2/1000).toPrecision(2)+"s";
+//								
+//								if(WeaveService.weave){
+//									
+//									//convert result into csvdata format
+//									var formattedResult = WeaveService.createCSVDataFormat(resultData.resultData, resultData.columnNames);
+//									//create the CSVDataSource]
+//									var dsn = queryService.queryObject.Indicator ? queryService.queryObject.Indicator.title : "";
+//									WeaveService.addCSVData(formattedResult, dsn, queryService.queryObject);
+//									
+//									usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
+//								}
+//							}
+//						}, function(error) {
+//							queryService.queryObject.properties.queryDone = false;
+//							queryService.queryObject.properties.queryStatus = "Error running script. See error log for details.";
+//							usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
+//						});
+//					} else {
+//						queryService.queryObject.properties.queryStatus = "Data request did not return any rows";
+//						usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
+//					}
+//				}, function(error) {
+//					queryService.queryObject.properties.queryDone = false;
+//					queryService.queryObject.properties.queryStatus = "Error Loading data. See error log for details.";
+//					usSpinnerService.stop('roundtrip-spinner');//TODO handle areas of control for spinner
+//				});
+//			}//validation check
+//		};
 }]);

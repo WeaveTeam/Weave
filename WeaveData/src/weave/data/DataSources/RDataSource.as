@@ -61,7 +61,7 @@ package weave.data.DataSources
 		public const inputs:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 		
 		private const outputCSV:CSVDataSource = newLinkableChild(this, CSVDataSource);
-		private var _service:WeaveRServlet;
+		private var _service:AMF3Servlet;
 
 		private function handleURLChange():void
 		{
