@@ -127,6 +127,7 @@ package weave.data.DataSources
 
 		public function createDataSetNode(data:Object):ColumnTreeNode
 		{
+			var _ds = this._ds;
 			return new ColumnTreeNode({
 				dataSource: this,
 				data: data,
@@ -186,7 +187,7 @@ package weave.data.DataSources
 		public function createGeographyForNodes(node:ColumnTreeNode):Array
 		{
 			var children:Array = [];
-			
+			var _ds = this._ds;
 			api.getGeographies(node.data[DATASET]).then(
 				function (result:Object):void
 				{
@@ -214,6 +215,7 @@ package weave.data.DataSources
 		{
 
 			var children:Array = [];
+			var _ds = this._ds;
 			api.getGeographies(node.data[DATASET]).then(
 				function (result:Object):void
 				{
