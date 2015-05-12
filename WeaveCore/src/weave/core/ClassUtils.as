@@ -76,12 +76,11 @@ package weave.core
 		}
 		
 		/**
-		 * Storage for registerDeprecatedClass()
+		 * Storage for registerDeprecatedClass() must be separate from Compiler.classAliases for isClassDeprecated() to work.
 		 * Keys in this Object use dot notation rather than "::" package notation.
 		 * @see #registerDeprecatedClass()
-		 * @see Compiler#deprecatedClassReplacements
 		 */
-		private static const _deprecatedLookup:Object = Compiler.deprecatedClassReplacements;
+		private static const _deprecatedLookup:Object = {};
 		
 		/**
 		 * Registers a replacement class for a deprecated qualified class name.
@@ -93,19 +92,27 @@ package weave.core
 			if (deprecatedClassQName.indexOf("::") >= 0)
 				deprecatedClassQName = StandardLib.replace(deprecatedClassQName, "::", ".");
 			
+			// cache in both places
 			_deprecatedLookup[deprecatedClassQName] = replacementClass;
+			Compiler.classAliases[deprecatedClassQName] = replacementClass;
 			
 			// handle case when package is not specified
 			var shortName:String = deprecatedClassQName.substr(deprecatedClassQName.lastIndexOf('.') + 1);
 			if (!_deprecatedLookup[shortName])
+			{
 				_deprecatedLookup[shortName] = replacementClass;
+				Compiler.classAliases[shortName] = replacementClass;
+			}
 			
 			// make sure class can be looked up by name (in case it's an internal class)
 			deprecatedClassQName = getQualifiedClassName(replacementClass);
 			if (deprecatedClassQName.indexOf("::") >= 0)
 				deprecatedClassQName = StandardLib.replace(deprecatedClassQName, "::", ".");
 			if (!getClassDefinition(deprecatedClassQName))
+			{
 				_deprecatedLookup[deprecatedClassQName] = replacementClass;
+				Compiler.classAliases[deprecatedClassQName] = replacementClass;
+			}
 		}
 
 		/**

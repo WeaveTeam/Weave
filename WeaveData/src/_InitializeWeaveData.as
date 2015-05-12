@@ -55,6 +55,7 @@ package
 			"weave.data.BinClassifiers",
 			"weave.data.BinningDefinitions",
 			"weave.data.DataSources",
+			"weave.data.hierarchy",
 			"weave.data.KeySets",
 			"weave.data.Transforms",
 			"weave.primitives",

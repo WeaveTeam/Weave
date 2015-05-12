@@ -369,8 +369,13 @@ package weave.data.hierarchy
 				// root table node only has two levels - table, column
 				// return path of EntityNode objects
 				for each (var id:int in node.getEntity().parentIds)
+				{
 					if (cache.getEntity(id).getEntityType() == EntityType.TABLE)
-						return [this, getCachedChildNode(id), node];
+					{
+						var tableNode:EntityNode = this.getCachedChildNode(id);
+						return [this, tableNode, tableNode.getCachedChildNode(node.id)];
+					}
+				}
 				return null;
 			}
 			

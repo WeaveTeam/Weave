@@ -70,7 +70,12 @@ package weave.core
 			
 			var childQName:String = getQualifiedClassName(linkableChildType);
 			if (!ClassUtils.classImplements(childQName, ILinkableObjectQualifiedClassName))
-				throw new Error("newLinkableChild(): Child class does not implement ILinkableObject.");
+			{
+				if (ClassUtils.hasClassDefinition(childQName))
+					throw new Error("newLinkableChild(): Child class does not implement ILinkableObject.");
+				else
+					throw new Error("newLinkableChild(): Child class inaccessible via qualified class name: " + childQName);
+			}
 			
 			var linkableChild:ILinkableObject = new linkableChildType() as ILinkableObject;
 			return registerLinkableChild(linkableParent, linkableChild, callback, useGroupedCallback);

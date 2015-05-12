@@ -143,7 +143,7 @@ package weave.data.DataSources
 		 */
 		public function findHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
-			var path:Array = HierarchyUtils.findPathToNode(_rootNode, generateHierarchyNode(metadata));
+			var path:Array = HierarchyUtils.findPathToNode(getHierarchyRoot(), generateHierarchyNode(metadata));
 			if (path)
 				return path[path.length - 1];
 			return null;

@@ -39,7 +39,7 @@ package weave.utils
 	{
 		public function ConsoleEngine()
 		{
-			compiler.includeLibraries(GlobalLib, WeaveAPI, ObjectUtil, WeaveAPI.SessionManager, DescribeType, DebugUtils);
+			compiler.includeLibraries(GlobalLib, ObjectUtil, WeaveAPI.SessionManager, DescribeType, DebugUtils);
 			compiler.setHashOperator(debugHelper);
 		}
 		

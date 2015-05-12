@@ -563,6 +563,24 @@ package weave.utils
 		}
 		
 		/**
+		 * Transposes a two-dimensional table.
+		 */
+		public static function transpose(table:Array):Array
+		{
+			var result:Array = [];
+			for (var iCol:int = 0; iCol < table.length; iCol++)
+			{
+				var col:Array = table[iCol];
+				for (var iRow:int = 0; iRow < col.length; iRow++)
+				{
+					var row:Array = result[iRow] || (result[iRow] = []);
+					row[iRow][iCol] = col[iRow];
+				}
+			}
+			return result;
+		}
+		
+		/**
 		 * Creates a lookup from item (or item property) to index. Does not consider duplicate items (or item property values).
 		 * @param propertyChain A property name or chain of property names to index on rather than the item itself.
 		 * @return A reverse lookup.
