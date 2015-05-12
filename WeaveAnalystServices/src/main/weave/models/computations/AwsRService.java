@@ -92,9 +92,7 @@ public class AwsRService implements IScriptEngine//TODO extends RserviceUsingRse
 			}
 		}
 		catch (Exception e)	{
-			e.printStackTrace();
 			throw new RemoteException("Unable to run script", e);
-			
 		}
 		
 		finally{

@@ -198,13 +198,13 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
     };
     
     
+
     this.run = function(queryObject) {
     	if(queryObject.properties.isQueryValid) {
     		if(WeaveService.weave)
 			{
-    			var rDataSourceName = WeaveService.generateUniqueName("RDataSource");
-				var rDataSourcePath = weave.path(rDataSourceName).request("RDataSource");
-				
+    			//var rDataSourceName = WeaveService.generateUniqueName("RDataSource");
+    			var rDataSourcePath = weave.path("RDataSource").request("RDataSource").exec("getCallbackCollection(this).delayCallbacks()");
 				var inputsPath = rDataSourcePath.push("inputs");
 				for(var key in queryObject.scriptOptions)
 				{
@@ -220,9 +220,11 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 				}
 				
 				rDataSourcePath.push("scriptName").state(queryObject.scriptSelected);
+				rDataSourcePath.exec("getCallbackCollection(this).resumeCallbacks(); hierarchyRefresh.triggerCallbacks();");
 			}
     	}
     };
+    
 	/**
 	 * this function processes the received queryObject and makes the async call for running the script
 	 */

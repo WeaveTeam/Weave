@@ -17,6 +17,7 @@ package weave.data.DataSources
 {
 	import flash.events.ErrorEvent;
 	
+	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.core.ILinkableObject;
@@ -29,7 +30,9 @@ package weave.data.DataSources
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableDescendants;
 	import weave.api.getSessionState;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
@@ -37,6 +40,7 @@ package weave.data.DataSources
 	import weave.core.LinkablePromise;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.ProxyColumn;
+	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.hierarchy.ColumnTreeNode;
 	import weave.services.AMF3Servlet;
 	import weave.services.JsonCache;
@@ -55,17 +59,24 @@ package weave.data.DataSources
 		
 		public function RDataSource()
 		{
-			promise.depend(url, scriptName, inputs);
+			promise.depend(url, scriptName, inputs, hierarchyRefresh);
 		}
 		
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/WeaveAnalystServices/ComputationalServlet'), handleURLChange);
 		public const scriptName:LinkableString = newLinkableChild(this, LinkableString);
 		public const inputs:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 		
-		private const promise:LinkablePromise = registerLinkableChild(this, new LinkablePromise(runScript, function():String { return lang("Running script {0}", scriptName.value); }));
+		private const promise:LinkablePromise = registerLinkableChild(this, new LinkablePromise(runScript, describePromise));
+		private function describePromise():String { return lang("Running script {0}", scriptName.value); }
 		private const outputCSV:CSVDataSource = newLinkableChild(this, CSVDataSource);
 		private var _service:AMF3Servlet;
 
+		override protected function initialize():void
+		{
+			super.initialize();
+			promise.validate();
+		}
+		
 		private function handleURLChange():void
 		{
 			if (_service && _service.servletURL == url.value)
@@ -77,6 +88,15 @@ package weave.data.DataSources
 		
 		private function runScript():void
 		{
+			// if callbacks are delayed, we assume that hierarchyRefresh will be explicitly triggered later.
+			if (getCallbackCollection(this).callbacksAreDelayed)
+				return;
+			// force retrieval of referenced columns
+			for each (var refCol:ReferencedColumn in getLinkableDescendants(inputs, ReferencedColumn))
+				refCol.getInternalColumn();
+			if (linkableObjectIsBusy(inputs))
+				return;
+			
 			var keyType:String;
 			var simpleInputs:Object = {};
 			var columnsByKeyType:Object = {}; // Object(keyType -> Array of IAttributeColumn)
@@ -99,9 +119,13 @@ package weave.data.DataSources
 			var columnData:Object = {}; // Object(keyType -> {keys: [], columns: Object(name -> Array) })
 			for (keyType in columnsByKeyType)
 			{
-				var joined:Array = ColumnUtils.joinColumns(columnsByKeyType[keyType], null, true);
-				var keys:Array = joined.shift() as Array;
-				columnData[keyType] = {keys: keys, columns: joined};
+				var cols:Array = columnsByKeyType[keyType];
+				var joined:Array = ColumnUtils.joinColumns(cols, null, true);
+				var keys:Array = VectorUtils.pluck(joined.shift() as Array, 'localName');
+				var colMap:Object = {};
+				for (var i:int = 0; i <  joined.length; i++)
+					colMap[ inputs.getName(cols[i]) ] = joined[i];
+				columnData[keyType] = {keys: keys, columns: colMap};
 			}
 			
 			outputCSV.setCSVData(null);
@@ -124,12 +148,17 @@ package weave.data.DataSources
 			var result:Object = event.result;
 			var columnNames:Array = result[COLUMN_NAMES]; // array of strings
 			var resultData:Array = result[RESULT_DATA]; // array of columns
-			var rows:Array = VectorUtils.transpose(resultData);
-			rows.unshift(columnNames);
-			outputCSV.setCSVData(rows);
+			if (resultData)
+			{
+				var rows:Array = VectorUtils.transpose(resultData);
+				rows.unshift(columnNames);
+				outputCSV.setCSVData(rows);
+			}
+			else
+				outputCSV.setCSVData(null);
 		}
 		
-		private function handleScriptError(event:ErrorEvent, sessionState:Object):void
+		private function handleScriptError(event:FaultEvent, sessionState:Object):void
 		{
 			// ignore outdated response
 			if (WeaveAPI.SessionManager.computeDiff(sessionState, getSessionState(this)) !== undefined)

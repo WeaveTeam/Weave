@@ -203,8 +203,8 @@ QueryObject.service("queryService", ['$q', '$rootScope', 'runQueryService',
 			scriptSelected : "",
 			properties : {
 				linkIndicator : false,
-				validationStatus : "test",
-				isQueryValid : false
+				validationStatus : "Query is valid",
+				isQueryValid : true
 			},
 			filterArray : [],
 			treeFilterArray : [],

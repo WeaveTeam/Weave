@@ -50,9 +50,8 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			if(weave) {
 				var weaveTreeNode = new weave.WeaveTreeNode();
 				
-				weave.path('CensusDataSource').request("CensusDataSource");
-				
-				weaveTreeIsBusy = weaveTreeNode._eval('() => WeaveAPI.SessionManager.linkableObjectIsBusy(node)');
+				//weave.path('CensusDataSource').request("CensusDataSource");
+				weaveTreeIsBusy = weave.evaluateExpression(null, '() => WeaveAPI.SessionManager.linkableObjectIsBusy(WEAVE_TREE_NODE_LOOKUP[0])');
 				
 				queryService.cache.hierarchy = {
 					minExpandLevel: 1,
@@ -117,6 +116,28 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 						$('#hierarchyTree').dynatree(hierarchy);
 					}
 				}, true);
+				
+//				var rDataSourceName = WeaveService.generateUniqueName("RDataSource");
+//				var rDataSourcePath = weave.path(rDataSourceName).request("RDataSource");
+//				$scope.$watch(function() {
+//					return [queryService.queryObject.scriptSelected, queryService.queryObject.scriptOptions]; 
+//				}, function() {
+//					console.log("calling here");
+//					var inputsPath = rDataSourcePath.push("inputs");
+//					for(var key in queryService.queryObject.scriptOptions)
+//					{
+//						var input = queryService.queryObject.scriptOptions[key];
+//						// check if the input is a column
+//						if(typeof input == "object") {
+//							if(input.dataSourceName && input.metadata) {
+//								inputsPath.push(key).request("DynamicColumn").setColumn(input.metadata, input.dataSourceName);
+//							}
+//						} else {
+//							inputsPath.push(key).request("LinkableVariable").state(input);
+//						}
+//					}
+//					rDataSourcePath.push("scriptName").state(queryService.queryObject.scriptSelected);
+//				}, true);
 			}
 		}
 	});
@@ -464,52 +485,52 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 		}
 	};
 
-	/************** watches for query validation******************/
-	$scope.$watchCollection(function() {
-		return [queryService.queryObject.scriptSelected,
-		        queryService.queryObject.dataTable,
-		        queryService.queryObject.scripOptions,
-		        queryService.cache.scriptMetadata
-		        ];
-	}, function () {
-		//if the datatable has not been selected
-		if(queryService.queryObject.dataTable == null || queryService.queryObject.dataTable == ""){
-			queryService.queryObject.properties.validationStatus = "Data table has not been selected.";
-			queryService.queryObject.properties.isQueryValid = false;
-		}
-		//if script has not been selected
-		else if(queryService.queryObject.scriptSelected == null || queryService.queryObject.scriptSelected == "")
-		{
-			queryService.queryObject.properties.validationStatus = "Script has not been selected.";
-			queryService.queryObject.properties.isQueryValid = false;
-		}
-		//this leaves checking the scriptOptions
-		else if (queryService.cache.scriptMetadata) 
-		{
-			
-			$scope.$watch(function() {
-				return queryService.queryObject.scriptOptions;
-			}, function () {
-				var g = 0;
-				var counter = Object.keys(queryService.queryObject.scriptOptions).length;
-				for(var f in queryService.queryObject.scriptOptions) {
-					if(!queryService.queryObject.scriptOptions[f]) {
-						queryService.queryObject.properties.validationStatus = "'" + f + "'" + " has not been selected";
-						queryService.queryObject.properties.isQueryValid = false;
-	
-						break;
-					}
-					else
-						g++;
-				}
-				if(g == counter) {
-					queryService.queryObject.properties.validationStatus = "Query is valid";
-					queryService.queryObject.properties.isQueryValid = true;
-				}
-			}, true);
-		}
-	}, true);
-	/************** watches for query validation******************/
+//	/************** watches for query validation******************/
+//	$scope.$watchCollection(function() {
+//		return [queryService.queryObject.scriptSelected,
+//		        queryService.queryObject.dataTable,
+//		        queryService.queryObject.scripOptions,
+//		        queryService.cache.scriptMetadata
+//		        ];
+//	}, function () {
+//		//if the datatable has not been selected
+//		if(queryService.queryObject.dataTable == null || queryService.queryObject.dataTable == ""){
+//			queryService.queryObject.properties.validationStatus = "Data table has not been selected.";
+//			queryService.queryObject.properties.isQueryValid = false;
+//		}
+//		//if script has not been selected
+//		else if(queryService.queryObject.scriptSelected == null || queryService.queryObject.scriptSelected == "")
+//		{
+//			queryService.queryObject.properties.validationStatus = "Script has not been selected.";
+//			queryService.queryObject.properties.isQueryValid = false;
+//		}
+//		//this leaves checking the scriptOptions
+//		else if (queryService.cache.scriptMetadata) 
+//		{
+//			
+//			$scope.$watch(function() {
+//				return queryService.queryObject.scriptOptions;
+//			}, function () {
+//				var g = 0;
+//				var counter = Object.keys(queryService.queryObject.scriptOptions).length;
+//				for(var f in queryService.queryObject.scriptOptions) {
+//					if(!queryService.queryObject.scriptOptions[f]) {
+//						queryService.queryObject.properties.validationStatus = "'" + f + "'" + " has not been selected";
+//						queryService.queryObject.properties.isQueryValid = false;
+//	
+//						break;
+//					}
+//					else
+//						g++;
+//				}
+//				if(g == counter) {
+//					queryService.queryObject.properties.validationStatus = "Query is valid";
+//					queryService.queryObject.properties.isQueryValid = true;
+//				}
+//			}, true);
+//		}
+//	}, true);
+//	/************** watches for query validation******************/
 	
 });
 

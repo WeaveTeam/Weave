@@ -149,17 +149,20 @@ public class ComputationalServlet extends WeaveServlet
 				scriptInputs.clear();
 				throw (e);
 			}
-		} else {
+		} 
+		else if (AWSUtils.getScriptType(scriptName) == AWSUtils.SCRIPT_TYPE.STATA) {
 			resultData = AwsStataService.runScript(scriptName, scriptInputs,
 					 programPath, tempDirPath, stataScriptsPath);
 
+		} else {
+			throw new RemoteException("Unrecognized script type.");
 		}
 		//clearing scriptInputs before every successive run
 		scriptInputs.clear();
 		return resultData;
 	}
 	
-	private static class KeysAndColumns
+	public static class KeysAndColumns
 	{
 		public String[] keys;
 		public Map<String, Object[]> columns;
@@ -173,11 +176,14 @@ public class ComputationalServlet extends WeaveServlet
 		for(String key : simpleInputs.keySet()) {
 			scriptInputs.put(key, simpleInputs.get(key));
 		}
-		
-		for(String k : columnData.keySet()) {
-			KeysAndColumns keyAndColumn = columnData.get(k);
-			for(String key : keyAndColumn.columns.keySet())
+
+		if(columnData.size() > 1)
+			throw new RemoteException("Columns with different keyTypes");
+		for(String keyType : columnData.keySet()) {
+			KeysAndColumns keyAndColumn = (KeysAndColumns) cast(columnData.get(keyType), KeysAndColumns.class);
+			for(String key : keyAndColumn.columns.keySet()) {
 				scriptInputs.put(key, keyAndColumn.columns.get(key));
+			}
 		}
 		
 		resultData = runScript(scriptName);
