@@ -48,6 +48,8 @@ package weave.data.DataSources
 		private static const VARIABLE_NAME:String = "__CensusDataSource__variable";
 		private static const FOR_GEOGRAPHY:String = "__CensusDataSource__geographyFor";
 		private static const IN_GEOGRAPHY_PREFIX:String = "__CensusDataSource__inGeo#";
+		private static const ALL_GEOGRAPHIES:String = "ALL";
+		private static const CUSTOM_FILTER:String = "CUSTOM";
 		
 		[Embed(source="/weave/resources/county_fips_codes.amf", mimeType="application/octet-stream")]
 		private static const CountyFipsDatabase:Class;
@@ -58,13 +60,14 @@ package weave.data.DataSources
 		private static const StateFipsDatabase:Class;
 		
 		private static var StateFipsLookup:Object = null;
-		private var api:CensusApi = null;
+		private var api:CensusApi = newLinkableChild(this, CensusApi);
+		private var _ds:IDataSource;
 
         public function CensusDataSource()
         {
+			_ds = this;
 			if (!CountyFipsLookup) initializeCountyFipsLookup();
 			if (!StateFipsLookup) initializeStateFipsLookup();
-			api = new CensusApi();
         }
 		
 		private static function initializeStateFipsLookup():void
@@ -110,10 +113,11 @@ package weave.data.DataSources
 							for each (var dataSet:Object in result)
 							{
 								var metadata:Object = {};
-								metadata[DATASET] = result.identifier;
-								metadata.label = result.title;
+								metadata[DATASET] = dataSet.identifier;
+								metadata.label = dataSet.title;
 								children.push(createDataSetNode(metadata));
 							}
+							StandardLib.sortOn(children, function (obj:Object):String {return obj.data.label});
 						}
 					);
 					return children;
@@ -142,7 +146,7 @@ package weave.data.DataSources
 							if (!concept_node)
 							{
 								concept_node = {
-									dataSource: this,
+									dataSource: _ds,
 									data: ObjectUtil.copy(data),
 									label: variableInfo.concept,
 									idFields: [DATASET, CONCEPT_NAME],
@@ -157,13 +161,13 @@ package weave.data.DataSources
 							}
 							
 							var variable_descriptor:Object = {
-								dataSource: this,
+								dataSource: _ds,
 								data: ObjectUtil.copy(concept_node.data),
 								label: variableInfo.label,
 								idFields: [DATASET, CONCEPT_NAME, VARIABLE_NAME],
 								hasChildBranches: true,
 								children: createGeographyForNodes
-							}
+							};
 							
 							variable_descriptor.data[VARIABLE_NAME] = variableInfo.id;
 							
@@ -171,9 +175,9 @@ package weave.data.DataSources
 						}
 						for each (var concept_node:Object in concept_nodes)
 						{
-							StandardLib.sortOn(concept_node.children, function (obj:Object)	{return obj.data[VARIABLE_NAME]}); 
+							StandardLib.sortOn(concept_node.children, function (obj:Object):String	{return obj.data[VARIABLE_NAME]}); 
 						}
-						StandardLib.sortOn(children, function (obj:Object) {return obj.data[CONCEPT_NAME]});
+						StandardLib.sortOn(children, function (obj:Object):String {return obj.data[CONCEPT_NAME]});
 					});
 					return children;
 				}
@@ -190,17 +194,17 @@ package weave.data.DataSources
 					{
 						var geography:Object = result[geo_name];
 						var descriptor:Object = {
-							dataSource: this,
+							dataSource: _ds,
 							data: ObjectUtil.copy(node.data),
 							label: geo_name,
-							children: createGeographyInNodes,
+							children: result[geo_name].requires && createGeographyInNodes,
 							idFields: [DATASET, CONCEPT_NAME, VARIABLE_NAME, FOR_GEOGRAPHY]
 						};
 						descriptor.data[FOR_GEOGRAPHY] = geo_name;
 						children.push(descriptor);
 					}
 					/* Sort by GeoLevelId */
-					StandardLib.sortOn(children, function (obj:Object) {return result[obj.data[FOR_GEOGRAPHY]].id;});
+					StandardLib.sortOn(children, function (obj:Object):String {return result[obj.data[FOR_GEOGRAPHY]].id;});
 				}
 			);
 			
@@ -208,17 +212,69 @@ package weave.data.DataSources
 		}
 		public function createGeographyInNodes(node:ColumnTreeNode):Array
 		{
+
 			var children:Array = [];
 			api.getGeographies(node.data[DATASET]).then(
 				function (result:Object):void
 				{
 					var for_geo:String = node.data[FOR_GEOGRAPHY];
-					var geo_names:String = VectorUtils.pluck(result, "name");
 					var requires:Array = result[for_geo].requires;
-					for (var idx:int = 0; idx < requires.length; idx++)
+					var level:String = null;
+					var is_leaf:Boolean = false;
+					var descriptor:Object = null;
+					var fips:String = null;
+					
+					
+					/* Go to the first of the geometries that haven't been specified */
+					if (requires)
 					{
-						
+						for (var idx:int = 0; idx < requires.length; idx++)
+						{
+							var in_value:String = node.data[IN_GEOGRAPHY_PREFIX + requires[idx]];
+							if (!in_value)
+							{
+								level = requires[idx];
+								is_leaf = (idx + 1 == requires.length);
+								break;
+							}
+						}
 					}
+					else
+					{
+						is_leaf = true;
+					}
+					
+					var base_descriptor:Object = {
+						dataSource: _ds, 
+						children: is_leaf ? null : createGeographyInNodes,
+						idFields: node.idFields.concat([IN_GEOGRAPHY_PREFIX+level])
+					}
+					if (level == "state")
+					{
+						for (fips in StateFipsLookup)
+						{
+							descriptor = ObjectUtil.copy(base_descriptor);
+							descriptor.data = ObjectUtil.copy(node.data);
+							descriptor.data[IN_GEOGRAPHY_PREFIX + level] = fips;
+							descriptor.label = StateFipsLookup[fips];
+							children.push(descriptor);
+						}
+					}
+					else if (level == "county")
+					{
+						var state_fips:String = node.data[IN_GEOGRAPHY_PREFIX + "state"];
+						for (fips in CountyFipsLookup[state_fips])
+						{
+							descriptor = ObjectUtil.copy(base_descriptor);
+							descriptor.data[IN_GEOGRAPHY_PREFIX + level] = fips;
+							descriptor.label = CountyFipsLookup[state_fips][fips];
+							children.push(descriptor);
+						}
+					}
+					descriptor = ObjectUtil.copy(base_descriptor);
+					descriptor.data[IN_GEOGRAPHY_PREFIX + level] = ALL_GEOGRAPHIES;
+					descriptor.label = lang("All");
+					children.push(descriptor);
 				}
 			);
 			return children;
@@ -289,7 +345,7 @@ package weave.data.DataSources
 					{
 						tmp_key_type = key_overrides[tmp_key_type];
 					}
-					metadata[ColumnMetadata.KEY_TYPE] =  tmp_key_type;
+					metadata[ColumnMetadata.KEY_TYPE] = tmp_key_type;
 					
 					proxyColumn.setMetadata(metadata);
 					for (idx = 0; idx < key_column_names.length; idx++)
@@ -313,112 +369,4 @@ package weave.data.DataSources
 				});
         }
     }
-}
-import org.apache.flex.promises.interfaces.IThenable;
-
-import weave.api.newLinkableChild;
-import weave.compiler.StandardLib;
-import weave.services.JsonCache;
-import weave.utils.VectorUtils;
-import weave.utils.WeavePromise;
-
-internal class CensusApi
-{
-	public static const BASE_URL:String = "http://api.census.gov/";
-	private const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
-	
-	public static function getUrl(serviceUrl:String, params:Object):String
-	{
-		var paramsStr:String = '';
-		for (var key:String in params)
-			paramsStr += (paramsStr ? '&' : '?');
-		return serviceUrl + paramsStr;
-	}
-	
-	public function CensusApi():void
-	{
-		
-	}
-	
-	public function getDatasets():WeavePromise
-	{
-		return jsonCache.getJsonPromise(this, BASE_URL + "data.json");
-	}
-	
-/* TODO: Add memoized promises for preprocessing steps */
-
-	private function getDatasetPromise(dataSetIdentifier:String):IThenable
-	{
-		return getDatasets().then(
-			function (result:Object):Object
-			{
-				var dataset:Object = null;
-				for each (var tmp_dataset:Object in result)
-				{
-					if (tmp_dataset.identifier == dataSetIdentifier)
-					{
-						return dataset;
-					}
-				}
-				throw new Error("No such dataset: " + dataSetIdentifier);
-			}
-		);
-	}
-	private function getVariablesPromise(dataSetIdentifier:String):IThenable
-	{
-		return getDatasetPromise(dataSetIdentifier).then(
-			function (dataset:Object)
-			{
-				return jsonCache.getJsonPromise(this, dataset.c_variablesLink);
-			}
-		);
-	}
-	private function getGeographiesPromise(dataSetIdentifier:String):IThenable
-	{
-		return getDatasetPromise(dataSetIdentifier).then(
-			function (dataset:Object)
-			{
-				return jsonCache.getJsonPromise(this, dataset.c_geographyLink);
-			}
-		);
-	}
-	
-	public function getVariables(dataSetIdentifier:String):IThenable
-	{
-		return getVariablesPromise(dataSetIdentifier).then(
-			function (result:Object)
-			{
-				delete result.variables["for"];
-				delete result.variables["in"];
-				
-				var variable_list:Array = [];
-				
-				for (var key:String in result.variables)
-				{
-					result.variables[key].id = key;
-					variable_list.push(result.variables[key]);
-				}
-				return variable_list;
-			}
-		);
-	}
-
-	public function getGeographies(dataSetIdentifier:String):IThenable
-	{
-		return getGeographiesPromise(dataSetIdentifier).then(
-			function (result:Object)
-			{
-				var geo:Object = {};
-				for each (var geo_description:Object in result.fips)
-				{
-					geo[geo_description.name] = {
-						id: geo_description.geoLevelId,
-						requires: geo_description.requires
-					};
-				}
-				
-				return geo;
-			}
-		);
-	}
 }
