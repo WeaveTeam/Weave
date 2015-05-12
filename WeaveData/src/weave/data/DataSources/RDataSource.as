@@ -34,6 +34,7 @@ package weave.data.DataSources
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.LinkableHashMap;
+	import weave.core.LinkablePromise;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.hierarchy.ColumnTreeNode;
@@ -54,12 +55,14 @@ package weave.data.DataSources
 		
 		public function RDataSource()
 		{
+			promise.depend(url, scriptName, inputs);
 		}
 		
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/WeaveAnalystServices/ComputationalServlet'), handleURLChange);
 		public const scriptName:LinkableString = newLinkableChild(this, LinkableString);
 		public const inputs:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 		
+		private const promise:LinkablePromise = registerLinkableChild(this, new LinkablePromise(runScript, function():String { return lang("Running script {0}", scriptName.value); }));
 		private const outputCSV:CSVDataSource = newLinkableChild(this, CSVDataSource);
 		private var _service:AMF3Servlet;
 
@@ -72,49 +75,44 @@ package weave.data.DataSources
 			hierarchyRefresh.triggerCallbacks();
 		}
 		
-		override protected function initialize():void
+		private function runScript():void
 		{
-			super.initialize();
-			
-			if (detectLinkableObjectChange(_service, url, scriptName, inputs))
+			var keyType:String;
+			var simpleInputs:Object = {};
+			var columnsByKeyType:Object = {}; // Object(keyType -> Array of IAttributeColumn)
+			for each (var obj:ILinkableObject in inputs.getObjects())
 			{
-				var keyType:String;
-				var simpleInputs:Object = {};
-				var columnsByKeyType:Object = {}; // Object(keyType -> Array of IAttributeColumn)
-				for each (var obj:ILinkableObject in inputs.getObjects())
+				var name:String = inputs.getName(obj);
+				var column:IAttributeColumn = obj as IAttributeColumn;
+				if (column)
 				{
-					var name:String = inputs.getName(obj);
-					var column:IAttributeColumn = obj as IAttributeColumn;
-					if (column)
-					{
-						keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
-						var columnArray:Array = columnsByKeyType[keyType] || (columnsByKeyType[keyType] = [])
-						columnArray.push(column);
-					}
-					else
-					{
-						simpleInputs[name] = getSessionState(inputs.getObject(name));
-					}
+					keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
+					var columnArray:Array = columnsByKeyType[keyType] || (columnsByKeyType[keyType] = [])
+					columnArray.push(column);
 				}
-				
-				var columnData:Object = {}; // Object(keyType -> {keys: [], columns: Object(name -> Array) })
-				for each (keyType in columnsByKeyType)
+				else
 				{
-					var joined:Array = ColumnUtils.joinColumns(columnsByKeyType[keyType], null, true);
-					var keys:Array = joined.shift() as Array;
-					columnData[keyType] = {keys: keys, columns: joined};
+					simpleInputs[name] = getSessionState(inputs.getObject(name));
 				}
-				
-				outputCSV.setCSVData(null);
-				outputCSV.metadata.setSessionState(null);
-				
-				addAsyncResponder(
-					_service.invokeAsyncMethod('runScriptWithInputs', [scriptName.value, simpleInputs, columnData]),
-					handleScriptResult,
-					handleScriptError,
-					getSessionState(this)
-				);
 			}
+			
+			var columnData:Object = {}; // Object(keyType -> {keys: [], columns: Object(name -> Array) })
+			for (keyType in columnsByKeyType)
+			{
+				var joined:Array = ColumnUtils.joinColumns(columnsByKeyType[keyType], null, true);
+				var keys:Array = joined.shift() as Array;
+				columnData[keyType] = {keys: keys, columns: joined};
+			}
+			
+			outputCSV.setCSVData(null);
+			outputCSV.metadata.setSessionState(null);
+			
+			addAsyncResponder(
+				_service.invokeAsyncMethod('runScriptWithInputs', [scriptName.value, simpleInputs, columnData]),
+				handleScriptResult,
+				handleScriptError,
+				getSessionState(this)
+			);
 		}
 		
 		private function handleScriptResult(event:ResultEvent, sessionState:Object):void
