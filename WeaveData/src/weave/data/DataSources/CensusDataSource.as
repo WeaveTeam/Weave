@@ -43,29 +43,27 @@ package weave.data.DataSources
 
         private static const baseUrl:String = "http://api.census.gov/";
 		
-		private static const DATASET:String = "__CensusDataSource__dataSet";
-		private static const CONCEPT_NAME:String = "__CensusDataSource__concept";
-		private static const VARIABLE_NAME:String = "__CensusDataSource__variable";
-		private static const FOR_GEOGRAPHY:String = "__CensusDataSource__geographyFor";
-		private static const IN_GEOGRAPHY_PREFIX:String = "__CensusDataSource__inGeo#";
+		public static const DATASET:String = "__CensusDataSource__dataSet";
+		public static const CONCEPT_NAME:String = "__CensusDataSource__concept";
+		public static const VARIABLE_NAME:String = "__CensusDataSource__variable";
+		public static const FOR_GEOGRAPHY:String = "__CensusDataSource__geographyFor";
+		public static const IN_GEOGRAPHY_PREFIX:String = "__CensusDataSource__inGeo#";
 		private static const ALL_GEOGRAPHIES:String = "ALL";
 		private static const CUSTOM_FILTER:String = "CUSTOM";
 		
 		[Embed(source="/weave/resources/county_fips_codes.amf", mimeType="application/octet-stream")]
 		private static const CountyFipsDatabase:Class;
 		
-		private static var CountyFipsLookup:Object = null;
+		public static var CountyFipsLookup:Object = null;
 		
 		[Embed(source="/weave/resources/state_fips_codes.amf", mimeType="application/octet-stream")]
 		private static const StateFipsDatabase:Class;
 		
-		private static var StateFipsLookup:Object = null;
+		public static var StateFipsLookup:Object = null;
 		private var api:CensusApi = newLinkableChild(this, CensusApi);
-		private var _ds:IDataSource;
 
         public function CensusDataSource()
         {
-			_ds = this;
 			if (!CountyFipsLookup) initializeCountyFipsLookup();
 			if (!StateFipsLookup) initializeStateFipsLookup();
         }
@@ -117,7 +115,7 @@ package weave.data.DataSources
 								metadata.label = dataSet.title;
 								children.push(createDataSetNode(metadata));
 							}
-							StandardLib.sortOn(children, function (obj:Object):String {return obj.data.label});
+							//StandardLib.sortOn(children, function (obj:Object):String {return obj.data.label});
 						}
 					);
 					return children;
@@ -127,7 +125,7 @@ package weave.data.DataSources
 
 		public function createDataSetNode(data:Object):ColumnTreeNode
 		{
-			var _ds = this._ds;
+			var _ds:IDataSource = this;
 			return new ColumnTreeNode({
 				dataSource: this,
 				data: data,
@@ -140,8 +138,9 @@ package weave.data.DataSources
 					api.getVariables(data[DATASET]).then(function (result:Object):void
 					{
 						var concept_nodes:Object = {};
-						for each (var variableInfo:Object in result)	
+						for (var variableId:String in result)	
 						{							
+							var variableInfo:Object = result[variableId];
 							var concept_node:Object = concept_nodes[variableInfo.concept];
 							
 							if (!concept_node)
@@ -170,7 +169,7 @@ package weave.data.DataSources
 								children: createGeographyForNodes
 							};
 							
-							variable_descriptor.data[VARIABLE_NAME] = variableInfo.id;
+							variable_descriptor.data[VARIABLE_NAME] = variableId;
 							
 							concept_node.children.push(variable_descriptor);
 						}
@@ -187,7 +186,7 @@ package weave.data.DataSources
 		public function createGeographyForNodes(node:ColumnTreeNode):Array
 		{
 			var children:Array = [];
-			var _ds = this._ds;
+			var _ds:IDataSource = this;
 			api.getGeographies(node.data[DATASET]).then(
 				function (result:Object):void
 				{
@@ -195,7 +194,7 @@ package weave.data.DataSources
 					{
 						var geography:Object = result[geo_name];
 						var descriptor:Object = {
-							dataSource: _ds,
+							dataSource: _ds, hasChildBranches: result[geo_name].requires,
 							data: ObjectUtil.copy(node.data),
 							label: geo_name,
 							children: result[geo_name].requires && createGeographyInNodes,
@@ -215,7 +214,7 @@ package weave.data.DataSources
 		{
 
 			var children:Array = [];
-			var _ds = this._ds;
+			var _ds:IDataSource = this;
 			api.getGeographies(node.data[DATASET]).then(
 				function (result:Object):void
 				{
@@ -223,7 +222,7 @@ package weave.data.DataSources
 					var requires:Array = result[for_geo].requires;
 					var level:String = null;
 					var is_leaf:Boolean = false;
-					var descriptor:Object = null;
+					var descriptor:Object = {};
 					var fips:String = null;
 					
 					
@@ -246,16 +245,14 @@ package weave.data.DataSources
 						is_leaf = true;
 					}
 					
-					var base_descriptor:Object = {
-						dataSource: _ds, 
-						children: is_leaf ? null : createGeographyInNodes,
-						idFields: node.idFields.concat([IN_GEOGRAPHY_PREFIX+level])
-					}
 					if (level == "state")
 					{
 						for (fips in StateFipsLookup)
 						{
-							descriptor = ObjectUtil.copy(base_descriptor);
+							descriptor = {};
+							descriptor.dataSource = _ds;
+							descriptor.children = is_leaf ? null : createGeographyInNodes;
+							descriptor.idFields = node.idFields.concat([IN_GEOGRAPHY_PREFIX+level]);
 							descriptor.data = ObjectUtil.copy(node.data);
 							descriptor.data[IN_GEOGRAPHY_PREFIX + level] = fips;
 							descriptor.label = StateFipsLookup[fips];
@@ -267,19 +264,33 @@ package weave.data.DataSources
 						var state_fips:String = node.data[IN_GEOGRAPHY_PREFIX + "state"];
 						for (fips in CountyFipsLookup[state_fips])
 						{
-							descriptor = ObjectUtil.copy(base_descriptor);
+							descriptor = {};
+							descriptor.dataSource = _ds;
+							descriptor.children = is_leaf ? null : createGeographyInNodes;
+							descriptor.idFields = node.idFields.concat([IN_GEOGRAPHY_PREFIX+level]);
+							descriptor.data = ObjectUtil.copy(node.data);
 							descriptor.data[IN_GEOGRAPHY_PREFIX + level] = fips;
 							descriptor.label = CountyFipsLookup[state_fips][fips];
 							children.push(descriptor);
 						}
 					}
-					descriptor = ObjectUtil.copy(base_descriptor);
-					descriptor.data[IN_GEOGRAPHY_PREFIX + level] = ALL_GEOGRAPHIES;
+					descriptor = {};
+					descriptor.dataSource = _ds;
+					descriptor.children = null;
+					descriptor.idFields = node.idFields.concat([IN_GEOGRAPHY_PREFIX+level]);
+					descriptor.data = ObjectUtil.copy(node.data);
 					descriptor.label = lang("All");
 					children.push(descriptor);
+					
+					StandardLib.sortOn(children, function (obj:Object):String {return obj.data[IN_GEOGRAPHY_PREFIX+level];});
 				}
-			);
+			).then(null, reportError);
 			return children;
+		}
+		
+		private function columnLabelFunc(node:ColumnTreeNode):String
+		{
+			return null;	
 		}
 
 		private function handleFault(event:FaultEvent, token:Object = null):void
@@ -299,76 +310,25 @@ package weave.data.DataSources
 			if (!metadata)
 				return null;
 			
-			return new ColumnTreeNode({
-				dataSource: this,
-				idFields: [],
-				data: metadata
-			});
+			return new ColumnTreeNode({dataSource: this, idFields: [], data: metadata});
 		}
-        
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
-        {   
+        {   		
         	var metadata:Object = ColumnMetadata.getAllMetadata(proxyColumn);
         	
-        	var web_service:String = metadata[null];
-        	var geography_name:String = metadata[FOR_GEOGRAPHY];
-        	var variable_name:String = metadata[VARIABLE_NAME];
-        	var key_column_names:Array = null;
-			
-
-        	if (key_column_names)
-        		key_column_names.push(geography_name);
-        	else 
-        		key_column_names = [geography_name];
-
-        	var params:Object = {
-        		get: variable_name,
-        		"for": geography_name + ":*"
-        	};
-
-        	metadata[ColumnMetadata.KEY_TYPE] =  key_column_names.join("");
-
-			jsonCache.getJsonPromise(proxyColumn, CensusApi.getUrl(web_service, params))
-				.depend(keyTypeOverride)
-				.then(function(result:Object):void {
-					if (result == null)
-						return;
-					var idx:int;
-					var columns:Array = result[0] as Array;
-					var rows:Array = result as Array;
-					var data_column:Array = new Array(rows.length - 1);
-					var key_column:Array = new Array(rows.length - 1);
-					var key_column_indices:Array = new Array(columns.length);
-					var data_column_index:int = columns.indexOf(variable_name);
+			api.getColumn(metadata, keyTypeOverride).then(
+				function(columnInfo:Object):void
+				{
+					if (!columnInfo) return;
+					var overrides:Object = keyTypeOverride.getSessionState();
+					if (overrides && overrides[columnInfo.metadata[ColumnMetadata.KEY_TYPE]])
+						columnInfo.metadata[ColumnMetadata.KEY_TYPE] = overrides[columnInfo.metadata[ColumnMetadata.KEY_TYPE]];
 					
-					var tmp_key_type:String = WeaveAPI.CSVParser.createCSVRow(key_column_names);
-					var key_overrides:Object = keyTypeOverride.getSessionState();
-					if (key_overrides && key_overrides[tmp_key_type])
-					{
-						tmp_key_type = key_overrides[tmp_key_type];
-					}
-					metadata[ColumnMetadata.KEY_TYPE] = tmp_key_type;
+					proxyColumn.setMetadata(columnInfo.metadata);
 					
-					proxyColumn.setMetadata(metadata);
-					for (idx = 0; idx < key_column_names.length; idx++)
-					{
-						key_column_indices[idx] = columns.indexOf(key_column_names[idx]);
-					}
-					for (var row_idx:int = 0; row_idx < data_column.length; row_idx++)
-					{
-						var row:Array = rows[row_idx+1];
-						var key_values:Array = new Array(key_column_indices.length);
-						
-						for (idx = 0; idx < key_column_indices.length; idx++)
-						{
-							key_values[idx] = row[key_column_indices[idx]];
-						}
-						key_column[row_idx] = key_values.join("");
-						data_column[row_idx] = row[data_column_index];
-					}
-					
-					DataSourceUtils.initColumn(proxyColumn, key_column, data_column);
-				});
+					DataSourceUtils.initColumn(proxyColumn, columnInfo.keys, columnInfo.data);
+				}
+			);
         }
     }
 }

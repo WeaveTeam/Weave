@@ -15,9 +15,12 @@
 
 package weave.data.DataSources
 {
+	import mx.utils.ObjectUtil;
+	
 	import org.apache.flex.promises.interfaces.IThenable;
 	
 	import weave.api.core.ILinkableObject;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.services.JsonCache;
@@ -33,7 +36,7 @@ package weave.data.DataSources
 		{
 			var paramsStr:String = '';
 			for (var key:String in params)
-				paramsStr += (paramsStr ? '&' : '?');
+				paramsStr += (paramsStr ? '&' : '?') + key + '=' + params[key];
 			return serviceUrl + paramsStr;
 		}
 		
@@ -87,19 +90,13 @@ package weave.data.DataSources
 		public function getVariables(dataSetIdentifier:String):IThenable
 		{
 			return getVariablesPromise(dataSetIdentifier).then(
-				function (result:Object):Array
+				function (result:Object):Object
 				{
-					delete result.variables["for"];
-					delete result.variables["in"];
+					var variableInfo:Object = ObjectUtil.copy(result.variables);
+					delete variableInfo["for"];
+					delete variableInfo["in"];
 					
-					var variable_list:Array = [];
-					
-					for (var key:String in result.variables)
-					{
-						result.variables[key].id = key;
-						variable_list.push(result.variables[key]);
-					}
-					return variable_list;
+					return variableInfo;
 				}
 			);
 		}
@@ -119,6 +116,98 @@ package weave.data.DataSources
 					}
 					
 					return geo;
+				}
+			);
+		}
+		
+		/**
+		 * 
+		 * @param metadata
+		 * @return An object containing three fields, "keys," "values," and "metadata" 
+		 */				
+		public function getColumn(metadata:Object, depends:ILinkableObject):IThenable
+		{	
+			var dataset_name:String = metadata[CensusDataSource.DATASET];
+			var geography_name:String = metadata[CensusDataSource.FOR_GEOGRAPHY];
+			var variable_name:String = metadata[CensusDataSource.VARIABLE_NAME];
+			var title:String = null;
+			var service_url:String = null;
+			var filters:Array = [];
+			var requires:Array = null;
+			
+			for (var key:String in metadata)
+			{
+				var sections:Array = key.split("#");
+				if (sections.length == 2)
+				{
+					filters.push(sections[1] + ":" + metadata[key]);
+				}
+			}
+			
+			var params:Object = {
+				get: variable_name,
+				"for": geography_name + ":*",
+				"in": filters.join(",")
+			};
+			
+			return getDatasetPromise(dataset_name).then(
+				function (datasetInfo:Object):IThenable
+				{
+					service_url = datasetInfo.webService;
+					return getVariables(dataset_name);
+				}
+			).then(
+				function (variableInfo:Object):IThenable
+				{
+					title = variableInfo[variable_name].label;
+					return getGeographies(dataset_name);	
+				}
+			).then(
+				function (geographyInfo:Object):IThenable
+				{
+					requires = VectorUtils.copy(geographyInfo[geography_name].requires || []);
+					requires.push(geography_name);
+					return jsonCache.getJsonPromise(this, getUrl(service_url, params)).depend(depends);
+				}
+			).then(
+				function (dataResult:Object):Object
+				{
+					if (dataResult == null)
+						return null;
+					var idx:int;
+					var columns:Array = dataResult[0] as Array;
+					var rows:Array = dataResult as Array;
+					var data_column:Array = new Array(rows.length - 1);
+					var key_column:Array = new Array(rows.length - 1);
+					var key_column_indices:Array = new Array(columns.length);
+					var data_column_index:int = columns.indexOf(variable_name);
+					
+					var tmp_key_type:String = WeaveAPI.CSVParser.createCSVRow(requires);
+
+					metadata[ColumnMetadata.KEY_TYPE] = tmp_key_type;
+					metadata[ColumnMetadata.TITLE] = title;
+					for (idx = 0; idx < requires.length; idx++)
+					{
+						key_column_indices[idx] = columns.indexOf(requires[idx]);
+					}
+					for (var row_idx:int = 0; row_idx < data_column.length; row_idx++)
+					{
+						var row:Array = rows[row_idx+1];
+						var key_values:Array = new Array(key_column_indices.length);
+						
+						for (idx = 0; idx < key_column_indices.length; idx++)
+						{
+							key_values[idx] = row[key_column_indices[idx]];
+						}
+						key_column[row_idx] = key_values.join("");
+						data_column[row_idx] = row[data_column_index];
+					}
+					
+					return {
+						keys: key_column,
+						data: data_column,
+						metadata: metadata
+					};
 				}
 			);
 		}
