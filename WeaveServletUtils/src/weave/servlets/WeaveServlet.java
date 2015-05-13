@@ -25,6 +25,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.rmi.RemoteException;
@@ -34,6 +35,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 import java.util.zip.DeflaterOutputStream;
 
@@ -261,7 +263,6 @@ public class WeaveServlet extends HttpServlet
 			return _servletOutputStream;
 		}
 		
-		@SuppressWarnings("unused")
 		public HttpServletRequest request;
 		public HttpServletResponse response;
 		public JsonRpcRequestModel currentJsonRequest;
@@ -730,10 +731,18 @@ public class WeaveServlet extends HttpServlet
 	 * @param type The desired type.
 	 * @return The value, which may have been cast as the new type.
 	 */
-	protected Object cast(Object value, Class<?> type) throws RemoteException
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	protected Object cast(Object value, Type type) throws RemoteException
 	{
-		if (type.isInstance(value))
-			return value;
+		Class<?> typeClass = null;
+		if (Class.class.isInstance(type))
+		{
+			typeClass = (Class<?>)type;
+			if (typeClass.isInstance(value))
+				return value;
+		}
+		else if (ParameterizedType.class.isInstance(type))
+			typeClass = (Class<?>)((ParameterizedType)type).getRawType();
 	
 		try
 		{
@@ -748,17 +757,58 @@ public class WeaveServlet extends HttpServlet
 			
 			if (value instanceof Map) // Map -> Java Bean
 			{
-				Object bean = type.newInstance();
-				for (Field field : type.getFields())
+				if (Map.class.isAssignableFrom(typeClass))
+				{
+					Class<?> keyType = null, valueType = null;
+					try
+					{
+						ParameterizedType pt = null;
+						if (ParameterizedType.class.isAssignableFrom(type.getClass()))
+							pt = (ParameterizedType)type;
+						else
+							pt = (ParameterizedType)typeClass.getGenericSuperclass();
+						Type[] types = pt.getActualTypeArguments();
+						keyType = (Class<?>) types[0];
+						valueType = (Class<?>) types[1];
+					}
+					catch (Exception e)
+					{
+						// ignore exception
+						if (Map.class.isAssignableFrom(value.getClass()))
+							keyType = valueType = Object.class;
+					}
+					
+					if (keyType != null && valueType != null)
+					{
+						Map newMap = null;
+						try
+						{
+							newMap = (Map<?,?>)typeClass.newInstance();
+						}
+						catch (Exception e)
+						{
+							newMap = new HashMap();
+						}
+						for (Entry<?,?> e : ((Map<?,?>)value).entrySet())
+							newMap.put(cast(e.getKey(), keyType), cast(e.getValue(), valueType));
+						return newMap;
+					}
+				}
+				
+				if (typeClass.isInstance(value))
+					return value;
+
+				Object bean = typeClass.newInstance();
+				for (Field field : typeClass.getFields())
 				{
 					Object fieldValue = ((Map<?,?>)value).get(field.getName());
-					fieldValue = cast(fieldValue, field.getType());
+					fieldValue = cast(fieldValue, field.getGenericType());
 					field.set(bean, fieldValue);
 				}
 				return bean;
 			}
 			
-			if (type.isArray()) // ? -> T[]
+			if (typeClass.isArray()) // ? -> T[]
 			{
 				if (value instanceof String) // String -> String[]
 					value = CSVParser.defaultParser.parseCSVRow((String)value, true);
@@ -769,7 +819,7 @@ public class WeaveServlet extends HttpServlet
 				if (value.getClass().isArray()) // T1[] -> T2[]
 				{
 					int n = Array.getLength(value);
-					Class<?> itemType = type.getComponentType();
+					Class<?> itemType = typeClass.getComponentType();
 					Object output = Array.newInstance(itemType, n);
 					while (n-- > 0)
 						Array.set(output, n, cast(Array.get(value, n), itemType));
@@ -777,7 +827,7 @@ public class WeaveServlet extends HttpServlet
 				}
 			}
 	
-			if (Collection.class.isAssignableFrom(type)) // ? -> <? extends Collection>
+			if (Collection.class.isAssignableFrom(typeClass)) // ? -> <? extends Collection>
 			{
 				value = cast(value, Object[].class); // ? -> Object[]
 				
@@ -785,7 +835,7 @@ public class WeaveServlet extends HttpServlet
 				{
 					int n = Array.getLength(value);
 					List<Object> output = new Vector<Object>(n);
-					TypeVariable<?>[] itemTypes = type.getTypeParameters();
+					TypeVariable<?>[] itemTypes = typeClass.getTypeParameters();
 					Class<?> itemType = itemTypes.length > 0 ? itemTypes[0].getClass() : null;
 					while (n-- > 0)
 					{
@@ -840,7 +890,7 @@ public class WeaveServlet extends HttpServlet
 		}
 		catch (Exception e)
 		{
-			throw new RemoteException(String.format("Unable to cast %s to %s", value.getClass().getSimpleName(), type.getSimpleName()), e);
+			throw new RemoteException(String.format("Unable to cast %s to %s", value.getClass().getSimpleName(), typeClass.getSimpleName()), e);
 		}
 		
 		// Return original value if not handled above.
