@@ -574,7 +574,7 @@ package weave.utils
 				for (var iRow:int = 0; iRow < col.length; iRow++)
 				{
 					var row:Array = result[iRow] || (result[iRow] = []);
-					row[iRow][iCol] = col[iRow];
+					row[iCol] = col[iRow];
 				}
 			}
 			return result;
