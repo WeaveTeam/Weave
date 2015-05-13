@@ -3,14 +3,13 @@ package weave.servlets;
 import static weave.config.WeaveConfig.initWeaveConfig;
 
 import java.rmi.RemoteException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
 import org.apache.commons.io.FilenameUtils;
-import org.rosuda.REngine.REXP;
 
 import weave.beans.WeaveRecordList;
 import weave.config.AwsContextParams;
@@ -162,27 +161,32 @@ public class ComputationalServlet extends WeaveServlet
 		return resultData;
 	}
 	
+	@SuppressWarnings("serial")
+	public static class MapKeyTypeToKeysAndColumns extends HashMap<String, KeysAndColumns>
+	{
+	}
 	public static class KeysAndColumns
 	{
 		public String[] keys;
 		public Map<String, Object[]> columns;
 	}
 	
-	public Object runScriptWithInputs(String scriptName, Map<String, Object> simpleInputs, Map<String, KeysAndColumns> columnData) throws Exception
+	public Object runScriptWithInputs(String scriptName, Map<String, Object> simpleInputs, MapKeyTypeToKeysAndColumns columnData) throws Exception
 	{
-		
 		Object resultData = null;
 		
 		for(String key : simpleInputs.keySet()) {
 			scriptInputs.put(key, simpleInputs.get(key));
 		}
 
-		if(columnData.size() > 1)
-			throw new RemoteException("Columns with different keyTypes");
-		for(String keyType : columnData.keySet()) {
-			KeysAndColumns keyAndColumn = (KeysAndColumns) cast(columnData.get(keyType), KeysAndColumns.class);
-			for(String key : keyAndColumn.columns.keySet()) {
-				scriptInputs.put(key, keyAndColumn.columns.get(key));
+		if (columnData.size() > 1)
+			throw new RemoteException("Columns with different keyTypes are not supported yet.");
+		for (String keyType : columnData.keySet())
+		{
+			KeysAndColumns keysAndColumns = columnData.get(keyType);
+			for(String key : keysAndColumns.columns.keySet())
+			{
+				scriptInputs.put(key, keysAndColumns.columns.get(key));
 			}
 		}
 		
