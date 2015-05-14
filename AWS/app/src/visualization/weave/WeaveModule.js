@@ -198,13 +198,21 @@ AnalysisModule.service("WeaveService", ['$q','$rootScope','runQueryService', 'da
 					.request('CompoundBarChartTool')
 					.state({ panelX : "0%", panelY : "50%", panelTitle : state.title, enableTitle : true, showAllLabels : state.showAllLabels })
 					.push('children', 'visualization', 'plotManager', 'plotters', 'plot')
-					.call(setQueryColumns, {
-						sortColumn : state.sort,
-						labelColumn : state.label,
-						heightColumns : state.heights,
-						positiveErrorColumns : state.posErr,
-						negativeErrorColumns : state.negErr
-					});
+					.push('sortColumn').setColumn(state && state.sort ? state.sort.metadata : "", state && state.sort ? state.sort.dataSourceName : "")
+					.pop()
+					.push('labelColumn').setColumn(state && state.label ? state.label.metadata : "", state && state.label ? state.label.dataSourceName : "")
+					.pop()
+					.push("heightColumns").setColumns(state && state.heights && state.heights.length ? state.heights.map(function(column) {
+						return column.metadata;
+					}) : {}, state && state.heights && state.heights[0] ? state.heights[0].dataSourceName : "")
+					.pop()
+					.push("positiveErrorColumns").setColumns(state && state.posErr ? state.posErr.map(function(column) {
+						return column.metadata;
+					}) : {}, state && state.posErr && state.posErr[0] ? state.posErr[0].dataSourceName : "")
+					.pop()
+					.push("negativeErrorColumns").setColumns(state && state.negErr && state.negErr.map(function(column) {
+						return column.metadata;
+					}), state && state.negErr && state.negErr[0] ? state.negErr[0].dataSourceName : "");
 					//capture session state
 					queryService.queryObject.weaveSessionState = ws.getSessionStateObjects();
 				}

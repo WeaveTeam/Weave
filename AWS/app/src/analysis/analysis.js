@@ -48,101 +48,129 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 			var weave = WeaveService.weave;
 			$scope.weaveReady = true;
 			if(weave) {
-				var weaveTreeNode = new weave.WeaveTreeNode();
 				
-				//weave.path('CensusDataSource').request("CensusDataSource");
-				weaveTreeIsBusy = weave.evaluateExpression(null, '() => WeaveAPI.SessionManager.linkableObjectIsBusy(WEAVE_TREE_NODE_LOOKUP[0])');
-				
-				queryService.cache.hierarchy = {
-					minExpandLevel: 1,
-					clickFolderMode: 1,
-					children: [createDynatreeNode(weaveTreeNode)],
-					onLazyRead : function(node) {
-						var getTreeAsync = function(){
-							var children = [];
-							var leaves = [];
-							
-							node.data.weaveNode.getChildren().forEach(function(child) {
-								if(child.isBranch())
-									children.push(child);
-								else
-									leaves.push(child);
-							});
-							
-							
-							if(children.length)
-								children = children.map(createDynatreeNode);
-							
-							if (weaveTreeIsBusy()) {
-								setTimeout(getTreeAsync, 500);
-								return;
-							}
-							node.removeChildren();
-							node.setLazyNodeStatus(DTNodeStatus_Ok);
-							if(children.length)
-								node.addChild(children);
-
-							if(leaves.length) {
-								$('#columnsTree').dynatree(createColumnTree(leaves));
-								$('#columnsTree').dynatree("getTree").reload();
-							}
-						}; 
-						
-						setTimeout(getTreeAsync, 500);
-					},
-					onActivate : function(node) {
-						console.log(node.getChildren());
-					},
-					dnd : {
-						revert : false,
-						
-						onDragStart : function(node) {
-							
-							if(node.data.isFolder) {
-								return false;
-							}
-							return true;
-						},
-						onDragStop : function(node) {
-							
-						}
-					},
-					keyBoard : true,
-					debugLevel: 0
-				};
+				queryService.refreshHierarchy(weave);
 
 				$scope.$watch('queryService.cache.hierarchy', function(hierarchy) {
 					if(hierarchy) {
 						$('#hierarchyTree').dynatree(hierarchy);
+						$('#hierarchyTree').dynatree("getTree").reload();
 					}
 				}, true);
 				
-//				var rDataSourceName = WeaveService.generateUniqueName("RDataSource");
-//				var rDataSourcePath = weave.path(rDataSourceName).request("RDataSource");
-//				$scope.$watch(function() {
-//					return [queryService.queryObject.scriptSelected, queryService.queryObject.scriptOptions]; 
-//				}, function() {
-//					console.log("calling here");
-//					var inputsPath = rDataSourcePath.push("inputs");
-//					for(var key in queryService.queryObject.scriptOptions)
-//					{
-//						var input = queryService.queryObject.scriptOptions[key];
-//						// check if the input is a column
-//						if(typeof input == "object") {
-//							if(input.dataSourceName && input.metadata) {
-//								inputsPath.push(key).request("DynamicColumn").setColumn(input.metadata, input.dataSourceName);
-//							}
-//						} else {
-//							inputsPath.push(key).request("LinkableVariable").state(input);
-//						}
-//					}
-//					rDataSourcePath.push("scriptName").state(queryService.queryObject.scriptSelected);
-//				}, true);
+				$scope.$watchCollection("queryService.cache.filteredColumns", function(columns) {
+					if(columns) {
+						$('#columnsTree').dynatree(createColumnTree(columns));
+						$('#columnsTree').dynatree("getTree").reload();
+					}
+				});
+				
+				$scope.$watch(function() {
+					return [$scope.columnSearch, queryService.cache.columns];
+				}, function(newVal) {
+					var columnSearch = newVal[0];
+					var columns = newVal[1];
+					if(columns && columns.length) {
+						queryService.cache.filteredColumns = columns.filter(function(column) {
+							if(column) {
+								var columnTitle = column.getLabel();
+								
+								if(columnTitle) {
+									if(columnSearch) {
+										var lwCase = columnTitle.toLowerCase();
+										if(lwCase.indexOf(columnSearch.toLowerCase()) > -1) {
+											return true;
+										} else {
+											return false;
+										}
+									} else {
+										return true;
+									}
+								}
+							}
+						});
+					}
+				}, true);
 			}
 		}
 	});
 	
 	var weaveTreeIsBusy = null;
+	
+	queryService.refreshHierarchy = function(weave) {
+		var weaveTreeNode = new weave.WeaveTreeNode();
+		
+		//weave.path('CensusDataSource').request("CensusDataSource");
+		weaveTreeIsBusy = weave.evaluateExpression(null, '() => WeaveAPI.SessionManager.linkableObjectIsBusy(WEAVE_TREE_NODE_LOOKUP[0])');
+		
+		queryService.cache.hierarchy = {
+			minExpandLevel: 1,
+			clickFolderMode: 2,
+			children: [createDynatreeNode(weaveTreeNode)],
+			onLazyRead : function(node) {
+				var getTreeAsync = function(){
+					var children = [];
+					var leaves = [];
+					
+					node.data.weaveNode.getChildren().forEach(function(child) {
+						if(child.isBranch())
+							children.push(child);
+						else
+							leaves.push(child);
+					});
+					
+					
+					if(children.length)
+						children = children.map(createDynatreeNode);
+					
+					if (weaveTreeIsBusy()) {
+						setTimeout(getTreeAsync, 500);
+						return;
+					}
+					
+					node.removeChildren();
+					node.setLazyNodeStatus(DTNodeStatus_Ok);
+					if(children.length)
+						node.addChild(children);
+
+					if(leaves.length) {
+						queryService.cache.columns = leaves;
+						queryService.cache.filteredColumns = leaves;
+						$scope.$apply();
+					}
+				}; 
+				
+				setTimeout(getTreeAsync, 500);
+			},
+			onActivate : function(node) {
+			},
+			dnd : {
+				revert : false,
+				
+				onDragStart : function(node) {
+					
+					if(node.data.isFolder) {
+						return false;
+					}
+					return true;
+				},
+				onDragStop : function(node) {
+					
+				}
+			},
+			onDblClick : function(node) {
+				queryService.cache.destination[queryService.cache.focusedInput] = {
+						dataSourceName : node.data.weaveNode.getDataSourceName(),
+						metadata : node.data.weaveNode.getColumnMetadata()
+				};
+				console.log(queryService.cache.destination);
+				$scope.$apply();
+			},
+			keyBoard : true,
+			debugLevel: 0
+		};
+	};
+	
 	var createDynatreeNode = function(wNode) {
 		if(!wNode)
 			return;
@@ -157,7 +185,6 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 	var createColumnTree = function(columns) {
 		return {
 			minExpandLevel: 1,
-			clickFolderMode: 1,
 			children: columns.map(createDynatreeNode),
 			dnd : {
 				revert : false,
@@ -169,6 +196,14 @@ AnalysisModule.controller('AnalysisCtrl', function($scope, $filter, queryService
 					}
 					return true;
 				}
+			},
+			onDblClick : function(node) {
+				queryService.cache.destination[queryService.cache.focusedInput] = {
+						dataSourceName : node.data.weaveNode.getDataSourceName(),
+						metadata : node.data.weaveNode.getColumnMetadata()
+				};
+				console.log(queryService.cache.destination);
+				$scope.$apply();
 			},
 			keyBoard : true,
 			debugLevel: 0,

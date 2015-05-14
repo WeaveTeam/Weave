@@ -63,19 +63,32 @@ AnalysisModule.directive('droppable', function() {
 							});
 						});
 					} else {
-						element.html('&nbsp drop columns here...');
+						element.html('&nbsp click to select or drag and drop...');
+						element.css("text-align", 'center');
+						element.css("white-space", 'nowrap');
+						element.css("width", "auto");
 					}
 				} else {
 					element.html('&nbsp' + $scope.ngModel.metadata.title);
+					element.css("text-align", 'center');
+					element.css("white-space", 'nowrap');
+					element.css("width", "auto");
 				}
 			} else {
-				if(multiple)
-					element.html('&nbsp drop columns here...');
-				else
-					element.html('&nbsp drop column here...');
+				if(multiple) {
+					element.html('&nbsp click to select or drag and drop...');
+					element.css("text-align", 'center');
+					element.css("white-space", 'nowrap');
+					element.css("width", "auto");
+				}
+				else {
+					element.html('&nbsp click to select or drag and drop...');
+					element.css("text-align", 'center');
+					element.css("white-space", 'nowrap');
+					element.css("width", "auto");
+				}
 			}
 		}, true);
-		
 	}
 	
 	return {

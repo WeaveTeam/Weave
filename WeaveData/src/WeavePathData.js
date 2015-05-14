@@ -495,13 +495,13 @@ weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
  * @private
  * A function that tests if a WeavePath references an IAttributeColumn
  */
-var isColumn = weave.evaluateExpression(null, "o => o is IAttributeColumn");
+var isColumn = weave.evaluateExpression(null, "o => o is IAttributeColumn", null, ['weave.api.data.IAttributeColumn']);
 
 /**
  * @private
  * A pointer to ColumnUtils.joinColumns.
  */
-var joinColumns = weave.evaluateExpression(null, "ColumnUtils.joinColumns");
+var joinColumns = weave.evaluateExpression(null, "ColumnUtils.joinColumns", null, ['weave.utils.ColumnUtils']);
 
 /**
  * @private
@@ -608,7 +608,7 @@ var EDC = 'weave.data.AttributeColumns::ExtendedDynamicColumn';
 var DC = 'weave.data.AttributeColumns::DynamicColumn';
 var RC = 'weave.data.AttributeColumns::ReferencedColumn';
 var getColumnType = weave.evaluateExpression(null, 'o => { for each (var t in types) if (o is t) return t; }', {types: [EDC, DC, RC]});
-var getFirstDataSourceName = weave.evaluateExpression([], '() => this.getNames(IDataSource)[0]');
+var getFirstDataSourceName = weave.evaluateExpression([], '() => this.getNames(IDataSource)[0]', null, ['weave.api.data.IDataSource']);
 
 /**
  * Sets the metadata for a column at the current path.
@@ -667,56 +667,45 @@ weave.WeavePath.prototype.setColumns = function(metadataMapping, dataSourceName)
 
 var weaveTreeNodeSerial = 'WEAVE_TREE_NODE_SERIAL';
 var weaveTreeNodeLookup = 'WEAVE_TREE_NODE_LOOKUP';
-// initialize ActionScript variables
+// create lookup
 weave.evaluateExpression(null, '0', null, null, weaveTreeNodeSerial);
 weave.evaluateExpression(null, 'new Dictionary()', null, null, weaveTreeNodeLookup);
-var _createNodeFunction = function(script, vars) {
-	var fn = weave.evaluateExpression(null, '(serial,arg1,arg2) => { var node = ' + weaveTreeNodeLookup + '[serial]; ' + script + ' }', vars);
-	return function(arg1, arg2) { return fn(this.serial, arg1, arg2); };
-};
-var _mapNodesToSerials = weave.evaluateExpression(null, 'nodes => {\
-	var lookup = ' + weaveTreeNodeLookup + ';\
-	return nodes && nodes.map(child => {\
-		if (lookup[child] === undefined)\
-			lookup[ (lookup[child] = ++' + weaveTreeNodeSerial + ') ] = child;\
-		return lookup[child];\
-	});\
-}');
 
 /**
- * WeaveTreeNode implements the following interfaces: IWeaveTreeNode, IColumnReference
+ * Implements the following interfaces: IWeaveTreeNode, IColumnReference
  */
 weave.WeaveTreeNode = function(serial) {
 	this.serial = serial | 0; // default - root node
-	if (this.serial == 0)
-		weave.evaluateExpression(null, 'var lookup = ' + weaveTreeNodeLookup + '; if (lookup[0] === undefined) lookup[lookup[0] = new WeaveRootDataTreeNode()] = 0; return null;');
+	if (this.serial == 0 && this._eval('!node'))
+		this._eval(weaveTreeNodeLookup + '[0] = new "weave.data.hierarchy.WeaveRootDataTreeNode"(); return;');
 };
-weave.WeaveTreeNode.cache = {}; // serial -> WeaveTreeNode
-weave.WeaveTreeNode.prototype.getLabel = _createNodeFunction('node.getLabel()');
-weave.WeaveTreeNode.prototype.isBranch = _createNodeFunction('node.isBranch()');
-weave.WeaveTreeNode.prototype.hasChildBranches = _createNodeFunction('node.hasChildBranches()');
-weave.WeaveTreeNode.prototype._getChildrenSerials = _createNodeFunction('getSerials(node.getChildren())', {getSerials: _mapNodesToSerials});
+weave.WeaveTreeNode.prototype._eval = function(script) {
+	return weave.evaluateExpression(null, 'var node = ' + weaveTreeNodeLookup + '[' + this.serial + ']; ' + script);
+};
+weave.WeaveTreeNode.prototype.getLabel = function() {
+	return this._eval('node.getLabel()');
+};
+weave.WeaveTreeNode.prototype.isBranch = function() {
+	return this._eval('node.isBranch()');
+};
+weave.WeaveTreeNode.prototype.hasChildBranches = function() {
+	return this._eval('node.hasChildBranches()');
+};
 weave.WeaveTreeNode.prototype.getChildren = function() {
-	var serials = this._getChildrenSerials();
-	return serials && serials.map(function(serial) {
-		return weave.WeaveTreeNode.cache[serial] || (weave.WeaveTreeNode.cache[serial] = new weave.WeaveTreeNode(serial));
-	});
+	return this
+		._eval('var lookup = ' + weaveTreeNodeLookup + ', children = node.getChildren(); return children && children.map(child => {\
+				if (!lookup[child])\
+					lookup[ (lookup[child] = ++' + weaveTreeNodeSerial + ') ] = child;\
+				return lookup[child];\
+		})')
+		.map(function(serial) { return new weave.WeaveTreeNode(serial); });
 };
-weave.WeaveTreeNode.prototype.getDataSource = _createNodeFunction('node is IColumnReference ? node.getDataSource() : null');
-weave.WeaveTreeNode.prototype.getDataSourceName = _createNodeFunction('node is IColumnReference ? WeaveAPI.globalHashMap.getName(node.getDataSource()) : null');
-weave.WeaveTreeNode.prototype.getColumnMetadata = _createNodeFunction('node is IColumnReference ? node.getColumnMetadata() : null');
-weave.WeaveTreeNode.prototype._findPathSerials = _createNodeFunction('\
-	var dataSourceName = arg1, columnMetadata = arg2;\
-	var ds = WeaveAPI.globalHashMap.getObject(dataSourceName) as IDataSource;\
-	var target = ds && ds.findHierarchyNode(columnMetadata);\
-	var path = ds && target && HierarchyUtils.findPathToNode(node, target);\
-	return getSerials(path);\
-', {getSerials: _mapNodesToSerials});
-weave.WeaveTreeNode.prototype.findPath = function(dataSourceName, columnMetadata) {
-	var serials = this._findPathSerials(dataSourceName, columnMetadata);
-	return serials && serials.map(function(serial) {
-		if (this.serial == serial)
-			return this;
-		return weave.WeaveTreeNode.cache[serial] || (weave.WeaveTreeNode.cache[serial] = new weave.WeaveTreeNode(serial));
-	}, this);
+weave.WeaveTreeNode.prototype.getDataSource = function() {
+	return this._eval('node is IColumnReference ? node.getDataSource() : null');
+};
+weave.WeaveTreeNode.prototype.getDataSourceName = function() {
+	return this._eval('node is IColumnReference ? WeaveAPI.globalHashMap.getName(node.getDataSource()) : null');
+};
+weave.WeaveTreeNode.prototype.getColumnMetadata = function() {
+	return this._eval('node is IColumnReference ? node.getColumnMetadata() : null');
 };

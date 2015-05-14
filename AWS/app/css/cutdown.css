@@ -35,6 +35,8 @@
 	border: 1px solid; 
 	float : left;
 	margin : 2px;
+	text-align : center;
+	vertical-align : middle;
 }
 
 .myaside {

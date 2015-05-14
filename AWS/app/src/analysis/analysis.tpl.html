@@ -158,7 +158,11 @@
 									</td>
 		
 									<td>
-											<column-selector style="float:left; width:80%" ng-if="input.type == 'column'" hierarchy="queryService.cache.hierarchy" ng-model="queryService.queryObject.scriptOptions[input.param]"></column-selector>
+											<column-selector style="float:left; width:80%" ng-if="input.type == 'column'" 
+																				opener="input.param" 
+																				destination="queryService.queryObject.scriptOptions"
+																				ng-model="queryService.queryObject.scriptOptions[input.param]"
+																				></column-selector>
 <!-- 											<ui-select ng-if="input.type == 'column' && input.columnType && input.columnType != 'all' && input.columnType != ' '" ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;"> -->
 <!-- 									    		<ui-select-match allow-clear="true" placeholder="Select column...">{{$select.selected.title}}</ui-select-match> -->
 <!-- 												<ui-select-choices repeat="column in queryService.cache.columns | filter : { title : $select.search, columnType : input.columnType }"> -->
@@ -222,7 +226,7 @@
 											ng-model="queryService.queryObject.scriptOptions[input.param]">
 											
 	<!-- 										Handling multiple column types -->
-											<column-selector ng-if="input.type == 'multiColumns'" multiple hierarchy="queryService.cache.hierarchy" ng-model="queryService.queryObject.scriptOptions[input.param]"></column-selector>
+											<column-selector ng-if="input.type == 'multiColumns'" opener="input.param" destination="queryService.queryObject.scriptOptions" multiple hierarchy="queryService.cache.hierarchy" ng-model="queryService.queryObject.scriptOptions[input.param]"></column-selector>
 <!-- 											<ui-select ng-if="input.type == 'multiColumns' && input.columnType && input.columnType != 'all' && input.columnType != ' '" multiple ng-model="queryService.queryObject.scriptOptions[input.param]" theme="select2" style="width: 80%;"> -->
 <!-- 											    <ui-select-match placeholder="Select Columns...">{{$item.title}}</ui-select-match> -->
 <!-- 											    <ui-select-choices repeat="column in queryService.cache.columns | filter: { title : $select.search, columnType : input.columnType }"> -->
@@ -421,11 +425,11 @@
 	<div class="body" style="width: 100%; height:100%; border: solid 4px; border-color: #4C4F53">
 		<div style="width:100%; height:100%">
 			<div style="width:48%; height:100%; margin-right:2%; float:left">
-				<input type="text" style="width:100%; margin-bottom:5px" value="Search Tables"/>			
+				Input : {{queryService.cache.focusedInput}}			
 				<div id="hierarchyTree" style="width: 100%; height: 80%; overflow:hidden; float:left"></div>
 			</div>
 			<div style="width:48%; height:100%; margin-left:2%; float:left">
-				<input type="text" style="width:100%; margin-bottom:5px" value="Search Columns"/>
+				<input type="text" style="width:100%; margin-bottom:5px" ng-Model="columnSearch" placeholder="Search Columns"/>
 				<div id="columnsTree" style="width: 100%; height: 80%; overflow:hidden; float:left"></div>
 			</div>
 		</div>		

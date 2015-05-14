@@ -32,12 +32,13 @@
 				</td>
 			
 				<td style="padding-left: 5px;">
-					<ui-select ng-model="tool.heights" multiple theme="select2" style="width: 100%;">
-				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
-						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
-				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
-				        </ui-select-choices>
-					</ui-select>
+					<column-selector style="float:left; width:100%" multiple opener="'heights'" destination="tool" ng-model="tool.heights"></column-selector>
+<!-- 					<ui-select ng-model="tool.heights" multiple theme="select2" style="width: 100%;"> -->
+<!-- 				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match> -->
+<!-- 						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }"> -->
+<!-- 				       		 <div ng-bind-html="column.title | highlight: $select.search"></div> -->
+<!-- 				        </ui-select-choices> -->
+<!-- 					</ui-select> -->
 				</td>
 			</tr>
 		
@@ -47,12 +48,13 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-				<ui-select ng-model="tool.posErr" multiple theme="select2" style="width: 100%;">
-				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
-						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
-				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
-				        </ui-select-choices>
-					</ui-select>
+				<column-selector style="float:left; width:100%" multiple opener="posErr" destination="tool" ng-model="tool.posErr"></column-selector>
+<!-- 				<ui-select ng-model="tool.posErr" multiple theme="select2" style="width: 100%;"> -->
+<!-- 				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match> -->
+<!-- 						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }"> -->
+<!-- 				       		 <div ng-bind-html="column.title | highlight: $select.search"></div> -->
+<!-- 				        </ui-select-choices> -->
+<!-- 					</ui-select> -->
 			</td>
 		</tr>
 			
@@ -62,13 +64,13 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-
-				<ui-select ng-model="tool.negErr" multiple theme="select2" style="width: 100%;">
-				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match>
-						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
-				       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
-				        </ui-select-choices>
-					</ui-select>
+				<column-selector style="float:left; width:100%" multiple opener="negErr" destination="tool" ng-model="tool.negErr"></column-selector>
+<!-- 				<ui-select ng-model="tool.negErr" multiple theme="select2" style="width: 100%;"> -->
+<!-- 				    	<ui-select-match allow-clear="true" placeholder="Choose Column...">{{$item.title}}</ui-select-match> -->
+<!-- 						<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }"> -->
+<!-- 				       		 <div ng-bind-html="column.title | highlight: $select.search"></div> -->
+<!-- 				        </ui-select-choices> -->
+<!-- 					</ui-select> -->
 			</td>
 		</tr>	
 			
@@ -78,13 +80,13 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-
-				<ui-select ng-model="tool.sort" theme="select2" style="width: 100%;">
-			    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$select.selected.title}}</ui-select-match>
-					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
-			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
-			        </ui-select-choices>
-				</ui-select>
+				<column-selector style="float:left; width:100%" opener="sort" destination="tool" ng-model="tool.sort"></column-selector>
+<!-- 				<ui-select ng-model="tool.sort" theme="select2" style="width: 100%;"> -->
+<!-- 			    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$select.selected.title}}</ui-select-match> -->
+<!-- 					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }"> -->
+<!-- 			       		 <div ng-bind-html="column.title | highlight: $select.search"></div> -->
+<!-- 			        </ui-select-choices> -->
+<!-- 				</ui-select> -->
 			</td>
 		</tr>
 		
@@ -94,13 +96,13 @@
 			</td>
 			
 			<td style="padding-left: 5px;">
-
-				<ui-select ng-model=tool.label theme="select2" style="width: 100%;">
-			    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$select.selected.title}}</ui-select-match>
-					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }">
-			       		 <div ng-bind-html="column.title | highlight: $select.search"></div>
-			        </ui-select-choices>
-				</ui-select>
+				<column-selector style="float:left; width:100%" multiple opener="label" destination="tool" ng-model="tool.label"></column-selector>
+<!-- 				<ui-select ng-model=tool.label theme="select2" style="width: 100%;"> -->
+<!-- 			    	<ui-select-match allow-clear="true" placeholder="Choose Column(s)...">{{$select.selected.title}}</ui-select-match> -->
+<!-- 					<ui-select-choices group-by="'dataSourceName'" repeat="column in queryService.queryObject.resultSet | filter : { title : $select.search }"> -->
+<!-- 			       		 <div ng-bind-html="column.title | highlight: $select.search"></div> -->
+<!-- 			        </ui-select-choices> -->
+<!-- 				</ui-select> -->
 			</td>
 		</tr>
 		<tr>	

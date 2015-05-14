@@ -221,6 +221,8 @@ qh_module.service('QueryHandlerService', ['$q', '$rootScope','queryService','Wea
 				
 				rDataSourcePath.push("scriptName").state(queryObject.scriptSelected);
 				rDataSourcePath.exec("getCallbackCollection(this).resumeCallbacks(); hierarchyRefresh.triggerCallbacks();");
+				
+				queryService.refreshHierarchy(WeaveService.weave);
 			}
     	}
     };

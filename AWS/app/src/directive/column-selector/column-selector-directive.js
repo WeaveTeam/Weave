@@ -4,6 +4,8 @@ AnalysisModule.directive('columnSelector', function(queryService) {
 		
 		$scope.showHierarchy = function() {
 			queryService.queryObject.properties.showHierarchy = true;
+			queryService.cache.focusedInput = $scope.opener; 
+			queryService.cache.destination = $scope.destination;
 		};
 
 		$scope.clear = function() {
@@ -11,10 +13,19 @@ AnalysisModule.directive('columnSelector', function(queryService) {
 				$scope.model.selected = "";
 		};
 		
+		$scope.$watch('ngModel', function(ngModel) {
+			
+			if(ngModel) {
+				if($scope.model)
+					$scope.model.selected = ngModel;
+				else
+					$scope.model = {selected : $scope.ngModel};
+			}
+		});
+		
 		$scope.$watch('model.selected', function(model) { 
 			$scope.ngModel = model;
 		}, true);
-		
 	}
 	
 	return {
@@ -26,6 +37,8 @@ AnalysisModule.directive('columnSelector', function(queryService) {
 		link : link,
 		scope : {
 			ngModel : '=',
+			opener : '=',
+			destination : '='
 		}
 	};
 });
