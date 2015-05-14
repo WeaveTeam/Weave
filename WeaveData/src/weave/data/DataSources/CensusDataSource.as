@@ -117,7 +117,7 @@ package weave.data.DataSources
 							}
 							//StandardLib.sortOn(children, function (obj:Object):String {return obj.data.label});
 						}
-					);
+						, reportError).then(null, reportError);
 					return children;
 				}
 			});
@@ -206,7 +206,7 @@ package weave.data.DataSources
 					/* Sort by GeoLevelId */
 					StandardLib.sortOn(children, function (obj:Object):String {return result[obj.data[FOR_GEOGRAPHY]].id;});
 				}
-			);
+			, reportError).then(null, reportError);
 			
 			return children;
 		}
@@ -284,7 +284,7 @@ package weave.data.DataSources
 					
 					StandardLib.sortOn(children, function (obj:Object):String {return obj.data[IN_GEOGRAPHY_PREFIX+level];});
 				}
-			).then(null, reportError);
+			, reportError).then(null, reportError);
 			return children;
 		}
 		
@@ -309,8 +309,18 @@ package weave.data.DataSources
 		{
 			if (!metadata)
 				return null;
+			var idFields:Array = [DATASET, CONCEPT_NAME, VARIABLE_NAME, FOR_GEOGRAPHY];
 			
-			return new ColumnTreeNode({dataSource: this, idFields: [], data: metadata});
+			for (var key:String in metadata)
+			{
+				if (key.indexOf(IN_GEOGRAPHY_PREFIX) == 0)
+				{
+					idFields.push(key);	
+				}
+			}
+			var ctn:ColumnTreeNode = new ColumnTreeNode({dataSource: this, idFields: idFields, data: metadata});
+			debugTrace(ctn);
+			return ctn; 
 		}
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
         {   		
@@ -328,7 +338,7 @@ package weave.data.DataSources
 					
 					DataSourceUtils.initColumn(proxyColumn, columnInfo.keys, columnInfo.data);
 				}
-			);
+			, reportError).then(null, reportError);
         }
     }
 }

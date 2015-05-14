@@ -22,6 +22,7 @@ package weave.data.DataSources
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.services.JsonCache;
 	import weave.utils.VectorUtils;
@@ -65,7 +66,7 @@ package weave.data.DataSources
 						}
 					}
 					throw new Error("No such dataset: " + dataSetIdentifier);
-				}
+				}, reportError
 			);
 		}
 		private function getVariablesPromise(dataSetIdentifier:String):IThenable
@@ -84,7 +85,7 @@ package weave.data.DataSources
 				{
 					return jsonCache.getJsonPromise(this, dataset.c_geographyLink);
 				}
-			);
+			, reportError);
 		}
 		
 		public function getVariables(dataSetIdentifier:String):IThenable
@@ -98,7 +99,7 @@ package weave.data.DataSources
 					
 					return variableInfo;
 				}
-			);
+			, reportError);
 		}
 		
 		public function getGeographies(dataSetIdentifier:String):IThenable
@@ -117,7 +118,7 @@ package weave.data.DataSources
 					
 					return geo;
 				}
-			);
+			, reportError);
 		}
 		
 		/**
