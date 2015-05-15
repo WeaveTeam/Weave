@@ -24,6 +24,7 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableString;
 	import weave.services.JsonCache;
 	import weave.utils.VectorUtils;
 	import weave.utils.WeavePromise;
@@ -32,18 +33,23 @@ package weave.data.DataSources
 	{
 		public static const BASE_URL:String = "http://api.census.gov/";
 		private const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
+		private var apiKey:LinkableString = null;
 		
-		public static function getUrl(serviceUrl:String, params:Object):String
+		private function getUrl(serviceUrl:String, params:Object):String
 		{
+			if (apiKey.value)
+			{
+				params['key'] = apiKey.value;
+			}
 			var paramsStr:String = '';
 			for (var key:String in params)
 				paramsStr += (paramsStr ? '&' : '?') + key + '=' + params[key];
 			return serviceUrl + paramsStr;
 		}
 		
-		public function CensusApi():void
+		public function CensusApi(apiKey:LinkableString):void
 		{
-			
+			this.apiKey = apiKey;	
 		}
 		
 		public function getDatasets():WeavePromise
@@ -76,7 +82,7 @@ package weave.data.DataSources
 				{
 					return jsonCache.getJsonPromise(this, dataset.c_variablesLink);
 				}
-			);
+			, reportError);
 		}
 		private function getGeographiesPromise(dataSetIdentifier:String):IThenable
 		{

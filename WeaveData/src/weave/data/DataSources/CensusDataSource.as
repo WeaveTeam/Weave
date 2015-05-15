@@ -60,7 +60,6 @@ package weave.data.DataSources
 		private static const StateFipsDatabase:Class;
 		
 		public static var StateFipsLookup:Object = null;
-		private var api:CensusApi = newLinkableChild(this, CensusApi);
 
         public function CensusDataSource()
         {
@@ -91,7 +90,7 @@ package weave.data.DataSources
 		
 		public const keyTypeOverride:LinkableVariable = newLinkableChild(this, LinkableVariable);
 		public const apiKey:LinkableString = registerLinkableChild(this, new LinkableString(""));
-		private var nodeCache:Object = {};
+		private var api:CensusApi = registerLinkableChild(this, new CensusApi(apiKey));
 
 		public function createTopLevelNode():ColumnTreeNode
 		{
@@ -148,7 +147,7 @@ package weave.data.DataSources
 								concept_node = {
 									dataSource: _ds,
 									data: ObjectUtil.copy(data),
-									label: variableInfo.concept,
+									label: variableInfo.concept || lang("No Concept"),
 									idFields: [DATASET, CONCEPT_NAME],
 									hasChildBranches: true,
 									children: []
@@ -206,7 +205,7 @@ package weave.data.DataSources
 					/* Sort by GeoLevelId */
 					StandardLib.sortOn(children, function (obj:Object):String {return result[obj.data[FOR_GEOGRAPHY]].id;});
 				}
-			, reportError).then(null, reportError);
+			, reportError);
 			
 			return children;
 		}
@@ -284,18 +283,13 @@ package weave.data.DataSources
 					
 					StandardLib.sortOn(children, function (obj:Object):String {return obj.data[IN_GEOGRAPHY_PREFIX+level];});
 				}
-			, reportError).then(null, reportError);
+			, reportError);
 			return children;
 		}
 		
 		private function columnLabelFunc(node:ColumnTreeNode):String
 		{
 			return null;	
-		}
-
-		private function handleFault(event:FaultEvent, token:Object = null):void
-		{
-			reportError(event);
 		}
 		
         override public function getHierarchyRoot():IWeaveTreeNode
@@ -319,7 +313,6 @@ package weave.data.DataSources
 				}
 			}
 			var ctn:ColumnTreeNode = new ColumnTreeNode({dataSource: this, idFields: idFields, data: metadata});
-			debugTrace(ctn);
 			return ctn; 
 		}
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
@@ -338,7 +331,7 @@ package weave.data.DataSources
 					
 					DataSourceUtils.initColumn(proxyColumn, columnInfo.keys, columnInfo.data);
 				}
-			, reportError).then(null, reportError);
+			, reportError);
         }
     }
 }
