@@ -132,9 +132,9 @@
 				}
 				else if (DynamicState.isDynamicState(value))
 				{
-					var className:String = value[DynamicState.CLASS_NAME];
+					var className:String = String(value[DynamicState.CLASS_NAME]); // null -> "null"
 					var objectName:String = value[DynamicState.OBJECT_NAME];
-					detail = className && className.split('::').pop();
+					detail = className.split('::').pop();
 					if (objectName)
 						detail += lang(' "{0}"', objectName);
 				}
