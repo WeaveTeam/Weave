@@ -124,6 +124,11 @@ package weave.utils
 			return new WeavePromise(this.rootPromise, resolver);
 		}
 		
+		public function thenAgain(onFulfilled:Function = null, onRejected:Function = null):WeavePromise
+		{
+			return then(onFulfilled, onRejected) as WeavePromise;
+		}
+		
 		public function getAsyncToken():AsyncToken
 		{
 			var asyncToken:AsyncToken = new AsyncToken();
