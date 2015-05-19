@@ -75,6 +75,18 @@ package weave.utils
 			super.handle_(handler);
 		}
 		
+		protected function handle_without_busy_check_(handler:Handler):void
+		{
+			if (handlers_.indexOf(handler) < 0)
+				handlers_.push(handler);
+			
+			if (state_ === PromiseState.PENDING)
+				return;
+			
+			//TODO - super.handle_() does not follow spec - should be async
+			super.handle_(handler);
+		}
+		
 		/**
 		 * Changed for Weave so handlers can be called more than once.
 		 */
@@ -98,7 +110,7 @@ package weave.utils
 				return;
 			
 			for each (var handler:Handler in handlers_)
-				handle_(handler);
+				handle_without_busy_check_(handler);
 		}
 		
 		public function depend(...linkableObjects):WeavePromise
