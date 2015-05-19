@@ -150,7 +150,7 @@ package weave.data.DataSources
 			var filters:Array = [];
 			var requires:Array = null;
 			
-			return new WeavePromise(this).depend(dataSource.dataSet, dataSource.geographicScope, dataSource.apiKey, dataSource.geographicFilters)
+			return new WeavePromise(this).depend(dataSource.dataSet)
 			.thenAgain(
 				function (context:Object):IThenable
 				{
@@ -170,12 +170,11 @@ package weave.data.DataSources
 				{
 					weaveTrace("Calling getGeographies", dataset_name);
 					title = variableInfo[variable_name].label;
-					return getGeographies(dataset_name);	
+					return getGeographies(dataset_name);
 				}
-			, reportError).thenAgain(
+			, reportError).depend(dataSource.geographicScope, dataSource.apiKey, dataSource.geographicFilters).thenAgain(
 				function (geographyInfo:Object):IThenable
 				{
-					
 					geography_name = dataSource.geographicScope.value;
 					geography_filters = dataSource.geographicFilters.getSessionState();
 					api_key = dataSource.apiKey.value;
