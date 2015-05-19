@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
+<mx:Canvas
+		xmlns="weave.ui.*"
+		xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:mx="library://ns.adobe.com/flex/mx"
+		implements="weave.api.core.ILinkableObject"
+		creationPolicy="all"
+		width="100%" height="100%">
+	<WeaveTree id="treeView" width="100%" height="100%"
+				  showRoot="true" borderStyle="none"
+				  dataProvider="{newTreeNode(data)}">
+		<itemRenderer>
+			<fx:Component>
+				<ObjectViewerItemRenderer
+					secondLabelFunction="{outerDocument.getSecondLabel}"
+					secondLabelX="{outerDocument.rightDiv.x}"/>
+			</fx:Component>
+		</itemRenderer>
+	</WeaveTree>
+	<mx:HDividedBox width="100%" height="100%">
+		<s:Spacer id="leftDiv" width="100%"/>
+		<s:Spacer id="rightDiv" width="100%"/>
+	</mx:HDividedBox>
+	<fx:Script>
+		<![CDATA[
+			import avmplus.DescribeType;
+			import avmplus.getQualifiedClassName;
+			
+			import weave.api.core.DynamicState;
+			import weave.data.hierarchy.WeaveTreeDescriptorNode;
+			import weave.utils.VectorUtils;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				treeView.enableClickToExpand();
+			}
+			
+			private const MAX_LABEL_LENGTH:int = 256;
+			private function getLabel(node:WeaveTreeDescriptorNode):String
+			{
+				var value:* = node.data[0];
+				var key:* = node.data[1];
+				
+				var label:String = key;
+				if (label && label.length > MAX_LABEL_LENGTH)
+					label = String(label).substr(0, MAX_LABEL_LENGTH - 3) + '...';
+				
+				var className:String = getQualifiedClassName(node.data[0]);
+				
+				return (label ? label + " : " : "") + className;
+			}
+			
+			private function newTreeNode(value:*, key:String = null, _:* = null):WeaveTreeDescriptorNode
+			{
+				var hasChildren:Boolean;
+				if (value is Array && (value as Array).length == 0)
+					hasChildren = false;
+				else
+					hasChildren = !isPrimitive(value);
+				
+				return new WeaveTreeDescriptorNode({
+					label: getLabel,
+					data: [value, key],
+					children: hasChildren ? getChildNodes : null,
+					dependency: this
+				});
+			}
+			private function isPrimitive(value:*):Boolean
+			{
+				return !value || typeof value != 'object';
+			}
+			private function getChildNodes(node:WeaveTreeDescriptorNode):Array
+			{
+				var value:* = node.data[0];
+				var key:* = node.data[1];
+				
+				if (value is Array)
+					return (value as Array).map(newTreeNode);
+				
+				var keys:Array = VectorUtils.getKeys(value);
+				if (!keys.length && getQualifiedClassName(value) != 'Object')
+				{
+					for each (var list:Array in DescribeType.getInfo(value, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
+						for each (var item:Object in list)
+							if (item.access != 'writeonly')
+								keys.push(item.uri ? new QName(item.uri, item.name) : item.name);
+				}
+				keys.sort();
+				
+				var children:Array = [];
+				for each (var childKey:* in keys)
+				{
+					var childValue:*;
+					try {
+						childValue = value[childKey];
+					} catch (e:Error) {
+						childValue = e;
+					}
+					
+					children.push(newTreeNode(childValue, childKey));
+				}
+				return children;
+			}
+			public function getSecondLabel(node:WeaveTreeDescriptorNode):String
+			{
+				var value:* = node.data[0];
+				var key:* = node.data[1];
+				
+				var detail:String = '';
+				if (isPrimitive(value))
+				{
+					detail = value;
+				}
+				else if (DynamicState.isDynamicState(value))
+				{
+					var className:String = String(value[DynamicState.CLASS_NAME]); // null -> "null"
+					var objectName:String = value[DynamicState.OBJECT_NAME];
+					detail = className.split('::').pop();
+					if (objectName)
+						detail += lang(' "{0}"', objectName);
+				}
+				else if (value is Array)
+				{
+					detail = "length = " + (value as Array).length;
+				}
+				
+				return detail;
+			}
+		]]>
+	</fx:Script>
+</mx:Canvas>

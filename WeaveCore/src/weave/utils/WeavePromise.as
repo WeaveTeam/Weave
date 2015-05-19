@@ -36,9 +36,17 @@ package weave.utils
 	 */
 	public class WeavePromise extends Promise
 	{
-		public function WeavePromise(relevantContext:Object, resolver:Function)
+		private static function _noop(..._):* { }
+		
+		public function WeavePromise(relevantContext:Object, resolver:Function = null)
 		{
-			super(resolver);
+			super(resolver as Function || _noop);
+			
+			if (resolver == null)
+			{
+				state_ = PromiseState.FULFILLED;
+				value_ = relevantContext;
+			}
 			
 			this.rootPromise = relevantContext as WeavePromise || this;
 			this.relevantContext = relevantContext is WeavePromise ? rootPromise.relevantContext : relevantContext;
