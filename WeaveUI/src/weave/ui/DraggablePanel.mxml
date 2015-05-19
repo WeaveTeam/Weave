@@ -1679,7 +1679,7 @@
 			public static const TOOLTIP_RESTORE:String = "Restore Down";
 			public static const TOOLTIP_CLOSE:String = "Close";
 			
-			private static const _instances:Dictionary = new Dictionary();
+			private static const _instances:Dictionary = new Dictionary(); // Class -> DraggablePanel   or   DraggablePanel -> DisplayObject
 			private static const _maximizedCoordinates:Object = {x: "0%", y: "0%", width: "100%", height: "100%"};
 			private static const resizeBorderThickness:int = 5;
 			public static var adminMode:Boolean = false;
@@ -1688,34 +1688,40 @@
 			
 			
 			/**
-			 * This function will create and reuse a static instance of each type of DraggablePanel requested.
-			 * @param classDef A Class extending DraggablePanel.
+			 * This function will create and reuse a static instance of DraggablePanel for each type of object requested.
+			 * @param classDef A Class extending DraggablePanel or DisplayObject.
 			 * @return The static instance of the given class.
 			 */
 			public static function getStaticInstance(draggablePanelClass:Class):*
 			{
-				var instance:DraggablePanel = _instances[draggablePanelClass];
+				var instance:DraggablePanel = _instances[draggablePanelClass] as DraggablePanel;
 				if (!instance)
 				{
 					var qname:String = getQualifiedClassName(draggablePanelClass);
 					var dpqname:String = getQualifiedClassName(DraggablePanel);
-					if (!ClassUtils.classExtends(qname, dpqname))
-						throw new Error(qname + " does not extend " + dpqname);
-					
-					_instances[draggablePanelClass] = instance = new draggablePanelClass() as DraggablePanel;
+					var displayObject:DisplayObject = new draggablePanelClass();
+					instance = displayObject as DraggablePanel;
+					if (!instance)
+					{
+						instance = new DraggablePanel();
+						instance.addChild(displayObject);
+					}
+					_instances[draggablePanelClass] = instance;
+					_instances[instance] = displayObject;
 					instance.enableZOrder.value = false;
 				}
-				return instance;
+				return _instances[instance];
 			}
 			
 			/**
-			 * This function will create and reuse a static instance of each type of DraggablePanel requested, and add it as a popup.
-			 * @param classDef A Class extending DraggablePanel.
+			 * This function will create and reuse a static instance of DraggablePanel for each type of object requested, and add it as a popup.
+			 * @param classDef A Class extending DraggablePanel or DisplayObject.
 			 * @return The static instance of the given class.
 			 */
 			public static function openStaticInstance(draggablePanelClass:Class):*
 			{
-				var instance:DraggablePanel = getStaticInstance(draggablePanelClass);
+				var displayObject:DisplayObject = getStaticInstance(draggablePanelClass);
+				var instance:DraggablePanel = displayObject as DraggablePanel || _instances[draggablePanelClass] as DraggablePanel;
 				if (!instance.parent)
 					PopUpManager.addPopUp(instance, WeaveAPI.topLevelApplication as UIComponent);
 				instance.restorePanel();
@@ -1730,7 +1736,7 @@
 				instance.panelX.value = String(int(xSpace/2 - xSpread/2 + xSpread * Math.random()));
 				instance.panelY.value = String(int(ySpace/2 - ySpread/2 + ySpread * Math.random()));
 				
-				return instance;
+				return displayObject;
 			}
 			
 			public static function get activePanelName():String
