@@ -21,6 +21,7 @@ package weave.data.DataSources
 	
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ColumnMetadata;
+	import weave.api.getLinkableOwner;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -33,37 +34,37 @@ package weave.data.DataSources
 	{
 		public static const BASE_URL:String = "http://api.census.gov/";
 		private const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
-		private var apiKey:LinkableString = null;
+		
+		private function get _api():CensusApi
+		{
+			return this;
+		}
 		
 		private function getUrl(serviceUrl:String, params:Object):String
 		{
-			if (apiKey.value)
-			{
-				params['key'] = apiKey.value;
-			}
 			var paramsStr:String = '';
 			for (var key:String in params)
 				paramsStr += (paramsStr ? '&' : '?') + key + '=' + params[key];
 			return serviceUrl + paramsStr;
 		}
 		
-		public function CensusApi(apiKey:LinkableString):void
+		public function CensusApi():void
 		{
-			this.apiKey = apiKey;	
 		}
 		
 		public function getDatasets():WeavePromise
 		{
-			return jsonCache.getJsonPromise(this, BASE_URL + "data.json");
+			return jsonCache.getJsonPromise(_api, BASE_URL + "data.json");
 		}
 		
 		/* TODO: Add memoized promises for preprocessing steps */
 		
-		private function getDatasetPromise(dataSetIdentifier:String):IThenable
+		private function getDatasetPromise(dataSetIdentifier:String):WeavePromise
 		{
-			return getDatasets().then(
+			return getDatasets().thenAgain(
 				function (result:Object):Object
 				{
+					weaveTrace("getDataSetPromise", dataSetIdentifier);
 					for each (var tmp_dataset:Object in result)
 					{
 						if (tmp_dataset.identifier == dataSetIdentifier)
@@ -71,32 +72,33 @@ package weave.data.DataSources
 							return tmp_dataset;
 						}
 					}
+					weaveTrace("getDataSetPromise failed, no such dataset:", dataSetIdentifier);
 					throw new Error("No such dataset: " + dataSetIdentifier);
 				}, reportError
 			);
 		}
-		private function getVariablesPromise(dataSetIdentifier:String):IThenable
+		private function getVariablesPromise(dataSetIdentifier:String):WeavePromise
 		{
-			return getDatasetPromise(dataSetIdentifier).then(
+			return getDatasetPromise(dataSetIdentifier).thenAgain(
 				function (dataset:Object):IThenable
 				{
-					return jsonCache.getJsonPromise(this, dataset.c_variablesLink);
+					return jsonCache.getJsonPromise(_api, dataset.c_variablesLink);
 				}
 			, reportError);
 		}
-		private function getGeographiesPromise(dataSetIdentifier:String):IThenable
+		private function getGeographiesPromise(dataSetIdentifier:String):WeavePromise
 		{
-			return getDatasetPromise(dataSetIdentifier).then(
+			return getDatasetPromise(dataSetIdentifier).thenAgain(
 				function (dataset:Object):IThenable
 				{
-					return jsonCache.getJsonPromise(this, dataset.c_geographyLink);
+					return jsonCache.getJsonPromise(_api, dataset.c_geographyLink);
 				}
 			, reportError);
 		}
 		
-		public function getVariables(dataSetIdentifier:String):IThenable
+		public function getVariables(dataSetIdentifier:String):WeavePromise
 		{
-			return getVariablesPromise(dataSetIdentifier).then(
+			return getVariablesPromise(dataSetIdentifier).thenAgain(
 				function (result:Object):Object
 				{
 					var variableInfo:Object = ObjectUtil.copy(result.variables);
@@ -108,9 +110,9 @@ package weave.data.DataSources
 			, reportError);
 		}
 		
-		public function getGeographies(dataSetIdentifier:String):IThenable
+		public function getGeographies(dataSetIdentifier:String):WeavePromise
 		{
-			return getGeographiesPromise(dataSetIdentifier).then(
+			return getGeographiesPromise(dataSetIdentifier).thenAgain(
 				function (result:Object):Object
 				{
 					var geo:Object = {};
@@ -132,53 +134,74 @@ package weave.data.DataSources
 		 * @param metadata
 		 * @return An object containing three fields, "keys," "values," and "metadata" 
 		 */				
-		public function getColumn(metadata:Object, depends:ILinkableObject):IThenable
+		public function getColumn(metadata:Object):IThenable
 		{	
-			var dataset_name:String = metadata[CensusDataSource.DATASET];
-			var geography_name:String = metadata[CensusDataSource.FOR_GEOGRAPHY];
+			var dataSource:CensusDataSource = getLinkableOwner(this) as CensusDataSource;
+			var dataset_name:String;
+			var geography_name:String;
+			var geography_filters:Object;
+			var api_key:String;
+			
 			var variable_name:String = metadata[CensusDataSource.VARIABLE_NAME];
+			
+			var params:Object = {};
 			var title:String = null;
 			var service_url:String = null;
 			var filters:Array = [];
 			var requires:Array = null;
 			
-			for (var key:String in metadata)
-			{
-				var sections:Array = key.split("#");
-				if (sections.length == 2)
+			return new WeavePromise(this).depend(dataSource.dataSet, dataSource.geographicScope, dataSource.apiKey, dataSource.geographicFilters)
+			.thenAgain(
+				function (context:Object):IThenable
 				{
-					filters.push(sections[1] + ":" + metadata[key]);
+					weaveTrace("Calling getDataSetPromise");
+					dataset_name = dataSource.dataSet.value;
+					return getDatasetPromise(dataset_name);
 				}
-			}
-			
-			var params:Object = {
-				get: variable_name,
-				"for": geography_name + ":*",
-				"in": filters.join(",")
-			};
-			
-			return getDatasetPromise(dataset_name).then(
+			, reportError).thenAgain(
 				function (datasetInfo:Object):IThenable
 				{
+					weaveTrace("Calling getVariables", dataset_name);
 					service_url = datasetInfo.webService;
 					return getVariables(dataset_name);
 				}
-			).then(
+			, reportError).thenAgain(
 				function (variableInfo:Object):IThenable
 				{
+					weaveTrace("Calling getGeographies", dataset_name);
 					title = variableInfo[variable_name].label;
 					return getGeographies(dataset_name);	
 				}
-			).then(
+			, reportError).thenAgain(
 				function (geographyInfo:Object):IThenable
 				{
+					
+					geography_name = dataSource.geographicScope.value;
+					geography_filters = dataSource.geographicFilters.getSessionState();
+					api_key = dataSource.apiKey.value;
 					requires = VectorUtils.copy(geographyInfo[geography_name].requires || []);
 					requires.push(geography_name);
-					return jsonCache.getJsonPromise(this, getUrl(service_url, params)).depend(depends);
+					
+					for (var key:String in geography_filters)
+					{
+						filters.push(key + ":" + geography_filters[key]);
+					}
+
+					params["get"] = variable_name;
+					params["for"] = geography_name + ":*"
+					
+					if (filters.length != 0) params["in"] =  filters.join(",")
+					
+					if (api_key) params['key'] = api_key;
+					
+					weaveTrace("Building query and issuing Json request", dataset_name, geography_name);
+					
+					return jsonCache.getJsonPromise(_api, getUrl(service_url, params));
 				}
-			).then(
+			, reportError).thenAgain(
 				function (dataResult:Object):Object
 				{
+					weaveTrace("Building column info", dataset_name, geography_name);
 					if (dataResult == null)
 						return null;
 					var idx:int;
@@ -190,6 +213,8 @@ package weave.data.DataSources
 					var data_column_index:int = columns.indexOf(variable_name);
 					
 					var tmp_key_type:String = WeaveAPI.CSVParser.createCSVRow(requires);
+					
+					
 
 					metadata[ColumnMetadata.KEY_TYPE] = tmp_key_type;
 					metadata[ColumnMetadata.TITLE] = title;
@@ -216,7 +241,7 @@ package weave.data.DataSources
 						metadata: metadata
 					};
 				}
-			);
+			, reportError);
 		}
 	}
 }

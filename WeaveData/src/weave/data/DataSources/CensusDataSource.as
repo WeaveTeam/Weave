@@ -43,13 +43,8 @@ package weave.data.DataSources
 
         private static const baseUrl:String = "http://api.census.gov/";
 		
-		public static const DATASET:String = "__CensusDataSource__dataSet";
 		public static const CONCEPT_NAME:String = "__CensusDataSource__concept";
 		public static const VARIABLE_NAME:String = "__CensusDataSource__variable";
-		public static const FOR_GEOGRAPHY:String = "__CensusDataSource__geographyFor";
-		public static const IN_GEOGRAPHY_PREFIX:String = "__CensusDataSource__inGeo#";
-		private static const ALL_GEOGRAPHIES:String = "ALL";
-		private static const CUSTOM_FILTER:String = "CUSTOM";
 		
 		[Embed(source="/weave/resources/county_fips_codes.amf", mimeType="application/octet-stream")]
 		private static const CountyFipsDatabase:Class;
@@ -90,51 +85,25 @@ package weave.data.DataSources
 		
 		public const keyTypeOverride:LinkableVariable = newLinkableChild(this, LinkableVariable);
 		public const apiKey:LinkableString = registerLinkableChild(this, new LinkableString(""));
-		private var api:CensusApi = registerLinkableChild(this, new CensusApi(apiKey));
+		public const dataSet:LinkableString = registerLinkableChild(this, new LinkableString("2010acs5"));
+		public const geographicScope:LinkableString = registerLinkableChild(this, new LinkableString("state"));
+		public const geographicFilters:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Object));
+		private const api:CensusApi = newLinkableChild(this, CensusApi);
 
-		public function createTopLevelNode():ColumnTreeNode
-		{
-			var name:String = WeaveAPI.globalHashMap.getName(this);
-			var data:Object = {id:0, name: name};
-			var children:Array = [];
-			return new ColumnTreeNode({
-				dataSource: this,
-				data: data,
-				label: data.name,
-				hasChildBranches: true,
-				children: function(node:ColumnTreeNode):Array {
-					var children:Array = [];
-					
-					api.getDatasets().then(function (result:Object):void
-						{
-							for each (var dataSet:Object in result)
-							{
-								var metadata:Object = {};
-								metadata[DATASET] = dataSet.identifier;
-								metadata.label = dataSet.title;
-								children.push(createDataSetNode(metadata));
-							}
-							//StandardLib.sortOn(children, function (obj:Object):String {return obj.data.label});
-						}
-						, reportError).then(null, reportError);
-					return children;
-				}
-			});
-		}
-
-		public function createDataSetNode(data:Object):ColumnTreeNode
+		public function createDataSetNode():ColumnTreeNode
 		{
 			var _ds:IDataSource = this;
+			var name:String = WeaveAPI.globalHashMap.getName(this);
+			var data:Object = {id:0, name: name};
 			return new ColumnTreeNode({
 				dataSource: this,
 				data: data,
 				label: data.label,
-				idFields: [DATASET],
 				hasChildBranches: true,
 				children: function(node:ColumnTreeNode):Array {
 					var children:Array = [];
 
-					api.getVariables(data[DATASET]).then(function (result:Object):void
+					api.getVariables(dataSet.value).then(function (result:Object):void
 					{
 						var concept_nodes:Object = {};
 						for (var variableId:String in result)	
@@ -142,14 +111,17 @@ package weave.data.DataSources
 							var variableInfo:Object = result[variableId];
 							var concept_node:Object = concept_nodes[variableInfo.concept];
 							
+							
 							if (!concept_node)
 							{
+								var concept_label:String = variableInfo.concept;
+								if (!concept_label) concept_label = lang("No Concept");
 								concept_node = {
 									dataSource: _ds,
 									data: ObjectUtil.copy(data),
-									label: variableInfo.concept || lang("No Concept"),
-									idFields: [DATASET, CONCEPT_NAME],
-									hasChildBranches: true,
+									label: concept_label,
+									idFields: [CONCEPT_NAME],
+									hasChildBranches: false,
 									children: []
 								};
 								
@@ -163,9 +135,8 @@ package weave.data.DataSources
 								dataSource: _ds,
 								data: ObjectUtil.copy(concept_node.data),
 								label: variableInfo.label,
-								idFields: [DATASET, CONCEPT_NAME, VARIABLE_NAME],
-								hasChildBranches: true,
-								children: createGeographyForNodes
+								idFields: [CONCEPT_NAME, VARIABLE_NAME],
+								children: null
 							};
 							
 							variable_descriptor.data[VARIABLE_NAME] = variableId;
@@ -182,120 +153,16 @@ package weave.data.DataSources
 				}
 			});
 		}
-		public function createGeographyForNodes(node:ColumnTreeNode):Array
-		{
-			var children:Array = [];
-			var _ds:IDataSource = this;
-			api.getGeographies(node.data[DATASET]).then(
-				function (result:Object):void
-				{
-					for (var geo_name:String in result)
-					{
-						var geography:Object = result[geo_name];
-						var descriptor:Object = {
-							dataSource: _ds, hasChildBranches: result[geo_name].requires,
-							data: ObjectUtil.copy(node.data),
-							label: geo_name,
-							children: result[geo_name].requires && createGeographyInNodes,
-							idFields: [DATASET, CONCEPT_NAME, VARIABLE_NAME, FOR_GEOGRAPHY]
-						};
-						descriptor.data[FOR_GEOGRAPHY] = geo_name;
-						children.push(descriptor);
-					}
-					/* Sort by GeoLevelId */
-					StandardLib.sortOn(children, function (obj:Object):String {return result[obj.data[FOR_GEOGRAPHY]].id;});
-				}
-			, reportError);
-			
-			return children;
-		}
-		public function createGeographyInNodes(node:ColumnTreeNode):Array
-		{
-
-			var children:Array = [];
-			var _ds:IDataSource = this;
-			api.getGeographies(node.data[DATASET]).then(
-				function (result:Object):void
-				{
-					var for_geo:String = node.data[FOR_GEOGRAPHY];
-					var requires:Array = result[for_geo].requires;
-					var level:String = null;
-					var is_leaf:Boolean = false;
-					var descriptor:Object = {};
-					var fips:String = null;
-					
-					
-					/* Go to the first of the geometries that haven't been specified */
-					if (requires)
-					{
-						for (var idx:int = 0; idx < requires.length; idx++)
-						{
-							var in_value:String = node.data[IN_GEOGRAPHY_PREFIX + requires[idx]];
-							if (!in_value)
-							{
-								level = requires[idx];
-								is_leaf = (idx + 1 == requires.length);
-								break;
-							}
-						}
-					}
-					else
-					{
-						is_leaf = true;
-					}
-					
-					if (level == "state")
-					{
-						for (fips in StateFipsLookup)
-						{
-							descriptor = {};
-							descriptor.dataSource = _ds;
-							descriptor.children = is_leaf ? null : createGeographyInNodes;
-							descriptor.idFields = node.idFields.concat([IN_GEOGRAPHY_PREFIX+level]);
-							descriptor.data = ObjectUtil.copy(node.data);
-							descriptor.data[IN_GEOGRAPHY_PREFIX + level] = fips;
-							descriptor.label = StateFipsLookup[fips];
-							children.push(descriptor);
-						}
-					}
-					else if (level == "county")
-					{
-						var state_fips:String = node.data[IN_GEOGRAPHY_PREFIX + "state"];
-						for (fips in CountyFipsLookup[state_fips])
-						{
-							descriptor = {};
-							descriptor.dataSource = _ds;
-							descriptor.children = is_leaf ? null : createGeographyInNodes;
-							descriptor.idFields = node.idFields.concat([IN_GEOGRAPHY_PREFIX+level]);
-							descriptor.data = ObjectUtil.copy(node.data);
-							descriptor.data[IN_GEOGRAPHY_PREFIX + level] = fips;
-							descriptor.label = CountyFipsLookup[state_fips][fips];
-							children.push(descriptor);
-						}
-					}
-					descriptor = {};
-					descriptor.dataSource = _ds;
-					descriptor.children = null;
-					descriptor.idFields = node.idFields.concat([IN_GEOGRAPHY_PREFIX+level]);
-					descriptor.data = ObjectUtil.copy(node.data);
-					descriptor.label = lang("All");
-					children.push(descriptor);
-					
-					StandardLib.sortOn(children, function (obj:Object):String {return obj.data[IN_GEOGRAPHY_PREFIX+level];});
-				}
-			, reportError);
-			return children;
-		}
 		
 		private function columnLabelFunc(node:ColumnTreeNode):String
 		{
-			return null;	
+			return null;
 		}
 		
         override public function getHierarchyRoot():IWeaveTreeNode
         {
             if (!_rootNode)
-                _rootNode = createTopLevelNode();
+                _rootNode = createDataSetNode();
             return _rootNode;
         }
 		
@@ -303,15 +170,8 @@ package weave.data.DataSources
 		{
 			if (!metadata)
 				return null;
-			var idFields:Array = [DATASET, CONCEPT_NAME, VARIABLE_NAME, FOR_GEOGRAPHY];
-			
-			for (var key:String in metadata)
-			{
-				if (key.indexOf(IN_GEOGRAPHY_PREFIX) == 0)
-				{
-					idFields.push(key);	
-				}
-			}
+			var idFields:Array = [CONCEPT_NAME, VARIABLE_NAME];
+
 			var ctn:ColumnTreeNode = new ColumnTreeNode({dataSource: this, idFields: idFields, data: metadata});
 			return ctn; 
 		}
@@ -319,7 +179,7 @@ package weave.data.DataSources
         {   		
         	var metadata:Object = ColumnMetadata.getAllMetadata(proxyColumn);
         	
-			api.getColumn(metadata, keyTypeOverride).then(
+			api.getColumn(metadata).then(
 				function(columnInfo:Object):void
 				{
 					if (!columnInfo) return;
