@@ -101,7 +101,7 @@ package weave.utils
 				handle_(handler);
 		}
 		
-		public function depend(...linkableObjects):Promise
+		public function depend(...linkableObjects):WeavePromise
 		{
 			if (linkableObjects.length)
 			{
