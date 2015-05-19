@@ -42,16 +42,18 @@ package weave.utils
 		{
 			super(resolver as Function || _noop);
 			
+			this.rootPromise = relevantContext as WeavePromise || this;
+			this.relevantContext = relevantContext is WeavePromise ? rootPromise.relevantContext : relevantContext;
+			
 			if (resolver == null)
 			{
 				state_ = PromiseState.FULFILLED;
 				value_ = relevantContext;
 			}
-			
-			this.rootPromise = relevantContext as WeavePromise || this;
-			this.relevantContext = relevantContext is WeavePromise ? rootPromise.relevantContext : relevantContext;
-			
-			WeaveAPI.ProgressIndicator.addTask(this.rootPromise, this.relevantContext as ILinkableObject);
+			else
+			{
+				WeaveAPI.ProgressIndicator.addTask(this.rootPromise, this.relevantContext as ILinkableObject);
+			}
 		}
 		
 		protected var rootPromise:WeavePromise;
