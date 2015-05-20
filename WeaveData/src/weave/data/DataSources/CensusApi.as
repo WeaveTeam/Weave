@@ -19,8 +19,6 @@ package weave.data.DataSources
 	
 	import mx.utils.ObjectUtil;
 	
-	import org.apache.flex.promises.interfaces.IThenable;
-	
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.getLinkableOwner;
@@ -98,7 +96,7 @@ package weave.data.DataSources
 		
 		private function getDatasetPromise(dataSetIdentifier:String):WeavePromise
 		{
-			return getDatasets().thenAgain(
+			return getDatasets().then(
 				function (result:Object):Object
 				{
 					weaveTrace("getDataSetPromise", dataSetIdentifier);
@@ -116,8 +114,8 @@ package weave.data.DataSources
 		}
 		private function getVariablesPromise(dataSetIdentifier:String):WeavePromise
 		{
-			return getDatasetPromise(dataSetIdentifier).thenAgain(
-				function (dataset:Object):IThenable
+			return getDatasetPromise(dataSetIdentifier).then(
+				function (dataset:Object):WeavePromise
 				{
 					return jsonCache.getJsonPromise(_api, dataset.c_variablesLink);
 				}
@@ -125,8 +123,8 @@ package weave.data.DataSources
 		}
 		private function getGeographiesPromise(dataSetIdentifier:String):WeavePromise
 		{
-			return getDatasetPromise(dataSetIdentifier).thenAgain(
-				function (dataset:Object):IThenable
+			return getDatasetPromise(dataSetIdentifier).then(
+				function (dataset:Object):WeavePromise
 				{
 					return jsonCache.getJsonPromise(_api, dataset.c_geographyLink);
 				}
@@ -135,7 +133,7 @@ package weave.data.DataSources
 		
 		public function getVariables(dataSetIdentifier:String):WeavePromise
 		{
-			return getVariablesPromise(dataSetIdentifier).thenAgain(
+			return getVariablesPromise(dataSetIdentifier).then(
 				function (result:Object):Object
 				{
 					var variableInfo:Object = ObjectUtil.copy(result.variables);
@@ -149,7 +147,7 @@ package weave.data.DataSources
 		
 		public function getGeographies(dataSetIdentifier:String):WeavePromise
 		{
-			return getGeographiesPromise(dataSetIdentifier).thenAgain(
+			return getGeographiesPromise(dataSetIdentifier).then(
 				function (result:Object):Object
 				{
 					var geo:Object = {};
@@ -173,7 +171,7 @@ package weave.data.DataSources
 		 * @param metadata
 		 * @return An object containing three fields, "keys," "values," and "metadata" 
 		 */				
-		public function getColumn(metadata:Object):IThenable
+		public function getColumn(metadata:Object):WeavePromise
 		{	
 			var dataSource:CensusDataSource = getLinkableOwner(this) as CensusDataSource;
 			var dataset_name:String;
@@ -190,31 +188,31 @@ package weave.data.DataSources
 			var requires:Array = null;
 			
 			return new WeavePromise(this).depend(dataSource.dataSet)
-			.thenAgain(
-				function (context:Object):IThenable
+			.then(
+				function (context:Object):WeavePromise
 				{
 					weaveTrace("Calling getDataSetPromise");
 					dataset_name = dataSource.dataSet.value;
 					return getDatasetPromise(dataset_name);
 				}
-			, reportError).thenAgain(
-				function (datasetInfo:Object):IThenable
+			, reportError).then(
+				function (datasetInfo:Object):WeavePromise
 				{
 					weaveTrace("Calling getVariables", dataset_name);
 					service_url = datasetInfo.webService;
 					return getVariables(dataset_name);
 				}
-			, reportError).thenAgain(
-				function (variableInfo:Object):IThenable
+			, reportError).then(
+				function (variableInfo:Object):WeavePromise
 				{
 					weaveTrace("Calling getGeographies", dataset_name);
 					title = variableInfo[variable_name].label;
 					return getGeographies(dataset_name);
 				}
-			, reportError).depend(dataSource.geographicScope, dataSource.apiKey, dataSource.geographicFilters).thenAgain(
-				function (geographyInfo:Object):IThenable
+			, reportError).depend(dataSource.geographicScope, dataSource.apiKey, dataSource.geographicFilters).then(
+				function (geographyInfo:Object):WeavePromise
 				{
-					geography_name = dataSource.geographicScope.value;
+					geography_id = dataSource.geographicScope.value;
 					geography_filters = dataSource.geographicFilters.getSessionState();
 					api_key = dataSource.apiKey.value;
 					requires = VectorUtils.copy(geographyInfo[geography_id].requires || []);
@@ -236,7 +234,7 @@ package weave.data.DataSources
 					
 					return jsonCache.getJsonPromise(_api, getUrl(service_url, params));
 				}
-			, reportError).thenAgain(
+			, reportError).then(
 				function (dataResult:Object):Object
 				{
 					weaveTrace("Building column info", dataset_name, geography_id);
