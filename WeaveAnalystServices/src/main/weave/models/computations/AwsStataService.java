@@ -8,6 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 import org.apache.commons.io.FilenameUtils;
 import com.google.gson.internal.StringMap;
@@ -27,6 +29,8 @@ public class AwsStataService implements IScriptEngine {
 		
 		ArrayList<Object[]> data = new ArrayList<Object[]>();
 		Object[][] dataSet;
+		HashMap<String, Object> finalResult= null;
+		
 		for(String key : scriptInputs.keySet()) {
 			ArrayList<Object> arrl = new ArrayList<Object>();
 			arrl.add(key);
@@ -133,11 +137,19 @@ public class AwsStataService implements IScriptEngine {
 		} else {
 			if(scriptResult.exists()) {
 				resultData = parser.parseCSV(scriptResult, true);
+				finalResult = new HashMap<String,Object>();
+				ArrayList<String[]>tempArray = new ArrayList<String[]>();
+				for(int i = 1; i < resultData.length; i++) {
+					tempArray.add(resultData[i]);
+				}
+				finalResult.put("columnNames", resultData[0]);
+				finalResult.put("resultData", (Object[][]) AWSUtils.transpose((Object)tempArray.toArray(new String[tempArray.size()][])));
+				
 			} else {
 				throw new RemoteException("Could not find result.csv");
 			}
 		}
-		return resultData;
+		return finalResult;
 	}
 	
 	/**
