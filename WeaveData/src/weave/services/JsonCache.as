@@ -92,6 +92,7 @@ import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 import mx.utils.StringUtil;
 
+import weave.api.objectWasDisposed;
 import weave.api.reportError;
 import weave.services.JsonCache;
 import weave.services.URLRequestUtils;
@@ -171,12 +172,14 @@ internal class CacheEntry
 			function doLater():void
 			{
 				WeaveAPI.ProgressIndicator.removeTask(doLater);
+				if (objectWasDisposed(owner))
+					return;
 				if (success && resultHandler is Function)
 					resultHandler(result);
 				if (!success && faultHandler is Function)
 					faultHandler(result);
 			}
-			WeaveAPI.StageUtils.callLater(owner, doLater);
+			WeaveAPI.StageUtils.callLater(null, doLater);
 		}
 	}
 	
