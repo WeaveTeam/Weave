@@ -15,6 +15,8 @@
 
 package weave.data.DataSources
 {
+	import flash.utils.ByteArray;
+	
 	import mx.utils.ObjectUtil;
 	
 	import org.apache.flex.promises.interfaces.IThenable;
@@ -24,8 +26,6 @@ package weave.data.DataSources
 	import weave.api.getLinkableOwner;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
-	import weave.compiler.StandardLib;
-	import weave.core.LinkableString;
 	import weave.services.JsonCache;
 	import weave.utils.VectorUtils;
 	import weave.utils.WeavePromise;
@@ -34,6 +34,41 @@ package weave.data.DataSources
 	{
 		public static const BASE_URL:String = "http://api.census.gov/";
 		private const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
+		
+		[Embed(source="/weave/resources/county_fips_codes.amf", mimeType="application/octet-stream")]
+		private static const CountyFipsDatabase:Class;
+		
+		private static var CountyFipsLookup:Object = null;
+		
+		[Embed(source="/weave/resources/state_fips_codes.amf", mimeType="application/octet-stream")]
+		private static const StateFipsDatabase:Class;
+		
+		private static var StateFipsLookup:Object = null;
+		
+		private static function initializeStateFipsLookup():void
+		{
+			var ba:ByteArray = (new StateFipsDatabase()) as ByteArray;
+			StateFipsLookup = ba.readObject();
+		}
+		private static function initializeCountyFipsLookup():void
+		{
+			var ba:ByteArray = (new CountyFipsDatabase()) as ByteArray;
+			CountyFipsLookup = ba.readObject();
+		}
+		
+		public function get state_fips():Object
+		{
+			if (!StateFipsLookup) 
+				initializeStateFipsLookup();
+			return StateFipsLookup;
+		}
+		
+		public function get county_fips():Object
+		{
+			if (!CountyFipsLookup)
+				initializeCountyFipsLookup();
+			return CountyFipsLookup;
+		}
 		
 		private function get _api():CensusApi
 		{
@@ -47,6 +82,8 @@ package weave.data.DataSources
 				paramsStr += (paramsStr ? '&' : '?') + key + '=' + params[key];
 			return serviceUrl + paramsStr;
 		}
+		
+		
 		
 		public function CensusApi():void
 		{
@@ -118,9 +155,11 @@ package weave.data.DataSources
 					var geo:Object = {};
 					for each (var geo_description:Object in result.fips)
 					{
-						geo[geo_description.name] = {
+						geo[geo_description.geoLevelId] = {
 							id: geo_description.geoLevelId,
-							requires: geo_description.requires
+							name: geo_description.name,
+							requires: geo_description.requires,
+							optional: geo_description.optionalWithWCFor || []
 						};
 					}
 					
@@ -138,7 +177,7 @@ package weave.data.DataSources
 		{	
 			var dataSource:CensusDataSource = getLinkableOwner(this) as CensusDataSource;
 			var dataset_name:String;
-			var geography_name:String;
+			var geography_id:String;
 			var geography_filters:Object;
 			var api_key:String;
 			
@@ -175,33 +214,32 @@ package weave.data.DataSources
 			, reportError).thenAgain(
 				function (geographyInfo:Object):IThenable
 				{
-					
-					geography_name = dataSource.geographicScope.value;
+					geography_id = dataSource.geographicScope.value;
 					geography_filters = dataSource.geographicFilters.getSessionState();
 					api_key = dataSource.apiKey.value;
-					requires = VectorUtils.copy(geographyInfo[geography_name].requires || []);
-					requires.push(geography_name);
+					requires = VectorUtils.copy(geographyInfo[geography_id].requires || []);
+					requires.push(geographyInfo[geography_id].name);
 					
 					for (var key:String in geography_filters)
 					{
-						filters.push(key + ":" + geography_filters[key]);
+						filters.push(geographyInfo[key].name + ":" + geography_filters[key]);
 					}
 
 					params["get"] = variable_name;
-					params["for"] = geography_name + ":*"
+					params["for"] = geographyInfo[geography_id].name + ":*";
 					
-					if (filters.length != 0) params["in"] =  filters.join(",")
+					if (filters.length != 0) params["in"] =  filters.join(",");
 					
 					if (api_key) params['key'] = api_key;
 					
-					weaveTrace("Building query and issuing Json request", dataset_name, geography_name);
+					weaveTrace("Building query and issuing Json request", dataset_name, geography_id);
 					
 					return jsonCache.getJsonPromise(_api, getUrl(service_url, params));
 				}
 			, reportError).thenAgain(
 				function (dataResult:Object):Object
 				{
-					weaveTrace("Building column info", dataset_name, geography_name);
+					weaveTrace("Building column info", dataset_name, geography_id);
 					if (dataResult == null)
 						return null;
 					var idx:int;

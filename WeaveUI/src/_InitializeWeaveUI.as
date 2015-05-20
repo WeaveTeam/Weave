@@ -23,6 +23,7 @@ package
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CKANDataSource;
 	import weave.data.DataSources.CSVDataSource;
+	import weave.data.DataSources.CensusDataSource;
 	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.GeoJSONDataSource;
 	import weave.data.DataSources.GraphMLDataSource;
@@ -39,6 +40,7 @@ package
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CKANDataSourceEditor;
 	import weave.editors.CSVDataSourceEditor;
+	import weave.editors.CensusDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
 	import weave.editors.DynamicColumnEditor;
 	import weave.editors.ForeignDataMappingTransformEditor;
@@ -142,6 +144,7 @@ package
 			em.registerEditor(WFSDataSource, WFSDataSourceEditor);
 			em.registerEditor(XLSDataSource, XLSDataSourceEditor);
 			em.registerEditor(DBFDataSource, DBFDataSourceEditor);
+			em.registerEditor(CensusDataSource, CensusDataSourceEditor);
 			em.registerEditor(CSVDataSource, CSVDataSourceEditor);
 			em.registerEditor(GraphMLDataSource, GraphMLDataSourceEditor);
 			em.registerEditor(TransposedDataSource, TransposedDataSourceEditor);

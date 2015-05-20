@@ -15,10 +15,6 @@
 
 package weave.data.DataSources
 {
-    import flash.utils.ByteArray;
-    import flash.utils.Dictionary;
-    
-    import mx.rpc.events.FaultEvent;
     import mx.utils.ObjectUtil;
     
     import weave.api.data.ColumnMetadata;
@@ -35,7 +31,6 @@ package weave.data.DataSources
     import weave.data.hierarchy.ColumnTreeNode;
     import weave.services.JsonCache;
     import weave.utils.DataSourceUtils;
-    import weave.utils.VectorUtils;
 
     public class CensusDataSource extends AbstractDataSource implements IDataSource_Service
     {
@@ -46,32 +41,11 @@ package weave.data.DataSources
 		public static const CONCEPT_NAME:String = "__CensusDataSource__concept";
 		public static const VARIABLE_NAME:String = "__CensusDataSource__variable";
 		
-		[Embed(source="/weave/resources/county_fips_codes.amf", mimeType="application/octet-stream")]
-		private static const CountyFipsDatabase:Class;
-		
-		public static var CountyFipsLookup:Object = null;
-		
-		[Embed(source="/weave/resources/state_fips_codes.amf", mimeType="application/octet-stream")]
-		private static const StateFipsDatabase:Class;
-		
-		public static var StateFipsLookup:Object = null;
+
 
         public function CensusDataSource()
         {
-			if (!CountyFipsLookup) initializeCountyFipsLookup();
-			if (!StateFipsLookup) initializeStateFipsLookup();
         }
-		
-		private static function initializeStateFipsLookup():void
-		{
-			var ba:ByteArray = (new StateFipsDatabase()) as ByteArray;
-			StateFipsLookup = ba.readObject();
-		}
-		private static function initializeCountyFipsLookup():void
-		{
-			var ba:ByteArray = (new CountyFipsDatabase()) as ByteArray;
-			CountyFipsLookup = ba.readObject();
-		}
 		
         override protected function initialize():void
         {
@@ -80,15 +54,15 @@ package weave.data.DataSources
             
             super.initialize();
         }
-        
-		private const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
 		
-		public const keyTypeOverride:LinkableVariable = newLinkableChild(this, LinkableVariable);
+		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
 		public const apiKey:LinkableString = registerLinkableChild(this, new LinkableString(""));
 		public const dataSet:LinkableString = registerLinkableChild(this, new LinkableString("2010acs5"));
-		public const geographicScope:LinkableString = registerLinkableChild(this, new LinkableString("state"));
+		public const geographicScope:LinkableString = registerLinkableChild(this, new LinkableString("040"));
 		public const geographicFilters:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Object));
 		private const api:CensusApi = newLinkableChild(this, CensusApi);
+		
+		public function getAPI():CensusApi {return api;}
 
 		public function createDataSetNode():ColumnTreeNode
 		{
@@ -106,10 +80,11 @@ package weave.data.DataSources
 					api.getVariables(dataSet.value).then(function (result:Object):void
 					{
 						var concept_nodes:Object = {};
+						var concept_node:Object;
 						for (var variableId:String in result)	
 						{							
 							var variableInfo:Object = result[variableId];
-							var concept_node:Object = concept_nodes[variableInfo.concept];
+							concept_node = concept_nodes[variableInfo.concept];
 							
 							
 							if (!concept_node)
@@ -143,7 +118,7 @@ package weave.data.DataSources
 							
 							concept_node.children.push(variable_descriptor);
 						}
-						for each (var concept_node:Object in concept_nodes)
+						for each (concept_node in concept_nodes)
 						{
 							StandardLib.sortOn(concept_node.children, function (obj:Object):String	{return obj.data[VARIABLE_NAME]}); 
 						}
@@ -183,9 +158,9 @@ package weave.data.DataSources
 				function(columnInfo:Object):void
 				{
 					if (!columnInfo) return;
-					var overrides:Object = keyTypeOverride.getSessionState();
-					if (overrides && overrides[columnInfo.metadata[ColumnMetadata.KEY_TYPE]])
-						columnInfo.metadata[ColumnMetadata.KEY_TYPE] = overrides[columnInfo.metadata[ColumnMetadata.KEY_TYPE]];
+
+					if (keyType.value)
+						columnInfo.metadata[ColumnMetadata.KEY_TYPE] = keyType.value;
 					
 					proxyColumn.setMetadata(columnInfo.metadata);
 					
