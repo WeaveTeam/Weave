@@ -16,129 +16,232 @@
 package weave.utils
 {
 	import mx.core.mx_internal;
+	import mx.rpc.AsyncResponder;
 	import mx.rpc.AsyncToken;
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import org.apache.flex.promises.Promise;
-	import org.apache.flex.promises.enums.PromiseState;
-	import org.apache.flex.promises.vo.Handler;
-	
+	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
+	import weave.api.registerDisposableChild;
 	
 	/**
 	 * Use this when you need a Promise chain to depend on ILinkableObjects and resolve multiple times.
 	 * 
 	 * Adds support for <code>depend(...linkableObjects)</code>
 	 */
-	public class WeavePromise extends Promise
+	public class WeavePromise implements IDisposableObject
 	{
-		private static function _noop(..._):* { }
-		
+		/**
+		 * @param relevantContext This parameter may be null.  If the relevantContext object is disposed, the promise will be disabled.
+		 * @param resolver A function like function(resolve:Function, reject:Function):void which carries out the promise
+		 */
 		public function WeavePromise(relevantContext:Object, resolver:Function = null)
 		{
-			super(resolver as Function || _noop);
-			
-			this.rootPromise = relevantContext as WeavePromise || this;
-			this.relevantContext = relevantContext is WeavePromise ? rootPromise.relevantContext : relevantContext;
-			
-			if (resolver == null)
+			if (relevantContext is WeavePromise)
 			{
-				state_ = PromiseState.FULFILLED;
-				value_ = relevantContext;
+				// this is a child promise
+				this.rootPromise = (relevantContext as WeavePromise).rootPromise;
+				this.relevantContext = relevantContext = this.rootPromise.relevantContext;
 			}
 			else
 			{
-				WeaveAPI.ProgressIndicator.addTask(this.rootPromise, this.relevantContext as ILinkableObject);
+				// this is a new root promise
+				this.rootPromise = this;
+				this.relevantContext = relevantContext;
+				
+				// if resolver is not specified, immediately set the result of the root promise equal to the relevantContext
+				if (resolver == null)
+					this.setResult(this.relevantContext);
 			}
-		}
-		
-		protected var rootPromise:WeavePromise;
-		protected var relevantContext:Object;
-		protected const dependencies:Array = [];
-		
-		/**
-		 * Changed for Weave so handlers can be called more than once.
-		 */
-		override protected function handle_(handler:Handler):void
-		{
-			if (handlers_.indexOf(handler) < 0)
-				handlers_.push(handler);
 			
-			if (state_ === PromiseState.PENDING || dependencies.some(dependencyIsBusy))
-				return;
+			if (relevantContext)
+				registerDisposableChild(relevantContext, this);
 			
-			//TODO - super.handle_() does not follow spec - should be async
-			super.handle_(handler);
-		}
-		
-		protected function handle_without_busy_check_(handler:Handler):void
-		{
-			if (handlers_.indexOf(handler) < 0)
-				handlers_.push(handler);
-			
-			if (state_ === PromiseState.PENDING)
-				return;
-			
-			//TODO - super.handle_() does not follow spec - should be async
-			super.handle_(handler);
-		}
-		
-		/**
-		 * Changed for Weave so handlers can be called more than once.
-		 */
-		override protected function processHandlers_():void
-		{
-			if (state_ === PromiseState.PENDING || dependencies.some(dependencyIsBusy))
+			if (resolver != null)
 			{
-				if (handlers_.length)
-				{
-					WeaveAPI.ProgressIndicator.addTask(this.rootPromise, this.relevantContext as ILinkableObject);
-				}
+				setBusy(true);
+				resolver(this.setResult, this.setError);
+			}
+		}
+		
+		private static function noop(value:Object):Object { return value; }
+		
+		private var rootPromise:WeavePromise;
+		private var relevantContext:Object;
+		private var result:* = undefined;
+		private var error:* = undefined;
+		private const handlers:Array = []; // array of Handler objects
+		private const dependencies:Array = [];
+		
+		public function setResult(result:Object):void
+		{
+			if (objectWasDisposed(relevantContext))
+			{
+				setBusy(false);
 				return;
 			}
-
-			if (handlers_.length == 0)
+			
+			this.result = undefined;
+			this.error = undefined;
+			
+			if (result is AsyncToken)
+			{
+				(result as AsyncToken).addResponder(new AsyncResponder(
+					function(event:ResultEvent, token:Object):void {
+						setResult(event.result);
+					},
+					function(event:FaultEvent, token:Object):void {
+						setError(event.fault);
+					}
+				));
+			}
+			else if (result is WeavePromise)
+			{
+				(result as WeavePromise).then(setResult, setError);
+			}
+			else
+			{
+				this.result = result;
+				callHandlers();
+			}
+		}
+		
+		public function getResult():Object
+		{
+			return result;
+		}
+		
+		public function setError(error:Object):void
+		{
+			if (objectWasDisposed(relevantContext))
+			{
+				setBusy(false);
+				return;
+			}
+			
+			this.result = undefined;
+			this.error = error;
+			
+			callHandlers();
+		}
+		
+		public function getError():Object
+		{
+			return error;
+		}
+		
+		private function setBusy(busy:Boolean):void
+		{
+			if (busy)
+			{
+				WeaveAPI.ProgressIndicator.addTask(rootPromise, relevantContext as ILinkableObject);
+			}
+			else
 			{
 				WeaveAPI.ProgressIndicator.removeTask(rootPromise);
 			}
+		}
+		
+		private function callHandlers():void
+		{
+			if (dependencies.some(dependencyIsBusy))
+			{
+				if (handlers.length)
+					setBusy(true);
+				return;
+			}
+			
+			// if there are no more handlers, remove the task
+			if (handlers.length == 0)
+				setBusy(false);
 			
 			if (objectWasDisposed(relevantContext))
+			{
+				setBusy(false);
 				return;
+			}
 			
-			for each (var handler:Handler in handlers_)
-				handle_without_busy_check_(handler);
+			var i:int;
+			if (result !== undefined)
+			{
+				for (i = 0; i < handlers.length; i++)
+					(handlers[i] as Handler).onResult(result);
+			}
+			else if (error !== undefined)
+			{
+				for (i = 0; i < handlers.length; i++)
+					(handlers[i] as Handler).onError(error);
+			}
+		}
+		
+		public function then(onFulfilled:Function = null, onRejected:Function = null):WeavePromise
+		{
+			if (onFulfilled == null)
+				onFulfilled = noop;
+			if (onRejected == null)
+				onRejected = noop;
+			
+			var next:WeavePromise = new WeavePromise(this);
+			next.result = undefined;
+			var handler:Handler = new Handler(
+				function(result:Object):void {
+					try
+					{
+						next.setResult(onFulfilled(result));
+					}
+					catch (e:Error)
+					{
+						handler.onError(e);
+					}
+				},
+				function(error:Object):void {
+					try
+					{
+						next.setError(onRejected(error));
+					}
+					catch (e:Error)
+					{
+						next.setError(e);
+					}
+				}
+			);
+			
+			// callLater will not call the function if the context was disposed
+			WeaveAPI.StageUtils.callLater(relevantContext, function():void {
+				handlers.push(handler);
+				
+				if (!dependencies.some(dependencyIsBusy))
+				{
+					if (result !== undefined)
+						handler.onResult(result);
+					else if (error !== undefined)
+						handler.onError(error);
+				}
+			});
+			
+			return next;
 		}
 		
 		public function depend(...linkableObjects):WeavePromise
 		{
 			if (linkableObjects.length)
 			{
-				WeaveAPI.ProgressIndicator.addTask(rootPromise, relevantContext as ILinkableObject);
+				setBusy(true);
 			}
 			for each (var dependency:ILinkableObject in linkableObjects)
 			{
-				getCallbackCollection(dependency).addGroupedCallback(relevantContext, processHandlers_, true);
+				getCallbackCollection(dependency).addGroupedCallback(relevantContext, callHandlers, true);
 			}
 			return this;
 		}
 		
-		private function dependencyIsBusy(dependency:ILinkableObject, i:int, a:Array):Boolean
+		private static function dependencyIsBusy(dependency:ILinkableObject, i:int, a:Array):Boolean
 		{
 			return WeaveAPI.SessionManager.linkableObjectIsBusy(dependency);
-		}
-		
-		override protected function newPromise(resolver:Function):Promise
-		{
-			return new WeavePromise(this.rootPromise, resolver);
-		}
-		
-		public function thenAgain(onFulfilled:Function = null, onRejected:Function = null):WeavePromise
-		{
-			return then(onFulfilled, onRejected) as WeavePromise;
 		}
 		
 		public function getAsyncToken():AsyncToken
@@ -158,5 +261,21 @@ package weave.utils
 			);
 			return asyncToken;
 		}
+		
+		public function dispose():void
+		{
+			setBusy(false);
+		}
 	}
+}
+
+internal class Handler
+{
+	public function Handler(onResult:Function, onError:Function)
+	{
+		this.onResult = onResult;
+		this.onError = onError;
+	}
+	public var onResult:Function;
+	public var onError:Function;
 }
