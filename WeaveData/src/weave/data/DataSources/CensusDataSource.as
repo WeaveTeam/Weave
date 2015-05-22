@@ -72,7 +72,7 @@ package weave.data.DataSources
 			return new ColumnTreeNode({
 				dataSource: this,
 				data: data,
-				label: data.label,
+				label: name,
 				hasChildBranches: true,
 				children: function(node:ColumnTreeNode):Array {
 					var children:Array = [];

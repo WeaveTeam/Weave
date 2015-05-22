@@ -30,13 +30,19 @@
 	<ui:Indent label="{lang('API Key')}">
 		<mx:TextInput id="apiKeyInput" width="100%"/>
 	</ui:Indent>
+	<ui:Indent label="{lang('Data Family')}">
+		<ui:CustomComboBox id="dataFamilyCombo"
+						   dataProvider="{getDataFamilies(raw_datasets)}"/>
+	</ui:Indent>
 	<ui:Indent label="{lang('Year')}">
-		
+		<ui:CustomComboBox id="dataVintageCombo"
+						   dataProvider="{getDataVintages(raw_datasets, dataFamilyCombo.selectedItem as String)}"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Dataset')}">
-		<ui:CustomComboBox id="dataFamilyCombo" change="dataFamilyChanged()"/>
-		<ui:CustomComboBox id="vintageCombo" change="vintageChanged()"/>
-		<ui:CustomComboBox width = "100%" id="dataSetCombo" change="dataSetChanged()" toolTip="{lang('Select a dataset from those available on the US Census API.')}"/>
+		<ui:CustomComboBox width = "100%" id="dataSetCombo"
+						   change="dataSetChanged()"
+						   dataProvider="{getDatasets(raw_datasets, dataFamilyCombo.selectedItem as String, dataVintageCombo.selectedItem as String)}" 
+						   toolTip="{lang('Select a dataset from those available on the US Census API.')}"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Geographic Scope')}">
 		<ui:CustomComboBox width = "100%" id="geographicScopeCombo" change="geographicScopeChanged()" toolTip="{lang('Select the geographic scope to which each record will correspond.')}"/>
@@ -45,12 +51,14 @@
 		<ui:KeyTypesMenu id="keyTypeCombo" toolTip="{lang('Select a keytype for columns produced by this data source.')}"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Geographic Filters')}">
-		<mx:HBox id="filtersBox">
+		<mx:HBox id="filtersBox" width = "100%">
 			
 		</mx:HBox>
 	</ui:Indent>
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
 			
 			import weave.api.core.ILinkableObject;
@@ -58,11 +66,16 @@
 			import weave.compiler.StandardLib;
 			import weave.data.DataSources.CensusApi;
 			import weave.data.DataSources.CensusDataSource;
+			import weave.utils.VectorUtils;
 			
 			override protected function createChildren():void
 			{
 				super.createChildren();
 				sourceName.text = WeaveAPI.globalHashMap.generateUniqueName(WeaveAPI.ClassRegistry.getDisplayName(CensusDataSource));
+				
+				ChangeWatcher.watch(dataFamilyCombo, "dataProvider", familyCollectionChanged, true);
+				ChangeWatcher.watch(dataVintageCombo, "dataProvider", vintageCollectionChanged, true);
+				ChangeWatcher.watch(dataSetCombo, "dataProvider", datasetCollectionChanged, true);
 				
 				populateDatasets();
 			}
@@ -104,37 +117,119 @@
 					_api = target.getAPI();
 				}
 			}
+			private function isUsableFamily(family:String):Boolean
+			{
+				return (family.indexOf("acs") == 0 || family.indexOf("sf") == 0);
+			}
+			private function isInFamily(dataset:Object, family:String):Boolean
+			{
+				return (family == "All") || (dataset.c_dataset is Array && (dataset.c_dataset.indexOf(family) != -1));
+			}
+			private function isOfVintage(dataset:Object, vintage:String):Boolean
+			{
+				return (vintage == "All") || (String(dataset.c_vintage) == vintage);
+			}
+			[Bindable] private var raw_datasets:Array = null;
+			public function getDataFamilies(datasets:Array):Array
+			{
+				var families_set:Object = {};
+				var families_list:Array = [];
+				if (!raw_datasets) return [];
+				
+				for each (var dataset:Object in datasets)
+					for each (var family:String in dataset.c_dataset)
+						if (!families_set[family] && isUsableFamily(family))
+						{
+							families_set[family] = true;
+							families_list.push(family);
+						}
+				StandardLib.sort(families_list);
+				families_list.unshift("All");			
+				return families_list;
+			}
+			public function getDataVintages(datasets:Array, family:String):Array
+			{
+				var vintages_set:Object = {};
+				var vintages_list:Array = [];
+				if (!raw_datasets) return [];
+				
+				for each (var dataset:Object in datasets)
+				{
+					if (isInFamily(dataset, family))
+					{
+						if (!vintages_set[dataset.c_vintage])
+						{
+							vintages_set[dataset.c_vintage] = true;
+							vintages_list.push(String(dataset.c_vintage));
+						}
+					}
+				}
+				StandardLib.sort(vintages_list);
+				vintages_list.unshift("All");
+				return vintages_list;
+			}
+			public function getDatasets(datasets:Array, family:String, vintage:String):Array
+			{
+				var final_datasets:Array = [];
+				if (!raw_datasets) return final_datasets;
+				
+				for each (var dataset:Object in datasets)
+				{
+					if (isInFamily(dataset, family) && isOfVintage(dataset, vintage))
+					{
+						final_datasets.push({id: dataset.identifier, label: dataset.title});
+					}
+				}
+				StandardLib.sortOn(final_datasets, function (obj:Object):String {return obj.label});
+				return final_datasets;				
+			}
+			private function familyCollectionChanged(event:Event):void
+			{
+				if (target && target.dataSet.value)
+				{
+					var dataset:Object = null;
+					for each (dataset in raw_datasets) 
+						if (dataset.identifier == target.dataSet.value)
+						{
+							dataFamilyCombo.selectedLabel = (dataset && dataset.c_dataset) ? dataset.c_dataset[0] : "All";							
+							break;
+						}
+				}
+			}
+			private function vintageCollectionChanged(event:Event):void
+			{
+				if (target && target.dataSet.value)
+				{
+					var dataset:Object = null;
+					for each (dataset in raw_datasets)
+						if (dataset.identifier == target.dataSet.value)
+						{
+							dataVintageCombo.selectedLabel = (dataset && dataset.c_vintage) ? dataset.c_vintage : "All";
+							break;
+						}
+				}
+			}
+			private function datasetCollectionChanged(event:Event):void
+			{
+				if (target && target.dataSet.value)
+					dataSetCombo.selectByField("id", target.dataSet.value)
+				dataSetChanged();
+			}
+			private function geographyCollectionChanged(event:Event):void
+			{
+				if (target && target.geographicScope.value)
+					dataSetCombo.selectByField("id", target.geographicScope.value);
+				geographicScopeChanged();
+			}
+			
 			public function populateDatasets():void
 			{
 				api.getDatasets().then(
 					function (datasets:Object):void
 					{
-						var provider:Array = [];
-						
-						for each (var dataset:Object in datasets)
-						{
-							provider.push({id: dataset.identifier, label: dataset.title, description: dataset.description});
-						}
-						
-						StandardLib.sortOn(provider, function (obj:Object):String {return obj.id});
-						
-						dataSetCombo.dataProvider = provider;
-						
-						if (target)
-						{
-							dataSetCombo.selectByField("id", target.dataSet.value);
-						}
-						dataSetChanged();
+						raw_datasets = datasets as Array;
 					}
 				);
-			}
-			public function vintageChanged():void
-			{
-				
-			}
-			public function dataFamilyChanged():void
-			{
-				
 			}
 			public function dataSetChanged():void
 			{
@@ -155,7 +250,7 @@
 							provider.push({id: levelId, label: geoInfo.name});
 						}
 						
-						StandardLib.sortOn(provider, function (obj:Object):String {return obj.id});
+						StandardLib.sortOn(provider, function (obj:Object):Number {return Number(obj.id)});
 						
 						geographicScopeCombo.dataProvider = provider;
 						

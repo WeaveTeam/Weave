@@ -99,7 +99,6 @@ package weave.data.DataSources
 			return getDatasets().then(
 				function (result:Object):Object
 				{
-					weaveTrace("getDataSetPromise", dataSetIdentifier);
 					for each (var tmp_dataset:Object in result)
 					{
 						if (tmp_dataset.identifier == dataSetIdentifier)
@@ -107,7 +106,6 @@ package weave.data.DataSources
 							return tmp_dataset;
 						}
 					}
-					weaveTrace("getDataSetPromise failed, no such dataset:", dataSetIdentifier);
 					throw new Error("No such dataset: " + dataSetIdentifier);
 				}, reportError
 			);
@@ -191,21 +189,18 @@ package weave.data.DataSources
 			.then(
 				function (context:Object):WeavePromise
 				{
-					weaveTrace("Calling getDataSetPromise");
 					dataset_name = dataSource.dataSet.value;
 					return getDatasetPromise(dataset_name);
 				}
 			, reportError).then(
 				function (datasetInfo:Object):WeavePromise
 				{
-					weaveTrace("Calling getVariables", dataset_name);
 					service_url = datasetInfo.webService;
 					return getVariables(dataset_name);
 				}
 			, reportError).then(
 				function (variableInfo:Object):WeavePromise
 				{
-					weaveTrace("Calling getGeographies", dataset_name);
 					title = variableInfo[variable_name].label;
 					return getGeographies(dataset_name);
 				}
@@ -230,14 +225,11 @@ package weave.data.DataSources
 					
 					if (api_key) params['key'] = api_key;
 					
-					weaveTrace("Building query and issuing Json request", dataset_name, geography_id);
-					
 					return jsonCache.getJsonPromise(_api, getUrl(service_url, params));
 				}
 			, reportError).then(
 				function (dataResult:Object):Object
 				{
-					weaveTrace("Building column info", dataset_name, geography_id);
 					if (dataResult == null)
 						return null;
 					var idx:int;
