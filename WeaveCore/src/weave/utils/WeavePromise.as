@@ -146,7 +146,7 @@ package weave.utils
 			}
 		}
 		
-		private function callHandlers():void
+		private function callHandlers(newHandlersOnly:Boolean = false):void
 		{
 			if (dependencies.some(dependencyIsBusy))
 			{
@@ -165,16 +165,15 @@ package weave.utils
 				return;
 			}
 			
-			var i:int;
-			if (result !== undefined)
+			for (var i:int = 0; i < handlers.length; i++)
 			{
-				for (i = 0; i < handlers.length; i++)
-					(handlers[i] as Handler).onResult(result);
-			}
-			else if (error !== undefined)
-			{
-				for (i = 0; i < handlers.length; i++)
-					(handlers[i] as Handler).onError(error);
+				var handler:Handler = handlers[i];
+				if (newHandlersOnly && handler.wasCalled)
+					continue;
+				if (result !== undefined)
+					handler.onResult(result);
+				else if (error !== undefined)
+					handler.onError(error);
 			}
 		}
 		
@@ -189,6 +188,7 @@ package weave.utils
 			next.result = undefined;
 			var handler:Handler = new Handler(
 				function(result:Object):void {
+					handler.wasCalled = true;
 					try
 					{
 						next.setResult(onFulfilled(result));
@@ -199,6 +199,7 @@ package weave.utils
 					}
 				},
 				function(error:Object):void {
+					handler.wasCalled = true;
 					try
 					{
 						next.setError(onRejected(error));
@@ -209,19 +210,14 @@ package weave.utils
 					}
 				}
 			);
+			handlers.push(handler);
 			
-			// callLater will not call the function if the context was disposed
-			WeaveAPI.StageUtils.callLater(relevantContext, function():void {
-				handlers.push(handler);
-				
-				if (!dependencies.some(dependencyIsBusy))
-				{
-					if (result !== undefined)
-						handler.onResult(result);
-					else if (error !== undefined)
-						handler.onError(error);
-				}
-			});
+			if (result !== undefined || error !== undefined)
+			{
+				// callLater will not call the function if the context was disposed
+				WeaveAPI.StageUtils.callLater(relevantContext, callHandlers, [true]);
+				setBusy(true);
+			}
 			
 			return next;
 		}
@@ -264,6 +260,7 @@ package weave.utils
 		
 		public function dispose():void
 		{
+			handlers.length = 0;
 			setBusy(false);
 		}
 	}
@@ -278,4 +275,8 @@ internal class Handler
 	}
 	public var onResult:Function;
 	public var onError:Function;
+	/**
+	 * Used as a flag to indicate whether or not this handler has been called 
+	 */
+	public var wasCalled:Boolean = false;
 }
