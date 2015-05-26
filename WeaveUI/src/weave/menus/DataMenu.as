@@ -114,7 +114,7 @@ package weave.menus
 						return group.map(
 							function(impl:Class, i:*, a:*):Object {
 								return {
-									shown: {or: [alwaysShow, Weave.properties.enableManageDataSources]},
+									shown: [Weave.properties.getMenuToggle(impl), {or: [alwaysShow, Weave.properties.enableManageDataSources]}],
 									label: getLabel,
 									click: onClick,
 									data: impl

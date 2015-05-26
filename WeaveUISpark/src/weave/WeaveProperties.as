@@ -17,7 +17,6 @@ package weave
 {
 	import flash.display.Stage;
 	import flash.events.Event;
-	import flash.filters.BlurFilter;
 	import flash.filters.DropShadowFilter;
 	import flash.filters.GlowFilter;
 	import flash.net.URLRequest;
@@ -102,12 +101,12 @@ package weave
 				}
 			);
 
-//			_toggleToolsMenuItem("ThermometerTool", false);
-//			_toggleToolsMenuItem("GaugeTool", false);
-			_toggleToolsMenuItem("TreeTool", false);
-			_toggleToolsMenuItem("CytoscapeWebTool", false);
-			_toggleToolsMenuItem("CustomGraphicsTool", false);
-			_toggleToolsMenuItem("KeyMappingTool", false);
+//			_toggleMenuItem("ThermometerTool", false);
+//			_toggleMenuItem("GaugeTool", false);
+			_toggleMenuItem("TreeTool", false);
+			_toggleMenuItem("CytoscapeWebTool", false);
+			_toggleMenuItem("CustomGraphicsTool", false);
+			_toggleMenuItem("KeyMappingTool", false);
 			
 			panelTitleTextFormat.font.value = "Verdana";
 			panelTitleTextFormat.size.value = 10;
@@ -246,20 +245,20 @@ package weave
 		public const showKMeansClustering:LinkableBoolean = new LinkableBoolean(false);
 		public const showAddExternalTools:LinkableBoolean = new LinkableBoolean(false); // Show Add External Tools dialog in tools menu.
 		
-		public const toolToggles:ILinkableHashMap = new LinkableHashMap(LinkableBoolean); // className -> LinkableBoolean
-		public function getToolToggle(classDef:Class):LinkableBoolean
+		public const menuToggles:ILinkableHashMap = new LinkableHashMap(LinkableBoolean); // className -> LinkableBoolean
+		public function getMenuToggle(classDef:Class):LinkableBoolean
 		{
 			var className:String = getQualifiedClassName(classDef).split('::').pop();
-			var existsPreviously:Boolean = toolToggles.getObject(className) is LinkableBoolean;
-			var toggle:LinkableBoolean = toolToggles.requestObject(className, LinkableBoolean, true); // lock
-			var deprecatedToggle:LinkableBoolean = toolToggles.getObject(toolToggleBackwardsCompatibility[className]) as LinkableBoolean;
+			var existsPreviously:Boolean = menuToggles.getObject(className) is LinkableBoolean;
+			var toggle:LinkableBoolean = menuToggles.requestObject(className, LinkableBoolean, true); // lock
+			var deprecatedToggle:LinkableBoolean = menuToggles.getObject(toolToggleBackwardsCompatibility[className]) as LinkableBoolean;
 			if (!existsPreviously)
 			{
 				if (deprecatedToggle)
 				{
 					// backwards compatibility for old session states
 					toggle.value = deprecatedToggle.value;
-					toolToggles.removeObject(toolToggleBackwardsCompatibility[className]);
+					menuToggles.removeObject(toolToggleBackwardsCompatibility[className]);
 				}
 				else
 				{
@@ -271,7 +270,10 @@ package weave
 			return toggle;
 		}
 		// maps new tool name to old tool name
-		private const toolToggleBackwardsCompatibility:Object = {"AdvancedDataTable": "DataTableTool", "TableTool": "DataTableTool"};
+		private const toolToggleBackwardsCompatibility:Object = {
+			"AdvancedDataTable": "DataTableTool",
+			"TableTool": "DataTableTool"
+		};
 
 		public const enableToolAttributeEditing:LinkableBoolean = new LinkableBoolean(true);
 		public const enableToolSelection:LinkableBoolean = new LinkableBoolean(true);
@@ -598,34 +600,36 @@ package weave
 				rServiceURL.value = value + '/RService';
 		}
 		
-		private function _toggleToolsMenuItem(className:String, value:Boolean):void
+		[Deprecated(replacement="menuToggles")] public function get toolToggles():ILinkableHashMap { return menuToggles; }
+		private function _toggleMenuItem(className:String, value:Boolean):void
 		{
-			var lb:LinkableBoolean = toolToggles.requestObject(className, LinkableBoolean, false);
+			var lb:LinkableBoolean = menuToggles.requestObject(className, LinkableBoolean, false);
 			lb.value = value;
 		}
-		[Deprecated(replacement="getToolToggle")] public function set enableAddAttributeMenuTool(value:Boolean):void { _toggleToolsMenuItem("AttributeMenuTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddBarChart(value:Boolean):void { _toggleToolsMenuItem("CompoundBarChartTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddColorLegend(value:Boolean):void { _toggleToolsMenuItem("ColorBinLegendTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddColormapHistogram(value:Boolean):void { _toggleToolsMenuItem("ColormapHistogramTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddCompoundRadViz(value:Boolean):void { _toggleToolsMenuItem("CompoundRadVizTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddCustomTool(value:Boolean):void { _toggleToolsMenuItem("CustomTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddSchafersMissingDataTool(value:Boolean):void { _toggleToolsMenuItem("SchafersMissingDataTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddDataTable(value:Boolean):void { _toggleToolsMenuItem("DataTableTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddGaugeTool(value:Boolean):void { _toggleToolsMenuItem("GaugeTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddHistogram(value:Boolean):void { _toggleToolsMenuItem("HistogramTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAdd2DHistogram(value:Boolean):void { _toggleToolsMenuItem("Histogram2DTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddLineChart(value:Boolean):void { _toggleToolsMenuItem("LineChartTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddDimensionSliderTool(value:Boolean):void { _toggleToolsMenuItem("DimensionSliderTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddMap(value:Boolean):void { _toggleToolsMenuItem("MapTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddPieChart(value:Boolean):void { _toggleToolsMenuItem("PieChartTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddPieChartHistogram(value:Boolean):void { _toggleToolsMenuItem("PieChartHistogramTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddRadViz(value:Boolean):void { _toggleToolsMenuItem("RadVizTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddRScriptEditor(value:Boolean):void { _toggleToolsMenuItem("RTextEditor", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddScatterplot(value:Boolean):void { _toggleToolsMenuItem("ScatterPlotTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddThermometerTool(value:Boolean):void { _toggleToolsMenuItem("ThermometerTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddTimeSliderTool(value:Boolean):void { _toggleToolsMenuItem("TimeSliderTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddRamachandranPlot(value:Boolean):void { _toggleToolsMenuItem("RamachandranPlotTool", value); }
-		[Deprecated(replacement="getToolToggle")] public function set enableAddDataStatisticsTool(value:Boolean):void { _toggleToolsMenuItem("DataStatisticsTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function getToolToggle(classDef:Class):LinkableBoolean { return getMenuToggle(classDef); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddAttributeMenuTool(value:Boolean):void { _toggleMenuItem("AttributeMenuTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddBarChart(value:Boolean):void { _toggleMenuItem("CompoundBarChartTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddColorLegend(value:Boolean):void { _toggleMenuItem("ColorBinLegendTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddColormapHistogram(value:Boolean):void { _toggleMenuItem("ColormapHistogramTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddCompoundRadViz(value:Boolean):void { _toggleMenuItem("CompoundRadVizTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddCustomTool(value:Boolean):void { _toggleMenuItem("CustomTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddSchafersMissingDataTool(value:Boolean):void { _toggleMenuItem("SchafersMissingDataTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddDataTable(value:Boolean):void { _toggleMenuItem("DataTableTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddGaugeTool(value:Boolean):void { _toggleMenuItem("GaugeTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddHistogram(value:Boolean):void { _toggleMenuItem("HistogramTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAdd2DHistogram(value:Boolean):void { _toggleMenuItem("Histogram2DTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddLineChart(value:Boolean):void { _toggleMenuItem("LineChartTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddDimensionSliderTool(value:Boolean):void { _toggleMenuItem("DimensionSliderTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddMap(value:Boolean):void { _toggleMenuItem("MapTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddPieChart(value:Boolean):void { _toggleMenuItem("PieChartTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddPieChartHistogram(value:Boolean):void { _toggleMenuItem("PieChartHistogramTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddRadViz(value:Boolean):void { _toggleMenuItem("RadVizTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddRScriptEditor(value:Boolean):void { _toggleMenuItem("RTextEditor", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddScatterplot(value:Boolean):void { _toggleMenuItem("ScatterPlotTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddThermometerTool(value:Boolean):void { _toggleMenuItem("ThermometerTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddTimeSliderTool(value:Boolean):void { _toggleMenuItem("TimeSliderTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddRamachandranPlot(value:Boolean):void { _toggleMenuItem("RamachandranPlotTool", value); }
+		[Deprecated(replacement="getMenuToggle")] public function set enableAddDataStatisticsTool(value:Boolean):void { _toggleMenuItem("DataStatisticsTool", value); }
 		//--------------------------------------------
 		
 		public function handleMissingSessionStateProperty(newState:Object, missingProperty:String):void
