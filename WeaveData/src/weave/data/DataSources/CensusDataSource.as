@@ -109,7 +109,7 @@ package weave.data.DataSources
 							var variable_descriptor:Object = {
 								dataSource: _ds,
 								data: ObjectUtil.copy(concept_node.data),
-								label: variableInfo.label,
+								label: variableInfo.title,
 								idFields: [CONCEPT_NAME, VARIABLE_NAME],
 								children: null
 							};

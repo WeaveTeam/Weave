@@ -24,6 +24,7 @@ package weave.data.DataSources
 	import weave.api.getLinkableOwner;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 	import weave.services.JsonCache;
 	import weave.utils.VectorUtils;
 	import weave.utils.WeavePromise;
@@ -134,11 +135,18 @@ package weave.data.DataSources
 			return getVariablesPromise(dataSetIdentifier).then(
 				function (result:Object):Object
 				{
-					var variableInfo:Object = ObjectUtil.copy(result.variables);
-					delete variableInfo["for"];
-					delete variableInfo["in"];
+					var variablesInfo:Object = ObjectUtil.copy(result.variables);
+					delete variablesInfo["for"];
+					delete variablesInfo["in"];
 					
-					return variableInfo;
+					for (var key:String in variablesInfo)
+					{
+						var label:String = variablesInfo[key]['label'];
+						var title:String = StandardLib.substitute('{0} ({1})', StandardLib.replace(label, '!!', '\u2014'), key);
+						variablesInfo[key]['title'] = title;
+					}
+					
+					return variablesInfo;
 				}
 			, reportError);
 		}
@@ -185,7 +193,8 @@ package weave.data.DataSources
 			var filters:Array = [];
 			var requires:Array = null;
 			
-			return new WeavePromise(this).depend(dataSource.dataSet)
+			return new WeavePromise(this)
+			.depend(dataSource.dataSet)
 			.then(
 				function (context:Object):WeavePromise
 				{
@@ -201,10 +210,12 @@ package weave.data.DataSources
 			, reportError).then(
 				function (variableInfo:Object):WeavePromise
 				{
-					title = variableInfo[variable_name].label;
+					title = variableInfo[variable_name].title;
 					return getGeographies(dataset_name);
 				}
-			, reportError).depend(dataSource.geographicScope, dataSource.apiKey, dataSource.geographicFilters).then(
+			, reportError)
+			.depend(dataSource.geographicScope, dataSource.apiKey, dataSource.geographicFilters)
+			.then(
 				function (geographyInfo:Object):WeavePromise
 				{
 					geography_id = dataSource.geographicScope.value;
@@ -221,9 +232,11 @@ package weave.data.DataSources
 					params["get"] = variable_name;
 					params["for"] = geographyInfo[geography_id].name + ":*";
 					
-					if (filters.length != 0) params["in"] =  filters.join(",");
+					if (filters.length != 0)
+						params["in"] =  filters.join(",");
 					
-					if (api_key) params['key'] = api_key;
+					if (api_key)
+						params['key'] = api_key;
 					
 					return jsonCache.getJsonPromise(_api, getUrl(service_url, params));
 				}
