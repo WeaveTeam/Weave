@@ -100,39 +100,71 @@ package weave.data.DataSources
 			var keyType:String;
 			var simpleInputs:Object = {};
 			var columnsByKeyType:Object = {}; // Object(keyType -> Array of IAttributeColumn)
+
+			var tableData:Object = {}; // Object(inputName -> { columnName : column })
+			var columnData:Object = {}; // Object(keyType -> {keys: [], columns: Object(name -> Array) })
+			
+			var joined:Array = [];
+			var colMap:Object = {};
+			
 			for each (var obj:ILinkableObject in inputs.getObjects())
 			{
 				var name:String = inputs.getName(obj);
+				
+				// if the input is a column
 				var column:IAttributeColumn = obj as IAttributeColumn;
 				if (column)
 				{
 					keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
 					var columnArray:Array = columnsByKeyType[keyType] || (columnsByKeyType[keyType] = [])
 					columnArray.push(column);
+					for (keyType in columnsByKeyType)
+					{
+						var cols:Array = columnsByKeyType[keyType];
+						joined = ColumnUtils.joinColumns(cols, null, true);
+						var keys:Array = VectorUtils.pluck(joined.shift() as Array, 'localName');
+						colMap = {};
+						for (var i:int = 0; i <  joined.length; i++)
+							colMap[ inputs.getName(cols[i]) ] = joined[i];
+						columnData[keyType] = {keys: keys, columns: colMap};
+					}
 				}
 				else
 				{
-					simpleInputs[name] = getSessionState(inputs.getObject(name));
+					var columns:Array = obj as Array;
+					// if the input is an array of columns
+					if(columns)
+					{
+						var flag:Boolean = false;
+						if(!columns.length)
+							return;
+						
+						column = columns[0] as IAttributeColumn;
+						keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
+
+						for each (var col:IAttributeColumn in columns)
+						{
+							flag = col.getMetadata(ColumnMetadata.KEY_TYPE) != keyType;
+							colMap[col.getMetadata(ColumnMetadata.TITLE)] = col; 
+						}
+						if(flag) {
+							reportError("Columns in table input must all be of the same keyType");
+							return;							
+						} else {
+							tableData[name] = colMap;
+						}
+					} else {
+						// if the input is just a value (number, string or boolean)
+						simpleInputs[name] = getSessionState(inputs.getObject(name));
+					}
 				}
-			}
-			
-			var columnData:Object = {}; // Object(keyType -> {keys: [], columns: Object(name -> Array) })
-			for (keyType in columnsByKeyType)
-			{
-				var cols:Array = columnsByKeyType[keyType];
-				var joined:Array = ColumnUtils.joinColumns(cols, null, true);
-				var keys:Array = VectorUtils.pluck(joined.shift() as Array, 'localName');
-				var colMap:Object = {};
-				for (var i:int = 0; i <  joined.length; i++)
-					colMap[ inputs.getName(cols[i]) ] = joined[i];
-				columnData[keyType] = {keys: keys, columns: colMap};
 			}
 			
 			outputCSV.setCSVData(null);
 			outputCSV.metadata.setSessionState(null);
 			
 			addAsyncResponder(
-				_service.invokeAsyncMethod('runScriptWithInputs', [scriptName.value, simpleInputs, columnData]),
+				_service.invokeAsyncMethod('runScriptWithInputs', [scriptName.value, simpleInputs, columnData, tableData]),
 				handleScriptResult,
 				handleScriptError,
 				getSessionState(this)
