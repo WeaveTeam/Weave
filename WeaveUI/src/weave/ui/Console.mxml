@@ -71,6 +71,7 @@
 				engine.consoleMethods['trace'] = consoleTrace;
 				engine.consoleMethods['clear'] = consoleClear;
 				engine.consoleMethods['identify'] = Identify.identify;
+				engine.consoleMethods['view'] = consoleView;
 				
 				var app:Object = WeaveAPI.topLevelApplication;
 				if (app.hasOwnProperty('visApp'))
@@ -86,6 +87,11 @@
 			public function consoleClear():String
 			{
 				return log.text = '';
+			}
+			public function consoleView(object:*):void
+			{
+				var viewer:ObjectViewer = DraggablePanel.openStaticInstance(ObjectViewer);
+				viewer.data = object;
 			}
 			
 			private function runCommand():void

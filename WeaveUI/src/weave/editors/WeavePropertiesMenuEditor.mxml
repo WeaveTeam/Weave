@@ -84,6 +84,11 @@
 							 label="{lang('Refresh data source hierarchies')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, refreshDataCheckBox, 'selected')"/> 
 				<ui:CustomCheckBox label="{lang('Export CSV')}" creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>
+				
+				<mx:HRule width="100%"/>
+				<mx:VBox verticalGap="{verticalGap}" id="dataMenuToggleVBox"/>
+				<mx:HRule width="100%"/>
+
 				<ui:CustomCheckBox label="{lang('Equation Column Editor')}"
 								   creationComplete="linkBindableProperty(Weave.properties.showEquationEditor, event.target, 'selected')"/>
 			</mx:VBox>
@@ -108,7 +113,7 @@
 					<ui:CustomCheckBox label="{lang('Add External Tool')}"
 								 creationComplete="linkBindableProperty(Weave.properties.showAddExternalTools, event.target, 'selected')"/>
 				</mx:VBox>
-				<mx:VBox verticalGap="{verticalGap}" id="menuToggleVBox"/>
+				<mx:VBox verticalGap="{verticalGap}" id="toolsMenuToggleVBox"/>
 			</mx:HBox>	
 		</mx:VBox>	
 		
@@ -188,6 +193,7 @@
 			import weave.Weave;
 			import weave.api.linkBindableProperty;
 			import weave.api.ui.IVisTool;
+			import weave.menus.DataMenu;
 			import weave.menus.ToolsMenu;
 			import weave.menus.WeaveMenuItem;
 			
@@ -195,23 +201,28 @@
 			{
 				super.createChildren();
 				
-				if (menuToggleVBox.numChildren > 0)
+				createMenuToggleCheckBoxes(dataMenuToggleVBox, DataMenu.getDynamicItems());
+				createMenuToggleCheckBoxes(toolsMenuToggleVBox, ToolsMenu.getDynamicItems(null, null, true));
+			}
+			private function createMenuToggleCheckBoxes(vbox:VBox, weaveMenuItems:Array):void
+			{
+				if (vbox.numChildren > 0)
 					return;
 				
-				for each (var item:WeaveMenuItem in ToolsMenu.getDynamicItems(null, null, true))
+				for each (var item:WeaveMenuItem in weaveMenuItems)
 				{
 					if (item.type == WeaveMenuItem.TYPE_SEPARATOR)
 					{
 						var hr:HRule = new HRule();
 						hr.percentWidth = 100;
-						menuToggleVBox.addChild(hr);
+						vbox.addChild(hr);
 					}
 					else
 					{
 						var cb:CustomCheckBox = new CustomCheckBox();
 						cb.label = item.label;
-						linkBindableProperty(Weave.properties.getToolToggle(item.data as Class), cb, 'selected');
-						menuToggleVBox.addChild(cb);
+						linkBindableProperty(Weave.properties.getMenuToggle(item.data as Class), cb, 'selected');
+						vbox.addChild(cb);
 					}
 				}
 			}

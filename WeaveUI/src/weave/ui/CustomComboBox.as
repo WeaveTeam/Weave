@@ -40,15 +40,28 @@ package weave.ui
 		[Bindable]
 		public function set selectedLabel(value:String):void
 		{
+			selectByField("label", value);
+		}
+		
+		public function selectByField(field:String, value:*):void
+		{
 			// save current iterator bookmark
 			var bookmark:CursorBookmark = iterator.bookmark;
-
+			
 			// find desired label
 			var newSelectedItem:Object = null;
 			iterator.seek(CursorBookmark.FIRST, 0);
 			while (iterator.moveNext())
 			{
-				if (itemToLabel(iterator.current) == value)
+				var item_value:* = null;
+				
+				if (field == "label")
+					item_value = itemToLabel(iterator.current);
+				else
+					if (iterator.current)
+						item_value = iterator.current[field];
+				
+				if (item_value == value)
 				{
 					newSelectedItem = iterator.current;
 					break;
@@ -60,7 +73,7 @@ package weave.ui
 			
 			// if label was found, set selected item
 			if (newSelectedItem != null)
-				selectedItem = newSelectedItem;
+				selectedItem = newSelectedItem;						
 		}
 	}
 }

@@ -140,6 +140,11 @@ package weave.core
 		 */
 		public function registerDisposableChild(disposableParent:Object, disposableChild:Object):*
 		{
+			if (!disposableParent)
+				throw new Error("registerDisposableChild(): Parent parameter cannot be null.");
+			if (!disposableChild)
+				throw new Error("registerDisposableChild(): Child parameter cannot be null.");
+			
 			// if this parent has no owner-to-child mapping, initialize it now with parent-to-child mapping
 			if (ownerToChildDictionaryMap[disposableParent] === undefined)
 			{
@@ -166,6 +171,11 @@ package weave.core
 		 */
 		public function unregisterLinkableChild(parent:ILinkableObject, child:ILinkableObject):void
 		{
+			if (!parent)
+				throw new Error("unregisterLinkableChild(): Parent parameter cannot be null.");
+			if (!child)
+				throw new Error("unregisterLinkableChild(): Child parameter cannot be null.");
+			
 			if (childToParentDictionaryMap[child])
 				delete childToParentDictionaryMap[child][parent];
 			if (parentToChildDictionaryMap[parent])

@@ -1,0 +1,288 @@
+/* ***** BEGIN LICENSE BLOCK *****
+*
+* This file is part of Weave.
+*
+* The Initial Developer of Weave is the Institute for Visualization
+* and Perception Research at the University of Massachusetts Lowell.
+* Portions created by the Initial Developer are Copyright (C) 2008-2015
+* the Initial Developer. All Rights Reserved.
+*
+* This Source Code Form is subject to the terms of the Mozilla Public
+* License, v. 2.0. If a copy of the MPL was not distributed with this file,
+* You can obtain one at http://mozilla.org/MPL/2.0/.
+* 
+* ***** END LICENSE BLOCK ***** */
+
+package weave.data.DataSources
+{
+	import flash.utils.ByteArray;
+	
+	import mx.utils.ObjectUtil;
+	
+	import weave.api.core.ILinkableObject;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.getLinkableOwner;
+	import weave.api.newLinkableChild;
+	import weave.api.reportError;
+	import weave.compiler.StandardLib;
+	import weave.services.JsonCache;
+	import weave.utils.VectorUtils;
+	import weave.utils.WeavePromise;
+	
+	public class CensusApi implements ILinkableObject
+	{
+		public static const BASE_URL:String = "http://api.census.gov/";
+		private const jsonCache:JsonCache = newLinkableChild(this, JsonCache);
+		
+		[Embed(source="/weave/resources/county_fips_codes.amf", mimeType="application/octet-stream")]
+		private static const CountyFipsDatabase:Class;
+		
+		private static var CountyFipsLookup:Object = null;
+		
+		[Embed(source="/weave/resources/state_fips_codes.amf", mimeType="application/octet-stream")]
+		private static const StateFipsDatabase:Class;
+		
+		private static var StateFipsLookup:Object = null;
+		
+		private static function initializeStateFipsLookup():void
+		{
+			var ba:ByteArray = (new StateFipsDatabase()) as ByteArray;
+			StateFipsLookup = ba.readObject();
+		}
+		private static function initializeCountyFipsLookup():void
+		{
+			var ba:ByteArray = (new CountyFipsDatabase()) as ByteArray;
+			CountyFipsLookup = ba.readObject();
+		}
+		
+		public function get state_fips():Object
+		{
+			if (!StateFipsLookup) 
+				initializeStateFipsLookup();
+			return StateFipsLookup;
+		}
+		
+		public function get county_fips():Object
+		{
+			if (!CountyFipsLookup)
+				initializeCountyFipsLookup();
+			return CountyFipsLookup;
+		}
+		
+		private function get _api():CensusApi
+		{
+			return this;
+		}
+		
+		private function getUrl(serviceUrl:String, params:Object):String
+		{
+			var paramsStr:String = '';
+			for (var key:String in params)
+				paramsStr += (paramsStr ? '&' : '?') + key + '=' + params[key];
+			return serviceUrl + paramsStr;
+		}
+		
+		
+		
+		public function CensusApi():void
+		{
+		}
+		
+		public function getDatasets():WeavePromise
+		{
+			return jsonCache.getJsonPromise(_api, BASE_URL + "data.json");
+		}
+		
+		/* TODO: Add memoized promises for preprocessing steps */
+		
+		private function getDatasetPromise(dataSetIdentifier:String):WeavePromise
+		{
+			return getDatasets().then(
+				function (result:Object):Object
+				{
+					for each (var tmp_dataset:Object in result)
+					{
+						if (tmp_dataset.identifier == dataSetIdentifier)
+						{
+							return tmp_dataset;
+						}
+					}
+					throw new Error("No such dataset: " + dataSetIdentifier);
+				}, reportError
+			);
+		}
+		private function getVariablesPromise(dataSetIdentifier:String):WeavePromise
+		{
+			return getDatasetPromise(dataSetIdentifier).then(
+				function (dataset:Object):WeavePromise
+				{
+					return jsonCache.getJsonPromise(_api, dataset.c_variablesLink);
+				}
+			, reportError);
+		}
+		private function getGeographiesPromise(dataSetIdentifier:String):WeavePromise
+		{
+			return getDatasetPromise(dataSetIdentifier).then(
+				function (dataset:Object):WeavePromise
+				{
+					return jsonCache.getJsonPromise(_api, dataset.c_geographyLink);
+				}
+			, reportError);
+		}
+		
+		public function getVariables(dataSetIdentifier:String):WeavePromise
+		{
+			return getVariablesPromise(dataSetIdentifier).then(
+				function (result:Object):Object
+				{
+					var variablesInfo:Object = ObjectUtil.copy(result.variables);
+					delete variablesInfo["for"];
+					delete variablesInfo["in"];
+					
+					for (var key:String in variablesInfo)
+					{
+						var label:String = variablesInfo[key]['label'];
+						var title:String = StandardLib.substitute('{0} ({1})', StandardLib.replace(label, '!!', '\u2014'), key);
+						variablesInfo[key]['title'] = title;
+					}
+					
+					return variablesInfo;
+				}
+			, reportError);
+		}
+		
+		public function getGeographies(dataSetIdentifier:String):WeavePromise
+		{
+			return getGeographiesPromise(dataSetIdentifier).then(
+				function (result:Object):Object
+				{
+					var geo:Object = {};
+					for each (var geo_description:Object in result.fips)
+					{
+						geo[geo_description.geoLevelId] = {
+							id: geo_description.geoLevelId,
+							name: geo_description.name,
+							requires: geo_description.requires,
+							optional: geo_description.optionalWithWCFor || []
+						};
+					}
+					
+					return geo;
+				}
+			, reportError);
+		}
+		
+		/**
+		 * 
+		 * @param metadata
+		 * @return An object containing three fields, "keys," "values," and "metadata" 
+		 */				
+		public function getColumn(metadata:Object):WeavePromise
+		{	
+			var dataSource:CensusDataSource = getLinkableOwner(this) as CensusDataSource;
+			var dataset_name:String;
+			var geography_id:String;
+			var geography_filters:Object;
+			var api_key:String;
+			
+			var variable_name:String = metadata[CensusDataSource.VARIABLE_NAME];
+			
+			var params:Object = {};
+			var title:String = null;
+			var service_url:String = null;
+			var filters:Array = [];
+			var requires:Array = null;
+			
+			return new WeavePromise(this)
+			.depend(dataSource.dataSet)
+			.then(
+				function (context:Object):WeavePromise
+				{
+					dataset_name = dataSource.dataSet.value;
+					return getDatasetPromise(dataset_name);
+				}
+			, reportError).then(
+				function (datasetInfo:Object):WeavePromise
+				{
+					service_url = datasetInfo.webService;
+					return getVariables(dataset_name);
+				}
+			, reportError).then(
+				function (variableInfo:Object):WeavePromise
+				{
+					title = variableInfo[variable_name].title;
+					return getGeographies(dataset_name);
+				}
+			, reportError)
+			.depend(dataSource.geographicScope, dataSource.apiKey, dataSource.geographicFilters)
+			.then(
+				function (geographyInfo:Object):WeavePromise
+				{
+					geography_id = dataSource.geographicScope.value;
+					geography_filters = dataSource.geographicFilters.getSessionState();
+					api_key = dataSource.apiKey.value;
+					requires = VectorUtils.copy(geographyInfo[geography_id].requires || []);
+					requires.push(geographyInfo[geography_id].name);
+					
+					for (var key:String in geography_filters)
+					{
+						filters.push(geographyInfo[key].name + ":" + geography_filters[key]);
+					}
+
+					params["get"] = variable_name;
+					params["for"] = geographyInfo[geography_id].name + ":*";
+					
+					if (filters.length != 0)
+						params["in"] =  filters.join(",");
+					
+					if (api_key)
+						params['key'] = api_key;
+					
+					return jsonCache.getJsonPromise(_api, getUrl(service_url, params));
+				}
+			, reportError).then(
+				function (dataResult:Object):Object
+				{
+					if (dataResult == null)
+						return null;
+					var idx:int;
+					var columns:Array = dataResult[0] as Array;
+					var rows:Array = dataResult as Array;
+					var data_column:Array = new Array(rows.length - 1);
+					var key_column:Array = new Array(rows.length - 1);
+					var key_column_indices:Array = new Array(columns.length);
+					var data_column_index:int = columns.indexOf(variable_name);
+					
+					var tmp_key_type:String = WeaveAPI.CSVParser.createCSVRow(requires);
+					
+					
+
+					metadata[ColumnMetadata.KEY_TYPE] = tmp_key_type;
+					metadata[ColumnMetadata.TITLE] = title;
+					for (idx = 0; idx < requires.length; idx++)
+					{
+						key_column_indices[idx] = columns.indexOf(requires[idx]);
+					}
+					for (var row_idx:int = 0; row_idx < data_column.length; row_idx++)
+					{
+						var row:Array = rows[row_idx+1];
+						var key_values:Array = new Array(key_column_indices.length);
+						
+						for (idx = 0; idx < key_column_indices.length; idx++)
+						{
+							key_values[idx] = row[key_column_indices[idx]];
+						}
+						key_column[row_idx] = key_values.join("");
+						data_column[row_idx] = row[data_column_index];
+					}
+					
+					return {
+						keys: key_column,
+						data: data_column,
+						metadata: metadata
+					};
+				}
+			, reportError);
+		}
+	}
+}

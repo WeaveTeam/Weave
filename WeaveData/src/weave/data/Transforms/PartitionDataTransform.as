@@ -73,7 +73,7 @@ package weave.data.Transforms
 					dependency: partitionColumn,
 					label: WeaveAPI.globalHashMap.getName(this),
 					hasChildBranches: true,
-					children: function():Array {
+					children: function(parentNode:ColumnTreeNode):Array {
 						var partitionValues:Array = VectorUtils.union(
 							partitionColumn.keys.map(
 								function(key:IQualifiedKey, ..._):String {
@@ -84,6 +84,7 @@ package weave.data.Transforms
 						return partitionValues.map(
 							function(partitionValue:String, ..._):* {
 								return {
+									dataSource: parentNode.dataSource,
 									dependency: inputColumns,
 									data: partitionValue,
 									hasChildBranches: false,
