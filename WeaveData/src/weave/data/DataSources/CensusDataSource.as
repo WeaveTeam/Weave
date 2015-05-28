@@ -15,6 +15,7 @@
 
 package weave.data.DataSources
 {
+    import mx.rpc.Fault;
     import mx.utils.ObjectUtil;
     
     import weave.api.data.ColumnMetadata;
@@ -23,13 +24,11 @@ package weave.data.DataSources
     import weave.api.data.IWeaveTreeNode;
     import weave.api.newLinkableChild;
     import weave.api.registerLinkableChild;
-    import weave.api.reportError;
     import weave.compiler.StandardLib;
     import weave.core.LinkableString;
     import weave.core.LinkableVariable;
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.hierarchy.ColumnTreeNode;
-    import weave.services.JsonCache;
     import weave.utils.DataSourceUtils;
 
     public class CensusDataSource extends AbstractDataSource implements IDataSource_Service
@@ -69,10 +68,10 @@ package weave.data.DataSources
 			var _ds:IDataSource = this;
 			var name:String = WeaveAPI.globalHashMap.getName(this);
 			var data:Object = {id:0, name: name};
-			return new ColumnTreeNode({
+			var ctn:ColumnTreeNode = new ColumnTreeNode({
 				dataSource: this,
 				data: data,
-				label: name,
+				label: function():String { return dataSet.value || name; },
 				hasChildBranches: true,
 				children: function(node:ColumnTreeNode):Array {
 					var children:Array = [];
@@ -127,11 +126,21 @@ package weave.data.DataSources
 					return children;
 				}
 			});
-		}
-		
-		private function columnLabelFunc(node:ColumnTreeNode):String
-		{
-			return null;
+			api.getDatasets().then(
+				function (datasetsInfo:Array):void
+				{
+					for each (var dataset:Object in datasetsInfo)
+					{
+						if (dataset.identifier == dataSet.value)
+						{
+							ctn.label = dataset.title;
+							return;
+						}
+					}
+					ctn.label = dataSet.value;
+				}
+			);
+			return ctn;
 		}
 		
         override public function getHierarchyRoot():IWeaveTreeNode
@@ -165,8 +174,12 @@ package weave.data.DataSources
 					proxyColumn.setMetadata(columnInfo.metadata);
 					
 					DataSourceUtils.initColumn(proxyColumn, columnInfo.keys, columnInfo.data);
+				},
+				function (error:Fault):void
+				{
+					proxyColumn.dataUnavailable(error.faultString);
 				}
-			, reportError);
+			);
         }
     }
 }

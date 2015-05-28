@@ -23,7 +23,6 @@ package weave.data.DataSources
 	import weave.api.data.ColumnMetadata;
 	import weave.api.getLinkableOwner;
 	import weave.api.newLinkableChild;
-	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.services.JsonCache;
 	import weave.utils.VectorUtils;
@@ -108,8 +107,7 @@ package weave.data.DataSources
 						}
 					}
 					throw new Error("No such dataset: " + dataSetIdentifier);
-				}, reportError
-			);
+				});
 		}
 		private function getVariablesPromise(dataSetIdentifier:String):WeavePromise
 		{
@@ -117,8 +115,7 @@ package weave.data.DataSources
 				function (dataset:Object):WeavePromise
 				{
 					return jsonCache.getJsonPromise(_api, dataset.c_variablesLink);
-				}
-			, reportError);
+				});
 		}
 		private function getGeographiesPromise(dataSetIdentifier:String):WeavePromise
 		{
@@ -126,8 +123,7 @@ package weave.data.DataSources
 				function (dataset:Object):WeavePromise
 				{
 					return jsonCache.getJsonPromise(_api, dataset.c_geographyLink);
-				}
-			, reportError);
+				});
 		}
 		
 		public function getVariables(dataSetIdentifier:String):WeavePromise
@@ -147,8 +143,7 @@ package weave.data.DataSources
 					}
 					
 					return variablesInfo;
-				}
-			, reportError);
+				});
 		}
 		
 		public function getGeographies(dataSetIdentifier:String):WeavePromise
@@ -168,10 +163,8 @@ package weave.data.DataSources
 					}
 					
 					return geo;
-				}
-			, reportError);
+				});
 		}
-		
 		/**
 		 * 
 		 * @param metadata
@@ -201,23 +194,23 @@ package weave.data.DataSources
 					dataset_name = dataSource.dataSet.value;
 					return getDatasetPromise(dataset_name);
 				}
-			, reportError).then(
+			).then(
 				function (datasetInfo:Object):WeavePromise
 				{
 					service_url = datasetInfo.webService;
 					return getVariables(dataset_name);
 				}
-			, reportError).then(
+			).then(
 				function (variableInfo:Object):WeavePromise
 				{
 					title = variableInfo[variable_name].title;
 					return getGeographies(dataset_name);
 				}
-			, reportError)
-			.depend(dataSource.geographicScope, dataSource.apiKey, dataSource.geographicFilters)
+			).depend(dataSource.geographicScope, dataSource.apiKey, dataSource.geographicFilters)
 			.then(
 				function (geographyInfo:Object):WeavePromise
 				{
+					if (geographyInfo == null) return null;
 					geography_id = dataSource.geographicScope.value;
 					geography_filters = dataSource.geographicFilters.getSessionState();
 					api_key = dataSource.apiKey.value;
@@ -240,7 +233,7 @@ package weave.data.DataSources
 					
 					return jsonCache.getJsonPromise(_api, getUrl(service_url, params));
 				}
-			, reportError).then(
+			).then(
 				function (dataResult:Object):Object
 				{
 					if (dataResult == null)
@@ -282,7 +275,7 @@ package weave.data.DataSources
 						metadata: metadata
 					};
 				}
-			, reportError);
+			);
 		}
 	}
 }
