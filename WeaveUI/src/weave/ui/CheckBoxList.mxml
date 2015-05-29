@@ -26,7 +26,7 @@ automatically be updated to correspond to changes in dataProvider item order.
 		 paddingLeft="0"
 		 paddingRight="0"
 		 backgroundAlpha="0"
-		 borderThickness="0"
+		 borderStyle="none"
 		 selectable="false"
 		 rowCount="{dataProvider.length || 1}"
 		 xmlns:ui="weave.ui.*">
@@ -134,27 +134,29 @@ automatically be updated to correspond to changes in dataProvider item order.
 					return defaultSelectedState;
 				return value;
 			}
+			
+			/**
+			 * Sets the selected state of a single CheckBox.
+			 */
+			public function setSelectedState(index:int, value:Boolean):void
+			{
+				if (getSelectedState(index) == value)
+					return;
+				var newSelection:Array = selection.concat();
+				newSelection[index] = value;
+				selection = newSelection;
+			}
 		]]>
 	</mx:Script>
 	<mx:itemRenderer>
 		<mx:Component>
-			<ui:CustomCheckBox change="handleSelectionChange()">
+			<ui:CustomCheckBox change="outerDocument.setSelectedState(outerDocument.itemRendererToIndex(this), this.selected)">
 				<mx:Script>
 					<![CDATA[
-						import weave.core.UIUtils;
-						
-						override public function set data(d:Object):void
+						override public function set data(value:Object):void
 						{
-							super.data = d;
-							var index:int = outerDocument.itemRendererToIndex(this);
-							selected = outerDocument.getSelectedState(index);
-						}
-						private function handleSelectionChange():void
-						{
-							var newSelection:Array = outerDocument.selection.concat();
-							var index:int = outerDocument.itemRendererToIndex(this);
-							newSelection[index] = this.selected;
-							outerDocument.selection = newSelection;
+							super.data = value;
+							selected = outerDocument.getSelectedState(outerDocument.itemRendererToIndex(this));
 						}
 					]]>
 				</mx:Script>
