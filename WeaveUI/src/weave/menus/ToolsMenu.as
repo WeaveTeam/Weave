@@ -181,7 +181,7 @@ package weave.menus
 						var items:Array = group.map(
 							function(impl:Class, i:int, a:Array):* {
 								var item:WeaveMenuItem = new WeaveMenuItem({
-									shown: [Weave.properties.getMenuToggle(impl)],
+									shown: Weave.properties.getMenuToggle(impl),
 									label: getToolItemLabel,
 									click: createGlobalObject,
 									data: impl
@@ -193,7 +193,7 @@ package weave.menus
 						);
 						if (!flatList && iGroup == groups.length - 1)
 							return {
-								shown: [function():Boolean { return this.children.length > 0 }],
+								shown: function():Boolean { return this.children.length > 0 },
 								label: lang('Other tools'),
 								children: items
 							};
