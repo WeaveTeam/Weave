@@ -107,6 +107,7 @@ package weave
 			_toggleMenuItem("CytoscapeWebTool", false);
 			_toggleMenuItem("CustomGraphicsTool", false);
 			_toggleMenuItem("KeyMappingTool", false);
+			_toggleMenuItem("RDataSource", false);
 			
 			panelTitleTextFormat.font.value = "Verdana";
 			panelTitleTextFormat.size.value = 10;
@@ -250,7 +251,7 @@ package weave
 		{
 			var className:String = getQualifiedClassName(classDef).split('::').pop();
 			var existsPreviously:Boolean = menuToggles.getObject(className) is LinkableBoolean;
-			var toggle:LinkableBoolean = menuToggles.requestObject(className, LinkableBoolean, true); // lock
+			var toggle:LinkableBoolean = menuToggles.requestObject(className, LinkableBoolean, false);
 			var deprecatedToggle:LinkableBoolean = menuToggles.getObject(toolToggleBackwardsCompatibility[className]) as LinkableBoolean;
 			if (!existsPreviously)
 			{
