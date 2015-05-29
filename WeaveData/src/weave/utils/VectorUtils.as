@@ -559,7 +559,7 @@ package weave.utils
 		private static var _pluckProperty:String;
 		private static function _pluck(item:Object, i:int, a:*):*
 		{
-			return item[_pluckProperty];
+			return item != null ? item[_pluckProperty] : undefined;
 		}
 		
 		/**
