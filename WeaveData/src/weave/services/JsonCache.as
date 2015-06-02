@@ -16,18 +16,47 @@
 package weave.services
 {
 	import flash.external.ExternalInterface;
+	import flash.net.URLRequest;
+	import flash.net.URLRequestHeader;
 	
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.utils.WeavePromise;
 
 	public class JsonCache implements ILinkableObject
 	{
-		public function JsonCache()
+		public static function buildURL(base:String, params:Object):String
 		{
+			var paramsStr:String = '';
+			for (var key:String in params)
+				paramsStr += (paramsStr ? '&' : '?') + encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+			return base + paramsStr;
 		}
+		
+		/**
+		 * @param requestHeaders Optionally set this to an Object mapping header names to values or an Array of URLRequestHeader objects.
+		 */
+		public function JsonCache(requestHeaders:Object = null)
+		{
+			if (requestHeaders is Array)
+			{
+				if (StandardLib.getArrayType(requestHeaders as Array) != URLRequestHeader)
+					throw new Error("requestHeaders must be an Array of URLRequestHeader objects");
+			}
+			else if (requestHeaders)
+			{
+				var array:Array = [];
+				for (var key:String in requestHeaders)
+					array.push(new URLRequestHeader("Accept", "application/json"));
+				requestHeaders = array;
+			}
+			this.requestHeaders = requestHeaders as Array;
+		}
+		
+		private var requestHeaders:Array = null;
 		
 		private var cache:Object = {};
 		
@@ -49,7 +78,9 @@ package weave.services
 			var entry:CacheEntry = cache[url];
 			if (!entry)
 			{
-				entry = new CacheEntry(this, url);
+				var request:URLRequest = new URLRequest(url);
+				request.requestHeaders = requestHeaders;
+				entry = new CacheEntry(this, request);
 				cache[url] = entry;
 			}
 			entry.addHandler(resultHandler, faultHandler);
@@ -100,20 +131,19 @@ import weave.services.addAsyncResponder;
 
 internal class CacheEntry
 {
-	public function CacheEntry(owner:JsonCache, url:String)
+	public function CacheEntry(owner:JsonCache, request:URLRequest)
 	{
 		this.owner = owner;
-		this.url = url;
-		
+		this.request = request;
 		addAsyncResponder(
-			WeaveAPI.URLRequestUtils.getURL(owner, new URLRequest(url), URLRequestUtils.DATA_FORMAT_TEXT),
+			WeaveAPI.URLRequestUtils.getURL(owner, request, URLRequestUtils.DATA_FORMAT_TEXT),
 			handleResponse,
 			handleResponse
 		);
 	}
 	
 	public var owner:JsonCache;
-	public var url:String;
+	public var request:URLRequest;
 	public var handlers:Array = [];
 	public var result:Object = {};
 	public var success:Boolean = false;
@@ -139,7 +169,7 @@ internal class CacheEntry
 			success = false;
 			response = (event as FaultEvent).fault.content;
 			if (response)
-				reportError("Request failed: " + url + "\n" + StringUtil.trim(String(response)));
+				reportError("Request failed: " + request.url + "\n" + StringUtil.trim(String(response)));
 			else
 				reportError(event);
 		}
