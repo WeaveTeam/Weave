@@ -24,8 +24,9 @@
 		creationPolicy="all"
 		width="100%" height="100%">
 	<WeaveTree id="treeView" width="100%" height="100%"
-				  showRoot="true" borderStyle="none"
-				  dataProvider="{newTreeNode(data)}">
+			   showDataTips="true" dataTipFunction="{getDataTip}"
+			   showRoot="true" borderStyle="none"
+			   dataProvider="{newTreeNode(data)}">
 		<itemRenderer>
 			<fx:Component>
 				<ObjectViewerItemRenderer
@@ -67,6 +68,15 @@
 				var className:String = getQualifiedClassName(node.data[0]);
 				
 				return (label ? label + " : " : "") + className;
+			}
+			
+			private function getDataTip(node:WeaveTreeDescriptorNode):String
+			{
+				var value:* = node.data[0];
+				var key:* = node.data[1];
+				if (value is String)
+					return getLabel(node) + '\n\n' + value as String;
+				return null;
 			}
 			
 			private function newTreeNode(value:*, key:String = null, _:* = null):WeaveTreeDescriptorNode
