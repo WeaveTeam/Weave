@@ -798,6 +798,7 @@
 						tickInterval="1"
 						minimum="{zoomSliderMinimum}"
 						maximum="{zoomSliderMaximum}"
+						mouseDown="zoomSlider.setFocus()"
 						change="handleZoomSliderChange(event);"/>
 			
 			<mx:Button id="zoomOut"
