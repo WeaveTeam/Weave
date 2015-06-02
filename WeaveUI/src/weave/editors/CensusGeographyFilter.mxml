@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
+		 xmlns:ui="weave.ui.*">
+<mx:HBox>
+	<mx:CheckBox id="filterEnabledCheck" change="updateSelection()" enabled="{required}" />
+	<mx:Label id="filterLabel" text="{geoLevel}"/>
+</mx:HBox>
+<mx:List width="100%" height="100%" id="selectorList" labelFunction="labelFunction" change="updateSelection()" enabled="{filterEnabledCheck.selected}"/>
+<mx:TextArea width="100%" height="100%" id="selectorText" change="updateSelection()" enabled="{filterEnabledCheck.selected}"/>
+<mx:Script>
+<![CDATA[
+	import mx.binding.utils.ChangeWatcher;
+	
+	import weave.compiler.StandardLib;
+	import weave.data.DataSources.CensusApi;
+	[Bindable] public var required:Boolean = false;
+	[Bindable] public var geoLevel:String;
+	[Bindable] public var selection:String;
+	[Bindable] public var parentGeo:String;
+	
+	private function labelFunction(item:Object):String
+	{
+		if (geoLevel == "state")
+		{
+			return CensusApi.state_fips[item as String];
+		}
+		else if (geoLevel == "county")
+		{
+			var state_counties:Object = CensusApi.county_fips[parentGeo];
+			if (state_counties)
+			{
+				return state_counties[item as String];
+			}
+		}
+		return item.toString();
+	}
+	
+	private function updateSelection(event:* = null):void
+	{
+		if (!filterEnabledCheck.selected)
+		{
+			selection = null;
+			return;
+		}
+		else
+		{
+			if (selectorList.visible)
+			{
+				selection = selectorList.selectedItem as String;
+			}
+			else if (selectorText.visible)
+			{
+				selection = selectorText.text;
+			}
+		}
+	}
+	
+	private function updateSelector(event:* = null):void
+	{
+		var key:String;
+		
+		filterEnabledCheck.enabled = !required;
+		if (required || selection) filterEnabledCheck.selected = true;
+		
+		if (geoLevel == "state" || geoLevel == "county")
+		{
+			selectorText.visible = false;
+			selectorText.includeInLayout = false;
+			selectorList.visible = true;
+			selectorList.includeInLayout = true;
+			
+			var provider:Array = [];
+			
+			if (geoLevel == "state")
+			{
+				for (key in CensusApi.state_fips)
+				{
+					provider.push(key);
+				}
+			}
+			else if (parentGeo)
+			{
+				for (key in CensusApi.county_fips[parentGeo])
+				{
+					provider.push(key);
+				}
+			}
+			
+			StandardLib.sortOn(provider, labelFunction);
+			
+			selectorList.dataProvider = provider;
+			selectorList.validateNow();
+			selectorList.selectedItem = selection;
+			selectorList.invalidateDisplayList();
+		}
+		else
+		{
+			selectorList.visible = false;
+			selectorList.includeInLayout = false;
+			selectorText.visible = true;
+			selectorText.includeInLayout = true;
+			selectorText.text = selection;
+		}
+		
+		
+	}
+	override protected function childrenCreated():void
+	{
+		ChangeWatcher.watch(this, "geoLevel", updateSelector, true);
+		ChangeWatcher.watch(this, "required", updateSelector, true);
+		ChangeWatcher.watch(this, "parentGeo", updateSelector, true);
+		ChangeWatcher.watch(this, "selection", updateSelector, true);
+	}
+]]>
+</mx:Script>
+</mx:VBox>

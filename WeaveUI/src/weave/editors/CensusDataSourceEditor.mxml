@@ -50,10 +50,8 @@
 	<ui:Indent label="{lang('Keytype')}">
 		<ui:KeyTypesMenu id="keyTypeCombo" toolTip="{lang('Select a keytype for columns produced by this data source.')}"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Geographic Filters')}">
-		<mx:HBox id="filtersBox" width = "100%">
-			
-		</mx:HBox>
+	<ui:Indent id="filtersIndent" label="{lang('Geographic Filters')}" visible="false" includeInLayout="{filtersIndent.visible}">
+		<CensusFilterManager id="filterManager"/>
 	</ui:Indent>
 	<mx:Script>
 		<![CDATA[
@@ -81,12 +79,16 @@
 			}
 			
 			[Bindable] private var target:CensusDataSource = null;
-			private var _api:CensusApi = new CensusApi();
+			private var _api:CensusApi = null;
 			
 			private function get api():CensusApi
 			{
+				if (target) return target.getAPI();
+				
 				if (!_api)
+				{
 					_api = new CensusApi();
+				}
 				return _api;
 			}
 		
@@ -113,8 +115,8 @@
 					apiKeyInput.text = target.apiKey.value; 
 					keyTypeCombo.selectedKeyType = target.keyType.value;
 					
-					
-					_api = target.getAPI();
+					geographicScopeCombo.selectByField("id", target.geographicScope.value);
+					geographicScopeChanged(target.dataSet.value);
 				}
 			}
 			private function isUsableFamily(family:String):Boolean
@@ -262,22 +264,51 @@
 					}
 				);
 			}
-			public function geographicScopeChanged():void
+			public function geographicScopeChanged(dataSet:String = null):void
 			{
-				api.getGeographies(dataSetCombo.selectedItem.id).then(
+				api.getGeographies(dataSet || dataSetCombo.selectedItem.id).then(
 					function (geographies:Object):void
 					{
-						/* TODO: Generate comboboxes and populate. */
-						var provider:Array = [];
+						var requires:Array = geographies[geographicScopeCombo.selectedItem.id].requires;
+						var optional:String = geographies[geographicScopeCombo.selectedItem.id].optional;
+						if (requires)
+						{
+							filterManager.setRequires(requires);
+							filterManager.setOptional(optional);
+							filtersIndent.visible = true;
+						}
+						else
+						{
+							filterManager.setRequires([]);
+							filtersIndent.visible = false;
+						}
+						 
+						if (target)
+						{
+							/* If a target exists, reset from the filters */
+							if (requires)
+							{
+								filterManager.selection_filters = target.geographicFilters.getSessionState();
+							}
+						}
 					}
 				);
 			}
+			private function hasFilterChanges():Boolean
+			{
+				var filter_keys:Array = VectorUtils.getKeys(filterManager.selection_filters);
+				var target_state:Object = target.geographicFilters.getSessionState() || {};
+				var target_keys:Array = VectorUtils.getKeys(target_state);
+								
+				return VectorUtils.compareProperties(filterManager.selection_filters, target_state, VectorUtils.union(filter_keys, target_keys)) != 0;
+			}
 			public function hasPendingChanges():Boolean
 			{
-				return (dataSetCombo.selectedItem.id != target.dataSet.value) ||
+				return (dataSetCombo.selectedItem && (dataSetCombo.selectedItem.id != target.dataSet.value)) ||
 					(apiKeyInput.text != target.apiKey.value) ||
 					(keyTypeCombo.selectedKeyType != target.keyType.value) ||
-					(geographicScopeCombo.selectedItem.id != target.geographicScope.value);
+					(geographicScopeCombo.selectedItem && (geographicScopeCombo.selectedItem.id != target.geographicScope.value)) ||
+					hasFilterChanges();
 			}
 			
 			public function applyChanges():void
@@ -286,6 +317,7 @@
 				target.apiKey.value = apiKeyInput.text;
 				target.keyType.value = keyTypeCombo.selectedKeyType;
 				target.geographicScope.value = geographicScopeCombo.selectedItem.id;
+				target.geographicFilters.setSessionState(filterManager.selection_filters);
 			}
 			
 			public function createDataSource():IDataSource

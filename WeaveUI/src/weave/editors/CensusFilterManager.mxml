@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" xmlns:ui="weave.ui.*">
+
+	
+	
+<mx:Script>
+<![CDATA[
+	import mx.binding.utils.BindingUtils;
+	private var _optional:String;
+	private var filterComponents:Array = [];
+	private var filterComponentLookup:Object = {};
+	
+	public function setOptional(opt:String):void
+	{
+		for each (var component:CensusGeographyFilter in filterComponents)
+		{
+			component.required = !(component.geoLevel == opt);
+		}
+	}
+	public function setRequires(req:Array):void
+	{
+		if (!req) req = [];
+		filterComponentLookup = {};
+		var filterComponent:CensusGeographyFilter;
+		while (filterComponents.length > req.length)
+			removeChild(filterComponents.pop() as CensusGeographyFilter);
+		
+		while (filterComponents.length < req.length)
+		{
+			filterComponent = new CensusGeographyFilter();
+			filterComponents.push(filterComponent);
+			addChild(filterComponent);
+			filterComponent.percentWidth = 100;
+			filterComponent.percentHeight = 100;
+		}
+		
+		for (var idx:int = 0; idx < req.length; idx++)
+		{
+			filterComponent = filterComponents[idx];
+			filterComponent.geoLevel = req[idx];
+			filterComponentLookup[req[idx]] = filterComponent;
+			if (filterComponent.geoLevel)
+			{
+				var stateFilterComponent:CensusGeographyFilter = filterComponentLookup["state"];
+				if (stateFilterComponent)
+				{
+					BindingUtils.bindProperty(filterComponent, "parentGeo", stateFilterComponent, "selection", true, true);
+				}
+			}
+		}
+	}
+
+	/* Set the selections */
+	public function set selection_filters(filter:Object):void
+	{
+		if (!filter) filter = {};
+		for each (var component:CensusGeographyFilter in filterComponents)
+		{
+			component.selection = filter[component.geoLevel] || null;
+		}
+	}
+	
+	public function get selection_filters():Object
+	{
+		var result:Object = {};
+		for each (var component:CensusGeographyFilter in filterComponents)	
+		{
+			if (component.selection)
+				result[component.geoLevel] = component.selection;
+		}
+		return result;
+	}
+]]>
+</mx:Script>
+</mx:HBox>

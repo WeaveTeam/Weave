@@ -54,14 +54,14 @@ package weave.data.DataSources
 			CountyFipsLookup = ba.readObject();
 		}
 		
-		public function get state_fips():Object
+		public static function get state_fips():Object
 		{
 			if (!StateFipsLookup) 
 				initializeStateFipsLookup();
 			return StateFipsLookup;
 		}
 		
-		public function get county_fips():Object
+		public static function get county_fips():Object
 		{
 			if (!CountyFipsLookup)
 				initializeCountyFipsLookup();
@@ -216,10 +216,10 @@ package weave.data.DataSources
 					api_key = dataSource.apiKey.value;
 					requires = VectorUtils.copy(geographyInfo[geography_id].requires || []);
 					requires.push(geographyInfo[geography_id].name);
-					
+					filters = [];
 					for (var key:String in geography_filters)
 					{
-						filters.push(geographyInfo[key].name + ":" + geography_filters[key]);
+						filters.push(key + ":" + geography_filters[key]);
 					}
 
 					params["get"] = variable_name;
@@ -230,7 +230,7 @@ package weave.data.DataSources
 					
 					if (api_key)
 						params['key'] = api_key;
-					
+
 					return jsonCache.getJsonPromise(_api, getUrl(service_url, params));
 				}
 			).then(
