@@ -55,19 +55,56 @@
 				treeView.enableClickToExpand();
 			}
 			
-			private const MAX_LABEL_LENGTH:int = 256;
+			private const MAX_LABEL_LENGTH:int = 128;
+			private function truncate(str:String, maxLength:int):String
+			{
+				if (!str)
+					return str;
+				
+				var ellipsis:String = '\u2026';
+				var i_r:int = str.indexOf('\r');
+				var i_n:int = str.indexOf('\n');
+				var i:int = i_r >= 0 ? (i_n >= 0 ? Math.min(i_r, i_n) : i_r) : i_n;
+				if (i >= 0 && i < maxLength - ellipsis.length)
+					return str.substr(0, i) + ellipsis;
+				else if (str.length > maxLength)
+					return String(str).substr(0, maxLength - ellipsis.length) + ellipsis;
+				return str;
+			}
 			private function getLabel(node:WeaveTreeDescriptorNode):String
 			{
 				var value:* = node.data[0];
 				var key:* = node.data[1];
 				
-				var label:String = key;
-				if (label && label.length > MAX_LABEL_LENGTH)
-					label = String(label).substr(0, MAX_LABEL_LENGTH - 3) + '...';
-				
+				var label:String = truncate(key, MAX_LABEL_LENGTH);
 				var className:String = getQualifiedClassName(node.data[0]);
 				
 				return (label ? label + " : " : "") + className;
+			}
+			public function getSecondLabel(node:WeaveTreeDescriptorNode):String
+			{
+				var value:* = node.data[0];
+				var key:* = node.data[1];
+				
+				var detail:String = '';
+				if (isPrimitive(value))
+				{
+					detail = value;
+				}
+				else if (DynamicState.isDynamicState(value))
+				{
+					var className:String = String(value[DynamicState.CLASS_NAME]); // null -> "null"
+					var objectName:String = value[DynamicState.OBJECT_NAME];
+					detail = className.split('::').pop();
+					if (objectName)
+						detail += lang(' "{0}"', objectName);
+				}
+				else if (value is Array)
+				{
+					detail = "length = " + (value as Array).length;
+				}
+				
+				return truncate(detail, MAX_LABEL_LENGTH);
 			}
 			
 			private function getDataTip(node:WeaveTreeDescriptorNode):String
@@ -129,31 +166,6 @@
 					children.push(newTreeNode(childValue, childKey));
 				}
 				return children;
-			}
-			public function getSecondLabel(node:WeaveTreeDescriptorNode):String
-			{
-				var value:* = node.data[0];
-				var key:* = node.data[1];
-				
-				var detail:String = '';
-				if (isPrimitive(value))
-				{
-					detail = value;
-				}
-				else if (DynamicState.isDynamicState(value))
-				{
-					var className:String = String(value[DynamicState.CLASS_NAME]); // null -> "null"
-					var objectName:String = value[DynamicState.OBJECT_NAME];
-					detail = className.split('::').pop();
-					if (objectName)
-						detail += lang(' "{0}"', objectName);
-				}
-				else if (value is Array)
-				{
-					detail = "length = " + (value as Array).length;
-				}
-				
-				return detail;
 			}
 		]]>
 	</fx:Script>
