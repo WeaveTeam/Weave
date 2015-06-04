@@ -16,11 +16,14 @@
 package weave.data.DataSources
 {
     import mx.rpc.Fault;
+    import mx.utils.ObjectUtil;
     
     import weave.api.data.ColumnMetadata;
+    import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IDataSource_Service;
     import weave.api.data.IWeaveTreeNode;
+    import weave.api.newLinkableChild;
     import weave.api.registerLinkableChild;
     import weave.compiler.Compiler;
     import weave.core.LinkableString;
@@ -100,8 +103,11 @@ package weave.data.DataSources
 				});
 		}
 		
-		// http://services.healthindicators.gov/v5/REST.svc/IndicatorDescriptions/1?Key=...
+		// http://services.healthindicators.gov/v5/REST.svc/IndicatorDescriptions/1?Key=447a0d0174514ca9be9bbf3433892b84
 		// http://services.healthindicators.gov/v5/REST.svc/IndicatorDescription/98/Data/1?Key=447a0d0174514ca9be9bbf3433892b84
+		
+		private static const META_INDICATOR_DESCRIPTION_ID:String = 'IndicatorDescriptionID';
+		private static const META_INDICATOR_PROPERTY:String = 'Indicator_property';
 		
         override public function getHierarchyRoot():IWeaveTreeNode
         {
@@ -109,15 +115,27 @@ package weave.data.DataSources
                 _rootNode = new ColumnTreeNode({
 					dataSource: this,
 					label: WeaveAPI.globalHashMap.getName(this),
-					children: function(parent:ColumnTreeNode):Array {
+					hasChildBranches: true,
+					children: function(root:ColumnTreeNode):Array {
 						var children:Array = [];
 						getAllPages('IndicatorDescriptions').then(function(output:Array):void {
 							for each (var item:Object in output)
 								children.push({
-									dataSource: parent.dataSource,
+									dataSource: root.dataSource,
 									data: item,
 									label: item.ShortDescription,
-									children: []
+									children: function(parent:ColumnTreeNode):Array
+									{
+										var csv:CSVDataSource = getCSV(parent.data.ID);
+										var csvRoot:IWeaveTreeNode = csv.getHierarchyRoot();
+										parent.dependency = csv; // refresh children when csv triggers callbacks
+										return csvRoot.getChildren().map(function(csvNode:IColumnReference, ..._):IWeaveTreeNode {
+											var meta:Object = csvNode.getColumnMetadata();
+											meta[META_INDICATOR_DESCRIPTION_ID] = parent.data.ID;
+											meta[META_INDICATOR_PROPERTY] = meta[CSVDataSource.METADATA_COLUMN_NAME];
+											return generateHierarchyNode(meta);
+										});
+									}
 								});
 						});
 						return children;
@@ -125,12 +143,44 @@ package weave.data.DataSources
 				});
             return _rootNode;
         }
+		/*
+		item.GeographicLevels.split('|').map(function(level:String, i:int, a:Array):Object {
+			var data:Object = ObjectUtil.copy(item);
+			data.LocaleLevel = level;
+			return {
+				dataSource: parent.dataSource,
+				data: data,
+				label: level,
+				children: []
+			};
+		})		
+		*/
+
+		private var csvCache:Object = {};
+		public function getCSV(indicatorDescriptionID:int):CSVDataSource
+		{
+			var csv:CSVDataSource = csvCache[indicatorDescriptionID];
+			if (!csv)
+			{
+				csv = newLinkableChild(this, CSVDataSource);
+				csvCache[indicatorDescriptionID] = csv;
+				
+				getAllPages('IndicatorDescription/' + indicatorDescriptionID + '/Data')
+					.then(function(records:Array):void {
+						var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(records);
+						csv.csvData.setSessionState(rows);
+						csv.keyColName.value = 'ID';
+						csv.keyType.value = 'HealthIndicators.gov';
+					});
+			}
+			return csv;
+		}
 		
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
 			if (!metadata)
 				return null;
-			var idFields:Array = [];
+			var idFields:Array = [META_INDICATOR_DESCRIPTION_ID, META_INDICATOR_PROPERTY];
 
 			var ctn:ColumnTreeNode = new ColumnTreeNode({dataSource: this, idFields: idFields, data: metadata});
 			return ctn; 
