@@ -337,7 +337,7 @@
 			
 			<ui:CustomCheckBox label="{lang('Order layers from foreground to background')}" creationComplete="linkBindableProperty(outerDocument.listForegroundFirst, event.target, 'selected')"/>
 		</mx:VBox>
-		<editors:WindowSettingsEditor target="{this}"/>
+		<editors:WindowSettingsEditor target="{outerDocument}"/>
 		<mx:Script>
 			<![CDATA[
 				import mx.binding.utils.BindingUtils;
