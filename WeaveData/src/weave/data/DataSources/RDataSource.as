@@ -15,11 +15,10 @@
 
 package weave.data.DataSources
 {
-	import flash.events.ErrorEvent;
-	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
@@ -27,7 +26,6 @@ package weave.data.DataSources
 	import weave.api.data.IDataSource;
 	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IWeaveTreeNode;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableDescendants;
@@ -43,8 +41,6 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.hierarchy.ColumnTreeNode;
 	import weave.services.AMF3Servlet;
-	import weave.services.JsonCache;
-	import weave.services.WeaveRServlet;
 	import weave.services.addAsyncResponder;
 	import weave.utils.ColumnUtils;
 	import weave.utils.VectorUtils;
@@ -98,17 +94,28 @@ package weave.data.DataSources
 				return;
 			
 			var keyType:String;
+			var columnArray:Array;
 			var simpleInputs:Object = {};
 			var columnsByKeyType:Object = {}; // Object(keyType -> Array of IAttributeColumn)
 			for each (var obj:ILinkableObject in inputs.getObjects())
 			{
 				var name:String = inputs.getName(obj);
 				var column:IAttributeColumn = obj as IAttributeColumn;
-				if (column)
+				var hashMap:ILinkableHashMap = obj as ILinkableHashMap;
+				if (column || hashMap)
 				{
-					keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
-					var columnArray:Array = columnsByKeyType[keyType] || (columnsByKeyType[keyType] = [])
-					columnArray.push(column);
+					var columnDescendants:Array = null;
+					if (column)
+						columnDescendants = [column];
+					else if (hashMap)
+						columnDescendants = getLinkableDescendants(hashMap, IAttributeColumn);
+					
+					for each (column in columnDescendants)
+					{
+						keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
+						columnArray = columnsByKeyType[keyType] || (columnsByKeyType[keyType] = [])
+						columnArray.push(column);
+					}
 				}
 				else
 				{
@@ -124,7 +131,7 @@ package weave.data.DataSources
 				var keys:Array = VectorUtils.pluck(joined.shift() as Array, 'localName');
 				var colMap:Object = {};
 				for (var i:int = 0; i <  joined.length; i++)
-					colMap[ inputs.getName(cols[i]) ] = joined[i];
+					setChain(colMap, WeaveAPI.SessionManager.getPath(inputs, cols[i]), joined[i]);
 				columnData[keyType] = {keys: keys, columns: colMap};
 			}
 			
@@ -138,6 +145,20 @@ package weave.data.DataSources
 				getSessionState(this)
 			);
 		}
+		
+		private function setChain(root:Object, property_chain:Array, value:Object):*
+		{
+			property_chain = [].concat(property_chain); // makes a copy and converts a single string into an array
+			var last_property:String = property_chain.pop();
+			for each (var prop:String in property_chain)
+				root = root[prop] || (root[prop] = {});
+			// if value not given, return current value
+			if (arguments.length == 2)
+				return root[last_property];
+			// set the value and return it
+			return root[last_property] = value;
+		};
+
 		
 		private function handleScriptResult(event:ResultEvent, sessionState:Object):void
 		{
