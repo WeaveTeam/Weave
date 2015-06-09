@@ -25,6 +25,7 @@ package weave.data.DataSources
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IDataSource_Service;
+	import weave.api.data.IKeyFilter;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
@@ -34,11 +35,13 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkablePromise;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
+	import weave.data.KeySets.KeyFilter;
 	import weave.data.hierarchy.ColumnTreeNode;
 	import weave.services.AMF3Servlet;
 	import weave.services.addAsyncResponder;
@@ -61,6 +64,7 @@ package weave.data.DataSources
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/WeaveAnalystServices/ComputationalServlet'), handleURLChange);
 		public const scriptName:LinkableString = newLinkableChild(this, LinkableString);
 		public const inputs:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
+		public const inputKeyFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter));
 		
 		private const promise:LinkablePromise = registerLinkableChild(this, new LinkablePromise(runScript, describePromise));
 		private function describePromise():String { return lang("Running script {0}", scriptName.value); }
@@ -127,7 +131,7 @@ package weave.data.DataSources
 			for (keyType in columnsByKeyType)
 			{
 				var cols:Array = columnsByKeyType[keyType];
-				var joined:Array = ColumnUtils.joinColumns(cols, null, true);
+				var joined:Array = ColumnUtils.joinColumns(cols, null, true, inputKeyFilter.target);
 				var keys:Array = VectorUtils.pluck(joined.shift() as Array, 'localName');
 				var colMap:Object = {};
 				for (var i:int = 0; i <  joined.length; i++)
@@ -202,7 +206,7 @@ package weave.data.DataSources
 						var csvRoot:IWeaveTreeNode = outputCSV.getHierarchyRoot();
 						return csvRoot.getChildren().map(function(csvNode:IColumnReference, ..._):IWeaveTreeNode {
 							var meta:Object = csvNode.getColumnMetadata();
-							meta[SCRIPT_OUTPUT_NAME] = meta[CSVDataSource.METADATA_COLUMN_NAME];
+							meta[SCRIPT_OUTPUT_NAME] = meta[CSVDataSource.METADATA_COLUMN_NAME] || meta[CSVDataSource.METADATA_COLUMN_INDEX];
 							return generateHierarchyNode(meta);
 						});
 					}
