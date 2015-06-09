@@ -1,17 +1,17 @@
 /* ***** BEGIN LICENSE BLOCK *****
-*
-* This file is part of Weave.
-*
-* The Initial Developer of Weave is the Institute for Visualization
-* and Perception Research at the University of Massachusetts Lowell.
-* Portions created by the Initial Developer are Copyright (C) 2008-2015
-* the Initial Developer. All Rights Reserved.
-*
-* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this file,
-* You can obtain one at http://mozilla.org/MPL/2.0/.
-* 
-* ***** END LICENSE BLOCK ***** */
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.DataSources
 {
@@ -70,7 +70,7 @@ package weave.data.DataSources
 		private function describePromise():String { return lang("Running script {0}", scriptName.value); }
 		private const outputCSV:CSVDataSource = newLinkableChild(this, CSVDataSource);
 		private var _service:AMF3Servlet;
-
+		
 		override protected function initialize():void
 		{
 			super.initialize();
@@ -93,78 +93,46 @@ package weave.data.DataSources
 				return;
 			// force retrieval of referenced columns
 			for each (var refCol:ReferencedColumn in getLinkableDescendants(inputs, ReferencedColumn))
-				refCol.getInternalColumn();
+			refCol.getInternalColumn();
 			if (linkableObjectIsBusy(inputs))
 				return;
 			
 			var keyType:String;
 			var simpleInputs:Object = {};
 			var columnsByKeyType:Object = {}; // Object(keyType -> Array of IAttributeColumn)
-
-			var tableData:Object = {}; // Object(inputName -> { columnName : column })
-			var columnData:Object = {}; // Object(keyType -> {keys: [], columns: Object(name -> Array) })
-			
-			var joined:Array = [];
-			var colMap:Object = {};
-			
 			for each (var obj:ILinkableObject in inputs.getObjects())
 			{
 				var name:String = inputs.getName(obj);
-				
-				// if the input is a column
 				var column:IAttributeColumn = obj as IAttributeColumn;
 				if (column)
 				{
 					keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
 					var columnArray:Array = columnsByKeyType[keyType] || (columnsByKeyType[keyType] = [])
 					columnArray.push(column);
-					for (keyType in columnsByKeyType)
-					{
-						var cols:Array = columnsByKeyType[keyType];
-						joined = ColumnUtils.joinColumns(cols, null, true);
-						var keys:Array = VectorUtils.pluck(joined.shift() as Array, 'localName');
-						colMap = {};
-						for (var i:int = 0; i <  joined.length; i++)
-							colMap[ inputs.getName(cols[i]) ] = joined[i];
-						columnData[keyType] = {keys: keys, columns: colMap};
-					}
 				}
 				else
 				{
-					var columns:Array = obj as Array;
-					// if the input is an array of columns
-					if(columns)
-					{
-						var flag:Boolean = false;
-						if(!columns.length)
-							return;
-						
-						column = columns[0] as IAttributeColumn;
-						keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
-
-						for each (var col:IAttributeColumn in columns)
-						{
-							flag = col.getMetadata(ColumnMetadata.KEY_TYPE) != keyType;
-							colMap[col.getMetadata(ColumnMetadata.TITLE)] = col; 
-						}
-						if(flag) {
-							reportError("Columns in table input must all be of the same keyType");
-							return;							
-						} else {
-							tableData[name] = colMap;
-						}
-					} else {
-						// if the input is just a value (number, string or boolean)
-						simpleInputs[name] = getSessionState(inputs.getObject(name));
-					}
+					simpleInputs[name] = getSessionState(inputs.getObject(name));
 				}
+			}
+			
+			var columnData:Object = {}; // Object(keyType -> {keys: [], columns: Object(name -> Array) })
+			for (keyType in columnsByKeyType)
+			{
+				var cols:Array = columnsByKeyType[keyType];
+				var joined:Array = ColumnUtils.joinColumns(cols, null, true);
+				var keys:Array = VectorUtils.pluck(joined.shift() as Array, 'localName');
+				var colMap:Object = {};
+				for (var i:int = 0; i <  joined.length; i++)
+					colMap[ inputs.getName(cols[i]) ] = joined[i];
+				columnData[keyType] = {keys: keys, columns: colMap};
 			}
 			
 			outputCSV.setCSVData(null);
 			outputCSV.metadata.setSessionState(null);
 			
 			addAsyncResponder(
-				_service.invokeAsyncMethod('runScriptWithInputs', [scriptName.value, simpleInputs, columnData, tableData]),
+				_service.invokeAsyncMethod('runScriptWithInputs', [scriptName.value, simpleInputs, columnData]),
 				handleScriptResult,
 				handleScriptError,
 				getSessionState(this)
@@ -197,7 +165,7 @@ package weave.data.DataSources
 				return;
 			reportError(event);
 		}
-
+		
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!_rootNode)
