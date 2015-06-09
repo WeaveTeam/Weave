@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
+<ui:CheckBoxList xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
+				 verticalAlign="middle"
+				 borderStyle="none"
+				 initialize="UIUtils.pad(this, 0);">
+	<mx:Script>
+		<![CDATA[
+			import weave.core.UIUtils;
+		]]>
+	</mx:Script>
+	<ui:itemRenderer>
+		<mx:Component>
+			<mx:VBox horizontalScrollPolicy="off" verticalScrollPolicy="off">
+				<mx:HRule id="rule" width="100%"/>
+				<ui:CustomCheckBox id="check" label="{outerDocument.itemToLabel(data)}" change="outerDocument.setSelectedState(outerDocument.itemRendererToIndex(this), check.selected)"/>
+				<mx:Script>
+					<![CDATA[
+						override public function set data(value:Object):void
+						{
+							super.data = value;
+							rule.visible = rule.includeInLayout = data == null;
+							check.visible = check.includeInLayout = data != null;
+							check.selected = outerDocument.getSelectedState(outerDocument.itemRendererToIndex(this));
+						}
+					]]>
+				</mx:Script>
+			</mx:VBox>
+		</mx:Component>
+	</ui:itemRenderer>
+</ui:CheckBoxList>

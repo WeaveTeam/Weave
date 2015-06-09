@@ -10,6 +10,7 @@
         #cy { height: 100%; width: 100%; position: absolute; left: 0; top: 0;}
         #controlsleft {position: absolute;top: 0;left: 0;}
     </style>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <script src="springy.js"></script>
     <script src="dagre.js"></script>
     <script src="arbor.js"></script>
@@ -23,8 +24,8 @@
     <div id="controlsleft">
             <button title="Zoom to Fit" onclick="cy.fit()">Z</button>
             <select name="layout_dropdown"></select>
-            <button title="Run layout" onclick="run_layout()">&#8634;</button>
-            <button title="Change Settings" onclick="open_settings()"><bold>&#x2699;</bold></button>
+            <button title="Run layout" onclick="run_layout()"><i id="refreshicon" class="fa fa-refresh"></i></button>
+            <button title="Change Settings" onclick="open_settings()"><i id="configureicon" class="fa fa-cog"></i></button>
     </div>
 
 <script>
@@ -34,11 +35,11 @@
                 .css({
                         'content': 'data(name)',
                         'text-valign': 'center',
-                        'color': '#fff',
+                        'color': '#000',
                         'text-outline-width': 1,
                         'border-color':'#000',
                         'border-width': 1,
-                        'text-outline-color': '#888',
+                        'text-outline-color': '#fff',
                         'background-color': 'data(color)'
                         })
                 .selector('edge')
@@ -46,8 +47,13 @@
                         'target-arrow-shape': 'triangle',
                         'target-arrow-color': '#888',
                         'content': 'data(name)',
+                        'border-color':'#000',
+                        'color':'#000',
+                        'text-outline-color': '#fff',
+                        'text-outline-width': 1,
                         'line-color':'#888',
                         'curve-style': 'haystack',
+                        'width':1,
                         })
             .selector(':selected')
                 .css({
@@ -292,6 +298,7 @@
         {
             set_weave_positions(evt);
             cy.fit();
+            //$("#refreshicon").removeClass("fa-spin");
             if (on_finished) on_finished(evt);
         }
         layout_params['name'] = layout_name;
@@ -299,7 +306,10 @@
         layout_params['fit'] = false;
 
         if (cy.nodes().filter(function (i,ele) {return !ele.locked();}).length)
+        {
             cy.layout(layout_params);
+            //$("#refreshicon").addClass("fa-spin");
+        }
         else
             if (on_finished) on_finished();
     };
@@ -373,6 +383,15 @@
     $(function() {
     $.each(valid_layouts, function(key, value)
     {
+    	if (key == "arbor" || key == "springy" || key == "dagre")
+    	{
+    		/* Skip external layouts that failed to load. */
+			if (!window[key])
+			{
+				console.error("Failed to load external plugin: " + key);
+				return;
+			}
+    	}
         $('select[name="layout_dropdown"]')
             .append($('<option></option>')
             .text(value).attr("value",key));
@@ -393,8 +412,6 @@
                     {name: NODE_COLOR, label: "Node Color", type: 'DynamicColumn', default: 'defaultColorColumn'},
                     {name: NODE_SIZE, label: "Node Size", type: 'DynamicColumn'},
                     {name: NODE_PARENT, label: "Node Parent", type: 'DynamicColumn'},
-//                    {name: NODE_X, label: "Node X", type: 'DynamicColumn'},
-//                    {name: NODE_Y, label: "Node Y", type: 'DynamicColumn'}
                 ]
             },
             {name: EDGES, callback: data_updated, children:

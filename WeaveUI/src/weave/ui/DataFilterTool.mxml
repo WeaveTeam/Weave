@@ -25,6 +25,9 @@
 		<![CDATA[
 			import avmplus.getQualifiedClassName;
 			
+			import flash.desktop.Clipboard;
+			import flash.desktop.ClipboardFormats;
+			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
@@ -34,8 +37,11 @@
 			import weave.api.setSessionState;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.IVisTool;
+			import weave.compiler.Compiler;
+			import weave.compiler.StandardLib;
 			import weave.core.CallbackCollection;
 			import weave.core.LinkableDynamicObject;
+			import weave.core.LinkableFunction;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.data.KeySets.StringDataFilter;
 			import weave.editors.NumberDataFilterEditor;
@@ -187,12 +193,56 @@
 					},
 					WeaveMenuItem.TYPE_SEPARATOR,
 					{
+						label: lang("Create and copy macro for tool titles"),
+						click: function():void {
+							Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, getPanelTitleMacroScript());
+						}
+					},
+					WeaveMenuItem.TYPE_SEPARATOR,
+					{
 						label: lang("Edit session state"),
 						click: toggleControlPanel
 					}
 				];
 				
 				callLater(initLater);
+			}
+				
+			public function getPanelTitleMacroScript():String
+			{
+				var macroName:String = 'getFilterText';
+				if (!Weave.properties.macros.getObject(macroName))
+				{
+					var lf:LinkableFunction = Weave.properties.macros.requestObject(macroName, LinkableFunction, false);
+					lf.value = StandardLib.unIndent('\
+						function(nameOrPath){\n\
+							var path = nameOrPath as Array || ["defaultSubsetKeyFilter", "filters", nameOrPath];\n\
+							var filter = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path);\n\
+							if (filter is StringDataFilter && filter.enabled.value)\n\
+							{\n\
+								var values = filter.stringValues.getSessionState() || [];\n\
+								if (values.length)\n\
+									return `({ values.join(", ") })`;\n\
+							}\n\
+							else if (filter is NumberDataFilter && filter.enabled.value)\n\
+							{\n\
+								var min = ColumnUtils.deriveStringFromNumber(filter.column, filter.min.value);\n\
+								var max = ColumnUtils.deriveStringFromNumber(filter.column, filter.max.value);\n\
+								return `[{min}, {max}]`;\n\
+							}\n\
+							return "";\n\
+						}\
+					');
+				}
+				
+				var path:Array = filter.targetPath;
+				var pathStr:String = Compiler.stringify(path);
+				
+				var name:String = path[path.length - 1];
+				if (StandardLib.compare(path, ['defaultSubsetKeyFilter', 'filters', name]) == 0)
+					pathStr = Compiler.stringify(name);
+				
+				return '{' + macroName + '(' + pathStr + ')}';
 			}
 			
 			private function initLater():void
@@ -281,4 +331,13 @@
 			}
 		]]>
 	</mx:Script>
+	<!--<editorFactory>
+		<mx:Component>
+			<ControlPanel>
+				<mx:VBox width="100%">
+					
+				</mx:VBox>
+			</ControlPanel>
+		</mx:Component>
+	</editorFactory>-->
 </DraggablePanel>

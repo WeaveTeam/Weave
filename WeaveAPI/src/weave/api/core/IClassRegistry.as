@@ -15,14 +15,7 @@
 
 package weave.api.core
 {
-	/**
-	 * This is an interface for a central location to report progress of asynchronous requests.
-	 * Since this interface extends ILinkableObject, getCallbackCollection() can be used on an IProgressIndicator.
-	 * Callbacks should be triggered after any action that would change the result of getNormalizedProgress().
-	 * 
-	 * @author adufilie
-	 */
-	public interface IClassRegistry extends ILinkableObject
+	public interface IClassRegistry
 	{
 		/**
 		 * Registers an implementation of an interface to be used as a singleton.

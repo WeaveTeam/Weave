@@ -46,10 +46,7 @@ package weave.data.DataSources
 		{
 			params['api_key'] = apiKey.value;
 			params['file_type'] = 'json';
-			var paramsStr:String = '';
-			for (var key:String in params)
-				paramsStr += (paramsStr ? '&' : '?') + key + '=' + params[key];
-			return "http://api.stlouisfed.org/fred/" + method + paramsStr;
+			return JsonCache.buildURL("http://api.stlouisfed.org/fred/" + method, params);
 		}
 		/**
 		 * @param method Examples: "category", "category/series"

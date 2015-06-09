@@ -26,10 +26,6 @@ package weave.core
 	import weave.api.getCallbackCollection;
 	import weave.compiler.StandardLib;
 
-	/**
-	 * This is an implementation of IProgressIndicator.
-	 * @author adufilie
-	 */
 	public class ProgressIndicator implements IProgressIndicator
 	{
 		public static var debug:Boolean = false;
@@ -182,7 +178,7 @@ package weave.core
 			{
 				var stackTrace:String = _stackTrace[i]; // check this when debugging
 				var description:String = _description[i];
-				trace(description, stackTrace);
+				trace(debugId(i), description, stackTrace);
 			}
 		}
 	}

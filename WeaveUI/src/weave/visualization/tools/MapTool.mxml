@@ -798,6 +798,7 @@
 						tickInterval="1"
 						minimum="{zoomSliderMinimum}"
 						maximum="{zoomSliderMaximum}"
+						mouseDown="zoomSlider.setFocus()"
 						change="handleZoomSliderChange(event);"/>
 			
 			<mx:Button id="zoomOut"
@@ -929,7 +930,7 @@
 					<mx:NumericStepper maximum="100" stepSize="1" creationComplete="linkBindableProperty(outerDocument.visualization.plotManager.maxZoomLevel, event.target, 'value'); linkBindableProperty(outerDocument.visualization.plotManager.minZoomLevel, event.target, 'minimum')"/>
 				</ui:Indent>
 				<ui:Indent label="Zoom factor" translate="true">
-					<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(outerDocument.visualization.zoomFactor, event.target, 'value')"/>
+					<mx:NumericStepper maximum="10" minimum="1.25" stepSize=".25" creationComplete="linkBindableProperty(outerDocument.visualization.zoomFactor, event.target, 'value')"/>
 					<ui:HelpComponent>
 						Used for zoom +/- buttons, mouse wheel, and double-click.
 					</ui:HelpComponent>

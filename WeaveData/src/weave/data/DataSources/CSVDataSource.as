@@ -508,9 +508,7 @@ package weave.data.DataSources
 				return;
 			}
 			
-			if (!metadata[ColumnMetadata.TITLE])
-				metadata[ColumnMetadata.TITLE] = colName;
-			
+			metadata = generateMetadataForColumnId(columnId);
 			proxyColumn.setMetadata(metadata);
 			
 			var strings:Vector.<String> = getColumnValues(parsedRows, colIndex, new Vector.<String>());

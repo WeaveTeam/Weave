@@ -80,9 +80,12 @@ package weave.core
 			_description = description;
 			_callbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
 			_callbackCollection.addImmediateCallback(null, _immediateCallback);
-			_callbackCollection.addGroupedCallback(null, _groupedCallback);
+			_callbackCollection.addGroupedCallback(null, _groupedCallback, validateNow);
 			if (validateNow)
-				validate();
+			{
+				_lazy = false;
+				_immediateCallback();
+			}
 		}
 		
 		private var _task:Function;

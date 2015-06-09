@@ -224,11 +224,12 @@ package weave.core
 			if (state is String)
 				array = WeaveAPI.CSVParser.parseCSVRow(state as String);
 			
-			// handle deprecated class replacements
+			// modify session state using deprecated class replacements
 			if (array)
 				array = array.map(function(name:String, i:*, a:*):String {
-					var def:Class = Compiler.deprecatedClassReplacements[name] as Class;
-					return def ? getQualifiedClassName(def) : name;
+					if (ClassUtils.isClassDeprecated(name))
+						return getQualifiedClassName(ClassUtils.getClassDefinition(name));
+					return name;
 				});
 			
 			// if we don't have any changes, use the original array

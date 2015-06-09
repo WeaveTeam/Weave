@@ -559,7 +559,25 @@ package weave.utils
 		private static var _pluckProperty:String;
 		private static function _pluck(item:Object, i:int, a:*):*
 		{
-			return item[_pluckProperty];
+			return item != null ? item[_pluckProperty] : undefined;
+		}
+		
+		/**
+		 * Transposes a two-dimensional table.
+		 */
+		public static function transpose(table:Array):Array
+		{
+			var result:Array = [];
+			for (var iCol:int = 0; iCol < table.length; iCol++)
+			{
+				var col:Array = table[iCol];
+				for (var iRow:int = 0; iRow < col.length; iRow++)
+				{
+					var row:Array = result[iRow] || (result[iRow] = []);
+					row[iCol] = col[iRow];
+				}
+			}
+			return result;
 		}
 		
 		/**

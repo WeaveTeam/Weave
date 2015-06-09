@@ -1953,6 +1953,12 @@ public class SQLUtils
 			return "DATE";
 		return "DATETIME";
 	}
+	public static String getLongBlobTypeString(Connection conn)
+	{
+		if (isOracleServer(conn))
+			return "BLOB";
+		return "LONGBLOB";
+	}
 	
 	protected static String getCSVNullValue(Connection conn)
 	{
