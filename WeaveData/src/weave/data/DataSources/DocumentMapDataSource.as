@@ -486,14 +486,13 @@ package weave.data.DataSources
 		 */
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
-			var source:DocumentMapDataSource = this;
 			if (!_rootNode)
 				_rootNode = new ColumnTreeNode({
-					dataSource: source,
-					data: {dataSource: source},
+					dataSource: this,
+					data: {dataSource: this},
 					label: WeaveAPI.globalHashMap.getName(this),
 					hasChildBranches: true,
-					children: function():Array {
+					children: function(root:ColumnTreeNode):Array {
 						var children:Array = [];
 						rpc('listCollections', [], function(collectionNames:Array):Array {
 							_collectionNames = collectionNames;
@@ -502,14 +501,14 @@ package weave.data.DataSources
 							{
 								children.push({
 									label: collection,
-									dataSource: source,
-									data: {dataSource: source, collection: collection},
+									dataSource: root.dataSource,
+									data: {dataSource: root.dataSource, collection: collection},
 									hasChildBranches: true,
 									children: [
 										{
 											label: lang('Topics'),
-											dataSource: source,
-											data: {dataSource: source, collection: collection, table: 'topics'},
+											dataSource: root.dataSource,
+											data: {dataSource: root.dataSource, collection: collection, table: TABLE_TOPICS},
 											hasChildBranches: false,
 											children: getColumnNodeDescriptors(collection, TABLE_TOPICS, [
 												COLUMN_TOPIC,
@@ -517,27 +516,27 @@ package weave.data.DataSources
 											])
 										},{
 											label: lang('Documents'),
-											dataSource: source,
-											dependency: source,
-											data: {dataSource: source, collection: collection, table: 'documents'},
+											dataSource: root.dataSource,
+											dependency: root.dataSource,
+											data: {dataSource: root.dataSource, collection: collection, table: 'documents'},
 											hasChildBranches: false,
-											children: function():Array {
+											children: function(node:ColumnTreeNode):Array {
 												return [].concat(
-													getColumnNodeDescriptors(collection, TABLE_DOC_METADATA, [
+													getColumnNodeDescriptors(node.data.collection, TABLE_DOC_METADATA, [
 														COLUMN_DOC_TITLE,
 														COLUMN_DOC_MODIFIED_TIME
 													]),
-													getColumnNodeDescriptors(collection, TABLE_DOC_FILES, [
+													getColumnNodeDescriptors(node.data.collection, TABLE_DOC_FILES, [
 														COLUMN_DOC_URL,
 														COLUMN_DOC_THUMBNAIL
 													]),
-													getColumnNodeDescriptors(collection, TABLE_DOC_WEIGHTS, getTopicIDs(collection))
+													getColumnNodeDescriptors(node.data.collection, TABLE_DOC_WEIGHTS, getTopicIDs(node.data.collection))
 												);
 											}
 										},{
 											label: lang('Nodes'),
-											dataSource: source,
-											data: {dataSource: source, collection: collection, table: 'nodes'},
+											dataSource: root.dataSource,
+											data: {dataSource: root.dataSource, collection: collection, table: TABLE_NODES},
 											hasChildBranches: false,
 											children: getColumnNodeDescriptors(collection, TABLE_NODES, [
 												COLUMN_NODE_TYPE,
