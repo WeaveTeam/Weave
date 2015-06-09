@@ -297,19 +297,20 @@
 				handlePanelTitleChange();
 				
 				var _filter:ILinkableObject = getFilter();
+				var _editor:ILinkableObjectEditor = getEditor();
 				if (_filter)
 				{
 					var editorClass:Class = WeaveAPI.EditorManager.getEditorClass(_filter);
 					if (editorClass)
 					{
-						var _editor:ILinkableObjectEditor = editor.requestLocalObject(editorClass, false);
+						_editor = editor.requestLocalObject(editorClass, false);
 						if (_editor)
 							_editor.setTarget(_filter);
 						return;
 					}
 				}
-				
-				editor.removeObject();
+				if (_editor)
+					_editor.setTarget(null);
 			}
 			
 			override public function get defaultPanelTitle():String
