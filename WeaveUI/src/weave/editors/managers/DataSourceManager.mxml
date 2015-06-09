@@ -359,7 +359,7 @@
 					
 					if (dataSource && tabNav.selectedChild == editTab)
 					{
-						editor = registerDisposableChild(this, WeaveAPI.EditorManager.getNewEditor(dataSource));
+						editor = WeaveAPI.EditorManager.getNewEditor(dataSource);
 						if (!editor)
 							return;
 						container.addChildAt(editor as DisplayObject, 0);
