@@ -29,6 +29,7 @@
 	</ui:Indent>
 	<ui:Indent label="{lang('API Key')}">
 		<mx:TextInput id="apiKeyInput" width="100%"/>
+		<mx:Button label="{lang('Request a key...')}" click="navigateToURL(new URLRequest('http://api.census.gov/data/key_signup.html'), '_blank')"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Data Family')}">
 		<ui:CustomComboBox id="dataFamilyCombo"
@@ -55,6 +56,8 @@
 	</ui:Indent>
 	<mx:Script>
 		<![CDATA[
+			import flash.net.navigateToURL;
+			
 			import mx.binding.utils.BindingUtils;
 			import mx.binding.utils.ChangeWatcher;
 			import mx.controls.Alert;
