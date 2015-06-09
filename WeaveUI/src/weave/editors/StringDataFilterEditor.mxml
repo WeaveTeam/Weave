@@ -38,6 +38,7 @@
 			import mx.binding.utils.BindingUtils;
 			
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
@@ -203,15 +204,7 @@
 				{
 					columnTitle = ColumnUtils.getTitle(column);
 					
-					//TODO - make this asynchronous
-					var valueMap:Object = {};
-					for each (var key:IQualifiedKey in column.keys)
-						valueMap[column.getValueFromKey(key, String)] = column.getValueFromKey(key, Number);
-					
-					var valueList:Array = VectorUtils.getKeys(valueMap);
-					StandardLib.sortOn(valueList, valueMap);
-					
-					menuStack.choices = valueList;
+					menuStack.choices = getChoices(column);
 				}
 				else
 				{
@@ -229,6 +222,19 @@
 					return;
 				}
 				menuStack.layoutMode = layoutMode.value;
+			}
+			
+			//TODO - make this asynchronous
+			public static function getChoices(column:IAttributeColumn):Array
+			{
+				var valueMap:Object = {};
+				for each (var key:IQualifiedKey in column.keys)
+					valueMap[column.getValueFromKey(key, String)] = column.getValueFromKey(key, Number);
+				
+				var valueList:Array = VectorUtils.getKeys(valueMap);
+				StandardLib.sortOn(valueList, valueMap);
+				
+				return valueList;
 			}
 		]]>
 	</mx:Script>
