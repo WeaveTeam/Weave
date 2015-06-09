@@ -57,7 +57,7 @@
 				queries.addGroupedCallback(this, invalidateSearchDisplay);
 				getCallbackCollection(visualization.plotManager.zoomBounds).addGroupedCallback(this, invalidateSearchDisplay);
 				
-				createNewQuery();
+				createNewQuery(null);
 			}
 			
 			private function invalidateSearchDisplay():void
@@ -97,7 +97,7 @@
 				];
 			}
 			
-			private function createNewQuery():void
+			private function createNewQuery(menuItem:WeaveMenuItem):void
 			{
 				var ds:DocumentMapDataSource;
 				var query:DocMapSearchQuery;
@@ -132,10 +132,10 @@
 				query.showAsList.value = showAsList;
 				if (isFinite(thumbnailSize))
 					query.thumbnailSize.value = thumbnailSize;
-				_lastQueryCreated = query;
+				
+				if (menuItem)
+					shouldFocus = true;
 			}
-			
-			private var _lastQueryCreated:DocMapSearchQuery;
 			
 			private const _docCollectionMenu:Object = {
 				label: lang("Set document collection"),
@@ -151,9 +151,9 @@
 								return ds.getCollectionNames().map(function(name:String, i:int, a:Array):Object {
 									return {
 										label: name,
-										click: function():void {
+										click: function(menuItem:WeaveMenuItem):void {
 											if (!queries.getObjects().length)
-												createNewQuery();
+												createNewQuery(menuItem);
 											for each (var query:DocMapSearchQuery in queries.getObjects())
 											{
 												query.dataSourceName.value = WeaveAPI.globalHashMap.getName(ds);
@@ -168,19 +168,21 @@
 				}
 			};
 			
+			private var shouldFocus:Boolean = false;
 			private function handleQueryList():void
 			{
 				(searchContainer.dataProvider as ArrayCollection).source = queries.getObjects();
 				
-				if (UIUtils.hasFocus(searchContainer))
+				if (shouldFocus)
 				{
+					shouldFocus = false;
 					searchContainer.validateNow();
 					if (searchContainer.numElements)
 					{
 						var element:IVisualElement = searchContainer.getElementAt(searchContainer.numElements - 1);
 						var renderer:DocMapSearchRenderer = element as DocMapSearchRenderer;
 						if (renderer)
-							renderer.searchBox.setFocus();
+							renderer.callLater(renderer.searchBox.setFocus);
 					}
 				}
 			}
