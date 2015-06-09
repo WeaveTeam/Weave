@@ -272,9 +272,8 @@
 				// find last Y column with keys (for labels)
 				var lastXCol:IAttributeColumn;
 				var lastYCol:IAttributeColumn;
-				var repeat:Boolean = false;
 				var iCol:int = _columns.length;
-				while (iCol-- && (!lastYCol || !lastYCol.keys.length))
+				while ((!lastYCol || !lastYCol.keys.length) && iCol--)
 				{
 					lastXCol = _xattrObjects[iCol] as IAttributeColumn;
 					lastYCol = _columns[iCol] as IAttributeColumn;
