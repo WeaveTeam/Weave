@@ -15,6 +15,12 @@
 
 package weave.data.DataSources
 {
+	import avmplus.getQualifiedClassName;
+	
+	import flash.utils.ByteArray;
+	
+	import flashx.textLayout.tlf_internal;
+	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
@@ -35,30 +41,68 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.core.LinkableDynamicObject;
+	import weave.core.LinkableFile;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkablePromise;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
-	import weave.data.KeySets.KeyFilter;
 	import weave.data.hierarchy.ColumnTreeNode;
 	import weave.services.AMF3Servlet;
+	import weave.services.URLRequestUtils;
 	import weave.services.addAsyncResponder;
 	import weave.utils.ColumnUtils;
 	import weave.utils.VectorUtils;
 	
-	public class RDataSource extends AbstractDataSource implements IDataSource_Service
+	public class WeaveAnalystDataSource extends AbstractDataSource implements IDataSource_Service
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, RDataSource, "R Data Source");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WeaveAnalystDataSource, "Weave Analyst");
 		
 		public static const SCRIPT_OUTPUT_NAME:String = 'scriptOutputName';
 		private static const RESULT_DATA:String = "resultData";
 		private static const COLUMN_NAMES:String = "columnNames";
 		
-		public function RDataSource()
+		public function WeaveAnalystDataSource()
 		{
 			promise.depend(url, scriptName, inputs, hierarchyRefresh);
+			if (!cacheFile)
+			{
+				cacheFileName = getQualifiedClassName(WeaveAnalystDataSource).split('::').join('.') + '.cache';
+				// register static LinkableFile as a child of the globalHashMap so it will not be disposed when an instance of this data source is disposed.
+				cacheFile = registerLinkableChild(WeaveAPI.globalHashMap, new LinkableFile(URLRequestUtils.LOCAL_FILE_URL_SCHEME + cacheFileName), parseCacheFile);
+			}
+			registerLinkableChild(this, cacheFile, runScript);
+		}
+		
+		private static const CACHE_STATE:String = 'sessionState';
+		private static const CACHE_OUTPUT_STATE:String = 'outputCSV';
+		private static var cacheFileName:String;
+		private static var cacheFile:LinkableFile = null;
+		private static var cache:Object;
+		private static function parseCacheFile():void
+		{
+			try
+			{
+				cache = cacheFile.result.readObject();
+			}
+			catch (e:Error)
+			{
+				// ignore error
+			}
+		}
+		private static function saveCache(source:WeaveAnalystDataSource):void
+		{
+			var name:String = WeaveAPI.globalHashMap.getName(source);
+			if (!cache)
+				cache = {};
+			cache[name] = {};
+			cache[name][CACHE_STATE] = getSessionState(source);
+			cache[name][CACHE_OUTPUT_STATE] = getSessionState(source.outputCSV);
+			var bytes:ByteArray = new ByteArray();
+			bytes.writeObject(cache);
+			WeaveAPI.URLRequestUtils.saveLocalFile(cacheFileName, bytes);
 		}
 		
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/WeaveAnalystServices/ComputationalServlet'), handleURLChange);
@@ -91,9 +135,22 @@ package weave.data.DataSources
 			// if callbacks are delayed, we assume that hierarchyRefresh will be explicitly triggered later.
 			if (getCallbackCollection(this).callbacksAreDelayed)
 				return;
+			
+			// read from cache if present
+			var currentState:Object = getSessionState(this);
+			var name:String = WeaveAPI.globalHashMap.getName(this);
+			if (cache && cache[name])
+			{
+				if (WeaveAPI.SessionManager.computeDiff(currentState, cache[name][CACHE_STATE]) === undefined)
+				{
+					setSessionState(outputCSV, cache[name][CACHE_OUTPUT_STATE]);
+					return;
+				}
+			}
+			
 			// force retrieval of referenced columns
 			for each (var refCol:ReferencedColumn in getLinkableDescendants(inputs, ReferencedColumn))
-			refCol.getInternalColumn();
+				refCol.getInternalColumn();
 			if (linkableObjectIsBusy(inputs))
 				return;
 			
@@ -123,7 +180,7 @@ package weave.data.DataSources
 				}
 				else
 				{
-					simpleInputs[name] = getSessionState(inputs.getObject(name));
+					simpleInputs[name] = getSessionState(obj);
 				}
 			}
 			
@@ -146,7 +203,7 @@ package weave.data.DataSources
 				_service.invokeAsyncMethod('runScriptWithInputs', [scriptName.value, simpleInputs, columnData]),
 				handleScriptResult,
 				handleScriptError,
-				getSessionState(this)
+				currentState
 			);
 		}
 		
@@ -162,7 +219,6 @@ package weave.data.DataSources
 			// set the value and return it
 			return root[last_property] = value;
 		};
-
 		
 		private function handleScriptResult(event:ResultEvent, sessionState:Object):void
 		{
@@ -181,6 +237,8 @@ package weave.data.DataSources
 			}
 			else
 				outputCSV.setCSVData(null);
+			
+			saveCache(this);
 		}
 		
 		private function handleScriptError(event:FaultEvent, sessionState:Object):void
@@ -195,14 +253,12 @@ package weave.data.DataSources
 		{
 			if (!_rootNode)
 			{
-				var name:String = WeaveAPI.globalHashMap.getName(this);
-				var source:RDataSource = this;
 				_rootNode = new ColumnTreeNode({
-					label: name,
+					label: WeaveAPI.globalHashMap.getName(this),
 					dataSource: this,
 					dependency: outputCSV,
 					hasChildBranches: false,
-					children: function():Array {
+					children: function(root:ColumnTreeNode):Array {
 						var csvRoot:IWeaveTreeNode = outputCSV.getHierarchyRoot();
 						return csvRoot.getChildren().map(function(csvNode:IColumnReference, ..._):IWeaveTreeNode {
 							var meta:Object = csvNode.getColumnMetadata();
