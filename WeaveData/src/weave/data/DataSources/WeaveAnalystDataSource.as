@@ -69,16 +69,15 @@ package weave.data.DataSources
 			promise.depend(url, scriptName, inputs, hierarchyRefresh);
 			if (!cacheFile)
 			{
-				cacheFileName = getQualifiedClassName(WeaveAnalystDataSource).split('::').join('.') + '.cache';
 				// register static LinkableFile as a child of the globalHashMap so it will not be disposed when an instance of this data source is disposed.
-				cacheFile = registerLinkableChild(WeaveAPI.globalHashMap, new LinkableFile(URLRequestUtils.LOCAL_FILE_URL_SCHEME + cacheFileName), parseCacheFile);
+				cacheFile = registerLinkableChild(WeaveAPI.globalHashMap, new LinkableFile(URLRequestUtils.LOCAL_FILE_URL_SCHEME + CACHE_FILE_NAME), parseCacheFile);
 			}
 			registerLinkableChild(this, cacheFile, runScript);
 		}
 		
 		private static const CACHE_STATE:String = 'sessionState';
 		private static const CACHE_OUTPUT_STATE:String = 'outputCSV';
-		private static var cacheFileName:String;
+		private static const CACHE_FILE_NAME:String = 'WeaveAnalystDataSource.cache';
 		private static var cacheFile:LinkableFile = null;
 		private static var cache:Object;
 		private static function parseCacheFile():void
@@ -92,6 +91,23 @@ package weave.data.DataSources
 				// ignore error
 			}
 		}
+		/**
+		 * @return true if data was loaded from cache
+		 */
+		private static function loadCache(source:WeaveAnalystDataSource):Boolean
+		{
+			var currentState:Object = getSessionState(source);
+			var sourceName:String = WeaveAPI.globalHashMap.getName(source);
+			if (cache && cache[sourceName])
+			{
+				if (WeaveAPI.SessionManager.computeDiff(currentState, cache[sourceName][CACHE_STATE]) === undefined)
+				{
+					setSessionState(source.outputCSV, cache[sourceName][CACHE_OUTPUT_STATE]);
+					return true;
+				}
+			}
+			return false;
+		}
 		private static function saveCache(source:WeaveAnalystDataSource):void
 		{
 			var name:String = WeaveAPI.globalHashMap.getName(source);
@@ -102,7 +118,7 @@ package weave.data.DataSources
 			cache[name][CACHE_OUTPUT_STATE] = getSessionState(source.outputCSV);
 			var bytes:ByteArray = new ByteArray();
 			bytes.writeObject(cache);
-			WeaveAPI.URLRequestUtils.saveLocalFile(cacheFileName, bytes);
+			WeaveAPI.URLRequestUtils.saveLocalFile(CACHE_FILE_NAME, bytes);
 		}
 		
 		public const url:LinkableString = registerLinkableChild(this, new LinkableString('/WeaveAnalystServices/ComputationalServlet'), handleURLChange);
@@ -135,18 +151,13 @@ package weave.data.DataSources
 			// if callbacks are delayed, we assume that hierarchyRefresh will be explicitly triggered later.
 			if (getCallbackCollection(this).callbacksAreDelayed)
 				return;
+
+			if (linkableObjectIsBusy(cacheFile))
+				return;
 			
 			// read from cache if present
-			var currentState:Object = getSessionState(this);
-			var name:String = WeaveAPI.globalHashMap.getName(this);
-			if (cache && cache[name])
-			{
-				if (WeaveAPI.SessionManager.computeDiff(currentState, cache[name][CACHE_STATE]) === undefined)
-				{
-					setSessionState(outputCSV, cache[name][CACHE_OUTPUT_STATE]);
-					return;
-				}
-			}
+			if (loadCache(this))
+				return;
 			
 			// force retrieval of referenced columns
 			for each (var refCol:ReferencedColumn in getLinkableDescendants(inputs, ReferencedColumn))
@@ -203,7 +214,7 @@ package weave.data.DataSources
 				_service.invokeAsyncMethod('runScriptWithInputs', [scriptName.value, simpleInputs, columnData]),
 				handleScriptResult,
 				handleScriptError,
-				currentState
+				getSessionState(this)
 			);
 		}
 		
