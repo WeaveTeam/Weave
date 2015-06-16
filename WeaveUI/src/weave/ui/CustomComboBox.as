@@ -21,7 +21,7 @@ package weave.ui
 	import mx.controls.ComboBox;
 
 	/**
-	 * Added functionality: set selectedLabel()
+	 * Added functionality: set selectedLabel(), dropdownStyle
 	 * 
 	 * @author adufilie
 	 */
@@ -31,6 +31,21 @@ package weave.ui
 		{
 			minWidth = 0;
 			addEventListener(MouseEvent.MOUSE_DOWN, function(..._):void { setFocus(); });
+		}
+		
+		/**
+		 * An object containing dropdown style values.
+		 */
+		public var dropdownStyle:Object = null;
+		
+		override public function getStyle(styleProp:String):*
+		{
+			// this style property is retrieved in displayDropDown(), so we can intercept the request here to update the dropdown style.
+			if (styleProp == "openDuration" && dropdown)
+				for (var key:String in dropdownStyle)
+					dropdown.setStyle(key, dropdownStyle[key]);
+			
+			return super.getStyle(styleProp);
 		}
 		
 		/**
