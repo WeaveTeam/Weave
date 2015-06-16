@@ -126,7 +126,7 @@ package weave.data.DataSources
 		public const inputs:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
 		public const inputKeyFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter));
 		
-		private const promise:LinkablePromise = registerLinkableChild(this, new LinkablePromise(runScript, describePromise));
+		private const promise:LinkablePromise = registerLinkableChild(this, new LinkablePromise(runScript, describePromise, true));
 		private function describePromise():String { return lang("Running script {0}", scriptName.value); }
 		private const outputCSV:CSVDataSource = newLinkableChild(this, CSVDataSource);
 		private var _service:AMF3Servlet;
@@ -134,7 +134,6 @@ package weave.data.DataSources
 		override protected function initialize():void
 		{
 			super.initialize();
-			promise.validate();
 		}
 		
 		private function handleURLChange():void
