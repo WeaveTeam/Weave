@@ -174,14 +174,21 @@ package weave.core
 		
 		private function _groupedCallback():void
 		{
-			if (_lazy || !_invalidated)
-				return;
-			
-			_invalidated = false;
-			
 			try
 			{
+				if (_lazy || !_invalidated)
+					return;
+				
+				// _invalidated is true prior to invoking the task
 				var invokeResult:* = _task.apply(null);
+				
+				// if _invalidated has been set to false, it means _immediateCallback() was triggered from the task and it's telling us we should stop now.
+				if (!_invalidated)
+					return;
+				
+				// set _invalidated to false now since we invoked the task
+				_invalidated = false;
+				
 				if (invokeResult is WeavePromise)
 					_asyncToken = (invokeResult as WeavePromise).getAsyncToken();
 				else
@@ -198,6 +205,7 @@ package weave.core
 			}
 			catch (invokeError:Error)
 			{
+				_invalidated = false;
 				_asyncToken = null;
 				_error = invokeError;
 				WeaveAPI.StageUtils.callLater(this, _handleFault);
