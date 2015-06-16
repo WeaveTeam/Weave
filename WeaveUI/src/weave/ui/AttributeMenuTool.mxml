@@ -30,6 +30,7 @@
 		<mx:Canvas label="{lang('Combo Box')}">
 			<CustomComboBox id="choiceCombo"
 							width="100%" height="100%" minHeight="0"
+							cornerRadius="0" highlightAlphas="{[0, 0]}" fillAlphas="{[0,0]}"
 							labelFunction="choiceLabelFunction"
 							valueCommit="if (UIUtils.hasFocus(choiceCombo)) handleAttrSelected(choiceCombo.selectedIndex);"
 							change="if (alwaysShowPrompt.value) choiceCombo.selectedIndex = -1;"
@@ -392,7 +393,10 @@
 				
 				var ltf:LinkableTextFormat = LinkableTextFormat.defaultTextFormat;
 				var target:UIComponent = this;
-				getCallbackCollection(ltf).addGroupedCallback(this, function():void { ltf.copyToStyle(target); }, true);
+				getCallbackCollection(ltf).addGroupedCallback(this, function():void {
+					ltf.copyToStyle(target);
+					ltf.copyToStyle(choiceCombo);
+				}, true);
 				
 				addEventListener(Event.ENTER_FRAME, enterFrame);
 				
