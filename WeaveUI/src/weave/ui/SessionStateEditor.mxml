@@ -143,6 +143,7 @@ A text editor to change the Session State on the fly.
 			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.menus.WeaveContextMenu;
 			import weave.primitives.WeaveTreeItem;
+			import weave.utils.ColumnUtils;
 			import weave.utils.DebugUtils;
 			import weave.utils.EventUtils;
 			import weave.utils.PopUpUtils;
@@ -438,43 +439,12 @@ A text editor to change the Session State on the fly.
 			private function unlinkNestedColumns():void
 			{
 				var selected:IColumnWrapper = sessionNav.getSelectedLinkableObject() as IColumnWrapper;
-		    	if (!selected)
+				if (!selected)
 				{
 					reportError('Please select a DynamicColumn.');
 					return;
 				}
-				
-				var col:IColumnWrapper = selected;
-				while (col)
-				{
-					var dc:DynamicColumn = col as DynamicColumn;
-					var edc:ExtendedDynamicColumn = col as ExtendedDynamicColumn;
-					if (dc && dc.globalName) // if linked
-					{
-						// unlink
-						dc.globalName = null;
-						// prevent infinite loop
-						if (dc.globalName)
-							break;
-						// restart from selected
-						col = selected;
-					}
-					else if (edc && edc.internalDynamicColumn.globalName) // if linked
-					{
-						// unlink
-						edc.internalDynamicColumn.globalName = null;
-						// prevent infinite loop
-						if (edc.internalDynamicColumn.globalName)
-							break;
-						// restart from selected
-						col = selected;
-					}
-					else
-					{
-						// get nested column
-						col = col.getInternalColumn() as IColumnWrapper;
-					}
-				}
+				ColumnUtils.unlinkNestedColumns(selected);
 				refresh();
 			}
 
