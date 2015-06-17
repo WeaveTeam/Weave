@@ -442,6 +442,12 @@ package weave.core
 				setSessionState(property, newState[name], removeMissingDynamicObjects);
 			}
 			
+			// handle properties appearing in session state that do not appear in the linkableObject 
+			if (linkableObject is ILinkableObjectWithNewProperties)
+				for each (name in newState)
+					if (!deprecatedLookup.hasOwnProperty(name))
+						(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperty(newState, name);
+			
 			// handle properties missing from absolute session state
 			if (foundMissingProperty)
 				for each (name in classNameToSessionedPropertyNames[classQName])
@@ -580,7 +586,7 @@ package weave.core
 		 */
 		private const classNameToDeprecatedSetterNames:Object = new Object();
 		/**
-		 * This maps a qualified class name to an Object mapping deprecated sessioned property names to true.
+		 * This maps a qualified class name to an Object mapping sessioned property names to booleans indicating if they are implemented as deprecated getters.
 		 */
 		private const classNameToDeprecatedGetterLookup:Object = new Object();
 		
@@ -615,8 +621,7 @@ package weave.core
 					}
 					else if (ClassUtils.classImplements(variable.type, ILinkableObjectQualifiedClassName))
 					{
-						if (deprecated)
-							deprecatedGetterLookup[variable.name] = true;
+						deprecatedGetterLookup[variable.name] = deprecated;
 						propertyNames.push(variable.name);
 					}
 				}
