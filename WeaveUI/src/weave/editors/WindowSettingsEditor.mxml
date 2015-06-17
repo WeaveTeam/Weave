@@ -62,8 +62,8 @@
 		<![CDATA[
 			import mx.events.FlexEvent;
 			
+			import weave.Weave;
 			import weave.api.linkBindableProperty;
-			import weave.core.UIUtils;
 			import weave.ui.DraggablePanel;
 
 			[Bindable]
@@ -88,6 +88,7 @@
 			{
 				super.childrenCreated();
 				
+				Weave.properties.panelBackgroundColor.addGroupedCallback(this, backgroundColorCallback, true);
 				_panel.panelBackgroundColor.addGroupedCallback(this, backgroundColorCallback, true);
 				_panel.addEventListener(FlexEvent.UPDATE_COMPLETE, function(..._):void { backgroundColorCallback(); });
 

@@ -46,6 +46,7 @@
 			}
 			
 			private static var _allFonts:Array = null;
+			private static const baseFonts:Array = ['_sans', '_serif', '_typewriter'];
 			
 			override public function validateProperties():void
 			{
@@ -59,7 +60,7 @@
 					else
 					{
 						if (!_allFonts)
-							_allFonts = Font.enumerateFonts(true).sortOn("fontName");
+							_allFonts = baseFonts.concat(Font.enumerateFonts(true).sortOn("fontName"));
 						dataProvider = _allFonts;
 						labelField = "fontName";
 					}

@@ -71,7 +71,6 @@
 			import weave.api.ui.ISelectableAttributes;
 			import weave.compiler.StandardLib;
 			import weave.core.CallbackCollection;
-			import weave.core.ClassUtils;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
@@ -112,6 +111,11 @@
 			public const panelBackgroundColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
 			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite), panelNeedsUpdate, true);
 			public const panelStyleList:LinkableString = newLinkableChild(this, LinkableString, handlePanelStyleListChange);
+			
+			public function set backgroundColor(value:Number):void
+			{
+				panelBackgroundColor.value = value;
+			}
 			
 			private function verifyMinimized(value:Boolean):Boolean { return !minimizable || minimizable.value || !value; }
 			private function verifyMaximized(value:Boolean):Boolean { return !maximizable || maximizable.value || !value; }
@@ -212,6 +216,8 @@
 				panelWidth.addImmediateCallback(this, function():void { copyCoordinatesFromSessionedProperties(panelWidth); });
 				panelHeight.addImmediateCallback(this, function():void { copyCoordinatesFromSessionedProperties(panelHeight); });
 				
+				
+				Weave.properties.panelBackgroundColor.addGroupedCallback(this, handleBackgroundColorChange, true);
 				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, updateButtons, true);
@@ -730,6 +736,13 @@
 				return enableBorders.value && (parent is ISystemManager || !Weave.properties.dashboardMode.value);
 			}
 			
+			override public function styleChanged(styleProp:String):void
+			{
+				if (styleProp == 'backgroundColor')
+					panelBackgroundColor.setSessionState(super.getStyle('backgroundColor'));
+				super.styleChanged(styleProp);
+			}
+			
 			override public function getStyle(styleProp:String):*
 			{
 				var value:* = null;	
@@ -760,8 +773,13 @@
 				
 				if (_overriddenStyles[styleProp] != undefined )
 					value = _overriddenStyles[styleProp];
-				else if (styleProp == 'backgroundColor' && isFinite(panelBackgroundColor.value))
-					value = panelBackgroundColor.value;
+				else if (styleProp == 'backgroundColor')
+				{
+					if (isFinite(panelBackgroundColor.value))
+						value = panelBackgroundColor.value;
+					else
+						value = Weave.properties.panelBackgroundColor.value;
+				}
 				else if (styleProp == 'borderColor' && isFinite(panelBorderColor.value))
 					value = panelBorderColor.value;
 				else

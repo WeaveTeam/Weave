@@ -53,8 +53,11 @@
 			These font settings are used for mouseover info.
 		</ui:HelpComponent>
 	</ui:Indent>
-	<ui:Indent label="{lang('Background color:')}" group="{fontIndent}">
+	<ui:Indent label="{lang('Workspace background color:')}" group="{fontIndent}">
 		<ui:CustomColorPicker creationComplete="linkBindableProperty(Weave.properties.backgroundColor, event.target, 'selectedColor')"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Panel background color:')}" group="{fontIndent}">
+		<ui:CustomColorPicker creationComplete="linkBindableProperty(Weave.properties.panelBackgroundColor, event.target, 'selectedColor')"/>
 	</ui:Indent>
 	<mx:HBox>
 	<ui:CustomCheckBox label="{lang('Enable dashboard mode')}"
