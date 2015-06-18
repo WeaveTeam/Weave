@@ -22,7 +22,7 @@
 		horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" verticalAlign="middle">
 	<ui:CustomCheckBox paddingLeft="4" id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter();"/>
 	<ui:PlayButton id="playButton" enabled="{filterEnable.selected}"/>
-	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}"
+	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}" fillAlphas="{[1, 1]}"
 				liveDragging="true"
 				dataTipFormatFunction="{dataTipFormatFunction}"
 				mouseDown="event.target.setFocus(); event.stopPropagation()"
@@ -51,8 +51,8 @@
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.KeySets.NumberDataFilter;
 			import weave.utils.ColumnUtils;
-			import weave.utils.VectorUtils;
 
+			public const thumbColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xe0e0e0, isFinite), setThumbColor);
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('ColumnUtils.deriveStringFromNumber(column, number)', true, false, ['column', 'number']), invalidateDisplayList);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
@@ -188,6 +188,16 @@
 			private function getLabelFromNumber(column:IAttributeColumn, number:Number):String
 			{
 				return labelFunction.apply(this, [column, number]) || '';
+			}
+			
+			private function setThumbColor():void
+			{
+				if (!parent)
+				{
+					callLater(setThumbColor);
+					return;
+				}
+				filterSlider.setStyle('fillColors', [thumbColor.value, thumbColor.value]);
 			}
 
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void

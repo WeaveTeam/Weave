@@ -37,7 +37,7 @@
 						/>
 	</mx:Canvas>
 	<mx:Canvas label="{lang('Vertical Slider')}">
-		<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
+		<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1" fillAlphas="{[1, 1]}"
 					width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
 					change="if (UIUtils.hasFocus(choiceVSlider)) chosenItem = _choices[choiceVSlider.maximum - choiceVSlider.value];"
 					mouseDown="choiceVSlider.setFocus()"
@@ -45,7 +45,7 @@
 	</mx:Canvas>
 	<mx:Canvas label="{lang('Horizontal Slider')}">
 		<mx:HBox verticalAlign="middle" width="100%" height="100%">
-			<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
+			<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1" fillAlphas="{[1, 1]}"
 						width="100%" height="100%" snapInterval="1" minimum="0" minWidth="0" showDataTip="false"
 						change="if (UIUtils.hasFocus(choiceHSlider)) chosenItem = _choices[choiceHSlider.value];"
 						mouseDown="choiceHSlider.setFocus()"

@@ -66,6 +66,7 @@
 			private const columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleColumn, true);
 			private var _linkedFilter:StringDataFilter;
 			
+			public const thumbColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xe0e0e0, isFinite), setThumbColor);
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(MenuToolViewStack.LAYOUT_LIST), handleLayoutMode, true);
 			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
@@ -240,6 +241,17 @@
 			public function getChoiceLabel(choice:String):String
 			{
 				return labelFunction.apply(this, [columnWatcher.target, choice]) || '';
+			}
+			
+			private function setThumbColor():void
+			{
+				if (!parent)
+				{
+					callLater(setThumbColor);
+					return;
+				}
+				menuStack.choiceHSlider.setStyle('fillColors', [thumbColor.value, thumbColor.value]);
+				menuStack.choiceVSlider.setStyle('fillColors', [thumbColor.value, thumbColor.value]);
 			}
 			
 			//TODO - make this asynchronous
