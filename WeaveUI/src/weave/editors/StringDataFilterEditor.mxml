@@ -95,6 +95,7 @@
 				}
 				else
 				{
+					columnWatcher.target = null;
 					this.enabled = false;
 				}
 				
