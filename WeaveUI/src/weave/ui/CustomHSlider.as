@@ -17,6 +17,7 @@ package weave.ui
 {
 	import mx.controls.HSlider;
 	import mx.controls.sliderClasses.Slider;
+	import mx.controls.sliderClasses.SliderDirection;
 	import mx.controls.sliderClasses.SliderLabel;
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
@@ -28,13 +29,18 @@ package weave.ui
 	 */
 	public class CustomHSlider extends HSlider
 	{
+		public function CustomHSlider()
+		{
+			direction = SliderDirection.HORIZONTAL;
+		}
+		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			setLabelPositions(this, _labelPositions);
 		}
 		
-		private var _labelPositions:Array = [];
+		private var _labelPositions:Array = null;
 		
 		/**
 		 * Positions corresponding to the labels property.
