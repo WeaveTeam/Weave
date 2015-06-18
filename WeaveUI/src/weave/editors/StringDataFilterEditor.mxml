@@ -46,6 +46,7 @@
 			import weave.api.unlinkBindableProperty;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.LinkableWatcher;
@@ -68,6 +69,7 @@
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(MenuToolViewStack.LAYOUT_LIST), handleLayoutMode, true);
 			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['column', 'string']), updateLabels);
 			
 			override protected function childrenCreated():void
 			{
@@ -223,6 +225,21 @@
 					return;
 				}
 				menuStack.layoutMode = layoutMode.value;
+			}
+			
+			private function updateLabels():void
+			{
+				if (!parent)
+				{
+					callLater(updateLabels);
+					return;
+				}
+				menuStack.choiceLabelFunction = getChoiceLabel;
+			}
+			
+			public function getChoiceLabel(choice:String):String
+			{
+				return labelFunction.apply(this, [columnWatcher.target, choice]) || '';
 			}
 			
 			//TODO - make this asynchronous

@@ -274,6 +274,8 @@
 				var editorState:Object = editor.target && getSessionState(editor.target);
 				var filterState:Object = filter.target && getSessionState(filter.target);
 				
+				delete editorState['labelFunction'];
+				
 				try
 				{
 					WeaveAPI.ExternalSessionStateInterface.requestObject(filter.targetPath, getQualifiedClassName(type));

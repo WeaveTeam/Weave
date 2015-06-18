@@ -24,6 +24,7 @@
 	<ui:PlayButton id="playButton" enabled="{filterEnable.selected}"/>
 	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}"
 				liveDragging="true"
+				dataTipFormatFunction="{dataTipFormatFunction}"
 				mouseDown="event.target.setFocus(); event.stopPropagation()"
 				change="handleSliderChange(event);"
 				width="100%" minWidth="22"/>
@@ -43,6 +44,7 @@
 			import weave.api.registerLinkableChild;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
@@ -51,6 +53,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.VectorUtils;
 
+			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('ColumnUtils.deriveStringFromNumber(column, number)', true, false, ['column', 'number']), invalidateDisplayList);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const showMinThumb:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), invalidateDisplayList);
@@ -177,9 +180,14 @@
 				}
 			}
 			
+			private function dataTipFormatFunction(value:Number):String
+			{
+				return numberFilter ? getLabelFromNumber(numberFilter.column, value) : '';
+			}
+			
 			private function getLabelFromNumber(column:IAttributeColumn, number:Number):String
 			{
-				return ColumnUtils.deriveStringFromNumber(column, number) || '';
+				return labelFunction.apply(this, [column, number]) || '';
 			}
 
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -187,7 +195,7 @@
 				if (numberFilter && filterEnable.selected != numberFilter.enabled.value)
 					filterEnable.selected = numberFilter.enabled.value;
 				
-				if (detectLinkableObjectChange(updateDisplayList, showMinThumb, showMaxThumb, forceDiscreteValues, discreteValueLabelInterval, statsWatcher))
+				if (detectLinkableObjectChange(updateDisplayList, showMinThumb, showMaxThumb, forceDiscreteValues, discreteValueLabelInterval, statsWatcher, labelFunction))
 				{
 					var i:int;
 					var stats:IColumnStatistics = statsWatcher.target as IColumnStatistics;
