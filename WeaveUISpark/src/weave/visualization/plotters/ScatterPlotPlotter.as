@@ -72,6 +72,7 @@ package weave.visualization.plotters
 		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
 		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25, isFinite));
 		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
+		public const showSquaresForMissingSize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
@@ -185,6 +186,7 @@ package weave.visualization.plotters
 			if (!isFinite(radius))
 			{
 				// handle undefined radius
+				radius = defaultScreenRadius.value;
 				if (colorBySize.value)
 				{
 					// draw nothing
@@ -192,13 +194,13 @@ package weave.visualization.plotters
 				else if (sizeBy.internalObject)
 				{
 					// draw square
-					radius = defaultScreenRadius.value;
-					graphics.drawRect(tempPoint.x - radius, tempPoint.y - radius, radius * 2, radius * 2);
+					if (showSquaresForMissingSize.value)
+						graphics.drawRect(tempPoint.x - radius, tempPoint.y - radius, radius * 2, radius * 2);
 				}
 				else
 				{
 					// draw default circle
-					graphics.drawCircle(tempPoint.x, tempPoint.y, defaultScreenRadius.value );
+					graphics.drawCircle(tempPoint.x, tempPoint.y, radius);
 				}
 			}
 			else
