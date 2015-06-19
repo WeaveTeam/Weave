@@ -107,8 +107,8 @@
 			public const closeable:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			public const enableBorders:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), panelNeedsUpdate, true);
 			
-			public const panelBorderColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBorderColorChange, true);
-			public const panelBackgroundColor:LinkableNumber = registerLinkableChild( this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
+			public const panelBorderColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), handleBorderColorChange, true);
+			public const panelBackgroundColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN), handleBackgroundColorChange, true);
 			public const buttonRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite), panelNeedsUpdate, true);
 			public const panelStyleList:LinkableString = newLinkableChild(this, LinkableString, handlePanelStyleListChange);
 			
@@ -216,8 +216,7 @@
 				panelWidth.addImmediateCallback(this, function():void { copyCoordinatesFromSessionedProperties(panelWidth); });
 				panelHeight.addImmediateCallback(this, function():void { copyCoordinatesFromSessionedProperties(panelHeight); });
 				
-				
-				Weave.properties.panelBackgroundColor.addGroupedCallback(this, handleBackgroundColorChange, true);
+				registerLinkableChild(panelBackgroundColor, Weave.properties.panelBackgroundColor);
 				getCallbackCollection(Weave.properties.panelTitleTextFormat).addGroupedCallback(this, handleTitleTextFormatChange, true);
 				Weave.properties.dashboardMode.addGroupedCallback(this, panelNeedsUpdate);
 				Weave.properties.enableToolControls.addGroupedCallback(this, updateButtons, true);

@@ -398,10 +398,6 @@
 					ltf.copyToStyle(choiceCombo);
 				}, true);
 				
-				panelBackgroundColor.addGroupedCallback(this, function():void {
-					choiceCombo.dropdownStyle = {backgroundColor: panelBackgroundColor.value};
-				}, true);
-				
 				addEventListener(Event.ENTER_FRAME, enterFrame);
 				
 				// Since we're adding these callbacks after the children have been created,
