@@ -352,6 +352,12 @@
 			
 			private function applyTextFormat(beginIndex:int = -1, endIndex:int = -1):void
 			{
+				if (!parent)
+				{
+					callLater(applyTextFormat, arguments);
+					return;
+				}
+				
 				// save selection & scroll position
 				var selectionBeginIndex:int = getTextField().selectionBeginIndex;
 				var selectionEndIndex:int = getTextField().selectionEndIndex;
