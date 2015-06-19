@@ -638,6 +638,8 @@ package weave
 		{
 			if (newState.hasOwnProperty('version') && missingProperty == 'mouseoverTextFormat')
 				copySessionState(visTextFormat, mouseoverTextFormat);
+			if (missingProperty == 'panelBackgroundColor')
+				panelBackgroundColor.value = 0xFFFFFF;
 		}
 	}
 }
