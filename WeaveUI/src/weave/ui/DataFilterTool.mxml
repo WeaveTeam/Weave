@@ -274,7 +274,8 @@
 				var editorState:Object = editor.target && getSessionState(editor.target);
 				var filterState:Object = filter.target && getSessionState(filter.target);
 				
-				delete editorState['labelFunction'];
+				if (editorState)
+					delete editorState['labelFunction'];
 				
 				try
 				{
