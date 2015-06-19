@@ -37,7 +37,8 @@ package weave.data.KeySets
 		
 		private var _enabled:Boolean;
 		private var _includeMissingKeyTypes:Boolean;
-		private var _stringLookup:Object = {};
+		private var _stringLookup:Object;
+		private var _numberLookup:Object;
 		private var _keyType:String;
 		private var _keyLookup:Dictionary = new Dictionary(true);
 		
@@ -53,7 +54,23 @@ package weave.data.KeySets
 		}
 		private function _resetKeyLookup():void
 		{
-			VectorUtils.fillKeys(_stringLookup = {}, stringValues.getSessionState() as Array);
+			_numberLookup = null;
+			_stringLookup = null;
+			for each (var value:* in stringValues.getSessionState())
+			{
+				if (value is Number)
+				{
+					if (!_numberLookup)
+						_numberLookup = {};
+					_numberLookup[value] = true;
+				}
+				else
+				{
+					if (!_stringLookup)
+						_stringLookup = {};
+					_stringLookup[value] = true;
+				}
+			}
 			_keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
 			_keyLookup = new Dictionary(true);
 		}
@@ -66,8 +83,16 @@ package weave.data.KeySets
 			var cached:* = _keyLookup[key];
 			if (cached === undefined)
 			{
-				var value:String = column.getValueFromKey(key, String);
-				cached = _stringLookup.hasOwnProperty(value);
+				if (_stringLookup)
+				{
+					var string:String = column.getValueFromKey(key, String);
+					cached = _stringLookup.hasOwnProperty(string);
+				}
+				if (!cached && _numberLookup)
+				{
+					var number:Number = column.getValueFromKey(key, Number);
+					cached = _numberLookup.hasOwnProperty(number);
+				}
 				if (!cached && _includeMissingKeyTypes && key.keyType != _keyType)
 					cached = true;
 				_keyLookup[key] = cached;
