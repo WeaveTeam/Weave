@@ -2,7 +2,7 @@ FLASCC:=/cygdrive/c/flascc/sdk
 FLEX:=/cygdrive/c/flex
 AS3COMPILER:=asc2.jar
 BASE_CFLAGS:=-Werror -Wno-write-strings -Wno-trigraphs
-C_OBJS =strftime2.o strptime2.o timelocal.o b64util.o dateutil.o hashutil.o main.o modp_b64.o ziputil.o
+C_OBJS =strftime2.o strptime2.o timelocal.o b64util.o dateutil.o hashutil.o main.o modp_b64.o ziputil.o kdtree.o as3-kdtree.o
 CPP_OBJS = CSVParser.oo
 $?UNAME=$(shell uname -s)
 ifneq (,$(findstring CYGWIN,$(UNAME)))

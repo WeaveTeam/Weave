@@ -36,7 +36,8 @@ void as3_kd_insert() __attribute((used,
 void as3_kd_insert()
 {
 	struct kdtree* tree_ptr;
-	int idx, key_n, data, retval;
+	void* data;
+	int idx, key_n, retval;
 
 	AS3_GetScalarFromVar(tree_ptr, tree_ptr);
 	AS3_GetScalarFromVar(data, data);
@@ -72,7 +73,7 @@ void as3_kd_query_range() __attribute((used,
 
 void as3_kd_query_range()
 {
-	int key_n, res_size, inclusive;
+	int key_n, res_size, inclusive, idx;
 
 	struct kdtree* tree_ptr;
 	struct kdres* res;
