@@ -37,7 +37,7 @@
 		</ui:HelpComponent>
 	</mx:HBox>
 
-	<ui:CheckBoxWithNestedOptions label="{lang('Show borders')}"
+	<ui:CheckBoxWithNestedOptions id="showBordersCheckBox" label="{lang('Show borders')}"
 				 creationComplete="linkBindableProperty(_panel.enableBorders, event.target, 'selected');">
 		<ui:CustomCheckBox label="{labelShowButton(DraggablePanel.TOOLTIP_ZORDER)}"
 				 creationComplete="linkBindableProperty(_panel.enableZOrder, event.target, 'selected')"/>
@@ -47,7 +47,7 @@
 				 creationComplete="linkBindableProperty(_panel.maximizable, event.target,'selected')"/>
 		<ui:CustomCheckBox label="{labelShowButton(DraggablePanel.TOOLTIP_CLOSE)}"
 				 creationComplete="linkBindableProperty(_panel.closeable, event.target, 'selected')"/>
-		<ui:Indent label="{lang('Border color')}">
+		<ui:Indent id="borderColorIndent" label="{lang('Border color')}">
 			<ui:CustomColorPicker id="borderColorPicker" change="borderColorPicked();"/>
 			<mx:Button label="{lang('Reset')}" click="_panel.panelBorderColor.value = NaN;"/>
 		</ui:Indent>
@@ -83,12 +83,7 @@
 					throw new Error(lang("target should not be set more than once"));
 				
 				_panel = panel;
-			}
-			override protected function childrenCreated():void
-			{
-				super.childrenCreated();
 				
-				Weave.properties.panelBackgroundColor.addGroupedCallback(this, backgroundColorCallback, true);
 				_panel.panelBackgroundColor.addGroupedCallback(this, backgroundColorCallback, true);
 				_panel.addEventListener(FlexEvent.UPDATE_COMPLETE, function(..._):void { backgroundColorCallback(); });
 
@@ -98,6 +93,11 @@
 			
 			private function backgroundColorCallback():void
 			{
+				if (!parent)
+				{
+					callLater(backgroundColorCallback);
+					return;
+				}
 				backgroundColorPicker.selectedColor = _panel.getStyle('backgroundColor');
 			}
 			private function backgroundColorPicked():void
@@ -107,6 +107,11 @@
 			
 			private function borderColorCallback():void
 			{
+				if (!parent)
+				{
+					callLater(borderColorCallback);
+					return;
+				}
 				borderColorPicker.selectedColor = _panel.getStyle('borderColor');
 			}
 			private function borderColorPicked():void
