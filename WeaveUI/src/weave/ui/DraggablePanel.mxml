@@ -55,8 +55,10 @@
 			import mx.events.ResizeEvent;
 			import mx.managers.ISystemManager;
 			import mx.managers.PopUpManager;
+			import mx.managers.ToolTipManager;
 			
 			import weave.Weave;
+			import weave.api.core.ICallbackCollection;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
@@ -77,6 +79,7 @@
 			import weave.core.LinkableString;
 			import weave.core.StageUtils;
 			import weave.core.UIUtils;
+			import weave.menus.ToolsMenu;
 			import weave.menus.WeaveMenuItem;
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.CustomCursorManager;
@@ -369,6 +372,14 @@
 					busyIndicator = new BusyIndicator(this as ILinkableObject);
 					rawChildren.addChild(busyIndicator);
 				}
+			}
+			
+			/**
+			 * Put code here to run when the user creates a new instance of this panel from a menu.
+			 */
+			public function onUserCreation():void
+			{
+				callLater(ToolsMenu.handleDraggablePanelAdded, [this]);
 			}
 			
 			public function getLabel():String

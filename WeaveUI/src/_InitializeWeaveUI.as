@@ -72,7 +72,7 @@ package
 	import weave.ui.RTextEditor;
 	import weave.ui.SchafersMissingDataTool;
 	import weave.ui.SessionStateEditor;
-	import weave.ui.annotation.SessionedTextBox;
+	import weave.ui.TextTool;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
@@ -235,7 +235,8 @@ package
 			
 			ClassUtils.registerDeprecatedClass("EmptyTool", CustomTool);
 			ClassUtils.registerDeprecatedClass("WMSPlotter2", WMSPlotter);
-			ClassUtils.registerDeprecatedClass("SessionedTextArea", SessionedTextBox);
+			ClassUtils.registerDeprecatedClass("SessionedTextArea", TextTool);
+			ClassUtils.registerDeprecatedClass("weave.ui.annotation.SessionedTextBox", TextTool);
 			ClassUtils.registerDeprecatedClass("weave.visualization.tools.DataTableTool", AdvancedTableTool);
 			ClassUtils.registerDeprecatedClass("weave.api.ui.IObjectWithSelectableAttributes", ISelectableAttributes);
 		}();

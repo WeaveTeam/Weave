@@ -19,12 +19,13 @@
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
 				   width="25%" height="25%" backgroundAlpha="0" borderThickness="0"
+				   implements="weave.api.ui.IVisTool_Utility"
+				   title="Text"
 				   horizontalScrollPolicy="off" layout="absolute" verticalScrollPolicy="off">
 	<mx:TextArea id="textArea" width="100%" height="100%" minWidth="5" minHeight="5"
 				 borderStyle="solid" editable="false" wordWrap="true"/>
 	<ui:ControlPanel added="if (event.target == controlPanel) updateTextArea()"
-					 removed="if (event.target == controlPanel) callLater(updateTextArea)"
-					 title="{lang('Annotation Editor')}">
+					 removed="if (event.target == controlPanel) callLater(updateTextArea)">
 		<mx:VBox id="toolbar" width="100%" height="100%" horizontalGap="7"
 				 horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2" paddingRight="2"
 				 paddingTop="2" verticalScrollPolicy="off">
@@ -123,12 +124,14 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.ILinkableContainer;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.UIUtils;
-			import weave.ui.CustomContextMenuManager;
 			import weave.utils.LinkableTextFormat;
+			
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TextTool, "Text");
 			
 			public const htmlText:LinkableString        = registerLinkableChild(this, new LinkableString(''), handleLinkableHtmlText, true);
 			public const backgroundAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite), applyStyle, true);
@@ -145,6 +148,11 @@
 			
 			private const htmlTextFunction:LinkableFunction = newDisposableChild(this, LinkableFunction);
 			
+			override public function onUserCreation():void
+			{
+				toggleControlPanel();
+			}
+
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
@@ -167,6 +175,9 @@
 			{
 				fontControls.initialize();
 				super.childrenCreated();
+				
+				if (!WeaveAPI.globalHashMap.getName(this))
+					enableZOrder.value = false;
 				
 				linkBindableProperty(enableBorders, borderCheckBox, 'selected');
 				linkBindableProperty(enableMoveResize, moveResizeCheckBox, 'selected');
@@ -426,8 +437,8 @@
 			 * This function is called whenever the context menu is opened.
 			 * The function will change the caption displayed depending upon where the context menu was opened.
 			 */
-			private static var _textAreaEditContextMenuItem:ContextMenuItem 	= null;
-			private static var _textAreaAddRemoveContextMenuItem:ContextMenuItem = null;
+			private static var _textToolEditContextMenuItem:ContextMenuItem 	= null;
+			private static var _textToolAddRemoveContextMenuItem:ContextMenuItem = null;
 			private static const ADD_CAPTION:String           = lang("Add Annotation");
 			private static const REMOVE_CAPTION:String        = lang("Remove Annotation");
 			private static const EDIT_TEXT_CAPTION:String     = lang("Edit Annotation");
@@ -436,26 +447,26 @@
 			
 			private static function handleContextMenuOpened(e:ContextMenuEvent):void
 			{	
-				var textArea:SessionedTextBox = getTextAreaFromTarget(e.mouseTarget);	
+				var tt:TextTool = getTextToolFromTarget(e.mouseTarget);	
 				
-				if( getLinkableContainer(e.mouseTarget) )
+				if (getLinkableContainer(e.mouseTarget))
 				{
-					_textAreaAddRemoveContextMenuItem.enabled = true;
+					_textToolAddRemoveContextMenuItem.enabled = true;
 				}
 				else
 				{
-					_textAreaAddRemoveContextMenuItem.enabled = false;
+					_textToolAddRemoveContextMenuItem.enabled = false;
 				}
 				
-				if ( textArea == null)
+				if (tt == null)
 				{ 
-					_textAreaAddRemoveContextMenuItem.caption = ADD_CAPTION;
-					_textAreaEditContextMenuItem.enabled = false;
+					_textToolAddRemoveContextMenuItem.caption = ADD_CAPTION;
+					_textToolEditContextMenuItem.enabled = false;
 				}
 				else
 				{
-					_textAreaAddRemoveContextMenuItem.caption = REMOVE_CAPTION;
-					_textAreaEditContextMenuItem.enabled = true;
+					_textToolAddRemoveContextMenuItem.caption = REMOVE_CAPTION;
+					_textToolEditContextMenuItem.enabled = true;
 				}
 			}
 			
@@ -470,45 +481,45 @@
 				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
 				
 				// Create a context menu item for printing of a single tool with title and logo
-				_textAreaAddRemoveContextMenuItem   = CustomContextMenuManager.createAndAddMenuItemToDestination(ADD_CAPTION,destination,handleAddRemove,"2.1 textBoxMenuItem");
-				_textAreaEditContextMenuItem        = CustomContextMenuManager.createAndAddMenuItemToDestination(EDIT_TEXT_CAPTION,destination,handleEdit,"2.1 textBoxMenuItem");
+				_textToolAddRemoveContextMenuItem   = CustomContextMenuManager.createAndAddMenuItemToDestination(ADD_CAPTION,destination,handleAddRemove,"2.1 textBoxMenuItem");
+				_textToolEditContextMenuItem        = CustomContextMenuManager.createAndAddMenuItemToDestination(EDIT_TEXT_CAPTION,destination,handleEdit,"2.1 textBoxMenuItem");
 				
 				return true;
 			}
 			
 			
 			/**
-			 * This function is called by ChangeWindows.
-			 * This will add a Text Box to whatever parent has been indicated.
+			 * This will add a TextTool to whatever parent has been indicated.
 			 * If the container passed is not an ILinkableContainer the Text Box is automatically placed on the visdesktop.
 			 */
-			private static function addTextAreaAndLabelToLocation(container:*, x:Number=0, y:Number=0):void
+			private static function addTextTool(container:*):void
 			{	
 				var linkableContainer:ILinkableContainer = container as ILinkableContainer;
 				
-				if ( linkableContainer )
+				if (linkableContainer)
 				{
-					var name:String = linkableContainer.getLinkableChildren().generateUniqueName("Label");
-					var newTextArea:SessionedTextBox = linkableContainer.getLinkableChildren().requestObject(name, SessionedTextBox,false);
+					var name:String = linkableContainer.getLinkableChildren().generateUniqueName("Text");
+					var tt:TextTool = linkableContainer.getLinkableChildren().requestObject(name, TextTool, false);
 					if (linkableContainer.getLinkableChildren() == WeaveAPI.globalHashMap)
-						newTextArea.minimizable.value = newTextArea.maximizable.value = true;
-					newTextArea.toggleControlPanel();
+						tt.minimizable.value = tt.maximizable.value = true;
+					tt.toggleControlPanel();
 				}
 			}
 			
 			/**
 			 * This function is called when Remove is selected in the Context Menu.
-			 * It checks for a TextArea, and if found will attempt to remove the TextArea and associated TextBox. 
+			 * It checks for a TextTool, and if found will attempt to remove the TextTool and associated TextBox. 
 			 */
 			private static function removeWindows(e:ContextMenuEvent):void
 			{
-				var parent:ILinkableContainer = getLinkableContainer(getTextAreaFromTarget(e.mouseTarget));
+				var parent:ILinkableContainer = getLinkableContainer(getTextToolFromTarget(e.mouseTarget));
 				
-				if ( getTextAreaFromTarget(e.mouseTarget) != null ) {				
-					if ( parent is ILinkableContainer ) {
-						var textArea:SessionedTextBox = getTextAreaFromTarget(e.mouseTarget);
-						
-						var name:String = parent.getLinkableChildren().getName(textArea);
+				if (getTextToolFromTarget(e.mouseTarget) != null)
+				{				
+					if (parent is ILinkableContainer)
+					{
+						var tt:TextTool = getTextToolFromTarget(e.mouseTarget);
+						var name:String = parent.getLinkableChildren().getName(tt);
 						parent.getLinkableChildren().removeObject(name);
 					}
 				}
@@ -517,14 +528,14 @@
 			 * This function is passed a target and checks to see if the target was a TextBox.
 			 * Either a TextBox or null will be returned.
 			 */
-			private static function getTextAreaFromTarget(target:*):SessionedTextBox
+			private static function getTextToolFromTarget(target:*):TextTool
 			{
 				var targetComponent:* = target;
 				
-				while(targetComponent)
+				while (targetComponent)
 				{
-					if(targetComponent is SessionedTextBox)
-						return targetComponent as SessionedTextBox;
+					if (targetComponent is TextTool)
+						return targetComponent as TextTool;
 					targetComponent = targetComponent.parent;
 				}
 				
@@ -557,27 +568,27 @@
 			private static function handleAddRemove(e:ContextMenuEvent):void
 			{
 				var parent:ILinkableContainer = getLinkableContainer(e.mouseTarget);
-				var textArea:SessionedTextBox = getTextAreaFromTarget(e.mouseTarget);
+				var tt:TextTool = getTextToolFromTarget(e.mouseTarget);
 				
 				// if the user did not right click on a TextBox or the editor for one
-				if ( textArea == null) 
+				if ( tt == null) 
 				{
-					// add text area to this container
-					addTextAreaAndLabelToLocation(parent, e.mouseTarget.mouseX, e.mouseTarget.mouseY);
+					// add text Tool to this container
+					addTextTool(parent);
 				}
 				else
 				{
-					textArea.removePanel();
+					tt.removePanel();
 				}
 			}
 			
 			private static function handleEdit(e:ContextMenuEvent):void
 			{
-				var textArea:SessionedTextBox = getTextAreaFromTarget(e.mouseTarget);
-				if (textArea)
+				var tt:TextTool = getTextToolFromTarget(e.mouseTarget);
+				if (tt)
 				{
-					textArea.sendWindowToForeground();
-					textArea.toggleControlPanel();
+					tt.sendWindowToForeground();
+					tt.toggleControlPanel();
 				}
 			}
 			

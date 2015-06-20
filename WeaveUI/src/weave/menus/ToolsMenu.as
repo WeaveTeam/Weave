@@ -80,11 +80,11 @@ package weave.menus
 			// add "Start here" tip for a panel
 			var dp:DraggablePanel = object as DraggablePanel;
 			if (dp)
-				dp.callLater(handleDraggablePanelAdded, [dp]);
+				dp.onUserCreation();
 			
 			return object;
 		}
-		private static function handleDraggablePanelAdded(dp:DraggablePanel):void
+		public static function handleDraggablePanelAdded(dp:DraggablePanel):void
 		{
 			if (objectWasDisposed(dp) || !dp.parent)
 				return;
