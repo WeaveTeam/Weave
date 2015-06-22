@@ -158,7 +158,7 @@ package weave.data.DataSources
 		{
 			var proxyColumn:ProxyColumn = newDisposableChild(this, ProxyColumn);
 			proxyColumn.setMetadata(metadata);
-			WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn);
+			WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn, (WeaveAPI.globalHashMap.getName(this) || debugId(this)) + " pending column request");
 			handlePendingColumnRequest(proxyColumn);
 			return proxyColumn;
 		}
