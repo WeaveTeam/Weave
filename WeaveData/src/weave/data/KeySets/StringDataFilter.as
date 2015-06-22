@@ -83,15 +83,15 @@ package weave.data.KeySets
 			var cached:* = _keyLookup[key];
 			if (cached === undefined)
 			{
-				if (_stringLookup)
-				{
-					var string:String = column.getValueFromKey(key, String);
-					cached = _stringLookup.hasOwnProperty(string);
-				}
-				if (!cached && _numberLookup)
+				if (_numberLookup)
 				{
 					var number:Number = column.getValueFromKey(key, Number);
 					cached = _numberLookup.hasOwnProperty(number);
+				}
+				if (!cached && _stringLookup)
+				{
+					var string:String = column.getValueFromKey(key, String);
+					cached = _stringLookup.hasOwnProperty(string);
 				}
 				if (!cached && _includeMissingKeyTypes && key.keyType != _keyType)
 					cached = true;
