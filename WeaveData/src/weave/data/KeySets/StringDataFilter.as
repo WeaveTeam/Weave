@@ -33,7 +33,9 @@ package weave.data.KeySets
 		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), _cacheVars);
 		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), _cacheVars);
 		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn, _resetKeyLookup);
-		public const stringValues:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray), _resetKeyLookup);
+		public const stringValues:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), _resetKeyLookup);
+		
+		//[Deprecated(replacement="values")] public function get stringValues():LinkableVariable { return values; }
 		
 		private var _enabled:Boolean;
 		private var _includeMissingKeyTypes:Boolean;
@@ -41,11 +43,6 @@ package weave.data.KeySets
 		private var _numberLookup:Object;
 		private var _keyType:String;
 		private var _keyLookup:Dictionary = new Dictionary(true);
-		
-		private function verifyStringArray(array:Array):Boolean
-		{
-			return !array || !array.length || StandardLib.getArrayType(array) == String; 
-		}
 		
 		private function _cacheVars():void
 		{
