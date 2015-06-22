@@ -38,6 +38,8 @@
 			import mx.binding.utils.BindingUtils;
 			
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.ColumnMetadata;
+			import weave.api.data.DataType;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
@@ -70,7 +72,7 @@
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(MenuToolViewStack.LAYOUT_LIST), handleLayoutMode, true);
 			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['column', 'string']), updateLabels);
+			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['column', 'string', 'number']), updateLabels);
 			
 			override protected function childrenCreated():void
 			{
@@ -238,9 +240,22 @@
 				menuStack.choiceLabelFunction = getChoiceLabel;
 			}
 			
-			public function getChoiceLabel(choice:String):String
+			public function getChoiceLabel(choice:*):String
 			{
-				return labelFunction.apply(this, [columnWatcher.target, choice]) || '';
+				var column:IAttributeColumn = columnWatcher.target as IAttributeColumn;
+				var string:String;
+				var number:Number;
+				if (choice is Number)
+				{
+					number = choice as Number;
+					string = ColumnUtils.deriveStringFromNumber(column, number);
+				}
+				else
+				{
+					string = String(choice);
+					number = NaN;
+				}
+				return labelFunction.apply(this, [columnWatcher.target, string, number]) || '';
 			}
 			
 			private function setThumbColor():void
@@ -255,13 +270,41 @@
 			}
 			
 			//TODO - make this asynchronous
-			public static function getChoices(column:IAttributeColumn):Array
+			public static function getChoices(column:IAttributeColumn, dataType:Class = null):Array
 			{
 				var valueMap:Object = {};
-				for each (var key:IQualifiedKey in column.keys)
-					valueMap[column.getValueFromKey(key, String)] = column.getValueFromKey(key, Number);
+				var key:IQualifiedKey;
+				var number:Number;
+				var string:String;
+				var valueList:Array;
 				
-				var valueList:Array = VectorUtils.getKeys(valueMap);
+				if (!dataType)
+					dataType = DataType.getClass(column.getMetadata(ColumnMetadata.DATA_TYPE));
+				
+				if (dataType == Number)
+				{
+					valueList = [];
+					for each (key in column.keys)
+					{
+						number = column.getValueFromKey(key, Number);
+						if (!valueMap.hasOwnProperty(number))
+						{
+							valueList.push(number);
+							valueMap[number] = number;
+						}
+					}
+				}
+				else
+				{
+					for each (key in column.keys)
+					{
+						number = column.getValueFromKey(key, Number);
+						string = column.getValueFromKey(key, String);
+						valueMap[string] = number;
+					}
+					valueList = VectorUtils.getKeys(valueMap);
+				}
+				
 				StandardLib.sortOn(valueList, valueMap);
 				
 				return valueList;
