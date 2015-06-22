@@ -147,9 +147,11 @@ package weave.data.DataSources
 		
 		protected function handleParsedRows(rows:Array):void
 		{
+			if (!rows)
+				rows = [];
 			cachedDataTypes = {};
 			parsedRows = rows;
-			columnIds = rows && rows[0] is Array ? (rows[0] as Array).concat() : [];
+			columnIds = rows[0] is Array ? (rows[0] as Array).concat() : [];
 			// make sure column names are unique - if not, use index values for columns with duplicate names
 			var nameLookup:Object = {};
 			for (var i:int = 0; i < columnIds.length; i++)
