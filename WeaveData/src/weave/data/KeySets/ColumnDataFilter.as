@@ -36,8 +36,10 @@ package weave.data.KeySets
 		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn, _resetKeyLookup);
 		
 		/**
-		 * An Array of Numbers, Strings and/or objects specifying numeric ranges.
-		 * Range objects contain one value named min/minInclusive/minExclusive and one value named max/maxInclusive/maxExclusive.
+		 * An Array of Numbers, Strings and/or Range objects specifying numeric ranges.
+		 * A Range object contains two properties: "min" and "max".
+		 * Alternatively, you can specify "minInclusive" or "minExclusive" in place of "min"
+		 * and "minInclusive" or "maxExclusive" in place of "max".
 		 */
 		public const values:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), _resetKeyLookup);
 		
