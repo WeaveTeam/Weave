@@ -46,6 +46,8 @@ package weave.primitives
 		
 		private var _validateTriggerCount:uint = 0;
 		
+		private var _string:String;
+		
 		private function validate():void
 		{
 			if (_validateTriggerCount == triggerCounter)
@@ -58,20 +60,20 @@ package weave.primitives
 			var color:Number;
 			var positions:Array = [];
 			var reversed:Boolean = false;
-			var string:String = value || '';
+			_string = value || '';
 			var xml:XML = null;
-			if (string.charAt(0) == '<' && string.substr(-1) == '>')
+			if (_string.charAt(0) == '<' && _string.substr(-1) == '>')
 			{
 				try // try parsing as xml
 				{
-					xml = XML(string);
+					xml = XML(_string);
 					reversed = String(xml.@reverse) == 'true';
 					
 					var text:String = xml.text();
 					if (text)
 					{
 						// treat a single text node as a list of color values
-						string = text;
+						_string = text;
 						xml = null;
 					}
 					else
@@ -95,7 +97,7 @@ package weave.primitives
 			
 			if (!_isXML)
 			{
-				var colors:Array = WeaveAPI.CSVParser.parseCSVRow(string) || [];
+				var colors:Array = WeaveAPI.CSVParser.parseCSVRow(_string) || [];
 				_colorNodes.length = colors.length;
 				for (i = 0; i < colors.length; i++)
 				{
@@ -132,7 +134,7 @@ package weave.primitives
 			}
 			else
 			{
-				var colors:Array = WeaveAPI.CSVParser.parseCSVRow(value) || [];
+				var colors:Array = WeaveAPI.CSVParser.parseCSVRow(_string) || [];
 				colors.reverse();
 				value = WeaveAPI.CSVParser.createCSVRow(colors);
 			}
