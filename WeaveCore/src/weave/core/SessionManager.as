@@ -444,7 +444,7 @@ package weave.core
 			
 			// handle properties appearing in session state that do not appear in the linkableObject 
 			if (linkableObject is ILinkableObjectWithNewProperties)
-				for each (name in newState)
+				for (name in newState)
 					if (!deprecatedLookup.hasOwnProperty(name))
 						(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperty(newState, name);
 			
