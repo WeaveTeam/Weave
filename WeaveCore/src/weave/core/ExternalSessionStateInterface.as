@@ -462,7 +462,10 @@ package weave.core
 		
 		private static function externalError(format:String, ...args):void
 		{
-			throw new Error(StandardLib.substitute(format, args));
+			var str:String = StandardLib.substitute(format, args);
+			// temporary solution for Flash not escaping double-quotes when generating JavaScript throw statement
+			str = StandardLib.replace(str, '"', "'");
+			throw new Error(str);
 		}
 		
 		private static function externalWarning(format:String, ...args):void
