@@ -32,8 +32,6 @@ package
 	import weave.data.DataSources.WFSDataSource;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.DataSources.XLSDataSource;
-	import weave.data.KeySets.NumberDataFilter;
-	import weave.data.KeySets.StringDataFilter;
 	import weave.data.Transforms.ForeignDataMappingTransform;
 	import weave.data.Transforms.GroupedDataTransform;
 	import weave.data.Transforms.PartitionDataTransform;
@@ -42,6 +40,7 @@ package
 	import weave.editors.CSVDataSourceEditor;
 	import weave.editors.CensusDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
+	import weave.editors.DiscreteValuesDataFilterEditor;
 	import weave.editors.DynamicColumnEditor;
 	import weave.editors.ForeignDataMappingTransformEditor;
 	import weave.editors.GeoJSONDataSourceEditor;
@@ -52,13 +51,12 @@ package
 	import weave.editors.GridLinePlotterEditor;
 	import weave.editors.GroupedDataTransformEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
-	import weave.editors.NumberDataFilterEditor;
+	import weave.editors.NumericRangeDataFilterEditor;
 	import weave.editors.PartitionDataTransformEditor;
 	import weave.editors.ScatterPlotPlotterEditor;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.SocrataDataSourceEditor;
-	import weave.editors.StringDataFilterEditor;
 	import weave.editors.TransposedDataSourceEditor;
 	import weave.editors.WFSDataSourceEditor;
 	import weave.editors.WMSPlotterEditor;
@@ -155,9 +153,6 @@ package
 			em.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
 			em.registerEditor(GeoJSONDataSource, GeoJSONDataSourceEditor);
 			
-			em.registerEditor(StringDataFilter, StringDataFilterEditor);
-			em.registerEditor(NumberDataFilter, NumberDataFilterEditor);
-			
 			em.registerEditor(GeometryRelationPlotter, GeometryRelationPlotterEditor);
 			em.registerEditor(GeometryLabelPlotter, GeometryLabelPlotterEditor);
 			em.registerEditor(GeometryPlotter, GeometryPlotterEditor);
@@ -239,6 +234,9 @@ package
 			ClassUtils.registerDeprecatedClass("weave.ui.annotation.SessionedTextBox", TextTool);
 			ClassUtils.registerDeprecatedClass("weave.visualization.tools.DataTableTool", AdvancedTableTool);
 			ClassUtils.registerDeprecatedClass("weave.api.ui.IObjectWithSelectableAttributes", ISelectableAttributes);
+			ClassUtils.registerDeprecatedClass("weave.ui.DataFilter", DataFilterTool);
+			ClassUtils.registerDeprecatedClass("weave.editors.StringDataFilterEditor", DiscreteValuesDataFilterEditor);
+			ClassUtils.registerDeprecatedClass("weave.editors.NumberDataFilterEditor", NumericRangeDataFilterEditor);
 		}();
 	}
 }

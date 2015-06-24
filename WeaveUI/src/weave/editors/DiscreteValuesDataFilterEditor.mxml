@@ -54,7 +54,7 @@
 			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.KeySets.StringDataFilter;
+			import weave.data.KeySets.ColumnDataFilter;
 			import weave.utils.ColumnUtils;
 			import weave.utils.VectorUtils;
 
@@ -66,7 +66,7 @@
 			
 			private const filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleFilter, true);
 			private const columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleColumn, true);
-			private var _linkedFilter:StringDataFilter;
+			private var _linkedFilter:ColumnDataFilter;
 			
 			public const thumbColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xe0e0e0, isFinite), setThumbColor);
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(MenuToolViewStack.LAYOUT_LIST), handleLayoutMode, true);
@@ -84,18 +84,19 @@
 				playButton.button.addEventListener(MouseEvent.CLICK, handlePlayClick);
 			}
 			
-			public function get stringFilter():StringDataFilter
+			public function get filter():ColumnDataFilter
 			{
-				return filterWatcher.target as StringDataFilter;
+				return filterWatcher.target as ColumnDataFilter;
 			}
+			[Deprecated(replacement="filter")] public function get stringFilter():ColumnDataFilter { return filter; }
 			
 			public function setTarget(object:ILinkableObject):void
 			{
-				filterWatcher.target = object as StringDataFilter;
+				filterWatcher.target = object as ColumnDataFilter;
 				
-				if (stringFilter)
+				if (filter)
 				{
-					columnWatcher.target = stringFilter.column;
+					columnWatcher.target = filter.column;
 					this.enabled = true;
 				}
 				else
@@ -113,13 +114,13 @@
 					callLater(linkNewFilter);
 					return;
 				}
-				if (_linkedFilter != stringFilter)
+				if (_linkedFilter != filter)
 				{
 					if (_linkedFilter)
-						unlinkBindableProperty(_linkedFilter.stringValues, menuStack, 'chosenItems');
-					_linkedFilter = stringFilter;
+						unlinkBindableProperty(_linkedFilter.values, menuStack, 'chosenItems');
+					_linkedFilter = filter;
 					if (_linkedFilter)
-						linkBindableProperty(_linkedFilter.stringValues, menuStack, 'chosenItems', 0, true);
+						linkBindableProperty(_linkedFilter.values, menuStack, 'chosenItems', 0, true);
 				}
 				handleFilter();
 			}
@@ -128,14 +129,14 @@
 
 			private function toggleFilter():void
 			{
-				if (stringFilter)
-					stringFilter.enabled.value = filterEnable.selected;
+				if (filter)
+					filter.enabled.value = filterEnable.selected;
 			}
 			
 			private function setMenuChosenIndex(index:int):void
 			{
 				if (_linkedFilter)
-					_linkedFilter.stringValues.setSessionState([menuStack.choices[index]]);
+					_linkedFilter.values.setSessionState([menuStack.choices[index]]);
 				else
 					menuStack.chosenIndex = index;
 			}
@@ -154,7 +155,7 @@
 			
 			private function handlePlayStep(step:int):void
 			{
-				if (!showPlayButton.value || !stringFilter || !stringFilter.enabled.value)
+				if (!showPlayButton.value || !filter || !filter.enabled.value)
 					return;
 				
 				// we can actually ignore the step number because we only care that it has stepped.
@@ -181,11 +182,11 @@
 					return;
 				}
 				
-				if (stringFilter)
+				if (filter)
 				{
 					enabled = true;
-					filterEnable.selected = stringFilter.enabled.value;
-					menuStack.chosenItems = stringFilter.stringValues.getSessionState() as Array;
+					filterEnable.selected = filter.enabled.value;
+					menuStack.chosenItems = filter.values.getSessionState() as Array;
 				}
 				else
 				{
@@ -202,10 +203,10 @@
 					callLater(handleColumn);
 					return;
 				}
-				if (!stringFilter)
+				if (!filter)
 					return;
 				
-				var column:DynamicColumn = stringFilter.column;
+				var column:DynamicColumn = filter.column;
 				if (column)
 				{
 					columnTitle = ColumnUtils.getTitle(column);

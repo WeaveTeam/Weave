@@ -49,7 +49,7 @@
 			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.KeySets.NumberDataFilter;
+			import weave.data.KeySets.ColumnDataFilter;
 			import weave.utils.ColumnUtils;
 
 			public const thumbColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xe0e0e0, isFinite), setThumbColor);
@@ -118,7 +118,7 @@
 			
 			private function handlePlayStep(step:int):void
 			{
-				if (!showPlayButton.value || !numberFilter || !numberFilter.enabled.value)
+				if (!showPlayButton.value || !filter || !filter.enabled.value)
 					return;
 				
 				// we can actually ignore the step number because we only care that it has stepped.
@@ -141,48 +141,75 @@
 				return lang('Filter by {0}', columnTitle || '...');
 			}
 			
-			public function get numberFilter():NumberDataFilter
+			public function get filter():ColumnDataFilter
 			{
-				return filterWatcher.target as NumberDataFilter;
+				return filterWatcher.target as ColumnDataFilter;
 			}
+			[Deprecated(replacement="filter")] public function get numberFilter():ColumnDataFilter { return filter; }
 			
 			public function setTarget(object:ILinkableObject):void
 			{
-				var ndf:NumberDataFilter = object as NumberDataFilter;
-				filterWatcher.target = ndf;
-				statsWatcher.target = ndf ? WeaveAPI.StatisticsCache.getColumnStatistics(numberFilter.column) : null;
+				filterWatcher.target = object as ColumnDataFilter;
+				statsWatcher.target = filter ? WeaveAPI.StatisticsCache.getColumnStatistics(filter.column) : null;
 			}
 			public function hasPendingChanges():Boolean { return false; }
 			public function applyChanges():void { }
 			
 			private function toggleFilter():void
 			{
-				if (numberFilter)
-					numberFilter.enabled.value = filterEnable.selected;
+				if (filter)
+					filter.enabled.value = filterEnable.selected;
+			}
+			
+			private function getFilterMin():Number
+			{
+				try
+				{
+					return filter.values.getSessionState()[0]['min'];
+				}
+				catch (e:Error)
+				{
+				}
+				return -Infinity;
+			}
+			
+			private function getFilterMax():Number
+			{
+				try
+				{
+					return filter.values.getSessionState()[0]['max'];
+				}
+				catch (e:Error)
+				{
+				}
+				return Infinity;
 			}
 			
 			private function handleSliderChange(event:SliderEvent = null):void
 			{
-				if (!numberFilter || (event && !UIUtils.hasFocus(filterSlider)))
+				if (!filter || (event && !UIUtils.hasFocus(filterSlider)))
 					return;
 				
 				var values:Array = filterSlider.values.concat();
 				var value:Number;
+				var min:Number = getFilterMin();
+				var max:Number = getFilterMax();
 				if (showMinThumb.value)
 				{
 					value = values.shift();
-					numberFilter.min.value = discreteValues ? discreteValues[value] : value;
+					min = discreteValues ? discreteValues[value] : value;
 				}
 				if (showMaxThumb.value)
 				{
 					value = values.shift();
-					numberFilter.max.value = discreteValues ? discreteValues[value] : value;
+					max = discreteValues ? discreteValues[value] : value;
 				}
+				filter.values.setSessionState([{'min': min, 'max': max}]);
 			}
 			
 			private function dataTipFormatFunction(value:Number):String
 			{
-				return numberFilter ? getLabelFromNumber(numberFilter.column, value) : '';
+				return filter ? getLabelFromNumber(filter.column, value) : '';
 			}
 			
 			private function getLabelFromNumber(column:IAttributeColumn, number:Number):String
@@ -202,8 +229,8 @@
 
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
-				if (numberFilter && filterEnable.selected != numberFilter.enabled.value)
-					filterEnable.selected = numberFilter.enabled.value;
+				if (filter && filterEnable.selected != filter.enabled.value)
+					filterEnable.selected = filter.enabled.value;
 				
 				if (detectLinkableObjectChange(updateDisplayList, showMinThumb, showMaxThumb, forceDiscreteValues, discreteValueLabelInterval, statsWatcher, labelFunction))
 				{
@@ -211,16 +238,16 @@
 					var stats:IColumnStatistics = statsWatcher.target as IColumnStatistics;
 					var min:Number = stats ? stats.getMin() : NaN;
 					var max:Number = stats ? stats.getMax() : NaN;
-					var ready:Boolean = numberFilter && isFinite(min) && isFinite(max);
+					var ready:Boolean = filter && isFinite(min) && isFinite(max);
 					if (ready && (showMinThumb.value || showMaxThumb.value))
 					{
-						var column:DynamicColumn = numberFilter.column;
+						var column:DynamicColumn = filter.column;
 						
 						enabled = true;
 						columnTitle = ColumnUtils.getTitle(column);
 						
-						var sliderMinValue:Number = numberFilter.min.value;
-						var sliderMaxValue:Number = numberFilter.max.value;
+						var sliderMinValue:Number = getFilterMin();
+						var sliderMaxValue:Number = getFilterMax();
 						
 						var labels:Array = [];
 						var labelInterval:int = discreteValueLabelInterval.value;

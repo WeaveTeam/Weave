@@ -18,7 +18,7 @@
 <DraggablePanel xmlns="weave.ui.*" 
 				layout="vertical" verticalAlign="middle"
 				xmlns:mx="http://www.adobe.com/2006/mxml" 
-				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes"
+				xmlns:ui="weave.ui.*" implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes, weave.api.core.ILinkableObjectWithNewProperties"
 				horizontalScrollPolicy="off" verticalScrollPolicy="off"
 				>
 	<mx:Script>
@@ -31,7 +31,6 @@
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IKeyFilter;
 			import weave.api.getSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
@@ -42,21 +41,20 @@
 			import weave.core.CallbackCollection;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableFunction;
-			import weave.data.KeySets.NumberDataFilter;
-			import weave.data.KeySets.StringDataFilter;
-			import weave.editors.NumberDataFilterEditor;
-			import weave.editors.StringDataFilterEditor;
+			import weave.data.KeySets.ColumnDataFilter;
+			import weave.editors.DiscreteValuesDataFilterEditor;
+			import weave.editors.NumericRangeDataFilterEditor;
 			import weave.menus.WeaveMenuItem;
 			import weave.utils.ColumnUtils;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataFilterTool, "Data Filter");
 			
-			public const filter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter), handleFilterWatcher);
+			public const filter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ColumnDataFilter), handleFilterWatcher);
 			public const editor:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ILinkableObjectEditor), handleEditor, true);
 			
-			private function getFilter():IKeyFilter
+			private function getFilter():ColumnDataFilter
 			{
-				return filter.target as IKeyFilter;
+				return filter.target as ColumnDataFilter;
 			}
 			private function getEditor():ILinkableObjectEditor
 			{
@@ -67,14 +65,13 @@
 				var _editor:ILinkableObjectEditor = getEditor();
 				if (_editor && !_editor.parent)
 					addChild(_editor as DisplayObject);
+				if (_editor)
+					_editor.setTarget(filter.target);
 			}
 			
 			private function getFilterColumn():IAttributeColumn
 			{
-				var kf:IKeyFilter = getFilter();
-				var ndf:NumberDataFilter = kf as NumberDataFilter;
-				var sdf:StringDataFilter = kf as StringDataFilter;
-				return ((ndf && ndf.column) || (sdf && sdf.column)) as IAttributeColumn;
+				return getFilter() ? getFilter().column as IAttributeColumn : null;
 			}
 			
 			override protected function inConstructor():void
@@ -89,21 +86,24 @@
 					return;
 				super.createChildren();
 				
+				// backwards compatibility - adjust old macro
+				initGetFilterTextMacro(false);
+				
 				function onClick(item:WeaveMenuItem):void
 				{
-					var filterType:Class = item.data[0] as Class;
+					var editorType:Class = item.data[0] as Class;
 					var layoutMode:String = item.data[1];
-					setFilterType(filterType, {layoutMode: layoutMode});
+					setEditorType(editorType, {layoutMode: layoutMode});
 				}
 				function isToggled(item:WeaveMenuItem):Boolean
 				{
-					var filterType:Class = item.data[0] as Class;
+					var editorType:Class = item.data[0] as Class;
 					var layoutMode:String = item.data[1];
-					if (getFilter() is filterType)
+					if (getEditor() is editorType)
 					{
 						if (layoutMode)
 						{
-							var editor:StringDataFilterEditor = getEditor() as StringDataFilterEditor;
+							var editor:DiscreteValuesDataFilterEditor = getEditor() as DiscreteValuesDataFilterEditor;
 							return editor && editor.layoutMode.value == layoutMode;
 						}
 						return true;
@@ -112,13 +112,13 @@
 				}
 				subMenuButton.data = [
 					{
-						data: [StringDataFilter],
+						data: [DiscreteValuesDataFilterEditor],
 						label: lang("Discrete values"),
 						type: WeaveMenuItem.TYPE_RADIO,
 						toggled: isToggled,
 						children: MenuToolViewStack.LAYOUTS.map(function(layout:String, i:int, a:Array):Object {
 							return {
-								data: [StringDataFilter, layout],
+								data: [DiscreteValuesDataFilterEditor, layout],
 								label: MenuToolViewStack.layoutLabelFunction(layout),
 								click: onClick,
 								type: WeaveMenuItem.TYPE_RADIO,
@@ -126,13 +126,13 @@
 							};
 						})
 					},{
-						data: [NumberDataFilter],
+						data: [NumericRangeDataFilterEditor],
 						label: lang("Continuous range"),
 						type: WeaveMenuItem.TYPE_RADIO,
 						toggled: isToggled,
 						click: onClick,
 						children: function():Array {
-							var ndfe:NumberDataFilterEditor = editor.target as NumberDataFilterEditor;
+							var ndfe:NumericRangeDataFilterEditor = editor.target as NumericRangeDataFilterEditor;
 							if (!ndfe)
 								return null;
 							return [
@@ -167,15 +167,8 @@
 								var shown:Boolean = getSessionState(_editor)['showToggle'];
 								setSessionState(_editor, {"showToggle": !shown}, false);
 								// when hiding toggle, enable filter
-								if (shown)
-								{
-									var sdf:StringDataFilter = getFilter() as StringDataFilter;
-									var ndf:NumberDataFilter = getFilter() as NumberDataFilter;
-									if (sdf)
-										sdf.enabled.value = true;
-									if (ndf)
-										ndf.enabled.value = true;
-								}
+								if (shown && getFilter())
+									getFilter().enabled.value = true;
 							}
 						}
 					},{
@@ -207,34 +200,36 @@
 				
 				callLater(initLater);
 			}
-				
-			public function getPanelTitleMacroScript():String
+			
+			private function initGetFilterTextMacro(createIfMissing:Boolean):String
 			{
 				var macroName:String = 'getFilterText';
-				if (!Weave.properties.macros.getObject(macroName))
+				var macro:LinkableFunction = Weave.properties.macros.getObject(macroName) as LinkableFunction;
+				var script:String = macro ? macro.value : "";
+				if ((createIfMissing && !macro) || (macro && macro.value && macro.value.indexOf('NumberDataFilter') >= 0))
 				{
-					var lf:LinkableFunction = Weave.properties.macros.requestObject(macroName, LinkableFunction, false);
-					lf.value = StandardLib.unIndent('\
+					macro = Weave.properties.macros.requestObject(macroName, LinkableFunction, false);
+					macro.value = StandardLib.unIndent('\
 						function(nameOrPath){\n\
 							var path = nameOrPath as Array || ["defaultSubsetKeyFilter", "filters", nameOrPath];\n\
 							var filter = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path);\n\
-							if (filter is StringDataFilter && filter.enabled.value)\n\
+							if (filter is ColumnDataFilter && filter.enabled.value)\n\
 							{\n\
-								var values = filter.stringValues.getSessionState() || [];\n\
-								if (values.length)\n\
-									return `({ values.join(", ") })`;\n\
-							}\n\
-							else if (filter is NumberDataFilter && filter.enabled.value)\n\
-							{\n\
-								var min = ColumnUtils.deriveStringFromNumber(filter.column, filter.min.value);\n\
-								var max = ColumnUtils.deriveStringFromNumber(filter.column, filter.max.value);\n\
-								return `[{min}, {max}]`;\n\
+								var result = filter.stringifyValues();\n\
+								var joined = result.join(", ");\n\
+								if ("[(".indexOf(joined.charAt(0)) >= 0)\n\
+									return joined;\n\
+								return "(" + joined + ")";\n\
 							}\n\
 							return "";\n\
 						}\
 					');
 				}
-				
+				return macroName;
+			}
+			
+			public function getPanelTitleMacroScript():String
+			{
 				var path:Array = filter.targetPath;
 				var pathStr:String = Compiler.stringify(path);
 				
@@ -242,6 +237,7 @@
 				if (StandardLib.compare(path, ['defaultSubsetKeyFilter', 'filters', name]) == 0)
 					pathStr = Compiler.stringify(name);
 				
+				var macroName:String = initGetFilterTextMacro(true);
 				return '{' + macroName + '(' + pathStr + ')}';
 			}
 			
@@ -250,7 +246,7 @@
 				if (filter.triggerCounter == CallbackCollection.DEFAULT_TRIGGER_COUNT)
 					filter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER, 'filters', WeaveAPI.globalHashMap.getName(this)];
 				if (!getFilter())
-					setFilterType(StringDataFilter, null);
+					setEditorType(DiscreteValuesDataFilterEditor, null);
 			}
 			
 			override public function dispose():void
@@ -269,51 +265,48 @@
 				super.dispose()
 			}
 			
-			private function setFilterType(type:Class, editorDiff:Object):void
+			private function setEditorType(editorType:Class, editorDiff:Object):void
 			{
 				var editorState:Object = editor.target && getSessionState(editor.target);
-				var filterState:Object = filter.target && getSessionState(filter.target);
-				
 				if (editorState)
 					delete editorState['labelFunction'];
 				
 				try
 				{
-					WeaveAPI.ExternalSessionStateInterface.requestObject(filter.targetPath, getQualifiedClassName(type));
+					WeaveAPI.ExternalSessionStateInterface.requestObject(filter.targetPath, getQualifiedClassName(ColumnDataFilter));
+					editor.requestLocalObject(editorType, false);
 				}
 				catch (e:Error)
 				{
 					trace(e.getStackTrace());
 				}
 				
-				if (filter.target && filterState)
-					setSessionState(filter.target, filterState);
-				if (editor.target && editorState)
+				if (editor.target && editorDiff)
 				{
-					WeaveAPI.SessionManager.combineDiff(editorState, editorDiff);
+					editorState = WeaveAPI.SessionManager.combineDiff(editorState, editorDiff);
 					setSessionState(editor.target, editorState);
 				}
 			}
+			
+			protected var _editorDiff:Object = null;
 			
 			private function handleFilterWatcher():void
 			{
 				handlePanelTitleChange();
 				
-				var _filter:ILinkableObject = getFilter();
+				var _filter:ColumnDataFilter = getFilter();
 				var _editor:ILinkableObjectEditor = getEditor();
-				if (_filter)
+				if (!_editor && _filter)
 				{
-					var editorClass:Class = WeaveAPI.EditorManager.getEditorClass(_filter);
-					if (editorClass)
-					{
-						_editor = editor.requestLocalObject(editorClass, false);
-						if (_editor)
-							_editor.setTarget(_filter);
-						return;
-					}
+					var values:Array = _filter.values.getSessionState() as Array || [];
+					if (values[0] is Number || values[0] is String)
+						setEditorType(DiscreteValuesDataFilterEditor, _editorDiff);
+					else
+						setEditorType(NumericRangeDataFilterEditor, _editorDiff);
+					_editorDiff = null;
 				}
 				if (_editor)
-					_editor.setTarget(null);
+					_editor.setTarget(_filter);
 			}
 			
 			override public function get defaultPanelTitle():String
@@ -332,6 +325,15 @@
 			public function getSelectableAttributes():Array
 			{
 				return getFilterColumn() ? [getFilterColumn()] : [];
+			}
+			
+			public function handleMissingSessionStateProperty(newState:Object, property:String):void
+			{
+				if (property == 'editor')
+					_editorDiff = {
+						"layoutMode": MenuToolViewStack.LAYOUT_COMBO,
+						"showToggle": true
+					};
 			}
 		]]>
 	</mx:Script>

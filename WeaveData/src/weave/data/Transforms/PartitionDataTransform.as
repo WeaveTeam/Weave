@@ -21,7 +21,6 @@ package weave.data.Transforms
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.ISelectableAttributes;
@@ -30,7 +29,7 @@ package weave.data.Transforms
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.DataSources.AbstractDataSource;
-	import weave.data.KeySets.StringDataFilter;
+	import weave.data.KeySets.ColumnDataFilter;
 	import weave.data.hierarchy.ColumnTreeNode;
 	import weave.utils.VectorUtils;
 
@@ -133,10 +132,10 @@ package weave.data.Transforms
 			}
 
 			var filteredColumn:FilteredColumn = proxyColumn.getInternalColumn() as FilteredColumn || new FilteredColumn();
-			var filter:StringDataFilter = filteredColumn.filter.requestLocalObject(StringDataFilter, false);
+			var filter:ColumnDataFilter = filteredColumn.filter.requestLocalObject(ColumnDataFilter, false);
 
 			filter.column.requestLocalObjectCopy(partitionColumn);
-			filter.stringValues.setSessionState([filterValue]);
+			filter.values.setSessionState([filterValue]);
 			filteredColumn.internalDynamicColumn.requestLocalObjectCopy(inputColumn);
 			
 			proxyColumn.setInternalColumn(filteredColumn);
