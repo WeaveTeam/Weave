@@ -42,13 +42,13 @@ void as3_kd_insert()
 	AS3_GetScalarFromVar(tree_ptr, tree_ptr);
 	AS3_GetScalarFromVar(data, data);
 
-	inline_as3("%0 = key.length;" : "=r"(key_n));
+	inline_nonreentrant_as3("%0 = key.length;" : "=r"(key_n));
 
 	double keys[key_n];	
 
 	for (idx = 0; idx < key_n; idx++)
 	{
-		inline_as3("%0 = key[%1]" : "=r"(keys[idx]) : "r"(idx));
+		inline_nonreentrant_as3("%0 = key[%1]" : "=r"(keys[idx]) : "r"(idx));
 	}
 
 	retval = kd_insert(tree_ptr, keys, data);
@@ -81,7 +81,7 @@ void as3_kd_query_range()
 
 	AS3_GetScalarFromVar(tree_ptr, tree_ptr);
 	AS3_GetScalarFromVar(inclusive, inclusive);
-	inline_as3("%0 = key.length;" : "=r"(key_n));
+	key_n = *(int*)tree_ptr; // "int dim" is the first field in the struct
 
 	/* copy over the key arrays */
 
@@ -90,7 +90,7 @@ void as3_kd_query_range()
 
 	for (idx = 0; idx < key_n; idx++)
 	{
-		inline_as3("%0 = minKey[%2]; %1 = maxKey[%2];" : "=r"(minKey[idx]), "=r"(maxKey[idx]) : "r"(idx));
+		inline_nonreentrant_as3("%0 = minKey[%2]; %1 = maxKey[%2];" : "=r"(minKey[idx]), "=r"(maxKey[idx]) : "r"(idx));
 	}
 
 	res = kd_in_bounds(tree_ptr, minKey, maxKey, inclusive);
@@ -99,12 +99,12 @@ void as3_kd_query_range()
 
 	res_size = kd_res_size(res);
 
-	inline_as3("var results:Array = new Array(%0);" : : "r"(res_size));
+	inline_nonreentrant_as3("var results:Array = new Array(%0);" : : "r"(res_size));
 
 	for (idx = 0; idx < res_size; idx++)
 	{
 		data_tmp = kd_res_item_data(res);
-		inline_as3("results[%0] = %1;" : : "r"(idx), "r"(data_tmp));
+		inline_nonreentrant_as3("results[%0] = %1;" : : "r"(idx), "r"(data_tmp));
 		kd_res_next(res);
 	}
 
