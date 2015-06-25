@@ -224,7 +224,8 @@ package weave.visualization.plotters
 			
 			////////////////////////////////////
 			// NOTE: if we don't call lineStyle() with thickness=1 prior to calling beginBitmapFill() and drawTriangles(), it does not always render correctly.
-			newShape.graphics.lineStyle(1, 0, 0); // thickness=1, alpha=0
+			// LineScaleMode.NONE is important for performance.
+			newShape.graphics.lineStyle(1, 0, 0, false, LineScaleMode.NONE); // thickness=1, alpha=0
 			////////////////////////////////////
 			
 			if (debug)
