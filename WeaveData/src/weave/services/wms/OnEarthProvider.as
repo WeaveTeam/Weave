@@ -26,10 +26,10 @@ package weave.services.wms
 	
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWMSService;
-	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
 
@@ -56,7 +56,7 @@ package weave.services.wms
 			_imageFormat = "jpeg";
 			_styles.value = "Dec"; // this can be cycled
 			_transparent = false;
-			_currentTileIndex = new WMSTileIndex();
+			_currentTileIndex = registerDisposableChild(this, new WMSTileIndex());
 			_stylesToTileIndex[_styles.value] = _currentTileIndex;
 			
 			_tileServiceXML = XML(_tileRequestClass.data);
@@ -139,7 +139,7 @@ package weave.services.wms
 			var newIndex:WMSTileIndex = _stylesToTileIndex[_styles.value] as WMSTileIndex;
 			if (newIndex == null)
 			{
-				newIndex = new WMSTileIndex();
+				newIndex = registerDisposableChild(this, new WMSTileIndex());
 				_stylesToTileIndex[_styles.value] = newIndex;
 			}
 			

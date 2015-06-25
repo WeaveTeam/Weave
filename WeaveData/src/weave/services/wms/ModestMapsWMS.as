@@ -35,8 +35,10 @@ package weave.services.wms
 	
 	import org.openscales.proj4as.ProjConstants;
 	
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
@@ -94,7 +96,9 @@ package weave.services.wms
 			
 			_imageWidth = _mapProvider.tileWidth;
 			_imageHeight = _mapProvider.tileHeight;
-			_currentTileIndex = new WMSTileIndex();
+			if (_currentTileIndex)
+				disposeObject(_currentTileIndex);
+			_currentTileIndex = registerDisposableChild(this, new WMSTileIndex());
 			_urlToTile = new Dictionary();	
 			getCallbackCollection(this).triggerCallbacks();
 		}

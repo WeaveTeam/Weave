@@ -27,6 +27,7 @@ package weave.utils
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerDisposableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -53,7 +54,7 @@ package weave.utils
 	 */
 	public class GeometryStreamDecoder implements ILinkableObject
 	{
-		public static var debug:Boolean = true;
+		public static var debug:Boolean = false;
 		public var totalGeomTiles:int = 0;
 		public var totalVertices:int = 0;
 		
@@ -116,8 +117,8 @@ package weave.utils
 		 * The dimensions are minImportance, maxImportance, xMin, yMin, xMax, yMax.
 		 * The objects contained in the KDNodes are integers representing tile ID numbers.
 		 */
-		private const metadataTiles:KDTree = new KDTree(KD_DIMENSIONALITY);
-		private const geometryTiles:KDTree = new KDTree(KD_DIMENSIONALITY);
+		private const metadataTiles:KDTree = registerDisposableChild(this, new KDTree(KD_DIMENSIONALITY));
+		private const geometryTiles:KDTree = registerDisposableChild(this, new KDTree(KD_DIMENSIONALITY));
 		
 		/**
 		 * (KDTree, int) -> TileDescriptor

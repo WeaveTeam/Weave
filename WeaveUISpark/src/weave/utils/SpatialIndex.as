@@ -26,6 +26,7 @@ package weave.utils
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerDisposableChild;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.StageUtils;
@@ -54,7 +55,7 @@ package weave.utils
 		
 		private var callbacks:ICallbackCollection;
 		
-		private var _kdTree:KDTree = new KDTree(5);
+		private const _kdTree:KDTree = registerDisposableChild(this, new KDTree(5));
 		private const _keysArray:Array = []; // of IQualifiedKey
 		private var _keyToBoundsMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of IBounds2D
 		private var _keyToGeometriesMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of GeneralizedGeometry or ISimpleGeometry
