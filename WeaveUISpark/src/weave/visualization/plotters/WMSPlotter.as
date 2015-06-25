@@ -221,11 +221,18 @@ package weave.visualization.plotters
 			
 			// draw the triangles and end the fill
 			var newShape:Shape = new Shape();
+			
+			////////////////////////////////////
+			// NOTE: if we don't call lineStyle() with thickness=1 prior to calling beginBitmapFill() and drawTriangles(), it does not always render correctly.
+			newShape.graphics.lineStyle(1, 0, 0); // thickness=1, alpha=0
+			////////////////////////////////////
+			
 			if (debug)
 			{
 				newShape.graphics.lineStyle(1, Math.random() * 0xFFFFFF, 0.5, false, LineScaleMode.NONE);
 				//newShape.graphics.lineStyle(1, 0, 1, true, LineScaleMode.NONE);
 			}
+			
 			newShape.graphics.beginBitmapFill(tile.bitmapData, null, false, true); // it's important to disable the repeat option
 			newShape.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NEGATIVE);
 			newShape.graphics.endFill();
