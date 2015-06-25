@@ -148,13 +148,9 @@ package weave.utils
 			if (_plotter)
 				VectorUtils.copy(_plotter.filteredKeySet.keys, _keysArray);			
 			
-			// if auto-balance is disabled, randomize insertion order
-			if (!_kdTree.autoBalance)
-			{
-				// randomize the order of the shapes to avoid a possibly poorly-performing
-				// KDTree structure due to the given ordering of the records
-				VectorUtils.randomSort(_keysArray);
-			}
+			// randomize the order of the shapes to avoid a possibly poorly-performing
+			// KDTree structure due to the given ordering of the records
+			VectorUtils.randomSort(_keysArray);
 			if (debug)
 				debugTrace(_plotter,this,'keys',_keysArray.length);
 			
