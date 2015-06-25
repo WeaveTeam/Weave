@@ -183,7 +183,7 @@ static int insert_rec(struct kdnode **nptr, const double *pos, void *data, int d
 		memcpy(node->pos, pos, dim * sizeof *node->pos);
 		node->data = data;
 		node->dir = dir;
-		node->left = node->right = 0;
+		node->left = node->right = node->next = 0;
 		*nptr = node;
 		return 0;
 	}
@@ -191,21 +191,23 @@ static int insert_rec(struct kdnode **nptr, const double *pos, void *data, int d
 	node = *nptr;
 	new_dir = (node->dir + 1) % dim;
 
-	if(pos[node->dir] < node->pos[node->dir]) {
+	if(pos[node->dir] < node->pos[node->dir])
 		return insert_rec(&(node->left), pos, data, new_dir, dim);
-	}
-	else if (pos[node->dir] == node->pos[node->dir])
-	{
-		/* Test for equality of all position info */
-		for (pos_idx = 0; pos_idx < dim; pos_idx++)
-			if (pos[pos_idx] != node->pos[pos_idx]) break;
 
-		if (pos_idx == dim) /* all were equal, we didn't break */
-		{
-			/* Instead of building up a huge callstack for no reason, just zip to the end */
-			for (; node->next; node = node->next);
-			return insert_rec(&(node->next), pos, data, dir, dim);
-		}
+	/* Test for equality of all position info */
+	for (pos_idx = 0; pos_idx < dim; pos_idx++)
+		if (pos[pos_idx] != node->pos[pos_idx])
+			break;
+	if (pos_idx == dim)
+	{
+		/* Positions are equal. Force the creation of a new node. */
+		node = 0;
+		if (insert_rec(&node, pos, data, dir, dim))
+			return -1;
+
+		node->next = (*nptr)->next;
+		(*nptr)->next = node;
+		return 0;
 	}
 
 	return insert_rec(&(node->right), pos, data, new_dir, dim);
@@ -493,6 +495,7 @@ struct kdres *kd_nearest(struct kdtree *kd, const double *pos)
 		return 0;
 	}
 	rset->rlist->next = 0;
+	rset->expanded = 0;
 	rset->tree = kd;
 
 	/* Duplicate the bounding hyperrectangle, we will work on the copy */
@@ -595,6 +598,7 @@ static kdres *kd_nearest_n(struct kdtree *kd, const double *pos, int num)
 		return 0;
 	}
 	rset->rlist->next = 0;
+	rset->expanded = 0;
 	rset->tree = kd;
 
 	if((ret = find_nearest_n(kd->root, pos, range, num, rset->rlist, kd->dim)) == -1) {
@@ -621,6 +625,7 @@ struct kdres *kd_in_bounds(struct kdtree *kd, const double* min_pos, const doubl
 	}
 
 	rset->rlist->next = 0;
+	rset->expanded = 0;
 	rset->tree = kd;
 
 	if ((ret = in_bounds(kd->root, min_pos, max_pos, rset->rlist, 0, kd->dim, inclusive)) == -1) {
@@ -646,6 +651,7 @@ struct kdres *kd_nearest_range(struct kdtree *kd, const double *pos, double rang
 		return 0;
 	}
 	rset->rlist->next = 0;
+	rset->expanded = 0;
 	rset->tree = kd;
 
 	if((ret = find_nearest(kd->root, pos, range, rset->rlist, 0, kd->dim)) == -1) {
@@ -741,7 +747,8 @@ static int res_expand_node(struct res_node** rnode)
 static int res_expand(struct kdres *rset)
 {
 	struct res_node *rnode, *next_node;
-	if (rset->expanded) return 0; /* Has already been expanded, don't do anything */
+	if (rset->expanded)
+		return 0; /* Has already been expanded, don't do anything */
 	rnode = rset->riter;
 	while (rnode)
 	{
@@ -756,7 +763,8 @@ static int res_expand(struct kdres *rset)
 void kd_res_rewind(struct kdres *rset)
 {
 	rset->riter = rset->rlist->next;
-	if (!(rset->expanded)) res_expand(rset);
+	if (!(rset->expanded))
+		res_expand(rset);
 }
 
 int kd_res_end(struct kdres *rset)
@@ -970,4 +978,5 @@ static void clear_results(struct kdres *rset)
 	}
 
 	rset->rlist->next = 0;
+	rset->expanded = 0;
 }
