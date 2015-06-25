@@ -64,13 +64,14 @@ struct kdnode {
 	int dir;
 	void *data;
 
-	struct kdnode *left, *right;	/* negative/positive side */
+	struct kdnode *left, *right, *next;	/* negative/positive/equal side */
 };
 
 struct res_node {
 	struct kdnode *item;
 	double dist_sq;
 	struct res_node *next;
+	int expanded;
 };
 
 struct kdtree {
@@ -139,6 +140,7 @@ static void clear_rec(struct kdnode *node, void (*destr)(void*))
 	if(!node) return;
 
 	clear_rec(node->left, destr);
+	clear_rec(node->next, destr);
 	clear_rec(node->right, destr);
 	
 	if(destr) {
@@ -167,7 +169,7 @@ void kd_data_destructor(struct kdtree *tree, void (*destr)(void*))
 
 static int insert_rec(struct kdnode **nptr, const double *pos, void *data, int dir, int dim)
 {
-	int new_dir;
+	int new_dir, pos_idx;
 	struct kdnode *node;
 
 	if(!*nptr) {
@@ -188,10 +190,25 @@ static int insert_rec(struct kdnode **nptr, const double *pos, void *data, int d
 
 	node = *nptr;
 	new_dir = (node->dir + 1) % dim;
+
 	if(pos[node->dir] < node->pos[node->dir]) {
-		return insert_rec(&(*nptr)->left, pos, data, new_dir, dim);
+		return insert_rec(&(node->left), pos, data, new_dir, dim);
 	}
-	return insert_rec(&(*nptr)->right, pos, data, new_dir, dim);
+	else if (pos[node->dir] == node->pos[node->dir])
+	{
+		/* Test for equality of all position info */
+		for (pos_idx = 0; pos_idx < dim; pos_idx++)
+			if (pos[pos_idx] != node->pos[pos_idx]) break;
+
+		if (pos_idx == dim) /* all were equal, we didn't break */
+		{
+			/* Instead of building up a huge callstack for no reason, just zip to the end */
+			for (; node->next; node = node->next);
+			return insert_rec(&(node->next), pos, data, dir, dim);
+		}
+	}
+
+	return insert_rec(&(node->right), pos, data, new_dir, dim);
 }
 
 int kd_insert(struct kdtree *tree, const double *pos, void *data)
@@ -707,6 +724,7 @@ int kd_res_size(struct kdres *set)
 void kd_res_rewind(struct kdres *rset)
 {
 	rset->riter = rset->rlist->next;
+	if (!(rset->expanded)) res_expand(rset);
 }
 
 int kd_res_end(struct kdres *rset)
@@ -718,6 +736,39 @@ int kd_res_next(struct kdres *rset)
 {
 	rset->riter = rset->riter->next;
 	return rset->riter != 0;
+}
+
+static int res_expand_node(struct res_node** rnode)
+{
+	int size_inc = 0;
+	struct kdnode* node, oldnode;
+	node = rnode->item;
+	while (node->next)
+	{
+		rnode = (rnode->next = alloc_resnode());
+
+		rnode->item = node->next;
+		oldnode = node;
+		node = node->next;
+		size_inc++;
+	}
+	return size_inc;
+}
+
+static int res_expand(struct kdres *rset)
+{
+	struct kdnode* parent_node, child_node;
+	struct res_node* rnode, next_node;
+	if (rset->expanded) return 0; /* Has already been expanded, don't do anything */
+	rnode = rset->riter;
+	while (rnode)
+	{
+		next_node = rnode->next;
+		rset->size += res_expand_node(&rnode);
+		rnode = (rnode->next = next_node);
+	}
+	rset->expanded = 1;
+	return 0;
 }
 
 void *kd_res_item(struct kdres *rset, double *pos)
