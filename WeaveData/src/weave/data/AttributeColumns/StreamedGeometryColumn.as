@@ -16,6 +16,7 @@
 package weave.data.AttributeColumns
 {
 	import flash.utils.ByteArray;
+	import flash.utils.getTimer;
 	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -24,15 +25,21 @@ package weave.data.AttributeColumns
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObject;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.primitives.Bounds2D;
+	import weave.primitives.GeneralizedGeometry;
+	import weave.primitives.KDTree;
 	import weave.services.addAsyncResponder;
 	import weave.utils.GeometryStreamDecoder;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * StreamedGeometryColumn
@@ -276,6 +283,48 @@ package weave.data.AttributeColumns
 		private static function verifyMinimumScreenArea(value:Number):Boolean
 		{
 			return value >= 1;
+		}
+		
+		public static function test_kdtree(iterations:int = 10):Object
+		{
+			var cols:Array = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, StreamedGeometryColumn);
+			for each (var sgc:StreamedGeometryColumn in cols)
+				return sgc.test_kdtree(iterations);
+			return "No StreamedGeometryColumn to test";
+		}
+		
+		public function test_kdtree(iterations:int = 10):Object
+		{
+			var todo:Array = [];
+			for each (var geom:GeneralizedGeometry in _geometryStreamDecoder.geometries)
+			{
+				var bounds:Bounds2D = geom.bounds as Bounds2D;
+				var key:Array = [bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()];
+				todo.push([key, geom]);
+			}
+			
+			// ------
+			
+			var results:Array = [];
+			for (var i:int = 0; i < iterations; i++)
+			{
+				VectorUtils.randomSort(todo);
+				var t:int = getTimer();
+				var kdtree:KDTree = new KDTree(5);
+				for each (var params:Array in todo)
+					kdtree.insert(params[0], params[1]);
+				t = getTimer() - t;
+				disposeObject(kdtree);
+				results.push(t);
+			}
+			
+			return {
+				node_count: todo.length,
+				times_in_ms: results.join(', '),
+				time_mean_ms: StandardLib.mean(results),
+				time_min_ms: Math.min.apply(null, results),
+				time_max_ms: Math.max.apply(null, results)
+			};
 		}
 	}
 }
