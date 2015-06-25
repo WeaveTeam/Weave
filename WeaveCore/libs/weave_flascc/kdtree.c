@@ -295,7 +295,7 @@ static int in_bounds(struct kdnode *node, const double* min_pos, const double* m
 		added_res = 1;
 	}
 
-	if (min_pos[node->dir] > node->pos[node->dir])
+	if (!(min_pos[node->dir] > node->pos[node->dir]))
 	{
 		ret = in_bounds(node->left, min_pos, max_pos, list, ordered, dim, inclusive);
 		if (ret == -1)
@@ -303,7 +303,7 @@ static int in_bounds(struct kdnode *node, const double* min_pos, const double* m
 		added_res += ret;
 	}
 
-	if (max_pos[node->dir] < node->pos[node->dir])
+	if (!(max_pos[node->dir] < node->pos[node->dir]))
 	{
 		ret = in_bounds(node->right, min_pos, max_pos, list, ordered, dim, inclusive);
 		if (ret == -1)
