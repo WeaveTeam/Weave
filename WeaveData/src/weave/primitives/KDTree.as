@@ -84,10 +84,9 @@ package weave.primitives
 			
 			var result:Array = as3_kd_query_range(tree_ptr, minKey, maxKey, boundaryInclusive);
 			result.sort(Array.NUMERIC);
-			VectorUtils.removeDuplicatesFromSortedArray(result);
-			
 			for (var i:int = 0; i < result.length; i++)
 				result[i] = objects[result[i]];
+			VectorUtils.removeDuplicatesFromSortedArray(result);
 			return result;
 		}
 
