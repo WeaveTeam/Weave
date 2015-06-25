@@ -17,9 +17,6 @@ package weave.compiler
 {
 	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
-	import flash.utils.getTimer;
-	
-	import flashx.textLayout.tlf_internal;
 	
 	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
