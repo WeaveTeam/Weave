@@ -34,7 +34,6 @@ package weave.utils
 	import weave.primitives.Dictionary2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.GeometryType;
-	import weave.primitives.KDNode;
 	import weave.primitives.KDTree;
 
 	/**
@@ -54,7 +53,7 @@ package weave.utils
 	 */
 	public class GeometryStreamDecoder implements ILinkableObject
 	{
-		public static var debug:Boolean = false;
+		public static var debug:Boolean = true;
 		public var totalGeomTiles:int = 0;
 		public var totalVertices:int = 0;
 		
@@ -211,7 +210,6 @@ package weave.utils
 		private function decodeTileList(tileTree:KDTree, stream:ByteArray):void
 		{
 			var tiles:Array = []; // array of descriptor objects containing kdKey and tileID
-			var tile:TileDescriptor;
 		    try {
 				// read tile descriptors from stream
 				var tileID:int = 0;
@@ -223,9 +221,9 @@ package weave.utils
 					kdKey[XMAX_INDEX] = stream.readDouble();
 					kdKey[YMAX_INDEX] = stream.readDouble();
 					kdKey[IMAX_INDEX] = stream.readFloat();
-					//trace((tileTree == metadataTiles ? "metadata tile" : "geometry tile") + " " + tileID + "[" + kdKey + "]");
-					tile = new TileDescriptor(kdKey, tileID);
-					tiles.push(tile);
+					if (debug)
+						trace((tileTree == metadataTiles ? "metadata tile" : "geometry tile") + " " + tileID + "[" + kdKey + "]");
+					tiles.push(new TileDescriptor(kdKey, tileID));
 					collectiveBounds.includeCoords(kdKey[XMIN_INDEX], kdKey[YMIN_INDEX]);
 					collectiveBounds.includeCoords(kdKey[XMAX_INDEX], kdKey[YMAX_INDEX]);
 					tileID++;
@@ -236,14 +234,12 @@ package weave.utils
 			// poorly-performing KDTree structure due to the given ordering.
 			VectorUtils.randomSort(tiles);
 			// insert tileDescriptors into tree
-			var node:KDNode;
-			var tileDescriptor:TileDescriptor;
-			for each (tile in tiles)
+			for each (var tile:TileDescriptor in tiles)
 			{
 				// insert a new node in the tree, mapping kdKey to tile
 				tileTree.insert(tile.kdKey, tile);
 				// save mapping from tile ID to TileDescriptor so it can be excluded later
-				tileLookup.set(tileTree, tileID, tile);
+				tileLookup.set(tileTree, tile.tileID, tile);
 			}
 
 			// collective bounds changed
