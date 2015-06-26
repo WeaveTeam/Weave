@@ -15,6 +15,7 @@
 
 package weave.data.DataSources
 {
+    import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
     import weave.api.data.DataType;
     import weave.api.data.IAttributeColumn;
@@ -29,6 +30,7 @@ package weave.data.DataSources
     import weave.data.AttributeColumns.ProxyColumn;
     import weave.data.hierarchy.ColumnTreeNode;
     import weave.services.JsonCache;
+    import weave.utils.WeavePromise;
 
     public class FREDDataSource extends AbstractDataSource implements IDataSource_Service
     {
@@ -52,9 +54,9 @@ package weave.data.DataSources
 		 * @param method Examples: "category", "category/series"
 		 * @param params Example: {category_id: 125}
 		 */
-		private function getJson(method:String, params:Object, resultHandler:Function, faultHandler:Function = null):void
+		private function getJson(context:ILinkableObject, method:String, params:Object):WeavePromise
 		{
-			jsonCache.getJsonObject(getUrl(method, params), resultHandler, faultHandler);
+			return jsonCache.getJsonPromise(context, getUrl(method, params));
 		}
 		
 		override protected function refreshHierarchy():void
@@ -73,13 +75,13 @@ package weave.data.DataSources
 				csv = newLinkableChild(this, CSVDataSource);
 				csvCache[series_id] = csv;
 				
-				var taskToken:Object = {};
-				WeaveAPI.SessionManager.assignBusyTask(taskToken, csv);
-				
-				getJson('series', {series_id: series_id}, function(result1:Object):void {
-					var seriesData:Object = result1.seriess[0];
-					getJson('series/observations', {series_id: series_id}, function(result2:Object):void {
-						WeaveAPI.SessionManager.unassignBusyTask(taskToken);
+				var seriesData:Object;
+				getJson(csv, 'series', {series_id: series_id})
+					.then(function(result1:Object):WeavePromise {
+						seriesData = result1.seriess[0];
+						return getJson(csv, 'series/observations', {series_id: series_id});
+					})
+					.then(function(result2:Object):void {
 						var columnOrder:Array = ['date', 'value', 'realtime_start', 'realtime_end'];
 						var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(result2.observations, columnOrder);
 						csv.csvData.setSessionState(rows);
@@ -93,13 +95,7 @@ package weave.data.DataSources
 							{title: 'realtime_end', dataType: DataType.DATE},
 						];
 						csv.metadata.setSessionState(metadataArray);
-					}, handleFault);
-				}, handleFault);
-				
-				function handleFault(result:Object):void
-				{
-					WeaveAPI.SessionManager.unassignBusyTask(taskToken);
-				}
+					});
 			}
 			return csv;
 		}
@@ -127,17 +123,19 @@ package weave.data.DataSources
 				hasChildBranches: true,
 				children: function(node:ColumnTreeNode):Array {
 					var children:Array = [];
-					getJson('category/children', {category_id: node.data.id}, function(result:Object):void {
-						var nodes:Array = [];
-						for each (var item:Object in result.categories)
-							nodes.push(createCategoryNode(item));
-						// put categories first in the list
-						children.splice.apply(null, [0, 0].concat(nodes));
-					});
-					getJson('category/series', {category_id: node.data.id}, function(result:Object):void {
-						for each (var item:Object in result.seriess)
-							children.push(createSeriesNode(item));
-					});
+					getJson(this, 'category/children', {category_id: node.data.id})
+						.then(function(result:Object):void {
+							var nodes:Array = [];
+							for each (var item:Object in result.categories)
+								nodes.push(createCategoryNode(item));
+							// put categories first in the list
+							children.unshift.apply(null, nodes);
+						});
+					getJson(this, 'category/series', {category_id: node.data.id})
+						.then(function(result:Object):void {
+							for each (var item:Object in result.seriess)
+								children.push(createSeriesNode(item));
+						});
 					return children;
 				}
 			});

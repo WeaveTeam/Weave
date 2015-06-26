@@ -70,10 +70,21 @@ package weave.services
 		
 		/**
 		 * @param url The URL to get JSON data
-		 * @param resultHandler A function that will receive the resulting Object as its first parameter
 		 * @return The cached Object.
 		 */
-		public function getJsonObject(url:String, resultHandler:Function = null, faultHandler:Function = null):Object
+		public function getJsonObject(url:String):Object
+		{
+			return getCacheEntry(url).result;
+		}
+		
+		public function getJsonPromise(relevantContext:Object, url:String):WeavePromise
+		{
+			return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):void {
+				getCacheEntry(url).addHandler(resolve, reject);
+			});
+		}
+		
+		private function getCacheEntry(url:String):CacheEntry
 		{
 			var entry:CacheEntry = cache[url];
 			if (!entry)
@@ -83,15 +94,7 @@ package weave.services
 				entry = new CacheEntry(this, request);
 				cache[url] = entry;
 			}
-			entry.addHandler(resultHandler, faultHandler);
-			return entry.result;
-		}
-		
-		public function getJsonPromise(relevantContext:Object, url:String):WeavePromise
-		{
-			return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):void {
-				getJsonObject(url, resolve, reject);
-			});
+			return entry;
 		}
 		
 		public static function parseJSON(json:String):Object
