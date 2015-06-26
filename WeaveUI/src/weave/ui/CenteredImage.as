@@ -21,6 +21,8 @@ package weave.ui
 	import mx.controls.Image;
 	import mx.core.mx_internal;
 	
+	import weave.utils.DrawUtils;
+	
 	use namespace mx_internal;
 
 	/**
@@ -53,7 +55,7 @@ package weave.ui
 				
 				var g:Graphics = graphics;
 				g.clear();
-				g.lineStyle(0,0,0);
+				DrawUtils.clearLineStyle(g);
 				g.beginFill(0,0);
 				g.drawRect(_scrollRect.x, _scrollRect.y, _scrollRect.width, _scrollRect.height);
 				g.endFill();

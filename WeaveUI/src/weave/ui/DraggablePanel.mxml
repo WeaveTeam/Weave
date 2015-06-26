@@ -55,10 +55,8 @@
 			import mx.events.ResizeEvent;
 			import mx.managers.ISystemManager;
 			import mx.managers.PopUpManager;
-			import mx.managers.ToolTipManager;
 			
 			import weave.Weave;
-			import weave.api.core.ICallbackCollection;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
@@ -83,6 +81,7 @@
 			import weave.menus.WeaveMenuItem;
 			import weave.ui.controlBars.VisTaskbar;
 			import weave.utils.CustomCursorManager;
+			import weave.utils.DrawUtils;
 			import weave.utils.NumberUtils;
 			
 			public var debug:Boolean = false;
@@ -1333,7 +1332,7 @@
 				
 				button.addEventListener(MouseEvent.MOUSE_DOWN, function (event:MouseEvent):void { event.stopPropagation(); });
 				
-				if(clickHandler != null)
+				if (clickHandler != null)
 				{
 					var buttonListener:Function = function(e:MouseEvent):*
 					{
@@ -1348,7 +1347,7 @@
 				
 				button.graphics.clear();
 				button.graphics.beginFill(0,0);
-				button.graphics.lineStyle(0,0,0);
+				DrawUtils.clearLineStyle(button.graphics);
 				button.graphics.drawRect(-spaceBetweenButtons/2, -spaceBetweenButtons/2, buttonSize + spaceBetweenButtons, buttonSize + spaceBetweenButtons);
 				button.graphics.endFill();
 			}
@@ -1532,7 +1531,7 @@
 					// choose the thin border color to be black or white based on the brightness of the background
 					var bgColor:Number = borderIsVisible ? getStyle('borderColor') : getStyle('backgroundColor');
 					var thinBorderColor:Number = StandardLib.getColorLuma(bgColor) < 0x80 ? 0xFFFFFF : 0x000000;
-					_dragCanvas.graphics.lineStyle(1, thinBorderColor, thinBorderAlpha);
+					_dragCanvas.graphics.lineStyle(1, thinBorderColor, thinBorderAlpha, false, LineScaleMode.NONE);
 					_dragCanvas.graphics.drawRect(0, 0, Math.round(width)-1, Math.round(height)-1);
 				}
 			}

@@ -20,6 +20,7 @@ package weave.visualization.plotters.styles
 	import weave.api.data.IQualifiedKey;
 	import weave.api.ui.ILineStyle;
 	import weave.core.LinkableDynamicObject;
+	import weave.utils.DrawUtils;
 
 	/**
 	 * DynamicLineStyle
@@ -45,7 +46,7 @@ package weave.visualization.plotters.styles
 			if (internalObject is ILineStyle)
 				(internalObject as ILineStyle).beginLineStyle(recordKey, target);
 			else
-				target.lineStyle(0, 0, 0); // no line
+				DrawUtils.clearLineStyle(target);
 		}
 	}
 }

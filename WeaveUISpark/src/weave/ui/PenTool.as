@@ -43,6 +43,7 @@ package weave.ui
 	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
+	import weave.utils.DrawUtils;
 	import weave.utils.SpatialIndex;
 	import weave.visualization.layers.Visualization;
 
@@ -498,7 +499,7 @@ package weave.ui
 				if (_editMode)
 				{
 					// draw invisible rectangle to capture mouse events
-					g.lineStyle(0, 0, 0);
+					DrawUtils.clearLineStyle(g);
 					g.beginFill(0, 0);
 					g.drawRect(0, 0, unscaledWidth, unscaledHeight);
 					g.endFill();

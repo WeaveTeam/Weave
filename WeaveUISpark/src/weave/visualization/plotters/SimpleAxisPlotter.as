@@ -45,6 +45,7 @@ package weave.visualization.plotters
 	import weave.primitives.LinkableNumberFormatter;
 	import weave.primitives.LooseAxisDescription;
 	import weave.utils.BitmapText;
+	import weave.utils.DrawUtils;
 	import weave.utils.LinkableTextFormat;
 	
 	public class SimpleAxisPlotter extends AbstractPlotter
@@ -385,7 +386,7 @@ package weave.visualization.plotters
 				var thickness:Number = axesThickness.value;
 				var graphics:Graphics = tempShape.graphics;
 				graphics.clear();
-				graphics.lineStyle(0,0,0);
+				DrawUtils.clearLineStyle(graphics);
 				graphics.beginFill(axesColor.value, axesAlpha.value);
 				var xMin:Number = _axisLineScreenBounds.getXNumericMin();
 				var yMin:Number = _axisLineScreenBounds.getYNumericMin();

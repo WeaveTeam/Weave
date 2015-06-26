@@ -60,6 +60,7 @@
 			import weave.ui.SubMenu;
 			import weave.ui.VariableListController;
 			import weave.utils.ColumnUtils;
+			import weave.utils.DrawUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.InteractionController;
 			import weave.visualization.layers.LayerSettings;
@@ -450,7 +451,7 @@
 				visualization.graphics.clear();
 				if (enableBackground.value)
 				{
-					visualization.graphics.lineStyle(0,0,0);
+					DrawUtils.clearLineStyle(visualization.graphics);
 					visualization.graphics.beginBitmapFill(backgroundImageBitmapData);
 					visualization.graphics.drawRect(0, 0, visualization.width, visualization.height);
 					visualization.graphics.endFill();
