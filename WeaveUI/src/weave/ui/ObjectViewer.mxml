@@ -26,7 +26,7 @@
 	<WeaveTree id="treeView" width="100%" height="100%"
 			   showDataTips="true" dataTipFunction="{getDataTip}"
 			   showRoot="true" borderStyle="none"
-			   dataProvider="{newTreeNode(data)}">
+			   rootNode="{newTreeNode(data)}">
 		<itemRenderer>
 			<fx:Component>
 				<ObjectViewerItemRenderer
