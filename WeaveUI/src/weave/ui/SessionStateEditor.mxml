@@ -515,7 +515,7 @@ A text editor to change the Session State on the fly.
 						//end of file reached. start search again.
 					}
 				}
-				else if (_editor == DATA_GRID)
+				else if (_editor == DATA_GRID && _currentSessionStateDataProvider !== null)
 				{
 					// this loop is to make sure we wrap around to find it
 					for (var j:int = 0; j < 2; ++j)
