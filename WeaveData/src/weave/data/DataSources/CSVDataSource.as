@@ -15,13 +15,8 @@
 
 package weave.data.DataSources
 {
-	import flash.net.URLLoaderDataFormat;
-	import flash.net.URLRequest;
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.rpc.AsyncToken;
-	import mx.rpc.events.FaultEvent;
-	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
 	
 	import weave.api.core.ICallbackCollection;
@@ -43,9 +38,9 @@ package weave.data.DataSources
 	import weave.api.reportError;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableFile;
-	import weave.core.LinkablePromise;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
+	import weave.core.LinkableXML;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -54,7 +49,6 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.CSVParser;
 	import weave.data.QKeyManager;
-	import weave.services.addAsyncResponder;
 	import weave.utils.HierarchyUtils;
 	
 	/**
@@ -62,7 +56,7 @@ package weave.data.DataSources
 	 * @author adufilie
 	 * @author skolman
 	 */
-	public class CSVDataSource extends AbstractDataSource_old implements IDataSource_File
+	public class CSVDataSource extends AbstractDataSource implements IDataSource_File
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file / Delimited text");
 
@@ -364,16 +358,9 @@ package weave.data.DataSources
 		 */
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
-			if (_attributeHierarchy.value === null)
-			{
-				if (!(_rootNode is CSVColumnNode))
-					_rootNode = new CSVColumnNode(this);
-				return _rootNode;
-			}
-			else
-			{
-				return super.getHierarchyRoot();
-			}
+			if (!(_rootNode is CSVColumnNode))
+				_rootNode = new CSVColumnNode(this);
+			return _rootNode;
 		}
 		
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
@@ -397,43 +384,36 @@ package weave.data.DataSources
 			return null;
 		}
 		
-		override protected function handleHierarchyChange():void
+		[Deprecated] public function set attributeHierarchy(state:Object):void
 		{
-			super.handleHierarchyChange();
-			convertOldHierarchyFormat(_attributeHierarchy.value, "attribute", {"name": METADATA_COLUMN_NAME});
-			if (_attributeHierarchy.value)
+			var xml:XML = LinkableXML.xmlFromState(state);
+			if (xml === null)
+				return;
+			
+			HierarchyUtils.convertOldHierarchyFormat(xml, "attribute", {"name": METADATA_COLUMN_NAME});
+			var xmlList:XMLList = xml.children();
+			var objectArray:Array = [];
+			for each (var tag:XML in xml.descendants('attribute'))
 			{
-				for each (var tag:XML in _attributeHierarchy.value.descendants('attribute'))
+				var title:String = String(tag['@title']);
+				if (!title)
 				{
-					var title:String = String(tag['@title']);
-					if (!title)
-					{
-						var name:String = String(tag['@name']);
-						var year:String = String(tag['@year']);
-						if (name && year)
-							title = name + ' (' + year + ')';
-						else if (name)
-							title = name;
-						else
-							title = String(tag['@csvColumn']) || 'untitled';
-						
-						tag['@title'] = title;
-					}
+					var name:String = String(tag['@name']);
+					var year:String = String(tag['@year']);
+					if (name && year)
+						title = name + ' (' + year + ')';
+					else if (name)
+						title = name;
+					else
+						title = String(tag['@csvColumn']) || 'untitled';
+					
+					tag['@title'] = title;
 				}
+				objectArray.push(HierarchyUtils.getMetadata(tag));
 			}
-			_attributeHierarchy.detectChanges();
+			metadata.setSessionState(objectArray);
 		}
 
-		/**
-		 * This function must be implemented by classes by extend AbstractDataSource.
-		 * This function should make a request to the source to fill in the hierarchy.
-		 * @param subtreeNode A pointer to a node in the hierarchy representing the root of the subtree to request from the source.
-		 */
-		override protected function requestHierarchyFromSource(subtreeNode:XML = null):void
-		{
-			// do nothing
-		}
-		
 		public static const METADATA_COLUMN_INDEX:String = 'csvColumnIndex';
 		public static const METADATA_COLUMN_NAME:String = 'csvColumn';
 
@@ -477,12 +457,6 @@ package weave.data.DataSources
 								break;
 							}
 						}
-					}
-					else if (attributeHierarchy.value)
-					{
-						var node:XML = HierarchyUtils.getFirstNodeContainingAttributes(attributeHierarchy.value.descendants(), HierarchyUtils.nodeFromMetadata(metadata));
-						if (node)
-							columnId = String(node.@[METADATA_COLUMN_NAME]) || String(node.@['name']);
 					}
 					
 					// backwards compatibility

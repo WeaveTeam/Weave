@@ -41,52 +41,6 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * For each tag matching tagName, replace attribute names of that tag using the nameMapping.
-		 * Example usage: convertOldHierarchyFormat(root, 'attribute', {dataTableName: "dataTable", dataType: myFunction})
-		 * @param root The root XML hierachy tag.
-		 * @param tagName The name of tags that need to be converted from an old format.
-		 * @param nameMapping Maps attribute names to new attribute names or functions that convert the old values, with the following signature:  function(value:String):String
-		 */
-		protected function convertOldHierarchyFormat(root:XML, tagName:String, nameMapping:Object):void
-		{
-			if (root == null)
-				return;
-			
-			var node:XML;
-			var oldName:String;
-			var value:String;
-			var nodes:XMLList;
-			var nameMap:Object;
-			var newName:String;
-			var valueConverter:Function;
-
-			nodes = root.descendants(tagName);
-			for each (node in nodes)
-			{
-				for (oldName in nameMapping)
-				{
-					newName = nameMapping[oldName] as String;
-					valueConverter = nameMapping[oldName] as Function;
-					
-					value = node.attribute(oldName);
-					if (value) // if there's an old value
-					{
-						if (valueConverter != null) // if there's a converter
-						{
-							node.@[oldName] = valueConverter(value); // convert the old value
-						}
-						else if (!String(node.attribute(newName))) // if there's no value under the newName
-						{
-							// rename the attribute from oldName to newName
-							delete node.@[oldName];
-							node.@[newName] = value;
-						}
-					}
-				}
-			}
-		}
-		
-		/**
 		 * This function must be implemented by classes that extend AbstractDataSource.
 		 * It will be called the frame after the session state for the data source changes.
 		 * When overriding this function, super.initialize() should be called.

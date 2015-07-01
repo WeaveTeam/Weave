@@ -123,6 +123,8 @@ package weave.core
 		{
 			if (state && state.hasOwnProperty(XML_STRING))
 				state = state[XML_STRING];
+			if (!state)
+				return null;
 			return XML(state);
 		}
 	}

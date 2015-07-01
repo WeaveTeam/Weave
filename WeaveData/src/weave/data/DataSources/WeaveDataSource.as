@@ -239,10 +239,10 @@ package weave.data.DataSources
 			if (!root)
 				return;
 			
-			convertOldHierarchyFormat(root, "category", {
+			HierarchyUtils.convertOldHierarchyFormat(root, "category", {
 				dataTableName: "name"
 			});
-			convertOldHierarchyFormat(root, "attribute", {
+			HierarchyUtils.convertOldHierarchyFormat(root, "attribute", {
 				attributeColumnName: "name",
 				dataTableName: "dataTable",
 				dataType: _convertOldDataType,
