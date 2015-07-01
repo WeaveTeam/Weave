@@ -56,7 +56,7 @@
 	</mx:Canvas>
 	<mx:Canvas label="{lang('Checklist')}">
 		<ui:CheckBoxList id="choiceCheckBoxList"
-						 paddingLeft="4"
+						 paddingLeft="4" height="100%"
 						 allowMultipleSelection="{allowMultipleSelection}"
 						 valueCommit="if (!viewChanging) if (layoutMode == LAYOUT_CHECKBOXLIST) chosenItems = choiceCheckBoxList.selectedItems;"
 						 />

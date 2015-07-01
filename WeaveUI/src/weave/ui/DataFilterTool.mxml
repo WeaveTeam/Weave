@@ -28,9 +28,12 @@
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
 			
+			import mx.core.UIComponent;
+			
 			import weave.Weave;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
+			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.api.setSessionState;
@@ -46,6 +49,7 @@
 			import weave.editors.NumericRangeDataFilterEditor;
 			import weave.menus.WeaveMenuItem;
 			import weave.utils.ColumnUtils;
+			import weave.utils.LinkableTextFormat;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, DataFilterTool, "Data Filter");
 			
@@ -86,6 +90,12 @@
 					return;
 				super.createChildren();
 				
+				var ltf:LinkableTextFormat = LinkableTextFormat.defaultTextFormat;
+				var target:UIComponent = this;
+				getCallbackCollection(ltf).addGroupedCallback(this, function():void {
+					ltf.copyToStyle(target);
+				}, true);
+
 				// backwards compatibility - adjust old macro
 				initGetFilterTextMacro(false);
 				

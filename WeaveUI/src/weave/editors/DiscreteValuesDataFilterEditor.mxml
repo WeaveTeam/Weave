@@ -27,7 +27,9 @@
 			paddingLeft="4"
 			label="{getEnableLabel(columnTitle)}"
 			change="toggleFilter();"/>
-	<ui:PlayButton id="playButton" enabled="{filterEnable.selected}"/>
+	<ui:PlayButton id="playButton"
+				   enabled="{filterEnable.selected}"
+				   creationComplete="playButton.button.label = '&gt;';"/>
 	<ui:MenuToolViewStack id="menuStack"
 		enabled="{filterEnable.selected}"
 		allowMultipleSelection="true"
