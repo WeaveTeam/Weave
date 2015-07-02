@@ -322,6 +322,7 @@ package weave.core
 		
 		/**
 		 * Adds a grouped callback that will be triggered when the session state tree changes.
+		 * USE WITH CARE. The groupedCallback should not run computationally-expensive code.
 		 */
 		public function addTreeCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void
 		{

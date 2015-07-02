@@ -125,22 +125,39 @@
 					
 					choicesComponent.hashMap = outerDocument.choices;
 					linkBindableProperty(outerDocument.layoutMode, layoutCombo, 'selectedItem');
-					(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, handleGlobalListChange, true);
+					(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, function():void { _recheckDescendants = true; }, true);
 					getCallbackCollection(outerDocument.toolWatcher).addGroupedCallback(this, handleToolChange);
 					outerDocument.targetAttribute.addImmediateCallback(this, handleTargetAttributeChange);
 					handleToolChange();
+					outerDocument.targetToolPath.addGroupedCallback(this, updateToolComboText, true);
+					targetToolCombo.addEventListener(MouseEvent.MOUSE_DOWN, updateTargetToolComboDataProvider, true);
+					targetToolCombo.addEventListener(KeyboardEvent.KEY_DOWN, updateTargetToolComboDataProvider, true);
+					updateTargetToolComboDataProvider();
+				}
+				
+				private function updateToolComboText():void
+				{
+					var path:Array = outerDocument.targetToolPath.getSessionState() as Array;
+					if (path)
+						targetToolCombo.text = toolLabelFunction(pathToString(path));
+					else
+						targetToolCombo.selectedIndex = -1;
 				}
 
+				private var _recheckDescendants:Boolean = true;
 				private var _prevDescendants:Array;
 				
 				// called whenever a global object gets added/removed/reordered
-				private function handleGlobalListChange():void
+				private function updateTargetToolComboDataProvider(event:Event = null):void
 				{
 					if (!parent)
 					{
-						callLater(handleGlobalListChange);
+						callLater(updateTargetToolComboDataProvider);
 						return;
 					}
+					
+					if (!_recheckDescendants)
+						return;
 					
 					// update the list of tools
 					var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, ISelectableAttributes);
@@ -153,6 +170,9 @@
 						targetToolCombo.dataProvider = _prevDescendants = descendants;
 					// make sure the correct item is selected
 					targetToolCombo.selectedItem = pathToString(outerDocument.targetToolPath.getSessionState() as Array);
+					
+					if (_prevDescendants.length)
+						_recheckDescendants = false;
 				}
 				
 				private var _stringToPath:Object = {};
