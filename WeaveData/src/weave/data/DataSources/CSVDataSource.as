@@ -17,6 +17,7 @@ package weave.data.DataSources
 {
 	import flash.utils.getQualifiedClassName;
 	
+	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
 	import weave.api.core.ICallbackCollection;
@@ -36,6 +37,7 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableFile;
 	import weave.core.LinkableString;
@@ -49,6 +51,7 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.CSVParser;
 	import weave.data.QKeyManager;
+	import weave.data.hierarchy.ColumnTreeNode;
 	import weave.utils.HierarchyUtils;
 	
 	/**
@@ -62,14 +65,18 @@ package weave.data.DataSources
 
 		public function CSVDataSource()
 		{
+			registerLinkableChild(hierarchyRefresh, metadata);
 		}
 
 		public const csvData:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), handleCSVDataChange);
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString, updateKeys);
 		public const keyColName:LinkableString = newLinkableChild(this, LinkableString, updateKeys);
 		
-		public const metadata:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, typeofIsObject));
-		private function typeofIsObject(value:Object):Boolean { return typeof value == 'object'; }
+		public const metadata:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, typeOfIsObject));
+		private function typeOfIsObject(value:Object):Boolean
+		{
+			return typeof value == 'object';
+		}
 		
 		public const url:LinkableFile = newLinkableChild(this, LinkableFile, parseRawData);
 		
@@ -156,6 +163,7 @@ package weave.data.DataSources
 					nameLookup[columnIds[i]] = true;
 			}
 			updateKeys(true);
+			hierarchyRefresh.triggerCallbacks();
 		}
 		
 		private function updateKeys(forced:Boolean = false):void
@@ -219,11 +227,32 @@ package weave.data.DataSources
 		 */
 		private function getColumnMetadata(id:Object):Object
 		{
-			var meta:Object = metadata.getSessionState();
-			if (id is String && meta is Array)
-				return meta[columnIds.indexOf(id)];
-			else if (meta)
-				return meta[id];
+			try
+			{
+				if (id is Number)
+					id = columnIds[id];
+				var meta:Object = metadata.getSessionState();
+				if (meta is Array)
+				{
+					var array:Array = meta as Array;
+					for (var i:int = 0; i < array.length; i++)
+					{
+						var item:Object = array[i];
+						var itemId:* = item[METADATA_COLUMN_NAME] || item[METADATA_COLUMN_INDEX];
+						if (itemId === undefined)
+							itemId = columnIds[i];
+						if (itemId === id)
+							return item;
+					}
+					return null;
+				}
+				else if (meta)
+					return meta[id];
+			}
+			catch (e:Error)
+			{
+				reportError(e);
+			}
 			return null;
 		}
 		
@@ -358,30 +387,56 @@ package weave.data.DataSources
 		 */
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
-			if (!(_rootNode is CSVColumnNode))
-				_rootNode = new CSVColumnNode(this);
+			if (!_rootNode)
+				_rootNode = new ColumnTreeNode({
+					dataSource: this,
+					label: WeaveAPI.globalHashMap.getName(this),
+					children: function(root:ColumnTreeNode):Array {
+						var items:Array = metadata.getSessionState() as Array;
+						if (!items)
+							items = getColumnIds();
+						var children:Array = [];
+						for (var i:int = 0; i < items.length; i++)
+						{
+							var item:Object = items[i];
+							children[i] = generateHierarchyNode(item) || generateHierarchyNode(i);
+						}
+						return children;
+					}
+				});
 			return _rootNode;
 		}
 		
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
+			if (typeof metadata != 'object')
+				metadata = generateMetadataForColumnId(metadata);
+			
 			if (!metadata)
 				return null;
 			
-			var csvRoot:CSVColumnNode = getHierarchyRoot() as CSVColumnNode;
-			if (!csvRoot)
-				return super.generateHierarchyNode(metadata);
-			
-			if (metadata.hasOwnProperty(METADATA_COLUMN_INDEX))
-				return new CSVColumnNode(this, metadata[METADATA_COLUMN_INDEX]);
-			if (metadata.hasOwnProperty(METADATA_COLUMN_NAME))
+			if (metadata.hasOwnProperty(METADATA_COLUMN_INDEX) || metadata.hasOwnProperty(METADATA_COLUMN_NAME))
 			{
-				var index:int = getColumnNames().indexOf(metadata[METADATA_COLUMN_NAME]);
-				if (index >= 0)
-					return new CSVColumnNode(this, index);
+				return new ColumnTreeNode({
+					dataSource: this,
+					label: getColumnNodeLabel,
+					idFields: [METADATA_COLUMN_INDEX, METADATA_COLUMN_NAME],
+					data: metadata
+				});
 			}
 			
 			return null;
+		}
+		private function getColumnNodeLabel(node:ColumnTreeNode):String
+		{
+			var title:String = node.data[ColumnMetadata.TITLE] || node.data[METADATA_COLUMN_NAME];
+			if (!title && node.data['name'])
+			{
+				title = node.data['name'];
+				if (node.data['year'])
+					title = StandardLib.substitute("{0} ({1})", title, node.data['year']);
+			}
+			return title;
 		}
 		
 		[Deprecated] public function set attributeHierarchy(state:Object):void
@@ -436,26 +491,23 @@ package weave.data.DataSources
 				if (!columnId)
 				{
 					// support for time slider
-					var metaArray:Array = this.metadata.getSessionState() as Array;
-					if (metaArray)
+					for (var i:int = 0; i < columnIds.length; i++)
 					{
-						for (var i:int = 0; i < metaArray.length; i++)
+						var meta:Object = getColumnMetadata(columnIds[i]);
+						var found:int = 0;
+						for (var key:String in metadata)
 						{
-							var found:int = 0;
-							for (var key:String in metaArray[i])
+							if (meta[key] != metadata[key])
 							{
-								if (metaArray[i][key] != metadata[key])
-								{
-									found = 0;
-									break;
-								}
-								found++;
-							}
-							if (found)
-							{
-								columnId = i;
+								found = 0;
 								break;
 							}
+							found++;
+						}
+						if (found)
+						{
+							columnId = i;
+							break;
 						}
 					}
 					
@@ -606,62 +658,5 @@ package weave.data.DataSources
 		}
 		
 		[Deprecated(replacement="getColumnById")] public function getColumnByName(name:String):IAttributeColumn { return getColumnById(name); }
-	}
-}
-
-import weave.api.data.ColumnMetadata;
-import weave.api.data.IColumnReference;
-import weave.api.data.IDataSource;
-import weave.api.data.IWeaveTreeNode;
-import weave.data.DataSources.CSVDataSource;
-
-internal class CSVColumnNode implements IWeaveTreeNode, IColumnReference
-{
-	private var source:CSVDataSource;
-	public var columnIndex:int;
-	internal var children:Array;
-	public function CSVColumnNode(source:CSVDataSource = null, columnIndex:int = -1)
-	{
-		this.source = source;
-		this.columnIndex = columnIndex;
-		if (columnIndex < 0)
-			children = [];
-	}
-	public function equals(other:IWeaveTreeNode):Boolean
-	{
-		var that:CSVColumnNode = other as CSVColumnNode;
-		return !!that
-			&& this.source == that.source
-			&& this.columnIndex == that.columnIndex;
-	}
-	public function getLabel():String
-	{
-		if (columnIndex < 0)
-			return WeaveAPI.globalHashMap.getName(source);
-		return source.getColumnTitle(columnIndex);
-	}
-	public function isBranch():Boolean { return columnIndex < 0; }
-	public function hasChildBranches():Boolean { return false; }
-	public function getChildren():Array
-	{
-		if (!children)
-			return null;
-		
-		var ids:Array = source.getColumnIds();
-		children.length = ids.length;
-		for (var i:int = 0; i < ids.length; i++)
-			if (!children[i])
-				children[i] = new CSVColumnNode(source, i);
-		return children;
-	}
-	
-	public function getDataSource():IDataSource
-	{
-		return source;
-	}
-	public function getColumnMetadata():Object
-	{
-		var id:Object = source.getColumnIds()[columnIndex];
-		return id != null && source.generateMetadataForColumnId(id);
 	}
 }
