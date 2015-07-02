@@ -16,7 +16,7 @@
  * ***** END LICENSE BLOCK ***** */
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes"
+				implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes,weave.api.core.IDisposableObject"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<CustomViewStack id="layoutViewStack" width="100%" height="100%">
@@ -253,6 +253,7 @@
 	</ControlPanel></mx:Component></editorFactory>
 	<mx:Script>
 		<![CDATA[
+			import weave.api.objectWasDisposed;
 			import mx.core.UIComponent;
 			
 			import weave.api.copySessionState;
@@ -288,6 +289,8 @@
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
 
+			private static const ALL_INSTANCES:Dictionary = new Dictionary(true); // AMT -> true
+			
 			internal const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
 			private function handlePlayClick():void
@@ -399,7 +402,9 @@
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
-				
+
+				ALL_INSTANCES[this] = true;
+
 				// have a default dynamic title
 				panelTitle.value = lang('Attribute menu for {0}', '{targetAttributeName}');
 				
@@ -642,6 +647,22 @@
 					return;
 				}
 				
+				// prevent two AttributeMenuTools from fighting
+				if (selectedAttribute.getSessionState() != null)
+				{
+					for (var key:* in ALL_INSTANCES)
+					{
+						var other:AttributeMenuTool = key;
+						if (other === this)
+							continue;
+						if (StandardLib.compare(this.targetToolPath.getSessionState(), other.targetToolPath.getSessionState()) == 0
+							&& StandardLib.compare(this.targetAttribute.getSessionState(), other.targetAttribute.getSessionState()) == 0)
+						{
+							other.selectedAttribute.setSessionState(null);
+						}
+					}
+				}
+				
 				var names:Array = choices.getNames();
 				var selectedIndex:int = useChoiceIndex.value ? StandardLib.asNumber(selectedAttribute.value) : names.indexOf(selectedAttribute.value);
 				choiceCombo.selectedIndex = alwaysShowPrompt.value ? -1 : selectedIndex;
@@ -661,6 +682,12 @@
 			public function getSelectableAttributeNames():Array
 			{
 				return ["Choices"];
+			}
+			
+			override public function dispose():void
+			{
+				delete ALL_INSTANCES[this];
+				super.dispose();
 			}
 			
 			//----------------------------------------------
