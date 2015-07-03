@@ -618,6 +618,9 @@
 				if (index < 0 || index >= _attrs.length)
 					return;
 				
+				// Note that this is not a complete solution since restarting Weave may cause
+				// the selected attribute from multiple AttributeMenuTools to apply in a
+				// different order on startup.
 				if (!detectLinkableObjectChange(handleAttrSelected, targetToolPath, targetAttribute, selectedAttribute, useChoiceIndex, choices))
 					return;
 				
@@ -694,6 +697,14 @@
 			{
 				delete ALL_INSTANCES[this];
 				super.dispose();
+			}
+			
+			override public function sendWindowToForeground():void
+			{
+				super.sendWindowToForeground();
+				// Note that this is not a complete solution since replaying session state and then
+				// reloading it may cause selected attribute to apply in different order on startup.
+//				handleSelectedAttributeChange();
 			}
 			
 			//----------------------------------------------
