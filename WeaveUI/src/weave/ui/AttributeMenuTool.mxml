@@ -39,7 +39,8 @@
 		<mx:Canvas label="{lang('Vertical Slider')}">
 			<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
 						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-						change="handleAttrSelected(choiceVSlider.maximum - choiceVSlider.value);"
+						change="if (UIUtils.hasFocus(choiceVSlider)) handleAttrSelected(choiceVSlider.maximum - choiceVSlider.value);"
+						mouseDown="choiceVSlider.setFocus()"
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:Canvas>
 		<mx:Canvas label="{lang('Horizontal Slider')}">
@@ -50,7 +51,8 @@
 				</mx:VBox>
 				<mx:HSlider id="choiceHSlider" fillAlphas="{[1, 1]}" liveDragging="true" tickInterval="1"
 							width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-							change="handleAttrSelected(choiceHSlider.value);"
+							change="if (UIUtils.hasFocus(choiceHSlider)) handleAttrSelected(choiceHSlider.value);"
+							mouseDown="choiceHSlider.setFocus()"
 							/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 			</mx:HBox>
 		</mx:Canvas>
@@ -253,6 +255,7 @@
 	</ControlPanel></mx:Component></editorFactory>
 	<mx:Script>
 		<![CDATA[
+			import weave.api.detectLinkableObjectChange;
 			import weave.api.objectWasDisposed;
 			import mx.core.UIComponent;
 			
@@ -613,6 +616,9 @@
 				
 				// stop if target attribute is not configured properly or session state is not initialized yet
 				if (index < 0 || index >= _attrs.length)
+					return;
+				
+				if (!detectLinkableObjectChange(handleAttrSelected, targetToolPath, targetAttribute, selectedAttribute, useChoiceIndex, choices))
 					return;
 				
 				// using the index, get the corresponding "SelectableAttribute" from the tool
