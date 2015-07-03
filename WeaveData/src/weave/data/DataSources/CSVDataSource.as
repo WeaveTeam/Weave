@@ -498,6 +498,8 @@ package weave.data.DataSources
 					for (var i:int = 0; i < columnIds.length; i++)
 					{
 						var meta:Object = getColumnMetadata(columnIds[i]);
+						if (!meta)
+							continue;
 						var found:int = 0;
 						for (var key:String in metadata)
 						{
@@ -658,6 +660,10 @@ package weave.data.DataSources
 		// backwards compatibility
 		[Deprecated(replacement="csvData")] public function set csvDataString(value:String):void { setCSVDataString(value); }
 		[Deprecated(replacement="getColumnById")] public function getColumnByName(name:String):IAttributeColumn { return getColumnById(name); }
-		[Deprecated(replacement="metadata")] public function set attributeHierarchy(state:Object):void { metadata.setSessionState(state); }
+		[Deprecated(replacement="metadata")] public function set attributeHierarchy(state:Object):void
+		{
+			if (LinkableXML.couldBeXML(state))
+				metadata.setSessionState(state);
+		}
 	}
 }
