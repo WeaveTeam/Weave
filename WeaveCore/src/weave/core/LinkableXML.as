@@ -116,6 +116,24 @@ package weave.core
 		 */		
 		private var _prevTriggerCount:uint = triggerCounter;
 		
+		public static function couldBeXML(state:Object):Boolean
+		{
+			var couldBe:Boolean = state is String;
+			for (var key:String in state)
+			{
+				if (key == LinkableXML.XML_STRING)
+				{
+					couldBe = state[key] is String;
+				}
+				else
+				{
+					couldBe = false;
+					break;
+				}
+			}
+			return couldBe;
+		}
+		
 		/**
 		 * Converts a session state object to XML the same way a LinkableXML object would.
 		 */

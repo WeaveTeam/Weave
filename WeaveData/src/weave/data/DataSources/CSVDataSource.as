@@ -17,7 +17,6 @@ package weave.data.DataSources
 {
 	import flash.utils.getQualifiedClassName;
 	
-	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
 	import weave.api.core.ICallbackCollection;
@@ -72,9 +71,44 @@ package weave.data.DataSources
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString, updateKeys);
 		public const keyColName:LinkableString = newLinkableChild(this, LinkableString, updateKeys);
 		
-		public const metadata:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, typeOfIsObject));
-		private function typeOfIsObject(value:Object):Boolean
+		public const metadata:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, verifyMetadata));
+		private function verifyMetadata(value:Object):Boolean
 		{
+			// backwards compatibility for XML hierarchy
+			if (LinkableXML.couldBeXML(value))
+			{
+				try
+				{
+					var xml:XML = LinkableXML.xmlFromState(value);
+					HierarchyUtils.convertOldHierarchyFormat(xml, "attribute", {"name": METADATA_COLUMN_NAME});
+					var xmlList:XMLList = xml.children();
+					var objectArray:Array = [];
+					for each (var tag:XML in xml.descendants('attribute'))
+					{
+						var title:String = String(tag['@title']);
+						if (!title)
+						{
+							var name:String = String(tag['@name']);
+							var year:String = String(tag['@year']);
+							if (name && year)
+								title = name + ' (' + year + ')';
+							else if (name)
+								title = name;
+							else
+								title = String(tag['@csvColumn']) || 'untitled';
+							
+							tag['@title'] = title;
+						}
+						objectArray.push(HierarchyUtils.getMetadata(tag));
+					}
+					metadata.setSessionState(objectArray);
+					return false;
+				}
+				catch (e:Error)
+				{
+				}
+			}
+			
 			return typeof value == 'object';
 		}
 		
@@ -438,36 +472,6 @@ package weave.data.DataSources
 			}
 			return title;
 		}
-		
-		[Deprecated] public function set attributeHierarchy(state:Object):void
-		{
-			var xml:XML = LinkableXML.xmlFromState(state);
-			if (xml === null)
-				return;
-			
-			HierarchyUtils.convertOldHierarchyFormat(xml, "attribute", {"name": METADATA_COLUMN_NAME});
-			var xmlList:XMLList = xml.children();
-			var objectArray:Array = [];
-			for each (var tag:XML in xml.descendants('attribute'))
-			{
-				var title:String = String(tag['@title']);
-				if (!title)
-				{
-					var name:String = String(tag['@name']);
-					var year:String = String(tag['@year']);
-					if (name && year)
-						title = name + ' (' + year + ')';
-					else if (name)
-						title = name;
-					else
-						title = String(tag['@csvColumn']) || 'untitled';
-					
-					tag['@title'] = title;
-				}
-				objectArray.push(HierarchyUtils.getMetadata(tag));
-			}
-			metadata.setSessionState(objectArray);
-		}
 
 		public static const METADATA_COLUMN_INDEX:String = 'csvColumnIndex';
 		public static const METADATA_COLUMN_NAME:String = 'csvColumn';
@@ -652,11 +656,8 @@ package weave.data.DataSources
 		private const nullValues:Array = [null, "", "null", "\\N", "NaN"];
 		
 		// backwards compatibility
-		[Deprecated] public function set csvDataString(value:String):void
-		{
-			setCSVDataString(value);
-		}
-		
+		[Deprecated(replacement="csvData")] public function set csvDataString(value:String):void { setCSVDataString(value); }
 		[Deprecated(replacement="getColumnById")] public function getColumnByName(name:String):IAttributeColumn { return getColumnById(name); }
+		[Deprecated(replacement="metadata")] public function set attributeHierarchy(state:Object):void { metadata.setSessionState(state); }
 	}
 }
