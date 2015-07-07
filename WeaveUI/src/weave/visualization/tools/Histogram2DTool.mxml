@@ -157,7 +157,7 @@
 					handleBinColRadioButtonChange();
 					xColumnComponent.dynamicObject = plotter.xColumn;
 					yColumnComponent.dynamicObject = plotter.yColumn;
-					colorColumnComponent.dynamicObject = plotter._colorColumn.internalDynamicColumn;
+					colorColumnComponent.columnWrapper = plotter.colorColumn;
 				}
 				
 				private function handleBinColRadioButtonChange():void
