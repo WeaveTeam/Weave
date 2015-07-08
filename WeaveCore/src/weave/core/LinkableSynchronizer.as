@@ -15,15 +15,21 @@
 
 package weave.core
 {
-	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObject;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	
 	public class LinkableSynchronizer implements ILinkableObject
 	{
+		public static const VAR_STATE:String = 'state';
+		public static const VAR_PRIMARY:String = 'primary';
+		public static const VAR_SECONDARY:String = 'secondary';
+		
 		public const primaryPath:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), setPrimaryPath);
 		public const secondaryPath:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), setSecondaryPath);
+		
+		public const primaryTransform:LinkableFunction = registerLinkableChild(this, new LinkableFunction(null, false, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handlePrimaryTransform);
+		public const secondaryTransform:LinkableFunction = registerLinkableChild(this, new LinkableFunction(null, false, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handleSecondaryTransform);
 		
 		private const primaryWatcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(null, synchronize));
 		private const secondaryWatcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(null, synchronize));
@@ -46,7 +52,7 @@ package weave.core
 			var secondary:ILinkableObject = secondaryWatcher.target;
 			if (_primary != primary || _secondary != secondary)
 			{
-				// check individual objects since one may have been disposed
+				// check objects individually since one may have been disposed
 				if (_primary)
 					WeaveAPI.SessionManager.getCallbackCollection(_primary).removeCallback(primaryCallback);
 				if (_secondary)
@@ -58,18 +64,69 @@ package weave.core
 				if (primary && secondary)
 				{
 					WeaveAPI.SessionManager.getCallbackCollection(_secondary).addImmediateCallback(this, secondaryCallback);
-					WeaveAPI.SessionManager.getCallbackCollection(_primary).addImmediateCallback(this, primaryCallback, true);
+					WeaveAPI.SessionManager.getCallbackCollection(_primary).addImmediateCallback(this, primaryCallback);
+					
+					// if primaryTransform is not given but secondaryTransform is, call secondaryCallback
+					// otherwise, call primary callback.
+					if (!primaryTransform.value && secondaryTransform.value)
+						secondaryCallback();
+					else
+						primaryCallback();
 				}
 			}
 		}
 		
+		private function handlePrimaryTransform():void
+		{
+			if (_primary && _secondary)
+				primaryCallback();
+		}
+		
+		private function handleSecondaryTransform():void
+		{
+			if (_primary && _secondary)
+				secondaryCallback();
+		}
+		
 		private function primaryCallback():void
 		{
-			WeaveAPI.SessionManager.copySessionState(_primary, _secondary);
+			if (primaryTransform.value)
+			{
+				try
+				{
+					var state:Object = WeaveAPI.SessionManager.getSessionState(_primary);
+					var transformedState:Object = primaryTransform.apply(null, [state, _primary, _secondary]);
+					WeaveAPI.SessionManager.setSessionState(_secondary, transformedState, true);
+				}
+				catch (e:Error)
+				{
+					WeaveAPI.ErrorManager.reportError(e, "Error in primaryTransform: " + e.message);
+				}
+			}
+			else if (!secondaryTransform.value)
+			{
+				WeaveAPI.SessionManager.copySessionState(_primary, _secondary);
+			}
 		}
 		private function secondaryCallback():void
 		{
-			WeaveAPI.SessionManager.copySessionState(_secondary, _primary);
+			if (secondaryTransform.value)
+			{
+				try
+				{
+					var state:Object = WeaveAPI.SessionManager.getSessionState(_secondary);
+					var transformedState:Object = secondaryTransform.apply(null, [state, _primary, _secondary]);
+					WeaveAPI.SessionManager.setSessionState(_primary, transformedState, true);
+				}
+				catch (e:Error)
+				{
+					WeaveAPI.ErrorManager.reportError(e, "Error in secondaryTransform: " + e.message);
+				}
+			}
+			else if (!primaryTransform.value)
+			{
+				WeaveAPI.SessionManager.copySessionState(_secondary, _primary);
+			}
 		}
 	}
 }
