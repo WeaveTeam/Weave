@@ -15,6 +15,7 @@
 
 package weave.core
 {
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
@@ -24,6 +25,12 @@ package weave.core
 		public static const VAR_STATE:String = 'state';
 		public static const VAR_PRIMARY:String = 'primary';
 		public static const VAR_SECONDARY:String = 'secondary';
+		
+		public function LinkableSynchronizer()
+		{
+			_callbacks = WeaveAPI.SessionManager.getCallbackCollection(this);
+			_callbacks.addImmediateCallback(null, selfCallback);
+		}
 		
 		public const primaryPath:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), setPrimaryPath);
 		public const secondaryPath:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), setSecondaryPath);
@@ -43,11 +50,26 @@ package weave.core
 			secondaryWatcher.targetPath = secondaryPath.getSessionState() as Array;
 		}
 		
+		private var _callbacks:ICallbackCollection;
+		private var _delayedSynchronize:Boolean = false;
 		private var _primary:ILinkableObject;
 		private var _secondary:ILinkableObject;
 		
+		private function selfCallback():void
+		{
+			if (_delayedSynchronize)
+				synchronize();
+		}
+		
 		private function synchronize():void
 		{
+			if (_callbacks.callbacksAreDelayed)
+			{
+				_delayedSynchronize = true;
+				return;
+			}
+			_delayedSynchronize = false;
+			
 			var primary:ILinkableObject = primaryWatcher.target;
 			var secondary:ILinkableObject = secondaryWatcher.target;
 			if (_primary != primary || _secondary != secondary)
@@ -66,8 +88,8 @@ package weave.core
 					WeaveAPI.SessionManager.getCallbackCollection(_secondary).addImmediateCallback(this, secondaryCallback);
 					WeaveAPI.SessionManager.getCallbackCollection(_primary).addImmediateCallback(this, primaryCallback);
 					
-					// if primaryTransform is not given but secondaryTransform is, call secondaryCallback
-					// otherwise, call primary callback.
+					// if primaryTransform is not given but secondaryTransform is, call secondaryCallback.
+					// otherwise, call primaryCallback.
 					if (!primaryTransform.value && secondaryTransform.value)
 						secondaryCallback();
 					else
@@ -78,13 +100,15 @@ package weave.core
 		
 		private function handlePrimaryTransform():void
 		{
-			if (_primary && _secondary)
+			// if callbacks are delayed, it means we're loading a session state, so we don't want to apply the transform.
+			if (!_callbacks.callbacksAreDelayed && _primary && _secondary)
 				primaryCallback();
 		}
 		
 		private function handleSecondaryTransform():void
 		{
-			if (_primary && _secondary)
+			// if callbacks are delayed, it means we're loading a session state, so we don't want to apply the transform.
+			if (!_callbacks.callbacksAreDelayed && _primary && _secondary)
 				secondaryCallback();
 		}
 		
@@ -100,7 +124,7 @@ package weave.core
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(e, "Error in primaryTransform: " + e.message);
+					WeaveAPI.ErrorManager.reportError(e, "primaryTransform: " + e.message);
 				}
 			}
 			else if (!secondaryTransform.value)
@@ -120,7 +144,7 @@ package weave.core
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(e, "Error in secondaryTransform: " + e.message);
+					WeaveAPI.ErrorManager.reportError(e, "secondaryTransform: " + e.message);
 				}
 			}
 			else if (!primaryTransform.value)
