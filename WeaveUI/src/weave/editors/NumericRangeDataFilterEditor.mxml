@@ -232,7 +232,7 @@
 				if (filter && filterEnable.selected != filter.enabled.value)
 					filterEnable.selected = filter.enabled.value;
 				
-				if (detectLinkableObjectChange(updateDisplayList, showMinThumb, showMaxThumb, forceDiscreteValues, discreteValueLabelInterval, statsWatcher, labelFunction))
+				if (detectLinkableObjectChange(updateDisplayList, filterWatcher, showMinThumb, showMaxThumb, forceDiscreteValues, discreteValueLabelInterval, statsWatcher, labelFunction))
 				{
 					var i:int;
 					var stats:IColumnStatistics = statsWatcher.target as IColumnStatistics;
