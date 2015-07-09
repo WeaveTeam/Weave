@@ -320,10 +320,8 @@
 							filterSlider.maximum = max;
 							filterSlider.tickInterval = 0;
 							filterSlider.snapInterval = 0;
-							if (showMinThumb.value)
-								labels.push(getLabelFromNumber(column, min));
-							if (showMaxThumb.value)
-								labels.push(getLabelFromNumber(column, max));
+							labels.push(getLabelFromNumber(column, min));
+							labels.push(getLabelFromNumber(column, max));
 						}
 						
 						var values:Array = [];
