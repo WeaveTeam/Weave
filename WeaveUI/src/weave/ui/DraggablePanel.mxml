@@ -123,8 +123,8 @@
 			private function verifyMaximized(value:Boolean):Boolean { return !maximizable || maximizable.value || !value; }
 			
 			public const userControlButton:Button = new Button();
-			protected const subMenuButton:MenuButton = new MenuButton();
-			protected const attributeButton:Button = new Button();
+			public const subMenuButton:MenuButton = new MenuButton();
+			public const attributeButton:Button = new Button();
 			protected const minimizeButton:Button = new Button();
 			protected const maximizeButton:Button = new Button();
 			protected const closePanelButton:Button = new Button();

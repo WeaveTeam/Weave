@@ -90,8 +90,13 @@ package weave.menus
 				return;
 			
 			dp.validateNow();
-			var b:Button = dp.userControlButton;
 			var dpc:ICallbackCollection = getCallbackCollection(dp);
+			
+			var b:Button = dp.userControlButton;
+			if (!b.parent)
+				b = dp.subMenuButton;
+			if (!b.parent)
+				b = dp.attributeButton;
 			
 			var color:uint = 0x0C4785;//0x0b333c;
 			var timeout:int = getTimer() + 1000 * 5;
