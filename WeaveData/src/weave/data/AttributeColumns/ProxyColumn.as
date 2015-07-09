@@ -180,7 +180,7 @@ package weave.data.AttributeColumns
 			resumeCallbacks();
 		}
 		
-		public static const DATA_UNAVAILABLE:String = lang('Data unavailable');
+		public static const DATA_UNAVAILABLE:String = lang('(Data unavailable)');
 			
 		override public function toString():String
 		{
