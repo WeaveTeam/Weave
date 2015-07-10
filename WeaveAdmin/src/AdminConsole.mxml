@@ -49,7 +49,7 @@
 						<mx:HRule width="100%"/>
 						
 						<mx:Button label="Open Weave" click="Admin.instance.openWeavePopup();" toolTip="This will open Weave in a new browser window which allows you to save a new client configuration."/>
-						<mx:Button label="Recover Last Session" click="Admin.instance.openWeavePopup(null, true);" toolTip="This will open Weave with your last configuration."/>
+						<mx:Button label="Recover last session" click="Admin.instance.openWeavePopup(null, true);" toolTip="This will open Weave with your last configuration."/>
 						
 						<mx:HRule width="100%"/>
 						
