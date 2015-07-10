@@ -3,6 +3,7 @@
 <!ELEMENT databaseConfig EMPTY><!-- specifies which connection to use to store configuration data -->
 <!ATTLIST databaseConfig connection CDATA #REQUIRED>
 <!ATTLIST databaseConfig schema CDATA #REQUIRED>
+<!ATTLIST databaseConfig idFields CDATA ""><!-- a comma-separated list of fields that clients should use to identify entities. if empty, entity_id will be used. -->
 
 <!ELEMENT connection EMPTY><!-- defines a connection for an SQL server -->
 <!ATTLIST connection name CDATA #REQUIRED><!-- an identifying name for this connection (used for signing in to the admin console and referenced elsewhere in the xml) -->

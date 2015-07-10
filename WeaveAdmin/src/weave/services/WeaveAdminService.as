@@ -408,7 +408,7 @@ package weave.services
 		{
 			return invokeAdminWithLogin(getDatabaseConfigInfo, arguments, true, DatabaseConfigInfo);
 		}
-		public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String):AsyncToken
+		public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String, idFields:Array):AsyncToken
 		{
 			var query:AsyncToken = invokeAdmin(setDatabaseConfigInfo, arguments);
 			addAsyncResponder(query, alertResult);

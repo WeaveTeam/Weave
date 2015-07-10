@@ -142,6 +142,16 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		}
 	}
 	
+	////////////////
+	// Server info
+	
+	public Map<String,String> getServerInfo() throws RemoteException
+	{
+		return MapUtils.fromPairs(
+			"idFields", getConnectionConfig().getDatabaseConfigInfo().idFields
+		);
+	}
+	
 	////////////////////
 	// DataEntity info
 	
