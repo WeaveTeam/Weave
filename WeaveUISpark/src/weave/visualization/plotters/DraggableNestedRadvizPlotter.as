@@ -420,13 +420,13 @@ package weave.visualization.plotters
 			var index:int = names.indexOf(name);
 			var point:Point = Point.polar(names.length/2, 2 * Math.PI * index / names.length);
 			if (index >= 0)
-				moveTopicPoint(name, point);
+				moveTopicPoint(name, point, true);
 			return point;
 		}
 		
-		private function moveTopicPoint(topicID:String, delta:Point):void
+		private function moveTopicPoint(topicID:String, delta:Point, notDelta:Boolean = false):void
 		{
-			var point:Point = getTopicPoint(topicID).add(delta);
+			var point:Point = notDelta ? delta : getTopicPoint(topicID).add(delta);
 			var x:Number = point.x;
 			var y:Number = point.y;
 			if (gridSnap.value > 0)
