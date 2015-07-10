@@ -100,7 +100,11 @@
 			</ui:Indent>
 			<ui:IndentTextInput label="{lang('Password')}" id="migratePasswordInput" displayAsPassword="true"/>
 			<ui:IndentTextInput label="{lang('Schema to use')}" id="migrateSchemaInput" text="{admin.databaseConfigInfo.schema}"/>
-			<ui:IndentTextInput label="{lang('Metadata ID field(s)')}" id="migrateIdFieldsInput" text="{WeaveAPI.CSVParser.createCSVRow(admin.databaseConfigInfo.idFields)}"/>
+			<ui:CheckBoxWithNestedOptions label="{lang('Show advanced options')}" selected="{!!migrateIdFieldsInput.text}">
+				<ui:IndentTextInput label="{lang('Metadata ID field(s)')}" id="migrateIdFieldsInput"
+									helpContent="You should only use this if you plan to add your own metadata field(s) for uniquely identifying columns. Separate multiple field names by commas."
+									text="{WeaveAPI.CSVParser.createCSVRow(admin.databaseConfigInfo.idFields)}"/>
+			</ui:CheckBoxWithNestedOptions>
 			<ui:Paragraph trim="false"
 						  text="{lang('The following tables will be created{0}:\n    weave_hierarchy, weave_meta_private, weave_meta_public\nIf they already exist, no changes will be made.', migrateSchemaInput.visible ? ' in the schema specified above' : '')}"/>
 			<mx:Button id="migrateButton" label="{lang('Store Weave configuration at this location')}" click="saveDatabaseConfigInfo()" />
