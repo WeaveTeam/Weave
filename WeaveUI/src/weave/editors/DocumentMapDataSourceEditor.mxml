@@ -32,7 +32,7 @@
 		<mx:TextInput id="sourceName" width="100%"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Source URL')}">
-		<ui:TextInputWithPrompt id="url" prompt="http://www.example.com/WeaveServices/DataService" width="100%"/>
+		<ui:TextInputWithPrompt id="url" prompt="http://www.example.com/DocumentMapService/DocumentMapService" width="100%" text="/DocumentMapService/DocumentMapService"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Collections')}">
 		<ui:MenuButton id="collectionMenu" label="{selectedCollection || 'Choose a collection...'}"/>
