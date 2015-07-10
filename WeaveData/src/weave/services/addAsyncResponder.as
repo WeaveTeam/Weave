@@ -15,6 +15,7 @@
 
 package weave.services
 {
+	import mx.rpc.AsyncResponder;
 	import mx.rpc.AsyncToken;
 
 	/**
@@ -28,7 +29,9 @@ package weave.services
 	 */
 	public function addAsyncResponder(destination:AsyncToken, result:Function, fault:Function = null, token:Object = null):void
 	{
-		DelayedAsyncResponder.addResponder(destination, result, fault, token);
-		//destination.addResponder(new AsyncResponder(result, fault, token));
+		//DelayedAsyncResponder.addResponder(destination, result || noOp, fault || noOp, token);
+		destination.addResponder(new AsyncResponder(result || noOp, fault || noOp, token));
 	}
 }
+
+internal function noOp(..._):void { }

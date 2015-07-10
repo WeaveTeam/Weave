@@ -36,7 +36,7 @@ package weave.services
 		}
 		
 		private static function noOp(..._):void { } // does nothing
-		
+		/*
 		override public function result(data:Object):void
 		{
 			WeaveAPI.StageUtils.callLater(null, super.result, arguments);
@@ -45,5 +45,6 @@ package weave.services
 		{
 			WeaveAPI.StageUtils.callLater(null, super.fault, arguments);
 		}
+		*/
 	}
 }
