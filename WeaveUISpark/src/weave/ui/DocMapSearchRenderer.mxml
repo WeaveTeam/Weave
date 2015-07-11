@@ -199,10 +199,10 @@
 			if (query)
 			{
 				linkBindableProperty(query.queryString, searchBox, 'text', 500);
-				linkBindableProperty(query.thumbnailSize, this, 'thumbnailSize', 0, false, true);
-				linkBindableProperty(query.showAsList, this, 'showAsList', 0, false, true);
-				linkBindableProperty(query.width, this, 'paneWidth', 0, false, true);
-				linkBindableProperty(query.height, this, 'paneHeight', 0, false, true);
+				linkBindableProperty(query.thumbnailSize, this, 'thumbnailSize', 0, false, false);
+				linkBindableProperty(query.showAsList, this, 'showAsList', 0, false, false);
+				linkBindableProperty(query.width, this, 'paneWidth', 0, false, false);
+				linkBindableProperty(query.height, this, 'paneHeight', 0, false, false);
 				getCallbackCollection(query).addGroupedCallback(this, handleQuery);
 				getCallbackCollection(query.showAsList).addGroupedCallback(this, handleSizeChange, true);
 				getCallbackCollection(query.thumbnailSize).addGroupedCallback(this, handleSizeChange, true);
