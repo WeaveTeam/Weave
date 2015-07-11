@@ -21,8 +21,8 @@ package weave.api
 	 * Shortcut for WeaveAPI.SessionManager.linkBindableProperty()
 	 * @copy weave.api.core.ISessionManager#linkBindableProperty()
 	 */
-	public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false, ignoreFocus:Boolean = false):void
+	public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false, delayWhenFocused:Boolean = true):void
 	{
-		WeaveAPI.SessionManager.linkBindableProperty(linkableVariable, bindableParent, bindablePropertyName, delay, onlyWhenFocused, ignoreFocus);
+		WeaveAPI.SessionManager.linkBindableProperty(linkableVariable, bindableParent, bindablePropertyName, delay, onlyWhenFocused, delayWhenFocused);
 	}
 }

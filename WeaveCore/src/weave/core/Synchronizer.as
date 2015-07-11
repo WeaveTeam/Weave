@@ -32,7 +32,7 @@ package weave.core
 	 */
 	internal class Synchronizer implements IDisposableObject
 	{
-		public function Synchronizer(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false, ignoreFocus:Boolean = false):void
+		public function Synchronizer(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false, delayWhenFocused:Boolean = true):void
 		{
 			sm.registerDisposableChild(bindableParent, this);
 			sm.registerDisposableChild(linkableVariable, this);
@@ -41,7 +41,7 @@ package weave.core
 			this.bindablePropertyName = bindablePropertyName;
 			this.delay = delay;
 			this.onlyWhenFocused = onlyWhenFocused;
-			this.ignoreFocus = ignoreFocus;
+			this.delayWhenFocused = delayWhenFocused;
 			this.callbackCollection = sm.getCallbackCollection(linkableVariable);
 			this.uiComponent = bindableParent as UIComponent;
 			
@@ -91,7 +91,7 @@ package weave.core
 		private var bindablePropertyName:String;
 		private var delay:uint;
 		private var onlyWhenFocused:Boolean;
-		private var ignoreFocus:Boolean;
+		private var delayWhenFocused:Boolean;
 		private var watcher:ChangeWatcher;
 		private var uiComponent:UIComponent;
 		private var useLinkableValue:Boolean = true;
@@ -161,7 +161,7 @@ package weave.core
 			var bindableValue:Object = bindableParent[bindablePropertyName];
 			if (uiComponent && !(bindableValue is Boolean))
 			{
-				if (watcher && !ignoreFocus && UIUtils.hasFocus(uiComponent))
+				if (watcher && UIUtils.hasFocus(uiComponent))
 				{
 					if (linkableVariable is LinkableVariable)
 					{
@@ -188,21 +188,24 @@ package weave.core
 						}
 					}
 					
-					var currentTime:int = getTimer();
-					
-					// if we're not calling later, set the target time (int.MAX_VALUE means delay until focus is lost)
-					if (!callingLater)
-						callLaterTime = useLinkableValue ? int.MAX_VALUE : currentTime + delay;
-					
-					// if we haven't reached the target time yet or callbacks are delayed, call later
-					if (currentTime < callLaterTime)
+					if (delayWhenFocused)
 					{
-						// firstParam is ignored when callingLater=true
-						uiComponent.callLater(synchronize, [firstParam, true]);
-						return;
+						var currentTime:int = getTimer();
+						
+						// if we're not calling later, set the target time (int.MAX_VALUE means delay until focus is lost)
+						if (!callingLater)
+							callLaterTime = useLinkableValue ? int.MAX_VALUE : currentTime + delay;
+						
+						// if we haven't reached the target time yet or callbacks are delayed, call later
+						if (currentTime < callLaterTime)
+						{
+							// firstParam is ignored when callingLater=true
+							uiComponent.callLater(synchronize, [firstParam, true]);
+							return;
+						}
 					}
 				}
-				else if (!useLinkableValue && !ignoreFocus && onlyWhenFocused && !callingLater)
+				else if (!useLinkableValue && onlyWhenFocused && !callingLater)
 				{
 					// component does not have focus, so ignore the bindableValue.
 					return;

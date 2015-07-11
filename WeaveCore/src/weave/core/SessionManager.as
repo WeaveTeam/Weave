@@ -1339,7 +1339,7 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false, ignoreFocus:Boolean = false):void
+		public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false, delayWhenFocused:Boolean = true):void
 		{
 			if (linkableVariable == null || bindableParent == null || bindablePropertyName == null)
 			{
@@ -1362,7 +1362,7 @@ package weave.core
 			var lookup:Object = _synchronizers.get(linkableVariable, bindableParent);
 			if (!lookup)
 				_synchronizers.set(linkableVariable, bindableParent, lookup = {});
-			lookup[bindablePropertyName] = new Synchronizer(linkableVariable, bindableParent, bindablePropertyName, delay, onlyWhenFocused, ignoreFocus);
+			lookup[bindablePropertyName] = new Synchronizer(linkableVariable, bindableParent, bindablePropertyName, delay, onlyWhenFocused, delayWhenFocused);
 		}
 		/**
 		 * @inheritDoc
