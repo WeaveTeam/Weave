@@ -301,10 +301,12 @@
 			<mx:TabNavigator initialize="UIUtils.pad(event, 8, 100, 100)">
 				<mx:VBox label="{lang('Targets')}" width="100%" height="100%">
 					<Indent label="{lang('Add target')}">
-						<TextInputWithPrompt id="targetPathInput" prompt="{lang('Paste path here')}"/>
+						<TextInputWithPrompt id="targetPathInput"
+											 change=" targetPathInput.errorString = '';"
+											 prompt="{lang('Paste path here')}"/>
 						<mx:Button label="{lang('Add')}"
 								   enabled="{isValidPath(targetPathInput.text)}"
-								   click="addTargetPath(targetPathInput.text); targetPathInput.text = '';"/>
+								   click="addTargetPath();"/>
 						<mx:Spacer width="100%"/>
 						<mx:Button label="{lang('Find targets...')}" click="SessionStateEditor.openDefaultEditor();"/>
 						<mx:Spacer width="100%"/>
@@ -381,21 +383,29 @@
 					return false;
 				}
 				
-				private function addTargetPath(pathStr:String):void
+				private function addTargetPath():void
 				{
 					try
 					{
-						var path:Array = _compiler.parseConstant(pathStr) as Array;
+						var path:Array = _compiler.parseConstant(targetPathInput.text) as Array;
 						if (!path)
 							return;
 						var targets:ILinkableHashMap = outerDocument.targets;
 						var wrapper:LinkableDynamicObject = targets.requestObject(null, LinkableDynamicObject, false);
 						wrapper.targetPath = path;
-						if (!wrapper.targetPath)
+						if (wrapper.target)
+						{
+							targetPathInput.text = '';
+						}
+						else
+						{
 							targets.removeObject(targets.getName(wrapper));
+							targetPathInput.errorString = "No target found";
+						}
 					}
 					catch (e:Error)
 					{
+						targetPathInput.errorString = "Invalid path";
 						reportError(e);
 					}
 				}
