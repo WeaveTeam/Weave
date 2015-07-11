@@ -70,6 +70,7 @@ package
 	import weave.ui.RTextEditor;
 	import weave.ui.SchafersMissingDataTool;
 	import weave.ui.SessionStateEditor;
+	import weave.ui.SessionStateMenuTool;
 	import weave.ui.TextTool;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
@@ -204,7 +205,8 @@ package
 				TreeTool,
 				KeyMappingTool,
 				LayerSettingsTool,
-				ParallelCoordinatesTool
+				ParallelCoordinatesTool,
+				SessionStateMenuTool
 			]);
 			
 			/**
