@@ -278,6 +278,25 @@ package weave.compiler
 		}
 		
 		/**
+		 * Attempts to compile an expression as a constant, then returns the constant value.
+		 * @param constantExpression
+		 * @return The value of the expression.
+		 * @throws Error if the expression cannot be evaluated as a constant.
+		 */
+		public function parseConstant(constantExpression:String):*
+		{
+			var compiled:ICompiledObject = finalize(compileTokens(getTokens(constantExpression), false), true);
+			if (compiled is CompiledConstant)
+			{
+				return (compiled as CompiledConstant).value;
+			}
+			else
+			{
+				throw new Error("Expression does not evaluate to a constant");
+			}
+		}
+		
+		/**
 		 * Add keys to this dictionary for class alias names or deprecated library replacements using dot notation (".") rather than "::" package notation.
 		 */
 		public static const classAliases:Object = {};
@@ -2178,13 +2197,14 @@ package weave.compiler
 		/**
 		 * Call this to move all var declarations at the beginning of the code and perform optimizations on the compiled objects.
 		 * @param compiledObject An ICompiledObject to finalize.
+		 * @param forceInlineObjectConstants If true, forces the evaluation of inline objects to constants.
 		 * @return A finialized/optimized version of compiledObject.
 		 */
-		private function finalize(compiledObject:ICompiledObject):ICompiledObject
+		private function finalize(compiledObject:ICompiledObject, forceInlineObjectConstants:Boolean = false):ICompiledObject
 		{
 			var varLookup:Object = {};
 			
-			var final:ICompiledObject = _finalize(compiledObject, varLookup);
+			var final:ICompiledObject = _finalize(compiledObject, forceInlineObjectConstants, varLookup);
 			if (!final)
 				return compiledObject;
 			
@@ -2212,7 +2232,7 @@ package weave.compiler
 		/**
 		 * @private helper function
 		 */
-		private function _finalize(compiledObject:ICompiledObject, varLookup:Object):ICompiledObject
+		private function _finalize(compiledObject:ICompiledObject, forceInlineObjectConstants:Boolean, varLookup:Object):ICompiledObject
 		{
 			if (compiledObject is CompiledConstant)
 				return compiledObject;
@@ -2224,7 +2244,7 @@ package weave.compiler
 			if (isFunctionHeader(call))
 				compileFunctionDefinition(call, null); // this will throw an appropriate error
 				
-			call.compiledMethod = _finalize(call.compiledMethod, varLookup);
+			call.compiledMethod = _finalize(call.compiledMethod, forceInlineObjectConstants, varLookup);
 			if (!call.compiledMethod)
 				throw new Error("Misplaced variable declaration");
 			var params:Array = call.compiledParams;
@@ -2232,7 +2252,7 @@ package weave.compiler
 			{
 				for (i = 0; i < params.length; i++)
 				{
-					params[i] = _finalize(params[i], varLookup);
+					params[i] = _finalize(params[i], forceInlineObjectConstants, varLookup);
 					if (params[i] == null) // variable declaration eliminated?
 						params.splice(i--, 1);
 				}
@@ -2264,7 +2284,7 @@ package weave.compiler
 				{
 					if (debug)
 						trace('optimized unnecessary wrapper function call:',decompileObject(compiledObject));
-					return _finalize(params[0], varLookup);
+					return _finalize(params[0], forceInlineObjectConstants, varLookup);
 				}
 				
 				// flatten nested grouping operators
@@ -2309,7 +2329,7 @@ package weave.compiler
 				return params[INDEX_CONDITION];
 			}
 			
-			if (PURE_OP_LOOKUP[method as Function])
+			if (PURE_OP_LOOKUP[method as Function] || (forceInlineObjectConstants && (method == operators['{'] || method == operators['['])))
 			{
 				// if all parameters are constants, just evaluate the pure operator as a constant.
 				for each (var param:Object in params)
