@@ -354,7 +354,7 @@
 				
 				<mx:VBox label="{lang('Menu items')}" width="100%" height="100%">
 					<mx:HBox width="100%">
-						<mx:Button label="{lang('Add new item')}" click="outerDocument.addNewChoice()"/>
+						<mx:Button label="{lang('Add new item for current state')}" click="outerDocument.addNewChoice()"/>
 						<mx:Spacer width="100%"/>
 						<mx:Button label="{lang('Remove selected')}"
 								   enabled="{editor.selectedIndex >= 0}" 
@@ -406,7 +406,7 @@
 					choicesController.view = editor;
 					choicesController.hashMap = outerDocument.choices;
 					choicesController.labelFunction = outerDocument.getChoiceLabel;
-					(editor.columns[0] as DataGridColumn).headerText = lang("Menu items (Click below to rename)");
+					choicesController.setNameColumnHeader(lang("Menu items (Click below to rename)"), lang("Menu items"));
 					(editor.columns[1] as DataGridColumn).visible = false;
 				}
 				
