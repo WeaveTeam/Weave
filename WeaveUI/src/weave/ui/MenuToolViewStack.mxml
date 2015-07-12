@@ -27,6 +27,7 @@
 				 allowMultipleSelection="{allowMultipleSelection}"
 				 change="if (!viewChanging) if (layoutMode == LAYOUT_LIST) chosenItems = choiceList.selectedItems;"
 				 backgroundAlpha="0" borderStyle="none"
+				 mouseDown="choiceList.setFocus()"
 				 />
 	</mx:Canvas>
 	<mx:Canvas label="{lang('Combo Box')}">
@@ -67,7 +68,7 @@
 			
 			import weave.compiler.StandardLib;
 			import weave.core.UIUtils;
-
+			
 			public static const LAYOUT_LIST:String = "List";
 			public static const LAYOUT_COMBO:String = "ComboBox";
 			public static const LAYOUT_VSLIDER:String = "VSlider";
