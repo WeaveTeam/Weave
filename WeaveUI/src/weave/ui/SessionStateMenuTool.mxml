@@ -140,11 +140,12 @@
 				}
 			}
 			
-			public function addNewChoice():void
+			public function addNewChoice():LinkableVariable
 			{
 				var name:String = choices.generateUniqueName("item");
 				selectedChoice.value = name;
 				recordSelectedChoice();
+				return choices.getObject(name) as LinkableVariable;
 			}
 			
 			private function handleMouseClick(event:MouseEvent):void
@@ -343,7 +344,8 @@
 								   enabled="{isValidPath(targetPathInput.text)}"
 								   click="addTargetPath();"/>
 						<mx:Spacer width="100%"/>
-						<mx:Button label="{lang('Find targets...')}" click="SessionStateEditor.openDefaultEditor();"/>
+						<mx:Button label="{lang('Find targets...')}"
+								   click="SessionStateEditor.openDefaultEditor();"/>
 						<mx:Spacer width="100%"/>
 						<mx:Button label="{lang('Remove selected')}"
 								   enabled="{targetsList.selectedIndex >= 0}" 
@@ -354,13 +356,14 @@
 				
 				<mx:VBox label="{lang('Menu items')}" width="100%" height="100%">
 					<mx:HBox width="100%">
-						<mx:Button label="{lang('Add new item for current state')}" click="outerDocument.addNewChoice()"/>
+						<mx:Button label="{lang('Add new item for current state')}" click="addNewItem();"/>
 						<mx:Spacer width="100%"/>
 						<mx:Button label="{lang('Remove selected')}"
-								   enabled="{editor.selectedIndex >= 0}" 
+								   enabled="{choicesList.selectedIndex >= 0}" 
 								   click="choicesController.removeSelectedItems();"/>
 					</mx:HBox>
-					<mx:DataGrid id="editor" width="100%" height="100%" />
+					<mx:DataGrid id="choicesList" width="100%" height="100%"
+								 change="handleChoicesListChange();" />
 				</mx:VBox>
 			</mx:TabNavigator>
 		</mx:VBox>
@@ -371,6 +374,7 @@
 				import mx.controls.dataGridClasses.DataGridColumn;
 				
 				import weave.api.core.ILinkableHashMap;
+				import weave.api.core.ILinkableObject;
 				import weave.api.linkBindableProperty;
 				import weave.api.newDisposableChild;
 				import weave.api.reportError;
@@ -395,19 +399,24 @@
 					linkBindableProperty(outerDocument.promptText, promptInput, 'text');
 					linkBindableProperty(outerDocument.alwaysShowPrompt, alwaysShowPromptCheck, 'selected');
 					linkBindableProperty(outerDocument.autoRecord, autoRecordCheck, 'selected');
-					outerDocument.selectedChoice.addGroupedCallback(this, function():void {
-						recordNowButton.enabled = !!outerDocument.selectedChoice.value;
-					});
 					
 					targetsController.view = targetsList;
 					targetsController.hashMap = outerDocument.targets;
 					targetsController.labelFunction = outerDocument.getTargetLabel;
 					
-					choicesController.view = editor;
+					choicesController.allowMultipleSelection = false;
+					choicesController.view = choicesList;
 					choicesController.hashMap = outerDocument.choices;
 					choicesController.labelFunction = outerDocument.getChoiceLabel;
-					choicesController.setNameColumnHeader(lang("Menu items (Click below to rename)"), lang("Menu items"));
-					(editor.columns[1] as DataGridColumn).visible = false;
+					choicesController.setNameColumnHeader(lang("Menu items (Click below to activate and rename)"), lang("Menu items"));
+					(choicesList.columns[1] as DataGridColumn).visible = false;
+					choicesController.addRenameHandler(handleRename);
+					
+					outerDocument.selectedChoice.addGroupedCallback(this, function():void {
+						var choiceName:String = outerDocument.selectedChoice.value;
+						choicesList.selectedItem = outerDocument.choices.getObject(choiceName);
+						recordNowButton.enabled = !!choiceName;
+					}, true);
 				}
 				
 				private function isValidPath(pathStr:String):Boolean
@@ -443,6 +452,21 @@
 						targetPathInput.errorString = "Invalid path";
 						reportError(e);
 					}
+				}
+				
+				private function addNewItem():void
+				{
+					choicesController.beginEditVariableName(outerDocument.addNewChoice());
+				}
+				
+				private function handleChoicesListChange():void
+				{
+					outerDocument.selectedChoice.value = outerDocument.choices.getName(choicesList.selectedItem as ILinkableObject);
+				}
+				
+				private function handleRename(oldName:String, newName:String):void
+				{
+					outerDocument.selectedChoice.value = newName;
 				}
 				
 				private const targetsController:VariableListController = newDisposableChild(this, VariableListController);
