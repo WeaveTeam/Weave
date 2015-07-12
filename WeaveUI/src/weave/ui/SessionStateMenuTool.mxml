@@ -56,15 +56,21 @@
 			
 			public static const DEFAULT_PROMPT:String = lang('Choose an option ...');
 			
-			public const targets:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableDynamicObject), handleAutoRecord);
+			public const targets:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableDynamicObject), handleAutoRecord, true);
 			public const choices:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableVariable), handleChoices);
 			public const selectedChoice:LinkableString = newLinkableChild(this, LinkableString, handleSelectedChoice);
-			public const autoRecord:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleAutoRecord);
+			public const autoRecord:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleAutoRecord, true);
 			public const promptText:LinkableString = newLinkableChild(this, LinkableString);
 			public const alwaysShowPrompt:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(MenuToolViewStack.LAYOUT_LIST), handleLayoutMode, true);
 			public const thumbColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xe0e0e0, isFinite), setThumbColor);
+			
+			override protected function inConstructor():void
+			{
+				super.inConstructor();
+				getCallbackCollection(this).addImmediateCallback(this, selfCallback);
+			}
 			
 			override protected function childrenCreated():void
 			{
@@ -162,25 +168,28 @@
 				{
 					recordSelectedChoice();
 				}
-				/*else
+			}
+			
+			private var pendingApply:Boolean = false;
+			
+			private function selfCallback():void
+			{
+				if (pendingApply)
 				{
-					// de-select choice if state changed
-					var choice:LinkableVariable = choices.getObject(selectedChoice.value) as LinkableVariable;
-					if (choice)
-					{
-						var currentStates:Object = getTargetStates();
-						var savedStates:Object = choice.getSessionState();
-						if (StandardLib.compare(currentStates, savedStates) != 0)
-						{
-							if (layoutMode.value != MenuToolViewStack.LAYOUT_VSLIDER && layoutMode.value != MenuToolViewStack.LAYOUT_HSLIDER)
-								selectedChoice.value = null;
-						}
-					}
-				}*/
+					pendingApply = false;
+					handleSelectedChoice();
+				}
 			}
 			
 			private function handleChoices():void
 			{
+				// if callbacks are delayed, we are applying a session state, so we shouldn't interfere
+				if (getCallbackCollection(this).callbacksAreDelayed)
+				{
+					pendingApply = true;
+					return;
+				}
+				
 				// when choices change, reapply selected choice
 				var choice:LinkableVariable = choices.getObject(selectedChoice.value) as LinkableVariable;
 				if (choice && detectLinkableObjectChange(handleChoices, choice))
@@ -189,6 +198,13 @@
 			
 			private function handleSelectedChoice():void
 			{
+				// if callbacks are delayed, we are applying a session state, so we shouldn't interfere
+				if (getCallbackCollection(this).callbacksAreDelayed)
+				{
+					pendingApply = true;
+					return;
+				}
+				
 				// when selectedChoice changes, apply it
 				var choice:LinkableVariable = choices.getObject(selectedChoice.value) as LinkableVariable;
 				if (choice)
