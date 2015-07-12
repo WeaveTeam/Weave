@@ -1369,7 +1369,18 @@ package weave.core
 			if (!lookup)
 				_synchronizers.set(linkableVariable, bindableParent, lookup = {});
 			lookup[bindablePropertyName] = new Synchronizer(linkableVariable, bindableParent, bindablePropertyName, delay, onlyWhenFocused, delayWhenFocused);
+			
+			// for debugging
+			_lastSynchronizer = lookup[bindablePropertyName];
 		}
+		
+		// for debugging
+		private static var _lastSynchronizer:Synchronizer;
+		public static function debugSynchronizer():void
+		{
+			_lastSynchronizer.debug = true;
+		}
+		
 		/**
 		 * @inheritDoc
 		 */

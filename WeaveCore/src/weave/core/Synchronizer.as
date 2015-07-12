@@ -104,11 +104,11 @@ package weave.core
 			var bind:String = (!useLinkableBefore && !useLinkableAfter ? 'BIND' : 'bind') + '(' + Compiler.stringify(bindVal) + ')';
 			var str:String = link + ', ' + bind;
 			if (useLinkableBefore && !useLinkableAfter)
-			str = link + ' = ' + bind;
+				str = link + ' = ' + bind;
 			if (!useLinkableBefore && useLinkableAfter)
-			str = bind + ' = ' + link;
+				str = bind + ' = ' + link;
 			if (callingLater)
-			str += ' (callingLater)';
+				str += ' (callingLater)';
 			
 			trace(str);
 		}
@@ -144,14 +144,16 @@ package weave.core
 			if (!callingLater)
 			{
 				// remember which value changed last -- the linkable one or the bindable one
-				useLinkableValue = firstParam === undefined; // true when called from linkable variable grouped callback
+				useLinkableValue = firstParam === undefined; // true when called from linkable variable callback
 				// if we're not calling later and there is already a timestamp, just wait for the callLater to trigger
 				if (callLaterTime)
 				{
 					// if there is a callLater waiting to trigger, update the target time
-					callLaterTime = useLinkableValue ? int.MAX_VALUE : getTimer() + delay;
+					if (callLaterTime != int.MAX_VALUE)
+						callLaterTime = getTimer() + delay;
 					
-					//trace('\tdelaying the timer some more');
+					if (debug)
+						trace('\tdelaying the timer some more (' + (callLaterTime - getTimer()) + ')');
 					
 					return;
 				}
@@ -188,26 +190,30 @@ package weave.core
 						}
 					}
 					
-					if (delayWhenFocused)
+					var currentTime:int = getTimer();
+					
+					// if we're not calling later, set the target time (int.MAX_VALUE means delay until focus is lost)
+					if (!callingLater)
 					{
-						var currentTime:int = getTimer();
-						
-						// if we're not calling later, set the target time (int.MAX_VALUE means delay until focus is lost)
-						if (!callingLater)
-							callLaterTime = useLinkableValue ? int.MAX_VALUE : currentTime + delay;
-						
-						// if we haven't reached the target time yet or callbacks are delayed, call later
-						if (currentTime < callLaterTime)
-						{
-							// firstParam is ignored when callingLater=true
-							uiComponent.callLater(synchronize, [firstParam, true]);
-							return;
-						}
+						if (delayWhenFocused && useLinkableValue)
+							callLaterTime = int.MAX_VALUE;
+						else
+							callLaterTime = currentTime + delay;
+					}
+					
+					// if we haven't reached the target time yet or callbacks are delayed, call later
+					if (currentTime < callLaterTime)
+					{
+						// firstParam is ignored when callingLater=true
+						uiComponent.callLater(synchronize, [firstParam, true]);
+						return;
 					}
 				}
 				else if (!useLinkableValue && onlyWhenFocused && !callingLater)
 				{
 					// component does not have focus, so ignore the bindableValue.
+					if (debug)
+						trace('\tno focus, cancelled');
 					return;
 				}
 				
