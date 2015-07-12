@@ -173,6 +173,7 @@ package weave.ui
 		private var _labelFunction:Function = null;
 		private var _filterFunction:Function = null;
 		private var _reverse:Boolean = false;
+		private var _renameHandlers:Array = [];
 		
 		public function get hashMap():ILinkableHashMap
 		{
@@ -527,8 +528,20 @@ package weave.ui
 				var newValue:String = grid.itemEditorInstance[field];
 				
 				if (hashMap && newValue && hashMap.getNames().indexOf(newValue) < 0)
+				{
 					hashMap.renameObject(oldName, newValue);
+					for each (var handler:Function in _renameHandlers)
+						handler(oldName, newValue);
+				}
 			}
+		}
+		
+		/**
+		 * @param handler A function that takes two parameters: oldName, newName
+		 */
+		public function addRenameHandler(handler:Function):void
+		{
+			_renameHandlers.push(handler);
 		}
 	}
 }
