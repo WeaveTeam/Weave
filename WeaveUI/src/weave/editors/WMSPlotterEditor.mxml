@@ -108,6 +108,7 @@
 				if (!_plotter.providerName || !wmsLayerService)
 					return;
 				wmsLayerService.selectedItem = _plotter.providerName;
+				handleWMSProviderChange();
 
 			}
 			
@@ -116,25 +117,24 @@
 			{
 				_plotter.setProvider(wmsLayerService.selectedItem as String);
 				
-				if (_plotter.service.internalObject is CustomWMS)
+				if (_customWMS != null)
 				{
-					if (_customWMS != null)
-					{
-						unlinkBindableProperty(_customWMS.wmsURL,wmsURLText,"text");
-						unlinkBindableProperty(_customWMS.tileProjectionSRS,projSRSText,"text");
-						unlinkBindableProperty(_customWMS.maxZoom,maxZoomText,"text");
-						unlinkBindableProperty(_customWMS.creditInfo,creditInfoText,"text");
-					}
+					unlinkBindableProperty(_customWMS.wmsURL,wmsURLText,"text");
+					unlinkBindableProperty(_customWMS.tileProjectionSRS,projSRSText,"text");
+					unlinkBindableProperty(_customWMS.maxZoom,maxZoomText,"text");
+					unlinkBindableProperty(_customWMS.creditInfo,creditInfoText,"text");
+				}
+				
+				_customWMS = _plotter.service.internalObject as CustomWMS;
+				
+				if (_customWMS)
+				{
 					customWMSSettings.includeInLayout = true;								
 					customWMSSettings.visible = true;
-					
-					_customWMS = _plotter.service.internalObject as CustomWMS;
-					
 					linkBindableProperty(_customWMS.wmsURL,wmsURLText,"text", 500);
 					linkBindableProperty(_customWMS.tileProjectionSRS,projSRSText,"text");
 					linkBindableProperty(_customWMS.maxZoom,maxZoomText,"text");
 					linkBindableProperty(_customWMS.creditInfo,creditInfoText,"text");
-
 				}
 				else
 				{
@@ -142,9 +142,7 @@
 					customWMSSettings.visible = false;
 				}
 				
-				monthSetting.visible =
-					monthSetting.includeInLayout =
-						(_plotter.service.internalObject is OnEarthProvider)
+				monthSetting.visible = monthSetting.includeInLayout = (_plotter.service.internalObject is OnEarthProvider)
 			}
 		]]>
 	</mx:Script>

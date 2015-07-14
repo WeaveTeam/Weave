@@ -95,9 +95,7 @@ package weave.data.DataSources
 		
 		override protected function get initializationComplete():Boolean
 		{
-			return super.initializationComplete
-				&& !linkableObjectIsBusy(this)
-				&& jsonData;
+			return super.initializationComplete && !linkableObjectIsBusy(url) && jsonData;
 		}
 		
 		/**

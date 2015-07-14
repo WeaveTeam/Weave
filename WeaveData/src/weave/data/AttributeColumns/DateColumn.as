@@ -65,7 +65,7 @@ package weave.data.AttributeColumns
 			if (propertyName == ColumnMetadata.DATA_TYPE)
 				return DataType.DATE;
 			if (propertyName == ColumnMetadata.DATE_FORMAT)
-				return _dateFormat;
+				return _dateFormat || super.getMetadata(propertyName);
 			return super.getMetadata(propertyName);
 		}
 

@@ -82,12 +82,12 @@
     <enableSaveCurrentSubset>true</enableSaveCurrentSubset>
     <enableSearchForRecord>true</enableSearchForRecord>
     <enableSelectionSelectorBox>true</enableSelectionSelectorBox>
-    <enableSelectionsMenu>true</enableSelectionsMenu>
+    <enableSelectionsMenu>false</enableSelectionsMenu>
     <enableSessionMenu>true</enableSessionMenu>
     <enableShowAllRecords>true</enableShowAllRecords>
     <enableSubsetControls>true</enableSubsetControls>
     <enableSubsetSelectionBox>true</enableSubsetSelectionBox>
-    <enableSubsetsMenu>true</enableSubsetsMenu>
+    <enableSubsetsMenu>false</enableSubsetsMenu>
     <enableThreadPriorities>false</enableThreadPriorities>
     <enableTileAllWindows>true</enableTileAllWindows>
     <enableToolAttributeEditing>true</enableToolAttributeEditing>

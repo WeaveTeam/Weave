@@ -20,50 +20,55 @@
 				xmlns:ui="weave.ui.*"
 				horizontalScrollPolicy="off"
 				verticalScrollPolicy="off"
+				change="handleViewIndexChange(event)"
 				width="100%" height="100%">
 	<mx:Canvas label="{lang('List')}">
 		<mx:List id="choiceList" width="100%" height="100%"
 				 allowMultipleSelection="{allowMultipleSelection}"
-				 change="chosenItems = choiceList.selectedItems;"
+				 change="if (!viewChanging) if (layoutMode == LAYOUT_LIST) chosenItems = choiceList.selectedItems;"
 				 backgroundAlpha="0" borderStyle="none"
+				 mouseDown="choiceList.setFocus()"
 				 />
 	</mx:Canvas>
 	<mx:Canvas label="{lang('Combo Box')}">
 		<ui:CustomComboBox id="choiceCombo"
 						width="100%" height="100%" minHeight="0"
+						cornerRadius="0" highlightAlphas="{[0, 0]}" fillAlphas="{[0, 0]}"
 						prompt="{prompt}"
-						valueCommit="if (UIUtils.hasFocus(choiceCombo)) chosenItem = choiceCombo.selectedItem;"
+						valueCommit="if (!viewChanging) if (layoutMode == LAYOUT_COMBO) if (UIUtils.hasFocus(choiceCombo)) chosenItem = choiceCombo.selectedItem;"
 						change="if (alwaysShowPrompt) choiceCombo.selectedIndex = -1;"
 						/>
 	</mx:Canvas>
 	<mx:Canvas label="{lang('Vertical Slider')}">
-		<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
+		<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1" fillAlphas="{[1, 1]}"
 					width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-					change="if (UIUtils.hasFocus(choiceVSlider)) chosenItem = _choices[choiceVSlider.maximum - choiceVSlider.value];"
+					change="if (!viewChanging) if (layoutMode == LAYOUT_VSLIDER) if (UIUtils.hasFocus(choiceVSlider)) chosenItem = _choices[choiceVSlider.maximum - choiceVSlider.value];"
 					mouseDown="choiceVSlider.setFocus()"
 					/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 	</mx:Canvas>
 	<mx:Canvas label="{lang('Horizontal Slider')}">
 		<mx:HBox verticalAlign="middle" width="100%" height="100%">
-			<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
+			<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1" fillAlphas="{[1, 1]}"
 						width="100%" height="100%" snapInterval="1" minimum="0" minWidth="0" showDataTip="false"
-						change="if (UIUtils.hasFocus(choiceHSlider)) chosenItem = _choices[choiceHSlider.value];"
+						change="if (!viewChanging) if (layoutMode == LAYOUT_HSLIDER) if (UIUtils.hasFocus(choiceHSlider)) chosenItem = _choices[choiceHSlider.value];"
 						mouseDown="choiceHSlider.setFocus()"
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:HBox>
 	</mx:Canvas>
 	<mx:Canvas label="{lang('Checklist')}">
 		<ui:CheckBoxList id="choiceCheckBoxList"
-						 paddingLeft="4"
+						 paddingLeft="4" height="100%"
 						 allowMultipleSelection="{allowMultipleSelection}"
-						 valueCommit="chosenItems = choiceCheckBoxList.selectedItems;"
+						 valueCommit="if (!viewChanging) if (layoutMode == LAYOUT_CHECKBOXLIST) chosenItems = choiceCheckBoxList.selectedItems;"
 						 />
 	</mx:Canvas>
 	<mx:Script>
 		<![CDATA[
+			import mx.events.IndexChangedEvent;
+			
 			import weave.compiler.StandardLib;
 			import weave.core.UIUtils;
-
+			
 			public static const LAYOUT_LIST:String = "List";
 			public static const LAYOUT_COMBO:String = "ComboBox";
 			public static const LAYOUT_VSLIDER:String = "VSlider";
@@ -78,14 +83,29 @@
 			}
 			
 			[Bindable] public var allowMultipleSelection:Boolean = false;
-			[Bindable] public var alwaysShowPrompt:Boolean = false;
 			[Bindable] public var prompt:String;
+			private var _alwaysShowPrompt:Boolean = false;
+			
+			[Bindable]
+			public function get alwaysShowPrompt():Boolean
+			{
+				return _alwaysShowPrompt;
+			}
+			public function set alwaysShowPrompt(value:Boolean):void
+			{
+				_alwaysShowPrompt = value;
+				updateViews();
+			}
 			
 			private var _choices:Array = [];
 			private var _labelFunction:Function;
 			private var _chosenItems:Array = [];
 			private var _derived_chosenIndex:int = -1;
 			
+			public function get layoutMode():String
+			{
+				return LAYOUTS[this.selectedIndex];
+			}
 			public function set layoutMode(name:String):void
 			{
 				this.selectedIndex = LAYOUTS.indexOf(name);
@@ -114,38 +134,78 @@
 					callLater(handleChoicesChange);
 			}
 			
+			private var viewChanging:Boolean = false;
+			
+			private function handleViewIndexChange(event:IndexChangedEvent):void
+			{
+				var oldLayout:String = LAYOUTS[event.oldIndex];
+				if (oldLayout == LAYOUT_LIST)
+					choiceList.dataProvider = [];
+				if (oldLayout == LAYOUT_COMBO)
+					choiceCombo.dataProvider = [];
+				if (oldLayout == LAYOUT_VSLIDER)
+					choiceVSlider.labels = [];
+				if (oldLayout == LAYOUT_HSLIDER)
+					choiceHSlider.labels = [];
+				if (oldLayout == LAYOUT_CHECKBOXLIST)
+					choiceCheckBoxList.dataProvider = [];
+				viewChanging = true;
+				handleChoicesChange();
+				viewChanging = false;
+			}
+			
 			private function handleChoicesChange():void
 			{
-				choiceCombo.dataProvider = _choices;
-				choiceList.dataProvider = _choices;
-				choiceCheckBoxList.dataProvider = _choices;
+				var layout:String = layoutMode;
 				
-				choiceCombo.labelFunction = _labelFunction;
-				choiceList.labelFunction = _labelFunction;
-				choiceCheckBoxList.labelFunction = _labelFunction;
-				
-				// get a list of labels
-				var labels:Array;
-				if (_labelFunction is Function)
+				if (layout == LAYOUT_COMBO)
 				{
-					labels = [];
-					for each (var choice:Object in _choices)
-						labels.push(_labelFunction(choice));
+					choiceCombo.dataProvider = _choices;
+					choiceCombo.labelFunction = _labelFunction;
 				}
-				else
-					labels = _choices;
+				if (layout == LAYOUT_LIST)
+				{
+					choiceList.dataProvider = _choices;
+					choiceList.labelFunction = _labelFunction;
+				}
+				if (layout == LAYOUT_CHECKBOXLIST)
+				{
+					choiceCheckBoxList.dataProvider = _choices;
+					choiceCheckBoxList.labelFunction = _labelFunction;
+				}
 				
-				// special case for VSlider -- reverse order
-				choiceVSlider.labels = labels.concat().reverse();
-				choiceHSlider.labels = labels;
-				choiceVSlider.maximum = labels.length - 1;
-				choiceHSlider.maximum = labels.length - 1;
+				var labels:Array;
+				if (layout == LAYOUT_VSLIDER || layout == LAYOUT_HSLIDER)
+				{
+					// get a list of labels
+					if (_labelFunction is Function)
+					{
+						labels = [];
+						for each (var choice:Object in _choices)
+							labels.push(_labelFunction(choice));
+					}
+					else
+						labels = _choices;
+				}
+				if (layout == LAYOUT_VSLIDER)
+				{
+					// special case for VSlider -- reverse order
+					choiceVSlider.labels = labels.concat().reverse();
+					choiceVSlider.maximum = labels.length - 1;
+				}
+				if (layout == LAYOUT_HSLIDER)
+				{
+					choiceHSlider.labels = labels;
+					choiceHSlider.maximum = labels.length - 1;
+				}
 				
 				updateViews();
 			}
 			
 			private function updateViews():void
 			{
+				var layout:String = layoutMode;
+				
 				// need to check each item for equality because indexOf() won't work comparing String vs Number
 				var chosenIndices:Array = [];
 				var chosenIndex:int = -1;
@@ -166,22 +226,25 @@
 					chosenIndex = chosenIndices[0];
 				_derived_chosenIndex = chosenIndex;
 				
-				if (StandardLib.compare(choiceList.selectedIndices, chosenIndices) != 0)
+				if (layout == LAYOUT_LIST && StandardLib.compare(choiceList.selectedIndices, chosenIndices) != 0)
 					choiceList.selectedIndices = chosenIndices;
 				
-				if (StandardLib.compare(choiceCheckBoxList.selectedItems, actualChosenItems) != 0)
+				if (layout == LAYOUT_CHECKBOXLIST && StandardLib.compare(choiceCheckBoxList.selectedItems, actualChosenItems) != 0)
 					choiceCheckBoxList.selectedItems = actualChosenItems;
 				
-				if (alwaysShowPrompt)
-					choiceCombo.selectedIndex = -1;
-				else if (choiceCombo.selectedIndex != chosenIndex)
-					choiceCombo.selectedIndex = chosenIndex;
+				if (layout == LAYOUT_COMBO)
+				{
+					if (alwaysShowPrompt)
+						choiceCombo.selectedIndex = -1;
+					else if (choiceCombo.selectedIndex != chosenIndex)
+						choiceCombo.selectedIndex = chosenIndex;
+				}
 				
-				if (choiceHSlider.value != chosenIndex)
+				if (layout == LAYOUT_HSLIDER && choiceHSlider.value != chosenIndex)
 					choiceHSlider.value = chosenIndex;
 				
 				var vIndex:int = _choices.length - 1 - chosenIndex;
-				if (choiceVSlider.value != vIndex)
+				if (layout == LAYOUT_VSLIDER && choiceVSlider.value != vIndex)
 					choiceVSlider.value = vIndex;
 			}
 			

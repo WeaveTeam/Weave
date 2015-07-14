@@ -56,9 +56,9 @@ package weave.visualization.plotters
 		 * This function creates a new registered linkable child of the plotter whose callbacks will also trigger the spatial callbacks.
 		 * @return A new instance of the specified class that is registered as a spatial property.
 		 */
-		protected function newSpatialProperty(linkableChildClass:Class, callback:Function = null):*
+		protected function newSpatialProperty(linkableChildClass:Class, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
-			var child:ILinkableObject = newLinkableChild(this, linkableChildClass, callback);
+			var child:ILinkableObject = newLinkableChild(this, linkableChildClass, callback, useGroupedCallback);
 			
 			var thisCC:ICallbackCollection = getCallbackCollection(this);
 			var childCC:ICallbackCollection = getCallbackCollection(child);
@@ -74,9 +74,9 @@ package weave.visualization.plotters
 		 * @param child An object to register as a spatial property.
 		 * @return The child object.
 		 */
-		protected function registerSpatialProperty(child:ILinkableObject, callback:Function = null):*
+		protected function registerSpatialProperty(child:ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
-			registerLinkableChild(this, child, callback);
+			registerLinkableChild(this, child, callback, useGroupedCallback);
 
 			var thisCC:ICallbackCollection = getCallbackCollection(this);
 			var childCC:ICallbackCollection = getCallbackCollection(child);

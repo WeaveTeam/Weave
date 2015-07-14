@@ -54,6 +54,7 @@ package weave.visualization.plotters
 	import weave.primitives.Range;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
+	import weave.utils.DrawUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -496,7 +497,7 @@ package weave.visualization.plotters
 									graphics.beginFill(color, 1);
 								line.beginLineStyle(recordKey, graphics);
 								if (tempBounds.getHeight() == 0)
-									graphics.lineStyle(0,0,0);
+									DrawUtils.clearLineStyle(graphics);
 								
 								graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 								

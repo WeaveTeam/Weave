@@ -19,6 +19,7 @@ package weave.utils
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
+	import flash.display.LineScaleMode;
 	import flash.display.Shape;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
@@ -296,7 +297,7 @@ package weave.utils
 			// render the polygon on the shape
 			var graphics:Graphics = _tempShape.graphics;
 			graphics.clear();
-			graphics.lineStyle(0, 0, 0, true);
+			graphics.lineStyle(1, 0, 0, true, LineScaleMode.NONE);
 			graphics.beginFill(0, 1);
 			var numPoints:int = polygon.length;
 			var firstX:Number, firstY:Number;

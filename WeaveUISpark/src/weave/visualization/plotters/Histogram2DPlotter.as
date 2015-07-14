@@ -50,16 +50,24 @@ package weave.visualization.plotters
 		
 		public function Histogram2DPlotter()
 		{
+			colorColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+
 			setColumnKeySources([xColumn, yColumn]);
 		}
 		
 		public function getSelectableAttributeNames():Array
 		{
-			return ["X", "Y"];
+			var array:Array = ["X", "Y"];
+			if (showAverageColorData.value)
+				array.push("Color");
+			return array;
 		}
 		public function getSelectableAttributes():Array
 		{
-			return [xColumn, yColumn];
+			var array:Array = [xColumn, yColumn];
+			if (showAverageColorData.value)
+				array.push(colorColumn);
+			return array;
 		}
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
@@ -72,9 +80,8 @@ package weave.visualization.plotters
 
 		public const showAverageColorData:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
-		// hack, only supports default color column
-		public const _colorColumn:ColorColumn = registerLinkableChild(this, Weave.defaultColorColumn);
-		
+		public const colorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
+
 		public function get xColumn():DynamicColumn { return xBinnedColumn.internalDynamicColumn; }
 		public function get yColumn():DynamicColumn { return yBinnedColumn.internalDynamicColumn; }
 		
@@ -126,9 +133,10 @@ package weave.visualization.plotters
 			if (isNaN(xBinWidth) || isNaN(yBinWidth))
 				return;
 			
-			var binCol:BinnedColumn = _colorColumn.getInternalColumn() as BinnedColumn;
+			var colorCol:ColorColumn = colorColumn.getInternalColumn() as ColorColumn;
+			var binCol:BinnedColumn = colorCol ? colorCol.getInternalColumn() as BinnedColumn : null;
 			var dataCol:IAttributeColumn = binCol ? binCol.internalDynamicColumn : null;
-			var ramp:ColorRamp = showAverageColorData.value ? _colorColumn.ramp : this.binColors;
+			var ramp:ColorRamp = showAverageColorData.value && colorCol ? colorCol.ramp : this.binColors;
 			
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();

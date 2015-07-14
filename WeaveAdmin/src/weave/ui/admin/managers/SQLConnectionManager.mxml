@@ -20,10 +20,10 @@
 				xmlns="weave.ui.admin.managers.*" 
 				width="100%" height="100%"
 				paddingBottom="16" paddingLeft="8" paddingRight="8" paddingTop="8"
-				label="{lang('Connections')}{dataChanged ? '*' : ''}"
+				label="{lang('Server settings')}{dataChanged ? '*' : ''}"
 				creationComplete="handleCreationComplete()" xmlns:admin="weave.ui.admin.*"
 				>
-	<mx:HDividedBox id="simpleSetting" label="{lang('Database connections')}{dataChanged ? '*' : ''}" width="100%" height="100%">
+	<mx:HDividedBox id="connectionsTab" label="{lang('Database connections')}{dataChanged ? '*' : ''}" width="100%" height="100%">
 		<mx:VBox height="100%">
 			<ui:TreeWithSearch id="treeWithSearch" prompt="{lang('Search connections')}"/>
 			<mx:HBox width="100%">
@@ -100,6 +100,11 @@
 			</ui:Indent>
 			<ui:IndentTextInput label="{lang('Password')}" id="migratePasswordInput" displayAsPassword="true"/>
 			<ui:IndentTextInput label="{lang('Schema to use')}" id="migrateSchemaInput" text="{admin.databaseConfigInfo.schema}"/>
+			<ui:CheckBoxWithNestedOptions label="{lang('Show advanced options')}" selected="{!!migrateIdFieldsInput.text}">
+				<ui:IndentTextInput label="{lang('Metadata ID field(s)')}" id="migrateIdFieldsInput"
+									helpContent="You should only use this if you plan to add your own metadata field(s) for uniquely identifying columns. Separate multiple field names by commas."
+									text="{WeaveAPI.CSVParser.createCSVRow(admin.databaseConfigInfo.idFields)}"/>
+			</ui:CheckBoxWithNestedOptions>
 			<ui:Paragraph trim="false"
 						  text="{lang('The following tables will be created{0}:\n    weave_hierarchy, weave_meta_private, weave_meta_public\nIf they already exist, no changes will be made.', migrateSchemaInput.visible ? ' in the schema specified above' : '')}"/>
 			<mx:Button id="migrateButton" label="{lang('Store Weave configuration at this location')}" click="saveDatabaseConfigInfo()" />
@@ -205,7 +210,7 @@
 				if (treeWithSearch.tree.selectedItem == null)
 					return;
 				
-				this.selectedChild = simpleSetting;
+				this.selectedChild = connectionsTab;
 				
 				var name:String = treeWithSearch.tree.selectedItem.label;
 				addAsyncResponder(Admin.service.getConnectionInfo(name), handleResult, null, name);
@@ -269,7 +274,8 @@
 				Admin.service.setDatabaseConfigInfo(
 					   migrateConnectionCombo.text,
 					   migratePasswordInput.text,
-					   migrateSchemaInput.text
+					   migrateSchemaInput.text,
+					   WeaveAPI.CSVParser.parseCSVRow(migrateIdFieldsInput.text)
 					);
 			}
 			

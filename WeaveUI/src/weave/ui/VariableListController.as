@@ -110,7 +110,7 @@ package weave.ui
 					_nameColumn.labelFunction = getObjectName;
 					_nameColumn.showDataTips = true;
 					_nameColumn.dataTipFunction = nameColumnDataTip;
-					setNameColumnHeader();
+					updateNameColumnHeader();
 					
 					_valueColumn = new DataGridColumn();
 					_valueColumn.sortable = false;
@@ -131,14 +131,21 @@ package weave.ui
 			updateDataProvider();
 		}
 		
-		private function setNameColumnHeader():void
+		public function setNameColumnHeader(headerForNonEmptyList:String, headerForEmptyList:String):void
+		{
+			_nameHeaderNonEmpty = headerForNonEmptyList;
+			_nameHeaderEmpty = headerForEmptyList;
+			updateNameColumnHeader();
+		}
+		
+		private function updateNameColumnHeader():void
 		{
 			if (!_nameColumn)
 				return;
 			if (hashMap && hashMap.getNames().length)
-				_nameColumn.headerText = lang("Name (Click below to edit)")
+				_nameColumn.headerText = _nameHeaderNonEmpty
 			else
-				_nameColumn.headerText = lang("Name");
+				_nameColumn.headerText = _nameHeaderEmpty;
 		}
 		
 		private function nameColumnDataTip(item:Object, ..._):String
@@ -158,12 +165,15 @@ package weave.ui
 		private var _editor:ListBase;
 		private var _nameColumn:DataGridColumn;
 		private var _valueColumn:DataGridColumn;
+		private var _nameHeaderNonEmpty:String = lang("Name (Click below to edit)");
+		private var _nameHeaderEmpty:String = lang("Name");
 		private const _hashMapWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, refreshLabels, true);
 		private const _dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider, true);
 		private const _childListWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider);
 		private var _labelFunction:Function = null;
 		private var _filterFunction:Function = null;
 		private var _reverse:Boolean = false;
+		private var _renameHandlers:Array = [];
 		
 		public function get hashMap():ILinkableHashMap
 		{
@@ -214,7 +224,7 @@ package weave.ui
 			}
 			else if (hashMap)
 			{
-				setNameColumnHeader();
+				updateNameColumnHeader();
 				var objects:Array = hashMap.getObjects();
 				if (_filterFunction != null)
 					objects = objects.filter(_filterFunction);
@@ -283,6 +293,13 @@ package weave.ui
 				if (rowIndex >= 0)
 					dg.editedItemPosition = { columnIndex: 0, rowIndex: rowIndex };
 			}
+		}
+		
+		public function stopEditVariableName():void
+		{
+			var dg:DataGrid = _editor as DataGrid;
+			if (dg)
+				dg.editedItemPosition = null;
 		}
 
 		/**
@@ -518,8 +535,20 @@ package weave.ui
 				var newValue:String = grid.itemEditorInstance[field];
 				
 				if (hashMap && newValue && hashMap.getNames().indexOf(newValue) < 0)
+				{
 					hashMap.renameObject(oldName, newValue);
+					for each (var handler:Function in _renameHandlers)
+						handler(oldName, newValue);
+				}
 			}
+		}
+		
+		/**
+		 * @param handler A function that takes two parameters: oldName, newName
+		 */
+		public function addRenameHandler(handler:Function):void
+		{
+			_renameHandlers.push(handler);
 		}
 	}
 }

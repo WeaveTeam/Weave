@@ -23,13 +23,13 @@ package weave.application
 	import weave.Weave;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.linkBindableProperty;
 	import weave.api.newLinkableChild;
 	import weave.api.ui.ILinkableContainer;
 	import weave.api.ui.ILinkableLayoutManager;
 	import weave.core.UIUtils;
 	import weave.ui.BasicLinkableLayoutManager;
 	import weave.ui.CenteredImage;
+	import weave.utils.DrawUtils;
 	
 	internal class VisDesktop extends Canvas implements ILinkableContainer, IDisposableObject
 	{
@@ -75,7 +75,7 @@ package weave.application
 
 			// draw an empty rectangle so this can be the target of mouse events when no children are added.
 			graphics.clear();
-			graphics.lineStyle(0,0,0);
+			DrawUtils.clearLineStyle(graphics);
 			graphics.beginFill(0,0);
 			graphics.drawRect(0,0,unscaledWidth,unscaledHeight);
 		}

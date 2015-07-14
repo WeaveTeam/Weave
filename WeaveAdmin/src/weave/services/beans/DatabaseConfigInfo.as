@@ -19,5 +19,6 @@ package weave.services.beans
 	{
 		[Bindable] public var connection:String = "";
 		[Bindable] public var schema:String = "weave";
+		[Bindable] public var idFields:Array = null;
 	}
 }

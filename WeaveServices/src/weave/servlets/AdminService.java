@@ -542,7 +542,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		return dbInfo;
 	}
 
-	public String setDatabaseConfigInfo(String user, String password, String schema)
+	public String setDatabaseConfigInfo(String user, String password, String schema, String[] idFields)
 		throws RemoteException
 	{
 		if (!getConnectionInfo(user, password).is_superuser)
@@ -554,6 +554,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		DatabaseConfigInfo info = new DatabaseConfigInfo();
 		info.schema = schema;
 		info.connection = user;
+		info.idFields = idFields;
 		getConnectionConfig().setDatabaseConfigInfo(info);
 
 		return String.format(

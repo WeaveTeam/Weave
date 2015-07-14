@@ -15,17 +15,13 @@
 
 package weave.ui
 {
-	import weave.editors.StringDataFilterEditor;
-
-	[ExcludeClass]
-	[Deprecated(replacement="weave.ui.DataFilterTool")]
-	public class DataFilter extends DataFilterTool
+	import mx.controls.sliderClasses.SliderDirection;
+	
+	public class CustomVSlider extends CustomHSlider
 	{
-		public function DataFilter()
+		public function CustomVSlider()
 		{
-			var sdfe:StringDataFilterEditor = editor.requestLocalObject(StringDataFilterEditor, false);
-			sdfe.layoutMode.value = MenuToolViewStack.LAYOUT_COMBO;
-			sdfe.showToggle.value = true;
+			direction = SliderDirection.VERTICAL;
 		}
 	}
 }

@@ -126,10 +126,8 @@ package weave.visualization.plotters
 		// TODO This should go somewhere else...
 		/**
 		 * This is the compiled function to apply to the title of the tool.
-		 * 
-		 * @default string  
 		 */		
-		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
+		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('column.getMetadata("title")', true, false, ['string', 'column']));
 		
 		private const statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 		

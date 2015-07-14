@@ -22,6 +22,7 @@
 			   >
 	<mx:List id="list"
 			 initialize="UIUtils.pad(event, 2, 100, 100)"
+			 backgroundAlpha="0"
 			 borderStyle="none"
 			 width="100%" height="100%">
 		<mx:itemRenderer>
@@ -155,6 +156,8 @@
 	</mx:List>
 	<mx:Script>
 		<![CDATA[
+			import weave.utils.LinkableTextFormat;
+			import mx.core.UIComponent;
 			import weave.menus.ToolsMenu;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.detectLinkableObjectChange;
@@ -192,6 +195,12 @@
 			{
 				super.childrenCreated();
 				
+				var ltf:LinkableTextFormat = LinkableTextFormat.defaultTextFormat;
+				var target:UIComponent = this;
+				getCallbackCollection(ltf).addGroupedCallback(this, function():void {
+					ltf.copyToStyle(target);
+				}, true);
+
 				controller.view = list;
 				list.selectable = false;
 				list.dragEnabled = false;

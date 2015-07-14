@@ -305,9 +305,17 @@ package weave.ui
 				if (vsp >= 0 && vsp <= maxVerticalScrollPosition)
 					firstVisibleItem = _firstVisibleItem;
 			}
+
+			callLater(expandRootLater);
 			
 			// selectedItems must be set last to avoid a bug where the Tree scrolls to the top.
 			selectedItems = _selectedItems;
+		}
+		
+		private function expandRootLater():void
+		{
+			if (showRoot && _rootItem && !isItemOpen(_rootItem))
+				expandItem(_rootItem, true);
 		}
 		
 		/**

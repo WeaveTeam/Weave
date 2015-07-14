@@ -16,7 +16,7 @@
  * ***** END LICENSE BLOCK ***** */
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes"
+				implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes,weave.api.core.IDisposableObject"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<CustomViewStack id="layoutViewStack" width="100%" height="100%">
@@ -30,6 +30,7 @@
 		<mx:Canvas label="{lang('Combo Box')}">
 			<CustomComboBox id="choiceCombo"
 							width="100%" height="100%" minHeight="0"
+							cornerRadius="0" highlightAlphas="{[0, 0]}" fillAlphas="{[0, 0]}"
 							labelFunction="choiceLabelFunction"
 							valueCommit="if (UIUtils.hasFocus(choiceCombo)) handleAttrSelected(choiceCombo.selectedIndex);"
 							change="if (alwaysShowPrompt.value) choiceCombo.selectedIndex = -1;"
@@ -38,18 +39,20 @@
 		<mx:Canvas label="{lang('Vertical Slider')}">
 			<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
 						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-						change="handleAttrSelected(choiceVSlider.maximum - choiceVSlider.value);"
+						change="if (UIUtils.hasFocus(choiceVSlider)) handleAttrSelected(choiceVSlider.maximum - choiceVSlider.value);"
+						mouseDown="choiceVSlider.setFocus()"
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:Canvas>
 		<mx:Canvas label="{lang('Horizontal Slider')}">
 			<mx:HBox verticalAlign="middle" width="100%" height="100%">
 				<mx:VBox creationComplete="UIUtils.linkVisibility(this, showPlayButton, event.target)" horizontalAlign="center">
 					<mx:Button id="playButton" label="&gt;" toggle="true" toolTip="{lang('Play')}" click="handlePlayClick();"/>
-					<mx:HSlider id="playSlider" width="48" minWidth="0" minimum=".5" maximum="2" tickInterval="0.5" snapInterval="0.25" value=".75" dataTipFormatFunction="{formatPlayTip}" liveDragging="true"/>
+					<mx:HSlider id="playSlider" fillAlphas="{[1, 1]}" width="48" minWidth="0" minimum=".5" maximum="2" tickInterval="0.5" snapInterval="0.25" value=".75" dataTipFormatFunction="{formatPlayTip}" liveDragging="true"/>
 				</mx:VBox>
-				<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
+				<mx:HSlider id="choiceHSlider" fillAlphas="{[1, 1]}" liveDragging="true" tickInterval="1"
 							width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-							change="handleAttrSelected(choiceHSlider.value);"
+							change="if (UIUtils.hasFocus(choiceHSlider)) handleAttrSelected(choiceHSlider.value);"
+							mouseDown="choiceHSlider.setFocus()"
 							/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 			</mx:HBox>
 		</mx:Canvas>
@@ -124,22 +127,39 @@
 					
 					choicesComponent.hashMap = outerDocument.choices;
 					linkBindableProperty(outerDocument.layoutMode, layoutCombo, 'selectedItem');
-					(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, handleGlobalListChange, true);
+					(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, function():void { _recheckDescendants = true; }, true);
 					getCallbackCollection(outerDocument.toolWatcher).addGroupedCallback(this, handleToolChange);
 					outerDocument.targetAttribute.addImmediateCallback(this, handleTargetAttributeChange);
 					handleToolChange();
+					outerDocument.targetToolPath.addGroupedCallback(this, updateToolComboText, true);
+					targetToolCombo.addEventListener(MouseEvent.MOUSE_DOWN, updateTargetToolComboDataProvider, true);
+					targetToolCombo.addEventListener(KeyboardEvent.KEY_DOWN, updateTargetToolComboDataProvider, true);
+					updateTargetToolComboDataProvider();
+				}
+				
+				private function updateToolComboText():void
+				{
+					var path:Array = outerDocument.targetToolPath.getSessionState() as Array;
+					if (path)
+						targetToolCombo.text = toolLabelFunction(pathToString(path));
+					else
+						targetToolCombo.selectedIndex = -1;
 				}
 
+				private var _recheckDescendants:Boolean = true;
 				private var _prevDescendants:Array;
 				
 				// called whenever a global object gets added/removed/reordered
-				private function handleGlobalListChange():void
+				private function updateTargetToolComboDataProvider(event:Event = null):void
 				{
 					if (!parent)
 					{
-						callLater(handleGlobalListChange);
+						callLater(updateTargetToolComboDataProvider);
 						return;
 					}
+					
+					if (!_recheckDescendants)
+						return;
 					
 					// update the list of tools
 					var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, ISelectableAttributes);
@@ -152,6 +172,9 @@
 						targetToolCombo.dataProvider = _prevDescendants = descendants;
 					// make sure the correct item is selected
 					targetToolCombo.selectedItem = pathToString(outerDocument.targetToolPath.getSessionState() as Array);
+					
+					if (_prevDescendants.length)
+						_recheckDescendants = false;
 				}
 				
 				private var _stringToPath:Object = {};
@@ -232,6 +255,8 @@
 	</ControlPanel></mx:Component></editorFactory>
 	<mx:Script>
 		<![CDATA[
+			import weave.api.detectLinkableObjectChange;
+			import weave.api.objectWasDisposed;
 			import mx.core.UIComponent;
 			
 			import weave.api.copySessionState;
@@ -267,6 +292,8 @@
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
 
+			private static const ALL_INSTANCES:Dictionary = new Dictionary(true); // AMT -> true
+			
 			internal const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
 			private function handlePlayClick():void
@@ -378,7 +405,9 @@
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
-				
+
+				ALL_INSTANCES[this] = true;
+
 				// have a default dynamic title
 				panelTitle.value = lang('Attribute menu for {0}', '{targetAttributeName}');
 				
@@ -392,7 +421,10 @@
 				
 				var ltf:LinkableTextFormat = LinkableTextFormat.defaultTextFormat;
 				var target:UIComponent = this;
-				getCallbackCollection(ltf).addGroupedCallback(this, function():void { ltf.copyToStyle(target); }, true);
+				getCallbackCollection(ltf).addGroupedCallback(this, function():void {
+					ltf.copyToStyle(target);
+					ltf.copyToStyle(choiceCombo);
+				}, true);
 				
 				addEventListener(Event.ENTER_FRAME, enterFrame);
 				
@@ -586,6 +618,12 @@
 				if (index < 0 || index >= _attrs.length)
 					return;
 				
+				// Note that this is not a complete solution since restarting Weave may cause
+				// the selected attribute from multiple AttributeMenuTools to apply in a
+				// different order on startup.
+				if (!detectLinkableObjectChange(handleAttrSelected, targetToolPath, targetAttribute, selectedAttribute, useChoiceIndex, choices))
+					return;
+				
 				// using the index, get the corresponding "SelectableAttribute" from the tool
 				var dynamicColumn:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(_attrs[index] as IColumnWrapper);
 				var hashMap:ILinkableHashMap = _attrs[index] as ILinkableHashMap;
@@ -618,6 +656,22 @@
 					return;
 				}
 				
+				// prevent two AttributeMenuTools from fighting
+				if (selectedAttribute.getSessionState() != null)
+				{
+					for (var key:* in ALL_INSTANCES)
+					{
+						var other:AttributeMenuTool = key;
+						if (other === this)
+							continue;
+						if (StandardLib.compare(this.targetToolPath.getSessionState(), other.targetToolPath.getSessionState()) == 0
+							&& StandardLib.compare(this.targetAttribute.getSessionState(), other.targetAttribute.getSessionState()) == 0)
+						{
+							other.selectedAttribute.setSessionState(null);
+						}
+					}
+				}
+				
 				var names:Array = choices.getNames();
 				var selectedIndex:int = useChoiceIndex.value ? StandardLib.asNumber(selectedAttribute.value) : names.indexOf(selectedAttribute.value);
 				choiceCombo.selectedIndex = alwaysShowPrompt.value ? -1 : selectedIndex;
@@ -637,6 +691,20 @@
 			public function getSelectableAttributeNames():Array
 			{
 				return ["Choices"];
+			}
+			
+			override public function dispose():void
+			{
+				delete ALL_INSTANCES[this];
+				super.dispose();
+			}
+			
+			override public function sendWindowToForeground():void
+			{
+				super.sendWindowToForeground();
+				// Note that this is not a complete solution since replaying session state and then
+				// reloading it may cause selected attribute to apply in different order on startup.
+//				handleSelectedAttributeChange();
 			}
 			
 			//----------------------------------------------

@@ -16,18 +16,15 @@
 package weave.api.core
 {
 	/**
-	 * Implement this interface to detect when properties are missing from a full session state.
+	 * Implement this interface to detect when a full session state is missing properties or a session state contains extra properties.
 	 */
 	public interface ILinkableObjectWithNewProperties extends ILinkableObject
 	{
 		/**
-		 * This function will be called by SessionManager.setSessionState()
-		 * to give this object a chance to determine if a missing property
-		 * should be derived using backwards compatibility code for old
-		 * session states from when the property did not exist.
+		 * This function will be called by SessionManager.setSessionState() when a full session state is missing properties or a session state contains extra properties.
 		 * @param newState The new session state for this object.
-		 * @param missingProperty The name of the missing property.
+		 * @param missingProperty The name of the property, whether it is missing from the newState or this ILinkableObject.
 		 */
-		function handleMissingSessionStateProperty(newState:Object, missingProperty:String):void;
+		function handleMissingSessionStateProperty(newState:Object, property:String):void;
 	}
 }

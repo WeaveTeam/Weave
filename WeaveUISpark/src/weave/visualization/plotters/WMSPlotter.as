@@ -24,7 +24,6 @@ package weave.visualization.plotters
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.text.TextField;
 	
 	import org.openscales.proj4as.ProjConstants;
 	
@@ -51,6 +50,7 @@ package weave.visualization.plotters
 	import weave.services.wms.WMSProviders;
 	import weave.services.wms.WMSTile;
 	import weave.utils.BitmapText;
+	import weave.utils.DrawUtils;
 	import weave.utils.ZoomUtils;
 
 	/**
@@ -221,11 +221,20 @@ package weave.visualization.plotters
 			
 			// draw the triangles and end the fill
 			var newShape:Shape = new Shape();
+			
+			////////////////////////////////////
+			// NOTE: if we don't call lineStyle() with thickness=1 prior to calling beginBitmapFill() and drawTriangles(), it does not always render correctly.
+			// LineScaleMode.NONE is important for performance.
+			//newShape.graphics.lineStyle(1, 0, 0, false, LineScaleMode.NONE); // thickness=1, alpha=0
+			DrawUtils.clearLineStyle(newShape.graphics);
+			////////////////////////////////////
+			
 			if (debug)
 			{
 				newShape.graphics.lineStyle(1, Math.random() * 0xFFFFFF, 0.5, false, LineScaleMode.NONE);
 				//newShape.graphics.lineStyle(1, 0, 1, true, LineScaleMode.NONE);
 			}
+			
 			newShape.graphics.beginBitmapFill(tile.bitmapData, null, false, true); // it's important to disable the repeat option
 			newShape.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NEGATIVE);
 			newShape.graphics.endFill();
@@ -422,7 +431,7 @@ package weave.visualization.plotters
 					bt.getUnrotatedBounds(tempBounds);
 					tempBounds.getRectangle(rect);
 					tempShape.graphics.clear();
-					tempShape.graphics.lineStyle(0, 0, 0);
+					DrawUtils.clearLineStyle(tempShape.graphics);
 					tempShape.graphics.beginFill(backgroundColor, creditInfoAlpha.value);
 					tempShape.graphics.drawRect(rect.x, rect.y, rect.width, rect.height);
 					tempShape.graphics.endFill();

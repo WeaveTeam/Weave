@@ -15,6 +15,7 @@
 
 package weave.core
 {
+	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	
 	import mx.rpc.AsyncResponder;
@@ -47,7 +48,7 @@ package weave.core
 			{
 				var desc:String = _description[task] || "Unnamed task";
 				if (desc)
-					result.push("(" + StandardLib.roundSignificant(100*_progress[task], 3) + "%) " + desc);
+					result.push(debugId(task) + " (" + StandardLib.roundSignificant(100*_progress[task], 3) + "%) " + desc);
 			}
 			StandardLib.sort(result);
 			return result;
@@ -178,7 +179,11 @@ package weave.core
 			{
 				var stackTrace:String = _stackTrace[i]; // check this when debugging
 				var description:String = _description[i];
-				trace(debugId(i), description, stackTrace);
+				var args:Array = [debugId(i), description, stackTrace];
+				if (Capabilities.isDebugger)
+					trace.apply(null, args);
+				else
+					weaveTrace.apply(null, args);
 			}
 		}
 	}

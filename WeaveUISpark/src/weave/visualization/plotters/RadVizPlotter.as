@@ -34,7 +34,6 @@ package weave.visualization.plotters
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableOwner;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
@@ -63,6 +62,7 @@ package weave.visualization.plotters
 	import weave.radviz.RandomLayoutAlgorithm;
 	import weave.utils.CachedBitmap;
 	import weave.utils.ColumnUtils;
+	import weave.utils.DrawUtils;
 	import weave.utils.RadVizUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -657,7 +657,7 @@ package weave.visualization.plotters
 					/*We  draw the value (upto to 1 decimal place) in the middle of the probe line. We use the solution as described here:
 					http://cookbooks.adobe.com/post_Adding_text_to_flash_display_Graphics_instance-14246.html
 					*/
-					graphics.lineStyle(0,0,0);
+					DrawUtils.clearLineStyle(graphics);
 					var uit:UITextField = new UITextField();
 					var numberValue:String = ColumnUtils.getNumber(column,key).toString();
 					numberValue = numberValue.substring(0,numberValue.indexOf('.')+2);
@@ -740,7 +740,7 @@ package weave.visualization.plotters
 					*/
 					if(showValuesForAnchorProbeLines.value)
 					{
-						graphics.lineStyle(0,0,0);
+						DrawUtils.clearLineStyle(graphics);
 						var uit:UITextField = new UITextField();
 						var numberValue:String = ColumnUtils.getNumber(column,key).toString();
 						numberValue = numberValue.substring(0,numberValue.indexOf('.')+2);

@@ -54,8 +54,8 @@
 			import weave.data.AttributeColumnCache;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
-			import weave.data.hierarchy.WeaveRootDataTreeNode;
 			import weave.data.hierarchy.EntityNodeSearch;
+			import weave.data.hierarchy.WeaveRootDataTreeNode;
 			import weave.utils.EventUtils;
 			
 			public const referencedColumn:ReferencedColumn = newLinkableChild(this, ReferencedColumn, copyToTarget);

@@ -86,8 +86,8 @@ package weave.application
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.QuickMenuPanel;
+	import weave.ui.TextTool;
 	import weave.ui.WeaveProgressBar;
-	import weave.ui.annotation.SessionedTextBox;
 	import weave.ui.collaboration.CollaborationMenuBar;
 	import weave.ui.controlBars.VisTaskbar;
 	import weave.ui.controlBars.WeaveMenuBar;
@@ -975,8 +975,8 @@ package weave.application
 				if (Weave.properties.enableDrawCircle.value)
 					CirclePlotterSettings.createContextMenuItems(this);
 				
-				if (Weave.properties.enableAnnotation.value)
-					SessionedTextBox.createContextMenuItems(this);
+				/*if (Weave.properties.enableAnnotation.value)
+					TextTool.createContextMenuItems(this);*/
 				
 				if (Weave.properties.enablePenTool.value)
 					PenTool.createContextMenuItems(this);

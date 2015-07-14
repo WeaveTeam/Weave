@@ -83,8 +83,8 @@ package weave.data.DataSources
 		
 		/**
 		 * This is an Array of public metadata field names that should be used to uniquely identify columns when querying the server.
-		 */		
-		public const idFields:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray));
+		 */
+		private const idFields:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray));
 		
 		public function get entityCache():EntityCache
 		{
@@ -93,7 +93,7 @@ package weave.data.DataSources
 		
 		private function verifyStringArray(array:Array):Boolean
 		{
-			return StandardLib.getArrayType(array) == String;
+			return !array || StandardLib.getArrayType(array) == String;
 		}
 		
 		override protected function refreshHierarchy():void
@@ -213,10 +213,16 @@ package weave.data.DataSources
 			
 			// replace old service
 			disposeObject(_service);
-			_service = registerLinkableChild(this, new WeaveDataServlet(url.value));
+			_service = registerLinkableChild(this, new WeaveDataServlet(url.value), setIdFields);
 			_entityCache = registerLinkableChild(_service, new EntityCache(_service));
 			
 			url.resumeCallbacks();
+		}
+		
+		private function setIdFields():void
+		{
+			var info:Object = _service.getServerInfo();
+			idFields.setSessionState(info ? info['idFields'] as Array : null);
 		}
 		
 		/**
@@ -225,6 +231,11 @@ package weave.data.DataSources
 		override protected function initialize():void
 		{
 			super.initialize();
+		}
+		
+		override protected function get initializationComplete():Boolean
+		{
+			return super.initializationComplete && _service.entityServiceInitialized;
 		}
 		
 		override protected function handleHierarchyChange():void
@@ -239,10 +250,10 @@ package weave.data.DataSources
 			if (!root)
 				return;
 			
-			convertOldHierarchyFormat(root, "category", {
+			HierarchyUtils.convertOldHierarchyFormat(root, "category", {
 				dataTableName: "name"
 			});
-			convertOldHierarchyFormat(root, "attribute", {
+			HierarchyUtils.convertOldHierarchyFormat(root, "attribute", {
 				attributeColumnName: "name",
 				dataTableName: "dataTable",
 				dataType: _convertOldDataType,

@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
+<DraggablePanel xmlns="weave.ui.*" 
+				   xmlns:mx="http://www.adobe.com/2006/mxml"
+				   implements="weave.api.ui.IVisTool_Utility"
+				   layout="horizontal" verticalAlign="middle"
+				   xmlns:editors="weave.editors.*">
+	<PlayButton id="playButton"
+				   creationComplete="playButton.button.label = '&gt;';"/>
+	<MenuToolViewStack id="menuStack"/>
+	<mx:Script>
+		<![CDATA[
+			import avmplus.getQualifiedClassName;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.core.UIComponent;
+			
+			import weave.api.core.ILinkableObject;
+			import weave.api.detectLinkableObjectChange;
+			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.ui.IVisTool;
+			import weave.compiler.Compiler;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableDynamicObject;
+			import weave.core.LinkableHashMap;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.core.LinkableVariable;
+			import weave.core.UIUtils;
+			import weave.utils.LinkableTextFormat;
+
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, SessionStateMenuTool, "Session State Menu Tool");
+			
+			public static const DEFAULT_PROMPT:String = lang('Choose an option ...');
+			
+			public const targets:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableDynamicObject), handleAutoRecord, true);
+			public const choices:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(LinkableVariable), handleChoices);
+			public const selectedChoice:LinkableString = newLinkableChild(this, LinkableString, handleSelectedChoice);
+			public const autoRecord:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleAutoRecord, true);
+			public const promptText:LinkableString = newLinkableChild(this, LinkableString);
+			public const alwaysShowPrompt:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(MenuToolViewStack.LAYOUT_LIST), handleLayoutMode, true);
+			public const thumbColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xe0e0e0, isFinite), setThumbColor);
+			
+			override protected function inConstructor():void
+			{
+				super.inConstructor();
+				getCallbackCollection(this).addImmediateCallback(this, selfCallback);
+			}
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				// force panel title to update when targets and choices change
+				registerLinkableChild(panelTitle, targets.childListCallbacks);
+				registerLinkableChild(panelTitle, choices.childListCallbacks);
+
+				var ltf:LinkableTextFormat = LinkableTextFormat.defaultTextFormat;
+				var self:UIComponent = this;
+				getCallbackCollection(ltf).addGroupedCallback(self, function():void {
+					ltf.copyToStyle(self);
+				}, true);
+				
+				UIUtils.linkVisibility(this, showPlayButton, playButton);
+				BindingUtils.bindSetter(handlePlayStep, playButton, 'step');
+				playButton.button.addEventListener(MouseEvent.CLICK, handlePlayClick);
+
+				choices.childListCallbacks.addGroupedCallback(this, handleChoicesList);
+				handleChoicesList();
+				linkBindableProperty(selectedChoice, menuStack, 'chosenItem', 0, true, false);
+				linkBindableProperty(alwaysShowPrompt, menuStack, 'alwaysShowPrompt');
+				promptText.addImmediateCallback(this, function():void {
+					menuStack.prompt = promptText.value || DEFAULT_PROMPT;
+				});
+				
+				menuStack.addEventListener(MouseEvent.CLICK, handleMouseClick);
+			}
+			
+			private function getTargetStates():Object
+			{
+				var states:Object = {};
+				for each (var wrapper:LinkableDynamicObject in targets.getObjects())
+				{
+					if (!wrapper.target)
+						continue;
+					var name:String = targets.getName(wrapper);
+					states[name] = WeaveAPI.SessionManager.getSessionState(wrapper.target);
+				}
+				return states;
+			}
+			
+			private function setTargetStates(states:Object):void
+			{
+				if (!states)
+					return;
+				targets.delayCallbacks();
+				for each (var wrapper:LinkableDynamicObject in targets.getObjects())
+				{
+					if (!wrapper.target)
+						continue;
+					var name:String = targets.getName(wrapper);
+					if (states.hasOwnProperty(name))
+						WeaveAPI.SessionManager.setSessionState(wrapper.target, states[name], true);
+				}
+				targets.resumeCallbacks();
+			}
+			
+			public function recordSelectedChoice():void
+			{
+				var name:String = selectedChoice.value;
+				if (name)
+				{
+					var choice:LinkableVariable = choices.requestObject(name, LinkableVariable, false);
+					choice.setSessionState(getTargetStates());
+				}
+			}
+			
+			public function addNewChoice():String
+			{
+				var name:String = choices.generateUniqueName("item");
+				selectedChoice.value = name;
+				recordSelectedChoice();
+				return name;
+			}
+			
+			private function handleMouseClick(event:MouseEvent):void
+			{
+				// if autoRecord is disabled and the user clicks the menu, reapply selected choice
+				if (!autoRecord.value)
+					callLater(handleMouseClickLater, [selectedChoice.value]);
+			}
+			
+			private function handleMouseClickLater(choice:String):void
+			{
+				// only reapply selected choice if it hasn't changed
+				if (!autoRecord.value && selectedChoice.value == choice)
+					handleSelectedChoice();
+			}
+			
+			private function handleAutoRecord():void
+			{
+				// record current state if autoRecord is enabled
+				if (autoRecord.value)
+				{
+					recordSelectedChoice();
+				}
+			}
+			
+			private var pendingApply:Boolean = false;
+			
+			private function selfCallback():void
+			{
+				if (pendingApply)
+				{
+					pendingApply = false;
+					handleSelectedChoice();
+				}
+			}
+			
+			private function handleChoices():void
+			{
+				// if callbacks are delayed, we are applying a session state, so we shouldn't interfere
+				if (getCallbackCollection(this).callbacksAreDelayed)
+				{
+					pendingApply = true;
+					return;
+				}
+				
+				// when choices change, reapply selected choice
+				var choice:LinkableVariable = choices.getObject(selectedChoice.value) as LinkableVariable;
+				if (choice && detectLinkableObjectChange(handleChoices, choice))
+					setTargetStates(choice.getSessionState());
+			}
+			
+			private function handleSelectedChoice():void
+			{
+				// if callbacks are delayed, we are applying a session state, so we shouldn't interfere
+				if (getCallbackCollection(this).callbacksAreDelayed)
+				{
+					pendingApply = true;
+					return;
+				}
+				
+				// when selectedChoice changes, apply it
+				var choice:LinkableVariable = choices.getObject(selectedChoice.value) as LinkableVariable;
+				if (choice)
+					setTargetStates(choice.getSessionState());
+			}
+			
+			private function handleChoicesList():void
+			{
+				if (!parent)
+				{
+					callLater(handleChoicesList);
+					return;
+				}
+				menuStack.choices = choices.getNames();
+			}
+			
+			private function handlePlayClick(event:MouseEvent):void
+			{
+				if (playButton.button.selected)
+				{
+					// if slider is at maximum, reset slider to minimum
+					var value:Number = menuStack.chosenIndex;
+					var max:Number = menuStack.choices.length - 1;
+					if (!isFinite(value) || value >= max)
+						selectedChoice.value = menuStack.choices[0];
+				}
+			}
+			
+			private function handlePlayStep(step:int):void
+			{
+				if (!showPlayButton.value)
+					return;
+				
+				// we can actually ignore the step number because we only care that it has stepped.
+				
+				var value:Number = menuStack.chosenIndex;
+				var max:Number = menuStack.choices.length - 1;
+				
+				// stop playing at end
+				if (!isFinite(value) || value >= max)
+				{
+					// stop playing at end
+					playButton.button.selected = false;
+					return;
+				}
+				
+				selectedChoice.value = menuStack.choices[Math.min(value + 1, max)];
+			}
+			
+			private function handleLayoutMode():void
+			{
+				if (!parent)
+				{
+					callLater(handleLayoutMode);
+					return;
+				}
+				menuStack.layoutMode = layoutMode.value;
+			}
+			
+			private function updateLabels():void
+			{
+				if (!parent)
+				{
+					callLater(updateLabels);
+					return;
+				}
+				menuStack.choiceLabelFunction = getChoiceLabel;
+			}
+			
+			public function getChoiceLabel(choice:*):String
+			{
+				return choice as String || choices.getName(choice as ILinkableObject);
+			}
+			
+			public function getTargetLabel(wrapper:LinkableDynamicObject):String
+			{
+				if (!wrapper.targetPath)
+					return getQualifiedClassName(wrapper.target).split("::").pop() + ' ' + Compiler.stringify(targets.getName(wrapper));
+				return Compiler.stringify(wrapper.targetPath);
+			}
+			
+			private function setThumbColor():void
+			{
+				if (!parent)
+				{
+					callLater(setThumbColor);
+					return;
+				}
+				menuStack.choiceHSlider.setStyle('fillColors', [thumbColor.value, thumbColor.value]);
+				menuStack.choiceVSlider.setStyle('fillColors', [thumbColor.value, thumbColor.value]);
+			}
+			
+			override public function get defaultPanelTitle():String
+			{
+				var numTargets:int = targets.getNames().length;
+				var numChoices:int = choices.getNames().length;
+				
+				var str:String = "Menu";
+				if (!numTargets && !numChoices)
+					str += " (Not configured)";
+				else if (!numTargets)
+					str += " (No targets selected)";
+				else if (!numChoices)
+					str += " (No items added)";
+				
+				return lang(str);
+			}
+		]]>
+	</mx:Script>
+	<editorFactory><mx:Component><ControlPanel rollOut="choicesController.stopEditVariableName();">
+		
+		<mx:VBox label="{lang('Menu settings')}" width="100%" height="100%">
+			
+			<Indent label="{lang('Layout')}">
+				<CustomComboBox id="layoutCombo"/>
+				<CustomCheckBox id="showPlayButtonCheck" label="{lang('Show play button')}"/>
+			</Indent>
+			<Indent label="{lang('Prompt')}"
+					visible="{layoutCombo.selectedItem == MenuToolViewStack.LAYOUT_COMBO}"
+					includeInLayout="{layoutCombo.selectedItem == MenuToolViewStack.LAYOUT_COMBO}">
+				<TextInputWithPrompt id="promptInput" prompt="{SessionStateMenuTool.DEFAULT_PROMPT}"/>
+				<CustomCheckBox id="alwaysShowPromptCheck" label="{lang('Always show')}"/>
+			</Indent>
+			<CustomCheckBox id="autoRecordCheck" label="{lang('Auto-record session state for active menu item')}"/>
+			
+			<mx:TabNavigator initialize="UIUtils.pad(event, 8, 100, 100)">
+				<mx:VBox label="{lang('Targets')}" width="100%" height="100%">
+					<Indent label="{lang('Add target')}">
+						<TextInputWithPrompt id="targetPathInput"
+											 change=" targetPathInput.errorString = '';"
+											 prompt="{lang('Paste path here')}"/>
+						<mx:Button label="{lang('Add')}"
+								   enabled="{isValidPath(targetPathInput.text)}"
+								   click="addTargetPath();"/>
+						<mx:Spacer width="100%"/>
+						<mx:Button label="{lang('Find targets...')}"
+								   click="SessionStateEditor.openDefaultEditor();"/>
+						<mx:Spacer width="100%"/>
+						<mx:Button label="{lang('Remove selected')}"
+								   enabled="{targetsList.selectedIndex >= 0}" 
+								   click="targetsController.removeSelectedItems();"/>
+					</Indent>
+					<mx:List id="targetsList" width="100%" height="100%"/>
+				</mx:VBox>
+				
+				<mx:VBox label="{lang('Menu items')}" width="100%" height="100%">
+					<mx:HBox width="100%">
+						<mx:Button label="{lang('Add new item for current state')}" click="addNewItem();"/>
+						<mx:Button id="recordNowButton" label="{lang('Update selected item')}" click="outerDocument.recordSelectedChoice();"/>
+						<mx:Spacer width="100%"/>
+						<mx:Button label="{lang('Remove selected')}"
+								   enabled="{choicesList.selectedIndex >= 0}" 
+								   click="choicesController.removeSelectedItems();"/>
+					</mx:HBox>
+					<mx:DataGrid id="choicesList" width="100%" height="100%"
+								 change="handleChoicesListChange();" />
+				</mx:VBox>
+			</mx:TabNavigator>
+		</mx:VBox>
+		<editors:WindowSettingsEditor id="windowEditor" target="{outerDocument}"/>
+		
+		<mx:Script>
+			<![CDATA[
+				import mx.controls.dataGridClasses.DataGridColumn;
+				
+				import weave.api.core.ILinkableHashMap;
+				import weave.api.core.ILinkableObject;
+				import weave.api.linkBindableProperty;
+				import weave.api.newDisposableChild;
+				import weave.api.reportError;
+				import weave.compiler.Compiler;
+				import weave.core.LinkableDynamicObject;
+				import weave.core.LinkableVariable;
+				import weave.core.UIUtils;
+				
+				private var _compiler:Compiler = new Compiler(false);
+				
+				override protected function childrenCreated():void
+				{
+					super.childrenCreated();
+					
+					layoutCombo.dataProvider = [
+						MenuToolViewStack.LAYOUT_LIST,
+						MenuToolViewStack.LAYOUT_COMBO,
+						MenuToolViewStack.LAYOUT_VSLIDER,
+						MenuToolViewStack.LAYOUT_HSLIDER
+					];
+					linkBindableProperty(outerDocument.layoutMode, layoutCombo, 'selectedItem', 0, true);
+					linkBindableProperty(outerDocument.showPlayButton, showPlayButtonCheck, 'selected');
+					linkBindableProperty(outerDocument.promptText, promptInput, 'text');
+					linkBindableProperty(outerDocument.alwaysShowPrompt, alwaysShowPromptCheck, 'selected');
+					linkBindableProperty(outerDocument.autoRecord, autoRecordCheck, 'selected');
+					
+					targetsController.view = targetsList;
+					targetsController.hashMap = outerDocument.targets;
+					targetsController.labelFunction = outerDocument.getTargetLabel;
+					
+					choicesController.allowMultipleSelection = false;
+					choicesController.view = choicesList;
+					choicesController.hashMap = outerDocument.choices;
+					choicesController.labelFunction = outerDocument.getChoiceLabel;
+					choicesController.setNameColumnHeader(lang("Menu items (Click below to activate and rename)"), lang("Menu items"));
+					(choicesList.columns[1] as DataGridColumn).visible = false;
+					choicesController.addRenameHandler(handleRename);
+					
+					outerDocument.selectedChoice.addGroupedCallback(this, function():void {
+						var choiceName:String = outerDocument.selectedChoice.value;
+						choicesList.selectedItem = outerDocument.choices.getObject(choiceName);
+						recordNowButton.enabled = !!choiceName;
+					}, true);
+				}
+				
+				private function isValidPath(pathStr:String):Boolean
+				{
+					try {
+						return _compiler.parseConstant(pathStr) is Array;
+					} catch (e:Error) { }
+					return false;
+				}
+				
+				private function addTargetPath():void
+				{
+					try
+					{
+						var path:Array = _compiler.parseConstant(targetPathInput.text) as Array;
+						if (!path)
+							return;
+						var targets:ILinkableHashMap = outerDocument.targets;
+						var wrapper:LinkableDynamicObject = targets.requestObject(null, LinkableDynamicObject, false);
+						wrapper.targetPath = path;
+						if (wrapper.target)
+						{
+							targetPathInput.text = '';
+						}
+						else
+						{
+							targets.removeObject(targets.getName(wrapper));
+							targetPathInput.errorString = "No target found";
+						}
+					}
+					catch (e:Error)
+					{
+						targetPathInput.errorString = "Invalid path";
+						reportError(e);
+					}
+				}
+				
+				private function addNewItem():void
+				{
+					var name:String = outerDocument.addNewChoice();
+					var choice:ILinkableObject = outerDocument.choices.getObject(name);
+					choicesController.beginEditVariableName(choice)
+				}
+				
+				private function handleChoicesListChange():void
+				{
+					outerDocument.selectedChoice.value = outerDocument.choices.getName(choicesList.selectedItem as ILinkableObject);
+				}
+				
+				private function handleRename(oldName:String, newName:String):void
+				{
+					outerDocument.selectedChoice.value = newName;
+				}
+				
+				private const targetsController:VariableListController = newDisposableChild(this, VariableListController);
+				private const choicesController:VariableListController = newDisposableChild(this, VariableListController);
+			]]>
+		</mx:Script>
+	</ControlPanel></mx:Component></editorFactory>
+</DraggablePanel>

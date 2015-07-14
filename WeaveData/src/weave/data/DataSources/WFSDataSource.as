@@ -91,7 +91,7 @@ package weave.data.DataSources
 						tag.@dataType = _convertOldDataType(tag.@dataType);
 					}
 				}
-				super.convertOldHierarchyFormat(_attributeHierarchy.value, 'attribute', {'projectionSRS': ColumnMetadata.PROJECTION});
+				HierarchyUtils.convertOldHierarchyFormat(_attributeHierarchy.value, 'attribute', {'projectionSRS': ColumnMetadata.PROJECTION});
 			}
 			
 			super.initialize();

@@ -19,28 +19,29 @@
 				   xmlns:mx="http://www.adobe.com/2006/mxml"
 				   xmlns:ui="weave.ui.*"
 				   width="25%" height="25%" backgroundAlpha="0" borderThickness="0"
-				   horizontalScrollPolicy="off" layout="absolute" verticalScrollPolicy="off">
+				   implements="weave.api.ui.IVisTool_Utility"
+				   title="Text"
+				   horizontalScrollPolicy="off" layout="absolute" verticalScrollPolicy="off" xmlns:editors="weave.editors.*">
 	<mx:TextArea id="textArea" width="100%" height="100%" minWidth="5" minHeight="5"
 				 borderStyle="solid" editable="false" wordWrap="true"/>
 	<ui:ControlPanel added="if (event.target == controlPanel) updateTextArea()"
-					 width="360" height="260"
-					 removed="if (event.target == controlPanel) callLater(updateTextArea)"
-					 title="{lang('Annotation Editor')}">
-		<mx:VBox id="toolbar" width="100%" height="100%" horizontalGap="7"
+					 removed="if (event.target == controlPanel) callLater(updateTextArea)">
+		<mx:VBox id="toolbar" width="100%" height="100%"
 				 horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2" paddingRight="2"
 				 paddingTop="2" verticalScrollPolicy="off">
-
-			<mx:HBox>
-				<mx:CheckBox id="borderCheckBox" label="{lang('Show window borders')}"/>
-				<mx:CheckBox id="moveResizeCheckBox" label="{lang('Allow moving and resizing')}"/>
-			</mx:HBox>
-			
+			<mx:creationComplete>
+				<![CDATA[
+					windowSettings.removeChild(windowSettings.backgroundColorIndent);
+					windowSettings.showBordersCheckBox.label = lang('Show window borders');
+					windowSettings.borderColorIndent.label = lang('Window border color');
+				]]>
+			</mx:creationComplete>
 			<mx:HBox width="100%" horizontalScrollPolicy="off" paddingBottom="2" paddingLeft="2"
 					 paddingRight="2" paddingTop="2" verticalScrollPolicy="off">
 				<ui:FontControl id="fontControls" />
 			</mx:HBox>
 			
-			<mx:Grid>
+			<mx:Grid width="100%">
 				<mx:GridRow>
 					<mx:GridItem>
 						<mx:Label text="{lang('Paragraph style:')}"/>
@@ -49,6 +50,7 @@
 						<ui:CustomComboBox id="paragraphCombo" change="applyParagraphFormat(event);"
 										   dataProvider="{[lang('Left align'),lang('Right align'),lang('Center'),lang('Justify'),lang('Bullet')]}"
 										   selectedIndex="0"/>
+						<mx:Label text="(Resets all font settings)"/>
 					</mx:GridItem>
 				</mx:GridRow>
 				<mx:GridRow>
@@ -79,18 +81,19 @@
 					</mx:GridItem>
 					<mx:GridItem>
 						<mx:HBox width="100%">
-							<ui:CustomColorPicker id="backgroundColorPicker" selectedColor="white"
+							<ui:CustomColorPicker id="backgroundColorPicker"
 											toolTip="{lang('Change the editing text area\'s background color.')}"/>
 							<mx:HSlider id="backgroundAlphaSlider" width="100%" liveDragging="true"
 										maximum="1" minimum="0"
 										toolTip="{lang('Change the editing text area\'s background transparency.  A value of 1 (slider to the right) is fully opaque, 0 (slider to the left) is fully transparent.')}"
 										value="1.0"/>
+							<mx:Button label="{lang('Default color')}" click="panelBackgroundColor.value = NaN;"/>
 						</mx:HBox>
 					</mx:GridItem>
 				</mx:GridRow>
 				<mx:GridRow>
 					<mx:GridItem>
-						<mx:Label id="borderLabel" text="{lang('Border properties:')}"/>
+						<mx:Label id="borderLabel" text="{lang('Text border properties:')}"/>
 					</mx:GridItem>
 					<mx:GridItem>
 						<mx:HBox width="100%">
@@ -106,6 +109,7 @@
 					</mx:GridItem>
 				</mx:GridRow>
 			</mx:Grid>
+			<editors:WindowSettingsEditor id="windowSettings" target="{this}" width="100%"/>
 		</mx:VBox>
 	</ui:ControlPanel>
 	<mx:Script>
@@ -113,37 +117,57 @@
 			import mx.binding.utils.BindingUtils;
 			import mx.core.IUITextField;
 			import mx.core.mx_internal;
-			import mx.events.ColorPickerEvent;
-			import mx.events.ListEvent;
 			
 			import weave.Weave;
+			import weave.api.copySessionState;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
 			import weave.api.ui.ILinkableContainer;
+			import weave.api.ui.IVisTool;
 			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
-			import weave.ui.CustomContextMenuManager;
+			import weave.core.UIUtils;
+			import weave.utils.LinkableTextFormat;
+			
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TextTool, "Text");
 			
 			public const htmlText:LinkableString        = registerLinkableChild(this, new LinkableString(''), handleLinkableHtmlText, true);
 			public const backgroundAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite), applyStyle, true);
-			public const backgroundColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xFFFFFF, isFinite), applyStyle, true);
 			public const cornerRadius:LinkableNumber    = registerLinkableChild(this, new LinkableNumber(0, isFinite), applyStyle, true);
 			public const borderColor:LinkableNumber     = registerLinkableChild(this, new LinkableNumber(0x000000, isFinite), applyStyle, true);
 			public const borderThickness:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1.0, isFinite), applyStyle, true);
 			public const padding:LinkableNumber         = registerLinkableChild(this, new LinkableNumber(10, isFinite), applyStyle, true);
+			private const linkableTextFormat:LinkableTextFormat = newDisposableChild(this, LinkableTextFormat);
+			
+			[Deprecated] override public function set backgroundColor(value:Number):void
+			{
+				panelBackgroundColor.value = value;
+			}
 			
 			private const htmlTextFunction:LinkableFunction = newDisposableChild(this, LinkableFunction);
 			
+			override public function onUserCreation():void
+			{
+				toggleControlPanel();
+			}
+
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
 				
-				minimizable.value = false;
-				maximizable.value = false;
+				copySessionState(Weave.properties.visTextFormat, linkableTextFormat);
+				linkableTextFormat.font.value = '_sans';
+				// when the user changes the text format, make sure selected text gets updated
+				getCallbackCollection(linkableTextFormat).addImmediateCallback(this, applyTextFormat);
+				
+				//panelBackgroundColor.value = 0xFFFFFF;
+				Weave.properties.panelBackgroundColor.addGroupedCallback(this, applyStyle, true);
+				panelBackgroundColor.addGroupedCallback(this, applyStyle);
+				
 				enableBorders.addImmediateCallback(this, updateBorders);
 			}
 			
@@ -152,16 +176,18 @@
 				fontControls.initialize();
 				super.childrenCreated();
 				
-				linkBindableProperty(enableBorders, borderCheckBox, 'selected');
-				linkBindableProperty(enableMoveResize, moveResizeCheckBox, 'selected');
+				if (!WeaveAPI.globalHashMap.getName(this))
+					enableZOrder.value = false;
 				
 				linkBindableProperty(backgroundAlpha, backgroundAlphaSlider, "value");
-				linkBindableProperty(backgroundColor, backgroundColorPicker, "selectedColor");
+				linkBindableProperty(panelBackgroundColor, backgroundColorPicker, "selectedColor", 0, true);
 				linkBindableProperty(cornerRadius,    cornerRadiusSlider, "value" );
 				linkBindableProperty(borderColor,     borderColorPicker, "selectedColor");
 				linkBindableProperty(borderThickness, borderThicknessSlider, "value");
 				linkBindableProperty(padding,         paddingSlider, "value");
 				BindingUtils.bindSetter(handleTextAreaChange, textArea, 'htmlText');
+				// before each key gets handled, set defaultTextFormat
+				textArea.addEventListener(KeyboardEvent.KEY_DOWN, function(e:Event):void { applyTextFormat(); }, true);
 				getCallbackCollection(Weave.root).addGroupedCallback(this, handleWeaveRootChange);
 
 				getTextField().alwaysShowSelection = true;
@@ -169,14 +195,7 @@
 				getTextField().embedFonts = true;
 				textArea.setStyle("embedFonts", true);
 				
-				fontControls.fontFamilyCombo.selectedLabel = getTextField().defaultTextFormat.font;
-				fontControls.fontSizeCombo.selectedItem = getTextField().defaultTextFormat.size;
-				fontControls.colorPicker.addEventListener(ColorPickerEvent.CHANGE, applyTextFormat);
-				fontControls.fontFamilyCombo.addEventListener(ListEvent.CHANGE, applyTextFormat);
-				fontControls.fontSizeCombo.addEventListener(ListEvent.CHANGE, applyTextFormat);
-				fontControls.boldButton.addEventListener(Event.CHANGE, applyTextFormat);
-				fontControls.italicButton.addEventListener(Event.CHANGE, applyTextFormat);
-				fontControls.underlineButton.addEventListener(Event.CHANGE, applyTextFormat);
+				fontControls.setTarget(linkableTextFormat);
 				
 				applyStyle();
 			}
@@ -241,9 +260,6 @@
 				ht = ht.split('&quot;').join('"');
 				htmlTextFunction.value = '`' + ht.split('`').join('\\`') + '`';
 				
-				//This is a hack to keep re-applying the currently selected text format.
-				applyTextFormat(new Event("LIST"));
-				
 				updateTextArea();
 			}
 			
@@ -291,12 +307,17 @@
 				if (!parent)
 					return;
 				textArea.setStyle("backgroundAlpha", backgroundAlpha.value);
-				textArea.setStyle("backgroundColor", backgroundColor.value);
+				textArea.setStyle("backgroundColor", getStyle('backgroundColor'));
 				textArea.setStyle("cornerRadius", cornerRadius.value);
 				textArea.setStyle("paddingLeft", padding.value);
 				textArea.setStyle("paddingRight", padding.value);
 				textArea.setStyle("borderColor", borderColor.value);
 				textArea.setStyle("borderThickness", borderThickness.value);
+				
+				if (isNaN(panelBackgroundColor.value))
+					backgroundColorPicker.selectedColor = Weave.properties.panelBackgroundColor.value;
+				else
+					backgroundColorPicker.selectedColor = panelBackgroundColor.value;
 			}
 
 			/**
@@ -329,16 +350,22 @@
 						endIndex += getTextField().getParagraphLength(endIndex) - 1;
 					else
 						endIndex = beginIndex + getTextField().getParagraphLength(beginIndex);
-					applyTextFormat(e, beginIndex, endIndex);
+					applyTextFormat(beginIndex, endIndex);
 				}
 				else
 				{
-					applyTextFormat(e, 0, getTextField().length);
+					applyTextFormat(0, getTextField().length);
 				}
 			}
 			
-			private function applyTextFormat(e:Event, beginIndex:int = -1, endIndex:int = -1):void
+			private function applyTextFormat(beginIndex:int = -1, endIndex:int = -1):void
 			{
+				if (!parent)
+				{
+					callLater(applyTextFormat, arguments);
+					return;
+				}
+				
 				// save selection & scroll position
 				var selectionBeginIndex:int = getTextField().selectionBeginIndex;
 				var selectionEndIndex:int = getTextField().selectionEndIndex;
@@ -350,13 +377,8 @@
 				
 				// get text format from gui
 				var f:TextFormat = new TextFormat();
-				f.font = fontControls.fontFamilyCombo.selectedLabel;
-				f.size = fontControls.fontSizeCombo.selectedItem;
-				f.color = fontControls.colorPicker.selectedColor;
-				f.bold = fontControls.boldButton.selected;
-				f.italic = fontControls.italicButton.selected;
-				f.underline = fontControls.underlineButton.selected;
-				if (e.target == paragraphCombo)
+				linkableTextFormat.copyTo(f);
+				if (UIUtils.hasFocus(paragraphCombo))
 				{
 					if (paragraphCombo.selectedIndex == 4)
 					{
@@ -412,8 +434,8 @@
 			 * This function is called whenever the context menu is opened.
 			 * The function will change the caption displayed depending upon where the context menu was opened.
 			 */
-			private static var _textAreaEditContextMenuItem:ContextMenuItem 	= null;
-			private static var _textAreaAddRemoveContextMenuItem:ContextMenuItem = null;
+			private static var _textToolEditContextMenuItem:ContextMenuItem 	= null;
+			private static var _textToolAddRemoveContextMenuItem:ContextMenuItem = null;
 			private static const ADD_CAPTION:String           = lang("Add Annotation");
 			private static const REMOVE_CAPTION:String        = lang("Remove Annotation");
 			private static const EDIT_TEXT_CAPTION:String     = lang("Edit Annotation");
@@ -422,26 +444,26 @@
 			
 			private static function handleContextMenuOpened(e:ContextMenuEvent):void
 			{	
-				var textArea:SessionedTextBox = getTextAreaFromTarget(e.mouseTarget);	
+				var tt:TextTool = getTextToolFromTarget(e.mouseTarget);	
 				
-				if( getLinkableContainer(e.mouseTarget) )
+				if (getLinkableContainer(e.mouseTarget))
 				{
-					_textAreaAddRemoveContextMenuItem.enabled = true;
+					_textToolAddRemoveContextMenuItem.enabled = true;
 				}
 				else
 				{
-					_textAreaAddRemoveContextMenuItem.enabled = false;
+					_textToolAddRemoveContextMenuItem.enabled = false;
 				}
 				
-				if ( textArea == null)
+				if (tt == null)
 				{ 
-					_textAreaAddRemoveContextMenuItem.caption = ADD_CAPTION;
-					_textAreaEditContextMenuItem.enabled = false;
+					_textToolAddRemoveContextMenuItem.caption = ADD_CAPTION;
+					_textToolEditContextMenuItem.enabled = false;
 				}
 				else
 				{
-					_textAreaAddRemoveContextMenuItem.caption = REMOVE_CAPTION;
-					_textAreaEditContextMenuItem.enabled = true;
+					_textToolAddRemoveContextMenuItem.caption = REMOVE_CAPTION;
+					_textToolEditContextMenuItem.enabled = true;
 				}
 			}
 			
@@ -456,45 +478,45 @@
 				contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
 				
 				// Create a context menu item for printing of a single tool with title and logo
-				_textAreaAddRemoveContextMenuItem   = CustomContextMenuManager.createAndAddMenuItemToDestination(ADD_CAPTION,destination,handleAddRemove,"2.1 textBoxMenuItem");
-				_textAreaEditContextMenuItem        = CustomContextMenuManager.createAndAddMenuItemToDestination(EDIT_TEXT_CAPTION,destination,handleEdit,"2.1 textBoxMenuItem");
+				_textToolAddRemoveContextMenuItem   = CustomContextMenuManager.createAndAddMenuItemToDestination(ADD_CAPTION,destination,handleAddRemove,"2.1 textBoxMenuItem");
+				_textToolEditContextMenuItem        = CustomContextMenuManager.createAndAddMenuItemToDestination(EDIT_TEXT_CAPTION,destination,handleEdit,"2.1 textBoxMenuItem");
 				
 				return true;
 			}
 			
 			
 			/**
-			 * This function is called by ChangeWindows.
-			 * This will add a Text Box to whatever parent has been indicated.
+			 * This will add a TextTool to whatever parent has been indicated.
 			 * If the container passed is not an ILinkableContainer the Text Box is automatically placed on the visdesktop.
 			 */
-			private static function addTextAreaAndLabelToLocation(container:*, x:Number=0, y:Number=0):void
+			private static function addTextTool(container:*):void
 			{	
 				var linkableContainer:ILinkableContainer = container as ILinkableContainer;
 				
-				if ( linkableContainer )
+				if (linkableContainer)
 				{
-					var name:String = linkableContainer.getLinkableChildren().generateUniqueName("Label");
-					var newTextArea:SessionedTextBox = linkableContainer.getLinkableChildren().requestObject(name, SessionedTextBox,false);
+					var name:String = linkableContainer.getLinkableChildren().generateUniqueName("Text");
+					var tt:TextTool = linkableContainer.getLinkableChildren().requestObject(name, TextTool, false);
 					if (linkableContainer.getLinkableChildren() == WeaveAPI.globalHashMap)
-						newTextArea.minimizable.value = newTextArea.maximizable.value = true;
-					newTextArea.toggleControlPanel();
+						tt.minimizable.value = tt.maximizable.value = true;
+					tt.toggleControlPanel();
 				}
 			}
 			
 			/**
 			 * This function is called when Remove is selected in the Context Menu.
-			 * It checks for a TextArea, and if found will attempt to remove the TextArea and associated TextBox. 
+			 * It checks for a TextTool, and if found will attempt to remove the TextTool and associated TextBox. 
 			 */
 			private static function removeWindows(e:ContextMenuEvent):void
 			{
-				var parent:ILinkableContainer = getLinkableContainer(getTextAreaFromTarget(e.mouseTarget));
+				var parent:ILinkableContainer = getLinkableContainer(getTextToolFromTarget(e.mouseTarget));
 				
-				if ( getTextAreaFromTarget(e.mouseTarget) != null ) {				
-					if ( parent is ILinkableContainer ) {
-						var textArea:SessionedTextBox = getTextAreaFromTarget(e.mouseTarget);
-						
-						var name:String = parent.getLinkableChildren().getName(textArea);
+				if (getTextToolFromTarget(e.mouseTarget) != null)
+				{				
+					if (parent is ILinkableContainer)
+					{
+						var tt:TextTool = getTextToolFromTarget(e.mouseTarget);
+						var name:String = parent.getLinkableChildren().getName(tt);
 						parent.getLinkableChildren().removeObject(name);
 					}
 				}
@@ -503,14 +525,14 @@
 			 * This function is passed a target and checks to see if the target was a TextBox.
 			 * Either a TextBox or null will be returned.
 			 */
-			private static function getTextAreaFromTarget(target:*):SessionedTextBox
+			private static function getTextToolFromTarget(target:*):TextTool
 			{
 				var targetComponent:* = target;
 				
-				while(targetComponent)
+				while (targetComponent)
 				{
-					if(targetComponent is SessionedTextBox)
-						return targetComponent as SessionedTextBox;
+					if (targetComponent is TextTool)
+						return targetComponent as TextTool;
 					targetComponent = targetComponent.parent;
 				}
 				
@@ -543,27 +565,27 @@
 			private static function handleAddRemove(e:ContextMenuEvent):void
 			{
 				var parent:ILinkableContainer = getLinkableContainer(e.mouseTarget);
-				var textArea:SessionedTextBox = getTextAreaFromTarget(e.mouseTarget);
+				var tt:TextTool = getTextToolFromTarget(e.mouseTarget);
 				
 				// if the user did not right click on a TextBox or the editor for one
-				if ( textArea == null) 
+				if ( tt == null) 
 				{
-					// add text area to this container
-					addTextAreaAndLabelToLocation(parent, e.mouseTarget.mouseX, e.mouseTarget.mouseY);
+					// add text Tool to this container
+					addTextTool(parent);
 				}
 				else
 				{
-					textArea.removePanel();
+					tt.removePanel();
 				}
 			}
 			
 			private static function handleEdit(e:ContextMenuEvent):void
 			{
-				var textArea:SessionedTextBox = getTextAreaFromTarget(e.mouseTarget);
-				if (textArea)
+				var tt:TextTool = getTextToolFromTarget(e.mouseTarget);
+				if (tt)
 				{
-					textArea.sendWindowToForeground();
-					textArea.toggleControlPanel();
+					tt.sendWindowToForeground();
+					tt.toggleControlPanel();
 				}
 			}
 			

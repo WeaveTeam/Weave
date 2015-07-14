@@ -15,7 +15,9 @@
 
 package weave.services.wms
 {
+	import weave.api.core.IDisposableObject;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerDisposableChild;
 	import weave.primitives.KDTree;
 
 	/**
@@ -26,10 +28,15 @@ package weave.services.wms
 	 * 
 	 * @author kmonico
 	 */
-	public class WMSTileIndex 
+	public class WMSTileIndex implements IDisposableObject
 	{
 		public function WMSTileIndex()
 		{
+		}
+		
+		public function dispose():void
+		{
+			// _kdTree will be automatically disposed
 		}
 
 		/**
@@ -92,6 +99,6 @@ package weave.services.wms
 		 * kdTree
 		 * This is the 5-dimensional tree which holds all the tiles.
 		 */
-		private var _kdTree:KDTree = new KDTree(5); // each node is of the form [xmin, ymin, xmax, ymax, zoomlevel]
+		private const _kdTree:KDTree = registerDisposableChild(this, new KDTree(5)); // each node is of the form [xmin, ymin, xmax, ymax, zoomlevel]
 	}
 }

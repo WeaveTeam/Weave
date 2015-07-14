@@ -42,6 +42,7 @@
 			import mx.utils.StringUtil;
 			
 			import weave.compiler.StandardLib;
+			import weave.utils.DrawUtils;
 			
 			use namespace mx_internal;
 			
@@ -129,7 +130,7 @@
 				// draw invisible rectangle to capture mouse events
 				graphics.clear();
 				graphics.beginFill(0, 0);
-				graphics.lineStyle(0, 0, 0);
+				DrawUtils.clearLineStyle(graphics);
 				graphics.drawRect(0, 0, unscaledWidth, unscaledHeight);
 				graphics.endFill();
 			}

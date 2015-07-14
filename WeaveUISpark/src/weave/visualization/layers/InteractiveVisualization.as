@@ -682,7 +682,7 @@ package weave.visualization.layers
 		
 		private function fillPolygon(graphics:Graphics, color:uint, alpha:Number, points:Array):void
 		{
-			graphics.lineStyle(0,0,0);
+			DrawUtils.clearLineStyle(graphics);
 			var n:int = points.length;
 			for (var i:int = 0; i <= n; i++)
 			{

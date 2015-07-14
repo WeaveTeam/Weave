@@ -15,13 +15,15 @@
 
 package weave.ui
 {
+	import flash.display.DisplayObject;
 	import flash.events.MouseEvent;
 	
 	import mx.collections.CursorBookmark;
 	import mx.controls.ComboBox;
+	import mx.core.UIComponent;
 
 	/**
-	 * Added functionality: set selectedLabel()
+	 * Added functionality: set selectedLabel(), dropdownStyle
 	 * 
 	 * @author adufilie
 	 */
@@ -31,6 +33,39 @@ package weave.ui
 		{
 			minWidth = 0;
 			addEventListener(MouseEvent.MOUSE_DOWN, function(..._):void { setFocus(); });
+		}
+		
+		/**
+		 * An object containing dropdown style values, or a Function that returns such an object.
+		 */
+		public var dropdownStyle:Object = null;
+		
+		/**
+		 * Set this to true for the dropdown to inherit the 'backgroundColor' style from the closest ancestor with a value.
+		 */
+		public var dropdownInheritsBackgroundColor:Boolean = true;
+		
+		override public function getStyle(styleProp:String):*
+		{
+			// this style property is retrieved in displayDropDown(), so we can intercept the request here to update the dropdown style.
+			if (styleProp == "openDuration" && dropdown)
+			{
+				if (dropdownInheritsBackgroundColor)
+				{
+					const BACKGROUND_COLOR:String = 'backgroundColor';
+					var ancestor:DisplayObject = this;
+					while (ancestor && !(ancestor is UIComponent) || (ancestor as UIComponent).getStyle(BACKGROUND_COLOR) === undefined)
+						ancestor = ancestor.parent;
+					if (ancestor is UIComponent)
+						dropdown.setStyle(BACKGROUND_COLOR, (ancestor as UIComponent).getStyle(BACKGROUND_COLOR));
+				}
+				
+				var style:Object = dropdownStyle is Function ? this.dropdownStyle() : dropdownStyle;
+				for (var key:String in style)
+					dropdown.setStyle(key, style[key]);
+			}
+			
+			return super.getStyle(styleProp);
 		}
 		
 		/**

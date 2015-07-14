@@ -44,7 +44,7 @@
 				<ui:CustomCheckBox label="{lang('Pen Tool')}" creationComplete="linkBindableProperty(Weave.properties.enablePenTool, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Add Marker')}" creationComplete="linkBindableProperty(Weave.properties.enableMarker, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Add Circle')}" creationComplete="linkBindableProperty(Weave.properties.enableDrawCircle, event.target, 'selected')"/>
-				<ui:CustomCheckBox label="{lang('Add Annotation')}" creationComplete="linkBindableProperty(Weave.properties.enableAnnotation, event.target, 'selected')"/>
+				<!--<ui:CustomCheckBox label="{lang('Add Annotation')}" creationComplete="linkBindableProperty(Weave.properties.enableAnnotation, event.target, 'selected')"/>-->
 				<ui:CustomCheckBox label="{lang('Print/Export Panel Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportToolImage, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Print/Export Application Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportApplicationScreenshot, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Export CSV')}" creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>

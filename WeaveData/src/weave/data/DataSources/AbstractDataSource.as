@@ -158,7 +158,9 @@ package weave.data.DataSources
 		{
 			var proxyColumn:ProxyColumn = newDisposableChild(this, ProxyColumn);
 			proxyColumn.setMetadata(metadata);
-			WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn);
+			var description:String = (WeaveAPI.globalHashMap.getName(this) || debugId(this)) + " pending column request";
+			WeaveAPI.ProgressIndicator.addTask(proxyColumn, this, description);
+			WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn, description);
 			handlePendingColumnRequest(proxyColumn);
 			return proxyColumn;
 		}
@@ -212,6 +214,8 @@ package weave.data.DataSources
 		 */
 		public function dispose():void
 		{
+			for (var column:Object in _proxyColumns)
+				WeaveAPI.ProgressIndicator.removeTask(column);
 			_initializeCalled = false;
 			_proxyColumns = null;
 		}

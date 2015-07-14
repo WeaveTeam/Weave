@@ -21,6 +21,7 @@ package weave.ui
 	
 	import weave.api.getCallbackCollection;
 	import weave.core.UIUtils;
+	import weave.utils.DrawUtils;
 
 	/**
 	 * This is a progress bar for Weave which updates on tasks added to the ProgressIndicator
@@ -77,7 +78,7 @@ package weave.ui
 			graphics.beginFill(backgroundColor, 1.0);
 			graphics.drawRect(0, 0, width - 1, height - 1);
 			
-			graphics.lineStyle(1, 0, 0);
+			DrawUtils.clearLineStyle(graphics);
 			graphics.beginFill(barColor, 1.0);
 			graphics.drawRect(0, 0, width * norm - 1, height - 1);
 		}

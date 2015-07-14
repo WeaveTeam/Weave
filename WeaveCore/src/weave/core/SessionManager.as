@@ -322,6 +322,7 @@ package weave.core
 		
 		/**
 		 * Adds a grouped callback that will be triggered when the session state tree changes.
+		 * USE WITH CARE. The groupedCallback should not run computationally-expensive code.
 		 */
 		public function addTreeCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void
 		{
@@ -441,6 +442,12 @@ package weave.core
 					
 				setSessionState(property, newState[name], removeMissingDynamicObjects);
 			}
+			
+			// handle properties appearing in session state that do not appear in the linkableObject 
+			if (linkableObject is ILinkableObjectWithNewProperties)
+				for (name in newState)
+					if (!deprecatedLookup.hasOwnProperty(name))
+						(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperty(newState, name);
 			
 			// handle properties missing from absolute session state
 			if (foundMissingProperty)
@@ -580,7 +587,7 @@ package weave.core
 		 */
 		private const classNameToDeprecatedSetterNames:Object = new Object();
 		/**
-		 * This maps a qualified class name to an Object mapping deprecated sessioned property names to true.
+		 * This maps a qualified class name to an Object mapping sessioned property names to booleans indicating if they are implemented as deprecated getters.
 		 */
 		private const classNameToDeprecatedGetterLookup:Object = new Object();
 		
@@ -615,8 +622,7 @@ package weave.core
 					}
 					else if (ClassUtils.classImplements(variable.type, ILinkableObjectQualifiedClassName))
 					{
-						if (deprecated)
-							deprecatedGetterLookup[variable.name] = true;
+						deprecatedGetterLookup[variable.name] = deprecated;
 						propertyNames.push(variable.name);
 					}
 				}

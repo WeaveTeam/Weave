@@ -40,6 +40,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import weave.utils.CSVParser;
 import weave.utils.FileUtils;
 import weave.utils.MapUtils;
 import weave.utils.ProgressManager;
@@ -401,6 +402,13 @@ public class ConnectionConfig
 			this.connection = other.get("connection");
 			this.schema = other.get("schema");
 			validateSchema();
+			
+			String idFieldsStr = other.get("idFields");
+			if (!Strings.isEmpty(idFieldsStr))
+				this.idFields = CSVParser.defaultParser.parseCSVRow(idFieldsStr, true);
+			else
+				this.idFields = null;
+			
 			geometryConfigTable = other.get("geometryConfigTable");
 			dataConfigTable = other.get("dataConfigTable");
 		}
@@ -409,15 +417,19 @@ public class ConnectionConfig
 			this.connection = other.connection;
 			this.schema = other.schema;
 			validateSchema();
+			this.idFields = other.idFields;
 			this.geometryConfigTable = other.geometryConfigTable;
 			this.dataConfigTable = other.dataConfigTable;
 		}
 		public Map<String,String> getPropertyMap()
 		{
-			return MapUtils.fromPairs(
+			Map<String,String> result = MapUtils.fromPairs(
 				"connection", connection,
 				"schema", schema
 			);
+			if (idFields != null && idFields.length > 0)
+				result.put("idFields", CSVParser.defaultParser.createCSVRow(idFields, false));
+			return result;
 		}
 		
 		/**
@@ -427,6 +439,7 @@ public class ConnectionConfig
 		 */
 		public String connection;
 		public String schema;
+		public String[] idFields;
 		
 		@Deprecated public String geometryConfigTable;
 		@Deprecated public String dataConfigTable;

@@ -47,7 +47,7 @@ package weave.data.DataSources
 			if (!params)
 				params = {};
 			params.Key = apiKey.value;
-			return cache.getJsonPromise(this, JsonCache.buildURL(baseUrl + method, params) + "&{}")
+			return cache.getJsonPromise(this, JsonCache.buildURL(baseUrl + method, params))
 				.then(function(result:Object):Object {
 					if (result.Status != 'Success')
 					{
@@ -63,7 +63,7 @@ package weave.data.DataSources
 		{
 			var output:Array = [];
 			
-			if (method.substr(-5) == '/Data')
+			/*if (method.substr(-5) == '/Data')
 			{
 				// backup if PageCount request fails - request each page until no data is returned
 				var page:int = 0;
@@ -79,7 +79,7 @@ package weave.data.DataSources
 						.then(handlePage);
 				}
 				return handlePage();
-			}
+			}*/
 			
 			return getJson(method + '/PageCount', params)
 				.then(function(result:Object):* {

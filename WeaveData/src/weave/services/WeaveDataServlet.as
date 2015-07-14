@@ -22,9 +22,11 @@ package weave.services
 	
 	import mx.core.mx_internal;
 	import mx.rpc.AsyncToken;
+	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.api.data.IQualifiedKey;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.services.IWeaveEntityService;
@@ -43,11 +45,12 @@ package weave.services
 	 */
 	public class WeaveDataServlet implements IWeaveEntityService
 	{
-		protected var servlet:AMF3Servlet;
-		private var propertyNameLookup:Dictionary = new Dictionary(); // Function -> String
-
 		public static const DEFAULT_URL:String = '/WeaveServices/DataService';
-				
+		
+		private var propertyNameLookup:Dictionary = new Dictionary(); // Function -> String
+		protected var servlet:AMF3Servlet;
+		protected var _serverInfo:Object = null;
+
 		public function WeaveDataServlet(url:String = null)
 		{
 			servlet = new AMF3Servlet(url || DEFAULT_URL);
@@ -124,12 +127,36 @@ package weave.services
 				event.setResult(results[0]);
 		}
 		
+		////////////////
+		// Server info
+		
+		public function getServerInfo():Object
+		{
+			if (!_serverInfo)
+			{
+				_serverInfo = true;
+				addAsyncResponder(
+					invoke(getServerInfo, arguments),
+					function(event:ResultEvent, token:WeaveDataServlet):void
+					{
+						_serverInfo = event.result || {};
+					},
+					function(event:FaultEvent, token:Object):void
+					{
+						_serverInfo = {"error": event.fault};
+					},
+					this
+				);
+			}
+			return typeof _serverInfo == 'object' ? _serverInfo : null;
+		}
+		
 		////////////////////
 		// DataEntity info
 		
 		public function get entityServiceInitialized():Boolean
 		{
-			return true;
+			return getServerInfo() != null;
 		}
 		
 		public function getHierarchyInfo(publicMetadata:Object):AsyncToken // returns EntityHierarchyInfo[]

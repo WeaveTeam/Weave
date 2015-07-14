@@ -225,6 +225,7 @@ package weave
 		public const cssStyleSheetName:LinkableString = new LinkableString("weaveStyle.css"); // CSS Style Sheet Name/URL
 		public const backgroundColor:LinkableNumber = new LinkableNumber(DEFAULT_BACKGROUND_COLOR, isFinite);
 		public const showBackgroundImage:LinkableBoolean = new LinkableBoolean(true);
+		public const panelBackgroundColor:LinkableNumber = new LinkableNumber(0xFFFFFF, isFinite);
 		
 		public const enableMouseWheel:LinkableBoolean = new LinkableBoolean(true);
 		
@@ -302,7 +303,7 @@ package weave
 		
 		public const enableMarker:LinkableBoolean = new LinkableBoolean(true);
 		public const enableDrawCircle:LinkableBoolean = new LinkableBoolean(true);
-		public const enableAnnotation:LinkableBoolean = new LinkableBoolean(true);
+		//public const enableAnnotation:LinkableBoolean = new LinkableBoolean(true);
 		public const enablePenTool:LinkableBoolean = new LinkableBoolean(true);
 		
 		public const enableMenuBar:LinkableBoolean = new LinkableBoolean(true); // top menu for advanced features		
@@ -637,6 +638,8 @@ package weave
 		{
 			if (newState.hasOwnProperty('version') && missingProperty == 'mouseoverTextFormat')
 				copySessionState(visTextFormat, mouseoverTextFormat);
+			if (missingProperty == 'panelBackgroundColor')
+				panelBackgroundColor.value = 0xFFFFFF;
 		}
 	}
 }

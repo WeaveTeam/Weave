@@ -140,7 +140,7 @@ package weave.data
 		 */
 		public function createCSVRow(row:Array):String
 		{
-			return weave.flascc.createCSV([row], delimiter, quote, tempBuffer);
+			return row ? weave.flascc.createCSV([row], delimiter, quote, tempBuffer) : null;
 		}
 		
 		/**

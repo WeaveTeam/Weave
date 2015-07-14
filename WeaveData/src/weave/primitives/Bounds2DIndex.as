@@ -17,21 +17,27 @@ package weave.primitives
 {
 	import flash.utils.Dictionary;
 	
+	import weave.api.core.IDisposableObject;
 	import weave.api.primitives.IBounds2D;
-	import weave.primitives.KDTree;
+	import weave.api.registerDisposableChild;
 	
 	/**
 	 * This class provides an interface to query a collection of spatially indexed objects.
 	 * 
 	 * @author adufilie
 	 */
-	public class Bounds2DIndex
+	public class Bounds2DIndex implements IDisposableObject
 	{
 		public function Bounds2DIndex()
 		{
 		}
 		
-		private const _kdTree:KDTree = new KDTree(4);
+		public function dispose():void
+		{
+			// _kdTree will be automatically disposed
+		}
+		
+		private const _kdTree:KDTree = registerDisposableChild(this, new KDTree(4));
 		
 		/**
 		 * These constants define indices in a KDKey corresponding to xmin,ymin,xmax,ymax,importance values.

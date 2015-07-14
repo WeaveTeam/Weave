@@ -712,5 +712,40 @@ package weave.utils
 		//todo: (cached) get sorted index from a key and a column
 		
 		//todo: (cached) get bins from a column with a filter applied
+		
+		public static function unlinkNestedColumns(columnWrapper:IColumnWrapper):void
+		{
+			var col:IColumnWrapper = columnWrapper;
+			while (col)
+			{
+				var dc:DynamicColumn = col as DynamicColumn;
+				var edc:ExtendedDynamicColumn = col as ExtendedDynamicColumn;
+				if (dc && dc.globalName) // if linked
+				{
+					// unlink
+					dc.globalName = null;
+					// prevent infinite loop
+					if (dc.globalName)
+						break;
+					// restart from selected
+					col = columnWrapper;
+				}
+				else if (edc && edc.internalDynamicColumn.globalName) // if linked
+				{
+					// unlink
+					edc.internalDynamicColumn.globalName = null;
+					// prevent infinite loop
+					if (edc.internalDynamicColumn.globalName)
+						break;
+					// restart from selected
+					col = columnWrapper;
+				}
+				else
+				{
+					// get nested column
+					col = col.getInternalColumn() as IColumnWrapper;
+				}
+			}
+		}
 	}
 }

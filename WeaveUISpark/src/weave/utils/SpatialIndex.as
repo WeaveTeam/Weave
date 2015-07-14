@@ -26,6 +26,7 @@ package weave.utils
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerDisposableChild;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.StageUtils;
@@ -54,7 +55,7 @@ package weave.utils
 		
 		private var callbacks:ICallbackCollection;
 		
-		private var _kdTree:KDTree = new KDTree(5);
+		private const _kdTree:KDTree = registerDisposableChild(this, new KDTree(5));
 		private const _keysArray:Array = []; // of IQualifiedKey
 		private var _keyToBoundsMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of IBounds2D
 		private var _keyToGeometriesMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of GeneralizedGeometry or ISimpleGeometry
@@ -148,13 +149,9 @@ package weave.utils
 			if (_plotter)
 				VectorUtils.copy(_plotter.filteredKeySet.keys, _keysArray);			
 			
-			// if auto-balance is disabled, randomize insertion order
-			if (!_kdTree.autoBalance)
-			{
-				// randomize the order of the shapes to avoid a possibly poorly-performing
-				// KDTree structure due to the given ordering of the records
-				VectorUtils.randomSort(_keysArray);
-			}
+			// randomize the order of the shapes to avoid a possibly poorly-performing
+			// KDTree structure due to the given ordering of the records
+			VectorUtils.randomSort(_keysArray);
 			if (debug)
 				debugTrace(_plotter,this,'keys',_keysArray.length);
 			

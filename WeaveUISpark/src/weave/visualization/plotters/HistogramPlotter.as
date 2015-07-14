@@ -15,7 +15,6 @@
 
 package weave.visualization.plotters
 {
-	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	
 	import weave.api.copySessionState;
@@ -71,7 +70,7 @@ package weave.visualization.plotters
 			linkSessionState(filteredKeySet.keyFilter, filteredColumn.filter);
 			
 			// make the colors spatial properties because the binned column is inside
-			registerSpatialProperty(fillStyle.color.internalDynamicColumn, setBinnedColumn);
+			registerSpatialProperty(fillStyle.color.internalDynamicColumn, setBinnedColumn, true);
 
 			setSingleKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
 		}
@@ -85,7 +84,7 @@ package weave.visualization.plotters
 			return [fillStyle.color, columnToAggregate];
 		}
 		
-		public const binnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn, setColorColumn);
+		public const binnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn, setColorColumn, true);
 		private function setColorColumn():void
 		{
 			var colorBinCol:BinnedColumn = internalColorColumn ? internalColorColumn.getInternalColumn() as BinnedColumn : null;

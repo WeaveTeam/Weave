@@ -16,6 +16,7 @@
 package weave.utils
 {
 	import flash.display.Graphics;
+	import flash.display.LineScaleMode;
 	import flash.geom.Point;
 	
 	/**
@@ -23,6 +24,15 @@ package weave.utils
 	 */
 	public class DrawUtils
 	{
+		/**
+		 * Clears the line style for a Graphics object with optimal performance.
+		 */
+		public static function clearLineStyle(graphics:Graphics):void
+		{
+			// LineScaleMode.NONE is important for performance.
+			graphics.lineStyle(1, 0, 0, false, LineScaleMode.NONE); // thickness=1, alpha=0
+		}
+		
 		/**
 		 * Similar to lineTo() and curveTo(), this will draw an arc on a Graphics object.
 		 * @param graphics The Graphics where the arc will be drawn

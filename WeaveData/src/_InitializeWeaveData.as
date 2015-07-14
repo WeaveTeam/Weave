@@ -26,6 +26,7 @@ package
 	import weave.data.AttributeColumnCache;
 	import weave.data.CSVParser;
 	import weave.data.DataSources.WeaveDataSource;
+	import weave.data.KeySets.ColumnDataFilter;
 	import weave.data.ProjectionManager;
 	import weave.data.QKeyManager;
 	import weave.data.StatisticsCache;
@@ -66,5 +67,7 @@ package
 		);
 		ClassUtils.registerDeprecatedClass("OpenIndicatorsServletDataSource", WeaveDataSource);
 		ClassUtils.registerDeprecatedClass("OpenIndicatorsDataSource", WeaveDataSource);
+		ClassUtils.registerDeprecatedClass("weave.data.KeySets.StringDataFilter", ColumnDataFilter);
+		ClassUtils.registerDeprecatedClass("weave.data.KeySets.NumberDataFilter", ColumnDataFilter);
 	}
 }

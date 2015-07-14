@@ -27,7 +27,9 @@
 			paddingLeft="4"
 			label="{getEnableLabel(columnTitle)}"
 			change="toggleFilter();"/>
-	<ui:PlayButton id="playButton" enabled="{filterEnable.selected}"/>
+	<ui:PlayButton id="playButton"
+				   enabled="{filterEnable.selected}"
+				   creationComplete="playButton.button.label = '&gt;';"/>
 	<ui:MenuToolViewStack id="menuStack"
 		enabled="{filterEnable.selected}"
 		allowMultipleSelection="true"
@@ -38,6 +40,9 @@
 			import mx.binding.utils.BindingUtils;
 			
 			import weave.api.core.ILinkableObject;
+			import weave.api.data.ColumnMetadata;
+			import weave.api.data.DataType;
+			import weave.api.data.IAttributeColumn;
 			import weave.api.data.IQualifiedKey;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
@@ -45,12 +50,13 @@
 			import weave.api.unlinkBindableProperty;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
+			import weave.core.LinkableFunction;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.KeySets.StringDataFilter;
+			import weave.data.KeySets.ColumnDataFilter;
 			import weave.utils.ColumnUtils;
 			import weave.utils.VectorUtils;
 
@@ -62,11 +68,13 @@
 			
 			private const filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleFilter, true);
 			private const columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleColumn, true);
-			private var _linkedFilter:StringDataFilter;
+			private var _linkedFilter:ColumnDataFilter;
 			
+			public const thumbColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xe0e0e0, isFinite), setThumbColor);
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(MenuToolViewStack.LAYOUT_LIST), handleLayoutMode, true);
 			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['column', 'string', 'number']), updateLabels);
 			
 			override protected function childrenCreated():void
 			{
@@ -78,22 +86,24 @@
 				playButton.button.addEventListener(MouseEvent.CLICK, handlePlayClick);
 			}
 			
-			public function get stringFilter():StringDataFilter
+			public function get filter():ColumnDataFilter
 			{
-				return filterWatcher.target as StringDataFilter;
+				return filterWatcher.target as ColumnDataFilter;
 			}
+			[Deprecated(replacement="filter")] public function get stringFilter():ColumnDataFilter { return filter; }
 			
 			public function setTarget(object:ILinkableObject):void
 			{
-				filterWatcher.target = object as StringDataFilter;
+				filterWatcher.target = object as ColumnDataFilter;
 				
-				if (stringFilter)
+				if (filter)
 				{
-					columnWatcher.target = stringFilter.column;
+					columnWatcher.target = filter.column;
 					this.enabled = true;
 				}
 				else
 				{
+					columnWatcher.target = null;
 					this.enabled = false;
 				}
 				
@@ -106,13 +116,13 @@
 					callLater(linkNewFilter);
 					return;
 				}
-				if (_linkedFilter != stringFilter)
+				if (_linkedFilter != filter)
 				{
 					if (_linkedFilter)
-						unlinkBindableProperty(_linkedFilter.stringValues, menuStack, 'chosenItems');
-					_linkedFilter = stringFilter;
+						unlinkBindableProperty(_linkedFilter.values, menuStack, 'chosenItems');
+					_linkedFilter = filter;
 					if (_linkedFilter)
-						linkBindableProperty(_linkedFilter.stringValues, menuStack, 'chosenItems', 0, true);
+						linkBindableProperty(_linkedFilter.values, menuStack, 'chosenItems', 0, true);
 				}
 				handleFilter();
 			}
@@ -121,14 +131,14 @@
 
 			private function toggleFilter():void
 			{
-				if (stringFilter)
-					stringFilter.enabled.value = filterEnable.selected;
+				if (filter)
+					filter.enabled.value = filterEnable.selected;
 			}
 			
 			private function setMenuChosenIndex(index:int):void
 			{
 				if (_linkedFilter)
-					_linkedFilter.stringValues.setSessionState([menuStack.choices[index]]);
+					_linkedFilter.values.setSessionState([menuStack.choices[index]]);
 				else
 					menuStack.chosenIndex = index;
 			}
@@ -147,7 +157,7 @@
 			
 			private function handlePlayStep(step:int):void
 			{
-				if (!showPlayButton.value || !stringFilter || !stringFilter.enabled.value)
+				if (!showPlayButton.value || !filter || !filter.enabled.value)
 					return;
 				
 				// we can actually ignore the step number because we only care that it has stepped.
@@ -174,11 +184,11 @@
 					return;
 				}
 				
-				if (stringFilter)
+				if (filter)
 				{
 					enabled = true;
-					filterEnable.selected = stringFilter.enabled.value;
-					menuStack.chosenItems = stringFilter.stringValues.getSessionState() as Array;
+					filterEnable.selected = filter.enabled.value;
+					menuStack.chosenItems = filter.values.getSessionState() as Array;
 				}
 				else
 				{
@@ -195,23 +205,15 @@
 					callLater(handleColumn);
 					return;
 				}
-				if (!stringFilter)
+				if (!filter)
 					return;
 				
-				var column:DynamicColumn = stringFilter.column;
+				var column:DynamicColumn = filter.column;
 				if (column)
 				{
 					columnTitle = ColumnUtils.getTitle(column);
 					
-					//TODO - make this asynchronous
-					var valueMap:Object = {};
-					for each (var key:IQualifiedKey in column.keys)
-						valueMap[column.getValueFromKey(key, String)] = column.getValueFromKey(key, Number);
-					
-					var valueList:Array = VectorUtils.getKeys(valueMap);
-					StandardLib.sortOn(valueList, valueMap);
-					
-					menuStack.choices = valueList;
+					menuStack.choices = getChoices(column);
 				}
 				else
 				{
@@ -229,6 +231,86 @@
 					return;
 				}
 				menuStack.layoutMode = layoutMode.value;
+			}
+			
+			private function updateLabels():void
+			{
+				if (!parent)
+				{
+					callLater(updateLabels);
+					return;
+				}
+				menuStack.choiceLabelFunction = getChoiceLabel;
+			}
+			
+			public function getChoiceLabel(choice:*):String
+			{
+				var column:IAttributeColumn = columnWatcher.target as IAttributeColumn;
+				var string:String;
+				var number:Number;
+				if (choice is Number)
+				{
+					number = choice as Number;
+					string = ColumnUtils.deriveStringFromNumber(column, number);
+				}
+				else
+				{
+					string = String(choice);
+					number = NaN;
+				}
+				return labelFunction.apply(this, [columnWatcher.target, string, number]) || '';
+			}
+			
+			private function setThumbColor():void
+			{
+				if (!parent)
+				{
+					callLater(setThumbColor);
+					return;
+				}
+				menuStack.choiceHSlider.setStyle('fillColors', [thumbColor.value, thumbColor.value]);
+				menuStack.choiceVSlider.setStyle('fillColors', [thumbColor.value, thumbColor.value]);
+			}
+			
+			//TODO - make this asynchronous
+			public static function getChoices(column:IAttributeColumn, dataType:Class = null):Array
+			{
+				var valueMap:Object = {};
+				var key:IQualifiedKey;
+				var number:Number;
+				var string:String;
+				var valueList:Array;
+				
+				if (!dataType)
+					dataType = DataType.getClass(column.getMetadata(ColumnMetadata.DATA_TYPE));
+				
+				if (dataType == Number)
+				{
+					valueList = [];
+					for each (key in column.keys)
+					{
+						number = column.getValueFromKey(key, Number);
+						if (!valueMap.hasOwnProperty(number))
+						{
+							valueList.push(number);
+							valueMap[number] = number;
+						}
+					}
+				}
+				else
+				{
+					for each (key in column.keys)
+					{
+						number = column.getValueFromKey(key, Number);
+						string = column.getValueFromKey(key, String);
+						valueMap[string] = number;
+					}
+					valueList = VectorUtils.getKeys(valueMap);
+				}
+				
+				StandardLib.sortOn(valueList, valueMap);
+				
+				return valueList;
 			}
 		]]>
 	</mx:Script>
