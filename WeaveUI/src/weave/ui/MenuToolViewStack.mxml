@@ -83,8 +83,19 @@
 			}
 			
 			[Bindable] public var allowMultipleSelection:Boolean = false;
-			[Bindable] public var alwaysShowPrompt:Boolean = false;
 			[Bindable] public var prompt:String;
+			private var _alwaysShowPrompt:Boolean = false;
+			
+			[Bindable]
+			public function get alwaysShowPrompt():Boolean
+			{
+				return _alwaysShowPrompt;
+			}
+			public function set alwaysShowPrompt(value:Boolean):void
+			{
+				_alwaysShowPrompt = value;
+				updateViews();
+			}
 			
 			private var _choices:Array = [];
 			private var _labelFunction:Function;
