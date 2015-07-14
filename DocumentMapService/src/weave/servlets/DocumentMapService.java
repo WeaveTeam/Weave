@@ -53,7 +53,7 @@ public class DocumentMapService extends WeaveServlet
 	{
 		if (_solr == null)
 		{
-			_solr = new HttpSolrClient("http://localhost:8983/solr/docmaps");
+			_solr = new HttpSolrClient("http://localhost:8080/solr/docmaps");
 		}
 		
 		return _solr;

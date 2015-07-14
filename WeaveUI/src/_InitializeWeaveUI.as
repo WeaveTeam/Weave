@@ -25,6 +25,7 @@ package
 	import weave.data.DataSources.CSVDataSource;
 	import weave.data.DataSources.CensusDataSource;
 	import weave.data.DataSources.DBFDataSource;
+    import weave.data.DataSources.DocumentMapDataSource;
 	import weave.data.DataSources.GeoJSONDataSource;
 	import weave.data.DataSources.GraphMLDataSource;
 	import weave.data.DataSources.SocrataDataSource;
@@ -77,6 +78,7 @@ package
 	import weave.ui.TextTool;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
+    import weave.visualization.plotters.DraggableScatterPlotPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
 	import weave.visualization.plotters.GeometryPlotter;
 	import weave.visualization.plotters.GeometryRelationPlotter;
