@@ -294,6 +294,13 @@ package weave.ui
 					dg.editedItemPosition = { columnIndex: 0, rowIndex: rowIndex };
 			}
 		}
+		
+		public function stopEditVariableName():void
+		{
+			var dg:DataGrid = _editor as DataGrid;
+			if (dg)
+				dg.editedItemPosition = null;
+		}
 
 		/**
 		 * @param item
