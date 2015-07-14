@@ -52,7 +52,7 @@
 			import weave.primitives.WeaveTreeItem;
 			import weave.utils.LinkableTextFormat;
 
-			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, SessionStateMenuTool, "Menu Tool");
+			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, SessionStateMenuTool, "Session State Menu Tool");
 			
 			public static const DEFAULT_PROMPT:String = lang('Choose an option ...');
 			
