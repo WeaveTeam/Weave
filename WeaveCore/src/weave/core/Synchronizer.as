@@ -149,8 +149,7 @@ package weave.core
 				if (callLaterTime)
 				{
 					// if there is a callLater waiting to trigger, update the target time
-					if (callLaterTime != int.MAX_VALUE)
-						callLaterTime = getTimer() + delay;
+					callLaterTime = useLinkableValue ? int.MAX_VALUE : getTimer() + delay;
 					
 					if (debug)
 						trace('\tdelaying the timer some more (' + (callLaterTime - getTimer()) + ')');
