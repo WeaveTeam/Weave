@@ -31,7 +31,6 @@
 			import mx.core.UIComponent;
 			
 			import weave.api.core.ILinkableObject;
-			import weave.api.data.IWeaveTreeNode;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
@@ -39,17 +38,13 @@
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.Compiler;
-			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableHashMap;
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.LinkableVariable;
-			import weave.core.SessionManager;
 			import weave.core.UIUtils;
-			import weave.menus.WeaveMenuItem;
-			import weave.primitives.WeaveTreeItem;
 			import weave.utils.LinkableTextFormat;
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, SessionStateMenuTool, "Session State Menu Tool");
@@ -140,12 +135,12 @@
 				}
 			}
 			
-			public function addNewChoice():LinkableVariable
+			public function addNewChoice():String
 			{
 				var name:String = choices.generateUniqueName("item");
 				selectedChoice.value = name;
 				recordSelectedChoice();
-				return choices.getObject(name) as LinkableVariable;
+				return name;
 			}
 			
 			private function handleMouseClick(event:MouseEvent):void
@@ -315,7 +310,7 @@
 			}
 		]]>
 	</mx:Script>
-	<editorFactory><mx:Component><ControlPanel>
+	<editorFactory><mx:Component><ControlPanel rollOut="choicesController.stopEditVariableName();">
 		
 		<mx:VBox label="{lang('Menu settings')}" width="100%" height="100%">
 			
@@ -329,10 +324,7 @@
 				<TextInputWithPrompt id="promptInput" prompt="{SessionStateMenuTool.DEFAULT_PROMPT}"/>
 				<CustomCheckBox id="alwaysShowPromptCheck" label="{lang('Always show')}"/>
 			</Indent>
-			<mx:HBox>
-				<CustomCheckBox id="autoRecordCheck" label="{lang('Auto-record session state for active menu item')}"/>
-				<mx:Button id="recordNowButton" label="{lang('Record now')}" click="outerDocument.recordSelectedChoice();"/>
-			</mx:HBox>
+			<CustomCheckBox id="autoRecordCheck" label="{lang('Auto-record session state for active menu item')}"/>
 			
 			<mx:TabNavigator initialize="UIUtils.pad(event, 8, 100, 100)">
 				<mx:VBox label="{lang('Targets')}" width="100%" height="100%">
@@ -357,6 +349,7 @@
 				<mx:VBox label="{lang('Menu items')}" width="100%" height="100%">
 					<mx:HBox width="100%">
 						<mx:Button label="{lang('Add new item for current state')}" click="addNewItem();"/>
+						<mx:Button id="recordNowButton" label="{lang('Update selected item')}" click="outerDocument.recordSelectedChoice();"/>
 						<mx:Spacer width="100%"/>
 						<mx:Button label="{lang('Remove selected')}"
 								   enabled="{choicesList.selectedIndex >= 0}" 
@@ -380,6 +373,7 @@
 				import weave.api.reportError;
 				import weave.compiler.Compiler;
 				import weave.core.LinkableDynamicObject;
+				import weave.core.LinkableVariable;
 				import weave.core.UIUtils;
 				
 				private var _compiler:Compiler = new Compiler(false);
@@ -456,7 +450,9 @@
 				
 				private function addNewItem():void
 				{
-					choicesController.beginEditVariableName(outerDocument.addNewChoice());
+					var name:String = outerDocument.addNewChoice();
+					var choice:ILinkableObject = outerDocument.choices.getObject(name);
+					choicesController.beginEditVariableName(choice)
 				}
 				
 				private function handleChoicesListChange():void
