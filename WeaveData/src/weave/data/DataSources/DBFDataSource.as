@@ -68,7 +68,7 @@ package weave.data.DataSources
 		{
 			// make sure everything is ready before column requests get handled.
 			return super.initializationComplete
-				&& !linkableObjectIsBusy(this)
+				&& dbfData
 				&& (!shpfile || shpfile.geomsReady);
 		}
 		
