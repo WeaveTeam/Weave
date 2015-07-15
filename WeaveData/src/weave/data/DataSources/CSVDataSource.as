@@ -206,8 +206,15 @@ package weave.data.DataSources
 			if (parsedRows && (forced || changed))
 			{
 				var colNames:Array = parsedRows[0] || [];
-				// it is ok if keyColIndex is -1 because getColumnValues supports -1
-				var keyColIndex:int = keyColName.value ? colNames.indexOf(keyColName.value) : -1;
+				// getColumnValues supports columnIndex -1
+				var keyColIndex:int = -1;
+				if (keyColName.value)
+				{
+					keyColIndex = colNames.indexOf(keyColName.value);
+					// treat invalid keyColName as an error
+					if (keyColIndex < 0)
+						keyColIndex = -2;
+				}
 				var keyStrings:Array = getColumnValues(parsedRows, keyColIndex, []);
 				var keyTypeString:String = keyType.value;
 				
@@ -595,12 +602,12 @@ package weave.data.DataSources
 		 * @param columnIndex If this is -1, record index values will be returned.  Otherwise, this specifies which column to get values from.
 		 * @param outputArrayOrVector Output Array or Vector to store the values from the specified column, excluding the first row, which is the header.
 		 * @return outputArrayOrVector
-		 */		
+		 */
 		private function getColumnValues(rows:Array, columnIndex:int, outputArrayOrVector:*):*
 		{
 			outputArrayOrVector.length = Math.max(0, rows.length - 1);
 			var i:int;
-			if (columnIndex < 0)
+			if (columnIndex == -1)
 			{
 				// generate keys 0,1,2,3,...
 				for (i = 1; i < rows.length; i++)

@@ -27,7 +27,7 @@
 		<ui:BinningDefinitionEditor id="binEditor"/>
 	</mx:VBox>
 	<mx:VBox id="advControlsPanel" label="{lang('Color scale')}">
-		<CustomCheckBox id="centerAtZero" label="{lang('Center color ramp at zero')}"/>
+		<CustomCheckBox id="centerAtZero" label="{lang('Center color ramp at zero (when binning is disabled)')}"/>
 		<ui:ColorRampEditor id="cRampEditor"/>
 	</mx:VBox>
 	<ui:ColorOverrideEditor id="colorOverrideEditor" label="{lang('Color specific records')}"/>
