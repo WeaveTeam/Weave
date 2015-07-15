@@ -168,7 +168,7 @@
 				<mx:HSlider liveDragging="true" minimum="10" maximum="100" tickInterval="10" snapInterval="5" width="100%" dataTipFormatFunction="{Math.round}"
 							creationComplete="linkBindableProperty(outerDocument._plotter.shapeSize, event.target, 'value')"/>
 			</ui:Indent>
-			<ui:CustomCheckBox id="centerAtZero" label="{lang('Center color ramp at zero')}" change="handleCenterAtZero()"/>
+			<ui:CustomCheckBox id="centerAtZero" label="{lang('Center color ramp at zero (when binning is disabled')}" change="handleCenterAtZero()"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 		<mx:Script>
