@@ -91,7 +91,7 @@
 				_editor.percentHeight = 100;
 			}
 			
-			private function addSource():void
+			public function addSource():void
 			{
 				if (!_editor)
 					return;

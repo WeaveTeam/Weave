@@ -180,13 +180,10 @@
 				{
 					for each (var file:File in dropFiles)
 					{
-						switch (file.extension.toLowerCase())
-						{
-							case "xml":
-							case "weave":
-								params['file'] = file.nativePath;
-							default:
-						}
+						var ext:String = file.extension.toLowerCase();
+						if (ext == 'xml' || ext == 'weave')
+							params['file'] = file.nativePath;
+						
 						WeaveAPI.StageUtils.callLater(this, loadFile, [file]);
 					}
 				}
