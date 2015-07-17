@@ -39,7 +39,8 @@
 			
 			private function handlePlayClick():void
 			{
-				lastFrame = getTimer() - 1000 / slider.value / 2;
+				lastFrame = getTimer();
+				//lastFrame = getTimer() - 1000 / slider.value / 2;
 			}
 			
 			private var lastFrame:int = 0;
