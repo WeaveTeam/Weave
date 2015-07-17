@@ -586,8 +586,12 @@ package weave.application
 			if (detectLinkableObjectChange(saveRecoverPoint, WeaveAPI.globalHashMap))
 			{
 				var cookie:SharedObject = SharedObject.getLocal(RECOVER_SHARED_OBJECT);
-				cookie.data[RECOVER_SHARED_OBJECT] = Weave.createWeaveFileContent();
-				cookie.flush();
+				var content:ByteArray = Weave.createWeaveFileContent();
+				if (content)
+				{
+					cookie.data[RECOVER_SHARED_OBJECT] = content;
+					cookie.flush();
+				}
 			}
 		}
 		private function getRecoverPoint():ByteArray
