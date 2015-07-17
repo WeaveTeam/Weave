@@ -267,34 +267,31 @@
 				_lastReplayTime = getTimer();
 			}
 			
-			private var _fileRef:FileReference = null;
 			private function load():void
 			{
 				try
 				{
-					if (!_fileRef)
-					{
-						_fileRef = new FileReference();
-						_fileRef.addEventListener(IOErrorEvent.IO_ERROR, reportError);
-						_fileRef.addEventListener(
-							Event.SELECT,
-							function (e:Event):void
-							{
-								_fileRef.load();
-							}
-						);
-						_fileRef.addEventListener(
-							Event.COMPLETE,
-							function (e:Event):void
-							{
-								// TEMPORARY SOLUTION
-								//WeaveAPI.topLevelApplication.visApp.loadSessionState(_fileRef.data, _fileRef.name);
-								WeaveAPI.topLevelApplication.visApp.handleDraggedFile(_fileRef.name, _fileRef.data);
-							}
-						);
-					}
+					var fileRef:FileReference = new FileReference();
+					fileRef.addEventListener(IOErrorEvent.IO_ERROR, reportError);
+					fileRef.addEventListener(
+						Event.SELECT,
+						function (e:Event):void
+						{
+							fileRef.load();
+						}
+					);
+					fileRef.addEventListener(
+						Event.COMPLETE,
+						function (e:Event):void
+						{
+							// TEMPORARY SOLUTION
+							//WeaveAPI.topLevelApplication.visApp.loadSessionState(_fileRef.data, _fileRef.name);
+							WeaveAPI.topLevelApplication.visApp.handleDraggedFile(fileRef.name, fileRef.data);
+						}
+					);
+					
 					// TEMPORARY SOLUTION until we can register file type handlers
-					_fileRef.browse(WeaveAPI.topLevelApplication.visApp.getSupportedFileTypes());
+					fileRef.browse(WeaveAPI.topLevelApplication.visApp.getSupportedFileTypes());
 				}
 				catch (e:Error)
 				{
