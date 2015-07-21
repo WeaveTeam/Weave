@@ -69,7 +69,7 @@ package weave.core
 				throw new Error("newLinkableChild(): Child type parameter cannot be null.");
 			
 			var childQName:String = getQualifiedClassName(linkableChildType);
-			if (!ClassUtils.classImplements(childQName, ILinkableObjectQualifiedClassName))
+			if (!ClassUtils.classImplements(childQName, ILinkableObject_QName))
 			{
 				if (ClassUtils.hasClassDefinition(childQName))
 					throw new Error("newLinkableChild(): Child class does not implement ILinkableObject.");
@@ -620,7 +620,7 @@ package weave.core
 						if (deprecated)
 							deprecatedSetters.push(variable.name);
 					}
-					else if (ClassUtils.classImplements(variable.type, ILinkableObjectQualifiedClassName))
+					else if (ClassUtils.classImplements(variable.type, ILinkableObject_QName))
 					{
 						deprecatedGetterLookup[variable.name] = deprecated;
 						propertyNames.push(variable.name);
@@ -639,9 +639,10 @@ package weave.core
 		/**
 		 * This function gets a list of sessioned property names so accessor functions for non-sessioned properties do not have to be called.
 		 * @param linkableObject An object containing sessioned properties.
+		 * @param filtered If set to true, filters out deprecated and null properties.
 		 * @return An Array containing the names of the sessioned properties of that object class.
 		 */
-		public function getLinkablePropertyNames(linkableObject:ILinkableObject):Array
+		public function getLinkablePropertyNames(linkableObject:ILinkableObject, filtered:Boolean = false):Array
 		{
 			if (linkableObject == null)
 			{
@@ -656,10 +657,30 @@ package weave.core
 				cacheClassInfo(linkableObject, className);
 				propertyNames = classNameToSessionedPropertyNames[className] as Array;
 			}
+			
+			if (filtered)
+			{
+				var filteredNames:Array = [];
+				var deprecatedLookup:Object = classNameToDeprecatedGetterLookup[className];
+				for each (var name:String in propertyNames)
+				{
+					try
+					{
+						if (!deprecatedLookup[name] && linkableObject[name] != null)
+							filteredNames.push(name);
+					}
+					catch (e:Error)
+					{
+						reportError('Unable to get property "'+name+'" of class "'+getQualifiedClassName(linkableObject)+'"');
+					}
+				}
+				return filteredNames;
+			}
+			
 			return propertyNames;
 		}
 		
-		internal static const ILinkableObjectQualifiedClassName:String = getQualifiedClassName(ILinkableObject);
+		internal static const ILinkableObject_QName:String = getQualifiedClassName(ILinkableObject);
 		
 		/**
 		 * This maps a parent ILinkableObject to a Dictionary, which maps each child ILinkableObject it owns to a value of true.

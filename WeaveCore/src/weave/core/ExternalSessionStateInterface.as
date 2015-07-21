@@ -115,7 +115,7 @@ package weave.core
 					return (object as ILinkableHashMap).getNames();
 				if (object is ILinkableDynamicObject)
 					return [null];
-				return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object);
+				return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object, true);
 			}
 			
 			externalError("No ILinkableObject for which to get child names at path {0}", Compiler.stringify(objectPath));
