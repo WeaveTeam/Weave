@@ -639,7 +639,7 @@ package weave.core
 		/**
 		 * This function gets a list of sessioned property names so accessor functions for non-sessioned properties do not have to be called.
 		 * @param linkableObject An object containing sessioned properties.
-		 * @param filtered If set to true, filters out deprecated and null properties.
+		 * @param filtered If set to true, filters out deprecated, null, and excluded properties.
 		 * @return An Array containing the names of the sessioned properties of that object class.
 		 */
 		public function getLinkablePropertyNames(linkableObject:ILinkableObject, filtered:Boolean = false):Array
@@ -666,8 +666,14 @@ package weave.core
 				{
 					try
 					{
-						if (!deprecatedLookup[name] && linkableObject[name] != null)
-							filteredNames.push(name);
+						if (deprecatedLookup[name])
+							continue;
+						
+						var property:ILinkableObject = linkableObject[name];
+						if (property == null || childToParentDictionaryMap[property] === undefined || !childToParentDictionaryMap[property][linkableObject])
+							continue;
+
+						filteredNames.push(name);
 					}
 					catch (e:Error)
 					{
