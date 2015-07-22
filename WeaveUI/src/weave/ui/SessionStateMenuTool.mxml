@@ -46,6 +46,7 @@
 			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
 			import weave.utils.LinkableTextFormat;
+			import weave.utils.VectorUtils;
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, SessionStateMenuTool, "Session State Menu Tool");
 			
@@ -123,6 +124,35 @@
 						WeaveAPI.SessionManager.setSessionState(wrapper.target, states[name], true);
 				}
 				targets.resumeCallbacks();
+			}
+			
+			public function tidySavedStates():void
+			{
+				for each (var choice:LinkableVariable in choices.getObjects())
+				{
+					var updated:Boolean = false;
+					var choiceState:Object = choice.getSessionState() || {};
+					var name:String;
+					// save states for newly-added targets
+					for each (var wrapper:LinkableDynamicObject in targets.getObjects())
+					{
+						if (!wrapper.target)
+							continue;
+						name = targets.getName(wrapper);
+						if (!choiceState.hasOwnProperty(name))
+						{
+							choiceState[name] = WeaveAPI.SessionManager.getSessionState(wrapper.target);
+							updated = true;
+						}
+					}
+					// remove states for removed targets
+					for each (name in VectorUtils.getKeys(choiceState))
+						if (!targets.getObject(name))
+							delete choiceState[name];
+					
+					if (updated)
+						choice.setSessionState(choiceState);
+				}
 			}
 			
 			public function recordSelectedChoice():void
@@ -341,7 +371,7 @@
 						<mx:Spacer width="100%"/>
 						<mx:Button label="{lang('Remove selected')}"
 								   enabled="{targetsList.selectedIndex >= 0}" 
-								   click="targetsController.removeSelectedItems();"/>
+								   click="targetsController.removeSelectedItems(); outerDocument.tidySavedStates();"/>
 					</Indent>
 					<mx:List id="targetsList" width="100%" height="100%"/>
 				</mx:VBox>
@@ -434,6 +464,7 @@
 						if (wrapper.target)
 						{
 							targetPathInput.text = '';
+							outerDocument.tidySavedStates();
 						}
 						else
 						{
