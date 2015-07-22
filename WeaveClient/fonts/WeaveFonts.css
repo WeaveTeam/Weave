@@ -6,7 +6,8 @@ and make sure the "Compile CSS to SWF" option is checked.
 
 @font-face { src: url("fonts/SophiaNubian/SNR.ttf"); embedAsCFF: false; fontFamily: "Sophia Nubian"; fontWeight: normal; }
 @font-face { src: url("fonts/SophiaNubian/SNB.ttf"); embedAsCFF: false; fontFamily: "Sophia Nubian"; fontWeight: bold; }
-@font-face { src: url("fonts/NotoSansCJK-TC/NotoSansCJKtc-Regular.otf"); embedAsCFF: false; fontFamily: "Noto Sans CJK"; fontWeight: normal; }
+@font-face { src: url("fonts/NotoSansCJK/NotoSansCJKtc-Regular.otf"); embedAsCFF: false; fontFamily: "Noto Sans CJK TC"; fontWeight: normal; }
+@font-face { src: url("fonts/NotoSansCJK/NotoSansCJKsc-Regular.otf"); embedAsCFF: false; fontFamily: "Noto Sans CJK SC"; fontWeight: normal; }
 
 /*
 
