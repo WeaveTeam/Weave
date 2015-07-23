@@ -406,8 +406,6 @@
 				import weave.core.LinkableVariable;
 				import weave.core.UIUtils;
 				
-				private var _compiler:Compiler = new Compiler(false);
-				
 				override protected function childrenCreated():void
 				{
 					super.childrenCreated();
@@ -446,7 +444,7 @@
 				private function isValidPath(pathStr:String):Boolean
 				{
 					try {
-						return _compiler.parseConstant(pathStr) is Array;
+						return Compiler.parseConstant(pathStr) is Array;
 					} catch (e:Error) { }
 					return false;
 				}
@@ -455,7 +453,7 @@
 				{
 					try
 					{
-						var path:Array = _compiler.parseConstant(targetPathInput.text) as Array;
+						var path:Array = Compiler.parseConstant(targetPathInput.text) as Array;
 						if (!path)
 							return;
 						var targets:ILinkableHashMap = outerDocument.targets;

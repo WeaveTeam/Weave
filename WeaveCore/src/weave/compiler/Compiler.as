@@ -277,15 +277,19 @@ package weave.compiler
 			return finalize(compileTokens(getTokens(expression), true));
 		}
 		
+		private static var _staticInstance:Compiler = null;
+		
 		/**
 		 * Attempts to compile an expression as a constant, then returns the constant value.
 		 * @param constantExpression
 		 * @return The value of the expression.
 		 * @throws Error if the expression cannot be evaluated as a constant.
 		 */
-		public function parseConstant(constantExpression:String):*
+		public static function parseConstant(constantExpression:String):*
 		{
-			var compiled:ICompiledObject = finalize(compileTokens(getTokens(constantExpression), false), true);
+			if (!_staticInstance)
+				_staticInstance = new Compiler(false);
+			var compiled:ICompiledObject = _staticInstance.finalize(_staticInstance.compileTokens(_staticInstance.getTokens(constantExpression), false), true);
 			if (compiled is CompiledConstant)
 			{
 				return (compiled as CompiledConstant).value;
