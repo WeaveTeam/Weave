@@ -28,7 +28,6 @@ package weave.data.DataSources
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ProxyColumn;
 	
 	public class CKANDataSource extends AbstractDataSource implements IDataSource_Service
@@ -222,7 +221,6 @@ package weave.data.DataSources
 }
 
 import flash.events.Event;
-import flash.external.ExternalInterface;
 import flash.net.URLRequest;
 import flash.net.URLRequestHeader;
 import flash.net.URLRequestMethod;
@@ -418,10 +416,8 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			var JSON:Object = ClassUtils.getClassDefinition('JSON');
 			if (JSON)
 				return JSON.parse(json);
-			else if (ExternalInterface.available)
-				return ExternalInterface.call('JSON.parse', json);
-			
-			reportError("No JSON parser available");
+			else
+				return Compiler.parseConstant(json);
 		}
 		catch (e:Error)
 		{
