@@ -117,6 +117,10 @@
 			{
 				_plotter.setProvider(wmsLayerService.selectedItem as String);
 				
+				// don't relink if service didn't change
+				if (_customWMS == _plotter.service.internalObject)
+					return;
+				
 				if (_customWMS != null)
 				{
 					unlinkBindableProperty(_customWMS.wmsURL,wmsURLText,"text");
