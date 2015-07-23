@@ -84,7 +84,27 @@ package weave.data.DataSources
 		/**
 		 * This is an Array of public metadata field names that should be used to uniquely identify columns when querying the server.
 		 */
-		private const idFields:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray));
+		private const _idFields:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray));
+		
+		// for backwards compatibility to override server idFields setting
+		private var _overrideIdFields:LinkableVariable;
+		
+		/**
+		 * Provided for backwards compatibility - setting this will override the server setting.
+		 */
+		[Deprecated] public function get idFields():LinkableVariable
+		{
+			if (!_overrideIdFields)
+				_overrideIdFields = registerLinkableChild(_idFields, new LinkableVariable(Array, verifyStringArray), handleDeprecatedIdFields);
+			return _overrideIdFields;
+		}
+		private function handleDeprecatedIdFields():void
+		{
+			// if session state is set to some array, use it as an override for the server setting. otherwise, ignore it.
+			var state:Array = _overrideIdFields.getSessionState() as Array;
+			if (state)
+				_idFields.setSessionState(state);
+		}
 		
 		public function get entityCache():EntityCache
 		{
@@ -221,8 +241,11 @@ package weave.data.DataSources
 		
 		private function setIdFields():void
 		{
+			// if deprecated idFields state has been set to an array, ignore server setting
+			if (_overrideIdFields && _overrideIdFields.getSessionState())
+				return;
 			var info:Object = _service.getServerInfo();
-			idFields.setSessionState(info ? info['idFields'] as Array : null);
+			_idFields.setSessionState(info ? info['idFields'] as Array : null);
 		}
 		
 		/**
@@ -464,11 +487,11 @@ package weave.data.DataSources
 			const SQLPARAMS:String = 'sqlParams';
 			var params:Object = getMetadata(proxyColumn, [ENTITY_ID, ColumnMetadata.MIN, ColumnMetadata.MAX, SQLPARAMS], false);
 			var query:AsyncToken;
-			var _idFields:Array = idFields.getSessionState() as Array;
+			var idFieldsArray:Array = _idFields.getSessionState() as Array;
 			
-			if (_idFields || params[ENTITY_ID])
+			if (idFieldsArray || params[ENTITY_ID])
 			{
-				var id:Object = _idFields ? getMetadata(proxyColumn, _idFields, true) : StandardLib.asNumber(params[ENTITY_ID]);
+				var id:Object = idFieldsArray ? getMetadata(proxyColumn, idFieldsArray, true) : StandardLib.asNumber(params[ENTITY_ID]);
 				var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(params[SQLPARAMS]);
 				query = _service.getColumn(id, params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
 			}
