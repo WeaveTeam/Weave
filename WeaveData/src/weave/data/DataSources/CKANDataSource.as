@@ -16,6 +16,7 @@
 package weave.data.DataSources
 {
 	import mx.utils.ObjectUtil;
+	import mx.utils.URLUtil;
 	
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
@@ -144,6 +145,21 @@ package weave.data.DataSources
 		public static const PARAMS_CKAN_FIELD:String = 'ckan_field';
 		public static const DATASTORE_FORMAT:String = 'ckan_datastore';
 		
+		public function getBaseURL():String
+		{
+			var baseurl:String = this.url.value || '';
+			var i:int = baseurl.lastIndexOf('/api');
+			if (i >= 0)
+				baseurl = baseurl.substr(0, i);
+			if (baseurl.charAt(baseurl.length - 1) != '/')
+				baseurl += '/';
+			return baseurl;
+		}
+		public function getFullURL(relativeURL:String):String
+		{
+			return URLUtil.getFullURL(getBaseURL(), relativeURL);
+		}
+		
 		/**
 		 * @private
 		 */
@@ -179,9 +195,10 @@ package weave.data.DataSources
 				if (format == DATASTORE_FORMAT)
 				{
 					var datastore:CSVDataSource = new CSVDataSource();
+					datastore.url.value = getFullURL('datastore/dump/' + params[PARAMS_CKAN_ID]);
 					var node:CKANAction = new CKANAction(this);
 					node.action = CKANAction.DATASTORE_SEARCH;
-					node.params = {"resource_id": params[PARAMS_CKAN_ID]};
+					node.params = {"resource_id": params[PARAMS_CKAN_ID], "limit": 1};
 					node.resultHandler = function(result:Object):void {
 						datastore.metadata.setSessionState(
 							result['fields'].map(function(field:Object, i:*, a:*):Object {
@@ -199,9 +216,6 @@ package weave.data.DataSources
 								return meta;
 							})
 						);
-						var columnOrder:Array = result['fields'].map(function(field:Object, i:*, a:*):String { return field['id']; });
-						var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(result['records'], columnOrder, true);
-						datastore.csvData.setSessionState(rows);
 					};
 					node.result; // will cause resultHandler to be called later
 					dataSource = datastore;
@@ -318,20 +332,11 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	}
 	private function getURLRequest():URLRequest
 	{
-		// get base url
-		var url:String = source.url.value || '';
-		var i:int = url.lastIndexOf('/api');
-		if (i >= 0)
-			url = url.substr(0, i);
-		if (url.charAt(url.length - 1) != '/')
-			url += '/';
-		
 		// append api command to url
 		var request:URLRequest;
 		if (apiVersion3)
 		{
-			url = URLUtil.getFullURL(url, "api/3/action/" + action);
-			request = new URLRequest(url);
+			request = new URLRequest(source.getFullURL("api/3/action/" + action));
 			if (params)
 			{
 				if (source.useHttpPost.value)
@@ -353,8 +358,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			var cmd:String = 'api/' + source.apiVersion.value + '/rest/' + action.split('_')[0];
 			if (params && params.hasOwnProperty('id'))
 				cmd += '/' + params['id'];
-			url = URLUtil.getFullURL(url, cmd);
-			request = new URLRequest(url);
+			request = new URLRequest(source.getFullURL(cmd));
 		}
 		return request;
 	}
@@ -619,7 +623,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 				{
 					node.action = DATASTORE_SEARCH;
 					node.metadata = resource;
-					node.params = {"resource_id": resource['id'], "limit": 0};
+					node.params = {"resource_id": resource['id'], "limit": 1};
 				}
 				else
 				{
