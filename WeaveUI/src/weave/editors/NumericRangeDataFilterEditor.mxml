@@ -20,14 +20,15 @@
 		implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject"
 		creationPolicy="all"
 		horizontalScrollPolicy="off" verticalScrollPolicy="off" width="100%" verticalAlign="middle">
-	<ui:CustomCheckBox paddingLeft="4" id="filterEnable" label="{getEnableLabel(columnTitle)}" change="toggleFilter();"/>
-	<ui:PlayButton id="playButton" enabled="{filterEnable.selected}"/>
-	<mx:HSlider id="filterSlider" enabled="{filterEnable.selected}" fillAlphas="{[1, 1]}"
+	<ui:CustomCheckBox paddingLeft="4" id="filterToggle" change="toggleFilter();"/>
+	<ui:PlayButton id="playButton" enabled="{filterToggle.selected}"/>
+	<mx:HSlider id="filterSlider" enabled="{filterToggle.selected}"
+				width="100%" minWidth="22"
+				fillAlphas="{[1, 1]}"
 				liveDragging="true"
 				dataTipFormatFunction="{dataTipFormatFunction}"
 				mouseDown="event.target.setFocus(); event.stopPropagation()"
-				change="handleSliderChange(event);"
-				width="100%" minWidth="22"/>
+				change="handleSliderChange(event);"/>
 	<mx:Script>
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
@@ -56,13 +57,13 @@
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('ColumnUtils.deriveStringFromNumber(column, number)', true, false, ['column', 'number']), invalidateDisplayList);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const showToggleLabel:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateToggleLabel);
 			public const showMinThumb:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), invalidateDisplayList);
 			public const showMaxThumb:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), invalidateDisplayList);
 			public const forceDiscreteValues:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), invalidateDisplayList);
 			public const discreteValueLabelInterval:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, verifyUINT), invalidateDisplayList);
 			public const playStep:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, verifyPositive));
 			private var discreteValues:Array;
-			[Bindable] private var columnTitle:String;
 			
 			private const filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, invalidateDisplayList);
 			private const statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, invalidateDisplayList);
@@ -81,7 +82,7 @@
 				super.childrenCreated();
 				
 				UIUtils.linkVisibility(this, showPlayButton, playButton);
-				UIUtils.linkVisibility(this, showToggle, filterEnable);
+				UIUtils.linkVisibility(this, showToggle, filterToggle);
 				BindingUtils.bindSetter(handlePlayStep, playButton, 'step');
 				playButton.button.addEventListener(MouseEvent.CLICK, handlePlayClick);
 			}
@@ -136,11 +137,6 @@
 				setLastSliderValue(Math.min(value + playStep.value, filterSlider.maximum));
 			}
 			
-			private function getEnableLabel(columnTitle:String):String
-			{
-				return lang('Filter by {0}', columnTitle || '...');
-			}
-			
 			public function get filter():ColumnDataFilter
 			{
 				return filterWatcher.target as ColumnDataFilter;
@@ -158,7 +154,7 @@
 			private function toggleFilter():void
 			{
 				if (filter)
-					filter.enabled.value = filterEnable.selected;
+					filter.enabled.value = filterToggle.selected;
 			}
 			
 			private function getFilterMin():Number
@@ -226,11 +222,28 @@
 				}
 				filterSlider.setStyle('fillColors', [thumbColor.value, thumbColor.value]);
 			}
+			
+			private function updateToggleLabel():void
+			{
+				if (!parent)
+				{
+					callLater(updateToggleLabel);
+					return;
+				}
+				
+				if (showToggleLabel.value)
+				{
+					var title:String = filter.column ? ColumnUtils.getTitle(filter.column) : null;
+					filterToggle.label = lang('Filter by {0}', title || '...');
+				}
+				else
+					filterToggle.label = '';
+			}
 
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 			{
-				if (filter && filterEnable.selected != filter.enabled.value)
-					filterEnable.selected = filter.enabled.value;
+				if (filter && filterToggle.selected != filter.enabled.value)
+					filterToggle.selected = filter.enabled.value;
 				
 				if (detectLinkableObjectChange(updateDisplayList, filterWatcher, showMinThumb, showMaxThumb, forceDiscreteValues, discreteValueLabelInterval, statsWatcher, labelFunction))
 				{
@@ -242,9 +255,8 @@
 					if (ready && (showMinThumb.value || showMaxThumb.value))
 					{
 						var column:DynamicColumn = filter.column;
-						
+						updateToggleLabel();
 						enabled = true;
-						columnTitle = ColumnUtils.getTitle(column);
 						
 						var sliderMinValue:Number = getFilterMin();
 						var sliderMaxValue:Number = getFilterMax();
@@ -339,7 +351,7 @@
 					else
 					{
 						enabled = false;
-						filterEnable.selected = false;
+						filterToggle.selected = false;
 						filterSlider.labels = null;
 						filterSlider.minimum = 0;
 						filterSlider.maximum = 100;
