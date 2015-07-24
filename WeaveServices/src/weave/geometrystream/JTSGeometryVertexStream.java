@@ -17,6 +17,7 @@ package weave.geometrystream;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 
 /**
  * This is an interface to a stream of vertices from a geometry.
@@ -29,10 +30,17 @@ public class JTSGeometryVertexStream implements IGeometryVertexStream
 	{
 		coords = geom.getCoordinates();
 		index = -1; // start before the first coord so the first call to next() will not skip anything
+		partNum = -1; // start before the first part
+		partEndIndex = -1;
+		if (geom.getGeometryType().equals("Polygon"))
+			polygon = (Polygon)geom;
 	}
 	
+	private Polygon polygon = null;
 	private Coordinate[] coords;
 	private int index;
+	private int partNum;
+	private int partEndIndex;
 	
 	/**
 	 * This checks if there is a vertex available from the stream.
@@ -51,11 +59,28 @@ public class JTSGeometryVertexStream implements IGeometryVertexStream
 	 */
 	public boolean next()
 	{
+		if (index == partEndIndex)
+		{
+			++partNum;
+			if (partNum == 0)
+				partEndIndex += polygon != null ? polygon.getExteriorRing().getNumPoints() : coords.length;
+			else
+				partEndIndex += polygon.getInteriorRingN(partNum - 1).getNumPoints();
+		}
+		
 		return ++index < coords.length;
 	}
 	
 	/**
-	 * @return The X coordinate of the current vertex.
+	 * Checks if the current vertex ends a part of the geometry, meaning vertices that follow will be from a new part.
+	 */
+	public boolean isEndOfPart()
+	{
+		return index == partEndIndex;
+	}
+	
+	/**
+	 * Gets the X coordinate of the current vertex.
 	 */
 	public double getX()
 	{
@@ -63,7 +88,7 @@ public class JTSGeometryVertexStream implements IGeometryVertexStream
 	}
 
 	/**
-	 * @return The Y coordinate of the current vertex.
+	 * Gets the Y coordinate of the current vertex.
 	 */
 	public double getY()
 	{
