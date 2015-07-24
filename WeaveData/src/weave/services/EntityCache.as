@@ -25,6 +25,7 @@ package weave.services
     import weave.api.data.ColumnMetadata;
     import weave.api.data.EntityType;
     import weave.api.getCallbackCollection;
+    import weave.api.objectWasDisposed;
     import weave.api.registerLinkableChild;
     import weave.api.reportError;
     import weave.api.services.IWeaveEntityManagementService;
@@ -107,6 +108,9 @@ package weave.services
 		 */
 		public function invalidate(id:int, alsoInvalidateRelatives:Boolean = false):void
 		{
+			if (objectWasDisposed(this))
+				return;
+			
 			//trace('invalidate',id, alsoInvalidateRelatives, entityCache[id]);
 			callbacks.delayCallbacks();
 			
@@ -372,6 +376,8 @@ package weave.services
 		 */
 		public function invalidateAll(purge:Boolean = false):void
         {
+			if (objectWasDisposed(this))
+				return;
 			if (purge)
 			{
 				idsToFetch = {};
