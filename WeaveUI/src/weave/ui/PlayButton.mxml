@@ -20,7 +20,7 @@
 		xmlns:ui="weave.ui.*"
 		enterFrame="handleEnterFrame(event)"
 		horizontalAlign="center">
-	<mx:Button id="button" label="\u25B6" toggle="true" toolTip="{lang('Play')}" click="handlePlayClick();"/>
+	<mx:Button id="button" label="&gt;" toggle="true" toolTip="{lang('Play')}" click="handlePlayClick();"/>
 	<mx:HSlider id="slider" width="48" minWidth="0" minimum=".5" maximum="2" tickInterval="0.5" snapInterval="0.25" value=".75" dataTipFormatFunction="{formatPlayTip}" liveDragging="true"/>
 	<mx:Script>
 		<![CDATA[
