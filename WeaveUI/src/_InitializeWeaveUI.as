@@ -27,6 +27,7 @@ package
 	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.GeoJSONDataSource;
 	import weave.data.DataSources.GraphMLDataSource;
+	import weave.data.DataSources.JsonDataSource;
 	import weave.data.DataSources.SocrataDataSource;
 	import weave.data.DataSources.TransposedDataSource;
 	import weave.data.DataSources.WFSDataSource;
