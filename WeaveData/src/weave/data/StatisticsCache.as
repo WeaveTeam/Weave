@@ -96,10 +96,9 @@ internal class ColumnStatistics implements IColumnStatistics
 	{
 		var min:Number = validateCache(getMin);
 		var max:Number = validateCache(getMax);
-		var value:* = column.getValueFromKey(key, Number);
-		if (value is Number)
-			return (value - min) / (max - min);
-		return NaN;
+		var numericData:Dictionary = validateCache(hack_getNumericData);
+		var value:Number = numericData ? numericData[key] : NaN;
+		return (value - min) / (max - min);
 	}
 	
 	/**
