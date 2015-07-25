@@ -122,6 +122,7 @@
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
+			import weave.utils.VectorUtils;
 			import weave.api.registerLinkableChild;
 			import weave.api.newLinkableChild;
 			import weave.core.LinkableWatcher;
@@ -204,7 +205,7 @@
 					dp.addItem(item);
 				}
 				
-				item = ColorRamp.getColorRampXMLByColorString(colorRamp.value)
+				item = ColorRamp.findMatchingColorRampXML(colorRamp)
 				colorRampList.selectedItem = item;
 				if (item)
 					colorRampList.scrollToIndex(colorRampList.selectedIndex);
@@ -214,18 +215,8 @@
 			
 			public function updateNewColorScale():void
 			{
-				var rampStringValue:String = '';
-				
-				for (var i:int = 0; i < colorsList.dataProvider.length; i++)
-				{
-					var item:Object = (colorsList.dataProvider as ArrayCollection).getItemAt(i);
-					
-					rampStringValue += item.color + ',';
-				}
-				
-				rampStringValue = rampStringValue.substr(0,rampStringValue.length-1);
-				
-				colorRamp.value = rampStringValue;
+				var items:Array = VectorUtils.getArrayFromCollection(colorsList.dataProvider as ICollectionView, false);
+				colorRamp.setSessionState(VectorUtils.pluck(items, 'color'));
 			}
 			public function setTarget(object:ILinkableObject):void
 			{
