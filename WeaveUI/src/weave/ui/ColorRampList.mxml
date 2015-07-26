@@ -104,10 +104,9 @@
 			private function colorRampCallback():void
 			{
 				// find item with matching name
-				var rampName:String = colorRamp.name;
-				var xmlList:XMLList = ColorRamp.allColorRamps.colorRamp.(@name == rampName);
-				if (xmlList.length() > 0)
-					selectedItem = xmlList[0];
+				var xml:XML = ColorRamp.findMatchingColorRampXML(colorRamp);
+				if (xml)
+					selectedItem = xml;
 			}
 			
 			private function handleColorRampSelected():void
