@@ -56,7 +56,6 @@ package weave.primitives
 					{
 						var xml:XML = XML(state);
 						var text:String = xml.text();
-						this.name = xml.@name;
 						reversed = String(xml.@reverse) == 'true';
 						if (text)
 						{
@@ -144,8 +143,6 @@ package weave.primitives
 		 * This Array should be kept private.
 		 */
 		private var _colorNodes:Array = [];
-		
-		public var name:String;
 		
 		public function getColors():Array
 		{
