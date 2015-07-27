@@ -52,6 +52,7 @@ package
 	import weave.editors.GridLinePlotterEditor;
 	import weave.editors.GroupedDataTransformEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
+	import weave.editors.JsonDataSourceEditor;
 	import weave.editors.NumericRangeDataFilterEditor;
 	import weave.editors.PartitionDataTransformEditor;
 	import weave.editors.ScatterPlotPlotterEditor;
@@ -146,6 +147,7 @@ package
 			em.registerEditor(DBFDataSource, DBFDataSourceEditor);
 			em.registerEditor(CensusDataSource, CensusDataSourceEditor);
 			em.registerEditor(CSVDataSource, CSVDataSourceEditor);
+			em.registerEditor(JsonDataSource, JsonDataSourceEditor);
 			em.registerEditor(GraphMLDataSource, GraphMLDataSourceEditor);
 			em.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
             em.registerEditor(GroupedDataTransform, GroupedDataTransformEditor);

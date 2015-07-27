@@ -33,6 +33,20 @@ package weave.data.DataSources
 		{
 			super();
 		}
+		
+		public function get properties():Array
+		{
+			if (columnStructure)
+			{
+				return VectorUtils.getKeys(columnStructure).filter(
+						function(d:String,..._) {return typeof(columnStructure[d]) != "object";}
+					);
+			}
+			else
+			{
+				return null;
+			}
+		}
 
 		private function columnsConfigChange():void
 		{
