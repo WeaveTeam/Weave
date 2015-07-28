@@ -4,6 +4,7 @@ package weave.data.DataSources
 	import weave.api.data.IDataSource;
 	import weave.api.data.IDataSource_File;
 	import weave.api.data.IWeaveTreeNode;
+	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.compiler.Compiler;
 	import weave.core.ClassUtils;
@@ -32,6 +33,7 @@ package weave.data.DataSources
 		public function JsonDataSource()
 		{
 			super();
+			getCallbackCollection(this).addImmediateCallback(this, function() {weaveTrace("callback fired.");});
 		}
 		
 		public function get properties():Array
@@ -50,44 +52,10 @@ package weave.data.DataSources
 
 		private function columnsConfigChange():void
 		{
+			refreshAllProxyColumns();
 			hierarchyRefresh.triggerCallbacks();
 		}
-		
-		private static function getChain(obj:Object, chain:*):*
-		{
-			var value:* = obj;
 
-			if (chain is String)
-				chain = [chain];
-
-			for each (var key:String in chain)
-			{
-				if (typeof(value) != "object" || !value.hasOwnProperty(key))
-				{
-					return undefined;
-				}
-				else
-				{
-					value = value[key];
-				}
-			}
-			return value;
-		}
-		
-		private static function mergeProperties(objectA:Object, objectB:Object):void
-		{
-			for (var key:String in objectB)
-			{
-				var itemA:* = objectA[key];
-				var itemB:* = objectB[key];
-				if ((itemA is Object || itemA is Array) &&
-					(itemB is Object || itemB is Array))
-					mergeProperties(itemA, itemB);
-				else if (!(itemA is Object || itemA is Array))
-					objectA[key] = true;
-			}
-		}
-		
 		private function handleFile():void
 		{
 			if (!url.result)
@@ -103,11 +71,13 @@ package weave.data.DataSources
 			{
 				mergeProperties(columnStructure, row);
 			}
+
+			columnsConfigChange();
 		}
 		
 		public static const JSON_FIELD_META_PREFIX:String = "__JsonPathIndex__";
 		/* Encode the path arrays using special properties of the metadata object. */
-		private function fromPathToMetadata(path:Array):Object
+		private static function fromPathToMetadata(path:Array):Object
 		{
 			var metadataObject:Object = {};
 			for (var index:String in path)
@@ -117,7 +87,7 @@ package weave.data.DataSources
 			return metadataObject;
 		}
 		
-		private function fromMetadataToPath(metadataObject:Object):Array
+		private static function fromMetadataToPath(metadataObject:Object):Array
 		{
 			var arrayOutput:Array = [];
 			var index:String;
@@ -131,6 +101,68 @@ package weave.data.DataSources
 			}
 			return arrayOutput;
 		}
+		
+		override public function getHierarchyRoot():IWeaveTreeNode
+		{
+			return _rootNode ? _rootNode : _rootNode = buildNode([]);
+		}
+		
+		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
+		{
+			return buildNode(fromMetadataToPath(metadata));
+		}
+		
+		private function pathHasChildBranches(path:Array):Boolean
+		{
+			var node:Object = getChain(columnStructure, path);
+			for each (var item:* in node)
+			{	
+				if (typeof(item) == "object") return true;
+			}
+			return false;
+		}
+		
+		private function buildNode(path:Array):ColumnTreeNode
+		{
+			var obj:* = getChain(columnStructure, path);
+			if (typeof(obj) != "object")
+				return buildColumnNode(path);
+			else
+				return buildObjectNode(path);
+		}
+		
+		private function buildColumnNode(path:Array):ColumnTreeNode
+		{
+			var meta:Object = fromPathToMetadata(path);
+			return new ColumnTreeNode({
+				dataSource: this,
+				data: meta,
+				idFields: VectorUtils.getKeys(meta),
+				label: path.slice(-1)[0],
+				children: null
+			});
+		}
+
+		private function buildObjectNode(path:Array):ColumnTreeNode
+		{
+			var meta:Object = fromPathToMetadata(path);
+			var obj:* = getChain(columnStructure, path);
+			return new ColumnTreeNode({
+				dataSource: this,
+				data: meta,
+				idFields: path.length == 0 ? null : VectorUtils.getKeys(meta),
+				label: (path.length == 0 ? WeaveAPI.globalHashMap.getName(this) : path.slice(-1)[0]),
+				hasChildBranches: pathHasChildBranches(path),
+				children: function():Array {
+					return VectorUtils.getKeys(obj).map(
+						function (key:String, ..._):Object {
+							return buildNode(path.concat([key]));
+						});
+				}
+			});
+		}
+		
+		
 		
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
@@ -179,69 +211,54 @@ package weave.data.DataSources
 			}
 			
 			proxyColumn.setMetadata(proxyMetadata);
-			
+			var autoKey:int = 0;
 			for (var index:int = 0; index < jsonData.length; index++)
 			{
-				keys[index] = jsonData[index][keyColName.value];
+				if (keyColName.value)
+					keys[index] = jsonData[index][keyColName.value];
+				else
+					keys[index] = autoKey++;
+				
 				values[index] = getChain(jsonData[index], path);
 			}
 			
 			DataSourceUtils.initColumn(proxyColumn, keys, values);
 		}
 		
-		private function pathHasChildBranches(path:Array):Boolean
+
+		private static function getChain(obj:Object, chain:*):*
 		{
-			var node:Object = getChain(columnStructure, path);
-			for each (var item:* in node)
-			{	
-				if (typeof(item) == "object") return true;
-			}
-			return false;
-		}
-		
-		private function buildColumnNode(path:Array):ColumnTreeNode
-		{
-			var meta:Object = fromPathToMetadata(path);
-			return new ColumnTreeNode({
-				dataSource: this,
-				data: meta,
-				idFields: VectorUtils.getKeys(meta),
-				label: path.slice(-1)[0],
-				children: null
-			});
-		}
-		private function buildObjectNode(path:Array):ColumnTreeNode
-		{
-			var meta:Object = fromPathToMetadata(path);
-			var obj:* = getChain(columnStructure, path);
-			return new ColumnTreeNode({
-				dataSource: this,
-				data: meta,
-				idFields: VectorUtils.getKeys(meta),
-				label: (path.length == 0 ? WeaveAPI.globalHashMap.getName(this) : path.slice(-1)[0]),
-				hasChildBranches: pathHasChildBranches(path),
-				children: function():Array {
-					return VectorUtils.getKeys(obj).map(
-						function (key:String, ..._):Object {
-							return buildNode(path.concat([key]));
-						});
+			var value:* = obj;
+
+			if (chain is String)
+				chain = [chain];
+
+			for each (var key:String in chain)
+			{
+				if (typeof(value) != "object" || !value.hasOwnProperty(key))
+				{
+					return undefined;
 				}
-			});
+				else
+				{
+					value = value[key];
+				}
+			}
+			return value;
 		}
 		
-		private function buildNode(path:Array):ColumnTreeNode
+		private static function mergeProperties(objectA:Object, objectB:Object):void
 		{
-			var obj:* = getChain(columnStructure, path);
-			if (typeof(obj) != "object")
-				return buildColumnNode(path);
-			else
-				return buildObjectNode(path);
-		}
-		
-		override public function getHierarchyRoot():IWeaveTreeNode
-		{
-			var self:JsonDataSource = this;
-			return buildNode([]);
+			for (var key:String in objectB)
+			{
+				var itemA:* = objectA[key];
+				var itemB:* = objectB[key];
+				if (typeof(itemA) == "object" &&
+					typeof(itemB) == "object")
+					mergeProperties(itemA, itemB);
+				else if (!(itemA is Object || itemA is Array))
+					objectA[key] = true;
+			}
 		}
 	}
 }
