@@ -45,6 +45,7 @@
 			import weave.core.LinkableString;
 			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
+			import weave.menus.WeaveMenuItem;
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.VectorUtils;
 
@@ -65,6 +66,9 @@
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
+				
+				enableSubMenu.value = true;
+				enableSubMenu.lock();
 				getCallbackCollection(this).addImmediateCallback(this, selfCallback);
 			}
 			
@@ -95,6 +99,68 @@
 				});
 				
 				menuStack.addEventListener(MouseEvent.CLICK, handleMouseClick);
+				
+				subMenuButton.data = [
+					{
+						label: lang('Add new item for current state'),
+						click: function():void {
+							var name:String = choices.generateUniqueName('item');
+							AlertTextBox.show(
+								lang('New menu item'),
+								lang('Enter a label for the new menu item'),
+								name,
+								function(newName:String):Boolean {
+									return choices.getObject(newName) == null;
+								},
+								addNewChoice
+							);
+						}
+					},{
+						label: function():String {
+							return selectedChoiceExists()
+								? lang('Rename "{0}"', selectedChoice.value)
+								: lang('Rename selected item');
+						},
+						enabled: selectedChoiceExists,
+						click: function():void {
+							AlertTextBox.show(
+								lang('Rename menu item'),
+								lang('Enter a new label for "{0}"', selectedChoice.value),
+								selectedChoice.value,
+								function(newName:String):Boolean {
+									return choices.getObject(newName) == null;
+								},
+								function(newName:String):void {
+									choices.renameObject(selectedChoice.value, newName);
+									selectedChoice.value = newName;
+								}
+							);
+						}
+					},{
+						label: function():String {
+							return selectedChoiceExists()
+								? lang('Delete "{0}"', selectedChoice.value)
+								: lang('Delete selected item');
+						},
+						enabled: selectedChoiceExists,
+						click: removeSelectedChoice
+					},
+					WeaveMenuItem.TYPE_SEPARATOR,
+					{
+						label: lang('Auto-update active menu item'),
+						type: WeaveMenuItem.TYPE_CHECK,
+						toggled: autoRecord,
+						click: autoRecord
+					},{
+						label: function():String {
+							return selectedChoiceExists()
+								? lang('Update "{0}"', selectedChoice.value)
+								: lang('Update selected item');
+						},
+						enabled: [{not: autoRecord}, selectedChoiceExists],
+						click: recordSelectedChoice
+					}
+				];
 			}
 			
 			private function getTargetStates():Object
@@ -155,6 +221,11 @@
 				}
 			}
 			
+			public function selectedChoiceExists():Boolean
+			{
+				return choices.getObject(selectedChoice.value) != null;
+			}
+			
 			public function recordSelectedChoice():void
 			{
 				var name:String = selectedChoice.value;
@@ -165,12 +236,24 @@
 				}
 			}
 			
-			public function addNewChoice():String
+			public function addNewChoice(name:String = null):String
 			{
-				var name:String = choices.generateUniqueName("item");
+				if (!name)
+					name = choices.generateUniqueName("item");
 				selectedChoice.value = name;
 				recordSelectedChoice();
 				return name;
+			}
+			
+			public function removeSelectedChoice():void
+			{
+				var names:Array = choices.getNames();
+				var i:int = names.indexOf(selectedChoice.value);
+				if (i < 0)
+					i = names.length - 1;
+				choices.removeObject(selectedChoice.value);
+				names = choices.getNames();
+				selectedChoice.value = names[Math.min(i, names.length - 1)];
 			}
 			
 			private function handleMouseClick(event:MouseEvent):void
@@ -354,7 +437,7 @@
 				<TextInputWithPrompt id="promptInput" prompt="{SessionStateMenuTool.DEFAULT_PROMPT}"/>
 				<CustomCheckBox id="alwaysShowPromptCheck" label="{lang('Always show')}"/>
 			</Indent>
-			<CustomCheckBox id="autoRecordCheck" label="{lang('Auto-record session state for active menu item')}"/>
+			<CustomCheckBox id="autoRecordCheck" label="{lang('Auto-update active menu item')}"/>
 			
 			<mx:TabNavigator initialize="UIUtils.pad(event, 8, 100, 100)">
 				<mx:VBox label="{lang('Targets')}" width="100%" height="100%">
