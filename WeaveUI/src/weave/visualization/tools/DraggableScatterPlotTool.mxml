@@ -23,7 +23,7 @@ along with Weave.  If not, see <http://www.gnu.org/licenses/>.
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 			   xmlns:mx="http://www.adobe.com/2006/mxml"
 			   xmlns:ui="weave.ui.*" xmlns:editors="weave.editors.*" 
-			   implements="weave.api.ui.IVisTool_Basic"
+			   implements="weave.api.ui.IVisTool"
 			   >
 	<mx:Script>
 		<![CDATA[
