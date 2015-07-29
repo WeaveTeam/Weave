@@ -213,8 +213,11 @@ package weave.menus
 			if (click is Function)
 				evalFunction(click as Function);
 			
+			// If 'click' is set to the same ILinkableVariable as 'toggled',
+			// don't do anything here because Flex automatically calls "set toggled"
+			// which will set the session state of the ILinkableVariable.
 			var lv:ILinkableVariable = click as ILinkableVariable;
-			if (lv)
+			if (lv && lv != _toggled)
 				lv.setSessionState(!lv.getSessionState());
 		}
 	}
