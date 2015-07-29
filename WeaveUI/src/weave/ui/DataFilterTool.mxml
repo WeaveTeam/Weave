@@ -182,6 +182,25 @@
 							}
 						}
 					},{
+						label: lang("Show filter toggle CheckBox label"),
+						shown: function():Boolean {
+							var _editor:ILinkableObjectEditor = getEditor();
+							return _editor && getSessionState(_editor)['showToggle'];
+						},
+						type: WeaveMenuItem.TYPE_CHECK,
+						toggled: function():Boolean {
+							var _editor:ILinkableObjectEditor = getEditor();
+							return _editor && getSessionState(_editor)['showToggleLabel'];
+						},
+						click: function():void {
+							var _editor:ILinkableObjectEditor = getEditor();
+							if (_editor)
+							{
+								var shown:Boolean = getSessionState(_editor)['showToggleLabel'];
+								setSessionState(_editor, {"showToggleLabel": !shown}, false);
+							}
+						}
+					},{
 						label: lang("Show play button"),
 						type: WeaveMenuItem.TYPE_CHECK,
 						toggled: function():Boolean {

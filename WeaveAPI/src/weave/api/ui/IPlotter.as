@@ -46,6 +46,10 @@ package weave.api.ui
 		 */
 		function get filteredKeySet():IFilteredKeySet;
 		
+		//TODO - remove filteredKeySet and add these:
+		//function get keySet():IKeySet;
+		//function get dynamicToolGroup():IDynamicToolGroup;
+		
 		/**
 		 * This function provides a mapping from a record key to an Array of bounds objects, specified
 		 * in data coordinates, that cover the bounds associated with that record key.

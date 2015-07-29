@@ -232,7 +232,7 @@ package weave.core
 				// if no name is specified, generate a unique one now.
 				if (!name)
 					name = generateUniqueName(className.split("::").pop());
-				if ( ClassUtils.classImplements(className, SessionManager.ILinkableObjectQualifiedClassName)
+				if ( ClassUtils.classImplements(className, SessionManager.ILinkableObject_QName)
 					&& (_typeRestriction == null || ClassUtils.classIs(className, _typeRestrictionClassName)) )
 				{
 //					try

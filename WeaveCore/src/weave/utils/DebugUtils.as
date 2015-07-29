@@ -205,7 +205,7 @@ package weave.utils
 		{
 			if (!target)
 			{
-				weaveTrace('Usage: consoleWatch(target, optional_callbackReturnsString)');
+				weaveTrace('Usage: watch(target, optional_callbackReturnsString)');
 				return;
 			}
 			
@@ -219,7 +219,7 @@ package weave.utils
 				if (path.length)
 					str += " " + Compiler.stringify(path.pop());
 				if (callbackReturnsString != null)
-					str += ': ' + callbackReturnsString();
+					str += ': ' + callbackReturnsString.call(linkableTarget, linkableTarget);
 				debugTrace(linkableTarget, str);
 			};
 			watchLookup[linkableTarget] = callback;

@@ -18,12 +18,12 @@ package weave.api.data
 	import weave.api.core.ILinkableDynamicObject;
 
 	/**
-	 * This is a wrapper for a dynamically created object implementing IKeyFilter.
+	 * This is a wrapper for a dynamically created object implementing IKeySet.
 	 * 
 	 * @author adufilie
 	 */
-	public interface IDynamicKeyFilter extends ILinkableDynamicObject
+	public interface IDynamicKeySet extends ILinkableDynamicObject
 	{
-		function getInternalKeyFilter():IKeyFilter;
+		function getInternalKeySet():IKeySet;
 	}
 }

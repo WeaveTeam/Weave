@@ -16,13 +16,17 @@
 package weave.utils
 {
 	import weave.api.core.ILinkableObject;
-	import weave.api.data.IKeyFilter;
-	import weave.api.data.IKeySet;
+	import weave.api.data.IColumnWrapper;
+	import weave.api.data.IDynamicKeyFilter;
+	import weave.api.data.IDynamicKeySet;
+	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
-	import weave.core.LinkableDynamicObject;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
+	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.KeySets.DynamicKeyFilter;
+	import weave.data.KeySets.DynamicKeySet;
 
 	/**
 	 * This is an encapsulation of a set of references to global objects used by a visualization tool.
@@ -32,22 +36,23 @@ package weave.utils
 	 */
 	public class VisToolGroup implements ILinkableObject
 	{
-		//TODO: create a corresponding Class that has, for each setting here, a corresponding LinkableHashMap containing possible choices 
+		//TODO: create a corresponding Class that has, for each setting here,
+		// a corresponding LinkableHashMap containing possible choices
 		
+		private const _colorColumn:IColumnWrapper = registerLinkableChild(this, new DynamicColumn(ColorColumn));
+		private const _probeKeySet:IDynamicKeySet = newLinkableChild(this, DynamicKeySet);
+		private const _selectionKeySet:IDynamicKeySet = newLinkableChild(this, DynamicKeySet);
+		private const _subsetKeyFilter:IDynamicKeyFilter = newLinkableChild(this, DynamicKeyFilter);
 		
-		public const colorColumn:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(ColorColumn));
-		public const probeKeySet:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet));
-		public const selectionKeySet:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet));
-		public const subsetKeyFilter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeyFilter));
+		public function get colorColumn():IColumnWrapper { return _colorColumn; }
+		public function get probeKeySet():IDynamicKeySet { return _probeKeySet; }
+		public function get selectionKeySet():IDynamicKeySet { return _selectionKeySet; } 
+		public function get subsetKeyFilter():IDynamicKeyFilter { return _subsetKeyFilter; }
 		
 		//TODO: object which specifies transformation from IQualifiedKey to color value... instead of nested color/bin/filter columns
 		
-		public function getColorColumn():ColorColumn { return colorColumn.internalObject as ColorColumn; }
-		public function getColorBinColumn():BinnedColumn { return getColorColumn().getInternalColumn() as BinnedColumn; }
-		public function getColorDataColumn():FilteredColumn { return getColorBinColumn().getInternalColumn() as FilteredColumn; }
-		
-		public function getProbe():IKeySet { return probeKeySet.internalObject as IKeySet; }
-		public function getSelection():IKeySet { return selectionKeySet.internalObject as IKeySet; }
-		public function getSubset():IKeyFilter { return subsetKeyFilter.internalObject as IKeyFilter; }
+		public function getColorColumn():ColorColumn { return _colorColumn.getInternalColumn() as ColorColumn; }
+		public function getColorBinColumn():BinnedColumn { var cc:ColorColumn = getColorColumn(); return cc ? cc.getInternalColumn() as BinnedColumn : null; }
+		public function getColorDataColumn():FilteredColumn { var bc:BinnedColumn = getColorBinColumn(); return bc ? bc.getInternalColumn() as FilteredColumn : null; }
 	}
 }

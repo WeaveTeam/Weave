@@ -13,17 +13,18 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api.data
+package weave.api.ui
 {
-	import weave.api.core.ILinkableDynamicObject;
+	import weave.api.core.ILinkableObject;
+	import weave.api.data.IColumnWrapper;
+	import weave.api.data.IDynamicKeyFilter;
+	import weave.api.data.IDynamicKeySet;
 
-	/**
-	 * This is a wrapper for a dynamically created object implementing IKeyFilter.
-	 * 
-	 * @author adufilie
-	 */
-	public interface IDynamicKeyFilter extends ILinkableDynamicObject
+	public interface IVisToolGroup extends ILinkableObject
 	{
-		function getInternalKeyFilter():IKeyFilter;
+		function get colorColumn():IColumnWrapper;
+		function get probeKeySet():IDynamicKeySet;
+		function get selectionKeySet():IDynamicKeySet;
+		function get subsetKeyFilter():IDynamicKeyFilter;
 	}
 }

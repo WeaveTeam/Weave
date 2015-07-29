@@ -34,6 +34,7 @@ package weave.data.DataSources
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.reportError;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableFile;
 	import weave.core.LinkableString;
@@ -143,7 +144,7 @@ package weave.data.DataSources
 				}
 				catch (e:Error)
 				{
-					throw new Error("GeoJSON: Your version of Flash Player (" + Capabilities.version + " " + Capabilities.playerType + ") does not have native JSON support.");
+					json = {"parse": Compiler.parseConstant};
 				}
 				
 				// parse the json

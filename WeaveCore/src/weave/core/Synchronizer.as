@@ -246,7 +246,9 @@ package weave.core
 						else
 						{
 							linkableVariable.setSessionState(Number(linkableValue));
-							linkableValue = linkableVariable.getSessionState();
+							// need to check if linkableVariable is still there because setting the state may cause this Synchronizer to be disposed.
+							if (linkableVariable)
+								linkableValue = linkableVariable.getSessionState();
 						}
 					} catch (e:Error) { }
 				}
@@ -265,7 +267,8 @@ package weave.core
 				// be constraints on the session state that will prevent the callbacks
 				// from triggering if the bindable value does not match those constraints.
 				// This makes UIComponents update to the real value after they lose focus.
-				if (callbackCollection.triggerCounter == prevCount && !recursiveCall)
+				// We also have to check if the callbackCollection is set because setting the session state may cause this Synchronizer to be disposed.
+				if (callbackCollection && callbackCollection.triggerCounter == prevCount && !recursiveCall)
 				{
 					// avoid infinite recursion in the case where the new value is not accepted by a verifier function
 					recursiveCall = true;

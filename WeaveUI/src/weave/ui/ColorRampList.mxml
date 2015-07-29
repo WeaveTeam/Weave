@@ -62,7 +62,7 @@
 										return;
 									
 									label = xml.@name;
-									colorRamp.value = xml;
+									colorRamp.setSessionState(xml);
 									toolTip = xml.@name + '\nTags: ' + xml.@tags;
 								}
 								override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -103,26 +103,16 @@
 			
 			private function colorRampCallback():void
 			{
-				var rampXML:XML;
-				try
-				{
-					rampXML = XML(colorRamp.value);
-				}
-				catch (e:Error)
-				{
-					return;
-				}
-				
 				// find item with matching name
-				var xmlList:XMLList = ColorRamp.allColorRamps.colorRamp.(@name == rampXML.@name);
-				if (xmlList.length() > 0)
-					selectedItem = xmlList[0];
+				var xml:XML = ColorRamp.findMatchingColorRampXML(colorRamp);
+				if (xml)
+					selectedItem = xml;
 			}
 			
 			private function handleColorRampSelected():void
 			{
 				if (selectedItem is XML && colorRamp)
-					colorRamp.value = selectedItem.copy();
+					colorRamp.setSessionState(selectedItem.copy());
 			}
 						
 		]]>

@@ -13,17 +13,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api.data
+package weave.api.ui
 {
 	import weave.api.core.ILinkableDynamicObject;
 
 	/**
-	 * This is a wrapper for a dynamically created object implementing IKeyFilter.
+	 * This is an interface for dynamically creating a IVisToolGroup.
 	 * 
 	 * @author adufilie
 	 */
-	public interface IDynamicKeyFilter extends ILinkableDynamicObject
+	public interface IDynamicVisToolGroup extends ILinkableDynamicObject
 	{
-		function getInternalKeyFilter():IKeyFilter;
+		function getInternalVisToolGroup():IVisToolGroup;
 	}
 }

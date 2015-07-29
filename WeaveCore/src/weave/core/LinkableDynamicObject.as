@@ -206,7 +206,7 @@ package weave.core
 			
 			targetPath = null;
 			
-			if ( ClassUtils.classImplements(className, SessionManager.ILinkableObjectQualifiedClassName)
+			if ( ClassUtils.classImplements(className, SessionManager.ILinkableObject_QName)
 				&& (_typeRestriction == null || ClassUtils.classIs(className, _typeRestrictionClassName)) )
 			{
 				var classDef:Class = ClassUtils.getClassDefinition(className);

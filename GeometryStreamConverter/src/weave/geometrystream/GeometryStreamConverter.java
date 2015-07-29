@@ -104,6 +104,7 @@ public class GeometryStreamConverter
 					totalVertices++;
 					x = vertexStream.getX();
 					y = vertexStream.getY();
+					
 					// don't add invalid points
 					if (x <= -Double.MAX_VALUE || x >= Double.MAX_VALUE ||
 						y <= -Double.MAX_VALUE || y >= Double.MAX_VALUE)
@@ -121,24 +122,27 @@ public class GeometryStreamConverter
 						// don't add consecutive duplicate points
 						if (x == prevX && y == prevY)
 							continue;
-						// stop adding points when the current coord is equal to the first coord
-						if (x == firstX && y == firstY)
+						// stop adding points when the current coord is equal to the first coord and we're at the end of a part
+						if (x == firstX && y == firstY && vertexStream.isEndOfPart())
 							break;
 					}
 					
-					// add new point if we are at the end of outputPoints
-					if (reusableVertexChainLinks.size() == chainLength)
-						reusableVertexChainLinks.add(new VertexChainLink());
-					
-					// save coord in next vertex object
-					vertex = reusableVertexChainLinks.get(chainLength);
+					// get next vertex object
+					if (chainLength < reusableVertexChainLinks.size())
+						vertex = reusableVertexChainLinks.get(chainLength);
+					else
+						reusableVertexChainLinks.add(vertex = new VertexChainLink());
+					// save coord
 					vertex.initialize(x, y, firstVertexID + chainLength);
 					// insert vertex in chain
 					reusableVertexChainLinks.get(0).insert(vertex);
-					
 					chainLength++;
 					prevX = x;
 					prevY = y;
+					
+					// stop at end of part
+					if (vertexStream.isEndOfPart())
+						break;
 				}
 				
 				if (chainLength == 0)

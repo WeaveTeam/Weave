@@ -13,17 +13,27 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.api.data
+package weave.data.KeySets
 {
-	import weave.api.core.ILinkableDynamicObject;
-
+	import weave.api.data.IDynamicKeySet;
+	import weave.api.data.IKeySet;
+	import weave.core.LinkableDynamicObject;
+	
 	/**
-	 * This is a wrapper for a dynamically created object implementing IKeyFilter.
+	 * This is a wrapper for a dynamically created object implementing IKeySet.
 	 * 
 	 * @author adufilie
 	 */
-	public interface IDynamicKeyFilter extends ILinkableDynamicObject
+	public class DynamicKeySet extends LinkableDynamicObject implements IDynamicKeySet
 	{
-		function getInternalKeyFilter():IKeyFilter;
+		public function DynamicKeySet()
+		{
+			super(IKeySet);
+		}
+		
+		public function getInternalKeySet():IKeySet
+		{
+			return internalObject as IKeySet;
+		}
 	}
 }

@@ -87,7 +87,7 @@ package weave.editors
 			{
 				var codeEditor:CodeEditor = new CodeEditor();
 				codeEditor.addEventListener(FlexEvent.CREATION_COMPLETE, function(event:Event):void {
-					if (lv is LinkableString || lv is LinkableNumber || lv is LinkableBoolean || !JsonSynchronizer.available)
+					if (lv is LinkableString || lv is LinkableNumber || lv is LinkableBoolean)
 						linkBindableProperty(lv, event.target, 'text', 500, true)
 					else
 						new JsonSynchronizer(lv, codeEditor, 'text');
@@ -183,6 +183,7 @@ import weave.api.core.ILinkableVariable;
 import weave.api.detectLinkableObjectChange;
 import weave.api.getCallbackCollection;
 import weave.api.ui.ISelectableAttributes;
+import weave.compiler.Compiler;
 import weave.compiler.StandardLib;
 import weave.core.ClassUtils;
 import weave.core.SessionManager;
@@ -286,13 +287,12 @@ internal class ComponentUpdater
 
 internal class JsonSynchronizer
 {
-	public static function get available():Boolean
-	{
-		return ClassUtils.getClassDefinition('JSON') != null;
-	}
-	
 	public function JsonSynchronizer(linkableVariable:ILinkableVariable, host:UIComponent, prop:String, delay:uint = 500)
 	{
+		this.JSON = ClassUtils.getClassDefinition('JSON');
+		if (!JSON)
+			JSON = {"stringify": Compiler.stringify, "parse": Compiler.parseConstant};
+
 		this.lv = linkableVariable;
 		this.host = host;
 		this.prop = prop;
@@ -301,7 +301,7 @@ internal class JsonSynchronizer
 		BindingUtils.bindSetter(EventUtils.generateDelayedCallback(linkableVariable, handleJson, delay, true), this.host, this.prop);
 	}
 	
-	public var JSON:Object = ClassUtils.getClassDefinition('JSON');
+	public var JSON:Object;
 	public var lv:ILinkableVariable;
 	public var host:UIComponent;
 	public var prop:String;

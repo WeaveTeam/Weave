@@ -119,7 +119,12 @@ package weave.data.AttributeColumns
 			if (dataType == Boolean)
 				value = (value is Array);
 			else if (dataType == Number)
-				value = Number(_keyToIndex[key]);
+			{
+				var sum:Number = value is Array ? 0 : NaN;
+				for each (var geom:GeneralizedGeometry in value)
+					sum += geom.bounds.getArea();
+				value = sum;
+			}
 			else if (dataType == String)
 				value = value ? 'Geometry(' + key.keyType + '#' + key.localName + ')' : undefined;
 			

@@ -75,6 +75,7 @@ package weave.application
 	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.DataSourceManager;
+	import weave.flascc.readZip;
 	import weave.menus.SessionMenu;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
@@ -586,8 +587,12 @@ package weave.application
 			if (detectLinkableObjectChange(saveRecoverPoint, WeaveAPI.globalHashMap))
 			{
 				var cookie:SharedObject = SharedObject.getLocal(RECOVER_SHARED_OBJECT);
-				cookie.data[RECOVER_SHARED_OBJECT] = Weave.createWeaveFileContent();
-				cookie.flush();
+				var content:ByteArray = Weave.createWeaveFileContent();
+				if (content)
+				{
+					cookie.data[RECOVER_SHARED_OBJECT] = content;
+					cookie.flush();
+				}
 			}
 		}
 		private function getRecoverPoint():ByteArray
@@ -752,7 +757,7 @@ package weave.application
 		{
 			return [
 				new FileFilter("Weave files", "*.weave"),
-				new FileFilter("Data files", "*.csv;*.tsv;*.txt;*.xls;*.shp;*.dbf;*.geojson;*.graphml"),
+				new FileFilter("Data files", "*.csv;*.tsv;*.txt;*.xls;*.shp;*.dbf;*.geojson;*.graphml;*.zip"),
 				new FileFilter("All files", "*")
 			]
 		}
@@ -760,13 +765,28 @@ package weave.application
 		public function handleDraggedFile(fileName:String, fileContent:ByteArray):void
 		{
 			var ext:String = String(fileName.split('.').pop()).toLowerCase();
+			var adsp:AddDataSourcePanel;
+			var dataSource:*;
+			
+			if (ext == 'zip')
+			{
+				var files:Object = weave.flascc.readZip(fileContent);
+				for (var fileName:String in files)
+					handleDraggedFile(fileName, files[fileName]);
+				
+				adsp = DraggablePanel.getStaticInstance(AddDataSourcePanel);
+				if (adsp.parent)
+					adsp.sendWindowToForeground();
+				
+				return;
+			}
+			
 			if (ext == 'weave' || ext == 'xml')
 			{
 				loadSessionState(fileContent, fileName);
 				return;
 			}
 			
-			var dataSource:*;
 			function newDataSource(type:Class):*
 			{
 				return dataSource = WeaveAPI.globalHashMap.requestObject(fileName, type, false);
@@ -775,8 +795,6 @@ package weave.application
 			{
 				return WeaveAPI.URLRequestUtils.saveLocalFile(fileName, fileContent);
 			}
-			
-			var adsp:AddDataSourcePanel;
 			
 			if (ext == 'tsv' || ext == 'txt')
 			{
@@ -811,6 +829,8 @@ package weave.application
 					dbfEditor.shpURL.text = getFileUrl();
 				else
 					dbfEditor.dbfURL.text = getFileUrl();
+				if (dbfEditor.shpURL.text && dbfEditor.dbfURL.text)
+					adsp.addSource();
 			}
 			else if (ext == 'geojson')
 			{

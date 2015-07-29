@@ -215,7 +215,7 @@ void writeZip()
 	inline_as3(
 		"for (var fileName:String in files)"
 		"    if (!writeFile(%0, fileName, files[fileName]))"
-		"        return false;"
+		"        return null;"
 		: : "r"(&zip_archive)
 	);
 
