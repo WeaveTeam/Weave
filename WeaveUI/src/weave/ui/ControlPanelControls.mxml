@@ -27,7 +27,8 @@
 	<mx:HBox width="100%" id="buttons">
 		<mx:Button id="cancelBtn" label="{lang('Cancel')}" minWidth="64" toolTip="{lang('Revert to last saved state and close this window')}"/>
 		<mx:Spacer width="100%" minWidth="0"/>
-		<BusyIndicator id="busyIndicator" visible="true" includeInLayout="true" diameterRatio=".75" targets="{_busyIndicatorTargets}"/>
+		<mx:Label id="errorLabel" minWidth="0" color="0x800000" text="{errorText}"/>
+		<BusyIndicator id="busyIndicator" visible="true" diameterRatio=".75" targets="{_busyIndicatorTargets}"/>
 		<mx:Spacer width="100%" minWidth="0"/>
 		<mx:Button id="saveCloseBtn" label="{lang('Ok')}" minWidth="64" toolTip="{lang('Commit all changes and close this window')}"/>
 	</mx:HBox>
@@ -39,6 +40,8 @@
 			
 			private const outerPadding:int = 5;
 			private const innerPadding:int = 8;
+			
+			[Bindable] public var errorText:String = null;
 			
 			[Bindable] private var _busyIndicatorTargets:Array;
 			public function set busyIndicatorTargets(value:Array):void
