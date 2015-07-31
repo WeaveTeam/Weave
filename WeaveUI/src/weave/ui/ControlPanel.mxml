@@ -349,6 +349,11 @@
 				super.handleEscapeKey();
 			}
 			
+			public function set errorText(value:String):void
+			{
+				controlPanelControls.errorText = value;
+			}
+			
 			public static function getControlPanelTitle(object:ILinkableObject, format:String = "Settings for {0}"):String
 			{
 				var className:String = getQualifiedClassName(object).split('::').pop();
