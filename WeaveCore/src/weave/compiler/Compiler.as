@@ -327,6 +327,13 @@ package weave.compiler
 			if (name.indexOf("::") >= 0)
 				name = StandardLib.replace(name, "::", ".");
 			
+			def = classAliases[name];
+			if (def)
+			{
+				classAliases[altName] = def;
+				return def;
+			}
+			
 			// if it's not a fully qualified name, check the default packages
 			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
 			for (var i:int = -1; i < defaultPackages.length; i++)
