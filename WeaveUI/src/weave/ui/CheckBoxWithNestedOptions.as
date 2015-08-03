@@ -44,12 +44,18 @@ package weave.ui
 			checkBox.addEventListener(Event.CHANGE, function(event:Event):void {
 				dispatchEvent(event);
 			});
+			BindingUtils.bindSetter(setPaddingLeft, this, 'indent');
 		}
 		
-		public const indent:int = 20;
+		[Bindable] public var indent:Number = 20;
 		public const checkBox:CustomCheckBox = new CustomCheckBox();
 		public const topHBox:HBox = new HBox();
 		public const innerVBox:VBox = new VBox();
+		
+		private function setPaddingLeft(value:Number):void
+		{
+			innerVBox.setStyle('paddingLeft', value);
+		}
 		
 		[Bindable] override public function get label():String
 		{
@@ -80,7 +86,6 @@ package weave.ui
 			topHBox.setStyle('verticalAlign', 'middle');
 			innerVBox.percentWidth = 100;
 			innerVBox.percentHeight = 100;
-			innerVBox.setStyle('paddingLeft', indent);
 		}
 		
 		[Bindable("change")] public function get selected():Boolean

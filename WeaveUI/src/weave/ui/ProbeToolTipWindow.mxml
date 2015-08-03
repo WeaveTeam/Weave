@@ -26,8 +26,11 @@
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.data.IKeySet;
 			import weave.api.getCallbackCollection;
+			import weave.api.linkBindableProperty;
 			import weave.api.registerLinkableChild;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableDynamicObject;
+			import weave.core.LinkableFunction;
 			import weave.core.UIUtils;
 			import weave.data.KeySets.KeySet;
 			import weave.editors.WindowSettingsEditor;
@@ -43,6 +46,8 @@
 			}
 			
 			public const dynamicKeySet:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IKeySet), updateText, true);
+			public const useHtmlText:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateText, true);
+			public const htmlFormatter:LinkableFunction = registerLinkableChild(this, new LinkableFunction('`<font size="15" face="_sans"><b>{header}</b>\n{data}</font>`', true, false, ['header', 'data']), updateText, true);
 			
 			private function get keySet():IKeySet
 			{
@@ -60,11 +65,21 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				Weave.properties.mouseoverTextFormat.bindStyle(this, this);
+				ProbeTextUtils.probeLineFormatter.addGroupedCallback(this, updateText);
+				linkBindableProperty(useHtmlText, useHtmlTextCheck, 'selected');
+				
+				UIUtils.linkVisibility(this, useHtmlText, htmlTextArea);
+				UIUtils.linkVisibility(this, useHtmlText, textArea, true);
+				Weave.properties.mouseoverTextFormat.bindStyle(this, textArea);
+				
 				WeaveAPI.globalHashMap.childListCallbacks.addGroupedCallback(this, function():void {
 					keySetCombo.dataProvider = WeaveAPI.globalHashMap.getNames(KeySet);
 					keySetCombo.selectedItem = dynamicKeySet.globalName;
 				}, true);
+				
+				editor.formatVBox.addChildAt(useHtmlTextCheck, 0);
+				htmlFormatIndent.group = useHtmlTextCheck.parent;
+				useHtmlTextCheck.indent = 0;
 				
 				var windowEditor:WindowSettingsEditor = new WindowSettingsEditor();
 				windowEditor.target = this;
@@ -79,21 +94,50 @@
 			
 			private function updateText():void
 			{
+				var str:String = '';
 				if (keySet && keySet.keys.length > 0)
-					probeTextArea.text = ProbeTextUtils.getProbeText(keySet.keys);
+					str = ProbeTextUtils.getProbeText(keySet.keys);
+				if (useHtmlText.value)
+				{
+					try
+					{
+						textArea.text = '';
+						var lines:Array = str.split('\n');
+						htmlTextArea.htmlText = htmlFormatter.call(null, lines.shift(), lines.join('\n'));
+					}
+					catch (e:Error)
+					{
+						htmlTextArea.htmlText = e.toString();
+					}
+				}
 				else
-					probeTextArea.text = "";
+				{
+					textArea.text = str;
+					htmlTextArea.htmlText = '';
+				}
 			}
 		]]>
 	</mx:Script>
-	<mx:TextArea id="probeTextArea" height="100%" width="100%" backgroundAlpha="0" editable="false"/>
+	<mx:TextArea id="textArea" height="100%" width="100%" backgroundAlpha="0" editable="false"/>
+	<mx:TextArea id="htmlTextArea" height="100%" width="100%" backgroundAlpha="0" editable="false"/>
 	
 	<!-- controlPanel -->
-	<ui:ProbeToolTipEditor backgroundColor="0xCCCCCC" showEnableCheckBox="false"/>
+	<ui:ProbeToolTipEditor id="editor" backgroundColor="0xCCCCCC" showEnableCheckBox="false"/>
 	<mx:VBox id="additionalWindowSettings">
 		<ui:Indent label="{lang('Linked KeySet:')}">
 			<ui:CustomComboBox id="keySetCombo"
 							   change="if (UIUtils.hasFocus(keySetCombo)) dynamicKeySet.globalName = keySetCombo.selectedItem as String;"/>
 		</ui:Indent>
 	</mx:VBox>
+	<ui:CheckBoxWithNestedOptions id="useHtmlTextCheck" label="{lang('Enable HTML formatting')}"
+								  change="editor.formatIndent.label = lang(useHtmlTextCheck.selected ? 'Format data values' : 'Format');">
+		<ui:Indent id="htmlFormatIndent" label="{lang('HTML Format')}" height="100%">
+			<mx:TextArea width="100%" height="100%" minHeight="48"
+						 creationComplete="linkBindableProperty(htmlFormatter, event.target, 'text');"/>
+			<mx:VBox>
+				<mx:Button label="{lang('Reset')}" click="ProbeTextUtils.probeLineFormatter.value = ProbeTextUtils.DEFAULT_LINE_FORMAT;"/>
+				<mx:Button label="{lang('Help (tags)')}" click="navigateToURL(new URLRequest('http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html#htmlText'), '_blank');"/>
+			</mx:VBox>
+		</ui:Indent>
+	</ui:CheckBoxWithNestedOptions>
 </ui:DraggablePanel>

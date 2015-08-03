@@ -116,6 +116,19 @@
 			}
 			
 			/**
+			 * Set this to create a help component next to the label.  Not compatible with useFirstChildAsLabel = true.
+			 */
+			public function set htmlHelpContent(content:*):void
+			{
+				if (!helpComponent)
+				{
+					helpComponent = new HelpComponent();
+					labelContainer.addChild(helpComponent);
+				}
+				helpComponent.htmlText = content;
+			}
+			
+			/**
 			 * Set this to false if this Indent component should not be grouped with others having the same parent.
 			 * @default true
 			 */
