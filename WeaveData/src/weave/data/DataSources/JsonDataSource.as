@@ -22,9 +22,9 @@ package weave.data.DataSources
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, JsonDataSource);
 		
-		public const keyType:LinkableString = newLinkableChild(this, LinkableString, columnsConfigChange);
-		public const keyColName:LinkableString = newLinkableChild(this, LinkableString, columnsConfigChange);
-		public const metadata:LinkableVariable = newLinkableChild(this, LinkableVariable, columnsConfigChange);
+		public const keyType:LinkableString = newLinkableChild(this, LinkableString, refreshColumnsAndHierarchy);
+		public const keyColName:LinkableString = newLinkableChild(this, LinkableString, refreshColumnsAndHierarchy);
+		public const metadata:LinkableVariable = newLinkableChild(this, LinkableVariable, refreshColumnsAndHierarchy);
 		public const url:LinkableFile = newLinkableChild(this, LinkableFile, handleFile);
 		
 		private var jsonData:Array = null;
@@ -33,7 +33,6 @@ package weave.data.DataSources
 		public function JsonDataSource()
 		{
 			super();
-			getCallbackCollection(this).addImmediateCallback(this, function() {weaveTrace("callback fired.");});
 		}
 		
 		public function get properties():Array
@@ -41,7 +40,7 @@ package weave.data.DataSources
 			if (columnStructure)
 			{
 				return VectorUtils.getKeys(columnStructure).filter(
-						function(d:String,..._) {return typeof(columnStructure[d]) != "object";}
+						function(d:String,..._):Boolean {return typeof(columnStructure[d]) != "object";}
 					);
 			}
 			else
@@ -50,7 +49,7 @@ package weave.data.DataSources
 			}
 		}
 
-		private function columnsConfigChange():void
+		private function refreshColumnsAndHierarchy():void
 		{
 			refreshAllProxyColumns();
 			hierarchyRefresh.triggerCallbacks();
@@ -72,7 +71,7 @@ package weave.data.DataSources
 				mergeProperties(columnStructure, row);
 			}
 
-			columnsConfigChange();
+			refreshColumnsAndHierarchy();
 		}
 		
 		public static const JSON_FIELD_META_PREFIX:String = "__JsonPathIndex__";
@@ -104,7 +103,7 @@ package weave.data.DataSources
 		
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
-			return _rootNode ? _rootNode : _rootNode = buildNode([]);
+			return _rootNode ? _rootNode : _rootNode = buildObjectNode([]);
 		}
 		
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
