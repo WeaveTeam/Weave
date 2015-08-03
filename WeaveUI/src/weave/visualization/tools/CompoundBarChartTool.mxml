@@ -372,8 +372,8 @@
 			</mx:HBox>
 			<ui:CustomTabNavigator creationPolicy="all" initialize="UIUtils.pad(event, 5, 100, 100)">
 				<ui:ColumnListComponent creationComplete="(event.target as ColumnListComponent).hashMap = _plotter.heightColumns"/>
-				<ui:ColumnListComponent creationComplete="var clc:ColumnListComponent = event.target as ColumnListComponent; clc.hashMap = _plotter.positiveErrorColumns; clc.titleHBox.addChildAt(posErrorRelativeCheck, clc.titleHBox.getChildIndex(clc.selectorControls));"/>
-				<ui:ColumnListComponent creationComplete="var clc:ColumnListComponent = event.target as ColumnListComponent; clc.hashMap = _plotter.negativeErrorColumns; clc.titleHBox.addChildAt(negErrorRelativeCheck, clc.titleHBox.getChildIndex(clc.selectorControls));"/>
+				<ui:ColumnListComponent creationComplete="var clc:ColumnListComponent = event.target as ColumnListComponent; clc.hashMap = _plotter.positiveErrorColumns; clc.titleHBox.addChild(posErrorRelativeCheck);"/>
+				<ui:ColumnListComponent creationComplete="var clc:ColumnListComponent = event.target as ColumnListComponent; clc.hashMap = _plotter.negativeErrorColumns; clc.titleHBox.addChild(negErrorRelativeCheck);"/>
 			</ui:CustomTabNavigator>
 			<ui:CustomCheckBox id="posErrorRelativeCheck" label="{lang('Relative')}" paddingLeft="8" creationComplete="linkBindableProperty(outerDocument.plotter.errorIsRelative, event.target, 'selected');"/>
 			<ui:CustomCheckBox id="negErrorRelativeCheck" label="{lang('Relative')}" paddingLeft="8" creationComplete="linkBindableProperty(outerDocument.plotter.errorIsRelative, event.target, 'selected');"/>
