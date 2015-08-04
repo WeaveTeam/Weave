@@ -173,6 +173,12 @@
 					_internalList.percentWidth = 100;
 					setListHeight();
 					_internalList.invalidateDisplayList();
+					
+					_internalList.doubleClickEnabled = true;
+					_internalList.addEventListener(MouseEvent.DOUBLE_CLICK, function(e:Event):void {
+						if (selectorButton.visible && selectorButton.stage)
+							openSelector();
+					});
 				}
 				
 				if (!controller.view.parent && numChildren >= _internalListChildIndex)
