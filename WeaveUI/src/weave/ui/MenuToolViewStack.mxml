@@ -119,19 +119,13 @@
 			public function set choices(items:Array):void
 			{
 				_choices = items || [];
-				if (parent)
-					handleChoicesChange();
-				else
-					callLater(handleChoicesChange);
+				handleChoicesChange();
 			}
 			
 			public function set choiceLabelFunction(func:Function):void
 			{
 				_labelFunction = func;
-				if (parent)
-					handleChoicesChange();
-				else
-					callLater(handleChoicesChange);
+				handleChoicesChange();
 			}
 			
 			private var viewChanging:Boolean = false;
@@ -156,6 +150,12 @@
 			
 			private function handleChoicesChange():void
 			{
+				if (!parent)
+				{
+					callLater(handleChoicesChange);
+					return;
+				}
+				
 				var layout:String = layoutMode;
 				
 				if (layout == LAYOUT_COMBO)
