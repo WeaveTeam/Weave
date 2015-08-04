@@ -35,12 +35,17 @@ package weave.data.DataSources
 			super();
 		}
 		
+		private static function isObject(value:Object):Boolean
+		{
+			return value != null && typeof value == 'object';
+		}
+		
 		public function get properties():Array
 		{
 			if (columnStructure)
 			{
 				return VectorUtils.getKeys(columnStructure).filter(
-						function(d:String,..._):Boolean {return typeof(columnStructure[d]) != "object";}
+						function(d:String,..._):Boolean { return !isObject(columnStructure[d]); }
 					);
 			}
 			else
@@ -116,7 +121,8 @@ package weave.data.DataSources
 			var node:Object = getChain(columnStructure, path);
 			for each (var item:* in node)
 			{	
-				if (typeof(item) == "object") return true;
+				if (isObject(item))
+					return true;
 			}
 			return false;
 		}
@@ -124,7 +130,7 @@ package weave.data.DataSources
 		private function buildNode(path:Array):ColumnTreeNode
 		{
 			var obj:* = getChain(columnStructure, path);
-			if (typeof(obj) != "object")
+			if (!isObject(obj))
 				return buildColumnNode(path);
 			else
 				return buildObjectNode(path);
@@ -234,7 +240,7 @@ package weave.data.DataSources
 
 			for each (var key:String in chain)
 			{
-				if (typeof(value) != "object" || !value.hasOwnProperty(key))
+				if (!isObject(value) || !value.hasOwnProperty(key))
 				{
 					return undefined;
 				}
@@ -252,8 +258,7 @@ package weave.data.DataSources
 			{
 				var itemA:* = objectA[key];
 				var itemB:* = objectB[key];
-				if (typeof(itemA) == "object" &&
-					typeof(itemB) == "object")
+				if (isObject(itemA) && isObject(itemB))
 					mergeProperties(itemA, itemB);
 				else if (!(itemA is Object || itemA is Array))
 					objectA[key] = true;
