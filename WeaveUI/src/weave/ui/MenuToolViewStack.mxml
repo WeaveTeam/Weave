@@ -204,6 +204,12 @@
 			
 			private function updateViews():void
 			{
+				if (!parent)
+				{
+					callLater(updateViews)
+					return;
+				}
+				
 				var layout:String = layoutMode;
 				
 				// need to check each item for equality because indexOf() won't work comparing String vs Number
