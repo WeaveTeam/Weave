@@ -106,7 +106,7 @@
 					var root:IWeaveTreeNode = ds.getHierarchyRoot();
 					explorer.rootNode = root;
 					explorer.folderView.showRoot = true;
-					if (!root.hasChildBranches())
+					if (!root.hasChildBranches() && !explorer.fileView.selectedItem)
 						explorer.expandPathAndSelectNode(root);
 				}
 				else
