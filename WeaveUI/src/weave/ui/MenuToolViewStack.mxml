@@ -40,10 +40,7 @@
 					if (!_settingComboSelection && !viewChanging && layoutMode == LAYOUT_COMBO && UIUtils.hasFocus(choiceCombo))
 					{
 						_settingComboSelection = true;
-						if (chosenItem != choiceCombo.selectedItem)
-							chosenItem = choiceCombo.selectedItem;
-						if (alwaysShowPrompt && choiceCombo.selectedIndex != -1)
-							choiceCombo.selectedIndex = -1;
+						chosenItem = choiceCombo.selectedItem;
 						_settingComboSelection = false;
 					}
 				]]>
