@@ -45,7 +45,9 @@
 			import weave.core.LinkableString;
 			import weave.core.LinkableVariable;
 			import weave.core.UIUtils;
+			import weave.menus.WeaveMenuItem;
 			import weave.utils.LinkableTextFormat;
+			import weave.utils.VectorUtils;
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, SessionStateMenuTool, "Session State Menu Tool");
 			
@@ -64,6 +66,9 @@
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
+				
+				enableSubMenu.value = true;
+				enableSubMenu.lock();
 				getCallbackCollection(this).addImmediateCallback(this, selfCallback);
 			}
 			
@@ -71,9 +76,8 @@
 			{
 				super.childrenCreated();
 				
-				// force panel title to update when targets and choices change
-				registerLinkableChild(panelTitle, targets.childListCallbacks);
-				registerLinkableChild(panelTitle, choices.childListCallbacks);
+				targets.childListCallbacks.addGroupedCallback(this, handleChildListChanges);
+				choices.childListCallbacks.addGroupedCallback(this, handleChildListChanges, true);
 
 				var ltf:LinkableTextFormat = LinkableTextFormat.defaultTextFormat;
 				var self:UIComponent = this;
@@ -94,6 +98,70 @@
 				});
 				
 				menuStack.addEventListener(MouseEvent.CLICK, handleMouseClick);
+				
+				subMenuButton.data = [
+					{
+						label: lang('Add new item for current state'),
+						enabled: targetsConfigured,
+						click: function():void {
+							var name:String = choices.generateUniqueName('item');
+							AlertTextBox.show(
+								lang('New menu item'),
+								lang('Enter a label for the new menu item'),
+								name,
+								function(newName:String):Boolean {
+									return choices.getObject(newName) == null;
+								},
+								addNewChoice
+							);
+						}
+					},{
+						label: function():String {
+							return selectedChoiceExists()
+								? lang('Rename "{0}"', selectedChoice.value)
+								: lang('Rename selected item');
+						},
+						enabled: [selectedChoiceExists, targetsConfigured],
+						click: function():void {
+							AlertTextBox.show(
+								lang('Rename menu item'),
+								lang('Enter a new label for "{0}"', selectedChoice.value),
+								selectedChoice.value,
+								function(newName:String):Boolean {
+									return choices.getObject(newName) == null;
+								},
+								function(newName:String):void {
+									choices.renameObject(selectedChoice.value, newName);
+									selectedChoice.value = newName;
+								}
+							);
+						}
+					},{
+						label: function():String {
+							return selectedChoiceExists()
+								? lang('Delete "{0}"', selectedChoice.value)
+								: lang('Delete selected item');
+						},
+						enabled: [selectedChoiceExists, targetsConfigured],
+						click: removeSelectedChoice
+					},
+					WeaveMenuItem.TYPE_SEPARATOR,
+					{
+						label: lang('Auto-update active menu item'),
+						enabled: targetsConfigured,
+						type: WeaveMenuItem.TYPE_CHECK,
+						toggled: autoRecord,
+						click: autoRecord
+					},{
+						label: function():String {
+							return selectedChoiceExists()
+								? lang('Update "{0}"', selectedChoice.value)
+								: lang('Update selected item');
+						},
+						enabled: [{not: autoRecord}, selectedChoiceExists, targetsConfigured],
+						click: recordSelectedChoice
+					}
+				];
 			}
 			
 			private function getTargetStates():Object
@@ -125,6 +193,45 @@
 				targets.resumeCallbacks();
 			}
 			
+			public function tidySavedStates():void
+			{
+				for each (var choice:LinkableVariable in choices.getObjects())
+				{
+					var updated:Boolean = false;
+					var choiceState:Object = choice.getSessionState() || {};
+					var name:String;
+					// save states for newly-added targets
+					for each (var wrapper:LinkableDynamicObject in targets.getObjects())
+					{
+						if (!wrapper.target)
+							continue;
+						name = targets.getName(wrapper);
+						if (!choiceState.hasOwnProperty(name))
+						{
+							choiceState[name] = WeaveAPI.SessionManager.getSessionState(wrapper.target);
+							updated = true;
+						}
+					}
+					// remove states for removed targets
+					for each (name in VectorUtils.getKeys(choiceState))
+						if (!targets.getObject(name))
+							delete choiceState[name];
+					
+					if (updated)
+						choice.setSessionState(choiceState);
+				}
+			}
+			
+			public function targetsConfigured():Boolean
+			{
+				return targets.getNames().length > 0;
+			}
+			
+			public function selectedChoiceExists():Boolean
+			{
+				return choices.getObject(selectedChoice.value) != null;
+			}
+			
 			public function recordSelectedChoice():void
 			{
 				var name:String = selectedChoice.value;
@@ -135,12 +242,24 @@
 				}
 			}
 			
-			public function addNewChoice():String
+			public function addNewChoice(name:String = null):String
 			{
-				var name:String = choices.generateUniqueName("item");
+				if (!name)
+					name = choices.generateUniqueName("item");
 				selectedChoice.value = name;
 				recordSelectedChoice();
 				return name;
+			}
+			
+			public function removeSelectedChoice():void
+			{
+				var names:Array = choices.getNames();
+				var i:int = names.indexOf(selectedChoice.value);
+				if (i < 0)
+					i = names.length - 1;
+				choices.removeObject(selectedChoice.value);
+				names = choices.getNames();
+				selectedChoice.value = names[Math.min(i, names.length - 1)];
 			}
 			
 			private function handleMouseClick(event:MouseEvent):void
@@ -293,6 +412,14 @@
 				menuStack.choiceVSlider.setStyle('fillColors', [thumbColor.value, thumbColor.value]);
 			}
 			
+			private function handleChildListChanges():void
+			{
+				// force panel title to update when targets and choices change
+				panelTitle.triggerCallbacks();
+				
+				playButton.enabled = menuStack.enabled = targets.getNames().length > 0;
+			}
+			
 			override public function get defaultPanelTitle():String
 			{
 				var numTargets:int = targets.getNames().length;
@@ -324,10 +451,10 @@
 				<TextInputWithPrompt id="promptInput" prompt="{SessionStateMenuTool.DEFAULT_PROMPT}"/>
 				<CustomCheckBox id="alwaysShowPromptCheck" label="{lang('Always show')}"/>
 			</Indent>
-			<CustomCheckBox id="autoRecordCheck" label="{lang('Auto-record session state for active menu item')}"/>
+			<CustomCheckBox id="autoRecordCheck" label="{lang('Auto-update active menu item')}"/>
 			
 			<mx:TabNavigator initialize="UIUtils.pad(event, 8, 100, 100)">
-				<mx:VBox label="{lang('Targets')}" width="100%" height="100%">
+				<mx:VBox id="targetsTab" label="{lang('Targets')}" width="100%" height="100%">
 					<Indent label="{lang('Add target')}">
 						<TextInputWithPrompt id="targetPathInput"
 											 change=" targetPathInput.errorString = '';"
@@ -339,21 +466,21 @@
 						<mx:Button label="{lang('Find targets...')}"
 								   click="SessionStateEditor.openDefaultEditor();"/>
 						<mx:Spacer width="100%"/>
-						<mx:Button label="{lang('Remove selected')}"
+						<mx:Button label="{lang('Delete selected')}"
 								   enabled="{targetsList.selectedIndex >= 0}" 
-								   click="targetsController.removeSelectedItems();"/>
+								   click="targetsController.removeSelectedItems(); outerDocument.tidySavedStates();"/>
 					</Indent>
 					<mx:List id="targetsList" width="100%" height="100%"/>
 				</mx:VBox>
 				
-				<mx:VBox label="{lang('Menu items')}" width="100%" height="100%">
+				<mx:VBox id="menuItemsTab" label="{lang('Menu items')}" width="100%" height="100%">
 					<mx:HBox width="100%">
 						<mx:Button label="{lang('Add new item for current state')}" click="addNewItem();"/>
 						<mx:Button id="recordNowButton" label="{lang('Update selected item')}" click="outerDocument.recordSelectedChoice();"/>
 						<mx:Spacer width="100%"/>
-						<mx:Button label="{lang('Remove selected')}"
-								   enabled="{choicesList.selectedIndex >= 0}" 
-								   click="choicesController.removeSelectedItems();"/>
+						<mx:Button label="{lang('Delete selected')}"
+								   enabled="{choicesList.selectedIndex >= 0}"
+								   click="outerDocument.removeSelectedChoice();"/>
 					</mx:HBox>
 					<mx:DataGrid id="choicesList" width="100%" height="100%"
 								 change="handleChoicesListChange();" />
@@ -375,8 +502,6 @@
 				import weave.core.LinkableDynamicObject;
 				import weave.core.LinkableVariable;
 				import weave.core.UIUtils;
-				
-				private var _compiler:Compiler = new Compiler(false);
 				
 				override protected function childrenCreated():void
 				{
@@ -411,12 +536,27 @@
 						choicesList.selectedItem = outerDocument.choices.getObject(choiceName);
 						recordNowButton.enabled = !!choiceName;
 					}, true);
+					
+					outerDocument.targets.childListCallbacks.addGroupedCallback(this, handleChildListChanges, true);
+				}
+				
+				private function handleChildListChanges():void
+				{
+					var numTargets:int = outerDocument.targets.getNames().length;
+					if (numTargets == 0)
+					{
+						errorText = lang("This menu tool will have no effect unless you add at least one target.");
+					}
+					else
+					{
+						errorText = null;
+					}
 				}
 				
 				private function isValidPath(pathStr:String):Boolean
 				{
 					try {
-						return _compiler.parseConstant(pathStr) is Array;
+						return Compiler.parseConstant(pathStr) is Array;
 					} catch (e:Error) { }
 					return false;
 				}
@@ -425,7 +565,7 @@
 				{
 					try
 					{
-						var path:Array = _compiler.parseConstant(targetPathInput.text) as Array;
+						var path:Array = Compiler.parseConstant(targetPathInput.text) as Array;
 						if (!path)
 							return;
 						var targets:ILinkableHashMap = outerDocument.targets;
@@ -434,6 +574,7 @@
 						if (wrapper.target)
 						{
 							targetPathInput.text = '';
+							outerDocument.tidySavedStates();
 						}
 						else
 						{

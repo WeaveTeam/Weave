@@ -658,7 +658,7 @@ A text editor to change the Session State on the fly.
 								if (json)
 									fromJson = json.parse(textEditor.text);
 								else
-									throw new Error("JSON encoding is not supported by your version of Flash Player.");
+									fromJson = Compiler.parseConstant(textEditor.text);
 								setSessionState(_currentSelectedObject, fromJson);
 							}
 							else
@@ -774,10 +774,7 @@ A text editor to change the Session State on the fly.
 			{
 				var json:Object = ClassUtils.getClassDefinition('JSON');
 				if (!json)
-				{
-					reportError("JSON encoding is not supported by your version of Flash Player.");
-					return;
-				}
+					json = {"parse": Compiler.parseConstant};
 				
 				var primaryPath:Array = sessionNav.getSelectedPath();
 				var atb:AlertTextBox = AlertTextBox.show(

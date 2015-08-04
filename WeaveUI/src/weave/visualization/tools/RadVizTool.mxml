@@ -395,7 +395,7 @@
 			{
 				if (stage == null)
 					return callLater(handleColorRampName);
-				_plotter.colorMap.value = ColorRamp.getColorRampXMLByName(colorRampName.value);				
+				_plotter.colorMap.setSessionState(ColorRamp.getColorRampXMLByName(colorRampName.value));				
 			}
 		]]>
 	</mx:Script>

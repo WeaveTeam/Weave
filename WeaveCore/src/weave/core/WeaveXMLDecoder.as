@@ -178,7 +178,7 @@ package weave.core
 				if (json)
 					object = json.parse(str);
 				else
-					reportError("JSON encoding is not supported by your version of Flash Player.");
+					object = Compiler.parseConstant(str);
 				return object;
 			}
 			else if (encoding == WeaveXMLEncoder.XML_ENCODING)

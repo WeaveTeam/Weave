@@ -23,15 +23,10 @@
 		width="100%"
 		height="100%"
 		verticalAlign="middle">
-	<ui:CustomCheckBox id="filterEnable"
-			paddingLeft="4"
-			label="{getEnableLabel(columnTitle)}"
-			change="toggleFilter();"/>
-	<ui:PlayButton id="playButton"
-				   enabled="{filterEnable.selected}"
-				   creationComplete="playButton.button.label = '&gt;';"/>
+	<ui:CustomCheckBox id="filterToggle" paddingLeft="4" change="toggleFilter();"/>
+	<ui:PlayButton id="playButton" enabled="{filterToggle.selected}"/>
 	<ui:MenuToolViewStack id="menuStack"
-		enabled="{filterEnable.selected}"
+		enabled="{filterToggle.selected}"
 		allowMultipleSelection="true"
 		prompt="{lang('Select filter value...')}"/>
 	
@@ -60,12 +55,6 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.VectorUtils;
 
-			[Bindable] private var columnTitle:String;
-			private function getEnableLabel(columnTitle:String):String
-			{
-				return lang('Filter by {0}', columnTitle || '...');
-			}
-			
 			private const filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleFilter, true);
 			private const columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleColumn, true);
 			private var _linkedFilter:ColumnDataFilter;
@@ -73,6 +62,7 @@
 			public const thumbColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xe0e0e0, isFinite), setThumbColor);
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(MenuToolViewStack.LAYOUT_LIST), handleLayoutMode, true);
 			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const showToggleLabel:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateToggleLabel);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['column', 'string', 'number']), updateLabels);
 			
@@ -81,7 +71,7 @@
 				super.childrenCreated();
 				
 				UIUtils.linkVisibility(this, showPlayButton, playButton);
-				UIUtils.linkVisibility(this, showToggle, filterEnable);
+				UIUtils.linkVisibility(this, showToggle, filterToggle);
 				BindingUtils.bindSetter(handlePlayStep, playButton, 'step');
 				playButton.button.addEventListener(MouseEvent.CLICK, handlePlayClick);
 			}
@@ -132,7 +122,7 @@
 			private function toggleFilter():void
 			{
 				if (filter)
-					filter.enabled.value = filterEnable.selected;
+					filter.enabled.value = filterToggle.selected;
 			}
 			
 			private function setMenuChosenIndex(index:int):void
@@ -187,13 +177,13 @@
 				if (filter)
 				{
 					enabled = true;
-					filterEnable.selected = filter.enabled.value;
+					filterToggle.selected = filter.enabled.value;
 					menuStack.chosenItems = filter.values.getSessionState() as Array;
 				}
 				else
 				{
 					enabled = false;
-					filterEnable.selected = false;
+					filterToggle.selected = false;
 					menuStack.chosenItem = null;
 				}
 			}
@@ -210,16 +200,10 @@
 				
 				var column:DynamicColumn = filter.column;
 				if (column)
-				{
-					columnTitle = ColumnUtils.getTitle(column);
-					
 					menuStack.choices = getChoices(column);
-				}
 				else
-				{
-					columnTitle = null;
 					menuStack.choices = null;
-				}
+				updateToggleLabel();
 				handleFilter();
 			}
 			
@@ -231,6 +215,23 @@
 					return;
 				}
 				menuStack.layoutMode = layoutMode.value;
+			}
+			
+			private function updateToggleLabel():void
+			{
+				if (!parent)
+				{
+					callLater(updateToggleLabel);
+					return;
+				}
+				
+				if (showToggleLabel.value)
+				{
+					var title:String = filter.column ? ColumnUtils.getTitle(filter.column) : null;
+					filterToggle.label = lang('Filter by {0}', title || '...');
+				}
+				else
+					filterToggle.label = '';
 			}
 			
 			private function updateLabels():void

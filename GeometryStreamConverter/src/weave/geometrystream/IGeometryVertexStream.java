@@ -37,11 +37,15 @@ public interface IGeometryVertexStream
 	public boolean next();
 	
 	/**
-	 * @return The X coordinate of the current vertex.
+	 * Checks if the current vertex ends a part of the geometry, meaning vertices that follow will be from a new part.
+	 */
+	public boolean isEndOfPart();
+	/**
+	 * Gets the X coordinate of the current vertex.
 	 */
 	public double getX();
 	/**
-	 * @return The Y coordinate of the current vertex.
+	 * Gets the Y coordinate of the current vertex.
 	 */
 	public double getY();
 }

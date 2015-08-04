@@ -22,6 +22,7 @@ package weave.services
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.utils.WeavePromise;
@@ -104,10 +105,8 @@ package weave.services
 				var JSON:Object = ClassUtils.getClassDefinition('JSON');
 				if (JSON)
 					return JSON.parse(json);
-				else if (ExternalInterface.available)
-					return ExternalInterface.call('JSON.parse', json);
-				
-				reportError("No JSON parser available");
+				else
+					return Compiler.parseConstant(json);
 			}
 			catch (e:Error)
 			{

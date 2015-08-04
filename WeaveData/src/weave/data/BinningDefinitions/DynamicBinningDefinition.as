@@ -109,11 +109,7 @@ package weave.data.BinningDefinitions
 			
 			var JSON:Object = ClassUtils.getClassDefinition('JSON');
 			if (!JSON)
-			{
-				reportError("JSON parser unavailable");
-				getCallbackCollection(output).resumeCallbacks();
-				return false;
-			}
+				JSON = {"parse": Compiler.parseConstant};
 			
 			var array:Array;
 			try

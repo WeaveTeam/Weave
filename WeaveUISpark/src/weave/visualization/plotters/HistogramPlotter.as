@@ -60,7 +60,7 @@ package weave.visualization.plotters
 			
 			// don't lock the ColorColumn, so linking to global ColorColumn is possible
 			var _colorColumn:ColorColumn = fillStyle.color.internalDynamicColumn.requestLocalObject(ColorColumn, false);
-			_colorColumn.ramp.value = "0x808080";
+			_colorColumn.ramp.setSessionState([0x808080]);
 
 			var _binnedColumn:BinnedColumn = _colorColumn.internalDynamicColumn.requestLocalObject(BinnedColumn, true);
 			
