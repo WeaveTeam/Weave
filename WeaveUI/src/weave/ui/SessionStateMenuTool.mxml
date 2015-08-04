@@ -464,7 +464,7 @@
 						<mx:Button label="{lang('Find targets...')}"
 								   click="SessionStateEditor.openDefaultEditor();"/>
 						<mx:Spacer width="100%"/>
-						<mx:Button label="{lang('Remove selected')}"
+						<mx:Button label="{lang('Delete selected')}"
 								   enabled="{targetsList.selectedIndex >= 0}" 
 								   click="targetsController.removeSelectedItems(); outerDocument.tidySavedStates();"/>
 					</Indent>
@@ -476,9 +476,9 @@
 						<mx:Button label="{lang('Add new item for current state')}" click="addNewItem();"/>
 						<mx:Button id="recordNowButton" label="{lang('Update selected item')}" click="outerDocument.recordSelectedChoice();"/>
 						<mx:Spacer width="100%"/>
-						<mx:Button label="{lang('Remove selected')}"
-								   enabled="{choicesList.selectedIndex >= 0}" 
-								   click="choicesController.removeSelectedItems();"/>
+						<mx:Button label="{lang('Delete selected')}"
+								   enabled="{choicesList.selectedIndex >= 0}"
+								   click="outerDocument.removeSelectedChoice();"/>
 					</mx:HBox>
 					<mx:DataGrid id="choicesList" width="100%" height="100%"
 								 change="handleChoicesListChange();" />
