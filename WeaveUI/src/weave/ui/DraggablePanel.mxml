@@ -381,6 +381,14 @@
 				callLater(ToolsMenu.handleDraggablePanelAdded, [this]);
 			}
 			
+			/**
+			 * Put code here to run when the user closes the panel.
+			 */
+			public function onUserClose():void
+			{
+				
+			}
+			
 			public function getLabel():String
 			{
 				return title;
@@ -818,15 +826,6 @@
 				}
 			}
 			
-			private function handleCloseAlertResult(event:CloseEvent):void
-			{			
-				if (event.detail == Alert.YES)
-				{
-					removePanel();
-				}
-				// no need to do anything else for the other options, in those cases we dont want to close the window so do nothing
-			}
-			
 			private function handleZOrderChange():void
 			{
 				if (zOrder.value == 0)
@@ -878,9 +877,22 @@
 			private function handleCloseButtonClick():void
 			{
 				if (Weave.properties.showVisToolCloseDialog.value)
+				{
 					Alert.show("Are you sure you want to close this window?", "Closing this window...", 1|2, this, handleCloseAlertResult);
+					function handleCloseAlertResult(event:CloseEvent):void
+					{			
+						if (event.detail == Alert.YES)
+						{
+							onUserClose();
+							removePanel();
+						}
+					}
+				}
 				else
+				{
+					onUserClose();
 					removePanel();
+				}
 			}
 			
 			public function removePanel():void

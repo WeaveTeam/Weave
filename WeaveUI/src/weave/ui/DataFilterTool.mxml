@@ -278,7 +278,7 @@
 					setEditorType(DiscreteValuesDataFilterEditor, null);
 			}
 			
-			override public function dispose():void
+			override public function onUserClose():void
 			{
 				if (filter.targetPath)
 				{
@@ -291,7 +291,6 @@
 						trace(e.getStackTrace());
 					}
 				}
-				super.dispose()
 			}
 			
 			private function setEditorType(editorType:Class, editorDiff:Object):void
