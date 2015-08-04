@@ -416,6 +416,8 @@
 			{
 				// force panel title to update when targets and choices change
 				panelTitle.triggerCallbacks();
+				
+				playButton.enabled = menuStack.enabled = targets.getNames().length > 0;
 			}
 			
 			override public function get defaultPanelTitle():String
