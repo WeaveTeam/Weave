@@ -38,7 +38,7 @@
 				titleStyleName="weave-panel-title-style"
 				styleName="weave-panel-style"
 				
-				implements="weave.api.core.IDisposableObject, weave.api.core.ILinkableObject, weave.api.ui.IObjectWithLabel"
+				implements="weave.api.core.IDisposableObject, weave.api.core.ILinkableObject, weave.api.ui.IObjectWithDescription"
 				>
 	<mx:Script>
 		<![CDATA[
@@ -389,7 +389,7 @@
 				
 			}
 			
-			public function getLabel():String
+			public function getDescription():String
 			{
 				return title;
 			}

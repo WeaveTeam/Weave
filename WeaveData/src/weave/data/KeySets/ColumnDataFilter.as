@@ -24,13 +24,19 @@ package weave.data.KeySets
 	import weave.api.getSessionState;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithDescription;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableVariable;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.utils.ColumnUtils;
 
-	public class ColumnDataFilter implements IKeyFilter, ILinkableObjectWithNewProperties
+	public class ColumnDataFilter implements IKeyFilter, ILinkableObjectWithNewProperties, IObjectWithDescription
 	{
+		public function getDescription():String
+		{
+			return lang("Filter for {0}", ColumnUtils.getTitle(column));
+		}
+		
 		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), _cacheVars);
 		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), _cacheVars);
 		public const column:DynamicColumn = newLinkableChild(this, DynamicColumn, _resetKeyLookup);

@@ -20,7 +20,7 @@ package weave.api.ui
 	/**
 	 * Manages implementations of ILinkableObjectEditor.
 	 */
-	public interface IEditorManager
+	public interface IEditorManager extends ILinkableObject
 	{
 		/**
 		 * This function will register an ILinkableObjectEditor Class corresponding to an object or Class implementing ILinkableObject.
