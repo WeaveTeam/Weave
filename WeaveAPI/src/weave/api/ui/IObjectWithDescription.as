@@ -16,14 +16,14 @@
 package weave.api.ui
 {
 	/**
-	 * An Object with a label.
+	 * An Object with a description.
 	 */
-	public interface IObjectWithLabel
+	public interface IObjectWithDescription
 	{
 		/**
-		 * Gets a human-readable label for this object.
-		 * @return The human-readable label.
+		 * Gets a human-readable description for this object.
+		 * @return The human-readable description.
 		 */
-		function getLabel():String;
+		function getDescription():String;
 	}
 }

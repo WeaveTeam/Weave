@@ -222,8 +222,18 @@
 					},
 					WeaveMenuItem.TYPE_SEPARATOR,
 					{
-						label: lang("Edit session state"),
+						label: lang("Edit session state for {0}", getQualifiedClassName(this).split('::').pop()),
 						click: toggleControlPanel
+					},{
+						label: function():String {
+							return lang("Edit session state for {0}", getQualifiedClassName(getFilter()).split('::').pop());
+						},
+						shown: function():Boolean {
+							return getFilter() != null;
+						},
+						click: function():void {
+							SessionStateEditor.openDefaultEditor(getFilter());
+						}
 					}
 				];
 				
@@ -278,7 +288,7 @@
 					setEditorType(DiscreteValuesDataFilterEditor, null);
 			}
 			
-			override public function dispose():void
+			override public function onUserClose():void
 			{
 				if (filter.targetPath)
 				{
@@ -291,7 +301,6 @@
 						trace(e.getStackTrace());
 					}
 				}
-				super.dispose()
 			}
 			
 			private function setEditorType(editorType:Class, editorDiff:Object):void

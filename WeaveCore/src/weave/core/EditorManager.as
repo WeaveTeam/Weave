@@ -19,10 +19,10 @@ package weave.core
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.core.ILinkableObject;
+	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.ui.IEditorManager;
 	import weave.api.ui.ILinkableObjectEditor;
-	import weave.api.ui.IObjectWithLabel;
 
 	/**
 	 * Manages implementations of ILinkableObjectEditor.
@@ -42,6 +42,7 @@ package weave.core
 				throw new Error(editorQName + " does not implement " + interfaceQName);
 			
 			_editorLookup[linkableObjectOrClass] = editorType;
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
@@ -90,6 +91,7 @@ package weave.core
 		public function setLabel(object:ILinkableObject, label:String):void
 		{
 			labels[object] = label;
+			getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
@@ -97,11 +99,7 @@ package weave.core
 		 */
 		public function getLabel(object:ILinkableObject):String
 		{
-			if (labels[object])
-				return labels[object];
-			if (object is IObjectWithLabel)
-				return (object as IObjectWithLabel).getLabel();
-			return null;
+			return labels[object];
 		}
 	}
 }
