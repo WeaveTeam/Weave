@@ -35,6 +35,7 @@ package weave.visualization.plotters
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
+	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.utils.ColumnUtils;
@@ -75,7 +76,7 @@ package weave.visualization.plotters
 				return titleX;
 			}
 			var titleY:String = dataY.getMetadata(ColumnMetadata.TITLE);
-			return lang('{0} vs. {1}', titleX, titleY);
+			return lang('{0} vs. {1}', titleX || ProxyColumn.DATA_UNAVAILABLE, titleY || ProxyColumn.DATA_UNAVAILABLE);
 		}
 		
 		protected const filteredDataX:FilteredColumn = newDisposableChild(this, FilteredColumn);
