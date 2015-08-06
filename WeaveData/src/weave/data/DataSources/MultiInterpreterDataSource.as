@@ -2,6 +2,7 @@ package weave.data.DataSources
 {
 	import flash.net.URLRequest;
 	import flash.net.URLRequestMethod;
+	import flash.utils.ByteArray;
 	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -16,6 +17,7 @@ package weave.data.DataSources
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.compiler.Compiler;
 	import weave.core.ClassUtils;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -41,7 +43,6 @@ package weave.data.DataSources
 		private var alerts:Array = [];
 		private var processedDocumentKeys:Array = [];
 		private const cache:JsonCache = newLinkableChild(this, JsonCache);
-		private static const JSON:Object = ClassUtils.getClassDefinition('JSON');
 		
 		public function MultiInterpreterDataSource()
 		{
@@ -72,7 +73,11 @@ package weave.data.DataSources
 		
 		private function handleProcessedDocument(event:ResultEvent, token:Object = null):void
 		{
-			var jsonContent:Object = JSON.parse(event.result);
+			var jsonContent:Object = null;
+			if (event.result is ByteArray)
+				jsonContent = parseJSON(event.result.toString());
+			if (jsonContent == null) return;
+			
 			var documentKey:IQualifiedKey = token as IQualifiedKey;
 
 			for each (var row:Object in jsonContent.alerts)
@@ -180,6 +185,10 @@ package weave.data.DataSources
 			{
 				proxyMetadata[ColumnMetadata.KEY_TYPE] = keyType.value;
 			}
+			if (!proxyMetadata.hasOwnProperty(ColumnMetadata.TITLE))
+			{
+				proxyMetadata[ColumnMetadata.TITLE] = columnName;
+			}
 			
 			var alert:Object;
 			var key:String;
@@ -187,15 +196,16 @@ package weave.data.DataSources
 
 			switch (columnName)
 			{
-				case "alertId":
-				case "alertType":
+				case ALERTID:
+				case ALERTTYPE:
 					for each (alert in alerts)
 					{
 						keys.push(alert[ALERTID]);
 						values.push(alert[columnName]);
 					}	
+					proxyMetadata[ColumnMetadata.DATA_TYPE] = ColumnMetadata.STRING;
 					break;
-				case "documentKey":
+				case DOCUMENTKEY:
 					for each (alert in alerts)
 					{
 						keys.push(alert[ALERTID]);
@@ -203,7 +213,7 @@ package weave.data.DataSources
 					}
 					proxyMetadata[ColumnMetadata.DATA_TYPE] = documentText.getMetadata(ColumnMetadata.KEY_TYPE);
 					break;
-				case "alertedKeys":
+				case ALERTEDKEYS:
 					for each (alert in alerts)
 					{
 						for each (key in alert[ALERTEDKEYS])
@@ -212,9 +222,9 @@ package weave.data.DataSources
 							values.push(key);
 						}
 					}
-					proxyMetadata[ColumnMetadata.DATA_TYPE] = targetKeyType.value;
+					proxyMetadata[ColumnMetadata.DATA_TYPE] = targetKeyType.value || ColumnMetadata.STRING;
 					break;
-				case "evidenceSpans":
+				case EVIDENCESPANS:
 					for each (alert in alerts)
 					{
 						for each (span in alert[EVIDENCESPANS])
@@ -223,14 +233,41 @@ package weave.data.DataSources
 							values.push(span.f + "," + span.t);
 						}
 					}
+					proxyMetadata[ColumnMetadata.DATA_TYPE] = ColumnMetadata.STRING;
 					break;
 				default:
-					proxyColumn.dataUnavailable("Unknown column \"" + columnName + "\""); 
+					proxyColumn.dataUnavailable("Unknown column \"" + columnName + "\"");
 			}
 			
 			proxyColumn.setMetadata(proxyMetadata);
 
 			DataSourceUtils.initColumn(proxyColumn, keys, values);
+		}
+		private static const JSON:Object = ClassUtils.getClassDefinition('JSON');
+		
+		private static function parseJSON(json:String):Object
+		{
+			try
+			{
+				if (JSON)
+					return JSON.parse(json);
+				else
+					return Compiler.parseConstant(json);
+			}
+			catch (e:Error)
+			{
+				reportError("Unable to parse JSON result");
+				trace(json);
+			}
+			return null;
+		}
+		
+		private static function stringifyJSON(obj:Object):String
+		{
+			if (JSON)
+				return JSON.stringify(obj);
+			else
+				return Compiler.stringify(obj);
 		}
 	}
 }
