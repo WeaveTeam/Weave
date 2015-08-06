@@ -762,7 +762,7 @@ package weave.application
 			]
 		}
 		
-		public function handleDraggedFile(fileName:String, fileContent:ByteArray):void
+		public function handleDraggedFile(fileName:String, fileContent:ByteArray, dataFilesOnly:Boolean = false):void
 		{
 			var ext:String = String(fileName.split('.').pop()).toLowerCase();
 			var adsp:AddDataSourcePanel;
@@ -772,7 +772,7 @@ package weave.application
 			{
 				var files:Object = weave.flascc.readZip(fileContent);
 				for (var fileName:String in files)
-					handleDraggedFile(fileName, files[fileName]);
+					handleDraggedFile(fileName, files[fileName], true);
 				
 				adsp = DraggablePanel.getStaticInstance(AddDataSourcePanel);
 				if (adsp.parent)
@@ -781,7 +781,7 @@ package weave.application
 				return;
 			}
 			
-			if (ext == 'weave' || ext == 'xml')
+			if (!dataFilesOnly && (ext == 'weave' || ext == 'xml'))
 			{
 				loadSessionState(fileContent, fileName);
 				return;
