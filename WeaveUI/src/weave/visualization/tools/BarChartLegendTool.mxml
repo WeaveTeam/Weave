@@ -24,6 +24,7 @@
 			import weave.api.copySessionState;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
+			import weave.api.linkSessionState;
 			import weave.api.registerLinkableChild;
 			import weave.core.LinkableDynamicObject;
 			import weave.data.AttributeColumns.ReferencedColumn;
@@ -75,6 +76,10 @@
 			{
 				super.childrenCreated();
 				
+				// backwards compatibility - bar legend order takes priority
+				linkSessionState(_barLegendPlotter.reverseOrder, _colorLegendPlotter.reverseOrder);
+				
+				linkBindableProperty(visualization.plotManager.marginTopNumber, marginLabel, "height");
 				_barLegendPlotter.legendTitleFunction.addGroupedCallback(this, updateMarginLabel, true);
 				//_colorLegendPlotter.legendTitleFunction.addGroupedCallback(this, updateMarginLabel, true);
 			}
@@ -182,12 +187,8 @@
 				{
 					super.childrenCreated();
 					
-					outerDocument.visualization.plotManager.marginTopNumber.addGroupedCallback(this, handleMarginChange);
+					outerDocument.visualization.plotManager.marginTopNumber.addGroupedCallback(this, handleMarginChange, true);
 					
-					// backwards compatibility - bar legend order takes priority
-					outerDocument._colorLegendPlotter.reverseOrder.value = outerDocument._barLegendPlotter.reverseOrder.value;
-					
-					linkBindableProperty(outerDocument.visualization.plotManager.marginTopNumber, outerDocument.marginLabel, "height");
 					linkBindableProperty(outerDocument._barLegendPlotter.maxColumns, legendControls.numColumns, 'value');
 					linkBindableProperty(outerDocument._colorLegendPlotter.maxColumns, legendControls.numColumns, 'value');
 					linkBindableProperty(outerDocument._barLegendPlotter.reverseOrder, legendControls.reverseOrderCheck, 'selected');
