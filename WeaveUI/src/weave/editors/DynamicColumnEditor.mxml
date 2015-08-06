@@ -95,7 +95,12 @@
 			
 			public function set dataSource(ds:IDataSource):void
 			{
-				dataSourceWatcher.target = ds;
+				if (dataSourceWatcher.target != ds)
+				{
+					if (explorer)
+						explorer.fileView.selectedItem = null;
+					dataSourceWatcher.target = ds;
+				}
 			}
 			private const dataSourceWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleDataSource, true);
 			private function handleDataSource():void
