@@ -23,6 +23,7 @@ package weave.visualization.plotters
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithDescription;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
@@ -33,7 +34,7 @@ package weave.visualization.plotters
 	import weave.utils.BitmapText;
 	import weave.utils.EquationColumnLib;
 
-	public class GeometryRelationPlotter extends AbstractPlotter
+	public class GeometryRelationPlotter extends AbstractPlotter implements IObjectWithDescription
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GeometryRelationPlotter, "Geometry relations");
 
@@ -44,6 +45,12 @@ package weave.visualization.plotters
 			
 			setColumnKeySources([geometryColumn]);
 		}
+		
+		public function getDescription():String
+		{
+			return geometryColumn.getDescription();
+		}
+		
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
 		public const sourceKeyColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
 		public const destinationKeyColumn:DynamicColumn = newSpatialProperty(DynamicColumn);

@@ -21,6 +21,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.ui.IObjectWithDescription;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableString;
 	import weave.core.LinkableWatcher;
@@ -31,12 +32,24 @@ package weave.data.AttributeColumns
 	 * 
 	 * @author adufilie
 	 */
-	public class ReprojectedGeometryColumn extends ExtendedDynamicColumn
+	public class ReprojectedGeometryColumn extends ExtendedDynamicColumn implements IObjectWithDescription
 	{
 		public function ReprojectedGeometryColumn()
 		{
 			// force the internal column to always be a ReferencedColumn
 			addImmediateCallback(this, updateReprojectedColumn);
+		}
+		
+		public function getDescription():String
+		{
+			var title:String = internalDynamicColumn.getMetadata(ColumnMetadata.TITLE);
+			var srcproj:String = internalDynamicColumn.getMetadata(ColumnMetadata.PROJECTION);
+			var destproj:String = this.getMetadata(ColumnMetadata.PROJECTION);
+			if (destproj && srcproj != destproj)
+				return lang('{0} ({1} -> {2})', title, srcproj || '?', destproj);
+			else if (srcproj)
+				return lang('{0} ({1})', title, srcproj);
+			return title;
 		}
 		
 		/**

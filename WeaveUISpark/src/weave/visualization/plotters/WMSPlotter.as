@@ -36,6 +36,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.services.IWMSService;
+	import weave.api.ui.IObjectWithDescription;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableDynamicObject;
@@ -60,7 +61,7 @@ package weave.visualization.plotters
 	 * @author kmonico
 	 * @author skolman
 	 */
-	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus, IDisposableObject
+	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus, IDisposableObject, IObjectWithDescription
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, WMSPlotter, "WMS images");
 		
@@ -72,6 +73,15 @@ package weave.visualization.plotters
 		{
 			//setting default WMS Map to Blue Marble
 			setProvider(WMSProviders.OPEN_STREET_MAP);
+		}
+		
+		public function getDescription():String
+		{
+			var src:String = sourceSRS;
+			var dest:String = getDestinationSRS();
+			if (dest && src != dest)
+				return lang('{0} ({1} -> {2})', providerName, src || '?', dest);
+			return lang('{0} ({1})', providerName, src);
 		}
 		
 		public function get sourceSRS():String
