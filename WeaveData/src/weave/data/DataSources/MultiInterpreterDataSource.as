@@ -14,6 +14,7 @@ package weave.data.DataSources
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.core.ClassUtils;
 	import weave.core.LinkableString;
@@ -32,7 +33,7 @@ package weave.data.DataSources
 		
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString, refreshAllProxyColumns);
 		public const targetKeyType:LinkableString = newLinkableChild(this, LinkableString, refreshAllProxyColumns);
-		public const url:LinkableString = newLinkableChild(this, LinkableString, handleUrlChange);
+		public const url:LinkableString = registerLinkableChild(this, new LinkableString("http://localhost:8080/api?kb=kb-wn-vn-single"), handleUrlChange);
 		public const documentText:DynamicColumn = newLinkableChild(this, DynamicColumn, documentsChanged);
 		public const documentTime:DynamicColumn = newLinkableChild(this, DynamicColumn, documentsChanged);
 		
@@ -49,11 +50,10 @@ package weave.data.DataSources
 		
 		private function documentsChanged():void
 		{
-			
 			VectorUtils.subtract(documentText.keys, processedDocumentKeys).map(processDocument, this);
 		}
 		
-		private function processDocument(key:IQualifiedKey):void
+		private function processDocument(key:IQualifiedKey,..._):void
 		{			
 			processedDocumentKeys.push(key);
 			
