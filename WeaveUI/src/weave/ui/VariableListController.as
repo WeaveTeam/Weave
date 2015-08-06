@@ -33,6 +33,7 @@ package weave.ui
 	import weave.api.data.IColumnReference;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.ui.IObjectWithDescription;
 	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	
@@ -301,24 +302,20 @@ package weave.ui
 			if (dg)
 				dg.editedItemPosition = null;
 		}
-
-		/**
-		 * @param item
-		 * @return The name of the item in the ILinkableHashMap or the ILinkableDynamicObject internal object's global name
-		 */		
-		public function getItemName(item:Object):String
-		{
-			if (hashMap)
-				return hashMap.getName(item as ILinkableObject);
-			return null;
-		}
 		
 		private function getItemLabel(item:Object, ..._):String
 		{
 			if (_labelFunction != null)
 				return _labelFunction(item);
+			else if (item is IObjectWithDescription)
+				return (item as IObjectWithDescription).getDescription();
 			else
 				return getObjectName(item) || String(item);
+		}
+		
+		public function get labelFunction():Function
+		{
+			return _labelFunction;
 		}
 		
 		public function set labelFunction(value:Function):void

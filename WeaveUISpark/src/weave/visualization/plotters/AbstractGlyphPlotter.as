@@ -30,19 +30,21 @@ package weave.visualization.plotters
 	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IObjectWithDescription;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.utils.ColumnUtils;
 	
 	/**
 	 * A glyph represents a point of data at an X and Y coordinate.
 	 * 
 	 * @author adufilie
 	 */
-	public class AbstractGlyphPlotter extends AbstractPlotter
+	public class AbstractGlyphPlotter extends AbstractPlotter implements IObjectWithDescription
 	{
 		public function AbstractGlyphPlotter()
 		{
@@ -59,6 +61,21 @@ package weave.visualization.plotters
 			
 			linkSessionState(_filteredKeySet.keyFilter, filteredDataX.filter);
 			linkSessionState(_filteredKeySet.keyFilter, filteredDataY.filter);
+		}
+		
+		public function getDescription():String
+		{
+			var titleX:String = dataX.getMetadata(ColumnMetadata.TITLE);
+			if (dataX.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.GEOMETRY)
+			{
+				if (destinationProjection.value && sourceProjection.value != destinationProjection.value)
+					return lang('{0} ({1} -> {2})', titleX, sourceProjection.value || '?', destinationProjection.value);
+				else if (sourceProjection.value)
+					return lang('{0} ({1})', titleX, sourceProjection.value);
+				return titleX;
+			}
+			var titleY:String = dataY.getMetadata(ColumnMetadata.TITLE);
+			return lang('{0} vs. {1}', titleX, titleY);
 		}
 		
 		protected const filteredDataX:FilteredColumn = newDisposableChild(this, FilteredColumn);
