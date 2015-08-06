@@ -168,7 +168,13 @@ package weave.data.Transforms
 				var keyType:String = groupKeyType.value || groupByColumn.getMetadata(ColumnMetadata.DATA_TYPE);
 				for each (var key:IQualifiedKey in groupByColumn.keys)
 				{
-					var localName:String = groupByColumn.getValueFromKey(key, String);
+					var localName:String;
+					// if the foreign key column is numeric, avoid using the formatted strings as keys
+					if (groupByColumn.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.NUMBER)
+						localName = groupByColumn.getValueFromKey(key, Number);
+					else
+						localName = groupByColumn.getValueFromKey(key, String);
+					
 					if (!stringLookup[localName])
 					{
 						stringLookup[localName] = true;
