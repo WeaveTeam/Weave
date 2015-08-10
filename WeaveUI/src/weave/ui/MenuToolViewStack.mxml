@@ -38,10 +38,12 @@
 						prompt="{prompt}">
 			<ui:valueCommit>
 				<![CDATA[
-					if (!_settingComboSelection && !viewChanging && layoutMode == LAYOUT_COMBO && UIUtils.hasFocus(choiceCombo))
+					if (!_settingComboSelection && !viewChanging && layoutMode == LAYOUT_COMBO && UIUtils.hasFocus(choiceCombo) && choiceCombo.selectedItem)
 					{
 						_settingComboSelection = true;
 						chosenItem = choiceCombo.selectedItem;
+						if (alwaysShowPrompt)
+							choiceCombo.selectedIndex = -1;
 						_settingComboSelection = false;
 					}
 				]]>
