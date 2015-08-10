@@ -80,6 +80,7 @@ import weave.api.data.IQualifiedKey;
 import weave.api.getCallbackCollection;
 import weave.api.registerDisposableChild;
 import weave.compiler.StandardLib;
+import weave.data.QKeyManager;
 
 internal class ColumnStatistics implements IColumnStatistics
 {
@@ -334,8 +335,8 @@ internal class ColumnStatistics implements IColumnStatistics
 		
 		outKeys.length = count;
 		outNumbers.length = count;
-		// Array.sort() is very fast when no compare function is given.
-		var outIndices:Array = outNumbers.sort(Array.NUMERIC | Array.RETURNINDEXEDARRAY);
+		var qkm:QKeyManager = WeaveAPI.QKeyManager as QKeyManager;
+		var outIndices:Array = StandardLib.sortOn(outKeys, [outNumbers, qkm.keyTypeLookup, qkm.localNameLookup], null, false, true);
 		median = outNumbers[outIndices[int(count / 2)]];
 		i = count;
 		while (--i >= 0)
