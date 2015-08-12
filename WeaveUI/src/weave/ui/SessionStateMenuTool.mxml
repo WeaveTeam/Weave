@@ -488,6 +488,11 @@
 			</mx:TabNavigator>
 		</mx:VBox>
 		<editors:WindowSettingsEditor id="windowEditor" target="{outerDocument}"/>
+		<!--<mx:VBox label="{lang('Help')}">
+			<Paragraph>
+				Help text goes here
+			</Paragraph>
+		</mx:VBox>-->
 		
 		<mx:Script>
 			<![CDATA[
