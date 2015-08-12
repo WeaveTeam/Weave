@@ -18,6 +18,7 @@ package weave.services
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
+	import flash.net.URLRequestHeader;
 	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
 	import flash.utils.ByteArray;
@@ -155,6 +156,7 @@ package weave.services
 			else if (_urlRequestDataFormat == REQUEST_FORMAT_BINARY)
 			{
 				request.method = URLRequestMethod.POST;
+				request.requestHeaders = [new URLRequestHeader("Content-Type", "application/octet-stream")];
 				// create object containing method name and parameters
 				var obj:Object = new Object();
 				obj[METHOD] = methodName;
