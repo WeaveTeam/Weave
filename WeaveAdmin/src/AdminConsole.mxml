@@ -181,7 +181,7 @@
 			
 			private function openAcsHeaderTool():void
 			{
-				var success:Boolean = JavaScript.exec('return !!window.open("http://demo.oicweave.org/HeaderTool.swf", "_blank")');
+				var success:Boolean = JavaScript.exec('return !!window.open("http://demo.iweave.com/HeaderTool.swf", "_blank")');
 				if (!success)
 					reportError("Popup was blocked by web browser");
 			}

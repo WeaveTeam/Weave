@@ -43,7 +43,7 @@
 			import weave.api.ui.IDataSourceEditor;
 			import weave.core.ClassUtils;
 			import weave.core.UIUtils;
-			import weave.menus.SessionMenu;
+			import weave.menus.FileMenu;
 
 			override protected function inConstructor():void
 			{
@@ -105,7 +105,7 @@
 					var sources:Array = WeaveAPI.globalHashMap.getObjects(IDataSource_File);
 					if (sources.length == 1 && sources[0] == ds)
 					{
-						if (SessionMenu.initTemplate(ds as IDataSource_File))
+						if (FileMenu.initTemplate(ds as IDataSource_File))
 							return;
 					}
 					

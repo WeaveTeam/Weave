@@ -192,9 +192,9 @@
 				if (id == 1)
 					load('app:/demoRemote.weave');
 				if (id == 2)
-					load('http://demo.oicweave.org/obesity.weave');
+					load('http://demo.iweave.com/obesity.weave');
 				if (id == 3)
-					load('http://demo.oicweave.org/reprojection-demo.weave');
+					load('http://demo.iweave.com/reprojection-demo.weave');
 			}
 			
 			private function handleKeyDown(event:KeyboardEvent):void

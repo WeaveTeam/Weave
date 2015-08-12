@@ -239,7 +239,6 @@
 		<mx:Label id="exportTitle" textAlign="center" fontSize="18" fontWeight="bold" horizontalCenter="0" width="100%"
 				  visible="{showTitle.selected}" includeInLayout="{showTitle.selected}"/>
 		<mx:Image id="exportImage" source="{_imageSource}" complete="scalePrintVbox();"/>
-		<ui:WeaveCopyrightPane width="100%" visible="{showCopyright.selected}" includeInLayout="{showCopyright.selected}"/>
 	</mx:VBox>
 	
 	<mx:ControlBar horizontalAlign="center">
@@ -247,7 +246,6 @@
 		<!--- @TODO text box for entering title -->
 		<mx:CheckBox id="showTitle" label="{lang('Title')}" selected="false" change="scalePrintVbox()" visible="false" includeInLayout="false"/>
 		
-		<mx:CheckBox id="showCopyright" label="{lang('Copyright')}" creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');" change="scalePrintVbox()"/>
 		<!--<mx:CheckBox id="showBackground" label="{lang('Background')}" selected="true" change="handleBackground();"/>-->
 		<mx:Button id="printButton" label="{lang('Print')}" click="handlePrintClick(event)"/>
 		<mx:Button id="saveButton" label="{lang('Save as Image')}" click="handleSaveAsImageClick(event)"/>

@@ -24,6 +24,7 @@ package weave.ui.controlBars
 	import mx.core.ClassFactory;
 	import mx.core.mx_internal;
 	import mx.events.MenuEvent;
+	import mx.styles.IStyleClient;
 	
 	import weave.ui.CustomMenu;
 	
@@ -32,6 +33,7 @@ package weave.ui.controlBars
 	public class CustomMenuBar extends MenuBar
 	{
 		private static const MARGIN_WIDTH:int = 10; // same as in MenuBar.as
+		public var firstItemBold:Boolean = false;
 
 		public function CustomMenuBar()
 		{
@@ -54,8 +56,14 @@ package weave.ui.controlBars
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
 			
 			// remove hard-coded margins
+			var first:Boolean = true;
 			for each (var item:DisplayObject in menuBarItems)
+			{
+				if (first && firstItemBold && item is IStyleClient)
+					IStyleClient(item).setStyle('fontWeight', 'bold');
 				item.x -= MARGIN_WIDTH;
+				first = false;
+			}
 			
 			// fixes bug where old menu doesn't go away.
 			// We can't call Menu.hide() because it will still affect the MenuBar

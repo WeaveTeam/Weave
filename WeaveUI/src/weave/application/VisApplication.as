@@ -76,7 +76,7 @@ package weave.application
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.DataSourceManager;
 	import weave.flascc.readZip;
-	import weave.menus.SessionMenu;
+	import weave.menus.FileMenu;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
 	import weave.ui.CirclePlotterSettings;
@@ -846,7 +846,7 @@ package weave.application
 				graphml.nodeKeyType.value = fileName + " (node)";
 			}
 			
-			if (dataSource && !SessionMenu.initTemplate(dataSource))
+			if (dataSource && !FileMenu.initTemplate(dataSource))
 			{
 				var dsm:DataSourceManager = DraggablePanel.openStaticInstance(DataSourceManager);
 				dsm.selectDataSource(dataSource);
