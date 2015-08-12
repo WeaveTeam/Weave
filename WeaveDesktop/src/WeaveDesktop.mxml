@@ -83,11 +83,11 @@
 				return app;
 			}
 			
-			public function openNewSessionPossible():Boolean
+			public function get openNewSession():Function
 			{
-				return NativeProcess.isSupported;
+				return NativeProcess.isSupported ? _openNewSession : null;
 			}
-			public function openNewSession():void
+			public function _openNewSession():void
 			{
 				try
 				{

@@ -21,7 +21,6 @@ package weave.menus
 	import mx.controls.Alert;
 	
 	import weave.Weave;
-	import weave.editors.WeavePropertiesEditor;
 	import weave.ui.DraggablePanel;
 
 	public class WindowMenu extends WeaveMenuItem
@@ -65,17 +64,19 @@ package weave.menus
 		
 		public static const staticItems:Array = createItems([
 			{
-				shown: {or: [SessionMenu.fn_adminMode, Weave.properties.enableUserPreferences]},
-				label: lang("Preferences"),
-				click: function():void { DraggablePanel.openStaticInstance(WeavePropertiesEditor); }
-			},
-			TYPE_SEPARATOR,
-			{
 				label: function():String {
 					var dash:Boolean = Weave.properties.dashboardMode.value;
 					return lang((dash ? "Disable" : "Enable") + " dashboard mode");
 				},
 				click: Weave.properties.dashboardMode
+			},
+			TYPE_SEPARATOR,
+			{
+				label: function():String {
+					var shown:Boolean = Weave.properties.enableSessionHistoryControls.value;
+					return lang((shown ? "Hide" : "Show") + " session history controls");
+				},
+				click: Weave.properties.enableSessionHistoryControls
 			},
 			TYPE_SEPARATOR,
 			{
@@ -191,7 +192,7 @@ package weave.menus
 		{
 			super({
 				dependency: WeaveAPI.globalHashMap.childListCallbacks,
-				shown: {or: [SessionMenu.fn_adminMode, Weave.properties.enableWindowMenu]},
+				shown: {or: [FileMenu.fn_adminMode, Weave.properties.enableWindowMenu]},
 				label: lang("Window"),
 				children: function():Array {
 					return createItems([

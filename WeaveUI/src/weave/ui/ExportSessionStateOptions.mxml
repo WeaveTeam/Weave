@@ -47,8 +47,6 @@
 						 creationComplete="linkBindableProperty(Weave.properties.enableToolControls, event.target, 'selected');"/>
 			<mx:CheckBox label="{lang('Show top menu bar')}"
 						 creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected')"/>
-			<mx:CheckBox label="{lang('Show copyright')}"
-						 creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
 			<mx:CheckBox id="saveScreenshot"
 						 label="{lang('Save screenshot to be displayed during startup')}"
 						 selected="false"/>
@@ -94,8 +92,7 @@
 				fileName = Weave.fileName;
 				for each (var lb:LinkableBoolean in [
 					Weave.properties.dashboardMode,
-					Weave.properties.enableMenuBar,
-					Weave.properties.showCopyright
+					Weave.properties.enableMenuBar
 				])
 					oldValues[lb] = lb.value;
 				

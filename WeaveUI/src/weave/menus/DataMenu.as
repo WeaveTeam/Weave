@@ -45,12 +45,6 @@ package weave.menus
 
 	public class DataMenu extends WeaveMenuItem
 	{
-		// TODO: make it so we are not dependent on VisApplication
-		private static function exportCSV():void
-		{
-			WeaveAPI.topLevelApplication['visApp']['exportCSV']();
-		}
-		
 		public static const staticItems:Array = createItems([
 			{
 				shown: Weave.properties.enableBrowseData,
@@ -73,11 +67,6 @@ package weave.menus
 					}
 				},
 				enabled: function():Boolean { return WeaveAPI.globalHashMap.getObjects(IDataSource).length > 0; }
-			},{
-				shown: Weave.properties.enableExportCSV,
-				label: lang("Export CSV from all visualizations"),
-				click: exportCSV,
-				enabled: function():Boolean { return WeaveAPI.globalHashMap.getObjects(ISelectableAttributes).length > 0; }
 			}
 		]);
 		

@@ -20,12 +20,10 @@
 		 width="100%" 
 		 height="100%" xmlns:ui="weave.ui.*"
 		 >
-	<ui:CheckBoxWithNestedOptions id="enableMenuBar"
-								  label="{lang('Show menu bar')}"
-								  creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');">
-		<ui:CustomCheckBox label="{lang('Show copyright')}"
-						   creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
-	</ui:CheckBoxWithNestedOptions>
+	<ui:CustomCheckBox id="enableMenuBar"
+			label="{lang('Show menu bar')}"
+			creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');">
+	</ui:CustomCheckBox>
 	
 	<ui:CustomCheckBox label="{lang('Show session history controls')}"
 				 creationComplete="linkBindableProperty(Weave.properties.enableSessionHistoryControls, event.target, 'selected');"
@@ -176,13 +174,6 @@
 							 creationComplete="linkBindableProperty(Weave.properties.enableCloseAllWindows, event.target, 'selected')"/>
 			</mx:VBox>
 		</mx:VBox>	
-		
-		<mx:VBox label="{lang('Help')}" verticalGap="{verticalGap}">
-			<ui:CustomCheckBox
-					 label="{lang('Help Menu')}"
-					 width="120" 
-					 creationComplete="linkBindableProperty(Weave.properties.enableAboutMenu, event.target, 'selected')"/> 
-		</mx:VBox>
 	</ui:CustomTabNavigator>
 	<mx:Script>
 		<![CDATA[

@@ -50,7 +50,7 @@
 			public const collabService:CollaborationService 	= registerDisposableChild(this, new CollaborationService(Weave.root));
 			public var rtmpService:NetConnection 				= null;
 			
-			private const rtmpPath:String = "rtmpt://demo.oicweave.org:8086/live";
+			private const rtmpPath:String = "rtmpt://demo.iweave.com:8086/live";
 			
 			private var CHAT:CollaborationChatWindow 			= null;
 			private var SETTINGS:CollaborationSettingsWindow 	= null;
