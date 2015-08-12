@@ -583,6 +583,7 @@ internal class CustomURLLoader extends URLLoader
 		}
 		else
 			fault = new Fault(event.type, event.type, "Request cancelled");
+		fault.rootCause = this;
 		applyFault(fault);
 		_isClosed = true;
 	}
