@@ -271,6 +271,7 @@ public class WeaveServlet extends HttpServlet
 		public PeekableInputStream inputStream;
 		public Boolean isBatchRequest = false;
 		public boolean prettyPrinting = false;
+		public boolean setContentType = true;
 	}
 	
 	/**
@@ -335,13 +336,24 @@ public class WeaveServlet extends HttpServlet
 				
 				for (String paramName : urlParamNames)
 					params.put(paramName, request.getParameter(paramName));
+				
 				JsonRpcRequestModel json = new JsonRpcRequestModel();
 				json.jsonrpc = JSONRPC_VERSION;
 				json.id = "";
 				json.method = params.remove(METHOD);
 				json.params = params;
 				
-				//info.currentJsonRequest = json;
+				// for testing AMF response without content-type header
+				String testFireFox = "test_firefox";
+				if (params.containsKey(testFireFox))
+				{
+					params.remove(testFireFox);
+					info.setContentType = false;
+				}
+				else
+				{
+					info.currentJsonRequest = json;
+				}
 				info.prettyPrinting = true;
 				invokeMethod(json.method, params);
 			}
@@ -950,7 +962,8 @@ public class WeaveServlet extends HttpServlet
 		{
 			if (type != void.class)
 			{
-				info.response.setContentType("application/octet-stream");
+				if (info.setContentType)
+					info.response.setContentType("application/octet-stream");
 
 				ServletOutputStream servletOutputStream = info.getOutputStream();
 				serializeCompressedAmf3(result, servletOutputStream);
@@ -1003,7 +1016,8 @@ public class WeaveServlet extends HttpServlet
 		ServletRequestInfo info = getServletRequestInfo();
 		if (info.currentJsonRequest == null)
 		{
-			info.response.setContentType("application/octet-stream");
+			if (info.setContentType)
+				info.response.setContentType("application/octet-stream");
 
 			ServletOutputStream servletOutputStream = info.getOutputStream();
 			ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
