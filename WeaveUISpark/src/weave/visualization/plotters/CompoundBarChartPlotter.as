@@ -287,7 +287,7 @@ package weave.visualization.plotters
 						_groupingMode = getActualGroupingMode();
 						_horizontalMode = horizontalMode.value;
 						_groupBySortColumn = groupBySortColumn.value;
-						reverseOrder = (_horizontalMode == (_groupingMode == GROUP));
+						reverseOrder = _groupingMode == GROUP && _horizontalMode;
 						if (reverseOrder)
 						{
 							_heightColumns.reverse();
