@@ -46,12 +46,22 @@
 			
 			import weave.api.core.DynamicState;
 			import weave.data.hierarchy.WeaveTreeDescriptorNode;
+			import weave.menus.WeaveContextMenu;
 			import weave.utils.VectorUtils;
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
+				treeView.contextMenu = WeaveContextMenu.create([
+					{
+						label: function():String {
+							var node:WeaveTreeDescriptorNode = treeView.selectedItem as WeaveTreeDescriptorNode;
+							return debugId(node.data[0]);
+						},
+						enabled: false
+					}
+				]);
 				treeView.enableClickToExpand();
 			}
 			
