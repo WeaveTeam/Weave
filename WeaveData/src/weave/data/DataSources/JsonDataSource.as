@@ -1,3 +1,4 @@
+
 package weave.data.DataSources
 {
 	import weave.api.data.ColumnMetadata;
@@ -7,6 +8,7 @@ package weave.data.DataSources
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.compiler.Compiler;
+	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.core.LinkableFile;
 	import weave.core.LinkableString;
@@ -159,7 +161,9 @@ package weave.data.DataSources
 				label: (path.length == 0 ? WeaveAPI.globalHashMap.getName(this) : path.slice(-1)[0]),
 				hasChildBranches: pathHasChildBranches(path),
 				children: function():Array {
-					return VectorUtils.getKeys(obj).map(
+					var properties:Array = VectorUtils.getKeys(obj);
+					StandardLib.sort(properties);
+					return properties.map(
 						function (key:String, ..._):Object {
 							return buildNode(path.concat([key]));
 						});
