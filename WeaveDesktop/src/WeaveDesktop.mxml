@@ -34,6 +34,7 @@
 			
 			import weave.api.reportError;
 			import weave.application.VisApp;
+			import weave.menus.FileMenu;
 			import weave.services.addAsyncResponder;
 			
 			weaveTraceImpl as Function; // if we don't reference this, it won't be included in the build
@@ -213,7 +214,7 @@
 			private function handleFileLoadComplete(event:Event):void
 			{
 				var file:File = event.target as File;
-				visApp.handleDraggedFile(file.name, file.data);
+				FileMenu.loadFile(file.name, file.data);
 			}
 			
 			private function doDragExit(e:NativeDragEvent):void
