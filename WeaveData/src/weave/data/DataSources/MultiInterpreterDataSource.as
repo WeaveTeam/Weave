@@ -40,6 +40,7 @@ package weave.data.DataSources
 		public const documentTime:DynamicColumn = newLinkableChild(this, DynamicColumn, documentsChanged);
 		
 		
+		private var uniqueAlertId:int = 0;
 		private var alerts:Array = [];
 		private var processedDocumentKeys:Array = [];
 		private const cache:JsonCache = newLinkableChild(this, JsonCache);
@@ -82,7 +83,8 @@ package weave.data.DataSources
 
 			for each (var row:Object in jsonContent.alerts)
 			{
-				row.documentKey = documentKey;
+				row[DOCUMENTKEY] = documentKey;
+				row[UNIQUEID] = uniqueAlertId++;
 				alerts.push(row);
 			}
 			
@@ -154,7 +156,7 @@ package weave.data.DataSources
 				});
 			};
 		}
-		
+		private static const UNIQUEID:String = "uniqueId";
 		private static const ALERTID:String = "alertId";
 		private static const ALERTTYPE:String = "alertType";
 		private static const EVIDENCESPANS:String = "evidenceSpans";
@@ -200,7 +202,7 @@ package weave.data.DataSources
 				case ALERTTYPE:
 					for each (alert in alerts)
 					{
-						keys.push(alert[ALERTID]);
+						keys.push(alert[UNIQUEID]);
 						values.push(alert[columnName]);
 					}	
 					proxyMetadata[ColumnMetadata.DATA_TYPE] = ColumnMetadata.STRING;
@@ -208,7 +210,7 @@ package weave.data.DataSources
 				case DOCUMENTKEY:
 					for each (alert in alerts)
 					{
-						keys.push(alert[ALERTID]);
+						keys.push(alert[UNIQUEID]);
 						values.push(alert[columnName].localName);
 					}
 					proxyMetadata[ColumnMetadata.DATA_TYPE] = documentText.getMetadata(ColumnMetadata.KEY_TYPE);
@@ -218,7 +220,7 @@ package weave.data.DataSources
 					{
 						for each (key in alert[ALERTEDKEYS])
 						{
-							keys.push(alert[ALERTID]);
+							keys.push(alert[UNIQUEID]);
 							values.push(key);
 						}
 					}
@@ -229,7 +231,7 @@ package weave.data.DataSources
 					{
 						for each (span in alert[EVIDENCESPANS])
 						{
-							keys.push(alert[ALERTID]);
+							keys.push(alert[UNIQUEID]);
 							values.push(span.f + "," + span.t);
 						}
 					}
