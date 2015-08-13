@@ -37,9 +37,15 @@ package weave.menus
 	public class FileMenu extends WeaveMenuItem
 	{
 		// TODO: make it so we are not dependent on VisApplication implementation
-		private function loadSessionState(fileContent:Object, fileName:String):void
+		public static function getSupportedFileTypes():Array
 		{
-			WeaveAPI.topLevelApplication['visApp']['loadSessionState'](fileContent, fileName);
+			// TEMPORARY SOLUTION until we can register file type handlers in WeaveAPI
+			return WeaveAPI.topLevelApplication['visApp']['getSupportedFileTypes']();
+		}
+		public static function loadFile(fileName:String, fileContent:Object):void
+		{
+			//WeaveAPI.topLevelApplication['visApp']['loadSessionState'](fileContent, fileName);
+			WeaveAPI.topLevelApplication['visApp']['handleDraggedFile'](fileName, fileContent);
 		}
 		private function saveSessionStateToServer():void
 		{
@@ -60,7 +66,7 @@ package weave.menus
 		//-----------
 		
 		private var _weaveFileRef:FileReference;
-		private function importSessionHistory():void
+		private function browseForFile():void
 		{
 			try
 			{
@@ -71,13 +77,10 @@ package weave.menus
 						_weaveFileRef.load();
 					});
 					_weaveFileRef.addEventListener(Event.COMPLETE, function (e:Event):void {
-						loadSessionState(e.target.data, _weaveFileRef.name);
+						loadFile(_weaveFileRef.name, _weaveFileRef.data);
 					});
 				}
-				_weaveFileRef.browse([
-					new FileFilter(lang("Weave files"), "*.weave"),
-					new FileFilter(lang("All files"), "*.*")
-				]);
+				_weaveFileRef.browse(getSupportedFileTypes());
 			}
 			catch (e:Error)
 			{
@@ -155,7 +158,7 @@ package weave.menus
 				children: [
 					{
 						label: lang("Open a file..."),
-						click: importSessionHistory
+						click: browseForFile
 					},
 					{
 						label: lang("Save as..."),

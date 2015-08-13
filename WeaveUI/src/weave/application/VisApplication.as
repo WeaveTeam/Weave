@@ -751,6 +751,7 @@ package weave.application
 		}
 
 		/**
+		 * TEMPORARY SOLUTION until we can register file type handlers in WeaveAPI
 		 * @return An Array of FileFilter objects
 		 */
 		public function getSupportedFileTypes():Array
