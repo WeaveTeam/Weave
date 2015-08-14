@@ -16,6 +16,7 @@
 package weave.ui
 {
 	import mx.collections.ArrayCollection;
+	import mx.events.DropdownEvent;
 	
 	import weave.api.getCallbackCollection;
 	import weave.utils.EventUtils;
@@ -26,6 +27,9 @@ package weave.ui
 		
 		public function KeyTypesMenu()
 		{
+			this.addEventListener(DropdownEvent.CLOSE, function(event:DropdownEvent):void {
+				text = selectedItem as String;
+			});
 			editable = true;
 			updateKeyTypes();
 			EventUtils.doubleBind(this, 'selectedKeyType', this, 'text');
