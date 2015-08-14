@@ -55,6 +55,7 @@ package weave.data.AttributeColumns
 		private var _stringToNumberFunction:Function = null;
 		private var _numberToStringFunction:Function = null;
 		private var _dateFormat:String = null;
+		private var _dateDisplayFormat:String = null;
 		private var _durationMode:Boolean = false;
 		
 		/**
@@ -103,6 +104,18 @@ package weave.data.AttributeColumns
 			}
 			
 			_dateFormat = convertDateFormat_as_to_c(_dateFormat);
+
+			// read dateDisplayFormat metadata, default to the input format if none is specified.
+			_dateDisplayFormat = getMetadata(ColumnMetadata.DATE_DISPLAY_FORMAT);
+
+			if (_dateDisplayFormat)
+			{
+				_dateDisplayFormat = convertDateFormat_as_to_c(_dateDisplayFormat);
+			}
+			else
+			{
+				_dateDisplayFormat = _dateFormat;
+			}
 			
 			// compile the number format function from the metadata
 			_stringToNumberFunction = null;
@@ -177,7 +190,7 @@ package weave.data.AttributeColumns
 		
 		private function formatDate(value:Object):String
 		{
-			if (_dateFormat)
+			if (_dateDisplayFormat)
 			{
 				if (value is Number && !_durationMode)
 					value = new Date(value);
@@ -199,15 +212,15 @@ package weave.data.AttributeColumns
 						minutes: minutes,
 						hours: hours
 					};
-					return weave.flascc.date_format(obj, _dateFormat);
+					return weave.flascc.date_format(obj, _dateDisplayFormat);
 				}
 				else
 				{
 					var date:Date = value as Date || new Date(value);
-					return weave.flascc.date_format(date, _dateFormat);
+					return weave.flascc.date_format(date, _dateDisplayFormat);
 				}
 			}
-			return StandardLib.formatDate(value, _dateFormat);
+			return StandardLib.formatDate(value, _dateDisplayFormat);
 		}
 		
 		private function _asyncIterate(stopTime:int):Number
