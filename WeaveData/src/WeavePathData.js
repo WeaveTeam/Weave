@@ -689,6 +689,7 @@ var _mapNodesToSerials = weave.evaluateExpression(null, 'nodes => {\
 weave.WeaveTreeNode = function(serial, parent) {
 	this.serial = serial | 0; // default - root node
 	this.parent = parent;
+	weave.WeaveTreeNode.cache[this.serial] = this;
 	if (this.serial == 0)
 		weave.evaluateExpression(null, 'var lookup = ' + weaveTreeNodeLookup + '; if (lookup[0] === undefined) lookup[lookup[0] = new WeaveRootDataTreeNode()] = 0; return null;');
 };
@@ -700,7 +701,7 @@ weave.WeaveTreeNode.prototype._getChildrenSerials = _createNodeFunction('getSeri
 weave.WeaveTreeNode.prototype.getChildren = function() {
 	var serials = this._getChildrenSerials();
 	return serials && serials.map(function(serial) {
-		return weave.WeaveTreeNode.cache[serial] || (weave.WeaveTreeNode.cache[serial] = new weave.WeaveTreeNode(serial, this));
+		return weave.WeaveTreeNode.cache[serial] || new weave.WeaveTreeNode(serial, this);
 	}, this);
 };
 weave.WeaveTreeNode.prototype.getDataSource = _createNodeFunction('node is IColumnReference ? node.getDataSource() : null');
@@ -718,7 +719,8 @@ weave.WeaveTreeNode.prototype.findPath = function(dataSourceName, columnMetadata
 	return serials && serials.map(function(serial, index, array) {
 		if (this.serial == serial)
 			return this;
-		var parent = weave.WeaveTreeNode.cache[array[index - 1]];
-		return weave.WeaveTreeNode.cache[serial] || (weave.WeaveTreeNode.cache[serial] = new weave.WeaveTreeNode(serial, parent));
+		var parentSerial = array[index - 1];
+		var parent = parentSerial == this.serial ? this : weave.WeaveTreeNode.cache[parentSerial];
+		return weave.WeaveTreeNode.cache[serial] || new weave.WeaveTreeNode(serial, parent);
 	}, this);
 };
