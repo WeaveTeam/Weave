@@ -717,10 +717,7 @@ weave.WeaveTreeNode.prototype._findPathSerials = _createNodeFunction('\
 weave.WeaveTreeNode.prototype.findPath = function(dataSourceName, columnMetadata) {
 	var serials = this._findPathSerials(dataSourceName, columnMetadata);
 	return serials && serials.map(function(serial, index, array) {
-		if (this.serial == serial)
-			return this;
-		var parentSerial = array[index - 1];
-		var parent = parentSerial == this.serial ? this : weave.WeaveTreeNode.cache[parentSerial];
+		var parent = weave.WeaveTreeNode.cache[array[index - 1]];
 		return weave.WeaveTreeNode.cache[serial] || new weave.WeaveTreeNode(serial, parent);
 	}, this);
 };
