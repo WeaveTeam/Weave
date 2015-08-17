@@ -23,17 +23,17 @@
                    title="{lang('Key Mapping Tool')}" xmlns:editors="weave.editors.*">
                    <mx:Script>
 <![CDATA[
-
-import weave.Weave;
-import weave.api.data.IQualifiedKey;
-import weave.api.linkBindableProperty;
-import weave.api.newLinkableChild;
-import weave.api.ui.IVisTool;
-import weave.core.LinkableBoolean;
-import weave.core.LinkableString;
-import weave.data.AttributeColumns.DynamicColumn;
-import weave.data.KeySets.KeySet;
-import weave.utils.ColumnUtils;
+	import weave.Weave;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.linkBindableProperty;
+	import weave.api.newLinkableChild;
+	import weave.api.ui.IVisTool;
+	import weave.core.LinkableBoolean;
+	import weave.core.LinkableString;
+	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.KeySets.KeySet;
+	import weave.utils.ColumnUtils;
 
 
 public const sourceKeyType:LinkableString = newLinkableChild(this, LinkableString, handleColumnsChange, true);
@@ -111,42 +111,72 @@ private function selectionChanged():void
 {
     if (enableSelection.value) performMapping(_selection);
 }
+
 private function handleColumnsChange():void
 {
 
     keyMapping = new Dictionary();
     reverseKeyMapping = new Dictionary();
+	
+	var sourceKey:IQualifiedKey;
+	var targetKey:IQualifiedKey;
 
-    if (!sourceLocalNameColumn.getInternalColumn() ||
-        !targetLocalNameColumn.getInternalColumn())
-    {
-        /* We can't do anything useful if we don't have these columns. */
-        return;
+    if (sourceLocalNameColumn.getInternalColumn() &&
+        targetLocalNameColumn.getInternalColumn()) 
+	{
+		var columns:Array = ColumnUtils.joinColumns([sourceLocalNameColumn, targetLocalNameColumn], String);
+		
+		for (var i:int = columns[0].length - 1; i >= 0; i--)
+		{
+			var sourceKeyLocalName:String = columns[1][i];
+			var targetKeyLocalName:String = columns[2][i];
+			
+			sourceKey = WeaveAPI.QKeyManager.getQKey(sourceKeyType.value, sourceKeyLocalName);
+			targetKey = WeaveAPI.QKeyManager.getQKey(targetKeyType.value, targetKeyLocalName);
+			
+			if (keyMapping[sourceKey] === undefined)
+			{
+				keyMapping[sourceKey] = new Array();
+			}
+			
+			if (reverseKeyMapping[targetKey] === undefined)
+			{
+				reverseKeyMapping[targetKey] = new Array();
+			}
+			
+			keyMapping[sourceKey].push(targetKey);
+			reverseKeyMapping[targetKey].push(sourceKey);
+		}
     }
-
-    var columns:Array = ColumnUtils.joinColumns([sourceLocalNameColumn, targetLocalNameColumn], String);
-    
-    for (var i:int = columns[0].length - 1; i >= 0; i--)
-    {
-        var sourceKeyLocalName:String = columns[1][i];
-        var targetKeyLocalName:String = columns[2][i];
-
-        var sourceKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(sourceKeyType.value, sourceKeyLocalName);
-        var targetKey:IQualifiedKey = WeaveAPI.QKeyManager.getQKey(targetKeyType.value, targetKeyLocalName);
-
-        if (keyMapping[sourceKey] === undefined)
-        {
-            keyMapping[sourceKey] = new Array();
-        }
-
-        if (reverseKeyMapping[targetKey] === undefined)
-        {
-            reverseKeyMapping[targetKey] = new Array();
-        }
-
-        keyMapping[sourceKey].push(targetKey);
-        reverseKeyMapping[targetKey].push(sourceKey);
-    }
+	else if (targetLocalNameColumn.getInternalColumn())
+	{
+		/* Assume that this is a proper array column that contains its own keytype information as "DataType" */
+		var keyType:String = targetKeyType.value || targetLocalNameColumn.getMetadata(ColumnMetadata.DATA_TYPE) || ColumnMetadata.STRING;
+		for each (sourceKey in targetLocalNameColumn.keys)
+		{
+			var targetKeys:Array = targetLocalNameColumn.getValueFromKey(sourceKey, Array);
+			
+			 
+			for each (targetKeyLocalName in targetKeys)
+			{
+				targetKey = WeaveAPI.QKeyManager.getQKey(keyType, targetKeyLocalName);
+				if (keyMapping[sourceKey] === undefined)
+				{
+					keyMapping[sourceKey] = [];
+				}
+				if (reverseKeyMapping[targetKey] === undefined)
+				{
+					reverseKeyMapping[targetKey] = [];
+				}
+				keyMapping[sourceKey].push(targetKey);
+				reverseKeyMapping[targetKey].push(sourceKey);
+			}
+		}
+	}
+	else
+	{
+		return;
+	}
 
     probeChanged();
     selectionChanged();
