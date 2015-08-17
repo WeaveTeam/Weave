@@ -3,6 +3,7 @@ package weave.data.DataSources
 	import flash.net.URLRequest;
 	import flash.net.URLRequestMethod;
 	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
 	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -41,8 +42,7 @@ package weave.data.DataSources
 		
 		
 		private var uniqueAlertId:int = 0;
-		private var alerts:Array = [];
-		private var processedDocumentKeys:Array = [];
+		private var alertResults:Object = {};
 		private const cache:JsonCache = newLinkableChild(this, JsonCache);
 		
 		public function MultiInterpreterDataSource()
@@ -50,15 +50,23 @@ package weave.data.DataSources
 			super();
 		}
 		
+		public function get alerts():Array {
+			var output:Array = [];
+			for (var key:String in alertResults)
+			{
+				output = output.concat(alertResults[key]);
+			}
+			return output;
+		}
+		
 		private function documentsChanged():void
 		{
-			VectorUtils.subtract(documentText.keys, processedDocumentKeys).map(processDocument, this);
+			alertResults = new Dictionary();
+			documentText.keys.map(processDocument, this);
 		}
 		
 		private function processDocument(key:IQualifiedKey,..._):void
 		{			
-			processedDocumentKeys.push(key);
-			
 			var jsonBody:Object = {verb: "analyze", 
 				retrieve: "alerts",
 				text: documentText.getValueFromKey(key, String),
@@ -80,12 +88,13 @@ package weave.data.DataSources
 			if (jsonContent == null) return;
 			
 			var documentKey:IQualifiedKey = token as IQualifiedKey;
+			alertResults[documentKey.localName] = [];
 
 			for each (var row:Object in jsonContent.alerts)
 			{
 				row[DOCUMENTKEY] = documentKey;
 				row[UNIQUEID] = uniqueAlertId++;
-				alerts.push(row);
+				alertResults[documentKey.localName].push(row);
 			}
 			
 			if (jsonContent.alerts.length > 0)
@@ -102,8 +111,6 @@ package weave.data.DataSources
 		
 		private function handleUrlChange():void
 		{
-			alerts = [];
-			processedDocumentKeys = [];
 			documentsChanged();
 			refreshAllProxyColumns();
 		}
@@ -162,7 +169,8 @@ package weave.data.DataSources
 		private static const EVIDENCESPANS:String = "evidenceSpans";
 		private static const ALERTEDKEYS:String = "alertedKeys";
 		private static const DOCUMENTKEY:String = "documentKey";
-		private static const ALERTCOLUMNS:Array = [ALERTID, ALERTTYPE, EVIDENCESPANS, ALERTEDKEYS, DOCUMENTKEY];
+		private static const TARGETS_TO_ALERTS:String = "targetsToAlerts";
+		private static const ALERTCOLUMNS:Array = [ALERTID, ALERTTYPE, EVIDENCESPANS, ALERTEDKEYS, DOCUMENTKEY, TARGETS_TO_ALERTS];
 		
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
@@ -198,6 +206,18 @@ package weave.data.DataSources
 
 			switch (columnName)
 			{
+				case TARGETS_TO_ALERTS:
+					for each (alert in alerts)
+					{
+						for each (key in alert[ALERTEDKEYS])
+						{
+							keys.push(key);
+							values.push(alert[UNIQUEID]);
+						}
+					}
+					proxyMetadata[ColumnMetadata.DATA_TYPE] = keyType.value || ColumnMetadata.STRING;
+					proxyMetadata[ColumnMetadata.KEY_TYPE] = targetKeyType.value || ColumnMetadata.STRING;
+					break;
 				case ALERTID:
 				case ALERTTYPE:
 					for each (alert in alerts)
