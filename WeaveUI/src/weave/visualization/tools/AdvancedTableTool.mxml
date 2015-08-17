@@ -955,7 +955,7 @@
 				<mx:Button label="{lang('Reset')}" click="outerDocument.backgroundColor1.value = AdvancedTableTool.DEFAULT_BACKGROUND_COLORS[0]; outerDocument.backgroundColor2.value = AdvancedTableTool.DEFAULT_BACKGROUND_COLORS[1];"/>
 			</ui:Indent>
 		</mx:VBox>
-		<editors:WindowSettingsEditor id="windowEditor" target="{this}"/>
+		<editors:WindowSettingsEditor id="windowEditor" target="{outerDocument}"/>
 		<mx:Script>
 			<![CDATA[
 				import weave.api.linkBindableProperty;
