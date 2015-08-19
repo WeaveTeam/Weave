@@ -39,14 +39,12 @@ package weave.core
 	 */
 	public class ExternalSessionStateInterface implements IExternalSessionStateInterface
 	{
-		private var _rootObject:ILinkableObject = WeaveAPI.globalHashMap;
-		
 		/**
 		 * @inheritDoc
 		 */
 		public function getSessionState(objectPath:Array):Object
 		{
-			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
+			var object:ILinkableObject = WeaveAPI.getObject(objectPath);
 			if (object)
 			{
 				var state:Object = WeaveAPI.SessionManager.getSessionState(object);
@@ -79,7 +77,7 @@ package weave.core
 		 */
 		public function setSessionState(objectPath:Array, newState:Object, removeMissingObjects:Boolean = true):Boolean
 		{
-			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
+			var object:ILinkableObject = WeaveAPI.getObject(objectPath);
 			if (object)
 			{
 				WeaveAPI.SessionManager.setSessionState(object, newState, removeMissingObjects);
@@ -95,7 +93,7 @@ package weave.core
 		 */
 		public function getObjectType(objectPath:Array):String
 		{
-			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
+			var object:ILinkableObject = WeaveAPI.getObject(objectPath);
 			if (object)
 				return getQualifiedClassName(object);
 			
@@ -108,7 +106,7 @@ package weave.core
 		 */
 		public function getChildNames(objectPath:Array):Array
 		{
-			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
+			var object:ILinkableObject = WeaveAPI.getObject(objectPath);
 			if (object)
 			{
 				if (object is ILinkableHashMap)
@@ -127,7 +125,7 @@ package weave.core
 		 */
 		public function setChildNameOrder(hashMapPath:Array, orderedChildNames:Array):Boolean
 		{
-			var hashMap:ILinkableHashMap = WeaveAPI.SessionManager.getObject(_rootObject, hashMapPath) as ILinkableHashMap;
+			var hashMap:ILinkableHashMap = WeaveAPI.getObject(hashMapPath) as ILinkableHashMap;
 			if (hashMap)
 			{
 				// it's ok if there are no names specified, because that wouldn't accomplish anything anyway
@@ -159,7 +157,7 @@ package weave.core
 			// stop if there is no path specified
 			if (!objectPath || !objectPath.length)
 			{
-				if (Object(_rootObject).constructor == classDef)
+				if (Object(WeaveAPI.globalHashMap).constructor == classDef)
 					return true;
 				
 				externalError("Cannot request an object at the root path");
@@ -170,7 +168,7 @@ package weave.core
 			// executed when it is accessed (registering deprecated class definitions, for example).
 			var parentPath:Array = objectPath.concat();
 			var childName:Object = parentPath.pop();
-			var parent:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, parentPath);
+			var parent:ILinkableObject = WeaveAPI.getObject(parentPath);
 			
 			// request the child object
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
@@ -185,7 +183,7 @@ package weave.core
 			else if (dynamicObject)
 				child = dynamicObject.requestGlobalObject(childName as String, classDef, false);
 			else
-				child = WeaveAPI.SessionManager.getObject(_rootObject, objectPath);
+				child = WeaveAPI.getObject(objectPath);
 			
 			if (child && child.constructor == classDef)
 				return true;
@@ -207,7 +205,7 @@ package weave.core
 			
 			var parentPath:Array = objectPath.concat();
 			var childName:Object = parentPath.pop();
-			var parent:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, parentPath);
+			var parent:ILinkableObject = WeaveAPI.getObject(parentPath);
 			
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 			if (hashMap)
@@ -285,7 +283,7 @@ package weave.core
 			
 			if (objectPathOrVariableName is Array)
 			{
-				var object:ILinkableObject = WeaveAPI.SessionManager.getObject(_rootObject, objectPathOrVariableName as Array);
+				var object:ILinkableObject = WeaveAPI.getObject(objectPathOrVariableName as Array);
 				if (object)
 					return object;
 				

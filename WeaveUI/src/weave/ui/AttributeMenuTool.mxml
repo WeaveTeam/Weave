@@ -197,7 +197,7 @@
 				}
 				private function objectToPathString(object:ILinkableObject, i:int, a:Array):String
 				{
-					var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, object);
+					var path:Array = WeaveAPI.getPath(object);
 					return pathToString(path);
 				}
 				

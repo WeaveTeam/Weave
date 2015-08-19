@@ -196,7 +196,7 @@ package weave.utils
 				return target as ILinkableObject;
 			if (!(target is Array))
 				target = WeaveAPI.CSVParser.parseCSVRow(String(target));
-			return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, target as Array);
+			return WeaveAPI.getObject(target as Array);
 		}
 		
 		private static const watchLookup:Dictionary = new Dictionary(true);
@@ -215,7 +215,7 @@ package weave.utils
 			unwatch(linkableTarget);
 			var callback:Function = function():void {
 				var str:String = '';
-				var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, linkableTarget) || []
+				var path:Array = WeaveAPI.getPath(linkableTarget) || []
 				if (path.length)
 					str += " " + Compiler.stringify(path.pop());
 				if (callbackReturnsString != null)

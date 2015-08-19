@@ -223,7 +223,7 @@
 				}
 				for each (var obj:Object in _savedPathSessionStates)
 				{
-					var ilo:ILinkableObject = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, obj["path"]);
+					var ilo:ILinkableObject = WeaveAPI.getObject(obj["path"]);
 					if (ilo)
 						setSessionState(ilo, obj["state"]);
 				}

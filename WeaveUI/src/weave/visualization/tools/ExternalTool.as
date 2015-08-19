@@ -71,7 +71,7 @@ package weave.visualization.tools
 						"url": toolUrl.value,
 						"windowName": windowName,
 						"features": "menubar=no,status=no,toolbar=no",
-						"path": WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this)
+						"path": WeaveAPI.getPath(this)
 					},
 					'if (!window[WEAVE_EXTERNAL_TOOLS]) {',
 					'    window[WEAVE_EXTERNAL_TOOLS] = {};',

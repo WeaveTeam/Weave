@@ -28,6 +28,7 @@ package weave.ui
 	import weave.api.data.IAttributeColumn;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.api.ui.IObjectWithDescription;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
@@ -40,12 +41,12 @@ package weave.ui
 			override protected function itemToUID(data:Object):String
 			{
 				if (data is WeaveTreeItem)
-					data = (data as WeaveTreeItem).dependency;
+					data = (data as WeaveTreeItem).data;
 				return super.itemToUID(data);
 			}
 			private function compareItems(a:WeaveTreeItem, b:WeaveTreeItem):Boolean
 			{
-				return (a && b) ? a.dependency === b.dependency : a === b;
+				return (a && b) ? a.data === b.data : a === b;
 			}
 			override public function getItemIndex(item:Object):int
 			{
@@ -57,7 +58,7 @@ package weave.ui
 					
 					var a:WeaveTreeItem = cursor.current as WeaveTreeItem;
 					var b:WeaveTreeItem = item as WeaveTreeItem;
-					if ((a && b) ? a.dependency === b.dependency : a === b)
+					if ((a && b) ? a.data === b.data : a === b)
 						break;
 					i++;
 				}
@@ -67,7 +68,6 @@ package weave.ui
 			}
 			
 			private var _linkableObjectName:String;
-			private var _linkableObjectTypeFilter:Class = null;
 			private var _overrideSelectedItem:WeaveTreeItem;
 			private var _rootObject:ILinkableObject;
 			private var _treeChanged:Boolean;
@@ -147,7 +147,7 @@ package weave.ui
 			
 			private function updateRootNode():void
 			{
-				var rootNode:WeaveTreeItem = (WeaveAPI.SessionManager as SessionManager).getSessionStateTree(_rootObject, _linkableObjectName, _linkableObjectTypeFilter);
+				var rootNode:WeaveTreeItem = (WeaveAPI.SessionManager as SessionManager).getSessionStateTree(_rootObject, _linkableObjectName);
 				refreshDataProvider(rootNode);
 				expandItem(rootNode, true);
 			}
@@ -155,19 +155,19 @@ package weave.ui
 			private function nodeLabelFunction(item:WeaveTreeItem):String
 			{
 				// append class name to the label.
-				var label:String = getQualifiedClassName(item.dependency).split("::").pop();
+				var label:String = getQualifiedClassName(item.data).split("::").pop();
 				if (item.label)
 					label += ' ' + Compiler.encodeString(item.label);
 				
 				// get editor label
-				var editorLabel:String = WeaveAPI.EditorManager.getLabel(item.dependency);
+				var editorLabel:String = WeaveAPI.EditorManager.getLabel(item.data as ILinkableObject);
 				// get description
 				var description:String = null;
-				var iowd:IObjectWithDescription = item.dependency as IObjectWithDescription
+				var iowd:IObjectWithDescription = item.data as IObjectWithDescription
 				if (iowd)
 					description = iowd.getDescription();
-				else if (item.dependency is IAttributeColumn)
-					description = (item.dependency as IAttributeColumn).getMetadata(ColumnMetadata.TITLE);
+				else if (item.data is IAttributeColumn)
+					description = (item.data as IAttributeColumn).getMetadata(ColumnMetadata.TITLE);
 				
 				var inParens:String = editorLabel || description;
 				if (editorLabel && description)
@@ -190,19 +190,19 @@ package weave.ui
 			
 			public function set linkableObjectTypeFilter(className:Class):void
 			{
-				_linkableObjectTypeFilter = className;
+				reportError("linkableObjectTypeFilter not implemented");
+				//_linkableObjectTypeFilter = className;
 				updateRootNode();
 			}
 			
-			public function getSelectedPath(fromGlobalHashMap:Boolean = true):Array
+			public function getSelectedPath():Array
 			{
-				var root:ILinkableObject = fromGlobalHashMap ? WeaveAPI.globalHashMap : rootObject;
-				return WeaveAPI.SessionManager.getPath(root, getSelectedLinkableObject());
+				return WeaveAPI.getPath(getSelectedLinkableObject());
 			}
 			
 			public function getSelectedLinkableObject():ILinkableObject
 			{
-				return selectedTreeItem ? selectedTreeItem.dependency : null;
+				return selectedTreeItem ? selectedTreeItem.data as ILinkableObject : null;
 			}
 			
 			[Bindable("change")]

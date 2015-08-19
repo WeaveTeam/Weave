@@ -230,28 +230,33 @@ package weave.core
 			return childToOwnerMap[child] as ILinkableObject;
 		}
 		
+		private var _treeCache:Dictionary2D = new Dictionary2D(true, false, WeaveTreeItem);
+		
 		/**
 		 * @param root The linkable object to be placed at the root node of the tree.
-		 * @return A tree of nodes with the properties "label", "object", and "children"
+		 * @param objectName The label for the root node.
+		 * @return A tree of nodes with the properties "data", "label", "children"
 		 */
-		public function getSessionStateTree(root:ILinkableObject, objectName:String, objectTypeFilter:*=null):WeaveTreeItem
+		public function getSessionStateTree(root:ILinkableObject, objectName:String):WeaveTreeItem
 		{
-			var treeItem:WeaveTreeItem = new WeaveTreeItem();
-			treeItem.label = objectName;
-			treeItem.dependency = root;
-			treeItem.children = getTreeItemChildren;
-			treeItem.data = objectTypeFilter;
+			var treeItem:WeaveTreeItem = _treeCache.get(root, objectName);
+			if (!treeItem.data)
+			{
+				treeItem.data = root;
+				treeItem.label = objectName;
+				treeItem.children = getTreeItemChildren;
+				// dependency is used to determine when to recalculate children array
+				treeItem.dependency = root is ILinkableHashMap ? (root as ILinkableHashMap).childListCallbacks : root;
+			}
 			return treeItem;
 		}
 		
 		private function getTreeItemChildren(treeItem:WeaveTreeItem):Array
 		{
-			var object:ILinkableObject = treeItem.dependency;
-			var objectTypeFilter:* = treeItem.data;
+			var object:ILinkableObject = treeItem.data as ILinkableObject;
 			var children:Array = [];
-			var names:Array = [];
+			var names:Array;
 			var childObject:ILinkableObject;
-			var subtree:WeaveTreeItem;
 			var ignoreList:Dictionary = new Dictionary(true);
 			if (object is ILinkableHashMap)
 			{
@@ -269,9 +274,7 @@ package weave.core
 							continue;
 						ignoreList[childObject] = true;
 						
-						subtree = getSessionStateTree(childObject, names[i], objectTypeFilter);
-						if (subtree != null)
-							children.push(subtree);
+						children.push(getSessionStateTree(childObject, names[i]));
 					}
 				}
 			}
@@ -280,7 +283,7 @@ package weave.core
 				var deprecatedLookup:Object = null;
 				if (object is ILinkableDynamicObject)
 				{
-					// do not show static object in tree
+					// do not include externally referenced objects
 					names = (object as ILinkableDynamicObject).targetPath ? null : [null];
 				}
 				else if (object)
@@ -304,19 +307,13 @@ package weave.core
 							continue;
 						ignoreList[childObject] = true;
 						
-						subtree = getSessionStateTree(childObject, name, objectTypeFilter);
-						if (subtree != null)
-							children.push(subtree);
+						children.push(getSessionStateTree(childObject, name));
 					}
 				}
 			}
 			
 			if (children.length == 0)
 				children = null;
-			if (objectTypeFilter == null)
-				return children;
-			if (children == null && !(object is objectTypeFilter))
-				return null;
 			return children;
 		}
 		
@@ -1247,7 +1244,7 @@ package weave.core
 		}
 		private function _getPath(tree:WeaveTreeItem, descendant:ILinkableObject):Array
 		{
-			if (tree.dependency == descendant)
+			if (tree.data == descendant)
 				return [];
 			for each (var child:WeaveTreeItem in tree.children)
 			{

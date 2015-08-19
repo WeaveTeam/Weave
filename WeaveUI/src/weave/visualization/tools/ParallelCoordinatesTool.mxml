@@ -62,11 +62,10 @@
 			
 			private function initPlotterPath():void
 			{
-				var plotterPath:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, plotter);
-				axesPlotter.plotterPath.delayCallbacks();
-				axesPlotter.plotterPath.setSessionState(plotterPath);
-				axesPlotter.plotterPath.lock();
-				axesPlotter.plotterPath.resumeCallbacks();
+				axesPlotter.mainPlotter.delayCallbacks();
+				axesPlotter.mainPlotter.target = plotter;
+				axesPlotter.mainPlotter.lock();
+				axesPlotter.mainPlotter.resumeCallbacks();
 			}
 			
 			override public function initSelectableAttributes(input:Array):void

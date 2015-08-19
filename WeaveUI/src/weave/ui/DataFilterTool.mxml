@@ -251,7 +251,7 @@
 					macro.value = StandardLib.unIndent('\
 						function(nameOrPath){\n\
 							var path = nameOrPath as Array || ["defaultSubsetKeyFilter", "filters", nameOrPath];\n\
-							var filter = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path);\n\
+							var filter = WeaveAPI.getObject(path);\n\
 							if (filter is ColumnDataFilter && filter.enabled.value)\n\
 							{\n\
 								var result = filter.stringifyValues();\n\

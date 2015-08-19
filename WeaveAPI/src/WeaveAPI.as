@@ -247,6 +247,28 @@ package
 			return _classRegistry.singletonInstances[ILinkableHashMap]
 				|| _classRegistry.getSingletonInstance(ILinkableHashMap);
 		}
+		/**
+		 * A shortcut for WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path).
+		 * @see weave.api.core.ISessionManager#getObject()
+		 */
+		public static function getObject(path:Array):ILinkableObject
+		{
+			if (!_classRegistry)
+				ClassRegistry;
+			var sm:ISessionManager = _classRegistry.singletonInstances[ISessionManager] || _classRegistry.getSingletonInstance(ISessionManager);
+			return sm.getObject(globalHashMap, path);
+		}
+		/**
+		 * A shortcut for WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, object).
+		 * @see weave.api.core.ISessionManager#getPath()
+		 */
+		public static function getPath(object:ILinkableObject):Array
+		{
+			if (!_classRegistry)
+				ClassRegistry;
+			var sm:ISessionManager = _classRegistry.singletonInstances[ISessionManager] || _classRegistry.getSingletonInstance(ISessionManager);
+			return sm.getPath(globalHashMap, object);
+		}
 		/**************************************/
 
 		
@@ -478,7 +500,7 @@ package
 		{
 			callExternalConsole('error', params);
 		}
-			
+		
 		private static var consoleAvailable:* = undefined
 		
 		/**

@@ -388,7 +388,7 @@ package weave.data.DataSources
 			if (!dc)
 			{
 				WeaveAPI.ExternalSessionStateInterface.requestObject(dynamicColumnOrPath as Array, getQualifiedClassName(DynamicColumn));
-				dc = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, dynamicColumnOrPath as Array) as DynamicColumn;
+				dc = WeaveAPI.getObject(dynamicColumnOrPath as Array) as DynamicColumn;
 			}
 			if (!dc)
 				return false;
