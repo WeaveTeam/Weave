@@ -119,7 +119,7 @@
 			
 			private function handlePlayStep(step:int):void
 			{
-				if (!showPlayButton.value || !filter || !filter.enabled.value)
+				if (!playButton.button.selected || !showPlayButton.value || !filter || !filter.enabled.value)
 					return;
 				
 				// we can actually ignore the step number because we only care that it has stepped.
