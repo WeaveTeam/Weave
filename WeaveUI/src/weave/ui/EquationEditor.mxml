@@ -102,6 +102,7 @@
 				super.inConstructor();
 				
 				minimizable.value = maximizable.value = closeable.value = true;
+				closeable.lock();
 			}
 			
 			override public function reposition():void
