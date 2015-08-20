@@ -55,12 +55,9 @@ package weave.data.AttributeColumns
 		
 		public static const compiler:Compiler = new Compiler();
 		compiler.includeLibraries(
-			WeaveAPI.CSVParser,
 			WeaveAPI.StatisticsCache,
-			WeaveAPI.AttributeColumnCache,
 			WeaveAPI.QKeyManager,
-			EquationColumnLib,
-			IQualifiedKey
+			EquationColumnLib
 		);
 
 		public function EquationColumn()
