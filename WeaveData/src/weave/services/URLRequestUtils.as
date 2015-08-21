@@ -413,8 +413,8 @@ internal class CustomURLLoader extends URLLoader
 			if (URLRequestUtils.debug)
 				trace(debugId(this), 'request', request.url);
 			
-			WeaveAPI.StageUtils.callLater(null, loadLater);
-			//super.load(request);
+			//WeaveAPI.StageUtils.callLater(null, loadLater);
+			super.load(request);
 		}
 	}
 	
