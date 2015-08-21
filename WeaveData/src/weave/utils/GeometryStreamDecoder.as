@@ -562,7 +562,7 @@ package weave.utils
 			
 			// Weave automatically triggers callbacks when all tasks complete
 			// low priority because the geometries can still be used even without all the detail.
-			WeaveAPI.StageUtils.startTask(this, task, WeaveAPI.TASK_PRIORITY_LOW);
+			WeaveAPI.StageUtils.startTask(this, task, WeaveAPI.TASK_PRIORITY_NORMAL);
 		}
 
 		
