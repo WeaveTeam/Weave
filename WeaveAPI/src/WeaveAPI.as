@@ -255,8 +255,11 @@ package
 		{
 			if (!_classRegistry)
 				ClassRegistry;
-			var sm:ISessionManager = _classRegistry.singletonInstances[ISessionManager] || _classRegistry.getSingletonInstance(ISessionManager);
-			return sm.getObject(globalHashMap, path);
+			var sm:ISessionManager = _classRegistry.singletonInstances[ISessionManager]
+				|| _classRegistry.getSingletonInstance(ISessionManager);
+			var lhm:ILinkableHashMap = _classRegistry.singletonInstances[ILinkableHashMap]
+				|| _classRegistry.getSingletonInstance(ILinkableHashMap);
+			return sm.getObject(lhm, path);
 		}
 		/**
 		 * A shortcut for WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, object).
@@ -266,8 +269,11 @@ package
 		{
 			if (!_classRegistry)
 				ClassRegistry;
-			var sm:ISessionManager = _classRegistry.singletonInstances[ISessionManager] || _classRegistry.getSingletonInstance(ISessionManager);
-			return sm.getPath(globalHashMap, object);
+			var sm:ISessionManager = _classRegistry.singletonInstances[ISessionManager]
+				|| _classRegistry.getSingletonInstance(ISessionManager);
+			var lhm:ILinkableHashMap = _classRegistry.singletonInstances[ILinkableHashMap]
+				|| _classRegistry.getSingletonInstance(ILinkableHashMap);
+			return sm.getPath(lhm, object);
 		}
 		/**************************************/
 
