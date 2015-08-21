@@ -25,6 +25,7 @@ package weave.data.Transforms
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.ISelectableAttributes;
@@ -58,6 +59,13 @@ package weave.data.Transforms
 		public function getSelectableAttributes():Array
 		{
 			return [groupByColumn, dataColumns];
+		}
+		
+		override protected function get initializationComplete():Boolean
+		{
+			return super.initializationComplete
+				&& !linkableObjectIsBusy(groupByColumn)
+				&& !linkableObjectIsBusy(dataColumns);
 		}
 
 		override protected function initialize():void
