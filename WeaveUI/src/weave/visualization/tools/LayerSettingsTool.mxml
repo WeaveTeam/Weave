@@ -118,7 +118,7 @@
 									newLayerSettings = null;
 								
 								// get label
-								if (newLayerSettings)
+								if (newLayerSettings && outerDocument.controller.hashMap)
 									label = outerDocument.controller.hashMap.getName(newLayerSettings);
 								else
 									label = '';
