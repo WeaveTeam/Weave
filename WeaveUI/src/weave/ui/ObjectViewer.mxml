@@ -87,9 +87,12 @@
 				var key:* = node.data[1];
 				
 				var label:String = truncate(key, MAX_LABEL_LENGTH);
-				var className:String = getQualifiedClassName(node.data[0]);
+				var className:String = getQualifiedClassName(value);
 				
-				return (label ? label + " : " : "") + className;
+				if (label != null && className)
+					return label + " : " + className;
+				
+				return className || label;
 			}
 			public function getSecondLabel(node:WeaveTreeDescriptorNode):String
 			{
