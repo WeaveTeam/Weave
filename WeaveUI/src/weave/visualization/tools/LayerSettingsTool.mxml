@@ -65,7 +65,7 @@
 							
 							private function update():void
 							{
-								if (!parent)
+								if (!outerDocument.parent || !parent)
 								{
 									callLater(update);
 									return;
