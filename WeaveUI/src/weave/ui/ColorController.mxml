@@ -25,6 +25,7 @@
 	<mx:VBox id="VizControlsPanel" label="{lang('Binning')}">
 		<ui:DynamicColumnComponent id="dataColumnComponent" label="{lang('Color data')}" showLinkControl="false"/>
 		<ui:BinningDefinitionEditor id="binEditor"/>
+		<CustomCheckBox id="enableFilterCheck" label="{lang('Filter records prior to binning')}"/>
 	</mx:VBox>
 	<mx:VBox id="advControlsPanel" label="{lang('Color scale')}">
 		<CustomCheckBox id="centerAtZero" label="{lang('Center color ramp at zero (when binning is disabled)')}"/>
@@ -55,9 +56,18 @@
 				
 				targets = [colorCol];
 				sessionEditorTarget = colorCol;
+				
+				enableFilterCheck.selected = dataCol.filter.targetPath != null;
+				enableFilterCheck.addEventListener(Event.CHANGE, handleFilterCheck);
 			}
 			
-			
+			private function handleFilterCheck(event:Event):void
+			{
+				if (enableFilterCheck.selected)
+					Weave.defaultColorDataColumn.filter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
+				else
+					Weave.defaultColorDataColumn.filter.targetPath = null;
+			}
 		]]>
 	</mx:Script>
 </ui:ControlPanel>
