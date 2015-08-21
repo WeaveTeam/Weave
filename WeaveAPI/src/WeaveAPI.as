@@ -419,7 +419,7 @@ package
 				var obj:* = _pathLookup[value];
 				if (obj === undefined)
 				{
-					var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, value as ILinkableObject);
+					var path:Array = WeaveAPI.getPath(value as ILinkableObject);
 					// return null for ILinkableObjects not in session state tree
 					_pathLookup[value] = obj = path ? {"WeavePath": path} : null;
 				}
@@ -435,7 +435,7 @@ package
 				for (key in value)
 					if (key != WP)
 						return value;
-				return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, value[WP] as Array);
+				return WeaveAPI.getObject(value[WP] as Array);
 			}
 			return value;
 		}
