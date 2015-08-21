@@ -214,8 +214,13 @@
 					}
 					// remove states for removed targets
 					for each (name in VectorUtils.getKeys(choiceState))
+					{
 						if (!targets.getObject(name))
+						{
 							delete choiceState[name];
+							updated = true;
+						}
+					}
 					
 					if (updated)
 						choice.setSessionState(choiceState);
