@@ -30,6 +30,7 @@ package weave.utils
 	import weave.api.core.DynamicState;
 	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.getSessionState;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	
@@ -226,6 +227,16 @@ package weave.utils
 			getCallbackCollection(linkableTarget).addImmediateCallback(null, callback);
 		}
 		
+		public static function watchState(target:Object = null, indent:* = null):void
+		{
+			if (!target)
+			{
+				weaveTrace('Usage: watchState(target, optional_indent)');
+				return;
+			}
+			watch(target, function(object:ILinkableObject):String { return Compiler.stringify(getSessionState(object), null, indent); });
+		}
+		
 		public static function unwatch(target:Object):void
 		{
 			var linkableTarget:ILinkableObject = getObject(target);
@@ -412,12 +423,14 @@ package weave.utils
 		{
 			try
 			{
-				for each (var property:* in path)
+				outerLoop: for each (var property:* in path)
 				{
 					if (DynamicState.isDynamicStateArray(state))
 					{
 						if (property is Number)
+						{
 							state = state[property][DynamicState.SESSION_STATE];
+						}
 						else
 						{
 							for each (var obj:Object in state)
@@ -425,9 +438,10 @@ package weave.utils
 								if (obj[DynamicState.OBJECT_NAME] == property)
 								{
 									state = obj[DynamicState.SESSION_STATE];
-									break;
+									continue outerLoop;
 								}
 							}
+							return undefined;
 						}
 					}
 					else
