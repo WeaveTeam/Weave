@@ -14,7 +14,7 @@
     <script src="springy.js"></script>
     <script src="dagre.js"></script>
     <script src="arbor.js"></script>
-    <script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-2.3.3/cytoscape.js"></script>
+    <script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-2.4.6/cytoscape.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
 </head>
 <body>
@@ -52,8 +52,7 @@
                         'text-outline-color': '#fff',
                         'text-outline-width': 1,
                         'line-color':'#888',
-                        'curve-style': 'haystack',
-                        'width':1,
+                        'curve-style': 'haystack'
                         })
             .selector(':selected')
                 .css({
@@ -107,13 +106,22 @@
     var EDGE_SOURCE = 'source';
     var EDGE_TARGET = 'target';
     var EDGE_NAME = 'name';
+    var EDGE_THICKNESS = 'thickness';
 
+    var THICKNESS_MIN = 'min_edge_thickness';
+    var THICKNESS_MAX = 'max_edge_thickness';
+
+
+    var SELECTION_KEYSET = 'selectionKeySet';
+    var PROBE_KEYSET = 'probeKeySet';
+    var SUBSET_KEYFILTER = 'subsetKeyFilter';
     var LAYOUT = "layout";
     var LAYOUT_OPTIONS = "layout_options";
     var POSITIONS = "positions";
     var VIEWPORT = "viewport";
     var DIRECTIONAL = "directional";
     var HIDELABELS = "hide_labels";
+    var CURVE_STYLE = "curve_style";
 
     function data_updated()
     {
@@ -122,6 +130,15 @@
 
         node_data = toolPath.retrieveRecords(tool[NODES], tool[NODES][NODE_NAME]);
         edge_data = toolPath.retrieveRecords(tool[EDGES], tool[EDGES][EDGE_SOURCE]);
+
+        var node_ids = _.zipObject();
+        var edge_ids = _.zipObject(_.pluck(edge_data, 'id'));
+
+        node_ids = _.zipObject(tool[SUBSET_KEYFILTER].filterKeys(_.pluck(node_data, 'id')));
+        edge_ids = _.zipObject(tool[SUBSET_KEYFILTER].filterKeys(_.pluck(edge_data, 'id')));
+
+        node_data = _.filter(node_data, function(d) {return _.has(node_ids, d.id);});
+        edge_data = _.filter(edge_data, function(d) {return _.has(edge_ids, d.id);});
 
         function localNameToKeyString(localName) {return toolPath.qkeyToString({localName: localName, keyType: node_keytype});}
 
@@ -134,18 +151,16 @@
 
         modifyRecords(edge_data, 'source', localNameToKeyString);
         modifyRecords(edge_data, 'target', localNameToKeyString);
+
         modifyRecords(node_data, 'parent', localNameToKeyString);
         modifyRecords(node_data, 'color',  defaultColor);
 
-        var node_ids = _.zipObject(_.pluck(node_data, 'id'));
+        node_data = 
+            _.map(node_data, function (d) {return {data: d};});
 
-        edge_data = edge_data.filter(function(d) {return _.has(node_ids, d.source) && _.has(node_ids, d.target);});
-
-        // Convert to valid cytoscape.js elements
-
-        node_data = _.map(node_data, function (d) {return {data: d};});
-        edge_data = _.map(edge_data, function (d) {return {data: d};});
-
+        /* Remove edges which reference nonexistent nodes. */
+        edge_data = _(edge_data).filter(function(d) {return _.has(node_ids, d.source) && _.has(node_ids, d.target);})
+            .map(function (d) {return {data: d};}).value();
         cy.load({nodes: node_data, edges: edge_data}, set_local_positions);
     };
 
@@ -184,14 +199,14 @@
         var ele = evt.cyTarget;
         last_probed = ele;
         ele.toggleClass("probed", true);
-        toolPath.probe_keyset.setKeys([ele.id()]);
+        tool[PROBE_KEYSET].setKeys([ele.id()]);
     };
 
     function unprobe_handler(evt)
     {
         var ele = evt.cyTarget;
         ele.toggleClass("probed", false);
-        toolPath.probe_keyset.setKeys([]);
+        tool[PROBE_KEYSET].probe_keyset.setKeys([]);
     };
 
     var local_selection = {};
@@ -205,13 +220,13 @@
     function select_handler(evt)
     {
         var ele = evt.cyTarget;
-        toolPath.selection_keyset.addKeys([ele.id()]);
+        tool[SELECTION_KEYSET].addKeys([ele.id()]);
     }
 
     function deselect_handler(evt)
     {
         var ele = evt.cyTarget;
-        toolPath.selection_keyset.removeKeys([ele.id()]);
+        tool[SELECTION_KEYSET].removeKeys([ele.id()]);
     }
 
     function get_weave_positions()
@@ -346,6 +361,39 @@
         }
     }
 
+    function set_curve_style()
+    {
+        var curve_style_value = tool[CURVE_STYLE].getState();
+        cy.style().selector('edge').css({'curve-style': curve_style_value}).update();
+    }
+
+    function set_edge_thickness()
+    {
+        var maxEdgeThickness = tool[THICKNESS_MAX].getState();
+        var minEdgeThickness = tool[THICKNESS_MIN].getState();
+        console.log("set_edge_thickness", maxEdgeThickness, minEdgeThickness);
+        var maxVal = _.max(_.map(edge_data, function (d) { return d.data[EDGE_THICKNESS];}));
+        var minVal = _.min(_.map(edge_data, function (d) { return d.data[EDGE_THICKNESS];}));
+        
+        function edgeFunc (ele) {
+            var thicknessVal = ele.data(EDGE_THICKNESS);
+            var newVal;
+            if (thicknessVal !== undefined)
+            {
+                newVal = (thicknessVal / maxVal) * maxEdgeThickness;
+                if (newVal > minEdgeThickness) newVal = minEdgeThickness;
+            }
+            else
+            {
+                newVal = minEdgeThickness;
+            }
+            console.log("edgeFunc", minEdgeThickness, maxEdgeThickness, maxVal, thicknessVal, newVal);
+            return newVal;
+        };
+
+        cy.style().selector('edge').css({'width': null}).css({'width': edgeFunc}).update();
+    }
+
     function set_weave_viewport()
     {
         var viewport_value = cy.pan();
@@ -418,18 +466,28 @@
                 [
                     {name: EDGE_NAME, label: "Edge Label", type: 'DynamicColumn'},
                     {name: EDGE_SOURCE, label: "Edge Source", type: 'DynamicColumn'},
-                    {name: EDGE_TARGET, label: "Edge Target", type: 'DynamicColumn'}
+                    {name: EDGE_TARGET, label: "Edge Target", type: 'DynamicColumn'},
+                    {name: EDGE_THICKNESS, label: "Edge Thickness", type: 'DynamicColumn'}
                 ]
             },
             {name: LAYOUT, type:"LinkableString", default: "cose", label: "Layout Type", callback: set_local_layout},
             {name: LAYOUT_OPTIONS, type: "LinkableVariable", label: "Layout Options"},
+            {name: THICKNESS_MIN, type: "LinkableNumber", label: "Minimum edge thickness", default: 1, callback: set_edge_thickness},
+            {name: THICKNESS_MAX, type: "LinkableNumber", label: "Maximum edge thickness", default: 20, callback: set_edge_thickness},
             {name: POSITIONS, type: "LinkableVariable", label: "Node Positions", callback: set_local_positions},
             {name: VIEWPORT, type: "LinkableVariable", label: "Viewport", callback: set_local_viewport},
             {name: DIRECTIONAL, type: "LinkableBoolean", label: "Treat edges as directional", callback: data_updated},
-            {name: HIDELABELS, type: "LinkableBoolean", label: "Only show labels on mouseover", callback: set_hide_labels}
+            {name: HIDELABELS, type: "LinkableBoolean", label: "Only show labels on mouseover", callback: set_hide_labels},
+            {name: CURVE_STYLE, type: "LinkableString", label: "Curve style", default: "haystack", callback: set_curve_style}
         ], tool);
-        toolPath.selection_keyset.addKeySetCallback(set_local_selection, true);
-        toolPath.probe_keyset.addKeySetCallback(set_local_probe, true);
+
+        tool[SELECTION_KEYSET] = toolPath.selection_keyset;
+        tool[PROBE_KEYSET] = toolPath.probe_keyset;
+        tool[SUBSET_KEYFILTER] = toolPath.subset_filter;
+
+        tool[SELECTION_KEYSET].addKeySetCallback(set_local_selection, true);
+        tool[PROBE_KEYSET].addKeySetCallback(set_local_probe, true);
+        tool[SUBSET_KEYFILTER].addCallback(data_updated, true);
 
         cy.on({select: select_handler, unselect: deselect_handler});
         cy.on({mouseover: probe_handler, mouseout: unprobe_handler}, 'node');
