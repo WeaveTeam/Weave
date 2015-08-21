@@ -86,6 +86,8 @@
 		</mx:List>
 	<mx:Script>
 		<![CDATA[
+			import weave.api.registerLinkableChild;
+			import weave.core.LinkableVariable;
 			import weave.utils.VectorUtils;
 			import weave.utils.AsyncSort;
 			import mx.collections.ICollectionView;
@@ -134,10 +136,15 @@
 			}
 			
 			/**
-			 * This is a CSV containing specific colors associated with record keys.
-			 * The format for each row in the CSV is:  keyType,localName,color
+			 * This is an Array of Arrays containing specific colors associated with record keys.
+			 * The format for each item in the Array is:  [keyType,localName,color]
 			 */
-			public const recordColors:LinkableString = newLinkableChild(this, LinkableString, handleRecordColors);
+			public const recordColors:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyTable), handleRecordColors);
+			
+			private function verifyTable(value:Array):Boolean
+			{
+				return StandardLib.arrayIsType(value, Array);
+			}
 
 			private var _recordColorTable:Array = []; // parsed CSV
 			private var _keyToColorMap:Dictionary = new Dictionary(); // IQualifiedKey -> CSV row index
@@ -145,7 +152,7 @@
 			// called when recordColors change
 			private function handleRecordColors():void
 			{
-				_recordColorTable = WeaveAPI.CSVParser.parseCSV(recordColors.value);
+				_recordColorTable = recordColors.getSessionState() as Array || [];
 				_keyToColorMap = new Dictionary();
 				var keys:Array = new Array(_recordColorTable.length);
 				var duplicatesFound:Boolean = false;
@@ -170,7 +177,7 @@
 				
 				// remove duplicates from session state
 				if (duplicatesFound)
-					recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
+					recordColors.setSessionState(_recordColorTable);
 			}
 			
 			internal function getColor(key:IQualifiedKey):Number
@@ -186,13 +193,13 @@
 					var key:IQualifiedKey = keys[i] as IQualifiedKey;
 					_recordColorTable.push([key.keyType, key.localName, '0x' + StandardLib.numberToBase(color, 16, 6).toUpperCase()]);
 				}
-				recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
+				recordColors.setSessionState(_recordColorTable);
 			}
 			
 			private function removeSelectedColors():void
 			{
 				VectorUtils.removeByIndex(_recordColorTable, colorOverrideList.selectedIndices);
-				recordColors.value = WeaveAPI.CSVParser.createCSV(_recordColorTable);
+				recordColors.setSessionState(_recordColorTable);
 			}
 		]]>
 	</mx:Script>
