@@ -604,7 +604,7 @@ package
 				
 				const CATCH_CODE:String = marshallExceptions
 					? 'if (e.toString() == "[object Error]") e.toString = function(){ return this.name + ": " + this.message; }; throw e;'
-					: 'e.message += "\\n" + code; if (typeof console != "undefined") console.error(e);';
+					: 'e.message += "\\n" + ' + CODE_PARAM + '; if (typeof console != "undefined") console.error(e);';
 				
 				var evalFunc:String = 'function(' + CODE_PARAM + ', ' + ARGS_PARAM + '){ try {\n' + TRY_CODE + '\n} catch (e) {\n' + CATCH_CODE + '\n} }';
 				
