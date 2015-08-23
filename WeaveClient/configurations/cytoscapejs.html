@@ -162,14 +162,12 @@
             if (!_.isNaN(thickness))
             {
                 thickness = (thickness / thicknessColumnMax) * maxThickness;
-                if (thickness < minThickness) thickness = minThickness;
+                if (thickness < minThickness || _.isNaN(thickness)) thickness = minThickness;
             }
             else
             {
                 thickness = minThickness;
             }
-
-
 
             return thickness;
         }
