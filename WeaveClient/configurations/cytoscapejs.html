@@ -29,7 +29,7 @@
     </div>
 
 <script>
-    cytoscape_style =
+    var cytoscape_style =
         cytoscape.stylesheet()
             .selector('node')
                 .css({
@@ -52,7 +52,8 @@
                         'text-outline-color': '#fff',
                         'text-outline-width': 1,
                         'line-color':'#888',
-                        'curve-style': 'haystack'
+                        'curve-style': 'haystack',
+                        'width': 'data(thickness)'
                         })
             .selector(':selected')
                 .css({
@@ -111,6 +112,9 @@
     var THICKNESS_MIN = 'min_edge_thickness';
     var THICKNESS_MAX = 'max_edge_thickness';
 
+    var thicknessColumnMax;
+    var thicknessColumnMin;
+
 
     var SELECTION_KEYSET = 'selectionKeySet';
     var PROBE_KEYSET = 'probeKeySet';
@@ -134,26 +138,53 @@
         var node_ids = _.zipObject();
         var edge_ids = _.zipObject(_.pluck(edge_data, 'id'));
 
+        /* TODO: Switch to using column statistics */
+
+        var maxThickness = tool[THICKNESS_MAX].getState();
+        var minThickness = tool[THICKNESS_MIN].getState();
+
         node_ids = _.zipObject(tool[SUBSET_KEYFILTER].filterKeys(_.pluck(node_data, 'id')));
         edge_ids = _.zipObject(tool[SUBSET_KEYFILTER].filterKeys(_.pluck(edge_data, 'id')));
 
         node_data = _.filter(node_data, function(d) {return _.has(node_ids, d.id);});
         edge_data = _.filter(edge_data, function(d) {return _.has(edge_ids, d.id);});
 
+        var thicknessColumnMax = _.max(_.map(edge_data, function (d) { return Number(d[EDGE_THICKNESS]);}));
+        var thicknessColumnMin = _.min(_.map(edge_data, function (d) { return Number(d[EDGE_THICKNESS]);}));
+
         function localNameToKeyString(localName) {return toolPath.qkeyToString({localName: localName, keyType: node_keytype});}
 
         function defaultColor(color) { if (!color) color="#fff"; return color;};
+
+        function scaleEdgeThickness(thickness) {
+            thickness = Number(thickness);
+
+            if (!_.isNaN(thickness))
+            {
+                thickness = (thickness / thicknessColumnMax) * maxThickness;
+                if (thickness < minThickness) thickness = minThickness;
+            }
+            else
+            {
+                thickness = minThickness;
+            }
+
+
+
+            return thickness;
+        }
 
         function modifyRecords(records, field, func)
         {
             records.forEach(function (record) { record[field] = func(record[field]); });
         }
 
-        modifyRecords(edge_data, 'source', localNameToKeyString);
-        modifyRecords(edge_data, 'target', localNameToKeyString);
+        modifyRecords(edge_data, EDGE_SOURCE, localNameToKeyString);
+        modifyRecords(edge_data, EDGE_TARGET, localNameToKeyString);
+        modifyRecords(edge_data, EDGE_THICKNESS, scaleEdgeThickness);
 
-        modifyRecords(node_data, 'parent', localNameToKeyString);
-        modifyRecords(node_data, 'color',  defaultColor);
+        modifyRecords(node_data, NODE_PARENT, localNameToKeyString);
+        modifyRecords(node_data, NODE_COLOR,  defaultColor);
 
         node_data = 
             _.map(node_data, function (d) {return {data: d};});
@@ -161,6 +192,7 @@
         /* Remove edges which reference nonexistent nodes. */
         edge_data = _(edge_data).filter(function(d) {return _.has(node_ids, d.source) && _.has(node_ids, d.target);})
             .map(function (d) {return {data: d};}).value();
+
         cy.load({nodes: node_data, edges: edge_data}, set_local_positions);
     };
 
@@ -367,33 +399,6 @@
         cy.style().selector('edge').css({'curve-style': curve_style_value}).update();
     }
 
-    function set_edge_thickness()
-    {
-        var maxEdgeThickness = tool[THICKNESS_MAX].getState();
-        var minEdgeThickness = tool[THICKNESS_MIN].getState();
-        console.log("set_edge_thickness", maxEdgeThickness, minEdgeThickness);
-        var maxVal = _.max(_.map(edge_data, function (d) { return d.data[EDGE_THICKNESS];}));
-        var minVal = _.min(_.map(edge_data, function (d) { return d.data[EDGE_THICKNESS];}));
-        
-        function edgeFunc (ele) {
-            var thicknessVal = ele.data(EDGE_THICKNESS);
-            var newVal;
-            if (thicknessVal !== undefined)
-            {
-                newVal = (thicknessVal / maxVal) * maxEdgeThickness;
-                if (newVal > minEdgeThickness) newVal = minEdgeThickness;
-            }
-            else
-            {
-                newVal = minEdgeThickness;
-            }
-            console.log("edgeFunc", minEdgeThickness, maxEdgeThickness, maxVal, thicknessVal, newVal);
-            return newVal;
-        };
-
-        cy.style().selector('edge').css({'width': null}).css({'width': edgeFunc}).update();
-    }
-
     function set_weave_viewport()
     {
         var viewport_value = cy.pan();
@@ -472,8 +477,8 @@
             },
             {name: LAYOUT, type:"LinkableString", default: "cose", label: "Layout Type", callback: set_local_layout},
             {name: LAYOUT_OPTIONS, type: "LinkableVariable", label: "Layout Options"},
-            {name: THICKNESS_MIN, type: "LinkableNumber", label: "Minimum edge thickness", default: 1, callback: set_edge_thickness},
-            {name: THICKNESS_MAX, type: "LinkableNumber", label: "Maximum edge thickness", default: 20, callback: set_edge_thickness},
+            {name: THICKNESS_MIN, type: "LinkableNumber", label: "Minimum edge thickness", default: 1, callback: data_updated},
+            {name: THICKNESS_MAX, type: "LinkableNumber", label: "Maximum edge thickness", default: 20, callback: data_updated},
             {name: POSITIONS, type: "LinkableVariable", label: "Node Positions", callback: set_local_positions},
             {name: VIEWPORT, type: "LinkableVariable", label: "Viewport", callback: set_local_viewport},
             {name: DIRECTIONAL, type: "LinkableBoolean", label: "Treat edges as directional", callback: data_updated},
