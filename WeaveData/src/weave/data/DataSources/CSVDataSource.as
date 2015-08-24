@@ -67,7 +67,12 @@ package weave.data.DataSources
 			registerLinkableChild(hierarchyRefresh, metadata);
 		}
 
-		public const csvData:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), handleCSVDataChange);
+		public const csvData:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyRows), handleCSVDataChange);
+		private function verifyRows(rows:Array):Boolean
+		{
+			return StandardLib.arrayIsType(rows, Array);
+		}
+		
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString, updateKeys);
 		public const keyColName:LinkableString = newLinkableChild(this, LinkableString, updateKeys);
 		
@@ -229,6 +234,8 @@ package weave.data.DataSources
 		 */
 		public function setCSVData(rows:Array):void
 		{
+			if (!verifyRows(rows))
+				throw new Error("Invalid data format. Expecting nested Arrays.");
 			csvData.setSessionState(rows);
 		}
 		
