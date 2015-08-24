@@ -56,35 +56,43 @@ package weave.api.core
 		 * @param callback The function to remove from the list of callbacks.
 		 */
 		function removeCallback(callback:Function):void;
-		
-		/**
-		 * This counter gets incremented at the time that callbacks are triggered and before they are actually called.
-		 * It is necessary in some situations to check this counter to determine if cached data should be used.
-		 */
-		function get triggerCounter():uint;
 
 		/**
-		 * This will trigger every callback function to be called with their saved arguments.
-		 * If the delay count is greater than zero, the callbacks will not be called immediately.
+		 * This will increase the triggerCounter, run immediate callbacks, and trigger grouped callbacks to be called later.
+		 * If delayCallbacks() was called, the callbacks will not be called immediately.
+		 * @see #delayCallbacks()
 		 */
 		function triggerCallbacks():void;
-
-		/**
-		 * While this is true, it means the delay count is greater than zero and the effects of
-		 * triggerCallbacks() are delayed until resumeCallbacks() is called to reduce the delay count.
-		 */
-		function get callbacksAreDelayed():Boolean;
 		
 		/**
-		 * This will increase the delay count by 1.  To decrease the delay count, use resumeCallbacks().
-		 * As long as the delay count is greater than zero, effects of triggerCallbacks() will be delayed.
+		 * This counter gets incremented at the time that callbacks are triggered, before they are actually called.
+		 * It is necessary in some situations to check this counter to determine if cached data should be used.
+		 * @see #triggerCallbacks()
+		 */
+		function get triggerCounter():uint;
+		
+		/**
+		 * This will delay the effects of triggerCallbacks() until a matching call is made to resumeCallbacks().
+		 * Pairs of calls to delayCallbacks() and resumeCallbacks() can be nested.
+		 * @see #resumeCallbacks() 
+		 * @see #callbacksAreDelayed
 		 */
 		function delayCallbacks():void;
 
 		/**
-		 * This will decrease the delay count by one if it is greater than zero.
-		 * If triggerCallbacks() was called while the delay count was greater than zero, immediate callbacks will be called now.
+		 * This should be called after delayCallbacks() to resume the callbacks.
+		 * If delayCallbacks() is called multiple times, resumeCallbacks() must be called the same number of times in order to resume the callbacks.
+		 * @see #delayCallbacks()
+		 * @see #callbacksAreDelayed
 		 */
 		function resumeCallbacks():void;
+
+		/**
+		 * While this is true, it means the delay count is greater than zero and the effects of
+		 * triggerCallbacks() are delayed until resumeCallbacks() is called to reduce the delay count.
+		 * @see #delayCallbacks()
+		 * @see #resumeCallbacks()
+		 */
+		function get callbacksAreDelayed():Boolean;
 	}
 }
