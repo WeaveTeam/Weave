@@ -340,13 +340,19 @@ package weave.core
 			setSessionState(destination, sessionState, true);
 		}
 		
-		private function applyDiff(base:Object, diff:Object):Object
+		private function applyDiffForLinkableVariable(base:Object, diff:Object):Object
 		{
 			if (base === null || diff === null || typeof(base) != 'object' || typeof(diff) != 'object')
-				return diff;
+				return diff; // don't need to make a copy because LinkableVariable makes copies anyway
 			
 			for (var key:String in diff)
-				base[key] = applyDiff(base[key], diff[key]);
+			{
+				var value:* = diff[key];
+				if (value === undefined)
+					delete base[key];
+				else
+					base[key] = applyDiffForLinkableVariable(base[key], value);
+			}
 			
 			return base;
 		}
@@ -368,7 +374,7 @@ package weave.core
 				var lv:ILinkableVariable = linkableObject as ILinkableVariable;
 				if (removeMissingDynamicObjects == false && newState && getQualifiedClassName(newState) == 'Object')
 				{
-					lv.setSessionState(applyDiff(ObjectUtil.copy(lv.getSessionState()), newState));
+					lv.setSessionState(applyDiffForLinkableVariable(copyObject(lv.getSessionState()), newState));
 				}
 				else
 				{
@@ -1441,6 +1447,14 @@ package weave.core
 		
 		public static const DIFF_DELETE:String = 'delete';
 		
+		private function copyObject(object:Object):Object
+		{
+			if (object === null || typeof object != 'object') // primitive value
+				return object;
+			else
+				return ObjectUtil.copy(object); // make copies of non-primitives
+		}
+		
 		/**
 		 * @inheritDoc
 		 */
@@ -1451,7 +1465,7 @@ package weave.core
 
 			// special case if types differ
 			if (typeof(newState) != type)
-				return newState;
+				return copyObject(newState); // make copies of non-primitives
 			
 			if (type == 'xml')
 			{
@@ -1470,7 +1484,7 @@ package weave.core
 			else if (oldState === null || newState === null || type != 'object') // other primitive value
 			{
 				if (oldState !== newState) // no type-casting
-					return newState;
+					return copyObject(newState);
 				
 				return undefined; // no diff
 			}
@@ -1481,7 +1495,7 @@ package weave.core
 				{
 					if (StandardLib.compare(oldState, newState) == 0)
 						return undefined; // no diff
-					return newState;
+					return ObjectUtil.copy(newState);
 				}
 				
 				// create an array of new DynamicState objects for all new names followed by missing old names
@@ -1522,9 +1536,9 @@ package weave.core
 					// If the object specified in newState does not exist in oldState, we don't need to do anything further.
 					// If the class is the same as before, then we can save a diff instead of the entire session state.
 					// If the class changed, we can't save only a diff -- we need to keep the entire session state.
-					// Replace the sessionState in the new DynamicState object with the diff.
 					if (oldTypedState != null && oldTypedState[DynamicState.CLASS_NAME] == className)
 					{
+						// Replace the sessionState in the new DynamicState object with the diff.
 						className = null; // no change
 						diffValue = computeDiff(oldTypedState[DynamicState.SESSION_STATE], sessionState);
 						if (diffValue === undefined)
@@ -1533,12 +1547,17 @@ package weave.core
 							// we only need to specify that this name is still present.
 							result.push(objectName);
 							
+							// see if name order changed
 							if (!changeDetected && oldState[i][DynamicState.OBJECT_NAME] != objectName)
 								changeDetected = true;
 							
 							continue;
 						}
 						sessionState = diffValue;
+					}
+					else
+					{
+						sessionState = copyObject(sessionState);
 					}
 					
 					// save in new array and remove from lookup
@@ -1571,7 +1590,10 @@ package weave.core
 					{
 						if (!diff)
 							diff = {};
-						diff[oldName] = diffValue;
+						if (newState.hasOwnProperty(oldName))
+							diff[oldName] = diffValue;
+						else
+							diff[oldName] = undefined; // property was removed
 					}
 				}
 
@@ -1582,7 +1604,7 @@ package weave.core
 					{
 						if (!diff)
 							diff = {};
-						diff[newName] = newState[newName]; // TODO: same object pointer.. potential problem?
+						diff[newName] = copyObject(newState[newName]);
 					}
 				}
 
@@ -1601,10 +1623,7 @@ package weave.core
 			// special cases
 			if (baseDiff == null || diffToAdd == null || baseType != diffType || baseType != 'object')
 			{
-				if (diffType == 'object') // not a primitive, so make a copy
-					baseDiff = ObjectUtil.copy(diffToAdd);
-				else
-					baseDiff = diffToAdd;
+				baseDiff = copyObject(diffToAdd);
 			}
 			else if (baseDiff is Array && diffToAdd is Array)
 			{
@@ -1657,10 +1676,7 @@ package weave.core
 						var oldTypedState:Object = baseLookup[objectName];
 						if (oldTypedState is String || oldTypedState == null)
 						{
-							if (typedState is String || typedState == null)
-								baseLookup[objectName] = typedState; // avoid unnecessary function call overhead
-							else
-								baseLookup[objectName] = ObjectUtil.copy(typedState);
+							baseLookup[objectName] = copyObject(typedState);
 						}
 						else if (!(typedState is String || typedState == null)) // update dynamic state
 						{
