@@ -424,7 +424,7 @@ package weave.core
 				for (i = 0; i < newStateArray.length; i++)
 				{
 					typedState = newStateArray[i];
-					if (!DynamicState.isDynamicState(typedState))
+					if (!DynamicState.isDynamicState(typedState, true))
 						continue;
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
@@ -452,7 +452,7 @@ package weave.core
 						continue;
 					}
 					
-					if (!DynamicState.isDynamicState(typedState))
+					if (!DynamicState.isDynamicState(typedState, true))
 						continue;
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					if (objectName == null)

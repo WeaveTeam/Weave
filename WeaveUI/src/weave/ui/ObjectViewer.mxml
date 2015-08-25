@@ -104,7 +104,7 @@
 				{
 					detail = value;
 				}
-				else if (DynamicState.isDynamicState(value))
+				else if (DynamicState.isDynamicState(value, true))
 				{
 					var className:String = String(value[DynamicState.CLASS_NAME]); // null -> "null"
 					var objectName:String = value[DynamicState.OBJECT_NAME];

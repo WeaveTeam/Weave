@@ -54,18 +54,26 @@ package weave.api.core
 		public static const SESSION_STATE:String = 'sessionState';
 		
 		/**
+		 * The name of the property used to make isDynamicState() return false in order to bypass special diff logic for dynamic state arrays.
+		 */
+		public static const BYPASS_DIFF:String = 'bypassDiff';
+		
+		/**
 		 * This function can be used to detect dynamic state objects within nested, untyped session state objects.
 		 * This function will check if the given object has the three properties of a dynamic state object.
 		 * @param object An object to check.
-		 * @return true if the object has all three properties and no extras.
+		 * @param handleBypassDiff Set this to true to allow the object to contain the optional bypassDiff property.
+		 * @return true if the object has all three properties and no extras (except for "bypassDiff" when the handleBypassDiff parameter is set to true).
 		 */
-		public static function isDynamicState(object:Object):Boolean
+		public static function isDynamicState(object:Object, handleBypassDiff:Boolean = false):Boolean
 		{
 			var matchCount:int = 0;
 			for (var name:* in object)
 			{
 				if (name === OBJECT_NAME || name === CLASS_NAME || name === SESSION_STATE)
 					matchCount++;
+				else if (handleBypassDiff && name === BYPASS_DIFF)
+					continue;
 				else
 					return false;
 			}
@@ -75,9 +83,11 @@ package weave.api.core
 		/**
 		 * This function checks whether or not a session state is an Array containing at least one
 		 * object that looks like a DynamicState and has no other non-String items.
+		 * @param state A session state object.
+		 * @param handleBypassDiff Set this to true to allow dynamic state objects to contain the optional bypassDiff property.
 		 * @return A value of true if the Array looks like a dynamic session state or diff.
 		 */
-		public static function isDynamicStateArray(state:*):Boolean
+		public static function isDynamicStateArray(state:*, handleBypassDiff:Boolean = false):Boolean
 		{
 			var array:Array = state as Array;
 			if (!array)
@@ -87,12 +97,27 @@ package weave.api.core
 			{
 				if (item is String)
 					continue; // dynamic state diffs can contain String values.
-				if (isDynamicState(item))
+				if (isDynamicState(item, handleBypassDiff))
 					result = true;
 				else
 					return false;
 			}
 			return result;
+		}
+		
+		/**
+		 * Alters a session state object to bypass special diff logic for dynamic state arrays.
+		 * It does so by adding the "bypassDiff" property to any part for which isDynamicState(part) returns true.
+		 */
+		public static function alterSessionStateToBypassDiff(object:Object):void
+		{
+			if (isDynamicState(object))
+			{
+				object[BYPASS_DIFF] = true;
+				object = object[SESSION_STATE];
+			}
+			for (var key:* in object)
+				alterSessionStateToBypassDiff(object[key]);
 		}
 	}
 }

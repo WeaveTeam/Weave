@@ -803,9 +803,11 @@ package weave.compiler
 		 * Does not check for circular refrences.
 		 * @param a First dynamic object or primitive value.
 		 * @param b Second dynamic object or primitive value.
+		 * @param objectCompare An optional compare function to replace the default compare behavior for non-primitive Objects.
+		 *                      The function should return -1, 0, or 1 to override the comparison result, or NaN to use the default recursive comparison result.
 		 * @return A value of zero if the two objects are equal, nonzero if not equal.
 		 */
-		public static function compare(a:Object, b:Object):int
+		public static function compare(a:Object, b:Object, objectCompare:Function = null):int
 		{
 			var c:int;
 			if (a === b)
@@ -843,6 +845,13 @@ package weave.compiler
 						return c;
 				}
 				return 0;
+			}
+			
+			if (objectCompare != null)
+			{
+				var result:Number = objectCompare(a, b);
+				if (isFinite(result))
+					return result;
 			}
 			
 			var qna:String = getQualifiedClassName(a);
