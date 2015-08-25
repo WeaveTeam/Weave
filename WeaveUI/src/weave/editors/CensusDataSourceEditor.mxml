@@ -230,9 +230,9 @@
 			public function populateDatasets():void
 			{
 				api.getDatasets().then(
-					function (datasets:Object):void
+					function (datasetResponse:Object):void
 					{
-						raw_datasets = datasets as Array;
+						raw_datasets = datasetResponse.dataset as Array;
 					}
 				);
 			}

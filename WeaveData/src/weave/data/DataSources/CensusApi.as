@@ -99,7 +99,11 @@ package weave.data.DataSources
 			return getDatasets().then(
 				function (result:Object):Object
 				{
-					for each (var tmp_dataset:Object in result)
+					if (!result || !result.dataset)
+					{
+						throw new Error("Malformed response from Census API.");
+					}
+					for each (var tmp_dataset:Object in result.dataset)
 					{
 						if (tmp_dataset.identifier == dataSetIdentifier)
 						{
@@ -182,7 +186,7 @@ package weave.data.DataSources
 			
 			var params:Object = {};
 			var title:String = null;
-			var service_url:String = null;
+			var access_url:String = null;
 			var filters:Array = [];
 			var requires:Array = null;
 			
@@ -197,7 +201,18 @@ package weave.data.DataSources
 			).then(
 				function (datasetInfo:Object):WeavePromise
 				{
-					service_url = datasetInfo.webService;
+					if (datasetInfo && 
+						datasetInfo.distribution && 
+						datasetInfo.distribution[0])
+					{
+						access_url = datasetInfo.distribution[0].accessURL;
+					}
+
+					if (!access_url)
+					{
+						throw new Error("Dataset distribution information malformed.");
+					}
+
 					return getVariables(dataset_name);
 				}
 			).then(
@@ -231,7 +246,7 @@ package weave.data.DataSources
 					if (api_key)
 						params['key'] = api_key;
 
-					return jsonCache.getJsonPromise(_api, getUrl(service_url, params));
+					return jsonCache.getJsonPromise(_api, getUrl(access_url, params));
 				}
 			).then(
 				function (dataResult:Object):Object
