@@ -497,7 +497,8 @@ package weave.utils
 				else
 					output[keyValue] = item;
 			}
-			output.length = keys ? keys.length : 0;
+			if (output is Array)
+				output.length = keys ? keys.length : 0;
 			
 			return output;
 		}
