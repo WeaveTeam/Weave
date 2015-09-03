@@ -28,6 +28,7 @@ package weave.data.DataSources
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataRowSource;
 	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSourceWithAuthentication;
 	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
@@ -66,7 +67,7 @@ package weave.data.DataSources
 	 * 
 	 * @author adufilie
 	 */
-	public class WeaveDataSource extends AbstractDataSource_old implements IDataSource_Service, IDataRowSource
+	public class WeaveDataSource extends AbstractDataSource_old implements IDataSource_Service, IDataRowSource, IDataSourceWithAuthentication
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
 		
@@ -104,6 +105,34 @@ package weave.data.DataSources
 			var state:Array = _overrideIdFields.getSessionState() as Array;
 			if (state)
 				_idFields.setSessionState(state);
+		}
+		
+		/**
+		 * Check this to determine if authenticate() may be necessary.
+		 * @return true if authenticate() may be necessary.
+		 */
+		public function get authenticationSupported():Boolean
+		{
+			return  _service.authenticationSupported;
+		}
+		
+		/**
+		 * Check this to determine if authenticate() must be called.
+		 * @return true if authenticate() should be called.
+		 */
+		public function get authenticationRequired():Boolean
+		{
+			return _service.authenticationRequired;
+		}
+		
+		/**
+		 * Authenticates with the server.
+		 * @param user
+		 * @param pass
+		 */
+		public function authenticate(user:String, pass:String):void
+		{
+			_service.authenticate(user, pass);
 		}
 		
 		public function get entityCache():EntityCache

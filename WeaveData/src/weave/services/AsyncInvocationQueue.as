@@ -50,6 +50,8 @@ package weave.services
 		public function dispose():void
 		{
 			assertQueueValid();
+			for each (var query:ProxyAsyncToken in _downloadQueue)
+				WeaveAPI.ProgressIndicator.removeTask(query);
 			_downloadQueue.length = 0;
 		}
 		

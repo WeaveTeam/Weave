@@ -24,34 +24,41 @@
 				xmlns="weave.ui.admin.managers.*" implements="weave.api.core.ILinkableObject" 
 				>
 	<ui:Indent label="{lang('Server Type')}" group="{indentGroup}">
-		<ui:CustomComboBox id="dbmsCombo" valueCommit="generate()" change="generate()" dataProvider="{(function():*{return ConnectionInfo.dbmsList;}())}" width="130"/>
+		<ui:CustomComboBox id="dbmsCombo" valueCommit="if (UIUtils.hasFocus(dbmsCombo)) generate()" initialize="dbmsCombo.dataProvider = ConnectionInfo.dbmsList;" width="{inputWidth}"/>
 	</ui:Indent>
-	<ui:Indent id="sqliteIndent" label="{lang('SQLite Database File')}" group="{indentGroup}" visible="false" includeInLayout="false">
-		<mx:TextInput id="sqliteDBFile" change="generate()" width="130" />
+	<ui:Indent id="sqliteIndent" label="{lang('SQLite Database File')}" group="{indentGroup}" visible="{dbmsCombo.text == ConnectionInfo.SQLITE}" includeInLayout="{dbmsCombo.text == ConnectionInfo.SQLITE}">
+		<mx:TextInput id="sqliteDBFile" change="generate()" width="{inputWidth}" />
 		<ui:HelpComponent id="sqliteDBHelp">
 			Enter the absolute file path of the SQLite Database file on the server.
 		</ui:HelpComponent>
 	</ui:Indent>
-	<ui:IndentTextInput label="{lang('Server IP')}" id="ipInput" change="generate()" text="{hostIP}" inputWidth="130" group="{indentGroup}"/>
-	<ui:IndentTextInput label="{lang('Server Port')}" id="portInput" change="generate()" text="{(function(port:String):*{return ConnectionInfo.getDefaultPort(port);}(dbmsCombo.text))}" inputWidth="130" group="{indentGroup}"/>
-	<ui:Indent id="sqlDatabaseName" label="{dbmsCombo.text == (function():*{return ConnectionInfo.SQLSERVER;}()) ? 'Instance name' : 'Database name'}" group="{indentGroup}">
-		<mx:TextInput id="databaseInput" change="generate()" width="130"/>
-		<mx:Label id="optionalText" text="(Optional)" visible="{dbmsCombo.text != (function():*{return ConnectionInfo.SQLSERVER;}())}"/>
-		<ui:HelpComponent id="optionalHelp" visible="{dbmsCombo.text != (function():*{return ConnectionInfo.SQLSERVER;}())}">
-			This field is optional.
-			You can specify the name of a default database to connect to.
-			For SQL Server, this is an instance name.
-			Similarly in PostGreSQL, databases are different from schemas.
-			MySQL does not differentiate between the two.
-		</ui:HelpComponent>
-		<!--
-			This field is required only for MS SQLServer connections.
-			If you had a Server Name \'LocalMachine\\Express\', then this field should be entered as Express.
-			If there is no instance name for your server, you may leave this blank.
-		-->
-	</ui:Indent>
-	<ui:IndentTextInput label="User Name" id="userInput" change="generate()" inputWidth="130" group="{indentGroup}"/>
-	<ui:IndentTextInput label="Password" id="passInput" change="generate()" displayAsPassword="false" inputWidth="130" group="{indentGroup}"/>
+	<mx:VBox width="100%" visible="{dbmsCombo.text != ConnectionInfo.SQLITE}" includeInLayout="{dbmsCombo.text != ConnectionInfo.SQLITE}">
+		<ui:IndentTextInput label="{lang('Server IP')}" id="ipInput" change="generate()" text="{hostIP}" inputWidth="{inputWidth}" group="{indentGroup}"/>
+		<ui:IndentTextInput label="{lang('Server Port')}" id="portInput" change="generate()" text="{getDefaultPort(dbmsCombo.text)}" inputWidth="{inputWidth}" group="{indentGroup}"/>
+		<ui:Indent id="sqlDatabaseName" label="{isSQLServer(dbmsCombo.text) ? 'Instance name' : 'Database name'}" group="{indentGroup}">
+			<mx:TextInput id="databaseInput" change="generate()" width="{inputWidth}"/>
+			<mx:Label id="optionalText" text="(Optional)" visible="{!isSQLServer(dbmsCombo.text)}"/>
+			<ui:HelpComponent id="optionalHelp" visible="{!isSQLServer(dbmsCombo.text)}">
+				This field is optional.
+				You can specify the name of a default database to connect to.
+				For SQL Server, this is an instance name.
+				Similarly in PostGreSQL, databases are different from schemas.
+				MySQL does not differentiate between the two.
+			</ui:HelpComponent>
+			<!--
+				This field is required only for MS SQLServer connections.
+				If you had a Server Name \'LocalMachine\\Example\', then this field should be entered as Example.
+				If there is no instance name for your server, you may leave this blank.
+			-->
+		</ui:Indent>
+		<ui:CustomCheckBox id="useDirectoryService" label="{lang('Use pass-through authentication')}" valueCommit="generate()"/>
+		<ui:IndentTextInput label="User Name" id="userInput" change="generate()" inputWidth="{inputWidth}" group="{indentGroup}"
+							prompt="{isSQLServer(dbmsCombo.text) ? lang('Leave blank for Directory Service integration') : ''}"
+							visible="{!useDirectoryService.selected}" includeInLayout="{!useDirectoryService.selected}"/>
+		<ui:IndentTextInput label="Password" id="passInput" change="generate()" displayAsPassword="false" inputWidth="{inputWidth}" group="{indentGroup}"
+							prompt="{isSQLServer(dbmsCombo.text) ? lang('Leave blank for Directory Service integration') : ''}"
+							visible="{!useDirectoryService.selected}" includeInLayout="{!useDirectoryService.selected}"/>
+	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
 			import mx.core.UIComponent;
@@ -59,13 +66,26 @@
 			
 			import weave.api.getCallbackCollection;
 			import weave.compiler.StandardLib;
+			import weave.core.UIUtils;
 			import weave.services.beans.ConnectionInfo;
+			
+			[Bindable] public var inputWidth:int = 250;
 			
 			[Bindable] public var indentGroup:Object = this;
 			
 			[Bindable] public var connectString:String = '';
 			
 			private const hostIP:String = URLUtil.getServerName(WeaveAPI.topLevelApplication.url);
+			
+			private function getDefaultPort(dbms:String):int
+			{
+				return ConnectionInfo.getDefaultPort(dbms);
+			}
+			
+			private function isSQLServer(dbms:String):Boolean
+			{
+				return dbms == ConnectionInfo.SQLSERVER;
+			}
 			
 			public function resetFields(resetConnectString:Boolean = true):void
 			{
@@ -75,6 +95,7 @@
 				databaseInput.text = "";
 				userInput.text = "";
 				passInput.text = "";
+				useDirectoryService.selected = false;
 				if (resetConnectString)
 					generate();
 			}
@@ -87,15 +108,21 @@
 					return;
 				}
 				
+				// force binding to trigger
+				connectString = '';
+				
 				var isSQLite:Boolean = dbmsCombo.text == ConnectionInfo.SQLITE;
 				if (isSQLite)
 					connectString = getConnectString(dbmsCombo.text, "", "", sqliteDBFile.text, "", "");
 				else
-					connectString = getConnectString(dbmsCombo.text, ipInput.text, portInput.text, databaseInput.text, userInput.text, passInput.text);
-					
-				sqliteIndent.visible = sqliteIndent.includeInLayout = isSQLite;
-				for each (var o:UIComponent in [ipInput, portInput, sqlDatabaseName, databaseInput, userInput, passInput])
-					o.visible = o.includeInLayout = !isSQLite;
+					connectString = getConnectString(
+						dbmsCombo.text,
+						ipInput.text,
+						portInput.text,
+						databaseInput.text,
+						useDirectoryService.selected ? userInput.text : "",
+						useDirectoryService.selected ? passInput.text : ""
+					);
 				
 				triggerCallbacks();
 			}
@@ -128,7 +155,10 @@
 				if (dbms == ConnectionInfo.SQLSERVER)
 				{
 					dbms = "sqlserver"; // this will be put in the format string
-					format = "jdbc:jtds:{0}://{1}/;instance={2};user={3};password={4}";
+					if (user || pass)
+						format = "jdbc:jtds:{0}://{1}/;instance={2};user={3};password={4}";
+					else
+						format = "jdbc:jtds:{0}://{1}/;instance={2}";
 				}
 				else if (dbms == ConnectionInfo.SQLITE)
 				{
@@ -137,12 +167,18 @@
 				}
 				else if (dbms == ConnectionInfo.ORACLE)
 				{
-					format = "jdbc:{0}:thin:{3}/{4}@{1}:{2}";
+					if (user || pass)
+						format = "jdbc:{0}:thin:{3}/{4}@{1}:{2}";
+					else
+						format = "jdbc:{0}:thin:{1}:{2}";
 					//"jdbc:oracle:thin:<user>/<password>@<host>:<port>:<instance>"
 				}
 				else // MySQL or PostGreSQL
 				{
-					format = "jdbc:{0}://{1}/{2}?user={3}&password={4}";
+					if (user || pass)
+						format = "jdbc:{0}://{1}/{2}?user={3}&password={4}";
+					else
+						format = "jdbc:{0}://{1}/{2}";
 				}
 				
 				// MySQL connect string uses % as an escape character, so we must use URLEncoder.

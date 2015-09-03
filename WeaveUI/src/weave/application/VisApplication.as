@@ -88,6 +88,7 @@ package weave.application
 	import weave.ui.PrintPanel;
 	import weave.ui.QuickMenuPanel;
 	import weave.ui.TextTool;
+	import weave.ui.DataSourceAuthenticationMonitor;
 	import weave.ui.WeaveProgressBar;
 	import weave.ui.collaboration.CollaborationMenuBar;
 	import weave.ui.controlBars.VisTaskbar;
@@ -317,6 +318,8 @@ package weave.application
 			}
 			while (_loadFileCallbacks.length)
 				(_loadFileCallbacks.shift() as Function)();
+			
+			DataSourceAuthenticationMonitor.initialize();
 		}
 		private function handleConfigFileFault(event:FaultEvent, fileName:String):void
 		{

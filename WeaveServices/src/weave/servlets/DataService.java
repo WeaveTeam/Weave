@@ -35,6 +35,7 @@ import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpSession;
 
 import org.postgis.Geometry;
 import org.postgis.PGgeometry;
@@ -46,6 +47,8 @@ import weave.beans.PGGeom;
 import weave.beans.WeaveJsonDataSet;
 import weave.beans.WeaveRecordList;
 import weave.config.ConnectionConfig.ConnectionInfo;
+import weave.config.ConnectionConfig.WeaveAuthenticationException;
+import weave.config.ConnectionConfig;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
@@ -92,6 +95,50 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	public void destroy()
 	{
 		SQLUtils.staticCleanup();
+	}
+	
+	///////////////////
+	// Authentication
+	
+	private static final String SESSION_USERNAME = "username";
+	private static final String SESSION_PASSWORD = "password";
+	
+	/**
+	 * @param user
+	 * @param password
+	 * @return true if the user has superuser privileges.
+	 * @throws RemoteException If authentication fails.
+	 */
+	public void authenticate(String username, String password) throws RemoteException
+	{
+		ConnectionConfig connConfig = getConnectionConfig();
+		ConnectionInfo info = connConfig.getConnectionInfo(ConnectionInfo.DIRECTORY_SERVICE, username, password);
+		if (info == null)
+			throw new RemoteException("Incorrect username or password");
+		
+		HttpSession session = getServletRequestInfo().request.getSession(true);
+		session.setAttribute(SESSION_USERNAME, username);
+		session.setAttribute(SESSION_PASSWORD, password);
+	}
+	
+	/**
+	 * Gets static, read-only connection from a ConnectionInfo object using pass-through authentication if necessary.
+	 * @param connInfo
+	 * @return
+	 * @throws RemoteException
+	 */
+	private Connection getStaticReadOnlyConnection(ConnectionInfo connInfo) throws RemoteException
+	{
+ 		if (connInfo.requiresAuthentication())
+ 		{
+ 			HttpSession session = getServletRequestInfo().request.getSession(true);
+ 			String user = (String)session.getAttribute(SESSION_USERNAME);
+ 			String pass = (String)session.getAttribute(SESSION_PASSWORD);
+ 			connInfo = getConnectionConfig().getConnectionInfo(connInfo.name, user, pass);
+ 			if (connInfo == null)
+ 				throw new WeaveAuthenticationException("Incorrect username or password");
+ 		}
+ 		return connInfo.getStaticReadOnlyConnection();
 	}
 	
 	/////////////////////
@@ -145,10 +192,16 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	////////////////
 	// Server info
 	
-	public Map<String,String> getServerInfo() throws RemoteException
+	public Map<String,Object> getServerInfo() throws RemoteException
 	{
+		ConnectionConfig connConfig = getConnectionConfig();
+		HttpSession session = getServletRequestInfo().request.getSession(true);
+		String username = (String)session.getAttribute(SESSION_USERNAME);
+
 		return MapUtils.fromPairs(
-			"idFields", getConnectionConfig().getDatabaseConfigInfo().idFields
+			"authenticatedUser", username,
+			"hasDirectoryService", connConfig.getConnectionInfo(ConnectionInfo.DIRECTORY_SERVICE) != null,
+			"idFields", connConfig.getDatabaseConfigInfo().idFields
 		);
 	}
 	
@@ -187,7 +240,8 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	private static ConnectionInfo getColumnConnectionInfo(DataEntity entity) throws RemoteException
 	{
 		String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
-		ConnectionInfo connInfo = getConnectionConfig().getConnectionInfo(connName);
+		ConnectionConfig connConfig = getConnectionConfig();
+		ConnectionInfo connInfo = connConfig.getConnectionInfo(connName);
  		if (connInfo == null)
 		{
 			String title = entity.publicMetadata.get(PublicMetadata.TITLE);
@@ -291,7 +345,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		
 		try
 		{
-			Connection conn = connInfo.getStaticReadOnlyConnection();
+			Connection conn = getStaticReadOnlyConnection(connInfo);
 			
 			// use default sqlParams if not specified by query params
 			if (sqlParams == null || sqlParams.length == 0)
@@ -471,7 +525,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	{
 		assertStreamingGeometryColumn(entity, true);
 		
-		Connection conn = getColumnConnectionInfo(entity).getStaticReadOnlyConnection();
+		Connection conn = getStaticReadOnlyConnection(getColumnConnectionInfo(entity));
 		String schema = entity.privateMetadata.get(PrivateMetadata.SQLSCHEMA);
 		String tablePrefix = entity.privateMetadata.get(PrivateMetadata.SQLTABLEPREFIX);
 		try

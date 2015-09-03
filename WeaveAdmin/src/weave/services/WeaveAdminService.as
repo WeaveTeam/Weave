@@ -34,6 +34,7 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
 	
+	import weave.api.disposeObject;
 	import weave.api.registerLinkableChild;
 	import weave.api.services.IWeaveEntityManagementService;
 	import weave.api.services.beans.Entity;
@@ -57,6 +58,8 @@ package weave.services
 	 */	
 	public class WeaveAdminService implements IWeaveEntityManagementService
 	{
+		public static const WEAVE_AUTHENTICATION_EXCEPTION:String = 'WeaveAuthenticationException';
+		
 		public static const messageLog:Array = new Array();
 		public static const messageLogCallbacks:CallbackCollection = new CallbackCollection();
 		public static function messageDisplay(messageTitle:String, message:String, showPopup:Boolean):void 
@@ -87,7 +90,7 @@ package weave.services
 		{
 			adminService = registerLinkableChild(this, new AMF3Servlet(url + "/AdminService"));
 			dataService = registerLinkableChild(this, new AMF3Servlet(url + "/DataService"));
-			queue = registerLinkableChild(this, new AsyncInvocationQueue(true)); // paused
+			resetQueue();
 			
 			var info:* = DescribeType.getInfo(this, DescribeType.METHOD_FLAGS);
 			for each (var item:Object in info.traits.methods)
@@ -98,6 +101,13 @@ package weave.services
 			}
 			
 			initializeAdminService();
+		}
+		
+		private function resetQueue():void
+		{
+			if (queue)
+				disposeObject(queue);
+			queue = registerLinkableChild(this, new AsyncInvocationQueue(!initialized)); // paused if not initialized
 		}
 		
 		private var queue:AsyncInvocationQueue;
@@ -233,19 +243,6 @@ package weave.services
 		
 		/**
 		 * This function will generate a DelayedAsyncInvocation representing a servlet method invocation and add it to the queue.
-		 * @param methodName The name of a Weave AdminService servlet method.
-		 * @param parameters Parameters for the servlet method.
-		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
-		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
-		 */		
-		private function invokeAdminWithLogin(method:Function, parameters:Array, queued:Boolean = true, returnType:Class = null):AsyncToken
-		{
-			parameters.unshift(Admin.instance.activeConnectionName, Admin.instance.activePassword);
-			return invokeAdmin(method, parameters, queued, returnType);
-		}
-		
-		/**
-		 * This function will generate a DelayedAsyncInvocation representing a servlet method invocation and add it to the queue.
 		 * @param methodName The name of a Weave DataService servlet method.
 		 * @param parameters Parameters for the servlet method.
 		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
@@ -272,7 +269,10 @@ package weave.services
 			var query:ProxyAsyncToken = new ProxyAsyncToken(service.invokeAsyncMethod, [methodName, parameters]);
 
 			if (queued)
+			{
+				addAsyncResponder(query, null, interceptFault, query);
 				queue.addToQueue(query);
+			}
 			
 			hookCaptureHandler(query);
 
@@ -303,6 +303,18 @@ package weave.services
 		public function hideFaultMessage(query:AsyncToken):void
 		{
 			PREVENT_FAULT_ALERT[query] = true;
+		}
+		
+		private function interceptFault(event:FaultEvent, query:ProxyAsyncToken):void
+		{
+			// if user has been signed out, clear the queue immediately
+			if (event.fault.faultCode == WEAVE_AUTHENTICATION_EXCEPTION && authenticated.value)
+			{
+				resetQueue();
+				authenticated.value = false;
+				user = '';
+				pass = '';
+			}
 		}
 		
 		// this function displays an error message from a FaultEvent in an Alert box.
@@ -355,23 +367,23 @@ package weave.services
 
 		public function getWeaveFileNames(showAllFiles:Boolean):AsyncToken
 		{
-			return invokeAdminWithLogin(getWeaveFileNames, arguments);
+			return invokeAdmin(getWeaveFileNames, arguments);
 		}
 		public function saveWeaveFile(fileContent:ByteArray, fileName:String, overwriteFile:Boolean):AsyncToken
 		{
-			var query:AsyncToken = invokeAdminWithLogin(saveWeaveFile, arguments);
+			var query:AsyncToken = invokeAdmin(saveWeaveFile, arguments);
 			//addAsyncResponder(query, alertResult);
 			return query;
 		}
 		public function removeWeaveFile(fileName:String):AsyncToken
 		{
-			var query:AsyncToken = invokeAdminWithLogin(removeWeaveFile, arguments);
+			var query:AsyncToken = invokeAdmin(removeWeaveFile, arguments);
 			addAsyncResponder(query, alertResult);
 			return query;
 		}
 		public function getWeaveFileInfo(fileName:String):AsyncToken
 		{
-			return invokeAdminWithLogin(getWeaveFileInfo, arguments, false, WeaveFileInfo); // bypass queue
+			return invokeAdmin(getWeaveFileInfo, arguments, false, WeaveFileInfo); // bypass queue
 		}
 		
 		//////////////////////////////
@@ -379,15 +391,15 @@ package weave.services
 		
 		public function getConnectionNames():AsyncToken
 		{
-			return invokeAdminWithLogin(getConnectionNames, arguments);
+			return invokeAdmin(getConnectionNames, arguments);
 		}
 		public function getConnectionInfo(userToGet:String):AsyncToken
 		{
-			return invokeAdminWithLogin(getConnectionInfo, arguments, true, ConnectionInfo);
+			return invokeAdmin(getConnectionInfo, arguments, true, ConnectionInfo);
 		}
 		public function saveConnectionInfo(info:ConnectionInfo, configOverwrite:Boolean):AsyncToken
 		{
-			var query:AsyncToken = invokeAdminWithLogin(
+			var query:AsyncToken = invokeAdmin(
 				saveConnectionInfo,
 				[info.name, info.pass, info.folderName, info.is_superuser, info.connectString, configOverwrite]
 			);
@@ -396,7 +408,7 @@ package weave.services
 		}
 		public function removeConnectionInfo(connectionNameToRemove:String):AsyncToken
 		{
-			var query:AsyncToken = invokeAdminWithLogin(removeConnectionInfo, arguments);
+			var query:AsyncToken = invokeAdmin(removeConnectionInfo, arguments);
 			addAsyncResponder(query, alertResult);
 			return query;
 		}
@@ -406,7 +418,7 @@ package weave.services
 		
 		public function getDatabaseConfigInfo():AsyncToken
 		{
-			return invokeAdminWithLogin(getDatabaseConfigInfo, arguments, true, DatabaseConfigInfo);
+			return invokeAdmin(getDatabaseConfigInfo, arguments, true, DatabaseConfigInfo);
 		}
 		public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String, idFields:Array):AsyncToken
 		{
@@ -420,39 +432,39 @@ package weave.services
 		
 		public function newEntity(metadata:EntityMetadata, parentId:int, insertAtIndex:int):AsyncToken
 		{
-			return invokeAdminWithLogin(newEntity, arguments);
+			return invokeAdmin(newEntity, arguments);
 		}
 		public function updateEntity(entityId:int, diff:EntityMetadata):AsyncToken
 		{
-			return invokeAdminWithLogin(updateEntity, arguments);
+			return invokeAdmin(updateEntity, arguments);
 		}
 		public function removeEntities(entityIds:Array):AsyncToken
 		{
-			return invokeAdminWithLogin(removeEntities, arguments);
+			return invokeAdmin(removeEntities, arguments);
 		}
 		public function addChild(parentId:int, childId:int, insertAtIndex:int):AsyncToken
 		{
-			return invokeAdminWithLogin(addChild, arguments);
+			return invokeAdmin(addChild, arguments);
 		}
 		public function removeChild(parentId:int, childId:int):AsyncToken
 		{
-			return invokeAdminWithLogin(removeChild, arguments);
+			return invokeAdmin(removeChild, arguments);
 		}
 		public function getHierarchyInfo(publicMetadata:Object):AsyncToken
 		{
-			return invokeAdminWithLogin(getHierarchyInfo, arguments, true, EntityHierarchyInfo);
+			return invokeAdmin(getHierarchyInfo, arguments, true, EntityHierarchyInfo);
 		}
 		public function getEntities(entityIds:Array):AsyncToken
 		{
-			return invokeAdminWithLogin(getEntities, arguments, true, Entity);
+			return invokeAdmin(getEntities, arguments, true, Entity);
 		}
 		public function findEntityIds(publicMetadata:Object, wildcardFields:Array):AsyncToken
 		{
-			return invokeAdminWithLogin(findEntityIds, arguments);
+			return invokeAdmin(findEntityIds, arguments);
 		}
 		public function findPublicFieldValues(fieldName:String, valueSearch:String):AsyncToken
 		{
-			return invokeAdminWithLogin(findPublicFieldValues, arguments);
+			return invokeAdmin(findPublicFieldValues, arguments);
 		}
 		
 		///////////////////////
@@ -460,15 +472,15 @@ package weave.services
 
 		public function getSQLSchemaNames():AsyncToken
 		{
-			return invokeAdminWithLogin(getSQLSchemaNames, arguments, false);
+			return invokeAdmin(getSQLSchemaNames, arguments, false);
 		}
 		public function getSQLTableNames(schemaName:String):AsyncToken
 		{
-			return invokeAdminWithLogin(getSQLTableNames, arguments, false);
+			return invokeAdmin(getSQLTableNames, arguments, false);
 		}
 		public function getSQLColumnNames(schemaName:String, tableName:String):AsyncToken
 		{
-			return invokeAdminWithLogin(getSQLColumnNames, arguments, false);
+			return invokeAdmin(getSQLColumnNames, arguments, false);
 		}
 
 		/////////////////
@@ -490,7 +502,7 @@ package weave.services
 				var chunk:ByteArray = new ByteArray();
 				content.readBytes(chunk, 0, Math.min(content.bytesAvailable, chunkSize));
 				
-				token = invokeAdminWithLogin(uploadFile, [fileName, chunk, append], true); // queued -- important!
+				token = invokeAdmin(uploadFile, [fileName, chunk, append], true); // queued -- important!
 				append = true;
 			}
 			while (content.bytesAvailable > 0);
@@ -519,7 +531,7 @@ package weave.services
 		
 		public function checkKeyColumnsForSQLImport(schemaName:String, tableName:String, keyColumns:Array):AsyncToken
 		{
-			return invokeAdminWithLogin(checkKeyColumnsForSQLImport, arguments);
+			return invokeAdmin(checkKeyColumnsForSQLImport, arguments);
 		}
 		public function checkKeyColumnsForCSVImport(csvFileName:String, keyColumns:Array):AsyncToken
 		{
@@ -540,7 +552,7 @@ package weave.services
 				filterColumnNames:Array, configAppend:Boolean
 			):AsyncToken
 		{
-		    return invokeAdminWithLogin(importCSV, arguments);
+		    return invokeAdmin(importCSV, arguments);
 		}
 		public function importSQL(
 				schemaName:String, tableName:String, keyColumnName:String,
@@ -548,7 +560,7 @@ package weave.services
 				keyType:String, filterColumns:Array, configAppend:Boolean
 			):AsyncToken
 		{
-		    return invokeAdminWithLogin(importSQL, arguments);
+		    return invokeAdmin(importSQL, arguments);
 		}
 		public function importSHP(
 				configfileNameWithoutExtension:String, keyColumns:Array,
@@ -556,7 +568,7 @@ package weave.services
 				configKeyType:String, configProjection:String, nullValues:String, importDBFAsDataTable:Boolean, configAppend:Boolean
 			):AsyncToken
 		{
-		    return invokeAdminWithLogin(importSHP, arguments);
+		    return invokeAdmin(importSHP, arguments);
 		}
 		
 		public function importDBF(
@@ -564,7 +576,7 @@ package weave.services
 				sqlTableName:String, sqlOverwrite:Boolean, nullValues:String
 			):AsyncToken
 		{
-			return invokeAdminWithLogin(importDBF, arguments);
+			return invokeAdmin(importDBF, arguments);
 		}
 		
 		//////////////////////
@@ -572,7 +584,7 @@ package weave.services
 		
 		public function testAllQueries(tableId:int):AsyncToken
 		{
-			return invokeAdminWithLogin(testAllQueries, arguments, false);
+			return invokeAdmin(testAllQueries, arguments, false);
 		}
 		
 		//////////////////

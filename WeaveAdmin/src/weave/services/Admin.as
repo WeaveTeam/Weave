@@ -99,7 +99,27 @@ package weave.services
 		
 		[Bindable] public var databaseConfigExists:Boolean = true;
 		[Bindable] public var currentUserIsSuperuser:Boolean = false;
-		[Bindable] public var userHasAuthenticated:Boolean = false;
+
+		private var _userHasAuthenticated:Boolean = false;
+		[Bindable] public function get userHasAuthenticated():Boolean
+		{
+			return _userHasAuthenticated;
+		}
+		public function set userHasAuthenticated(value:Boolean):void
+		{
+			_userHasAuthenticated = value;
+			if (!_userHasAuthenticated)
+			{
+				// prevent the user from seeing anything while logged out.
+				entityCache.invalidateAll(true);
+				currentUserIsSuperuser = false;
+				connectionNames = [];
+				weaveFileNames = [];
+				privateWeaveFileNames = [];
+				keyTypes = [];
+				databaseConfigInfo = new DatabaseConfigInfo();
+			}
+		}
 		
 		// values returned by the server
 		[Bindable] public var connectionNames:Array = [];
@@ -376,14 +396,8 @@ package weave.services
 				return;
 			service.user = value;
 			
-			// log out and prevent the user from seeing anything while logged out.
+			// log out
 			userHasAuthenticated = false;
-			currentUserIsSuperuser = false;
-			connectionNames = [];
-			weaveFileNames = [];
-			privateWeaveFileNames = [];
-			keyTypes = [];
-			databaseConfigInfo = new DatabaseConfigInfo();
 		}
 		[Bindable] public function get activePassword():String
 		{
@@ -398,20 +412,24 @@ package weave.services
 		// LocalConnection Code
 		
 		private static const ADMIN_SESSION_WINDOW_NAME_PREFIX:String = "WeaveAdminSession";
-
-		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
+		
+		public function getWeaveURL(fileName:String, recover:Boolean = false):String
 		{
 			var flashVars:Object = WeaveAPI.topLevelApplication.root.loaderInfo.parameters || {};
 			var weaveUrl:String = flashVars['weaveUrl'] || 'weave.html';
-			
 			var params:Object = {};
 			if (fileName)
 				params['file'] = fileName;
 			if (recover)
 				params['recover'] = true;
+			return URLUtil.getFullURL(WeaveAPI.topLevelApplication.url, weaveUrl + '?' + StandardLib.replace(URLUtil.objectToString(params, '&'), '%2F', '/'));
+		}
+
+		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
+		{
 			var success:Boolean = JavaScript.exec(
 				{
-					url: weaveUrl + '?' + StandardLib.replace(URLUtil.objectToString(params, '&'), '%2F', '/'),
+					url: getWeaveURL(fileName),
 					target: ADMIN_SESSION_WINDOW_NAME_PREFIX + createWeaveSession()
 				},
 				'return !!window.open(url, target);'

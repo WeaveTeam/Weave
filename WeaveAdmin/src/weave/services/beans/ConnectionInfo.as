@@ -37,6 +37,8 @@ package weave.services.beans
 		public static const SQLSERVER:String = 'Microsoft SQL Server';
 		public static const ORACLE:String = 'Oracle';
 		
+		public static const DIRECTORY_SERVICE_CONNECTION_NAME:String = 'Directory Service';
+		
 		/**
 		 * This function will get the default port for a DBMS.
 		 * @param dbms A supported DBMS.
