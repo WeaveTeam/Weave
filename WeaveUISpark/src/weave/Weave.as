@@ -492,9 +492,9 @@ package weave
 				// reload the application
 				if (ExternalInterface.objectID)
 					JavaScript.exec(
-						{reloadID: uid},
-						"this.parentNode.weaveReloadID = reloadID;",
-						"this.outerHTML = this.outerHTML;"
+						{reloadID: uid, "this": "weave"},
+						"weave.parentNode.weaveReloadID = reloadID;",
+						"setTimeout(function() { weave.outerHTML = weave.outerHTML; }, 0);"
 					);
 				else
 					JavaScript.exec("location.reload(false);");
