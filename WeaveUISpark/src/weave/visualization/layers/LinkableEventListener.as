@@ -18,11 +18,11 @@ package weave.visualization.layers
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	
-	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.getLinkableRoot;
+	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableString;
 
@@ -31,6 +31,7 @@ package weave.visualization.layers
 	 * <code>event.value</code> and the listener function specified by the LinkableFunction <code>script.value</code>.
 	 * 
 	 * @author kmonico
+	 * @author adufilie
 	 */	
 	public class LinkableEventListener implements ILinkableObject
 	{
@@ -43,8 +44,7 @@ package weave.visualization.layers
 		 * The name of the component in the session state which owns the event.
 		 * If this is empty, the event applies across the stage.
 		 */		
-		public const target:LinkableString = registerLinkableChild(this, new LinkableString());
-		
+		public const target:LinkableDynamicObject = newLinkableChild(this, LinkableDynamicObject);
 		
 		/**
 		 * The event which triggers this interaction.
@@ -55,7 +55,7 @@ package weave.visualization.layers
 		 * The function to call when the event occurs.<br>
 		 * The compiled function has one argument named "event" which specifies the target. 
 		 */		
-		public const script:LinkableFunction = registerLinkableChild(this, new LinkableFunction('', true, true, ["event"]));
+		public const script:LinkableFunction = registerLinkableChild(this, new LinkableFunction('function(event) {\n\t\n}', true, true, ["event"]));
 
 		
 		private var _lastEvent:String = null; 
@@ -71,15 +71,13 @@ package weave.visualization.layers
 					var stageEvent:Event = WeaveAPI.StageUtils.event;
 					
 					// if a target is specified, check that the event occurred on the target
-					if (target.value)
+					if (target.target)
 					{
-						var root:ILinkableHashMap = getLinkableRoot(self) as ILinkableHashMap;
-						var globalObject:* = root.getObject(target.value);
 						var component:* = stageEvent.target;
 						
 						while (component)
 						{
-							if (component == globalObject)
+							if (component == target.target)
 								break;
 							component = component.parent;
 						}

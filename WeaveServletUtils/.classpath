@@ -63,5 +63,6 @@
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/javaxt-core.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

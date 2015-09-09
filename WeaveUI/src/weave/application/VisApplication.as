@@ -76,7 +76,7 @@ package weave.application
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.DataSourceManager;
 	import weave.flascc.readZip;
-	import weave.menus.SessionMenu;
+	import weave.menus.FileMenu;
 	import weave.services.LocalAsyncService;
 	import weave.services.addAsyncResponder;
 	import weave.ui.CirclePlotterSettings;
@@ -88,6 +88,7 @@ package weave.application
 	import weave.ui.PrintPanel;
 	import weave.ui.QuickMenuPanel;
 	import weave.ui.TextTool;
+	import weave.ui.DataSourceAuthenticationMonitor;
 	import weave.ui.WeaveProgressBar;
 	import weave.ui.collaboration.CollaborationMenuBar;
 	import weave.ui.controlBars.VisTaskbar;
@@ -317,6 +318,8 @@ package weave.application
 			}
 			while (_loadFileCallbacks.length)
 				(_loadFileCallbacks.shift() as Function)();
+			
+			DataSourceAuthenticationMonitor.initialize();
 		}
 		private function handleConfigFileFault(event:FaultEvent, fileName:String):void
 		{
@@ -751,6 +754,7 @@ package weave.application
 		}
 
 		/**
+		 * TEMPORARY SOLUTION until we can register file type handlers in WeaveAPI
 		 * @return An Array of FileFilter objects
 		 */
 		public function getSupportedFileTypes():Array
@@ -762,7 +766,7 @@ package weave.application
 			]
 		}
 		
-		public function handleDraggedFile(fileName:String, fileContent:ByteArray):void
+		public function handleDraggedFile(fileName:String, fileContent:ByteArray, dataFilesOnly:Boolean = false):void
 		{
 			var ext:String = String(fileName.split('.').pop()).toLowerCase();
 			var adsp:AddDataSourcePanel;
@@ -772,7 +776,7 @@ package weave.application
 			{
 				var files:Object = weave.flascc.readZip(fileContent);
 				for (var fileName:String in files)
-					handleDraggedFile(fileName, files[fileName]);
+					handleDraggedFile(fileName, files[fileName], true);
 				
 				adsp = DraggablePanel.getStaticInstance(AddDataSourcePanel);
 				if (adsp.parent)
@@ -781,7 +785,7 @@ package weave.application
 				return;
 			}
 			
-			if (ext == 'weave' || ext == 'xml')
+			if (!dataFilesOnly && (ext == 'weave' || ext == 'xml'))
 			{
 				loadSessionState(fileContent, fileName);
 				return;
@@ -846,7 +850,7 @@ package weave.application
 				graphml.nodeKeyType.value = fileName + " (node)";
 			}
 			
-			if (dataSource && !SessionMenu.initTemplate(dataSource))
+			if (dataSource && !FileMenu.initTemplate(dataSource))
 			{
 				var dsm:DataSourceManager = DraggablePanel.openStaticInstance(DataSourceManager);
 				dsm.selectDataSource(dataSource);

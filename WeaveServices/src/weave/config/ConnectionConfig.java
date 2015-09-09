@@ -49,12 +49,21 @@ import weave.utils.Strings;
 import weave.utils.XMLUtils;
 
 /**
- * ISQLConfig An interface to retrieve strings from a configuration file.
+ * An interface to retrieve strings from a configuration file.
  * 
  * @author Andy Dufilie
  */
 public class ConnectionConfig
 {
+	@SuppressWarnings("serial")
+	public static class WeaveAuthenticationException extends RemoteException
+	{
+		public WeaveAuthenticationException(String explanation)
+		{
+			super(explanation);
+		}
+	}
+	
 	public static final String XML_FILENAME = "sqlconfig.xml";
 	public static final String DTD_FILENAME = "sqlconfig.dtd";
 	public static final String SQLITE_DB_FILENAME = "weave.db";
@@ -171,7 +180,15 @@ public class ConnectionConfig
 		if (connInfo == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", dbInfo.connection));
 		
-		return _adminConnection = connInfo.getConnection();
+		try
+		{
+			return _adminConnection = connInfo.getConnection();
+		}
+		catch (WeaveAuthenticationException e)
+		{
+			// should not happen
+			throw new RemoteException("Unexpected error. Admin connection should not require pass-through authentication.", e);
+		}
 	}
 	
 	private void resetAdminConnection()
@@ -319,12 +336,45 @@ public class ConnectionConfig
 	
 	public ConnectionInfo getConnectionInfo(String name) throws RemoteException
 	{
+		try
+		{
+			return getConnectionInfo(name, null, null);
+		}
+		catch (WeaveAuthenticationException e)
+		{
+			// should not happen
+			throw new RemoteException("Unexpected error. WeaveAuthenticationException should only occur when using pass-through authentication.", e);
+		}
+	}
+	public ConnectionInfo getConnectionInfo(String name, String dsUser, String dsPass) throws RemoteException, WeaveAuthenticationException
+	{
 		_load();
 		ConnectionInfo original = _connectionInfoMap.get(name);
 		if (original == null)
 			return null;
-		ConnectionInfo copy = new ConnectionInfo();
+		
+		ConnectionInfo copy = new ConnectionInfo(dsUser, dsPass);
 		copy.copyFrom(original);
+		
+		// test connection
+		if (dsUser != null || dsPass != null)
+		{
+			Connection conn = null;
+			try
+			{
+				conn = copy.getConnection();
+			}
+			catch (RemoteException e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+			finally
+			{
+				SQLUtils.cleanup(conn);
+			}
+		}
+				
 		return copy;
 	}
 	public void saveConnectionInfo(ConnectionInfo connectionInfo) throws RemoteException
@@ -451,8 +501,21 @@ public class ConnectionConfig
 	 */
 	static public class ConnectionInfo
 	{
+		public static final String DIRECTORY_SERVICE = "Directory Service";
+		
 		public ConnectionInfo()
 		{
+		}
+		
+		/**
+		 * Constructs a ConnectionInfo object that overrides user/pass info and appends dsUser as a subfolder after folderName.
+		 * @param dsUser
+		 * @param dsPass
+		 */
+		public ConnectionInfo(String dsUser, String dsPass)
+		{
+			this.dsUser = dsUser;
+			this.dsPass = dsPass;
 		}
 		
 		public void validate() throws RemoteException
@@ -476,6 +539,8 @@ public class ConnectionConfig
 			this.connectString = other.get("connectString");
 			this.is_superuser = other.get("is_superuser").equalsIgnoreCase("true");
 			
+			validateDSInfo();
+			
 			// backwards compatibility
 			if (connectString == null || connectString.length() == 0)
 			{
@@ -487,6 +552,7 @@ public class ConnectionConfig
 				this.connectString = SQLUtils.getConnectString(dbms, ip, port, database, user, pass);
 			}
 		}
+		
 		public void copyFrom(ConnectionInfo other)
 		{
 			this.name = other.name;
@@ -494,7 +560,21 @@ public class ConnectionConfig
 			this.folderName = other.folderName;
 			this.connectString = other.connectString;
 			this.is_superuser = other.is_superuser;
+			
+			validateDSInfo();
 		}
+		
+		private void validateDSInfo()
+		{
+			if (this.dsUser == null && this.dsPass == null)
+				return;
+			
+			this.name = dsUser;
+			this.pass = dsPass;
+			this.folderName += "/" + dsUser;
+			this.is_superuser = false;
+		}
+
 		public Map<String,String> getPropertyMap()
 		{
 			return MapUtils.fromPairs(
@@ -506,20 +586,38 @@ public class ConnectionConfig
 			);
 		}
 		
+		private String dsUser = null;
+		private String dsPass = null;
 		public String name = "";
 		public String pass = "";
 		public String folderName = "";
 		public String connectString = "";
 		public boolean is_superuser = false;
 		
-		public Connection getStaticReadOnlyConnection() throws RemoteException
+		public Connection getStaticReadOnlyConnection() throws RemoteException, WeaveAuthenticationException
 		{
-			return SQLUtils.getStaticReadOnlyConnection(connectString);
+			if (requiresAuthentication())
+				throw new WeaveAuthenticationException("Authentication required");
+			
+			return SQLUtils.getStaticReadOnlyConnection(connectString, dsUser, dsPass);
 		}
 
-		public Connection getConnection() throws RemoteException
+		public Connection getConnection() throws RemoteException, WeaveAuthenticationException
 		{
-			return SQLUtils.getConnection(connectString);
+			if (requiresAuthentication())
+				throw new WeaveAuthenticationException("Authentication required");
+			
+			return SQLUtils.getConnection(connectString, dsUser, dsPass);
+		}
+		
+		public boolean requiresAuthentication()
+		{
+			return Strings.equal(name, DIRECTORY_SERVICE);
+		}
+		
+		public boolean usingDirectoryService()
+		{
+			return requiresAuthentication() || dsUser != null || dsPass != null;
 		}
 	}
 }

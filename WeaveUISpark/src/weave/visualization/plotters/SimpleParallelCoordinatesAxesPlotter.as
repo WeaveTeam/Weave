@@ -26,8 +26,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableVariable;
-	import weave.core.LinkableWatcher;
+	import weave.core.LinkableDynamicObject;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
@@ -40,8 +39,7 @@ package weave.visualization.plotters
 		{
 		}
 		
-		public const plotterPath:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, arrayTypeIsString), handlePlotterPath);
-		private const plotterWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(SimpleParallelCoordinatesPlotter));
+		public const mainPlotter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(SimpleParallelCoordinatesPlotter));
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		private const textFormat:LinkableTextFormat = registerLinkableChild(this, Weave.properties.visTextFormat);
 		
@@ -50,19 +48,9 @@ package weave.visualization.plotters
 		private static const maxPoint:Point = new Point();
 		private static const bitmapBounds:Bounds2D = new Bounds2D();
 		
-		private function arrayTypeIsString(array:Array):Boolean
-		{
-			return StandardLib.getArrayType(array) == String;
-		}
-		
-		private function handlePlotterPath():void
-		{
-			plotterWatcher.targetPath = plotterPath.getSessionState() as Array;
-		}
-		
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			var plotter:SimpleParallelCoordinatesPlotter = plotterWatcher.target as SimpleParallelCoordinatesPlotter;
+			var plotter:SimpleParallelCoordinatesPlotter = mainPlotter.target as SimpleParallelCoordinatesPlotter;
 			if (plotter)
 			{
 				plotter.getBackgroundDataBounds(output)
@@ -77,7 +65,7 @@ package weave.visualization.plotters
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var graphics:Graphics = tempShape.graphics;
-			var plotter:SimpleParallelCoordinatesPlotter = plotterWatcher.target as SimpleParallelCoordinatesPlotter;
+			var plotter:SimpleParallelCoordinatesPlotter = mainPlotter.target as SimpleParallelCoordinatesPlotter;
 			if (!plotter)
 				return;
 			var columns:Array = plotter.columns.getObjects();
@@ -155,5 +143,7 @@ package weave.visualization.plotters
 			
 			destination.draw(tempShape);
 		}
+		
+		[Deprecated(replacement="mainPlotter")] public function set plotterPath(path:Array):void { mainPlotter.targetPath = path; }
 	}
 }

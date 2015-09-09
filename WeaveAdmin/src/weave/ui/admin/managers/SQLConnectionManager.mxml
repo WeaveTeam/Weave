@@ -28,23 +28,24 @@
 			<ui:TreeWithSearch id="treeWithSearch" prompt="{lang('Search connections')}"/>
 			<mx:HBox width="100%">
 				<mx:Spacer width="100%"/>
-				<mx:Button label="{lang('Remove')}" click="removeConnection()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
+				<mx:Button label="{lang('Delete')}" click="removeConnection()" enabled="{treeWithSearch.tree.selectedItem != null}"/>
 				<mx:Button label="{lang('Refresh')}" click="refresh()"/>
 			</mx:HBox>
 		</mx:VBox>
 		
 		<mx:VBox width="100%" height="100%">
-			<mx:CheckBox change="{dataChanged=true}" label="{lang('Grant Superuser Permissions')}" id="superuserCheckbox"/>
+			<mx:CheckBox change="{dataChanged=true}" label="{lang('Grant superuser permissions')}" id="superuserCheckbox"/>
 			<ui:Indent label="{lang('Connection name')}">
-				<mx:TextInput id="connectionNameInput" change="{dataChanged=true}" width="130"/>
+				<mx:TextInput id="connectionNameInput" change="dataChanged = true;" width="{inputWidth}"/>
+				<mx:TextInput id="directoryServiceText" enabled="false" width="{inputWidth}" text="{ConnectionInfo.DIRECTORY_SERVICE_CONNECTION_NAME}"/>
 				<mx:CheckBox label="{lang('Overwrite')}" id="configOverwrite"/>
 			</ui:Indent>
-			<ui:Indent label="{lang('Password')}">
-				<ui:TextInputWithPrompt id="connectionPasswordInput" displayAsPassword="{!showPassCheck.selected}" change="{dataChanged=true}" width="130"/>
+			<ui:Indent id="passwordIndent" label="{lang('Password')}">
+				<ui:TextInputWithPrompt id="connectionPasswordInput" displayAsPassword="{!showPassCheck.selected}" change="dataChanged = true;" width="{inputWidth}"/>
 				<mx:CheckBox id="showPassCheck" label="{lang('Show')}" selected="false"/>
 			</ui:Indent>
-			<ui:Indent label="{lang('User Folder Name')}">
-				<mx:TextInput id="folderNameInput" width="130"/>
+			<ui:Indent label="{lang('Folder name')}">
+				<mx:TextInput id="folderNameInput" width="{inputWidth}"/>
 				<ui:HelpComponent>
 					Specify the folder in docroot to store user-created configurations
 				</ui:HelpComponent>
@@ -67,7 +68,7 @@
 					<mx:VBox width="100%" height="{basicInterface.height}" label="{lang('Advanced')}" id="advancedInterface">
 						<mx:Label text="{lang('Connect String')}"/>
 						<mx:VBox paddingLeft="32" width="100%">
-							<mx:TextInput id="connectStringInput" change="{dataChanged=true}" width="100%" text="{connectStringGenerator.connectString}" displayAsPassword="{!showConnectStringCheck.selected}"/>
+							<mx:TextInput id="connectStringInput" change="dataChanged = true;" width="100%" text="{connectStringGenerator.connectString}" displayAsPassword="{!showConnectStringCheck.selected}"/>
 							<mx:CheckBox id="showConnectStringCheck" label="{lang('Show')}" selected="false"/>
 						</mx:VBox>
 					</mx:VBox>
@@ -100,22 +101,20 @@
 			</ui:Indent>
 			<ui:IndentTextInput label="{lang('Password')}" id="migratePasswordInput" displayAsPassword="true"/>
 			<ui:IndentTextInput label="{lang('Schema to use')}" id="migrateSchemaInput" text="{admin.databaseConfigInfo.schema}"/>
-			<ui:CheckBoxWithNestedOptions label="{lang('Show advanced options')}" selected="{!!migrateIdFieldsInput.text}">
+			<ui:CheckBoxWithNestedOptions label="{lang('Show advanced options')}" selected="{Boolean(migrateIdFieldsInput.text)}">
 				<ui:IndentTextInput label="{lang('Metadata ID field(s)')}" id="migrateIdFieldsInput"
 									helpContent="You should only use this if you plan to add your own metadata field(s) for uniquely identifying columns. Separate multiple field names by commas."
 									text="{WeaveAPI.CSVParser.createCSVRow(admin.databaseConfigInfo.idFields)}"/>
 			</ui:CheckBoxWithNestedOptions>
-			<ui:Paragraph trim="false"
-						  text="{lang('The following tables will be created{0}:\n    weave_hierarchy, weave_meta_private, weave_meta_public\nIf they already exist, no changes will be made.', migrateSchemaInput.visible ? ' in the schema specified above' : '')}"/>
+			<ui:Paragraph trim="false" text="{getMigrateExplanation(migrateSchemaInput.visible)}"/>
 			<mx:Button id="migrateButton" label="{lang('Store Weave configuration at this location')}" click="saveDatabaseConfigInfo()" />
 		</mx:VBox>
 	</mx:Canvas>
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.services.beans.ConnectionInfo;
-			import mx.rpc.AsyncToken;
 			import mx.binding.utils.BindingUtils;
+			import mx.rpc.AsyncToken;
 			import mx.rpc.events.ResultEvent;
 			
 			import weave.api.getCallbackCollection;
@@ -126,27 +125,45 @@
 			import weave.services.beans.DatabaseConfigInfo;
 			import weave.utils.PopUpUtils;
 
+			[Bindable] public var inputWidth:int = 200;
+			
 			[Bindable] private var admin:Admin = Admin.instance;
 			
-			[Bindable]
-			private var serverConfigEntryWasModified:Boolean = false;
-			
-			[Bindable]
-			private var dataChanged:Boolean = false;
+			[Bindable] public var dataChanged:Boolean = false;
 
 			private function handleCreationComplete():void
 			{
 				connectionNameInput.setFocus();
 				clearConnectionFields(true);
 				BindingUtils.bindSetter(handleConnectionNames, admin, "connectionNames");
-				treeWithSearch.tree.addEventListener(Event.CHANGE, handleTreeSelection);
 				BindingUtils.bindSetter(handleDBConfig, admin, "databaseConfigInfo");
+				BindingUtils.bindSetter(handleDataChanged, connectionNameInput, 'text');
+				BindingUtils.bindSetter(handleDataChanged, connectStringGenerator.useDirectoryService, 'selected');
+				treeWithSearch.tree.addEventListener(Event.CHANGE, handleTreeSelection);
 				getCallbackCollection(connectStringGenerator).addImmediateCallback(this, handleConnectStringGenerator);
+			}
+			
+			private function handleDataChanged(..._):void
+			{
+				var isDirectoryService:Boolean = connectionNameInput.text == ConnectionInfo.DIRECTORY_SERVICE_CONNECTION_NAME || connectStringGenerator.useDirectoryService.selected;
+				superuserCheckbox.visible = superuserCheckbox.includeInLayout = !isDirectoryService;
+				connectionNameInput.visible = connectionNameInput.includeInLayout = !isDirectoryService;
+				passwordIndent.visible = passwordIndent.includeInLayout = !isDirectoryService;
+				directoryServiceText.visible = directoryServiceText.includeInLayout = isDirectoryService;
 			}
 			
 			private function getLblAre(connectionName:String):String
 			{
 				return lang('You are currently using the "{0}" connection to store configuration data.', connectionName);
+			}
+			
+			private function getMigrateExplanation(migrateSchemaInputVisible:Boolean):String
+			{
+				return lang('The following tables will be created{0}:\n' +
+					'    weave_hierarchy, weave_meta_private, weave_meta_public\n' +
+					'If they already exist, no changes will be made.',
+					migrateSchemaInputVisible ? ' in the schema specified above' : ''
+				);
 			}
 			
 			private function handleConnectStringGenerator():void
@@ -264,6 +281,13 @@
 				info.is_superuser = superuserCheckbox.selected;
 				info.folderName = folderNameInput.text;
 				info.connectString = connectStringInput.text
+				
+				if (connectStringGenerator.useDirectoryService.selected)
+				{
+					info.name = ConnectionInfo.DIRECTORY_SERVICE_CONNECTION_NAME;
+					info.is_superuser = false;
+					info.pass = '';
+				}
 				
 				Admin.service.saveConnectionInfo(info, configOverwrite.selected);
 				dataChanged = false;

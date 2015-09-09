@@ -223,7 +223,7 @@
 				}
 				for each (var obj:Object in _savedPathSessionStates)
 				{
-					var ilo:ILinkableObject = WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, obj["path"]);
+					var ilo:ILinkableObject = WeaveAPI.getObject(obj["path"]);
 					if (ilo)
 						setSessionState(ilo, obj["state"]);
 				}
@@ -347,6 +347,11 @@
 					revert();
 
 				super.handleEscapeKey();
+			}
+			
+			public function set errorText(value:String):void
+			{
+				controlPanelControls.errorText = value;
 			}
 			
 			public static function getControlPanelTitle(object:ILinkableObject, format:String = "Settings for {0}"):String

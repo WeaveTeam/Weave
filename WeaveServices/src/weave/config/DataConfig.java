@@ -599,6 +599,7 @@ public class DataConfig
 	static public class PrivateMetadata
 	{
 		static public final String CONNECTION = "connection"; // required to retrieve data from sql, not visible to client
+		static public final String SQLUSER = "sqlUser"; // pass-through authentication user that created the entity
 		static public final String SQLSCHEMA = "sqlSchema";
 		static public final String SQLTABLE = "sqlTable";
 		static public final String SQLCOLUMN = "sqlColumn";

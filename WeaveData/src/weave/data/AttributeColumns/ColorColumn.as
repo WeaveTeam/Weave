@@ -27,6 +27,7 @@ package weave.data.AttributeColumns
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.primitives.ColorRamp;
 	
 	/**
@@ -106,15 +107,27 @@ package weave.data.AttributeColumns
 		 * This is a CSV containing specific colors associated with record keys.
 		 * The format for each row in the CSV is:  keyType,localName,color
 		 */
-		public const recordColors:LinkableString = newLinkableChild(this, LinkableString);
+		public const recordColors:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, verifyRecordColors));
+		private function verifyRecordColors(value:Object):Boolean
+		{
+			if (value is String)
+			{
+				value = WeaveAPI.CSVParser.parseCSV(value as String);
+				recordColors.setSessionState(value);
+				return false;
+			}
+			if (value === null)
+				return true;
+			
+			return value is Array && StandardLib.arrayIsType(value as Array, Array);
+		}
 		private var _recordColorsMap:Dictionary;
 		private function handleRecordColors():void
 		{
-			var rows:Array = WeaveAPI.CSVParser.parseCSV(recordColors.value);
+			var rows:Array = recordColors.getSessionState() as Array;
 			_recordColorsMap = new Dictionary();
-			for (var iRow:int = 0; iRow < rows.length; iRow++)
+			for each (var row:Array in rows)
 			{
-				var row:Array = rows[iRow] as Array;
 				if (row.length != 3)
 					continue;
 				try

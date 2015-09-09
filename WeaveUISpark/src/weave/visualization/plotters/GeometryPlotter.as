@@ -27,6 +27,7 @@ package weave.visualization.plotters
 	import weave.Weave;
 	import weave.api.core.DynamicState;
 	import weave.api.core.ILinkableHashMap;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
@@ -35,6 +36,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
+	import weave.api.ui.IObjectWithDescription;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
@@ -51,6 +53,7 @@ package weave.visualization.plotters
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.GeometryType;
 	import weave.utils.CachedBitmap;
+	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.ExtendedFillStyle;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	
@@ -59,7 +62,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, ISelectableAttributes
+	public class GeometryPlotter extends AbstractPlotter implements IPlotterWithGeometries, ISelectableAttributes, IObjectWithDescription
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GeometryPlotter, "Geometries");
 		
@@ -80,6 +83,11 @@ package weave.visualization.plotters
 			
 			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // bounding box should trigger spatial
 			registerSpatialProperty(_filteredKeySet.keyFilter); // subset should trigger spatial callbacks
+		}
+		
+		public function getDescription():String
+		{
+			return geometryColumn.getDescription();
 		}
 		
 		public function getSelectableAttributeNames():Array

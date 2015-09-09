@@ -686,8 +686,10 @@ var _mapNodesToSerials = weave.evaluateExpression(null, 'nodes => {\
 /**
  * WeaveTreeNode implements the following interfaces: IWeaveTreeNode, IColumnReference
  */
-weave.WeaveTreeNode = function(serial) {
+weave.WeaveTreeNode = function(serial, parent) {
 	this.serial = serial | 0; // default - root node
+	this.parent = parent;
+	weave.WeaveTreeNode.cache[this.serial] = this;
 	if (this.serial == 0)
 		weave.evaluateExpression(null, 'var lookup = ' + weaveTreeNodeLookup + '; if (lookup[0] === undefined) lookup[lookup[0] = new WeaveRootDataTreeNode()] = 0; return null;');
 };
@@ -699,8 +701,8 @@ weave.WeaveTreeNode.prototype._getChildrenSerials = _createNodeFunction('getSeri
 weave.WeaveTreeNode.prototype.getChildren = function() {
 	var serials = this._getChildrenSerials();
 	return serials && serials.map(function(serial) {
-		return weave.WeaveTreeNode.cache[serial] || (weave.WeaveTreeNode.cache[serial] = new weave.WeaveTreeNode(serial));
-	});
+		return weave.WeaveTreeNode.cache[serial] || new weave.WeaveTreeNode(serial, this);
+	}, this);
 };
 weave.WeaveTreeNode.prototype.getDataSource = _createNodeFunction('node is IColumnReference ? node.getDataSource() : null');
 weave.WeaveTreeNode.prototype.getDataSourceName = _createNodeFunction('node is IColumnReference ? WeaveAPI.globalHashMap.getName(node.getDataSource()) : null');
@@ -714,9 +716,8 @@ weave.WeaveTreeNode.prototype._findPathSerials = _createNodeFunction('\
 ', {getSerials: _mapNodesToSerials});
 weave.WeaveTreeNode.prototype.findPath = function(dataSourceName, columnMetadata) {
 	var serials = this._findPathSerials(dataSourceName, columnMetadata);
-	return serials && serials.map(function(serial) {
-		if (this.serial == serial)
-			return this;
-		return weave.WeaveTreeNode.cache[serial] || (weave.WeaveTreeNode.cache[serial] = new weave.WeaveTreeNode(serial));
+	return serials && serials.map(function(serial, index, array) {
+		var parent = weave.WeaveTreeNode.cache[array[index - 1]];
+		return weave.WeaveTreeNode.cache[serial] || new weave.WeaveTreeNode(serial, parent);
 	}, this);
 };

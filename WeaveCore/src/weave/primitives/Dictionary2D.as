@@ -47,16 +47,16 @@ package weave.primitives
 		 */
 		public function get(key1:Object, key2:Object):*
 		{
+			var value:* = undefined;
 			var d2:* = dictionary[key1];
 			if (d2)
-				return d2[key2];
-			if (defaultType)
+				value = d2[key2];
+			if (value === undefined && defaultType)
 			{
-				var value:* = new defaultType();
+				value = new defaultType();
 				set(key1, key2, value);
-				return value;
 			}
-			return undefined;
+			return value;
 		}
 		
 		/**

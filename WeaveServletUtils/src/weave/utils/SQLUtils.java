@@ -294,22 +294,23 @@ public class SQLUtils
 	 * @param connectString The connect string used to create the Connection.
 	 * @return A static read-only Connection.
 	 */
-	public static Connection getStaticReadOnlyConnection(String connectString) throws RemoteException
+	public static Connection getStaticReadOnlyConnection(String connectString, String user, String pass) throws RemoteException
 	{
+		String key = CSVParser.defaultParser.createCSVRow(new String[]{connectString, user != null ? user : "", pass != null ? pass : ""}, false);
 		synchronized (_staticReadOnlyConnections)
 		{
 			Connection conn = null;
-			if (_staticReadOnlyConnections.containsKey(connectString))
+			if (_staticReadOnlyConnections.containsKey(key))
 			{
-				conn = _staticReadOnlyConnections.get(connectString);
+				conn = _staticReadOnlyConnections.get(key);
 				if (connectionIsValid(conn))
 					return conn;
 				// if connection is not valid, remove this entry from the Map
-				_staticReadOnlyConnections.remove(connectString);
+				_staticReadOnlyConnections.remove(key);
 			}
 			
 			// get a new connection, throwing an exception if this fails
-			conn = getConnection(connectString);
+			conn = getConnection(connectString, user, pass);
 			
 			// try to set readOnly.. if this fails, continue anyway.
 			try
@@ -323,7 +324,7 @@ public class SQLUtils
 			
 			// remember this static, read-only connection.
 			if (conn != null)
-				_staticReadOnlyConnections.put(connectString, conn);
+				_staticReadOnlyConnections.put(key, conn);
 
 			return conn;
 		}
@@ -334,6 +335,17 @@ public class SQLUtils
 	 * @return A new SQL connection using the specified driver & connect string 
 	 */
 	public static Connection getConnection(String connectString) throws RemoteException
+	{
+		return getConnection(connectString, null, null);
+	}
+	
+	/**
+	 * @param connectString The connect string to use.
+	 * @param user The user name
+	 * @param pass The password
+	 * @return A new SQL connection using the specified driver & connect string 
+	 */
+	public static Connection getConnection(String connectString, String user, String pass) throws RemoteException
 	{
 		String dbms = getDbmsFromConnectString(connectString);
 		
@@ -346,7 +358,10 @@ public class SQLUtils
 			if (!_driverMap.containsKey(driver))
 				_driverMap.put(driver, (Driver)Class.forName(driver).newInstance());
 
-			conn = DriverManager.getConnection(connectString);
+			if (user == null && pass == null)
+				conn = DriverManager.getConnection(connectString);
+			else
+				conn = DriverManager.getConnection(connectString, user, pass);
 		}
 		catch (SQLException ex)
 		{

@@ -25,8 +25,10 @@
 		<![CDATA[
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.ui.IVisTool;
+			import weave.core.LinkableBoolean;
 			import weave.core.LinkableVariable;
 			import weave.data.AttributeColumns.BinnedColumn;
 			import weave.ui.AttributeSelectorPanel;
@@ -89,6 +91,8 @@
 				return lang("2D Histogram of {0} vs {1}", ColumnUtils.getTitle(plotter.xColumn), ColumnUtils.getTitle(plotter.yColumn));
 			}
 			
+			public const customTickCounts:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			
 			private function updateAxisLabels():void
 			{
 				handlePanelTitleChange();
@@ -97,14 +101,16 @@
 				
 				var xBinCol:BinnedColumn = plotter.xBinnedColumn;
 				
-				xAxisPlotter.tickCountRequested.value = xBinCol.numberOfBins;
+				if (!customTickCounts.value)
+					xAxisPlotter.tickCountRequested.value = xBinCol.numberOfBins;
 				xAxisPlotter.tickMinValue.value = 0;
 				xAxisPlotter.tickMaxValue.value = xBinCol.numberOfBins - 1;	
 				xAxisPlotter.setLabelFunction(xBinCol.deriveStringFromNumber, xBinCol);
 				
 				var yBinCol:BinnedColumn = plotter.yBinnedColumn;
 				
-				yAxisPlotter.tickCountRequested.value = yBinCol.numberOfBins;
+				if (!customTickCounts.value)
+					yAxisPlotter.tickCountRequested.value = yBinCol.numberOfBins;
 				yAxisPlotter.tickMinValue.value = 0;
 				yAxisPlotter.tickMaxValue.value = yBinCol.numberOfBins - 1;	
 				yAxisPlotter.setLabelFunction(yBinCol.deriveStringFromNumber, yBinCol);

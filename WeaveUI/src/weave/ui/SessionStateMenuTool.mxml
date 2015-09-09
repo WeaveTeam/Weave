@@ -76,9 +76,8 @@
 			{
 				super.childrenCreated();
 				
-				// force panel title to update when targets and choices change
-				registerLinkableChild(panelTitle, targets.childListCallbacks);
-				registerLinkableChild(panelTitle, choices.childListCallbacks);
+				targets.childListCallbacks.addGroupedCallback(this, handleChildListChanges);
+				choices.childListCallbacks.addGroupedCallback(this, handleChildListChanges, true);
 
 				var ltf:LinkableTextFormat = LinkableTextFormat.defaultTextFormat;
 				var self:UIComponent = this;
@@ -103,6 +102,7 @@
 				subMenuButton.data = [
 					{
 						label: lang('Add new item for current state'),
+						enabled: targetsConfigured,
 						click: function():void {
 							var name:String = choices.generateUniqueName('item');
 							AlertTextBox.show(
@@ -121,7 +121,7 @@
 								? lang('Rename "{0}"', selectedChoice.value)
 								: lang('Rename selected item');
 						},
-						enabled: selectedChoiceExists,
+						enabled: [selectedChoiceExists, targetsConfigured],
 						click: function():void {
 							AlertTextBox.show(
 								lang('Rename menu item'),
@@ -142,12 +142,13 @@
 								? lang('Delete "{0}"', selectedChoice.value)
 								: lang('Delete selected item');
 						},
-						enabled: selectedChoiceExists,
+						enabled: [selectedChoiceExists, targetsConfigured],
 						click: removeSelectedChoice
 					},
 					WeaveMenuItem.TYPE_SEPARATOR,
 					{
 						label: lang('Auto-update active menu item'),
+						enabled: targetsConfigured,
 						type: WeaveMenuItem.TYPE_CHECK,
 						toggled: autoRecord,
 						click: autoRecord
@@ -157,7 +158,7 @@
 								? lang('Update "{0}"', selectedChoice.value)
 								: lang('Update selected item');
 						},
-						enabled: [{not: autoRecord}, selectedChoiceExists],
+						enabled: [{not: autoRecord}, selectedChoiceExists, targetsConfigured],
 						click: recordSelectedChoice
 					}
 				];
@@ -213,12 +214,22 @@
 					}
 					// remove states for removed targets
 					for each (name in VectorUtils.getKeys(choiceState))
+					{
 						if (!targets.getObject(name))
+						{
 							delete choiceState[name];
+							updated = true;
+						}
+					}
 					
 					if (updated)
 						choice.setSessionState(choiceState);
 				}
+			}
+			
+			public function targetsConfigured():Boolean
+			{
+				return targets.getNames().length > 0;
 			}
 			
 			public function selectedChoiceExists():Boolean
@@ -406,6 +417,14 @@
 				menuStack.choiceVSlider.setStyle('fillColors', [thumbColor.value, thumbColor.value]);
 			}
 			
+			private function handleChildListChanges():void
+			{
+				// force panel title to update when targets and choices change
+				panelTitle.triggerCallbacks();
+				
+				playButton.enabled = menuStack.enabled = targets.getNames().length > 0;
+			}
+			
 			override public function get defaultPanelTitle():String
 			{
 				var numTargets:int = targets.getNames().length;
@@ -440,7 +459,7 @@
 			<CustomCheckBox id="autoRecordCheck" label="{lang('Auto-update active menu item')}"/>
 			
 			<mx:TabNavigator initialize="UIUtils.pad(event, 8, 100, 100)">
-				<mx:VBox label="{lang('Targets')}" width="100%" height="100%">
+				<mx:VBox id="targetsTab" label="{lang('Targets')}" width="100%" height="100%">
 					<Indent label="{lang('Add target')}">
 						<TextInputWithPrompt id="targetPathInput"
 											 change=" targetPathInput.errorString = '';"
@@ -452,21 +471,21 @@
 						<mx:Button label="{lang('Find targets...')}"
 								   click="SessionStateEditor.openDefaultEditor();"/>
 						<mx:Spacer width="100%"/>
-						<mx:Button label="{lang('Remove selected')}"
+						<mx:Button label="{lang('Delete selected')}"
 								   enabled="{targetsList.selectedIndex >= 0}" 
 								   click="targetsController.removeSelectedItems(); outerDocument.tidySavedStates();"/>
 					</Indent>
 					<mx:List id="targetsList" width="100%" height="100%"/>
 				</mx:VBox>
 				
-				<mx:VBox label="{lang('Menu items')}" width="100%" height="100%">
+				<mx:VBox id="menuItemsTab" label="{lang('Menu items')}" width="100%" height="100%">
 					<mx:HBox width="100%">
 						<mx:Button label="{lang('Add new item for current state')}" click="addNewItem();"/>
 						<mx:Button id="recordNowButton" label="{lang('Update selected item')}" click="outerDocument.recordSelectedChoice();"/>
 						<mx:Spacer width="100%"/>
-						<mx:Button label="{lang('Remove selected')}"
-								   enabled="{choicesList.selectedIndex >= 0}" 
-								   click="choicesController.removeSelectedItems();"/>
+						<mx:Button label="{lang('Delete selected')}"
+								   enabled="{choicesList.selectedIndex >= 0}"
+								   click="outerDocument.removeSelectedChoice();"/>
 					</mx:HBox>
 					<mx:DataGrid id="choicesList" width="100%" height="100%"
 								 change="handleChoicesListChange();" />
@@ -474,6 +493,11 @@
 			</mx:TabNavigator>
 		</mx:VBox>
 		<editors:WindowSettingsEditor id="windowEditor" target="{outerDocument}"/>
+		<!--<mx:VBox label="{lang('Help')}">
+			<Paragraph>
+				Help text goes here
+			</Paragraph>
+		</mx:VBox>-->
 		
 		<mx:Script>
 			<![CDATA[
@@ -522,6 +546,21 @@
 						choicesList.selectedItem = outerDocument.choices.getObject(choiceName);
 						recordNowButton.enabled = !!choiceName;
 					}, true);
+					
+					outerDocument.targets.childListCallbacks.addGroupedCallback(this, handleChildListChanges, true);
+				}
+				
+				private function handleChildListChanges():void
+				{
+					var numTargets:int = outerDocument.targets.getNames().length;
+					if (numTargets == 0)
+					{
+						errorText = lang("This menu tool will have no effect unless you add at least one target.");
+					}
+					else
+					{
+						errorText = null;
+					}
 				}
 				
 				private function isValidPath(pathStr:String):Boolean

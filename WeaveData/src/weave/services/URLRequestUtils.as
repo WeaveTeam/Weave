@@ -412,8 +412,16 @@ internal class CustomURLLoader extends URLLoader
 			
 			if (URLRequestUtils.debug)
 				trace(debugId(this), 'request', request.url);
+			
+			//WeaveAPI.StageUtils.callLater(null, loadLater);
 			super.load(request);
 		}
+	}
+	
+	private function loadLater():void
+	{
+		if (!_isClosed)
+			super.load(_urlRequest);
 	}
 	
 	/**
@@ -544,7 +552,9 @@ internal class CustomURLLoader extends URLLoader
 		}
 		
 		// broadcast result to responders
-		applyResult(data);
+		WeaveAPI.StageUtils.callLater(null, applyResult, [data]);
+		//applyResult(data);
+	
 	}
 	
 	private function fixErrorMessage(errorEvent:ErrorEvent):void
@@ -583,6 +593,7 @@ internal class CustomURLLoader extends URLLoader
 		}
 		else
 			fault = new Fault(event.type, event.type, "Request cancelled");
+		fault.rootCause = this;
 		applyFault(fault);
 		_isClosed = true;
 	}

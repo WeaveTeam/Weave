@@ -15,12 +15,12 @@
 
 package weave.utils
 {
-	import weave.api.core.ILinkableObject;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IDynamicKeyFilter;
 	import weave.api.data.IDynamicKeySet;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.ui.IVisToolGroup;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -34,7 +34,7 @@ package weave.utils
 	 * @author pkovac 
 	 * @author adufilie
 	 */
-	public class VisToolGroup implements ILinkableObject
+	public class VisToolGroup implements IVisToolGroup
 	{
 		//TODO: create a corresponding Class that has, for each setting here,
 		// a corresponding LinkableHashMap containing possible choices

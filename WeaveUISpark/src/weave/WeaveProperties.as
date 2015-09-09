@@ -232,7 +232,7 @@ package weave
 		// Collaboration
 		public const enableCollaborationBar:LinkableBoolean = new LinkableBoolean(false); // collaboration menu bar (bottom of screen)
 		public const showCollaborationEditor:LinkableBoolean = new LinkableBoolean(false); // menu item
-		public const collabServerIP:LinkableString = new LinkableString("demo.oicweave.org");
+		public const collabServerIP:LinkableString = new LinkableString("demo.iweave.com");
 		public const collabServerName:LinkableString = new LinkableString("ivpr-vm");
 		public const collabServerPort:LinkableString = new LinkableString("5222");
 		public const collabServerRoom:LinkableString = new LinkableString("");
@@ -348,13 +348,8 @@ package weave
 		public const enableToolControls:LinkableBoolean = new LinkableBoolean(true); // enable tool controls (which enables attribute selector too)
 		public const enableAxisToolTips:LinkableBoolean = new LinkableBoolean(true);
 		
-		public const enableAboutMenu:LinkableBoolean = new LinkableBoolean(true); //enable/disable About Menu
-		
 		public const showKeyTypeInColumnTitle:LinkableBoolean = new LinkableBoolean(false);
 		
-		// cosmetic options
-		public const showCopyright:LinkableBoolean = new LinkableBoolean(true);
-
 		// probing and selection
 		public const selectionAlphaAmount:LinkableNumber    = new LinkableNumber(0.5, verifyAlpha);
 		

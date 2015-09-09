@@ -65,7 +65,7 @@
 							
 							private function update():void
 							{
-								if (!parent)
+								if (!outerDocument.parent || !parent)
 								{
 									callLater(update);
 									return;
@@ -118,7 +118,7 @@
 									newLayerSettings = null;
 								
 								// get label
-								if (newLayerSettings)
+								if (newLayerSettings && outerDocument.controller.hashMap)
 									label = outerDocument.controller.hashMap.getName(newLayerSettings);
 								else
 									label = '';
@@ -229,7 +229,7 @@
 
 			internal function setTarget(target:ILinkableObject):void
 			{
-				var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, target);
+				var path:Array = WeaveAPI.getPath(target);
 				targetPath.setSessionState(path);
 				shownLayers.setSessionState(null);
 			}
@@ -306,7 +306,7 @@
 			
 			internal function getTargetLabel(target:ILinkableObject):String
 			{
-				var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, target);
+				var path:Array = WeaveAPI.getPath(target);
 				if (!path)
 					return null;
 				

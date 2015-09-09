@@ -230,28 +230,33 @@ package weave.core
 			return childToOwnerMap[child] as ILinkableObject;
 		}
 		
+		private var _treeCache:Dictionary2D = new Dictionary2D(true, false, WeaveTreeItem);
+		
 		/**
 		 * @param root The linkable object to be placed at the root node of the tree.
-		 * @return A tree of nodes with the properties "label", "object", and "children"
+		 * @param objectName The label for the root node.
+		 * @return A tree of nodes with the properties "data", "label", "children"
 		 */
-		public function getSessionStateTree(root:ILinkableObject, objectName:String, objectTypeFilter:*=null):WeaveTreeItem
+		public function getSessionStateTree(root:ILinkableObject, objectName:String):WeaveTreeItem
 		{
-			var treeItem:WeaveTreeItem = new WeaveTreeItem();
-			treeItem.label = objectName;
-			treeItem.dependency = root;
-			treeItem.children = getTreeItemChildren;
-			treeItem.data = objectTypeFilter;
+			var treeItem:WeaveTreeItem = _treeCache.get(root, objectName);
+			if (!treeItem.data)
+			{
+				treeItem.data = root;
+				treeItem.label = objectName;
+				treeItem.children = getTreeItemChildren;
+				// dependency is used to determine when to recalculate children array
+				treeItem.dependency = root is ILinkableHashMap ? (root as ILinkableHashMap).childListCallbacks : root;
+			}
 			return treeItem;
 		}
 		
 		private function getTreeItemChildren(treeItem:WeaveTreeItem):Array
 		{
-			var object:ILinkableObject = treeItem.dependency;
-			var objectTypeFilter:* = treeItem.data;
+			var object:ILinkableObject = treeItem.data as ILinkableObject;
 			var children:Array = [];
-			var names:Array = [];
+			var names:Array;
 			var childObject:ILinkableObject;
-			var subtree:WeaveTreeItem;
 			var ignoreList:Dictionary = new Dictionary(true);
 			if (object is ILinkableHashMap)
 			{
@@ -269,9 +274,7 @@ package weave.core
 							continue;
 						ignoreList[childObject] = true;
 						
-						subtree = getSessionStateTree(childObject, names[i], objectTypeFilter);
-						if (subtree != null)
-							children.push(subtree);
+						children.push(getSessionStateTree(childObject, names[i]));
 					}
 				}
 			}
@@ -280,7 +283,7 @@ package weave.core
 				var deprecatedLookup:Object = null;
 				if (object is ILinkableDynamicObject)
 				{
-					// do not show static object in tree
+					// do not include externally referenced objects
 					names = (object as ILinkableDynamicObject).targetPath ? null : [null];
 				}
 				else if (object)
@@ -304,19 +307,13 @@ package weave.core
 							continue;
 						ignoreList[childObject] = true;
 						
-						subtree = getSessionStateTree(childObject, name, objectTypeFilter);
-						if (subtree != null)
-							children.push(subtree);
+						children.push(getSessionStateTree(childObject, name));
 					}
 				}
 			}
 			
 			if (children.length == 0)
 				children = null;
-			if (objectTypeFilter == null)
-				return children;
-			if (children == null && !(object is objectTypeFilter))
-				return null;
 			return children;
 		}
 		
@@ -343,13 +340,19 @@ package weave.core
 			setSessionState(destination, sessionState, true);
 		}
 		
-		private function applyDiff(base:Object, diff:Object):Object
+		private function applyDiffForLinkableVariable(base:Object, diff:Object):Object
 		{
-			if (base == null || typeof(base) != 'object')
-				return diff;
+			if (base === null || diff === null || typeof(base) != 'object' || typeof(diff) != 'object')
+				return diff; // don't need to make a copy because LinkableVariable makes copies anyway
 			
 			for (var key:String in diff)
-				base[key] = applyDiff(base[key], diff[key]);
+			{
+				var value:* = diff[key];
+				if (value === undefined)
+					delete base[key];
+				else
+					base[key] = applyDiffForLinkableVariable(base[key], value);
+			}
 			
 			return base;
 		}
@@ -371,7 +374,7 @@ package weave.core
 				var lv:ILinkableVariable = linkableObject as ILinkableVariable;
 				if (removeMissingDynamicObjects == false && newState && getQualifiedClassName(newState) == 'Object')
 				{
-					lv.setSessionState(applyDiff(ObjectUtil.copy(lv.getSessionState()), newState));
+					lv.setSessionState(applyDiffForLinkableVariable(copyObject(lv.getSessionState()), newState));
 				}
 				else
 				{
@@ -1247,7 +1250,7 @@ package weave.core
 		}
 		private function _getPath(tree:WeaveTreeItem, descendant:ILinkableObject):Array
 		{
-			if (tree.dependency == descendant)
+			if (tree.data == descendant)
 				return [];
 			for each (var child:WeaveTreeItem in tree.children)
 			{
@@ -1444,6 +1447,14 @@ package weave.core
 		
 		public static const DIFF_DELETE:String = 'delete';
 		
+		private function copyObject(object:Object):Object
+		{
+			if (object === null || typeof object != 'object') // primitive value
+				return object;
+			else
+				return ObjectUtil.copy(object); // make copies of non-primitives
+		}
+		
 		/**
 		 * @inheritDoc
 		 */
@@ -1454,7 +1465,7 @@ package weave.core
 
 			// special case if types differ
 			if (typeof(newState) != type)
-				return newState;
+				return copyObject(newState); // make copies of non-primitives
 			
 			if (type == 'xml')
 			{
@@ -1473,7 +1484,7 @@ package weave.core
 			else if (oldState === null || newState === null || type != 'object') // other primitive value
 			{
 				if (oldState !== newState) // no type-casting
-					return newState;
+					return copyObject(newState);
 				
 				return undefined; // no diff
 			}
@@ -1484,7 +1495,7 @@ package weave.core
 				{
 					if (StandardLib.compare(oldState, newState) == 0)
 						return undefined; // no diff
-					return newState;
+					return ObjectUtil.copy(newState);
 				}
 				
 				// create an array of new DynamicState objects for all new names followed by missing old names
@@ -1525,9 +1536,9 @@ package weave.core
 					// If the object specified in newState does not exist in oldState, we don't need to do anything further.
 					// If the class is the same as before, then we can save a diff instead of the entire session state.
 					// If the class changed, we can't save only a diff -- we need to keep the entire session state.
-					// Replace the sessionState in the new DynamicState object with the diff.
 					if (oldTypedState != null && oldTypedState[DynamicState.CLASS_NAME] == className)
 					{
+						// Replace the sessionState in the new DynamicState object with the diff.
 						className = null; // no change
 						diffValue = computeDiff(oldTypedState[DynamicState.SESSION_STATE], sessionState);
 						if (diffValue === undefined)
@@ -1536,12 +1547,17 @@ package weave.core
 							// we only need to specify that this name is still present.
 							result.push(objectName);
 							
+							// see if name order changed
 							if (!changeDetected && oldState[i][DynamicState.OBJECT_NAME] != objectName)
 								changeDetected = true;
 							
 							continue;
 						}
 						sessionState = diffValue;
+					}
+					else
+					{
+						sessionState = copyObject(sessionState);
 					}
 					
 					// save in new array and remove from lookup
@@ -1574,7 +1590,10 @@ package weave.core
 					{
 						if (!diff)
 							diff = {};
-						diff[oldName] = diffValue;
+						if (newState.hasOwnProperty(oldName))
+							diff[oldName] = diffValue;
+						else
+							diff[oldName] = undefined; // property was removed
 					}
 				}
 
@@ -1585,7 +1604,7 @@ package weave.core
 					{
 						if (!diff)
 							diff = {};
-						diff[newName] = newState[newName]; // TODO: same object pointer.. potential problem?
+						diff[newName] = copyObject(newState[newName]);
 					}
 				}
 
@@ -1604,10 +1623,7 @@ package weave.core
 			// special cases
 			if (baseDiff == null || diffToAdd == null || baseType != diffType || baseType != 'object')
 			{
-				if (diffType == 'object') // not a primitive, so make a copy
-					baseDiff = ObjectUtil.copy(diffToAdd);
-				else
-					baseDiff = diffToAdd;
+				baseDiff = copyObject(diffToAdd);
 			}
 			else if (baseDiff is Array && diffToAdd is Array)
 			{
@@ -1660,10 +1676,7 @@ package weave.core
 						var oldTypedState:Object = baseLookup[objectName];
 						if (oldTypedState is String || oldTypedState == null)
 						{
-							if (typedState is String || typedState == null)
-								baseLookup[objectName] = typedState; // avoid unnecessary function call overhead
-							else
-								baseLookup[objectName] = ObjectUtil.copy(typedState);
+							baseLookup[objectName] = copyObject(typedState);
 						}
 						else if (!(typedState is String || typedState == null)) // update dynamic state
 						{

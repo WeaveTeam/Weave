@@ -28,6 +28,9 @@
 		translate="true"
 		>
 	<mx:HBox horizontalGap="4" width="100%">
+		<mx:Button width="24" icon="@Embed(source='/weave/resources/images/alpha_11x11.png')"
+			       toolTip="{lang('Select an attribute column')}"
+				   click="openAttributeSelector()"/>
 		<mx:List id="internalList"
 				 rollOut="if (!event.buttonDown) internalList.selectedItem = null"
 				 variableRowHeight="false"
@@ -41,9 +44,6 @@
 				  addedToStage="listOverlay.x = listOverlay.y = 0;"
 				  creationComplete="internalList.addChild(listOverlay);"
 				  visible="{isEmpty(internalList.dataProvider)}"/>
-		<mx:Button width="24" icon="@Embed(source='/weave/resources/images/eject-inset.png')"
-			       toolTip="{lang('Select an attribute column')}"
-				   click="openAttributeSelector()"/>
 		<mx:Button width="24" icon="@Embed(source='/weave/resources/images/x-inset.png')"
 			       toolTip="{lang('Clear this attribute column')}"
 				   click="clearAttribute()"/>

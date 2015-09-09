@@ -112,7 +112,7 @@ package weave.api.core
 		 * @return An Array containing a list of descendant objects.
 		 * @see #getLinkableOwner()
 		 */
-		function getLinkableDescendants(root:ILinkableObject, flter:Class = null):Array;
+		function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array;
 		
 		/**
 		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>

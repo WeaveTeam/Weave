@@ -46,12 +46,22 @@
 			
 			import weave.api.core.DynamicState;
 			import weave.data.hierarchy.WeaveTreeDescriptorNode;
+			import weave.menus.WeaveContextMenu;
 			import weave.utils.VectorUtils;
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
 				
+				treeView.contextMenu = WeaveContextMenu.create([
+					{
+						label: function():String {
+							var node:WeaveTreeDescriptorNode = treeView.selectedItem as WeaveTreeDescriptorNode;
+							return debugId(node.data[0]);
+						},
+						enabled: false
+					}
+				]);
 				treeView.enableClickToExpand();
 			}
 			
@@ -77,9 +87,12 @@
 				var key:* = node.data[1];
 				
 				var label:String = truncate(key, MAX_LABEL_LENGTH);
-				var className:String = getQualifiedClassName(node.data[0]);
+				var className:String = getQualifiedClassName(value);
 				
-				return (label ? label + " : " : "") + className;
+				if (label != null && className)
+					return label + " : " + className;
+				
+				return className || label;
 			}
 			public function getSecondLabel(node:WeaveTreeDescriptorNode):String
 			{
@@ -91,7 +104,7 @@
 				{
 					detail = value;
 				}
-				else if (DynamicState.isDynamicState(value))
+				else if (DynamicState.isDynamicState(value, true))
 				{
 					var className:String = String(value[DynamicState.CLASS_NAME]); // null -> "null"
 					var objectName:String = value[DynamicState.OBJECT_NAME];

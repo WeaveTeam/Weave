@@ -158,7 +158,7 @@ package weave
 			var cc:ColorColumn = target.requestObject(DEFAULT_COLOR_COLUMN, ColorColumn, true);
 			var bc:BinnedColumn = cc.internalDynamicColumn.requestGlobalObject(DEFAULT_COLOR_BIN_COLUMN, BinnedColumn, true);
 			var fc:FilteredColumn = bc.internalDynamicColumn.requestGlobalObject(DEFAULT_COLOR_DATA_COLUMN, FilteredColumn, true);
-			fc.filter.requestGlobalObject(DEFAULT_SUBSET_KEYFILTER, KeyFilter, true);
+			fc.filter.requestGlobalObject(DEFAULT_SUBSET_KEYFILTER, KeyFilter, false); // false to allow disabling filtering
 			
 			// default key sets
 			var subset:KeyFilter = target.requestObject(DEFAULT_SUBSET_KEYFILTER, KeyFilter, true);
@@ -492,9 +492,9 @@ package weave
 				// reload the application
 				if (ExternalInterface.objectID)
 					JavaScript.exec(
-						{reloadID: uid},
-						"this.parentNode.weaveReloadID = reloadID;",
-						"this.outerHTML = this.outerHTML;"
+						{reloadID: uid, "this": "weave"},
+						"weave.parentNode.weaveReloadID = reloadID;",
+						"setTimeout(function() { weave.outerHTML = weave.outerHTML; }, 0);"
 					);
 				else
 					JavaScript.exec("location.reload(false);");

@@ -31,10 +31,21 @@
 			<CustomComboBox id="choiceCombo"
 							width="100%" height="100%" minHeight="0"
 							cornerRadius="0" highlightAlphas="{[0, 0]}" fillAlphas="{[0, 0]}"
-							labelFunction="choiceLabelFunction"
-							valueCommit="if (UIUtils.hasFocus(choiceCombo)) handleAttrSelected(choiceCombo.selectedIndex);"
-							change="if (alwaysShowPrompt.value) choiceCombo.selectedIndex = -1;"
-							/>
+							labelFunction="choiceLabelFunction">
+				<valueCommit>
+					<![CDATA[
+						if (!_settingComboSelection && UIUtils.hasFocus(choiceCombo))
+						{
+							_settingComboSelection = true;
+							var tc:int = selectedAttribute.triggerCounter;
+							handleAttrSelected(choiceCombo.selectedIndex);
+							if (tc == selectedAttribute.triggerCounter)
+								handleSelectedAttributeChange();
+							_settingComboSelection = false;
+						}
+					]]>
+				</valueCommit>
+			</CustomComboBox>
 		</mx:Canvas>
 		<mx:Canvas label="{lang('Vertical Slider')}">
 			<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
@@ -186,7 +197,7 @@
 				}
 				private function objectToPathString(object:ILinkableObject, i:int, a:Array):String
 				{
-					var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, object);
+					var path:Array = WeaveAPI.getPath(object);
 					return pathToString(path);
 				}
 				
@@ -359,6 +370,7 @@
 			internal const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(ISelectableAttributes), handleToolChange, true);
 			private var _attrNames:Array = [];
 			private var _attrs:Array = [];
+			private var _settingComboSelection:Boolean = false;
 			
 			private function verifyTargetAttribute(value:*):Boolean
 			{
@@ -656,7 +668,8 @@
 					return;
 				}
 				
-				// prevent two AttributeMenuTools from fighting
+				// if the two AMTs target the same tool and attribute, clear the selection of the other AMT
+				// note that this is mostly cosmetic and does not take care of all cases
 				if (selectedAttribute.getSessionState() != null)
 				{
 					for (var key:* in ALL_INSTANCES)

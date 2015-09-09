@@ -36,8 +36,7 @@
 		<mx:VBox visible="{arrayNotEmpty(keyOptions.columnNames)}">
 			<admin:SQLTableSelectorDialog id="tableSelector"
 										  change="handleChange()"
-										  showTableCombo="false"
-										  tableOverwriteCheckVisible="{admin.currentUserIsSuperuser}"/>
+										  showTableCombo="false"/>
 		</mx:VBox>
 	</mx:VBox>
 	

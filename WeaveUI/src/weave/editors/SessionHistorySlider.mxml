@@ -26,8 +26,8 @@
 		 backgroundColor="0xCCCCCC"
 		 width="100%" horizontalGap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
 		 implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject" xmlns:ui="weave.ui.*">
-	<mx:Button width="24" toolTip="{lang('Load session history from a file')}" icon="@Embed(source='/weave/resources/images/eject-inset.png')" click="load()"/> 
-	<mx:Button width="24" toolTip="{lang('Save session history to a file')}" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
+	<mx:Button width="24" toolTip="{lang('Load a file...')}" icon="@Embed(source='/weave/resources/images/eject-inset.png')" click="load()"/> 
+	<mx:Button width="24" toolTip="{lang('Save as...')}" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
 	<mx:Button id="playButton" label="{ getPlayLabel(_playSpeed, playButton.selected) }" toggle="true" toolTip="{lang('Replay session history')}" click="if (playButton.selected) play();"/>
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
@@ -49,6 +49,7 @@
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableWatcher;
 			import weave.core.SessionStateLog;
+			import weave.menus.FileMenu;
 			import weave.ui.ExportSessionStateOptions;
 			import weave.ui.SubMenu;
 			
@@ -284,14 +285,12 @@
 						Event.COMPLETE,
 						function (e:Event):void
 						{
-							// TEMPORARY SOLUTION
-							//WeaveAPI.topLevelApplication.visApp.loadSessionState(_fileRef.data, _fileRef.name);
-							WeaveAPI.topLevelApplication.visApp.handleDraggedFile(fileRef.name, fileRef.data);
+							FileMenu.loadFile(fileRef.name, fileRef.data);
 						}
 					);
 					
-					// TEMPORARY SOLUTION until we can register file type handlers
-					fileRef.browse(WeaveAPI.topLevelApplication.visApp.getSupportedFileTypes());
+					// TEMPORARY SOLUTION until we can register file type handlers in WeaveAPI
+					fileRef.browse(FileMenu.getSupportedFileTypes());
 				}
 				catch (e:Error)
 				{

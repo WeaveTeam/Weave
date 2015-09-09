@@ -21,6 +21,7 @@ package weave.visualization.plotters
 	import weave.api.linkSessionState;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.setSessionState;
+	import weave.api.ui.IObjectWithDescription;
 	import weave.api.ui.IPlotter;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
@@ -33,7 +34,7 @@ package weave.visualization.plotters
 	 * 
 	 * @author adufilie
 	 */
-	public class GeometryLabelPlotter extends TextGlyphPlotter
+	public class GeometryLabelPlotter extends TextGlyphPlotter implements IObjectWithDescription
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, GeometryLabelPlotter, "Geometry labels");
 
@@ -52,6 +53,11 @@ package weave.visualization.plotters
 			
 			_sortCopyKeys = SortedKeySet.generateSortCopyFunction([getGeometryArea, sortColumn, text], [-1, 1, 1]);
 			_filteredKeySet.setColumnKeySources([geometryColumn, sortColumn, text], null, _sortCopyKeys);
+		}
+		
+		override public function getDescription():String
+		{
+			return geometryColumn.getDescription();
 		}
 		
 		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);

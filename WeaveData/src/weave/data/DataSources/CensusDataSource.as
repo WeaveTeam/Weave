@@ -127,9 +127,9 @@ package weave.data.DataSources
 				}
 			});
 			api.getDatasets().then(
-				function (datasetsInfo:Array):void
+				function (datasetsInfo:Object):void
 				{
-					for each (var dataset:Object in datasetsInfo)
+					for each (var dataset:Object in datasetsInfo.dataSet)
 					{
 						if (dataset.identifier == dataSet.value)
 						{

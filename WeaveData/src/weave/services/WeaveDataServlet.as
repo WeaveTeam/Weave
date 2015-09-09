@@ -46,6 +46,7 @@ package weave.services
 	public class WeaveDataServlet implements IWeaveEntityService
 	{
 		public static const DEFAULT_URL:String = '/WeaveServices/DataService';
+		public static const WEAVE_AUTHENTICATION_EXCEPTION:String = 'WeaveAuthenticationException';
 		
 		private var propertyNameLookup:Dictionary = new Dictionary(); // Function -> String
 		protected var servlet:AMF3Servlet;
@@ -53,7 +54,7 @@ package weave.services
 
 		public function WeaveDataServlet(url:String = null)
 		{
-			servlet = new AMF3Servlet(url || DEFAULT_URL);
+			servlet = new AMF3Servlet(url || DEFAULT_URL, false);
 			registerLinkableChild(this, servlet);
 			
 			var info:* = DescribeType.getInfo(this, DescribeType.METHOD_FLAGS);
@@ -68,11 +69,11 @@ package weave.services
 		////////////////////
 		// Helper functions
 		
+		
 		/**
-		 * This function will generate a AsyncToken representing a servlet method invocation and add it to the queue.
+		 * This function will generate a AsyncToken representing a servlet method invocation.
 		 * @param method A WeaveAdminService class member function or a String.
 		 * @param parameters Parameters for the servlet method.
-		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
 		 * @param returnType_or_castFunction
 		 *     Either the type of object (Class) returned by the service or a Function that converts an Object to the appropriate type.
 		 *     If the service returns an Array of objects, each object in the Array will be cast to this type.
@@ -91,7 +92,7 @@ package weave.services
 			if (!methodName)
 				throw new Error("method must be a member of " + getQualifiedClassName(this));
 			
-			var token:AsyncToken = servlet.invokeAsyncMethod(methodName, parameters);
+			var token:ProxyAsyncToken = servlet.invokeAsyncMethod(methodName, parameters) as ProxyAsyncToken;
 			if (returnType_or_castFunction)
 			{
 				if (!(returnType_or_castFunction is Function || returnType_or_castFunction is Class))
@@ -99,6 +100,24 @@ package weave.services
 				if ([Array, String, Number, int, uint].indexOf(returnType_or_castFunction) < 0)
 					addAsyncResponder(token, castResult, null, returnType_or_castFunction);
 			}
+			if (!_authenticationRequired)
+				token.invoke();
+			
+			var originalArgs:Array = arguments;
+			addAsyncResponder(
+				token,
+				null,
+				function firstFaultHandler(event:FaultEvent, ..._):void
+				{
+					if (event.fault.faultCode == WEAVE_AUTHENTICATION_EXCEPTION)
+					{
+						_authenticationRequired = true;
+						token.cancel();
+						_tokensPendingAuthentication.push(token);
+					}
+				}
+			);
+
 			return token;
 		}
 		
@@ -125,6 +144,71 @@ package weave.services
 			}
 			if (event.result != results)
 				event.setResult(results[0]);
+		}
+		
+		//////////////////
+		// Authentication
+		
+		private var _authenticationRequired:Boolean = false;
+		private var _user:String = null;
+		private var _pass:String = null;
+		private var _tokensPendingAuthentication:Array = [];
+		
+		/**
+		 * Check this to determine if authenticate() may be necessary.
+		 * @return true if authenticate() may be necessary.
+		 */
+		public function get authenticationSupported():Boolean
+		{
+			var info:Object = getServerInfo();
+			return info && info['hasDirectoryService'];
+		}
+		
+		/**
+		 * Check this to determine if authenticate() must be called.
+		 * @return true if authenticate() should be called.
+		 */
+		public function get authenticationRequired():Boolean
+		{
+			return _authenticationRequired && !_user && !_pass;
+		}
+		
+		/**
+		 * Authenticates with the server.
+		 * @param user
+		 * @param pass
+		 */
+		public function authenticate(user:String, pass:String):void
+		{
+			if (user && pass)
+			{
+				_user = user;
+				_pass = pass;
+				var token:ProxyAsyncToken = invoke(authenticate, arguments) as ProxyAsyncToken;
+				addAsyncResponder(
+					token,
+					handleAuthenticateResult,
+					handleAuthenticateFault
+				);
+				// check if we have to invoke manually
+				if (_authenticationRequired)
+					token.invoke();
+			}
+			else
+			{
+				_user = null;
+				_pass = null;
+			}
+		}
+		private function handleAuthenticateResult(event:ResultEvent, token:Object = null):void
+		{
+			while (_tokensPendingAuthentication.length)
+				(_tokensPendingAuthentication.shift() as ProxyAsyncToken).invoke();
+		}
+		private function handleAuthenticateFault(event:FaultEvent, token:Object = null):void
+		{
+			_user = null;
+			_pass = null;
 		}
 		
 		////////////////

@@ -17,6 +17,7 @@ package weave.core
 {
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.core.DynamicState;
 	import weave.api.core.ILinkableVariable;
 	import weave.compiler.StandardLib;
 	
@@ -186,6 +187,8 @@ package weave.core
 				if (!wasCopied)
 					value = ObjectUtil.copy(value);
 				
+				DynamicState.alterSessionStateToBypassDiff(value);
+				
 				// save external copy, accessible via getSessionState()
 				_sessionStateExternal = value;
 				
@@ -213,7 +216,19 @@ package weave.core
 			if (_primitiveType)
 				return _sessionStateInternal == otherSessionState;
 			
-			return StandardLib.compare(_sessionStateInternal, otherSessionState) == 0;
+			return StandardLib.compare(_sessionStateInternal, otherSessionState, objectCompare) == 0;
+		}
+		
+		private function objectCompare(a:Object, b:Object):Number
+		{
+			if (DynamicState.isDynamicState(a, true) &&
+				DynamicState.isDynamicState(b, true) &&
+				a[DynamicState.CLASS_NAME] == b[DynamicState.CLASS_NAME] &&
+				a[DynamicState.OBJECT_NAME] == b[DynamicState.OBJECT_NAME] )
+			{
+				return StandardLib.compare(a[DynamicState.SESSION_STATE], b[DynamicState.SESSION_STATE], objectCompare);
+			}
+			return NaN;
 		}
 		
 		/**

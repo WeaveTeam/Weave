@@ -18,7 +18,6 @@ package weave.menus
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
-	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
 	
@@ -26,12 +25,10 @@ package weave.menus
 	import mx.core.IToolTip;
 	import mx.core.UIComponent;
 	import mx.managers.ToolTipManager;
-	import mx.utils.ObjectUtil;
 	
 	import weave.Weave;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.ui.IInitSelectableAttributes;
@@ -39,16 +36,13 @@ package weave.menus
 	import weave.api.ui.IVisTool_Basic;
 	import weave.api.ui.IVisTool_R;
 	import weave.api.ui.IVisTool_Utility;
-	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.ui.AddExternalTool;
 	import weave.ui.ColorController;
 	import weave.ui.DraggablePanel;
-	import weave.ui.EquationEditor;
 	import weave.ui.ProbeToolTipEditor;
 	import weave.ui.ProbeToolTipWindow;
 	import weave.ui.collaboration.CollaborationEditor;
-	import weave.utils.AsyncSort;
 	import weave.utils.ColumnUtils;
 
 	public class ToolsMenu extends WeaveMenuItem

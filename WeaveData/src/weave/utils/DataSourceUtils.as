@@ -26,10 +26,9 @@ package weave.utils
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.data.QKeyManager;
 
-
 	public class DataSourceUtils
 	{
-		private static const numberRegex:RegExp = /(0|0?\\.[0-9]+|[1-9][0-9]*(\\.[0-9]+)?)([eE][-+]?[0-9]+)?/;
+		private static const numberRegex:RegExp = /^(0|0?\\.[0-9]+|[1-9][0-9]*(\\.[0-9]+)?)([eE][-+]?[0-9]+)?$/;
 
 		public static function guessDataType(data:Array):String
 		{

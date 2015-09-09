@@ -95,6 +95,7 @@
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.NumberUtils;
+			import weave.utils.ProbeTextUtils;
 			use namespace mx_internal;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TableTool, "Table");
@@ -181,7 +182,7 @@
 			{
 				if (enableProbing.value == false)
 					return;
-
+				ProbeTextUtils.getProbeText([], null);
 				var key:IQualifiedKey = dataProvider.getItemAt(event.rowIndex) as IQualifiedKey;
 				if (key)
 					_probe.replaceKeys([key]);

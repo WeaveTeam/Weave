@@ -15,15 +15,15 @@
 
 package weave.core
 {
-	import flash.utils.Dictionary;
-	
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableCompositeObject;
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ISessionManager;
 	import weave.compiler.StandardLib;
+	import weave.primitives.Dictionary2D;
 	
 	/**
 	 * This is used to dynamically attach a set of callbacks to different targets.
@@ -57,7 +57,7 @@ package weave.core
 		private var _target:ILinkableObject; // the current target or ancestor of the to-be-target
 		private var _foundTarget:Boolean = true; // false when _target is not the desired target
 		protected var _targetPath:Array; // the path that is being watched
-		private var _pathDependencies:Dictionary = new Dictionary(true); // Maps an ILinkableDynamicObject to its previous internalObject.
+		private var _pathDependencies:Dictionary2D = new Dictionary2D(true, false); // (ILinkableCompositeObject, String) -> child object
 		
 		/**
 		 * This is the linkable object currently being watched.
@@ -189,8 +189,8 @@ package weave.core
 			var subPath:Array = [];
 			for each (var name:* in _targetPath)
 			{
-				if (node is ILinkableDynamicObject)
-					addPathDependency(node as ILinkableDynamicObject);
+				if (node is ILinkableCompositeObject)
+					addPathDependency(node as ILinkableCompositeObject, name);
 				
 				subPath[0] = name;
 				var child:ILinkableObject = sm.getObject(node, subPath);
@@ -232,38 +232,59 @@ package weave.core
 			internalSetTarget(node);
 		}
 		
-		private function addPathDependency(ldo:ILinkableDynamicObject):void
+		private function addPathDependency(parent:ILinkableCompositeObject, pathElement:Object):void
 		{
-			var sm:ISessionManager = WeaveAPI.SessionManager;
-			if (!_pathDependencies[ldo])
+			// if parent is an ILinkableHashMap and pathElement is a String, we don't need to add the dependency
+			var lhm:ILinkableHashMap = parent as ILinkableHashMap;
+			if (lhm && pathElement is String)
+				return;
+			
+			var ldo:ILinkableDynamicObject = parent as ILinkableDynamicObject;
+			if (ldo)
+				pathElement = null;
+			
+			if (!_pathDependencies.get(parent, pathElement))
 			{
-				_pathDependencies[ldo] = ldo.internalObject;
-				sm.getCallbackCollection(ldo).addImmediateCallback(this, handlePathDependencies);
-				sm.getCallbackCollection(ldo).addDisposeCallback(this, handlePathDependencies);
+				var child:ILinkableObject = WeaveAPI.SessionManager.getObject(parent, [pathElement]);
+				_pathDependencies.set(parent, pathElement, child);
+				var dependencyCallbacks:ICallbackCollection = getDependencyCallbacks(parent);
+				dependencyCallbacks.addImmediateCallback(this, handlePathDependencies);
+				dependencyCallbacks.addDisposeCallback(this, handlePathDependencies);
 			}
+		}
+		
+		private function getDependencyCallbacks(parent:ILinkableObject):ICallbackCollection
+		{
+			var lhm:ILinkableHashMap = parent as ILinkableHashMap;
+			if (lhm)
+				return lhm.childListCallbacks;
+			return WeaveAPI.SessionManager.getCallbackCollection(parent);
 		}
 		
 		private function handlePathDependencies():void
 		{
 			var sm:ISessionManager = WeaveAPI.SessionManager;
-			for (var key:Object in _pathDependencies)
+			for (var parent:Object in _pathDependencies.dictionary)
 			{
-				var ldo:ILinkableDynamicObject = key as ILinkableDynamicObject;
-				if (sm.objectWasDisposed(ldo) || ldo.internalObject != _pathDependencies[ldo])
+				for (var pathElement:Object in _pathDependencies.dictionary[parent])
 				{
-					resetPathDependencies();
-					handlePath();
-					return;
+					var oldChild:ILinkableObject = _pathDependencies.get(parent, pathElement);
+					var newChild:ILinkableObject = sm.getObject(parent as ILinkableObject, [pathElement]);
+					if (sm.objectWasDisposed(parent) || oldChild != newChild)
+					{
+						resetPathDependencies();
+						handlePath();
+						return;
+					}
 				}
 			}
 		}
 		
 		private function resetPathDependencies():void
 		{
-			var sm:ISessionManager = WeaveAPI.SessionManager;
-			for (var key:Object in _pathDependencies)
-				sm.getCallbackCollection(key as ILinkableDynamicObject).removeCallback(handlePathDependencies);
-			_pathDependencies = new Dictionary(true);
+			for (var parent:Object in _pathDependencies.dictionary)
+				getDependencyCallbacks(parent as ILinkableObject).removeCallback(handlePathDependencies);
+			_pathDependencies = new Dictionary2D(true, false);
 		}
 		
 		/**

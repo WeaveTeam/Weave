@@ -118,8 +118,7 @@
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
-				if (columnList.selectorControls.parent)
-					columnList.selectorControls.parent.removeChild(columnList.selectorControls);
+				columnList.selectorButton.visible = columnList.selectorButton.includeInLayout = false;
 			}
 			
 			override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void

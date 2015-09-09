@@ -15,6 +15,7 @@
 
 #include "miniz.h"
 #include <stdlib.h>
+#include <stdbool.h>
 #include "AS3/AS3.h"
 #include "tracef.h"
 
@@ -49,14 +50,22 @@ void readZip()
 {
 	inline_as3(
 		"var zip:uint = openZip(byteArray);"
-		"if (!zip) return null;"
+		"if (!zip)"
+		"    return null;"
 		"var out:Object = {};"
-		"for each (var filePath:String in listFiles(zip))"
-		"    if (filterFilePathsToReadAsObject != null && filterFilePathsToReadAsObject(filePath))"
-		"        out[filePath] = readObject(zip, filePath);"
-		"    else"
-		"        out[filePath] = readFile(zip, filePath);"
-		"closeZip(zip);"
+		"try {"
+		"    for each (var filePath:String in listFiles(zip))"
+		"        if (filterFilePathsToReadAsObject != null && filterFilePathsToReadAsObject(filePath))"
+		"            out[filePath] = readObject(zip, filePath);"
+		"        else"
+		"            out[filePath] = readFile(zip, filePath);"
+		"}"
+		"catch (e:Error) {"
+		"    out = null;"
+		"}"
+		"finally {"
+		"    closeZip(zip);"
+		"}"
 		"return out;"
 	);
 }
@@ -75,6 +84,8 @@ void openZip()
 
 	inline_nonreentrant_as3("%0 = byteArray.length;" : "=r"(byteArray_len));
 	byteArray_ptr = malloc(byteArray_len);
+	if (!byteArray_ptr)
+		AS3_Return(NULL);
 
 	inline_as3(
 		"ram_init.position = %0;"
@@ -83,6 +94,8 @@ void openZip()
 	);
 
 	mz_zip_archive *zip_archive = (mz_zip_archive*)malloc(sizeof(zip_archive));
+	if (!zip_archive)
+		AS3_Return(NULL);
 	memset(zip_archive, 0, sizeof(mz_zip_archive));
 
 	mz_bool status = mz_zip_reader_init_mem(zip_archive, byteArray_ptr, byteArray_len, 0);
@@ -91,7 +104,7 @@ void openZip()
 		free(zip_archive);
 		free(byteArray_ptr);
 		tracef("Invalid archive. byteArray.length=%u", byteArray_len);
-		AS3_Return(0);
+		AS3_Return(NULL);
 	}
 
 	AS3_Return(zip_archive);
@@ -136,6 +149,8 @@ void readFile()
 	size_t uncomp_size;
 
 	uncomp_file = mz_zip_reader_extract_file_to_heap(zip_archive, fileName, &uncomp_size, MZ_ZIP_FLAG_CASE_SENSITIVE);
+	if (!uncomp_file)
+		inline_as3("throw new Error('Unable to extract file from zip (out of memory)');");
 	inline_as3(
 		"var byteArray:ByteArray = new ByteArray();"
 		"ram_init.position = %0;"
@@ -161,6 +176,8 @@ void readObject()
 	size_t uncomp_size;
 
 	uncomp_file = mz_zip_reader_extract_file_to_heap(zip_archive, fileName, &uncomp_size, MZ_ZIP_FLAG_CASE_SENSITIVE);
+	if (!uncomp_file)
+		inline_as3("throw new Error('Unable to extract file from zip (out of memory)');");
 	AS3_DeclareVar(result, Object);
 	inline_as3(
 		"try {"
@@ -212,27 +229,42 @@ void writeZip()
 	}
 
 	// write files to archive
+	bool status0 = true;
 	inline_as3(
-		"for (var fileName:String in files)"
-		"    if (!writeFile(%0, fileName, files[fileName]))"
-		"        return null;"
-		: : "r"(&zip_archive)
+		"try {"
+		"    for (var fileName:String in files)"
+		"    {"
+		"        if (!writeFile(%1, fileName, files[fileName]))"
+		"        {"
+		"            %0 = false;"
+		"            break;"
+		"        }"
+		"    }"
+		"} catch (e:Error) {"
+		"    trace('writeZip():', e);"
+		"    %0 = false;"
+		"}"
+		: "=r"(status0) : "r"(&zip_archive)
 	);
 
 	// finalize archive
 	void *byteArray_ptr;
 	size_t byteArray_len;
-	mz_bool status1 = mz_zip_writer_finalize_heap_archive(&zip_archive, &byteArray_ptr, &byteArray_len);
+	mz_bool status1 = true;
+	if (status0)
+		status1 = mz_zip_writer_finalize_heap_archive(&zip_archive, &byteArray_ptr, &byteArray_len);
 	mz_bool status2 = mz_zip_writer_end(&zip_archive);
 
 	// return archive as ByteArray
-	if (!status1 || !status2)
+	if (!status0 || !status1 || !status2)
 	{
+		if (status0 && status1)
+			free(byteArray_ptr);
 		if (!status1)
 			tracef("mz_zip_writer_finalize_heap_archive() failed! zip=%u, ptr=%u, len=%u", &zip_archive, byteArray_ptr, byteArray_len);
 		if (!status2)
 			tracef("mz_zip_writer_end() failed! zip=%u", &zip_archive);
-		AS3_ReturnAS3Var(byteArray);
+		AS3_ReturnAS3Var(null);
 	}
 	inline_as3(
 		"byteArray = new ByteArray();"
@@ -240,6 +272,7 @@ void writeZip()
 		"ram_init.readBytes(byteArray, 0, %1);"
 			: : "r"(byteArray_ptr), "r"(byteArray_len)
 	);
+	free(byteArray_ptr);
 	AS3_ReturnAS3Var(byteArray);
 }
 
@@ -264,6 +297,8 @@ void writeFile()
 		"%0 = byteArray.length;" : "=r"(contentLength)
 	);
 	void *fileContent = malloc(contentLength);
+	if (!fileContent)
+		AS3_Return(false);
 	inline_as3(
 		"ram_init.position = %0;"
 		"ram_init.writeBytes(byteArray);"
@@ -280,4 +315,3 @@ void writeFile()
 		tracef("Failed to add file to zip: %s (%u bytes)", fileName, contentLength);
 	AS3_Return(status);
 }
-

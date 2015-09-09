@@ -107,7 +107,7 @@
 					return target as ILinkableObject;
 				if (!(target is Array))
 					target = WeaveAPI.CSVParser.parseCSVRow(String(target));
-				return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, target as Array);
+				return WeaveAPI.getObject(target as Array);
 			}
 			private const watchLookup:Dictionary = new Dictionary(true);
 			private function consoleWatch(target:Object, debugString:String):void

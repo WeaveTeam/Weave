@@ -247,6 +247,34 @@ package
 			return _classRegistry.singletonInstances[ILinkableHashMap]
 				|| _classRegistry.getSingletonInstance(ILinkableHashMap);
 		}
+		/**
+		 * A shortcut for WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path).
+		 * @see weave.api.core.ISessionManager#getObject()
+		 */
+		public static function getObject(path:Array):ILinkableObject
+		{
+			if (!_classRegistry)
+				ClassRegistry;
+			var sm:ISessionManager = _classRegistry.singletonInstances[ISessionManager]
+				|| _classRegistry.getSingletonInstance(ISessionManager);
+			var lhm:ILinkableHashMap = _classRegistry.singletonInstances[ILinkableHashMap]
+				|| _classRegistry.getSingletonInstance(ILinkableHashMap);
+			return sm.getObject(lhm, path);
+		}
+		/**
+		 * A shortcut for WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, object).
+		 * @see weave.api.core.ISessionManager#getPath()
+		 */
+		public static function getPath(object:ILinkableObject):Array
+		{
+			if (!_classRegistry)
+				ClassRegistry;
+			var sm:ISessionManager = _classRegistry.singletonInstances[ISessionManager]
+				|| _classRegistry.getSingletonInstance(ISessionManager);
+			var lhm:ILinkableHashMap = _classRegistry.singletonInstances[ILinkableHashMap]
+				|| _classRegistry.getSingletonInstance(ILinkableHashMap);
+			return sm.getPath(lhm, object);
+		}
 		/**************************************/
 
 		
@@ -391,7 +419,7 @@ package
 				var obj:* = _pathLookup[value];
 				if (obj === undefined)
 				{
-					var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, value as ILinkableObject);
+					var path:Array = WeaveAPI.getPath(value as ILinkableObject);
 					// return null for ILinkableObjects not in session state tree
 					_pathLookup[value] = obj = path ? {"WeavePath": path} : null;
 				}
@@ -407,7 +435,7 @@ package
 				for (key in value)
 					if (key != WP)
 						return value;
-				return WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, value[WP] as Array);
+				return WeaveAPI.getObject(value[WP] as Array);
 			}
 			return value;
 		}
@@ -478,7 +506,7 @@ package
 		{
 			callExternalConsole('error', params);
 		}
-			
+		
 		private static var consoleAvailable:* = undefined
 		
 		/**

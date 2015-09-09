@@ -15,30 +15,25 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 -->
-<!---
-@author skolman
--->
 <mx:Panel xmlns:mx="http://www.adobe.com/2006/mxml" layout="vertical" title="Sign in" 
 		  paddingLeft="10" paddingTop="10" paddingRight="10" paddingBottom="10"
 		  xmlns:ui="weave.ui.*"
 		  xmlns="weave.ui.admin.*"
-		  backgroundAlpha="1"
+		  backgroundAlpha="1" borderAlpha="1"
 		  creationComplete="onCreationComplete()">
-	<ui:Indent label="Connection name:">
-		<mx:TextInput id="connectionInput" enter="login()"/>
+	<ui:Indent label="Username:">
+		<mx:TextInput id="connectionInput" enter="_login()"/>
 	</ui:Indent>
 	<ui:Indent label="Password:">
-		<mx:TextInput id="passwordInput" displayAsPassword="true" enter="login()"/>
+		<mx:TextInput id="passwordInput" displayAsPassword="true" enter="_login()"/>
 	</ui:Indent>
 	<ui:Center>
-		<mx:Button label="Sign in" click="login()" keyDown="if (event.keyCode == Keyboard.ENTER) login()"/>
+		<mx:Button label="Sign in" click="_login()" keyDown="if (event.keyCode == Keyboard.ENTER) _login()"
+				   enabled="{loginEnabled(connectionInput.text, passwordInput.text)}"/>
 	</ui:Center>
 	
 	<mx:Script>
 		<![CDATA[
-			import weave.services.Admin;
-			import weave.services.addAsyncResponder;
-
 			/**
 			 * This function gets called when this panel is shown.
 			 */
@@ -52,26 +47,25 @@
 				JavaScript.exec('this.tabIndex = 0; this.focus();');
 			}
 			
-			private function login():void
+			/**
+			 * May be set externally. Must return a Boolean and take two parameters: user, pass
+			 */
+			public var loginEnabled:Function = function(user:String, pass:String):Boolean
 			{
-				if (!connectionInput.text && !passwordInput.text)
-					return;
-				
-				// disable while authenticating
-				enabled = false;
-				
-				// authenticate with server
-				addAsyncResponder(Admin.service.authenticate(connectionInput.text, passwordInput.text), handleResult, handleFault);
-				function handleResult(..._):void
-				{
-					enabled = true;
-					connectionInput.text = '';
-					passwordInput.text = '';
-				}
-				function handleFault(..._):void
-				{
-					enabled = true;
-				}
+				return user && pass;
+			};
+			
+			/**
+			 * Must be set externally. Must take two parameters: user, pass
+			 */
+			public var login:Function = null;
+			
+			private function _login():void
+			{
+				var user:String = connectionInput.text;
+				var pass:String = passwordInput.text;
+				if (loginEnabled(user, pass) && login != null)
+					login(user, pass);
 			}
 		]]>
 	</mx:Script>

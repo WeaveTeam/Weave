@@ -39,7 +39,15 @@
 		<ui:TextInputWithPrompt id="projection" width="100%" prompt="Example: EPSG:4326"/>
 	</ui:Indent>
 	<ui:Indent label="{lang('Key Column')}">
-		<mx:TextInput id="keyColumnName" width="100%" toolTip="{lang('Enter the name of the column that uniquely identifies each row in the data set')}"/>
+		<ui:CustomComboBox id="keyColumnCombo" editable="true" width="100%">
+			<ui:creationComplete>
+				<![CDATA[
+					keyColumnCombo.addEventListener(DropdownEvent.CLOSE, function(event:DropdownEvent):void {
+						keyColumnCombo.text = keyColumnCombo.selectedItem as String;
+					});
+				]]>
+			</ui:creationComplete>
+		</ui:CustomComboBox>
 	</ui:Indent>
 	<ui:Indent label="{lang('Key Type')}">
 		<ui:KeyTypesMenu id="keyTypeSelector"
@@ -55,7 +63,9 @@
 	<mx:Label text="{lang('* = required')}"/>
 	<mx:Script>
 		<![CDATA[
+			import mx.events.DropdownEvent;
 			import mx.controls.Alert;
+			import mx.events.DropdownEvent;
 			
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IDataSource;
@@ -92,7 +102,9 @@
 					dbfURL.text = target.dbfUrl.value;
 					shpURL.text = target.shpUrl.value;
 					projection.text = target.projection.value;
-					keyColumnName.text = target.keyColName.value;
+					keyColumnCombo.dataProvider = target.getColumnNames();
+					keyColumnCombo.validateNow();
+					keyColumnCombo.text = target.keyColName.value;
 					keyTypeSelector.addKeyTypeToMenu(target.getKeyType());
 					keyTypeSelector.selectedKeyType = target.getKeyType();
 					sourceName.editable = false;
@@ -105,7 +117,7 @@
 				return StandardLib.asString(target.dbfUrl.value) != StandardLib.asString(dbfURL.text)
 					|| StandardLib.asString(target.shpUrl.value) != StandardLib.asString(shpURL.text)
 					|| StandardLib.asString(target.projection.value) != StandardLib.asString(projection.text)
-					|| StandardLib.asString(target.keyColName.value) != StandardLib.asString(keyColumnName.text)
+					|| StandardLib.asString(target.keyColName.value) != StandardLib.asString(keyColumnCombo.text)
 					|| StandardLib.asString(target.getKeyType()) != StandardLib.asString(keyTypeSelector.selectedKeyType);
 			}
 
@@ -116,7 +128,7 @@
 				target.dbfUrl.value = dbfURL.text;
 				target.shpUrl.value = shpURL.text;
 				target.projection.value = projection.text;
-				target.keyColName.value = keyColumnName.text;
+				target.keyColName.value = keyColumnCombo.text;
 				target.keyType.value = keyTypeSelector.selectedKeyType;
 			}
 			

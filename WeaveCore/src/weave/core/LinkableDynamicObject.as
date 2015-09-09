@@ -99,7 +99,7 @@ package weave.core
 				}
 				
 				// if it's not a dynamic state array, treat it as a path
-				if (!DynamicState.isDynamicStateArray(newState))
+				if (!DynamicState.isDynamicStateArray(newState, true))
 				{
 					targetPath = newState;
 					return;

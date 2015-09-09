@@ -40,6 +40,7 @@
 			import weave.api.newDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.services.IWMSService;
+			import weave.api.ui.IObjectWithDescription;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
@@ -458,39 +459,6 @@
 				}
 			}
 			
-			internal function getPlotterLabel(plotter:IPlotter):String
-			{
-				if (!plotter)
-					return '';
-				
-				var plotterName:String = visualization.plotManager.plotters.getName(plotter);
-				var label:String = plotterName;
-				var wmsPlotter:WMSPlotter = plotter as WMSPlotter
-				var dgc:DynamicColumn = getDynamicGeomColumn(plotter);
-				
-				if (dgc)
-					label += ": " + ColumnUtils.getTitle(dgc);
-				else if (wmsPlotter)
-					label += ": " + wmsPlotter.providerName;
-				
-				// get the source projection to be used in the label
-				var proj:String;
-				if (dgc)
-				{
-					proj = dgc.getMetadata(ColumnMetadata.PROJECTION);
-				}
-				else if (plotter is WMSPlotter)
-				{
-					var service:IWMSService = wmsPlotter.service.internalObject as IWMSService;
-					if (service && service.getProjectionSRS())
-						proj = service.getProjectionSRS();
-				}
-				
-				if (proj)
-					label += ' (' + proj + ')';
-				return label;
-			}
-			
 			private function getDynamicGeomColumn(p:IPlotter):DynamicColumn
 			{
 				var gp:GeometryPlotter = p as GeometryPlotter;
@@ -880,7 +848,6 @@
 			outerDocument.layersEditor.addChildAt(layerButtons, 0);
 			outerDocument.layersEditor.removeChild(outerDocument.layersEditor.layerButtons);
 			outerDocument.layersEditor.visible = true;
-			outerDocument.layersEditor.labelFunction = outerDocument.getPlotterLabel;
 		</ui:creationComplete>
 		<mx:VBox id="layerControls" label="{lang('Layers')}" width="100%" height="100%">
 			<ui:Indent id="layerButtons" grouped="false" label="Add a layer:" translate="true" horizontalGap="4">
@@ -982,6 +949,7 @@
 									import weave.api.ui.IPlotter;
 									import weave.compiler.StandardLib;
 									import weave.core.UIUtils;
+									import weave.editors.managers.LayerListComponent;
 									import weave.utils.ZoomUtils;
 									import weave.visualization.layers.LayerSettings;
 									import weave.visualization.layers.PlotManager;
@@ -997,6 +965,7 @@
 									
 									private function get pm():PlotManager { return outerDocument.outerDocument.visualization.plotManager; }
 									private function get settings():LayerSettings { return data as LayerSettings; }
+									private function get plotter():IPlotter { return pm.plotters.getObject(pm.layerSettings.getName(data as LayerSettings)) as IPlotter; }
 									
 									override public function set data(value:Object):void
 									{
@@ -1009,7 +978,7 @@
 										if (!settings)
 											return;
 										
-										label = outerDocument.outerDocument.getPlotterLabel(pm.plotters.getObject(pm.layerSettings.getName(settings)) as IPlotter);
+										label = LayerListComponent.getLabelWithDescription(pm.plotters, plotter);
 										var area:Number = pm.fullDataBounds.getArea();
 										if (!isNaN(area))
 										{
@@ -1083,6 +1052,7 @@
 					
 					visibleScaleController.view = visibleScaleRangesList;
 					visibleScaleController.hashMap = outerDocument.visualization.plotManager.layerSettings;
+					WeaveAPI.SessionManager.getCallbackCollection(outerDocument.visualization.plotManager.plotters).addGroupedCallback(this, visibleScaleRangesList.invalidateList);
 				}
 				
 				private function handleProjectionComboChange():void

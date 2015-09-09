@@ -55,6 +55,7 @@ import weave.beans.JsonRpcResponseModel;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
 import weave.utils.MapUtils;
+import weave.utils.Strings;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -271,6 +272,7 @@ public class WeaveServlet extends HttpServlet
 		public PeekableInputStream inputStream;
 		public Boolean isBatchRequest = false;
 		public boolean prettyPrinting = false;
+		public boolean setContentType = true;
 	}
 	
 	/**
@@ -327,23 +329,28 @@ public class WeaveServlet extends HttpServlet
 		{
 			ServletRequestInfo info = setServletRequestInfo(request, response);
 			
+			//Map<String, String[]> urlParams = new HashMap<String,String[]>(request.getParameterMap());
+			
+			List<String> urlParamNames = Collections.list(request.getParameterNames());
+			HashMap<String, String> urlParams = new HashMap<String,String>();
+			for (String paramName : urlParamNames)
+				urlParams.put(paramName, request.getParameter(paramName)); // assumes parameters only have one value
+			
+			// for testing
+			String SET_CONTENT_TYPE = "setContentType";
+			if (urlParams.containsKey(SET_CONTENT_TYPE))
+				info.setContentType = Strings.equal("true", urlParams.remove(SET_CONTENT_TYPE).toLowerCase());
+			
 			if (request.getMethod().equals("GET"))
 			{
-				List<String> urlParamNames = Collections.list(request.getParameterNames());
-				
-				HashMap<String, String> params = new HashMap<String,String>();
-				
-				for (String paramName : urlParamNames)
-					params.put(paramName, request.getParameter(paramName));
 				JsonRpcRequestModel json = new JsonRpcRequestModel();
 				json.jsonrpc = JSONRPC_VERSION;
 				json.id = "";
-				json.method = params.remove(METHOD);
-				json.params = params;
-				
+				json.method = urlParams.remove(METHOD);
+				json.params = urlParams;
 				info.currentJsonRequest = json;
 				info.prettyPrinting = true;
-				invokeMethod(json.method, params);
+				invokeMethod(json.method, urlParams);
 			}
 			else // post
 			{
@@ -676,29 +683,7 @@ public class WeaveServlet extends HttpServlet
 		try
 		{
 			Object result = exposedMethod.method.invoke(exposedMethod.instance, params);
-			
-			if (info.currentJsonRequest == null) // AMF3
-			{
-				if (exposedMethod.method.getReturnType() != void.class)
-				{
-					ServletOutputStream servletOutputStream = info.getOutputStream();
-					serializeCompressedAmf3(result, servletOutputStream);
-				}
-			}
-			else // json
-			{
-				Object id = info.currentJsonRequest.id;
-				/* If ID is empty then it is a notification, we send nothing back */
-				if (id != null)
-				{
-					JsonRpcResponseModel responseObj = new JsonRpcResponseModel();
-					responseObj.jsonrpc = "2.0";
-					responseObj.result = result;
-					responseObj.id = id;
-					info.jsonResponses.add(responseObj);
-				}
-			}
-			
+			sendResult(result, exposedMethod.method.getReturnType());
 		}
 		catch (InvocationTargetException e)
 		{
@@ -965,6 +950,35 @@ public class WeaveServlet extends HttpServlet
 		return String.format("%s(%s)", methodName, result.substring(1, result.length() - 1));
 	}
 	
+	private void sendResult(Object result, Class<?> type) throws IOException
+	{
+		ServletRequestInfo info = getServletRequestInfo();
+		if (info.currentJsonRequest == null) // AMF3
+		{
+			if (type != void.class)
+			{
+				if (info.setContentType)
+					info.response.setContentType("application/octet-stream");
+
+				ServletOutputStream servletOutputStream = info.getOutputStream();
+				serializeCompressedAmf3(result, servletOutputStream);
+			}
+		}
+		else // json
+		{
+			Object id = info.currentJsonRequest.id;
+			/* If ID is empty then it is a notification, we send nothing back */
+			if (id != null)
+			{
+				JsonRpcResponseModel responseObj = new JsonRpcResponseModel();
+				responseObj.jsonrpc = "2.0";
+				responseObj.result = result;
+				responseObj.id = id;
+				info.jsonResponses.add(responseObj);
+			}
+		}
+	}
+	
 	private void sendError(Throwable exception, String moreInfo) throws IOException
 	{
 		if (exception instanceof InvocationTargetException)
@@ -997,6 +1011,9 @@ public class WeaveServlet extends HttpServlet
 		ServletRequestInfo info = getServletRequestInfo();
 		if (info.currentJsonRequest == null)
 		{
+			if (info.setContentType)
+				info.response.setContentType("application/octet-stream");
+
 			ServletOutputStream servletOutputStream = info.getOutputStream();
 			ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
 			errorMessage.faultCode = exception.getClass().getSimpleName();

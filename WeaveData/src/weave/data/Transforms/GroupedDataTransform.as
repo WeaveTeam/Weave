@@ -25,6 +25,7 @@ package weave.data.Transforms
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.ISelectableAttributes;
@@ -58,6 +59,13 @@ package weave.data.Transforms
 		public function getSelectableAttributes():Array
 		{
 			return [groupByColumn, dataColumns];
+		}
+		
+		override protected function get initializationComplete():Boolean
+		{
+			return super.initializationComplete
+				&& !linkableObjectIsBusy(groupByColumn)
+				&& !linkableObjectIsBusy(dataColumns);
 		}
 
 		override protected function initialize():void
@@ -168,7 +176,13 @@ package weave.data.Transforms
 				var keyType:String = groupKeyType.value || groupByColumn.getMetadata(ColumnMetadata.DATA_TYPE);
 				for each (var key:IQualifiedKey in groupByColumn.keys)
 				{
-					var localName:String = groupByColumn.getValueFromKey(key, String);
+					var localName:String;
+					// if the foreign key column is numeric, avoid using the formatted strings as keys
+					if (groupByColumn.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.NUMBER)
+						localName = groupByColumn.getValueFromKey(key, Number);
+					else
+						localName = groupByColumn.getValueFromKey(key, String);
+					
 					if (!stringLookup[localName])
 					{
 						stringLookup[localName] = true;

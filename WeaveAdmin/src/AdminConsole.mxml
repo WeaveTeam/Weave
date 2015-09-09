@@ -39,20 +39,21 @@
 			<ui:CustomViewStack width="100%" height="100%" selectedIndex="{Admin.service.initialized ? (Admin.instance.userHasAuthenticated ? MAIN_VIEW : (Admin.instance.databaseConfigExists ? LOGIN_VIEW : SETUP_VIEW)) : MIGRATE_VIEW}">
 				
 				<!-- main interface -->
-				<mx:VBox width="100%" height="100%">
+				<mx:VBox id="mainInterface" width="100%" height="100%">
 					<mx:HBox width="100%" verticalAlign="middle">
-						<mx:Label fontWeight="bold" text="Import data:"/>
-						<mx:Button label="SQL" click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{lang('This publishes an existing SQL table through the Weave server. This will not create any new tables in the database. This will just allow Weave users to access the data.')}"/>
-						<mx:Button label="CSV" click="WizardPanel.createWizard(this, new CSVImportWizard())" toolTip="{lang('This uploads and publishes data from a CSV file on your computer.')}"/>
-						<mx:Button label="SHP + DBF" click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{lang('This uploads and publishes shape data from files on your computer.')}"/>
-						
-						<mx:HRule width="100%"/>
-						
-						<mx:Button label="Open Weave" click="Admin.instance.openWeavePopup();" toolTip="This will open Weave in a new browser window which allows you to save a new client configuration."/>
-						<mx:Button label="Recover last session" click="Admin.instance.openWeavePopup(null, true);" toolTip="This will open Weave with your last configuration."/>
-						
-						<mx:HRule width="100%"/>
-						
+						<mx:HBox width="100%" verticalAlign="middle" visible="{Admin.instance.activeConnectionName != ConnectionInfo.DIRECTORY_SERVICE_CONNECTION_NAME}">
+							<mx:Label fontWeight="bold" text="Import data:"/>
+							<mx:Button label="SQL" click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{lang('This publishes an existing SQL table through the Weave server. This will not create any new tables in the database. This will just allow Weave users to access the data.')}"/>
+							<mx:Button label="CSV" click="WizardPanel.createWizard(this, new CSVImportWizard())" toolTip="{lang('This uploads and publishes data from a CSV file on your computer.')}"/>
+							<mx:Button label="SHP + DBF" click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{lang('This uploads and publishes shape data from files on your computer.')}"/>
+							
+							<mx:HRule width="100%"/>
+							
+							<mx:Button label="Open Weave" click="Admin.instance.openWeavePopup();" toolTip="This will open Weave in a new browser window which allows you to save a new client configuration."/>
+							<mx:Button label="Recover last session" click="Admin.instance.openWeavePopup(null, true);" toolTip="This will open Weave with your last configuration."/>
+							
+							<mx:HRule width="100%"/>
+						</mx:HBox>
 						<mx:Label text="{'Signed in as: ' + Admin.instance.activeConnectionName}" textAlign="right"/>
 						<mx:Button label="Sign out" enabled="{Admin.instance.databaseConfigExists == true}"
 								   click="Admin.instance.activeConnectionName = Admin.instance.activePassword = '';"/>
@@ -71,8 +72,8 @@
 				</mx:VBox>
 				
 				<!-- login interface -->
-				<mx:Box horizontalAlign="center" verticalAlign="middle" show="login.connectionInput.setFocus()">
-					<admin:LoginPopup id="login"/>
+				<mx:Box horizontalAlign="center" verticalAlign="middle" show="loginPanel.connectionInput.setFocus()">
+					<ui:LoginPopup id="loginPanel" loginEnabled="{loginEnabled}" login="{login}"/>
 				</mx:Box>
 				
 				<!-- first time setup interface -->
@@ -103,12 +104,14 @@
 			import weave.api.reportError;
 			import weave.services.Admin;
 			import weave.services.WeaveAdminService;
+			import weave.services.addAsyncResponder;
+			import weave.services.beans.ConnectionInfo;
 			import weave.ui.DraggablePanel;
 			import weave.ui.ErrorLogPanel;
+			import weave.ui.LoginPopup;
 			import weave.ui.SessionStateEditor;
 			import weave.ui.TranslationPanel;
 			import weave.ui.WeaveProgressBar;
-			import weave.ui.admin.LoginPopup;
 			import weave.ui.admin.WizardPanel;
 			import weave.ui.admin.wizards.CSVImportWizard;
 			import weave.ui.admin.wizards.SHPImportWizard;
@@ -122,7 +125,6 @@
 			private var _weaveTrace:Function = weaveTraceImpl; // reference this here so it gets compiled
 			
 			private static const version:String = Weave.properties.version.value;
-			private var loginPopup:LoginPopup;
 			
 			private function handleCreationComplete():void
 			{
@@ -140,27 +142,23 @@
 						messageTextArea.height = 128;
 					}
 				}
-
-				BindingUtils.bindSetter(handleConnectionChange, Admin.instance, "activeConnectionName");
-				function handleConnectionChange(name:String):void
-				{
-					resdHacks.visible = resdHacks.includeInLayout = (name == 'resd');
-				}
 				
-				BindingUtils.bindSetter(handlePermissionChange, Admin.instance, "currentUserIsSuperuser");
-				function handlePermissionChange(isSuperuser:Boolean):void
+				BindingUtils.bindSetter(adjustInterface, Admin.instance, "activeConnectionName");
+				BindingUtils.bindSetter(adjustInterface, Admin.instance, "currentUserIsSuperuser");
+				function adjustInterface(..._):void
 				{
-					if (isSuperuser != (tabNavigator == sqlConnectionManager.parent))
+					var isSuperuser:Boolean = Admin.instance.currentUserIsSuperuser;
+					if (isSuperuser)
 					{
-						if (isSuperuser)
-						{
+						if (tabNavigator != sqlConnectionManager.parent)
 							tabNavigator.addChild(sqlConnectionManager);
-						}
-						else
-						{
-							tabNavigator.removeChild(sqlConnectionManager);
-						}
 					}
+					else if (sqlConnectionManager.parent)
+					{
+						sqlConnectionManager.parent.removeChild(sqlConnectionManager);
+					}
+					
+					resdHacks.visible = resdHacks.includeInLayout = (Admin.instance.activeConnectionName == 'resd');
 				}
 				
 				PopUpManager.createPopUp(this, WeaveProgressBar);
@@ -173,6 +171,30 @@
 				getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog, WeaveAPI.ErrorManager.errors.length > 0);
 			}
 			
+			private function loginEnabled(user:String, pass:String):Boolean
+			{
+				return user && pass && user != ConnectionInfo.DIRECTORY_SERVICE_CONNECTION_NAME;
+			}
+			
+			private function login(user:String, pass:String):void
+			{
+				// disable while authenticating
+				enabled = false;
+				
+				// authenticate with server
+				addAsyncResponder(Admin.service.authenticate(user, pass), handleResult, handleFault);
+				function handleResult(..._):void
+				{
+					enabled = true;
+					loginPanel.connectionInput.text = '';
+					loginPanel.passwordInput.text = '';
+				}
+				function handleFault(..._):void
+				{
+					enabled = true;
+				}
+			}
+			
 			private function handleEntityCache():void
 			{
 				if (Admin.instance.getFocusEntityId() != -1)
@@ -181,7 +203,7 @@
 			
 			private function openAcsHeaderTool():void
 			{
-				var success:Boolean = JavaScript.exec('return !!window.open("http://demo.oicweave.org/HeaderTool.swf", "_blank")');
+				var success:Boolean = JavaScript.exec('return !!window.open("http://demo.iweave.com/HeaderTool.swf", "_blank")');
 				if (!success)
 					reportError("Popup was blocked by web browser");
 			}

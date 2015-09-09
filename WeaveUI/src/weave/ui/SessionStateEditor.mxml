@@ -351,7 +351,7 @@ A text editor to change the Session State on the fly.
 				if (object != null)
 					_currentSelectedObject = object;
 				else
-					_currentSelectedObject = sessionNav.selectedTreeItem.dependency;
+					_currentSelectedObject = sessionNav.selectedTreeItem.data as ILinkableObject;
 
 				loadSessionStateInView();
 				_textModified = false;
@@ -409,7 +409,7 @@ A text editor to change the Session State on the fly.
 					
 					for each (var node:WeaveTreeItem in sessionNav.selectedTreeItem.children)
 					{
-						childObject = node.dependency as ILinkableObject;
+						childObject = node.data as ILinkableObject;
 						if (childObject is ILinkableVariable)
 						{
 							tempValue = getSessionState(childObject);
@@ -463,9 +463,9 @@ A text editor to change the Session State on the fly.
 				var vsp:Number = gridEditor.verticalScrollPosition;
 				if (selectedTreeItem)
 				{
-					if (console.context == selectedTreeItem.dependency)
+					if (console.context == selectedTreeItem.data)
 						return; // no change
-					console.context = selectedTreeItem.dependency;
+					console.context = selectedTreeItem.data;
 				}
 				else
 					console.context = null;
@@ -568,7 +568,7 @@ A text editor to change the Session State on the fly.
 					var item:WeaveTreeItem = sessionNav.selectedTreeItem;
 					if (!item)
 						return;
-					var parent:ILinkableObject = getLinkableOwner(item.dependency);
+					var parent:ILinkableObject = getLinkableOwner(item.data as ILinkableObject);
 					if (!parent)
 						return;
 					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
@@ -583,13 +583,13 @@ A text editor to change the Session State on the fly.
 				var item:WeaveTreeItem = sessionNav.selectedTreeItem;
 				if (!item)
 					return;
-				var parent:ILinkableObject = getLinkableOwner(item.dependency);
+				var parent:ILinkableObject = getLinkableOwner(item.data as ILinkableObject);
 				if (!parent)
 					return;
 				var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 				var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 				
-				var oldObject:ILinkableObject = item.dependency;
+				var oldObject:ILinkableObject = item.data as ILinkableObject;
 				if (hashMap)
 					hashMap.removeObject(hashMap.getName(oldObject));
 				else if (dynamicObject)
