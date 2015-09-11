@@ -126,7 +126,10 @@
 	<target name="data" depends="core">
 		<buildproject targetproject="${DATA}" targetfileext="swc"/>
 	</target>
-	<target name="uispark" depends="data">
+        <target name="uispark" depends="data">
+                <exec executable="/bin/bash">
+                    <arg value="set_version.sh"/>
+                </exec>
 		<buildproject targetproject="${UISPARK}" targetfileext="swc"/>
 	</target>
 	<target name="ui" depends="uispark">
