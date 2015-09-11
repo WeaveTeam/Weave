@@ -30,13 +30,13 @@ package weave.core
 	import mx.core.UIComponent;
 	import mx.events.IndexChangedEvent;
 	
+	import weave.api.getCallbackCollection;
+	import weave.api.objectWasDisposed;
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
-	import weave.api.getCallbackCollection;
-	import weave.api.objectWasDisposed;
 	import weave.api.ui.ILinkableLayoutManager;
 	import weave.primitives.Dictionary2D;
 
@@ -292,6 +292,16 @@ package weave.core
 			//TODO
 		}
 		
+		private static const _previousParents:Dictionary = new Dictionary(true);
+		
+		/**
+		 * Returns the previous parent of a child if it was moved to a new parent using one of the static functions defined in this class.
+		 */
+		public static function getPreviousParent(child:DisplayObject):DisplayObjectContainer
+		{
+			return _previousParents[child];
+		}
+		
 		/**
 		 * This function adds a callback to a LinkableHashMap to monitor any DisplayObjects contained in it.
 		 * @param uiParent A UIComponent to synchronize with the given hashMap.
@@ -476,6 +486,12 @@ package weave.core
 		
 		public static function spark_addChild(parent:DisplayObjectContainer, child:DisplayObject):DisplayObject
 		{
+			if (child.parent && child.parent != parent)
+			{
+				_previousParents[child] = child.parent;
+				spark_removeChild(child.parent, child);
+			}
+			
 			if (parent is IVisualElementContainer)
 			{
 				if (child is IVisualElement)
@@ -492,7 +508,18 @@ package weave.core
 			if (parent is IVisualElementContainer)
 			{
 				if (child is IVisualElement)
-					return (parent as IVisualElementContainer).removeElement(child as IVisualElement) as DisplayObject;
+				{
+					try
+					{
+						return (parent as IVisualElementContainer).removeElement(child as IVisualElement) as DisplayObject;
+					}
+					catch (e:Error)
+					{
+						if (e.errorID != 2025) // The supplied DisplayObject must be a child of the caller
+							throw e;
+					}
+					return child;
+				}
 				else
 					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
 			}
@@ -502,6 +529,12 @@ package weave.core
 		
 		public static function spark_addChildAt(parent:DisplayObjectContainer, child:DisplayObject, index:int):DisplayObject
 		{
+			if (child.parent && child.parent != parent)
+			{
+				_previousParents[child] = child.parent;
+				spark_removeChild(child.parent, child);
+			}
+			
 			if (parent is IVisualElementContainer)
 			{
 				if (child is IVisualElement)
