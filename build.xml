@@ -150,7 +150,14 @@
 	</target>
 	<target name="services" depends="servletutils">
 		<ant dir="${basedir}/${SERVICES}" target="dist"/>
-	</target>
+        </target>
+
+        <target name="doc">
+                <ant dir="${basedir}/${CLIENT}" antfile="build-asdoc.xml" target="compile"/>
+                <ant dir="${basedir}/${CLIENT}" antfile="build-jsdoc.xml" target="compile"/>
+                <ant dir="${basedir}/${SERVICES}" target="doc"/>
+        </target>
+
 
 
 	<!-- This target calls the clean targets of each project's build file -->
