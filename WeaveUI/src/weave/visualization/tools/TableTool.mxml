@@ -70,15 +70,15 @@
 			import mx.managers.IFocusManagerComponent;
 			
 			import weave.Weave;
-			import weave.api.core.ILinkableObject;
-			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
@@ -86,16 +86,16 @@
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.UIUtils;
-			import weave.data.AttributeColumns.KeyColumn;
+			import weave.data.KeySets.DynamicKeySet;
 			import weave.data.KeySets.FilteredKeySet;
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.ColorRamp;
 			import weave.ui.CustomDataGrid.DataGridColumnForQKey;
-			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.NumberUtils;
 			import weave.utils.ProbeTextUtils;
+			
 			use namespace mx_internal;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TableTool, "Table");
@@ -112,25 +112,37 @@
 			public const dataGridVerticalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
 			private var _textFormat:LinkableTextFormat = Weave.properties.visTextFormat;
-			private var _selection:KeySet = Weave.defaultSelectionKeySet;
-			private var _probe:KeySet = Weave.defaultProbeKeySet;
-
+			
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			
 			public const filteredKeySet:FilteredKeySet = newLinkableChild(this, FilteredKeySet);
+			public const selectionKeySet:DynamicKeySet = newLinkableChild(this, DynamicKeySet);
+			public const mouseoverKeySet:DynamicKeySet = newLinkableChild(this, DynamicKeySet);
 			private const dataProvider:ArrayCollection = new ArrayCollection();
 			
 			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber()); // by default, no limit
 			public const maxHeaderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(50));
 			
+			private function get _probe():KeySet
+			{
+				return mouseoverKeySet.target as KeySet;
+			}
+			private function get _selection():KeySet
+			{
+				return selectionKeySet.target as KeySet;
+			}
+			
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
 				
+				selectionKeySet.target = Weave.defaultSelectionKeySet;
+				mouseoverKeySet.target = Weave.defaultProbeKeySet;
+				
 				filteredKeySet.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
-				_probe.addImmediateCallback(this, updateGlobalProbeChangeLater);
-				for each (var target:ILinkableObject in [this, _selection, Weave.defaultColorColumn, _textFormat])
+				mouseoverKeySet.addImmediateCallback(this, updateGlobalProbeChangeLater);
+				for each (var target:ILinkableObject in [this, selectionKeySet, Weave.defaultColorColumn, _textFormat])
 					getCallbackCollection(target).addGroupedCallback(this, groupedUpdate, true);
 			}
 			
@@ -180,7 +192,7 @@
 			
 			private function handleRollOver(event:ListEvent):void
 			{
-				if (enableProbing.value == false)
+				if (enableProbing.value == false || !_probe)
 					return;
 				ProbeTextUtils.getProbeText([], null);
 				var key:IQualifiedKey = dataProvider.getItemAt(event.rowIndex) as IQualifiedKey;
@@ -191,7 +203,7 @@
 			}
 			private function handleRollOut(event:MouseEvent):void
 			{
-				if (enableProbing.value == false)
+				if (enableProbing.value == false || !_probe)
 					return;
 				
 				_probe.clearKeys();
@@ -248,7 +260,7 @@
 						dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
 				
-				if (detectLinkableObjectChange(groupedUpdate, _selection))
+				if (detectLinkableObjectChange(groupedUpdate, selectionKeySet))
 				{
 					updateGlobalSelectionChange();
 					dataGrid.invalidateList();
@@ -359,7 +371,8 @@
 			 */	
 			private function handleItemSelection(event:Event=null):void
 			{
-				_selection.replaceKeys(dataGrid.selectedItems);
+				if (_selection)
+					_selection.replaceKeys(dataGrid.selectedItems);
 			}
 			
 			/* TODO: Move this method into an abstract class to extend CustomDataGrid
@@ -381,7 +394,7 @@
 				var selectedItems:Array = [];
 				for each (item in dataProvider)
 				{
-					if (_selection.containsKey(item as IQualifiedKey))
+					if (_selection && _selection.containsKey(item as IQualifiedKey))
 					{
 						if (!isSelected[item])
 							changeDetected = true;
@@ -412,7 +425,7 @@
 				}
 				dataGrid.invalidateList();
 				dataGrid.validateNow();
-				dataGrid.highlightItemsForced(_probe.keys, _selection.containsKey);
+				dataGrid.highlightItemsForced(_probe ? _probe.keys : null, _selection ? _selection.containsKey : null);
 			}
 			
 			private function updateKeysColumnsDataProviderAndSelection():void
@@ -627,12 +640,12 @@
 			
 			private function handleMouseDown():void
 			{
-				detectLinkableObjectChange( handleMouseClick, _selection )
+				detectLinkableObjectChange( handleMouseClick, selectionKeySet )
 			}
 			
 			private function handleMouseClick():void
 			{
-				if (!detectLinkableObjectChange( handleMouseClick, _selection ))
+				if (!detectLinkableObjectChange( handleMouseClick, selectionKeySet ))
 					if ( dataGrid.mouseY > dataGrid.headerHeight )
 						if ( dataGrid.mouseX < dataGrid.width - SCROLLBAR_WIDTH)
 							if ( WeaveAPI.StageUtils.pointClicked )
