@@ -135,7 +135,7 @@ package weave.ui.CustomDataGrid
 			_drawingItems = 0;
 			for each (var item:Object in items)
 			{
-				drawItemForced(item, selected(item), true);
+				drawItemForced(item, selected != null ? selected(item) : false, true);
 				_drawingItems++;
 			}
 			_drawingItems = 0;
