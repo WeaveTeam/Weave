@@ -17,13 +17,12 @@ package weave.data.KeySets
 {
 	import flash.utils.Dictionary;
 	
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.core.ILinkableObjectWithNewProperties;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getSessionState;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IObjectWithDescription;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableVariable;
@@ -36,6 +35,8 @@ package weave.data.KeySets
 		{
 			return lang("Filter for {0}", ColumnUtils.getTitle(column));
 		}
+		
+		public static const REGEXP:String = 'regexp';
 		
 		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), _cacheVars);
 		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), _cacheVars);
@@ -54,6 +55,7 @@ package weave.data.KeySets
 		private var _stringLookup:Object;
 		private var _numberLookup:Object;
 		private var _ranges:Array;
+		private var _regexps:Array;
 		private var _keyType:String;
 		private var _keyLookup:Dictionary = new Dictionary(true);
 		
@@ -67,12 +69,14 @@ package weave.data.KeySets
 			var state:Array = values.getSessionState() as Array;
 			var value:*;
 			var range:Range;
+			var regexp:RegExp;
 			
 			_keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
 			_keyLookup = new Dictionary(true);
 			_numberLookup = null;
 			_stringLookup = null;
 			_ranges = null;
+			_regexps = null;
 			
 			for each (value in state)
 			{
@@ -88,7 +92,7 @@ package weave.data.KeySets
 						_stringLookup = {};
 					_stringLookup[value] = true;
 				}
-				else
+				else if (Range.isRange(value))
 				{
 					try
 					{
@@ -102,6 +106,13 @@ package weave.data.KeySets
 						// ignore this value
 					}
 				}
+				else if (isRegExp(value))
+				{
+					if (!_regexps)
+						_regexps = [];
+					regexp = new RegExp(value[REGEXP]);
+					_regexps.push(regexp);
+				}
 			}
 			
 			// last step - canonicalize session states containing ranges
@@ -109,10 +120,20 @@ package weave.data.KeySets
 			{
 				var newState:Array = [];
 				for each (value in state)
+				{
 					if (value is Number || value is String)
 						newState.push(value);
+				}
 				for each (range in _ranges)
+				{
 					newState.push(range.getState());
+				}
+				for each (regexp in _regexps)
+				{
+					value = {};
+					value[REGEXP] = regexp.source;
+					newState.push(value);
+				}
 				values.setSessionState(newState);
 			}
 		}
@@ -123,45 +144,54 @@ package weave.data.KeySets
 				return true;
 			
 			var number:Number;
-			var cached:* = _keyLookup[key];
-			if (cached === undefined)
+			var string:String;
+			var result:* = _keyLookup[key];
+			if (result === undefined)
 			{
-				cached = false;
+				result = false;
+				
+				if (_numberLookup || _ranges)
+					number = column.getValueFromKey(key, Number);
+				if (_stringLookup || _regexps)
+					string = column.getValueFromKey(key, String);
 				
 				if (_numberLookup)
-				{
-					number = column.getValueFromKey(key, Number);
-					cached = _numberLookup.hasOwnProperty(number);
-				}
+					result = _numberLookup.hasOwnProperty(number);
 				
-				if (!cached && _stringLookup)
-				{
-					var string:String = column.getValueFromKey(key, String);
-					cached = _stringLookup.hasOwnProperty(string);
-				}
+				if (!result && _stringLookup)
+					result = _stringLookup.hasOwnProperty(string);
 				
-				if (!cached && _includeMissingKeyTypes && key.keyType != _keyType)
-					cached = true;
+				if (!result && _includeMissingKeyTypes && key.keyType != _keyType)
+					result = true;
 				
-				if (!cached)
+				if (!result && _ranges)
 				{
-					// only retrieve number if it wasn't retrieved above
-					if (!_numberLookup)
-						number = column.getValueFromKey(key, Number);
-					
 					for each (var range:Range in _ranges)
 					{
 						if (range.minInclusive ? number < range.min : number <= range.min)
 							continue;
 						if (range.maxInclusive ? number > range.max : number >= range.max)
 							continue;
-						cached = true;
+						result = true;
 						break;
 					}
 				}
-				_keyLookup[key] = cached;
+				
+				if (!result && _regexps)
+				{
+					for each (var regexp:RegExp in _regexps)
+					{
+						if (regexp.test(string))
+						{
+							result = true;
+							break;
+						}
+					}
+				}
+				
+				_keyLookup[key] = result;
 			}
-			return cached;
+			return result;
 		}
 		
 		public function stringifyValues():Array
@@ -180,13 +210,24 @@ package weave.data.KeySets
 			{
 				return ColumnUtils.deriveStringFromNumber(column, value);
 			}
-			else
+			else if (Range.isRange(value))
 			{
 				var range:Range = new Range(value);
 				var leftBracket:String = range.minInclusive ? "[" : "(";
 				var rightBracket:String = range.maxInclusive ? "]" : ")";
 				return leftBracket + stringifyValue(range.min) + ", " + stringifyValue(range.max) + rightBracket;
 			}
+			else if (isRegExp(value))
+			{
+				return new RegExp(value[REGEXP]).toString();
+			}
+			
+			return null;
+		}
+		
+		private static function isRegExp(obj:Object):Boolean
+		{
+			return obj != null && typeof obj == 'object' && obj.hasOwnProperty(REGEXP);
 		}
 		
 		private var _deprecatedRangeState:Object;
@@ -212,6 +253,25 @@ package weave.data.KeySets
 
 internal class Range
 {
+	public static function isRange(obj:Object):Boolean
+	{
+		var count:int = 0;
+		var prop:String;
+		
+		for each (prop in [MIN, MIN_INCLUSIVE, MIN_EXCLUSIVE])
+			if (obj.hasOwnProperty(prop))
+				count++;
+		if (!count)
+			return false;
+		
+		count = 0;
+		for each (prop in [MAX, MAX_INCLUSIVE, MAX_EXCLUSIVE])
+			if (obj.hasOwnProperty(prop))
+				count++;
+		
+		return count > 0;
+	}
+	
 	public static const MIN:String = 'min';
 	public static const MIN_INCLUSIVE:String = 'minInclusive';
 	public static const MIN_EXCLUSIVE:String = 'minExclusive';
