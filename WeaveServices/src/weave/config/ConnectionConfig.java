@@ -523,7 +523,7 @@ public class ConnectionConfig
 			String missingField = null;
 			if (Strings.isEmpty(name))
 				missingField = "name";
-			else if (Strings.isEmpty(pass))
+			else if (Strings.isEmpty(pass) && !Strings.equal(name, DIRECTORY_SERVICE))
 				missingField = "password";
 			else if (Strings.isEmpty(connectString))
 				missingField = "connectString";
