@@ -28,7 +28,7 @@
 				   layout="absolute" implements="weave.api.ui.IVisTool_Basic, weave.api.ui.IInitSelectableAttributes"
 				   title="{lang('Table')}" xmlns:editors="weave.editors.*"
 				   >
-	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
+	<mx:VBox width="100%" height="100%" id="toolVBox" verticalGap="0" horizontalScrollPolicy="off">
 		<CustomDataGrid:CustomDataGrid
 			id="dataGrid"
 			dataProvider="{dataProvider}"
@@ -60,6 +60,7 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.mx_internal;
@@ -90,6 +91,7 @@
 			import weave.data.KeySets.FilteredKeySet;
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.ColorRamp;
+			import weave.ui.Paragraph;
 			import weave.ui.CustomDataGrid.DataGridColumnForQKey;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
@@ -144,6 +146,8 @@
 				mouseoverKeySet.addImmediateCallback(this, updateGlobalProbeChangeLater);
 				for each (var target:ILinkableObject in [this, selectionKeySet, Weave.defaultColorColumn, _textFormat])
 					getCallbackCollection(target).addGroupedCallback(this, groupedUpdate, true);
+				
+				getCallbackCollection(Weave.properties.visTitleTextFormat).addGroupedCallback(this, updateTitleLabel, true);
 			}
 			
 			/**
@@ -158,6 +162,18 @@
 					});
 			}
 
+			override protected function createChildren():void
+			{
+				if (createdChildren)
+					return;
+				
+				super.createChildren();
+				
+				visTitle = new Paragraph();
+				visTitle.setStyle('textAlign', 'center');
+				updateTitleLabel();
+			}
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -173,6 +189,8 @@
 				
 				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange, true);
 				columnWidths.childListCallbacks.addImmediateCallback(this, assertColumnOrder,true);
+				
+				BindingUtils.bindSetter(handleBindableTitle, this, 'title');
 			}
 
 			private function assertColumnOrder():void
@@ -656,6 +674,38 @@
 			internal static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xEEF6FF];
 			public const backgroundColor1:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[0]));
 			public const backgroundColor2:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[1]));
+			
+			private var visTitle:Paragraph; // For display of title inside the window area
+			public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
+			private function handleBindableTitle(value:String):void
+			{
+				visTitle.text = title;
+			}
+			private function updateTitleLabel():void
+			{
+				if (!createdChildren)
+					return callLater(updateTitleLabel);
+				
+				Weave.properties.visTitleTextFormat.copyToStyle(visTitle);
+			}
+			private function handleTitleToggleChange():void
+			{
+				if (!createdChildren)
+				{
+					callLater(handleTitleToggleChange);
+					return;
+				}
+				if (!enableTitle.value)
+				{
+					if (toolVBox == visTitle.parent)
+						toolVBox.removeChild(visTitle);
+				}
+				else
+				{
+					if (toolVBox != visTitle.parent)
+						toolVBox.addChildAt(visTitle,0);
+				}
+			}
 		]]>
 	</mx:Script>
 	<ui:editorFactory><mx:Component><ui:ControlPanel>
