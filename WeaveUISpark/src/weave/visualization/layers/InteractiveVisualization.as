@@ -31,10 +31,11 @@ package weave.visualization.layers
 	import spark.components.Group;
 	
 	import weave.Weave;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.getSessionState;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.IDynamicKeyFilter;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -234,14 +235,24 @@ package weave.visualization.layers
 			handleMouseEvent(event);
 		}
 		
-		private var hack_mouseDownSelectionState:Object = null;
+		private var mouseDownSelectionState:Object = null; // layer name -> selection state
+		private function getAllLayerSelectionState():Object
+		{
+			var result:Object = {};
+			for each (var name:String in plotManager.layerSettings.getNames())
+			{
+				var idkf:IDynamicKeyFilter = (plotManager.layerSettings.getObject(name) as LayerSettings).selectionFilter;
+				result[name] = idkf.internalObject ? getSessionState(idkf.internalObject) : null;
+			}
+			return result;
+		}
+		
 		protected function handleMouseDown(event:MouseEvent):void
 		{			
 			updateMouseMode(InteractionController.INPUT_DRAG); // modifier keys may have changed just prior to pressing mouse button, so update mode now
 			
 			//for detecting change between drag start and drag end
-			// TEMPORARY HACK - Weave.defaultSelectionKeySet
-			hack_mouseDownSelectionState = getSessionState(Weave.defaultSelectionKeySet);
+			mouseDownSelectionState = getAllLayerSelectionState();
 			
 			mouseDragActive = true;
 			// clear probe when drag starts
@@ -818,12 +829,10 @@ package weave.visualization.layers
 				break; // select only one layer at a time
 			}
 			
-			
-			// TEMPORARY HACK - Weave.defaultSelectionKeySet
-			var hack_noSelectionChangeSinceMouseDown:Boolean = WeaveAPI.SessionManager.computeDiff(hack_mouseDownSelectionState, getSessionState(Weave.defaultSelectionKeySet)) === undefined;
+			var noSelectionChangeSinceMouseDown:Boolean = StandardLib.compare(mouseDownSelectionState, getAllLayerSelectionState()) == 0;
 			
 			// if mouse is released and selection hasn't changed since mouse down, clear selection
-			if (_mouseMode == InteractionController.SELECT && !WeaveAPI.StageUtils.mouseButtonDown && hack_noSelectionChangeSinceMouseDown)
+			if (_mouseMode == InteractionController.SELECT && !WeaveAPI.StageUtils.mouseButtonDown && noSelectionChangeSinceMouseDown)
 			{
 				clearSelection();
 			}
