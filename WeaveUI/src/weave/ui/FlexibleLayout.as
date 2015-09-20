@@ -37,6 +37,8 @@ package weave.ui
 		
 		public function FlexibleLayout()
 		{
+			setStyle('horizontalGap', 8);
+			setStyle('verticalGap', 8);
 			minWidth = 16;
 			minHeight = 16;
 			percentWidth = 100;
