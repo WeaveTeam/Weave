@@ -17,17 +17,19 @@ package weave.visualization.plotters
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
 	import flash.net.URLRequest;
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.data.IQualifiedKey;
+	import weave.Weave;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
@@ -50,7 +52,10 @@ package weave.visualization.plotters
 		
 		public function ImageGlyphPlotter()
 		{
+			color.internalDynamicColumn.target = Weave.defaultColorColumn;
 		}
+		
+		public const color:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 		
 		public const imageURL:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 		public const imageSize:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
@@ -129,13 +134,29 @@ package weave.visualization.plotters
 				var dy:Number = Math.round(tempPoint.y) + (_rotation == 0 && image.height % 2 ? 0.5 : 0);
 				tempMatrix.translate(dx, dy);
 				
+				var ct:ColorTransform = null;
+				var color:Number = this.color.getValueFromKey(recordKey, Number);
+				if (isFinite(color))
+				{
+					const R:int = 0xFF0000;
+					const G:int = 0x00FF00;
+					const B:int = 0x0000FF;
+
+					ct = tempColorTransform;
+					ct.redMultiplier = ((color & R) >> 16) / 255;
+					ct.greenMultiplier = ((color & G) >> 8) / 255;
+					ct.blueMultiplier = (color & B) / 255;
+				}
+				
 				// draw image
-				task.buffer.draw(image, tempMatrix);
+				task.buffer.draw(image, tempMatrix, ct, null, null, true);
 				
 				return task.iteration / task.recordKeys.length;
 			}
 			return 1;
 		}
+		
+		private const tempColorTransform:ColorTransform = new ColorTransform();
 		
 		/**
 		 * This function will save a downloaded image into the image cache.
