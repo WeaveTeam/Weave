@@ -124,6 +124,7 @@ package weave.data.DataSources
 									dataSource: root.dataSource,
 									data: item,
 									label: item.ShortDescription,
+									hasChildBranches: false,
 									children: function(parent:ColumnTreeNode):Array
 									{
 										var csv:CSVDataSource = getCSV(parent.data.ID);

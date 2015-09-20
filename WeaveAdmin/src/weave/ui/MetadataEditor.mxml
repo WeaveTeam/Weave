@@ -392,6 +392,7 @@
 					diff.publicMetadata[ColumnMetadata.ENTITY_TYPE] = entityType;
 					parent = getInternalParent(record);
 					Admin.service.newEntity(diff, parent, -1);
+					Admin.entityCache.invalidate(parent);
 				}
 				else
 				{

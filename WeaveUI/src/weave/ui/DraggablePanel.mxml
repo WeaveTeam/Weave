@@ -43,7 +43,7 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.containers.Canvas;
-			import mx.containers.TitleWindow;
+			import mx.containers.DividedBox;
 			import mx.controls.Alert;
 			import mx.controls.Button;
 			import mx.controls.ComboBox;
@@ -57,8 +57,6 @@
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.api.core.ILinkableHashMap;
-			import weave.api.core.ILinkableObject;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
 			import weave.api.newDisposableChild;
@@ -67,6 +65,8 @@
 			import weave.api.registerDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
 			import weave.api.ui.ILinkableObjectEditor;
 			import weave.api.ui.ISelectableAttributes;
 			import weave.compiler.StandardLib;
@@ -496,11 +496,17 @@
 			
 			override public function set percentWidth(value:Number):void
 			{
-				panelWidth.value = "" + value + "%";
+				if (parent is DividedBox)
+					super.percentWidth = value;
+				else
+					panelWidth.value = "" + value + "%";
 			}
 			override public function set percentHeight(value:Number):void
 			{
-				panelHeight.value = "" + value + "%";
+				if (parent is DividedBox)
+					super.percentHeight = value;
+				else
+					panelHeight.value = "" + value + "%";
 			}
 			
 			private function handlePanelStyleListChange():void
@@ -550,6 +556,8 @@
 				stage.removeEventListener(MouseEvent.MOUSE_MOVE, handleStageMouseMove);
 				stage.removeEventListener(MouseEvent.MOUSE_UP, handleStageMouseUp);
 				parent.removeEventListener(ResizeEvent.RESIZE, handleParentResize);
+				if (!maximized.wasDisposed)
+					maximized.triggerCallbacks();
 			}
 			
 			
@@ -594,7 +602,7 @@
 				var numberOrPercent:String = part.value;
 				
 				// if maximized, use maximized coordinates
-				if (maximized.value)
+				if (isMaximized)
 					numberOrPercent = _maximizedCoordinates[destinationPropertyName];
 				
 				var result:Number = NumberUtils.getNumberFromNumberOrPercent(numberOrPercent, whole);
@@ -659,7 +667,7 @@
 					y = 0;
 				
 				// don't copy coordinates while tool is minimized or maximized
-				if (!parent || minimized.value || maximized.value || parent is ISystemManager)
+				if (!parent || minimized.value || isMaximized || parent is ISystemManager)
 					return;
 				
 				// init local vars
@@ -952,7 +960,7 @@
 					sendWindowToForeground();
 				
 				
-				if (!minimized.value && !maximized.value)
+				if (!minimized.value && !isMaximized)
 				{
 					var status:Object = getResizeStatus(stage.mouseX, stage.mouseY);
 					
@@ -1049,6 +1057,11 @@
 					CustomCursorManager.removeCursor(draggablePanelCursorID);
 			}
 			
+			private function get isMaximized():Boolean
+			{
+				return maximized.value || parent is DividedBox;
+			}
+			
 			public function sendWindowToForeground():void
 			{
 				if (_enableMoveResize)
@@ -1119,7 +1132,7 @@
 			}
 			private function handleTitleBarMouseDown(event:MouseEvent):void
 			{
-				if (!_enableMoveResize || maximized.value)
+				if (!_enableMoveResize || isMaximized)
 					return;
 				
 				if (!parent)
@@ -1155,7 +1168,7 @@
 			private function handleStageMouseMove(event:MouseEvent):void
 			{
 				// make sure cursors dont keep changing while resizing:  !_resizing
-				if (parent && !_resizing && !minimized.value && !maximized.value)
+				if (parent && !_resizing && !minimized.value && !isMaximized)
 				{
 					var status:Object = getResizeStatus(stage.mouseX, stage.mouseY);
 					var resizeCursorName:String = null;

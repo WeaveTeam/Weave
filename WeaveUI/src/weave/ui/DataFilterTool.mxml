@@ -31,7 +31,6 @@
 			import mx.core.UIComponent;
 			
 			import weave.Weave;
-			import weave.api.core.ILinkableObject;
 			import weave.api.data.IAttributeColumn;
 			import weave.api.getCallbackCollection;
 			import weave.api.getSessionState;
