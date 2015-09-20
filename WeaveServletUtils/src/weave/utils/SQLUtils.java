@@ -657,6 +657,8 @@ public class SQLUtils
 		SQLResult result = null;
 		try
 		{
+			long time1 = System.currentTimeMillis();
+			
 			if (params == null || params.length == 0)
 			{
 				stmt = connection.createStatement();
@@ -668,8 +670,21 @@ public class SQLUtils
 				rs = ((PreparedStatement)stmt).executeQuery();
 			}
 			
+			long time2 = System.currentTimeMillis();
+			
 			// make a copy of the query result
 			result = new SQLResult(rs, convertToStrings);
+			
+			long time3 = System.currentTimeMillis();
+			
+			long queryTime = time2 - time1;
+			long readTime = time3 - time2;
+			long totalTime = time3 - time1;
+			if (totalTime > 1000)
+			{
+				System.out.println(String.format("[%sms query, %sms read] %s", queryTime, readTime, query));
+			}
+
 		}
 		catch (SQLException e)
 		{
