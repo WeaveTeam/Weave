@@ -131,7 +131,7 @@ package weave.data.KeySets
 					_asyncKeyIndex = 0;
 				}
 				
-				for (; _asyncKeyIndex < _asyncKeys.length; _asyncKeyIndex++)
+				for (; _asyncKeys && _asyncKeyIndex < _asyncKeys.length; _asyncKeyIndex++)
 				{
 					if (getTimer() > stopTime)
 						return (_asyncKeySetIndex + _asyncKeyIndex / _asyncKeys.length) / _keySets.length;
