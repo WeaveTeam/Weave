@@ -18,13 +18,15 @@ package weave.core
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
+	import weave.api.disposeObject;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.core.DynamicState;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.disposeObject;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
 	
 	/**
 	 * Allows dynamically creating instances of objects implementing ILinkableObject at runtime.
@@ -412,6 +414,8 @@ package weave.core
 			//trace(LinkableHashMap, "setSessionState "+setMissingValuesToNull, ObjectUtil.toString(newState.qualifiedClassNames), ObjectUtil.toString(newState));
 			// first pass: make sure the types match and sessioned properties are instantiated.
 			var i:int;
+			var delayed:Array = [];
+			var callbacks:ICallbackCollection;
 			var objectName:String;
 			var className:String;
 			var typedState:Object;
@@ -420,6 +424,14 @@ package weave.core
 			var newNameOrder:Array = []; // the order the object names appear in the vector
 			if (newStateArray != null)
 			{
+				// first pass: delay callbacks of all children
+				for each (objectName in _orderedNames)
+				{
+					callbacks = WeaveAPI.SessionManager.getCallbackCollection(_nameToObjectMap[objectName]);
+					delayed.push(callbacks)
+					callbacks.delayCallbacks();
+				}
+				
 				// initialize all the objects before setting their session states because they may refer to each other.
 				for (i = 0; i < newStateArray.length; i++)
 				{
@@ -438,7 +450,16 @@ package weave.core
 					if (_nameToObjectMap[objectName] != initObjectByClassName(objectName, className))
 						newObjects[objectName] = true;
 				}
-				// second pass: copy the session state for each property that is defined.
+				
+				// next pass: delay callbacks of all children (again, because there may be new children)
+				for each (objectName in _orderedNames)
+				{
+					callbacks = WeaveAPI.SessionManager.getCallbackCollection(_nameToObjectMap[objectName]);
+					delayed.push(callbacks)
+					callbacks.delayCallbacks();
+				}
+				
+				// next pass: copy the session state for each property that is defined.
 				// Also remember the ordered list of names that appear in the session state.
 				for (i = 0; i < newStateArray.length; i++)
 				{
@@ -481,6 +502,13 @@ package weave.core
 			}
 			// update name order AFTER objects have been added and removed.
 			setNameOrder(newNameOrder);
+			
+			// final pass: resume all callbacks
+			
+			// next pass: delay callbacks of all children
+			for each (callbacks in delayed)
+				if (!WeaveAPI.SessionManager.objectWasDisposed(callbacks))
+					callbacks.resumeCallbacks();
 			
 			resumeCallbacks();
 		}
