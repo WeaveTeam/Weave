@@ -154,11 +154,11 @@ package weave.data.AttributeColumns
 			_uniqueKeys.length = 0;
 			_reportedError = false;
 			
-			if (!_dateFormat && _keys.length)
+			/*if (!_dateFormat && _keys.length)
 			{
 				_reportedError = true;
 				reportError(lang('No common date format could be determined from the column values. Attribute Column: {0}', Compiler.stringify(_metadata)));
-			}
+			}*/
 			
 			// high priority because not much can be done without data
 			WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, _asyncComplete);
