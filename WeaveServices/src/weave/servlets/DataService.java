@@ -100,8 +100,8 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	///////////////////
 	// Authentication
 	
-	private static final String SESSION_USERNAME = "username";
-	private static final String SESSION_PASSWORD = "password";
+	private static final String SESSION_USERNAME = "DataService.user";
+	private static final String SESSION_PASSWORD = "DataService.pass";
 	
 	/**
 	 * @param user

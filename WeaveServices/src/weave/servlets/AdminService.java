@@ -145,8 +145,8 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		//TODO: if getConnectionConfig().getAdminConnection() fails, ask user to set up databaseConfig (other GUI should be hidden)
 	}
 
-	private static final String SESSION_USERNAME = "username";
-	private static final String SESSION_PASSWORD = "password";
+	private static final String SESSION_USERNAME = "AdminService.user";
+	private static final String SESSION_PASSWORD = "AdminService.pass";
 	
 	/**
 	 * @param user
