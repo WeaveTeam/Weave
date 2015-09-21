@@ -412,6 +412,7 @@ package weave
 		public const axisTitleTextFormat:LinkableTextFormat = new LinkableTextFormat();
 		public const mouseoverTextFormat:LinkableTextFormat = new LinkableTextFormat();
 		
+		public function get probeHeaderSeparator():LinkableString { return ProbeTextUtils.headerSeparator; }
 		public function get probeLineFormatter():LinkableFunction { return ProbeTextUtils.probeLineFormatter; }
 		
 		public const probeInnerGlow:LinkableGlowFilter = new LinkableGlowFilter(0xffffff, 1, 5, 5, 10);
