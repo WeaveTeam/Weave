@@ -30,6 +30,7 @@ package weave.utils
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
+	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
 	
 	/**
@@ -39,6 +40,7 @@ package weave.utils
 	 */
 	public class ProbeTextUtils
 	{
+		public static const headerSeparator:LinkableString = new LinkableString(', ');
 		public static const enableProbeToolTip:LinkableBoolean = new LinkableBoolean(true);
 		public static const showEmptyProbeRecordIdentifiers:LinkableBoolean = new LinkableBoolean(true);
 		
@@ -108,7 +110,7 @@ package weave.utils
 					if (headerValue == '')
 						continue;
 					if (record)
-						record += ', ';
+						record += headerSeparator.value;
 					record += headerValue;
 				}
 				
