@@ -56,6 +56,7 @@ package weave.visualization.plotters
 		}
 		
 		public const color:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
+		public const alpha:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 		
 		public const imageURL:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 		public const imageSize:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
@@ -134,7 +135,7 @@ package weave.visualization.plotters
 				var dy:Number = Math.round(tempPoint.y) + (_rotation == 0 && image.height % 2 ? 0.5 : 0);
 				tempMatrix.translate(dx, dy);
 				
-				var ct:ColorTransform = null;
+				var ct:ColorTransform = tempColorTransform;
 				var color:Number = this.color.getValueFromKey(recordKey, Number);
 				if (isFinite(color))
 				{
@@ -142,11 +143,17 @@ package weave.visualization.plotters
 					const G:int = 0x00FF00;
 					const B:int = 0x0000FF;
 
-					ct = tempColorTransform;
 					ct.redMultiplier = ((color & R) >> 16) / 255;
 					ct.greenMultiplier = ((color & G) >> 8) / 255;
 					ct.blueMultiplier = (color & B) / 255;
 				}
+				else
+				{
+					ct.redMultiplier = 1;
+					ct.greenMultiplier = 1;
+					ct.blueMultiplier = 1;
+				}
+				ct.alphaMultiplier = alpha.getValueFromKey(recordKey, Number);
 				
 				// draw image
 				task.buffer.draw(image, tempMatrix, ct, null, null, true);
