@@ -53,6 +53,7 @@ package weave.visualization.plotters
 		public function ImageGlyphPlotter()
 		{
 			color.internalDynamicColumn.target = Weave.defaultColorColumn;
+			color.defaultValue.value = 1;
 		}
 		
 		public const color:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
@@ -154,6 +155,8 @@ package weave.visualization.plotters
 					ct.blueMultiplier = 1;
 				}
 				ct.alphaMultiplier = alpha.getValueFromKey(recordKey, Number);
+				if (isNaN(ct.alphaMultiplier))
+					ct.alphaMultiplier = 1;
 				
 				// draw image
 				task.buffer.draw(image, tempMatrix, ct, null, null, true);
