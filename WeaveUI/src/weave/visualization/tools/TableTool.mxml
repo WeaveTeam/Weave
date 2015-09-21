@@ -671,7 +671,7 @@
 			}
 			private static const SCROLLBAR_WIDTH:int = 16;
 			
-			internal static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xEEF6FF];
+			internal static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xf4f4f4];
 			public const backgroundColor1:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[0]));
 			public const backgroundColor2:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[1]));
 			
