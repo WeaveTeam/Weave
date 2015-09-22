@@ -37,6 +37,7 @@ package weave.data.KeySets
 		}
 		
 		public static const REGEXP:String = 'regexp';
+		private static const ALTERNATE_REGEX_PROPERTY:String = 'regex';
 		
 		public const enabled:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), _cacheVars);
 		public const includeMissingKeyTypes:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), _cacheVars);
@@ -219,7 +220,7 @@ package weave.data.KeySets
 			}
 			else if (isRegExp(value))
 			{
-				return new RegExp(value[REGEXP]).toString();
+				return new RegExp(value[REGEXP] || value[ALTERNATE_REGEX_PROPERTY]).toString();
 			}
 			
 			return null;
@@ -227,7 +228,8 @@ package weave.data.KeySets
 		
 		private static function isRegExp(obj:Object):Boolean
 		{
-			return obj != null && typeof obj == 'object' && obj.hasOwnProperty(REGEXP);
+			return obj != null && typeof obj == 'object'
+				&& (obj.hasOwnProperty(REGEXP) || obj.hasOwnProperty(ALTERNATE_REGEX_PROPERTY));
 		}
 		
 		private var _deprecatedRangeState:Object;
