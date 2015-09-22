@@ -22,6 +22,13 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
+	import weave.api.detectLinkableObjectChange;
+	import weave.api.disposeObject;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.EntityType;
@@ -32,19 +39,13 @@ package weave.data.DataSources
 	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
-	import weave.api.detectLinkableObjectChange;
-	import weave.api.disposeObject;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
-	import weave.api.objectWasDisposed;
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.api.services.beans.Entity;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
+	import weave.data.QKeyManager;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -52,7 +53,6 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.QKeyManager;
 	import weave.data.hierarchy.EntityNode;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.services.EntityCache;
@@ -108,8 +108,7 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * Check this to determine if authenticate() may be necessary.
-		 * @return true if authenticate() may be necessary.
+		 * @inheritDoc
 		 */
 		public function get authenticationSupported():Boolean
 		{
@@ -117,8 +116,7 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * Check this to determine if authenticate() must be called.
-		 * @return true if authenticate() should be called.
+		 * @inheritDoc
 		 */
 		public function get authenticationRequired():Boolean
 		{
@@ -126,9 +124,15 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * Authenticates with the server.
-		 * @param user
-		 * @param pass
+		 * @inheritDoc
+		 */
+		public function get authenticatedUser():String
+		{
+			return _service.authenticatedUser;
+		}
+		
+		/**
+		 * @inheritDoc
 		 */
 		public function authenticate(user:String, pass:String):void
 		{

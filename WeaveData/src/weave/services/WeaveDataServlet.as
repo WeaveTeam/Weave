@@ -15,8 +15,6 @@
 
 package weave.services
 {
-	import avmplus.DescribeType;
-	
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
@@ -25,10 +23,11 @@ package weave.services
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.data.IQualifiedKey;
-	import weave.api.linkableObjectIsBusy;
+	import avmplus.DescribeType;
+	
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.services.IWeaveEntityService;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.api.services.beans.Entity;
@@ -47,6 +46,7 @@ package weave.services
 	{
 		public static const DEFAULT_URL:String = '/WeaveServices/DataService';
 		public static const WEAVE_AUTHENTICATION_EXCEPTION:String = 'WeaveAuthenticationException';
+		private static const AUTHENTICATED_USER:String = 'authenticatedUser';
 		
 		private var propertyNameLookup:Dictionary = new Dictionary(); // Function -> String
 		protected var servlet:AMF3Servlet;
@@ -173,6 +173,11 @@ package weave.services
 			return _authenticationRequired && !_user && !_pass;
 		}
 		
+		public function get authenticatedUser():String
+		{
+			return getServerInfo()[AUTHENTICATED_USER];
+		}
+		
 		/**
 		 * Authenticates with the server.
 		 * @param user
@@ -204,6 +209,7 @@ package weave.services
 		{
 			while (_tokensPendingAuthentication.length)
 				(_tokensPendingAuthentication.shift() as ProxyAsyncToken).invoke();
+			getServerInfo()[AUTHENTICATED_USER] = _user;
 		}
 		private function handleAuthenticateFault(event:FaultEvent, token:Object = null):void
 		{
