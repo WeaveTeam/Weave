@@ -3,8 +3,9 @@
  * @param {string} url The URL of the service.
  * @param {string} method Name of the method to call on the server.
  * @param {?Array|Object} params Parameters for the server method.
- * @param {Function} resultHandler Function to call when the RPC call returns.  This function will be passed the result of the method as the first parameter.
+ * @param {Function} resultHandler Optional Function to call when the RPC call returns.  This function will be passed the result of the method as the first parameter.
  * @param {string|number=} queryId Optional id to be associated with this RPC call.  This will be passed as the second parameter to the resultHandler function.
+ * @return A Promise.
  */
 function queryService(url, method, params, resultHandler, queryId)
 {
@@ -15,14 +16,35 @@ function queryService(url, method, params, resultHandler, queryId)
 		params: params
 	};
 	jQuery.post(url, JSON.stringify(request), handleResponse, "json");
-
-	function handleResponse(response)
+	
+	var promise, resolve, reject;
+	if (window.Promise)
+	{
+		promise = new Promise(function(_resolve, _reject) {
+			resolve = _resolve;
+			reject = _reject;
+		});
+	}
+	
+	function _handleResponse(response)
 	{
 		if (response.error)
-			console.error(JSON.stringify(response, null, 3));
-		else if (resultHandler)
-			resultHandler(response.result, queryId);
+		{
+			if (promise)
+				reject(response.error);
+			else
+				console.error(JSON.stringify(response, null, 3));
+		}
+		else
+		{
+			if (resultHandler)
+				resultHandler(response.result, queryId);
+			if (promise)
+				resolve(response.result);
+		}
 	}
+	
+	return promise;
 }
 
 /**
@@ -30,7 +52,8 @@ function queryService(url, method, params, resultHandler, queryId)
  * @param {string} url The URL of the service.
  * @param {string} method Name of the method to call on the server for each entry in the queryIdToParams mapping.
  * @param {Array|Object} queryIdToParams A mapping from queryId to RPC parameters.
- * @param {function(Array|Object)} resultsHandler Receives a mapping from queryId to RPC result.
+ * @param {function(Array|Object)} resultsHandler Optional Function to receive a mapping from queryId to RPC result.
+ * @return A Promise.
  */
 function bulkQueryService(url, method, queryIdToParams, resultsHandler)
 {
@@ -41,6 +64,16 @@ function bulkQueryService(url, method, queryIdToParams, resultsHandler)
 		jQuery.post(url, JSON.stringify(batch), handleBatch, "json");
 	else
 		setTimeout(handleBatch, 0);
+
+	var promise, resolve, reject;
+	if (window.Promise)
+	{
+		promise = new Promise(function(_resolve, _reject) {
+			resolve = _resolve;
+			reject = _reject;
+		});
+	}
+	
 	function handleBatch(batchResponse)
 	{
 		var results = Array.isArray(queryIdToParams) ? [] : {};
@@ -48,13 +81,24 @@ function bulkQueryService(url, method, queryIdToParams, resultsHandler)
 		{
 			var response = batchResponse[i];
 			if (response.error)
-				console.error(JSON.stringify(response, null, 3));
+			{
+				if (promise)
+					resolve(response.error);
+				else
+					console.error(JSON.stringify(response, null, 3));
+			}
 			else
+			{
 				results[response.id] = response.result;
+			}
 		}
 		if (resultsHandler)
 			resultsHandler(results);
+		if (promise)
+			resolve(results);
 	}
+	
+	return promise;
 }
 
 /**
@@ -68,18 +112,28 @@ function bulkQueryService(url, method, queryIdToParams, resultsHandler)
  */
 function queryDataService(method, params, resultHandler, queryId)
 {
-	queryService('/WeaveServices/DataService', method, params, resultHandler, queryId);
+	return queryService('/WeaveServices/DataService', method, params, resultHandler, queryId);
 }
 
 /**
  * Gets a complete tree of Entity objects.
  * @param {string} dataServiceUrl The URL to the Weave data service, such as "/WeaveServices/DataService".
  * @param {number} rootEntityId The ID of a Weave entity.
- * @param {function(Object)} callback A function which will receive the root Entity object with a 'children' property
+ * @param {function(Object)} callback Optional Function which will receive the root Entity object with a 'children' property
  *                 which will be an Array of child Entity objects, also having 'children' properties, and so on.
+ * @return A Promise.
  */
 function getEntityTree(dataServiceUrl, rootEntityId, callback)
 {
+	var promise, resolve, reject;
+	if (window.Promise)
+	{
+		promise = new Promise(function(_resolve, _reject) {
+			resolve = _resolve;
+			reject = _reject;
+		});
+	}
+	
 	var lookup = {};
 	function cacheEntityTree(ids) {
 		queryService(dataServiceUrl, 'getEntities', [ids], function(entities) {
@@ -97,10 +151,15 @@ function getEntityTree(dataServiceUrl, rootEntityId, callback)
 			// all done, so fill in 'children' property of all entities and return the root entity
 			for (var id in lookup)
 				lookup[id].children = lookup[id].childIds.map(function(id){ return lookup[id]; });
+			
 			callback(lookup[rootEntityId]);
+			if (promise)
+				resolve(lookup[rootEntityId]);
 		});
 	}
 	cacheEntityTree([rootEntityId]);
+	
+	return promise;
 }
 
 /**
@@ -162,6 +221,11 @@ function modifySessionState(stateToModify, path, value)
 	return true;
 }
 
+function weaveAdminAuthenticate(url, user, pass)
+{
+	return queryService(url, 'authenticate', [user, pass]);
+}
+
 /**
  * This function can be used for bulk loading of SQL tables without going through the Admin Console.
  * It's not recommended to be used on a public website.
@@ -170,9 +234,9 @@ function modifySessionState(stateToModify, path, value)
  * @param {string} sqlSchema Schema name
  * @param {string} sqlTable Table name
  * @param {string} keyColumn Name of column in sql table that uniquely identifies rows in the table.
- * @param {function(number)} resultHandler a function which receives the tableId
+ * @return A Promise.
  */
-function weaveAdminImportSQL(connectionName, password, sqlSchema, sqlTable, keyColumn, resultHandler)
+function weaveAdminImportSQL(connectionName, password, sqlSchema, sqlTable, keyColumn)
 {
 	var url = '/WeaveServices/AdminService';
 	var tableTitle = sqlTable; // the name which will be visible to end-users
@@ -186,8 +250,6 @@ function weaveAdminImportSQL(connectionName, password, sqlSchema, sqlTable, keyC
 	
 	var method = "importSQL";
 	var params = {
-		connectionName: connectionName,
-		password: password,
 		schemaName: sqlSchema,
 		tableName: sqlTable,
 		keyColumnName: keyColumn,
@@ -198,7 +260,7 @@ function weaveAdminImportSQL(connectionName, password, sqlSchema, sqlTable, keyC
 		append: append
 	};
 	
-	queryService(url, method, params, resultHandler);
+	return queryService(url, method, params);
 }
 
 /**
@@ -206,20 +268,18 @@ function weaveAdminImportSQL(connectionName, password, sqlSchema, sqlTable, keyC
  * It's not recommended to use this function on a public website.
  * See documentation for DataEntityWithRelationships (referred to here as an "entity object")
  * http://ivpr.github.io/Weave-Binaries/javadoc/weave/config/DataConfig.DataEntityWithRelationships.html
- * @param {string} user AdminConsole connection name.
- * @param {string} pass AdminConsole password.
  * @param {number} tableId The ID of the table.
  * @param {function(Object):Object} entityUpdater A function that alters an entity object's metadata.
  *     Example: function(entity) { entity.privateMetadata.sqlQuery += " where myfield = 'myvalue'"; }
  */
-function weaveAdminUpdateColumns(user, pass, tableId, entityUpdater) {
+function weaveAdminUpdateColumns(tableId, entityUpdater) {
 	var url = '/WeaveServices/AdminService';
 	var getEntities = queryService.bind(null, url, 'getEntities');
 	var bulkUpdateEntities = bulkQueryService.bind(null, url, 'updateEntity');
-	getEntities([user, pass, [tableId]], function(tables) {
-		getEntities([user, pass, tables[0].childIds], function(columns) {
+	getEntities([[tableId]]).then(function(tables) {
+		getEntities([tables[0].childIds]).then(function(columns) {
 			bulkUpdateEntities(
-				columns.map(function(e){ entityUpdater(e); return [user, pass, e.id, e]; })
+				columns.map(function(e){ entityUpdater(e); return [e.id, e]; })
 			)
 		});
 	});
