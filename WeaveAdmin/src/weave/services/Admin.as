@@ -15,7 +15,6 @@
 
 package weave.services
 {
-	import flash.display.LoaderInfo;
 	import flash.utils.Dictionary;
 	
 	import mx.controls.Alert;
@@ -23,11 +22,8 @@ package weave.services
 	import mx.utils.UIDUtil;
 	import mx.utils.URLUtil;
 	
-	import weave.api.data.Aggregation;
-	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataType;
-	import weave.api.data.EntityType;
 	import weave.api.linkBindableProperty;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.compiler.StandardLib;
