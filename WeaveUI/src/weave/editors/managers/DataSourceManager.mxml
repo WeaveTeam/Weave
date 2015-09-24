@@ -349,8 +349,9 @@
 					
 					if (confirmed && dataSource == newDataSource)
 					{
-						// clear any existing selection
+						// clear any existing selection and search
 						browser.referencedColumn.setColumnReference(null, null);
+						browser.searchInput.text = '';
 					}
 					
 					removeEditor();
