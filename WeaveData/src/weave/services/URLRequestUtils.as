@@ -514,7 +514,8 @@ internal class CustomURLLoader extends URLLoader
 
 	private function handleProgressUpdate(event:Event):void
 	{
-		WeaveAPI.ProgressIndicator.updateTask(_asyncToken, bytesLoaded / bytesTotal);
+		if (WeaveAPI.ProgressIndicator.hasTask(_asyncToken))
+			WeaveAPI.ProgressIndicator.updateTask(_asyncToken, bytesLoaded / bytesTotal);
 	}
 
 	private var _resumeFunc:Function = null;
