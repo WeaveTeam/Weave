@@ -15,7 +15,7 @@ function queryService(url, method, params, resultHandler, queryId)
 		method: method,
 		params: params
 	};
-	jQuery.post(url, JSON.stringify(request), handleResponse, "json");
+	jQuery.post(url, JSON.stringify(request), _handleResponse, "json");
 	
 	var promise, resolve, reject;
 	if (window.Promise)
@@ -28,19 +28,29 @@ function queryService(url, method, params, resultHandler, queryId)
 	
 	function _handleResponse(response)
 	{
-		if (response.error)
+		try
 		{
-			if (promise)
-				reject(response.error);
+			if (response.error)
+			{
+				if (promise)
+					reject(response.error);
+				else
+					console.error(JSON.stringify(response, null, 3));
+			}
 			else
-				console.error(JSON.stringify(response, null, 3));
+			{
+				if (resultHandler)
+					resultHandler(response.result, queryId);
+				if (promise)
+					resolve(response.result);
+			}
 		}
-		else
+		catch (e)
 		{
-			if (resultHandler)
-				resultHandler(response.result, queryId);
 			if (promise)
-				resolve(response.result);
+				reject(e);
+			else
+				console.error(e);
 		}
 	}
 	
@@ -59,7 +69,10 @@ function bulkQueryService(url, method, queryIdToParams, resultsHandler)
 {
 	var batch = [];
 	for (var queryId in queryIdToParams)
-		batch.push({jsonrpc: "2.0", id: queryId, method: method, params: queryIdToParams[queryId]});
+	{
+		var m = typeof method === 'string' ? method : method[queryId];
+		batch.push({jsonrpc: "2.0", id: queryId, method: m, params: queryIdToParams[queryId]});
+	}
 	if (batch.length)
 		jQuery.post(url, JSON.stringify(batch), handleBatch, "json");
 	else
@@ -76,26 +89,45 @@ function bulkQueryService(url, method, queryIdToParams, resultsHandler)
 	
 	function handleBatch(batchResponse)
 	{
-		var results = Array.isArray(queryIdToParams) ? [] : {};
-		for (var i in batchResponse)
+		try
 		{
-			var response = batchResponse[i];
-			if (response.error)
+			var results = Array.isArray(queryIdToParams) ? [] : {};
+			var foundError = false;
+			for (var i in batchResponse)
+			{
+				var response = batchResponse[i];
+				if (response.error)
+				{
+					results[response.id] = response.error;
+					foundError = true;
+				}
+				else
+				{
+					results[response.id] = response.result;
+				}
+			}
+			if (foundError)
 			{
 				if (promise)
-					resolve(response.error);
+					reject(results);
 				else
-					console.error(JSON.stringify(response, null, 3));
+					console.error(JSON.stringify(results, null, 3));
 			}
 			else
 			{
-				results[response.id] = response.result;
+				if (resultsHandler)
+					resultsHandler(results);
+				if (promise)
+					resolve(results);
 			}
 		}
-		if (resultsHandler)
-			resultsHandler(results);
-		if (promise)
-			resolve(results);
+		catch (e)
+		{
+			if (promise)
+				reject(e);
+			else
+				console.error(e);
+		}
 	}
 	
 	return promise;
@@ -117,14 +149,17 @@ function queryDataService(method, params, resultHandler, queryId)
 
 /**
  * Gets a complete tree of Entity objects.
- * @param {string} dataServiceUrl The URL to the Weave data service, such as "/WeaveServices/DataService".
- * @param {number} rootEntityId The ID of a Weave entity.
+ * @param {string} url The URL to the Weave data service, such as "/WeaveServices/DataService". Also supports AdminService from weave-server-migration-tools.js.
+ * @param {number} rootEntityId The ID of a Weave entity, or an Array of IDs.
  * @param {function(Object)} callback Optional Function which will receive the root Entity object with a 'children' property
  *                 which will be an Array of child Entity objects, also having 'children' properties, and so on.
+ *                 If rootEntityId is an Array of IDs, the result will be an Array of Entity trees.
  * @return A Promise.
  */
-function getEntityTree(dataServiceUrl, rootEntityId, callback)
+function getEntityTree(url, rootEntityId, callback)
 {
+	var rootIds = Array.isArray(rootEntityId) ? rootEntityId : [rootEntityId];
+	
 	var promise, resolve, reject;
 	if (window.Promise)
 	{
@@ -135,8 +170,8 @@ function getEntityTree(dataServiceUrl, rootEntityId, callback)
 	}
 	
 	var lookup = {};
-	function cacheEntityTree(ids) {
-		queryService(dataServiceUrl, 'getEntities', [ids], function(entities) {
+	function cacheEntityTrees(ids) {
+		function handleEntities(entities) {
 			// compile a list of all child ids
 			var allChildIds = [];
 			entities.forEach(function(entity) {
@@ -147,17 +182,26 @@ function getEntityTree(dataServiceUrl, rootEntityId, callback)
 			allChildIds = allChildIds.filter(function(id) { return !lookup[id]; });
 			// recursive call if we are still missing some entities
 			if (allChildIds.length)
-				return cacheEntityTree(allChildIds);
-			// all done, so fill in 'children' property of all entities and return the root entity
+				return cacheEntityTrees(allChildIds);
+			// all done, so fill in 'children' property of all entities and return the root entities
 			for (var id in lookup)
 				lookup[id].children = lookup[id].childIds.map(function(id){ return lookup[id]; });
 			
-			callback(lookup[rootEntityId]);
+			var results = rootIds.map(function(id){ return lookup[id]; });
+			if (!Array.isArray(rootEntityId))
+				results = results[0];
+			
+			if (callback)
+				callback(results);
 			if (promise)
-				resolve(lookup[rootEntityId]);
-		});
+				resolve(results);
+		}
+		if (typeof url === 'string')
+			return queryService(url, 'getEntities', [ids], handleEntities);
+		else
+			return url.queue('getEntities', [ids]).then(handleEntities);
 	}
-	cacheEntityTree([rootEntityId]);
+	cacheEntityTrees(rootIds);
 	
 	return promise;
 }

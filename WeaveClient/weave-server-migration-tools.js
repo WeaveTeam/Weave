@@ -3,51 +3,62 @@
 function AdminService(url, user, pass)
 {
 	this.url = url;
-	this.promise = queryService(this.url, 'authenticate', [user, pass]);
+	this.user = user;
+	this.pass = pass;
+	this.promise = queryService(this.url, 'authenticate', [this.user, this.pass]);
 }
 AdminService.prototype.queue = function(method, params)
 {
-	promise = promise.then(function() {
-		return queryService(this.url, method, params);
-	});
-	return this;
+	return this
+		.bulkQueue(method, [params])
+		.then(function(results) {
+			return results[0];
+		});
 };
 AdminService.prototype.bulkQueue = function(method, queryIdToParams)
 {
-	promise = promise.then(function() {
-		return bulkQueryService(this.url, method, queryIdToParams);
-	});
-	return this;
+	var methodArray = [];
+	var queryIdArray = [];
+	var paramsArray = [];
+	for (var queryId in queryIdToParams)
+	{
+		var m = typeof method === 'string' ? method : method[queryId];
+		methodArray.push(m);
+		queryIdArray.push(queryId);
+		paramsArray.push(queryIdToParams[queryId]);
+	}
+	return this.promise = this.promise
+		.then(function() {
+			return bulkQueryService(this.url,
+				['authenticate'].concat(methodArray),
+				[[this.user, this.pass]].concat(paramsArray)
+			);
+		}.bind(this))
+		.then(function(results) {
+			results.shift();
+			if (Array.isArray(queryIdToParams))
+				return results;
+			var obj = {};
+			for (var i in results)
+				obj[queryIdArray[i]] = results[i];
+			return obj;
+		});
 };
 AdminService.prototype.then = function(resolve, reject) {
-	promise = promise.then(resolve, reject);
-	return this;
+	return this.promise = this.promise.then(resolve, reject);
 };
 
 function getColumnIds(weave)
 {
 	return weave.path().getValue("\
-		import 'weave.data.AttributeColumns.ReferencedColumn';\
-		import 'weave.data.DataSources.WeaveDataSource';\
-		var cols = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, ReferencedColumn);\
+		var cols = getLinkableDescendants(WeaveAPI.globalHashMap, ReferencedColumn);\
 		return cols.filter(col => col.getDataSource() is WeaveDataSource).map(col => {\
 			var meta = col.metadata.getSessionState();\
 			if (!meta.weaveEntityId)\
-				weaveTrace(Class('weave.compiler.Compiler').stringify(meta));\
+				weaveTrace(Compiler.stringify(meta));\
 			return meta.weaveEntityId || meta;\
 		});\
 	");
-}
-
-function _dedupe(array)
-{
-	var lookup = {};
-	for (var i in array)
-		lookup[array[i]] = array[i];
-	var result = [];
-	for (var i in lookup)
-		result.push(lookup[i]);
-	return result;
 }
 
 function getTableIds(weave, adminService)
@@ -55,35 +66,78 @@ function getTableIds(weave, adminService)
 	return adminService
 		.queue('getEntities', [getColumnIds(weave)])
 		.then(function(columns){
-			return _dedupe(columns.map(function(column){
+			return arrayToSet(columns.map(function(column){
 				return column.parentIds[0];
 			}));
 		});
 }
 
-function migrateTableMetadata(weave, fromAdmin, toAdmin)
+/*
+Example usage for migrateEntityTrees():
+
+var fromAdmin = new AdminService('http://old.example.com/WeaveServices/AdminService', 'olduser', 'oldpass');
+var toAdmin = new AdminService('http://new.example.com/WeaveServices/AdminService', 'newuser', 'newpass');
+fromAdmin
+.queue('findEntityIds', [{entityType: 'table', title: '*example search*'}, ['title']])
+.then(ids => migrateEntityTrees(fromAdmin, toAdmin, ids, 'old.example.com'))
+
+*/
+
+/**
+ * Migrates trees of entities from one AdminService to another.
+ * @param fromAdmin Either an AdminService or a String to use as the metadata property name for storing old IDs
+ * @param toAdmin An AdminService
+ * @param trees Either an Array of Entity Trees from getEntityTree() or an Array of IDs to pass to getEntityTree() along with the fromAdmin AdminService.
+ * @param idMapping A String to use as the metadata property name for storing old IDs.
+ * 					Internally this param is used to pass an object mapping old IDs to new IDs.
+ * @returns A Promise.
+ */
+function migrateEntityTrees(fromAdmin, toAdmin, trees, idMapping)
 {
-	var allIds;
-	return getTableIds(weave, fromAdmin)
-		.then(function(tableIds) {
-			return fromAdmin
-				.queue('getEntities', [tableIds])
-				.then(function(tables){
-					allIds = tableIds.concat();
-					tables.forEach(function(table){
-						allIds = allIds.concat(table.childIds);
-					});
-					return toAdmin.queue('getEntities', [allIds]);
-				})
-				.then(function(toEntities){
-					if (toEntities.length)
-						throw new Error('Found conflicting entity IDs on destination Admin Service');
-					return fromAdmin.queue('getEntities', [allIds]);
-				})
-				.then(function(fromEntities){
-					return toAdmin.queue('migrateEntities', fromEntities);
-				});
-		}, function(error){ console.error(error); });
+	var idProp;
+	if (typeof idMapping === 'string')
+	{
+		idProp = idMapping;
+		idMapping = {};
+	}
+	else if (typeof fromAdmin === 'string')
+	{
+		idProp = fromAdmin;
+	}
+	else
+	{
+		idProp = fromAdmin.url;
+	}
+	if (!idMapping)
+		idMapping = {};
+	
+	return toAdmin
+		.then(function() {
+			if (trees.every(function(tree){ return typeof tree === 'number'; }))
+				return getEntityTree(fromAdmin, trees);
+			return trees;
+		})
+		.then(function(entityTrees) {
+			trees = entityTrees;
+			return toAdmin
+				.bulkQueue('newEntity', trees.map(function(tree, index) {
+					tree.publicMetadata[idProp] = "" + tree.id;
+					var parentId = -1;
+					if (tree.parentIds.length)
+						parentId = tree.parentIds[0];
+					if (idMapping.hasOwnProperty(parentId))
+						parentId = idMapping[parentId];
+					return [tree, parentId, index];
+				}));
+		})
+		.then(function(newTreeIds) {
+			trees.forEach(function(tree, index) {
+				idMapping[tree.id] = newTreeIds[index];
+			});
+			var childTrees = [].concat.apply([], trees.map(function(tree) { return tree.children; }));
+			if (childTrees.length)
+				return migrateEntityTrees(idProp, toAdmin, childTrees, idMapping);
+		});
 }
 
 function arrayToSet(array)
