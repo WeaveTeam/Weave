@@ -284,7 +284,6 @@
 				
 				// make sure WMS layers are included in the full data bounds
 				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = true;
-				visualization.plotManager.includeNonSelectableLayersInAutoZoom.lock();
 				
 				visualization.plotManager.enableFixedAspectRatio.value = true;
 				visualization.plotManager.enableAutoZoomToExtent.value = false;

@@ -114,6 +114,13 @@ package weave.core
 		
 		private function primaryCallback():void
 		{
+			if (_callbacks.callbacksAreDelayed)
+			{
+				_delayedSynchronize = true;
+				_callbacks.triggerCallbacks();
+				return;
+			}
+			
 			if (primaryTransform.value)
 			{
 				try
@@ -134,6 +141,13 @@ package weave.core
 		}
 		private function secondaryCallback():void
 		{
+			if (_callbacks.callbacksAreDelayed)
+			{
+				_delayedSynchronize = true;
+				_callbacks.triggerCallbacks();
+				return;
+			}
+			
 			if (secondaryTransform.value)
 			{
 				try

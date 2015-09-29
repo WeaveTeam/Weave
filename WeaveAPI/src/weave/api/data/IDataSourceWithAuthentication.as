@@ -29,10 +29,10 @@ package weave.api.data
 		 */
 		function get authenticationRequired():Boolean;
 		
-//		/**
-//		 * The username that has been successfully authenticated.
-//		 */
-//		function get authenticatedUser():String;
+		/**
+		 * The username that has been successfully authenticated.
+		 */
+		function get authenticatedUser():String;
 		
 		/**
 		 * Authenticates with the server.

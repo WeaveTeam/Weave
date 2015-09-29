@@ -37,8 +37,8 @@
 		<ui:IndentTextInput label="{lang('Server Port')}" id="portInput" change="generate()" text="{getDefaultPort(dbmsCombo.text)}" inputWidth="{inputWidth}" group="{indentGroup}"/>
 		<ui:Indent id="sqlDatabaseName" label="{isSQLServer(dbmsCombo.text) ? 'Instance name' : 'Database name'}" group="{indentGroup}">
 			<mx:TextInput id="databaseInput" change="generate()" width="{inputWidth}"/>
-			<mx:Label id="optionalText" text="(Optional)" visible="{!isSQLServer(dbmsCombo.text)}"/>
-			<ui:HelpComponent id="optionalHelp" visible="{!isSQLServer(dbmsCombo.text)}">
+			<mx:Label id="optionalText" text="(Optional)"/>
+			<ui:HelpComponent id="optionalHelp">
 				This field is optional.
 				You can specify the name of a default database to connect to.
 				For SQL Server, this is an instance name.
@@ -53,10 +53,8 @@
 		</ui:Indent>
 		<ui:CustomCheckBox id="useDirectoryService" label="{lang('Use pass-through authentication')}" valueCommit="generate()"/>
 		<ui:IndentTextInput label="User Name" id="userInput" change="generate()" inputWidth="{inputWidth}" group="{indentGroup}"
-							prompt="{isSQLServer(dbmsCombo.text) ? lang('Leave blank for Directory Service integration') : ''}"
 							visible="{!useDirectoryService.selected}" includeInLayout="{!useDirectoryService.selected}"/>
 		<ui:IndentTextInput label="Password" id="passInput" change="generate()" displayAsPassword="false" inputWidth="{inputWidth}" group="{indentGroup}"
-							prompt="{isSQLServer(dbmsCombo.text) ? lang('Leave blank for Directory Service integration') : ''}"
 							visible="{!useDirectoryService.selected}" includeInLayout="{!useDirectoryService.selected}"/>
 	</mx:VBox>
 	<mx:Script>

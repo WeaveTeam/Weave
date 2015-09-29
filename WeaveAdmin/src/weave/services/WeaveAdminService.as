@@ -267,12 +267,10 @@ package weave.services
 		private function generateQuery(service:AMF3Servlet, methodName:String, parameters:Array, queued:Boolean, returnType:Class):AsyncToken
 		{
 			var query:ProxyAsyncToken = new ProxyAsyncToken(service.invokeAsyncMethod, [methodName, parameters]);
-
+			addAsyncResponder(query, null, interceptFault, query);
+			
 			if (queued)
-			{
-				addAsyncResponder(query, null, interceptFault, query);
 				queue.addToQueue(query);
-			}
 			
 			hookCaptureHandler(query);
 
