@@ -53,7 +53,7 @@ package weave.visualization.plotters
 		public function ImageGlyphPlotter()
 		{
 			color.internalDynamicColumn.target = Weave.defaultColorColumn;
-			color.defaultValue.value = 1;
+			alpha.defaultValue.value = 1;
 		}
 		
 		public const color:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
