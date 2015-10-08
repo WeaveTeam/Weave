@@ -136,7 +136,7 @@
 
 	<target name="prep_version_update">
 		<exec searchpath="true"
-			  outputproperty="GIT_IS_MODIFIED"
+			  outputproperty="GIT_PORCELAIN_OUTPUT"
 			  executable="git">
 			<arg value="status"/>
 			<arg value="--porcelain"/>
@@ -149,6 +149,11 @@
 			<arg value="--short"/>
 			<arg value="HEAD"/>
 		</exec>
+		<condition property="GIT_IS_MODIFIED">
+			<not>
+				<equals arg1="${GIT_PORCELAIN_OUTPUT}" arg2=""/>
+			</not>
+		</condition>
 		<tstamp>
 			<format property="GIT_BUILD_TIME" pattern="EEE MMM d HH:mm:ss z yyyy"/>
 		</tstamp>
@@ -156,10 +161,12 @@
 
 
 	<target name="is_git_version" depends="prep_version_update" unless="GIT_IS_MODIFIED">
+		<echo>GIT_isn't_MODIFIED</echo>
 		<property name="VERSION" value="Automated Build ${GIT_SHORT_VERSION}, ${GIT_BUILD_TIME}"/>
 	</target>
 	
 	<target name="is_custom_version" depends="prep_version_update" if="GIT_IS_MODIFIED">
+            <echo>GIT_IS_MODIFIED ${GIT_IS_MODIFIED}</echo>
 		<property name="VERSION" value="Custom"/>
 	</target>
 	
