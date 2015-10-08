@@ -50,6 +50,7 @@ import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.ConnectionConfig.WeaveAuthenticationException;
 import weave.config.ConnectionConfig;
 import weave.config.DataConfig;
+import weave.config.WeaveConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
 import weave.config.DataConfig.DataEntityWithRelationships;
@@ -199,6 +200,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		String username = (String)session.getAttribute(SESSION_USERNAME);
 
 		return MapUtils.fromPairs(
+			"version", WeaveConfig.getVersion(),
 			"authenticatedUser", username,
 			"hasDirectoryService", connConfig.getConnectionInfo(ConnectionInfo.DIRECTORY_SERVICE) != null,
 			"idFields", connConfig.getDatabaseConfigInfo().idFields
