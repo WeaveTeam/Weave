@@ -23,6 +23,7 @@ package weave.services
 	import mx.utils.URLUtil;
 	
 	import weave.api.linkBindableProperty;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
@@ -68,7 +69,7 @@ package weave.services
 		public function getFocusEntityId():int
 		{
 			// if the entity does not exist on the server, don't attempt to focus on it
-			if (!entityCache.entityIsCached(focusEntityId))
+			if (!linkableObjectIsBusy(entityCache) && !entityCache.entityIsCached(focusEntityId))
 				focusEntityId = -1;
 			return focusEntityId;
 		}
