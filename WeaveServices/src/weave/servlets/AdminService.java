@@ -583,11 +583,20 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		throws RemoteException
 	{
 		ConnectionConfig config = getConnectionConfig();
-		ConnectionInfo activeInfo = getConnectionInfo();
+		ConnectionInfo activeInfo = null;
+		try
+		{
+			activeInfo = getConnectionInfo();
+		}
+		catch (WeaveAuthenticationException e)
+		{
+			if (config.getDatabaseConfigInfo() != null)
+				throw e;
+		}
 		ConnectionInfo paramInfo = config.getConnectionInfo(connectionName);
 		if (paramInfo == null || !Strings.equal(password, paramInfo.pass))
 			throw new RemoteException("Incorrect username or password.");
-		if (!activeInfo.is_superuser || !paramInfo.is_superuser)
+		if ((activeInfo != null && !activeInfo.is_superuser) || !paramInfo.is_superuser)
 			throw new RemoteException("Unable to store configuration information without superuser privileges.");
 		
 		//TODO: option to migrate all data from old db to new db?

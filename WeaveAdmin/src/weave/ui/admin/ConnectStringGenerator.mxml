@@ -118,8 +118,8 @@
 						ipInput.text,
 						portInput.text,
 						databaseInput.text,
-						useDirectoryService.selected ? userInput.text : "",
-						useDirectoryService.selected ? passInput.text : ""
+						useDirectoryService.selected ? "" : userInput.text,
+						useDirectoryService.selected ? "" : passInput.text
 					);
 				
 				triggerCallbacks();
