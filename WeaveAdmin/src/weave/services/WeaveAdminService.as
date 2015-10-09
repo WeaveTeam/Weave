@@ -15,8 +15,6 @@
 
 package weave.services
 {
-	import avmplus.DescribeType;
-	
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
@@ -33,6 +31,8 @@ package weave.services
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.StringUtil;
+	
+	import avmplus.DescribeType;
 	
 	import weave.api.disposeObject;
 	import weave.api.registerLinkableChild;
@@ -348,6 +348,11 @@ package weave.services
 					+ "Has the WAR file been deployed correctly?\n"
 					+ "Expected servlet URL: "+ adminService.servletURL;
 			messageDisplay(event.fault.name, msg, true);
+		}
+		
+		public function getVersion():AsyncToken
+		{
+			return invokeAdmin(getVersion, arguments);
 		}
 
 		public function checkDatabaseConfigExists():AsyncToken

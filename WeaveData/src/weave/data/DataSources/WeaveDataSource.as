@@ -272,6 +272,12 @@ package weave.data.DataSources
 			url.resumeCallbacks();
 		}
 		
+		public function get serverVersion():String
+		{
+			var info:Object = _service.getServerInfo();
+			return info ? info['version'] : null;
+		}
+		
 		private function setIdFields():void
 		{
 			// if deprecated idFields state has been set to an array, ignore server setting

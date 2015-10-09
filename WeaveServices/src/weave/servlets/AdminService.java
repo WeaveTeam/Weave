@@ -134,6 +134,11 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		}
 	}
 	
+	public String getVersion()
+	{
+		return WeaveConfig.getVersion();
+	}
+	
 	public boolean checkDatabaseConfigExists() throws RemoteException
 	{
 		if (initializationError != null)
