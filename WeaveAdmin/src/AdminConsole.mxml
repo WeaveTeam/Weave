@@ -136,7 +136,7 @@
 							reportError(lang(
 								"Server and client versions do not match:\n" +
 								"\tServer: {0}\n" +
-								"\tClient: {0}\n" +
+								"\tClient: {1}\n" +
 								"Please try clearing your browser cache or redeploying the WAR file.",
 								event.result,
 								version
