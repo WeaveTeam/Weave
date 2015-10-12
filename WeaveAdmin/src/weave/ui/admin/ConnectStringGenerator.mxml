@@ -24,7 +24,7 @@
 				xmlns="weave.ui.admin.managers.*" implements="weave.api.core.ILinkableObject" 
 				>
 	<ui:Indent label="{lang('Server Type')}" group="{indentGroup}">
-		<ui:CustomComboBox id="dbmsCombo" valueCommit="if (UIUtils.hasFocus(dbmsCombo)) generate()" initialize="dbmsCombo.dataProvider = ConnectionInfo.dbmsList;" width="{inputWidth}"/>
+		<ui:CustomComboBox id="dbmsCombo" prompt="{lang('Select server type...')}" valueCommit="if (UIUtils.hasFocus(dbmsCombo)) generate()" initialize="dbmsCombo.dataProvider = ConnectionInfo.dbmsList;" width="{inputWidth}" selectedIndex="-1"/>
 	</ui:Indent>
 	<ui:Indent id="sqliteIndent" label="{lang('SQLite Database File')}" group="{indentGroup}" visible="{dbmsCombo.text == ConnectionInfo.SQLITE}" includeInLayout="{dbmsCombo.text == ConnectionInfo.SQLITE}">
 		<mx:TextInput id="sqliteDBFile" change="generate()" width="{inputWidth}" />
@@ -52,14 +52,15 @@
 			-->
 		</ui:Indent>
 		<ui:CustomCheckBox id="useDirectoryService" label="{lang('Use pass-through authentication')}" valueCommit="generate()"/>
-		<ui:IndentTextInput label="User Name" id="userInput" change="generate()" inputWidth="{inputWidth}" group="{indentGroup}"
+		<ui:IndentTextInput label="{lang('Domain')}" id="domainInput" change="generate()" inputWidth="{inputWidth}" group="{indentGroup}"
+							visible="{isSQLServer(dbmsCombo.text) || !dbmsCombo.selectedItem}" includeInLayout="{isSQLServer(dbmsCombo.text) || !dbmsCombo.selectedItem}"/>
+		<ui:IndentTextInput label="{lang('User Name')}" id="userInput" change="generate()" inputWidth="{inputWidth}" group="{indentGroup}"
 							visible="{!useDirectoryService.selected}" includeInLayout="{!useDirectoryService.selected}"/>
-		<ui:IndentTextInput label="Password" id="passInput" change="generate()" displayAsPassword="false" inputWidth="{inputWidth}" group="{indentGroup}"
+		<ui:IndentTextInput label="{lang('Password')}" id="passInput" change="generate()" displayAsPassword="false" inputWidth="{inputWidth}" group="{indentGroup}"
 							visible="{!useDirectoryService.selected}" includeInLayout="{!useDirectoryService.selected}"/>
 	</mx:VBox>
 	<mx:Script>
 		<![CDATA[
-			import mx.core.UIComponent;
 			import mx.utils.URLUtil;
 			
 			import weave.api.getCallbackCollection;
@@ -87,7 +88,7 @@
 			
 			public function resetFields(resetConnectString:Boolean = true):void
 			{
-				dbmsCombo.selectedIndex = 0;
+				dbmsCombo.selectedIndex = -1;
 				sqliteDBFile.text = "";
 				ipInput.text = hostIP;
 				databaseInput.text = "";
@@ -111,7 +112,7 @@
 				
 				var isSQLite:Boolean = dbmsCombo.text == ConnectionInfo.SQLITE;
 				if (isSQLite)
-					connectString = getConnectString(dbmsCombo.text, "", "", sqliteDBFile.text, "", "");
+					connectString = getConnectString(dbmsCombo.text, "", "", sqliteDBFile.text, "", "", "");
 				else
 					connectString = getConnectString(
 						dbmsCombo.text,
@@ -119,7 +120,8 @@
 						portInput.text,
 						databaseInput.text,
 						useDirectoryService.selected ? "" : userInput.text,
-						useDirectoryService.selected ? "" : passInput.text
+						useDirectoryService.selected ? "" : passInput.text,
+						isSQLServer(dbmsCombo.text) ? domainInput.text : ""
 					);
 				
 				triggerCallbacks();
@@ -137,9 +139,10 @@
 			 * @param database The name of a database to connect to (can be "" for MySQL)
 			 * @param user The username to use when connecting.
 			 * @param pass The password associated with the username.
+			 * @param domain The domain paramter for a SQLServer connection.
 			 * @return A connect string that can be used in the getConnection() function.
 			 */
-			private function getConnectString(dbms:String, ip:String, port:String, database:String, user:String, pass:String):String
+			private function getConnectString(dbms:String, ip:String, port:String, database:String, user:String, pass:String, domain:String):String
 			{
 				var host:String;
 				if (!port)
@@ -147,14 +150,14 @@
 				else
 					host = ip + ":" + port;
 				
-				// in format strings: {0}=dbms,{1}=host,{2}=database,{3}=user,{4}=pass
+				// in format strings: {0}=dbms,{1}=host,{2}=database,{3}=user,{4}=pass,{5}=domain
 				
 				var format:String = null;
 				if (dbms == ConnectionInfo.SQLSERVER)
 				{
 					dbms = "sqlserver"; // this will be put in the format string
 					if (user || pass)
-						format = "jdbc:jtds:{0}://{1}/;instance={2};user={3};password={4}";
+						format = "jdbc:jtds:{0}://{1}/;instance={2};user={3};password={4};domain={5}";
 					else
 						format = "jdbc:jtds:{0}://{1}/;instance={2}";
 				}
@@ -188,7 +191,7 @@
 					pass = encodeURIComponent(pass);
 				}
 				
-				var result:String = StandardLib.substitute(format, dbms.toLowerCase(), host, database, user, pass);
+				var result:String = StandardLib.substitute(format, dbms.toLowerCase(), host, database, user, pass, domain);
 				
 				return result;
 			}
