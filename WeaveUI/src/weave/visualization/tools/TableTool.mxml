@@ -654,20 +654,20 @@
 					dataGrid.lockedColumnCount = lockedColumns.value;
 			}
 			
-			private var _previousSelection:Object ;
+			private var _previousSelection:Object;
 			
 			private function handleMouseDown():void
 			{
-				detectLinkableObjectChange( handleMouseClick, selectionKeySet )
+				detectLinkableObjectChange(handleMouseClick, selectionKeySet);
 			}
 			
 			private function handleMouseClick():void
 			{
-				if (!detectLinkableObjectChange( handleMouseClick, selectionKeySet ))
-					if ( dataGrid.mouseY > dataGrid.headerHeight )
-						if ( dataGrid.mouseX < dataGrid.width - SCROLLBAR_WIDTH)
-							if ( WeaveAPI.StageUtils.pointClicked )
-								_selection.clearKeys() ;
+				if (!detectLinkableObjectChange(handleMouseClick, selectionKeySet) && _selection)
+					if (dataGrid.mouseY > dataGrid.headerHeight)
+						if (dataGrid.mouseX < dataGrid.width - SCROLLBAR_WIDTH)
+							if (WeaveAPI.StageUtils.pointClicked)
+								_selection.clearKeys();
 			}
 			private static const SCROLLBAR_WIDTH:int = 16;
 			
