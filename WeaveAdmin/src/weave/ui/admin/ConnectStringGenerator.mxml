@@ -157,9 +157,9 @@
 				{
 					dbms = "sqlserver"; // this will be put in the format string
 					if (user || pass)
-						format = "jdbc:jtds:{0}://{1}/;instance={2};user={3};password={4};domain={5}";
+						format = "jdbc:jtds:{0}://{1}/;instance={2};domain={5};user={3};password={4}";
 					else
-						format = "jdbc:jtds:{0}://{1}/;instance={2}";
+						format = "jdbc:jtds:{0}://{1}/;instance={2};domain={5}";
 				}
 				else if (dbms == ConnectionInfo.SQLITE)
 				{
