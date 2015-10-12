@@ -92,6 +92,7 @@
 				sqliteDBFile.text = "";
 				ipInput.text = hostIP;
 				databaseInput.text = "";
+				domainInput.text = "";
 				userInput.text = "";
 				passInput.text = "";
 				useDirectoryService.selected = false;
