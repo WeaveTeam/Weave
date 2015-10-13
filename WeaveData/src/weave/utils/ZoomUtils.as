@@ -49,7 +49,8 @@ package weave.utils
 		 * This function calculates the unambiguous scale value (defined as pixels per data unit) based on the parameters.
 		 * @param fullDataBounds The full extent in data coordinates.
 		 * @param minScreenSize The minimum size that the fullDataBounds can appear as on the screen (the screen size of zoom level zero).
-		 * @return The zoom level, where the screen size of the full extent is 2^zoomLevel * minSize.
+		 * @param zoomLevel The zoom level, where the screen size of the full extent is 2^zoomLevel * minSize.
+		 * @return The scale, defined as pixels per data unit.
 		 */
 		public static function getScaleFromZoomLevel(fullDataBounds:IBounds2D, minScreenSize:Number, zoomLevel:Number):Number
 		{
