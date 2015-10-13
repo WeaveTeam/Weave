@@ -46,15 +46,17 @@ package weave.core
 		{
 			var variable:ILinkableObject = variables.getObject(name);
 			
+			// if it's not a variable, it's a macro
+			if (!variable)
+				return LinkableFunction.evaluateMacro(name);
+			
+			if (variable is ILinkableDynamicObject)
+				variable = (variable as ILinkableDynamicObject).internalObject;
+			
 			if (variable is ILinkableVariable)
 				return (variable as ILinkableVariable).getSessionState();
 			
-			if (variable is ILinkableDynamicObject)
-				return (variable as ILinkableDynamicObject).internalObject;
-			
 			return variable
-				|| LinkableFunction.evaluateMacro(name)
-				|| undefined;
 		}
 		
 		public function hasValue(name:String):Boolean
