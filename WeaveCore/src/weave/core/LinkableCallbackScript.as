@@ -19,9 +19,7 @@ package weave.core
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableObject;
-	import weave.api.core.ILinkableVariable;
 	import weave.compiler.Compiler;
 	import weave.compiler.ProxyObject;
 	
@@ -38,28 +36,17 @@ package weave.core
 		public const delayWhileBusy:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		private var _callbacks:ICallbackCollection;
-		private const _symbolTableProxy:ProxyObject = new ProxyObject(hasValue, getValue, null);
+		private const _symbolTableProxy:ProxyObject = new ProxyObject(hasVariable, getVariable, null);
 		private var _compiledScript:Function = null;
 		private static const _compiler:Compiler = new Compiler(true);
 		
-		public function getValue(name:String):*
+		public function getVariable(name:String):*
 		{
-			var variable:ILinkableObject = variables.getObject(name);
-			
-			// if it's not a variable, it's a macro
-			if (!variable)
-				return LinkableFunction.evaluateMacro(name);
-			
-			if (variable is ILinkableDynamicObject)
-				variable = (variable as ILinkableDynamicObject).internalObject;
-			
-			if (variable is ILinkableVariable)
-				return (variable as ILinkableVariable).getSessionState();
-			
-			return variable
+			return variables.getObject(name)
+				|| LinkableFunction.evaluateMacro(name);
 		}
 		
-		public function hasValue(name:String):Boolean
+		public function hasVariable(name:String):Boolean
 		{
 			return variables.getObject(name) != null
 				|| LinkableFunction.macros.getObject(name) != null;
