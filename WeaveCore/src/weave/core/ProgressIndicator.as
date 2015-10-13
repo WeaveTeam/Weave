@@ -179,11 +179,10 @@ package weave.core
 			{
 				var stackTrace:String = _stackTrace[i]; // check this when debugging
 				var description:String = _description[i];
-				var args:Array = [debugId(i), description, stackTrace];
 				if (Capabilities.isDebugger)
-					trace.apply(null, args);
+					trace(debugId(i), description, stackTrace);
 				else
-					weaveTrace.apply(null, args);
+					weaveTrace(debugId(i), description);
 			}
 		}
 	}
