@@ -34,6 +34,7 @@ package weave.services
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.services.beans.AttributeColumnData;
 	import weave.services.beans.GeometryStreamMetadata;
+	import weave.services.beans.TableData;
 	
 	use namespace mx_internal;
 	
@@ -275,6 +276,11 @@ package weave.services
 		public function getColumn(columnId:Object, minParam:Number, maxParam:Number, sqlParams:Array):AsyncToken
 		{
 			return invoke(getColumn, arguments, AttributeColumnData);
+		}
+		
+		public function getTable(id:int, sqlParams:Array):AsyncToken
+		{
+			return invoke(getTable, arguments, TableData);
 		}
 		
 		/////////////////////

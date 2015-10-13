@@ -25,7 +25,7 @@
 	<mx:HBox width="100%">
 		<mx:Label id="title" fontWeight="bold"/>
 		<mx:Spacer width="100%"/>
-		<mx:Label id="idDisplay"/>
+		<mx:Label id="idDisplay" selectable="true"/>
 	</mx:HBox>
     <ui:CustomTabNavigator width="{width}" height="100%">
         <ui:MetadataGrid id="publicMetaGrid"

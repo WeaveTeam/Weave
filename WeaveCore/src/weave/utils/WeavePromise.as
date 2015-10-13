@@ -71,7 +71,7 @@ package weave.utils
 		private static function noop(value:Object):Object { return value; }
 		
 		private var rootPromise:WeavePromise;
-		private var relevantContext:Object;
+		protected var relevantContext:Object;
 		private var result:* = undefined;
 		private var error:* = undefined;
 		private const handlers:Array = []; // array of Handler objects

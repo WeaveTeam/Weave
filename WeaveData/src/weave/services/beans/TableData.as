@@ -15,20 +15,13 @@
 
 package weave.services.beans
 {	
-	import flash.utils.ByteArray;
+	import weave.api.data.IQualifiedKey;
 
-	public class AttributeColumnData 
+	public class TableData
 	{
-		public static const NO_TABLE_ID:int = -1;
-		
 		public var id:int;
-		public var tableId:int;
-		public var tableField:String;
-		public var metadata:Object;
-		public var keys:Array;
-		public var data:Array;
-		public var thirdColumn:Array;
-		public var metadataTileDescriptors:ByteArray;
-		public var geometryTileDescriptors:ByteArray;
+		public var keyColumn:String;
+		public var columns:Object;
+		public var qkeys:Vector.<IQualifiedKey>;
 	}
 }

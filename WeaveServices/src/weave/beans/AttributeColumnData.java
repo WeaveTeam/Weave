@@ -20,6 +20,8 @@ import java.util.Map;
 public class AttributeColumnData
 {
 	public int id;
+	public int tableId;
+	public String tableField;
 	public Map<String,String> metadata;
 	public String[] keys;
 	public Object[] data;

@@ -44,6 +44,7 @@ import org.postgis.Point;
 import weave.beans.AttributeColumnData;
 import weave.beans.GeometryStreamMetadata;
 import weave.beans.PGGeom;
+import weave.beans.TableData;
 import weave.beans.WeaveJsonDataSet;
 import weave.beans.WeaveRecordList;
 import weave.config.ConnectionConfig.ConnectionInfo;
@@ -263,7 +264,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	 * @throws RemoteException
 	 */
 	@SuppressWarnings("unchecked")
-	public AttributeColumnData getColumn(Object columnId, double minParam, double maxParam, String[] sqlParams)
+	public AttributeColumnData getColumn(Object columnId, double minParam, double maxParam, Object[] sqlParams)
 		throws RemoteException
 	{
 		DataEntity entity = null;
@@ -302,49 +303,225 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 			return result;
 		}
 		
+		//TODO - check if entity is a table
+		
 		String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
+		int tableId = DataConfig.NULL;
+		String tableField = null;
+		
+		if (Strings.isEmpty(query))
+		{
+			String entityType = entity.publicMetadata.get(PublicMetadata.ENTITYTYPE);
+			tableField = entity.privateMetadata.get(PrivateMetadata.SQLCOLUMN);
+			
+			if (!Strings.equal(entityType, EntityType.COLUMN))
+				throw new RemoteException(String.format("Entity %s has no sqlQuery and is not a column (entityType=%s)", entity.id, entityType));
+			
+			if (Strings.isEmpty(tableField))
+				throw new RemoteException(String.format("Entity %s has no sqlQuery and no sqlColumn private metadata", entity.id));
+			
+			// if there's no query, the query lives in the table entity instead of the column entity
+			DataConfig config = getDataConfig();
+			List<Integer> parentIds = config.getParentIds(entity.id);
+			Map<Integer, String> idToType = config.getEntityTypes(parentIds);
+			for (int id : parentIds)
+			{
+				if (Strings.equal(idToType.get(id), EntityType.TABLE))
+				{
+					tableId = id;
+					break;
+				}
+			}
+		}
+		
 		String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
 		
 		ConnectionInfo connInfo = getColumnConnectionInfo(entity);
 		
-		List<String> keys = new ArrayList<String>();
+		List<String> keys = null;
 		List<Double> numericData = null;
 		List<String> stringData = null;
 		List<Object> thirdColumn = null; // hack for dimension slider format
 		List<PGGeom> geometricData = null;
-		
-		// use config min,max or param min,max to filter the data
-		double minValue = Double.NaN;
-		double maxValue = Double.NaN;
-		
-		// server min,max values take priority over user-specified params
-		if (entity.publicMetadata.containsKey(PublicMetadata.MIN))
+
+		if (!Strings.isEmpty(query))
 		{
-			try {
-				minValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MIN));
-			} catch (Exception e) { }
+			keys = new ArrayList<String>();
+			
+			////// begin MIN/MAX code
+			
+			// use config min,max or param min,max to filter the data
+			double minValue = Double.NaN;
+			double maxValue = Double.NaN;
+			
+			// server min,max values take priority over user-specified params
+			if (entity.publicMetadata.containsKey(PublicMetadata.MIN))
+			{
+				try {
+					minValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MIN));
+				} catch (Exception e) { }
+			}
+			else
+			{
+				minValue = minParam;
+			}
+			if (entity.publicMetadata.containsKey(PublicMetadata.MAX))
+			{
+				try {
+					maxValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MAX));
+				} catch (Exception e) { }
+			}
+			else
+			{
+				maxValue = maxParam;
+			}
+			
+			if (Double.isNaN(minValue))
+				minValue = Double.NEGATIVE_INFINITY;
+			
+			if (Double.isNaN(maxValue))
+				maxValue = Double.POSITIVE_INFINITY;
+			
+			////// end MIN/MAX code
+			
+			try
+			{
+				Connection conn = getStaticReadOnlyConnection(connInfo);
+				
+				// use default sqlParams if not specified by query params
+				if (sqlParams == null || sqlParams.length == 0)
+				{
+					String sqlParamsString = entity.privateMetadata.get(PrivateMetadata.SQLPARAMS);
+					sqlParams = CSVParser.defaultParser.parseCSVRow(sqlParamsString, true);
+				}
+				
+				SQLResult result = SQLUtils.getResultFromQuery(conn, query, sqlParams, false);
+				
+				// if dataType is defined in the config file, use that value.
+				// otherwise, derive it from the sql result.
+				if (Strings.isEmpty(dataType))
+				{
+					dataType = DataType.fromSQLType(result.columnTypes[1]);
+					entity.publicMetadata.put(PublicMetadata.DATATYPE, dataType); // fill in missing metadata for the client
+				}
+				if (dataType.equalsIgnoreCase(DataType.NUMBER)) // special case: "number" => Double
+				{
+					numericData = new LinkedList<Double>();
+				}
+				else if (dataType.equalsIgnoreCase(DataType.GEOMETRY))
+				{
+					geometricData = new LinkedList<PGGeom>();
+				}
+				else
+				{
+					stringData = new LinkedList<String>();
+				}
+				
+				// hack for dimension slider format
+				if (result.columnTypes.length == 3)
+					thirdColumn = new LinkedList<Object>();
+				
+				Object keyObj, dataObj;
+				double value;
+				for (int i = 0; i < result.rows.length; i++)
+				{
+					keyObj = result.rows[i][0];
+					if (keyObj == null)
+						continue;
+					
+					dataObj = result.rows[i][1];
+					if (dataObj == null)
+						continue;
+					
+					if (numericData != null)
+					{
+						try
+						{
+							if (dataObj instanceof String)
+								dataObj = Double.parseDouble((String)dataObj);
+							value = ((Number)dataObj).doubleValue();
+						}
+						catch (Exception e)
+						{
+							continue;
+						}
+						// filter the data based on the min,max values
+						if (minValue <= value && value <= maxValue)
+							numericData.add(value);
+						else
+							continue;
+					}
+					else if (geometricData != null)
+					{
+						// The dataObj must be cast to PGgeometry before an individual Geometry can be extracted.
+						if (!(dataObj instanceof PGgeometry))
+							continue;
+						Geometry geom = ((PGgeometry) dataObj).getGeometry();
+						int numPoints = geom.numPoints();
+						// Create PGGeom Bean here and fill it up!
+						PGGeom bean = new PGGeom();
+						bean.type = geom.getType();
+						bean.xyCoords = new double[numPoints * 2];
+						for (int j = 0; j < numPoints; j++)
+						{
+							Point pt = geom.getPoint(j);
+							bean.xyCoords[j * 2] = pt.x;
+							bean.xyCoords[j * 2 + 1] = pt.y;
+						}
+						geometricData.add(bean);
+					}
+					else
+					{
+						stringData.add(dataObj.toString());
+					}
+					
+					// if we got here, it means a data value was added, so add the corresponding key
+					keys.add(keyObj.toString());
+					
+					// hack for dimension slider format
+					if (thirdColumn != null)
+						thirdColumn.add(result.rows[i][2]);
+				}
+			}
+			catch (SQLException e)
+			{
+				System.err.println(query);
+				e.printStackTrace();
+				throw new RemoteException(String.format("Unable to retrieve data for column %s", columnId));
+			}
+			catch (NullPointerException e)
+			{
+				e.printStackTrace();
+				throw new RemoteException("Unexpected error", e);
+			}
 		}
-		else
-		{
-			minValue = minParam;
-		}
-		if (entity.publicMetadata.containsKey(PublicMetadata.MAX))
-		{
-			try {
-				maxValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MAX));
-			} catch (Exception e) { }
-		}
-		else
-		{
-			maxValue = maxParam;
-		}
+
+		AttributeColumnData result = new AttributeColumnData();
+		result.id = entity.id;
+		result.tableId = tableId;
+		result.tableField = tableField;
+		result.metadata = entity.publicMetadata;
+		if (keys != null)
+			result.keys = keys.toArray(new String[keys.size()]);
+		if (numericData != null)
+			result.data = numericData.toArray();
+		else if (geometricData != null)
+			result.data = geometricData.toArray();
+		else if (stringData != null)
+			result.data = stringData.toArray();
+		// hack for dimension slider
+		if (thirdColumn != null)
+			result.thirdColumn = thirdColumn.toArray();
 		
-		if (Double.isNaN(minValue))
-			minValue = Double.NEGATIVE_INFINITY;
-		
-		if (Double.isNaN(maxValue))
-			maxValue = Double.POSITIVE_INFINITY;
-		
+		return result;
+	}
+	
+	public TableData getTable(int id, Object[] sqlParams) throws RemoteException
+	{
+		DataEntity entity = getDataConfig().getEntity(id);
+		ConnectionInfo connInfo = getColumnConnectionInfo(entity);
+		String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
+		Map<String, Object[]> data = new HashMap<String, Object[]>();
 		try
 		{
 			Connection conn = getStaticReadOnlyConnection(connInfo);
@@ -358,118 +535,33 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 			
 			SQLResult result = SQLUtils.getResultFromQuery(conn, query, sqlParams, false);
 			
-			// if dataType is defined in the config file, use that value.
-			// otherwise, derive it from the sql result.
-			if (Strings.isEmpty(dataType))
+			// transpose
+			int iColCount = result.columnNames.length;
+			int iRowCount = result.rows.length;
+			for (int iCol = 0; iCol < iColCount; iCol++)
 			{
-				dataType = DataType.fromSQLType(result.columnTypes[1]);
-				entity.publicMetadata.put(PublicMetadata.DATATYPE, dataType); // fill in missing metadata for the client
-			}
-			if (dataType.equalsIgnoreCase(DataType.NUMBER)) // special case: "number" => Double
-			{
-				numericData = new LinkedList<Double>();
-			}
-			else if (dataType.equalsIgnoreCase(DataType.GEOMETRY))
-			{
-				geometricData = new LinkedList<PGGeom>();
-			}
-			else
-			{
-				stringData = new LinkedList<String>();
-			}
-			
-			// hack for dimension slider format
-			if (result.columnTypes.length == 3)
-				thirdColumn = new LinkedList<Object>();
-			
-			Object keyObj, dataObj;
-			double value;
-			for (int i = 0; i < result.rows.length; i++)
-			{
-				keyObj = result.rows[i][0];
-				if (keyObj == null)
-					continue;
-				
-				dataObj = result.rows[i][1];
-				if (dataObj == null)
-					continue;
-				
-				if (numericData != null)
-				{
-					try
-					{
-						if (dataObj instanceof String)
-							dataObj = Double.parseDouble((String)dataObj);
-						value = ((Number)dataObj).doubleValue();
-					}
-					catch (Exception e)
-					{
-						continue;
-					}
-					// filter the data based on the min,max values
-					if (minValue <= value && value <= maxValue)
-						numericData.add(value);
-					else
-						continue;
-				}
-				else if (geometricData != null)
-				{
-					// The dataObj must be cast to PGgeometry before an individual Geometry can be extracted.
-					if (!(dataObj instanceof PGgeometry))
-						continue;
-					Geometry geom = ((PGgeometry) dataObj).getGeometry();
-					int numPoints = geom.numPoints();
-					// Create PGGeom Bean here and fill it up!
-					PGGeom bean = new PGGeom();
-					bean.type = geom.getType();
-					bean.xyCoords = new double[numPoints * 2];
-					for (int j = 0; j < numPoints; j++)
-					{
-						Point pt = geom.getPoint(j);
-						bean.xyCoords[j * 2] = pt.x;
-						bean.xyCoords[j * 2 + 1] = pt.y;
-					}
-					geometricData.add(bean);
-				}
-				else
-				{
-					stringData.add(dataObj.toString());
-				}
-				
-				// if we got here, it means a data value was added, so add the corresponding key
-				keys.add(keyObj.toString());
-				
-				// hack for dimension slider format
-				if (thirdColumn != null)
-					thirdColumn.add(result.rows[i][2]);
+				Object[] column = new Object[result.rows.length];
+				for (int iRow = 0; iRow < iRowCount; iRow++)
+					column[iRow] = result.rows[iRow][iCol];
+				data.put(result.columnNames[iCol], column);
 			}
 		}
 		catch (SQLException e)
 		{
 			System.err.println(query);
 			e.printStackTrace();
-			throw new RemoteException(String.format("Unable to retrieve data for column %s", columnId));
+			throw new RemoteException(String.format("Unable to retrieve data for table %s", id));
 		}
 		catch (NullPointerException e)
 		{
 			e.printStackTrace();
 			throw new RemoteException("Unexpected error", e);
 		}
-
-		AttributeColumnData result = new AttributeColumnData();
-		result.id = entity.id;
-		result.metadata = entity.publicMetadata;
-		result.keys = keys.toArray(new String[keys.size()]);
-		if (numericData != null)
-			result.data = numericData.toArray();
-		else if (geometricData != null)
-			result.data = geometricData.toArray();
-		else
-			result.data = stringData.toArray();
-		// hack for dimension slider
-		if (thirdColumn != null)
-			result.thirdColumn = thirdColumn.toArray();
 		
+		TableData result = new TableData();
+		result.id = id;
+		result.keyColumn = entity.privateMetadata.get(PrivateMetadata.KEYCOLUMN);
+		result.columns = data;
 		return result;
 	}
 	
