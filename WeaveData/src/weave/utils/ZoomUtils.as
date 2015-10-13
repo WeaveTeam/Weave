@@ -88,7 +88,6 @@ package weave.utils
 		}
 
 		/**
-		 * conformDataBoundsToAspectRatio
 		 * Enforce an aspect ratio on xDataUnitsPerPixel to yDataUnitsPerPixel.
 		 * This will increase the size of the given dataBounds either vertically or horizontally if necessary.
 		 * @param dataBounds The Bounds2D object to enforce an aspectRatio on.
