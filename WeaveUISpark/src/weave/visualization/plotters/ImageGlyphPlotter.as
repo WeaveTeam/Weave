@@ -25,6 +25,8 @@ package weave.visualization.plotters
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.Weave;
+	import weave.api.getCallbackCollection;
+	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
@@ -34,8 +36,12 @@ package weave.visualization.plotters
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
+	import weave.data.AttributeColumns.BinnedColumn;
+	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.FilteredColumn;
 	
 	/**
 	 * ImagePlotter
@@ -52,8 +58,13 @@ package weave.visualization.plotters
 		
 		public function ImageGlyphPlotter()
 		{
+			super();
+			
 			color.internalDynamicColumn.target = Weave.defaultColorColumn;
 			alpha.defaultValue.value = 1;
+			
+			color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
+			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
 		}
 		
 		public const color:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
@@ -74,6 +85,34 @@ package weave.visualization.plotters
 		private static var _missingImageClass:Class;
 		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
 
+		private const colorDataWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
+		
+		private function handleColor():void
+		{
+			var cc:ColorColumn = color.getInternalColumn() as ColorColumn;
+			var bc:BinnedColumn = cc ? cc.getInternalColumn() as BinnedColumn : null;
+			var fc:FilteredColumn = bc ? bc.getInternalColumn() as FilteredColumn : null;
+			var dc:DynamicColumn = fc ? fc.internalDynamicColumn : null;
+			colorDataWatcher.target = dc || fc || bc || cc;
+		}
+		
+		private function updateKeySources():void
+		{
+			var columns:Array = [imageSize];
+			var sortDirections:Array = [-1];
+			
+			if (colorDataWatcher.target)
+			{
+				columns.push(colorDataWatcher.target);
+				sortDirections.push(1);
+			}
+			
+			columns.push(dataX, dataY);
+			sortDirections.push(1, 1);
+			
+			setColumnKeySources(columns, sortDirections);
+		}
+		
 		/**
 		 * Draws the graphics onto BitmapData.
 		 */
