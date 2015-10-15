@@ -73,7 +73,7 @@ package weave.data.DataSources
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
 
-		const SQLPARAMS:String = 'sqlParams';
+		private static const SQLPARAMS:String = 'sqlParams';
 		
 		public function WeaveDataSource()
 		{
@@ -633,9 +633,7 @@ package weave.data.DataSources
 					return;
 				}
 				
-				var keyType:String = ColumnUtils.getKeyType(proxyColumn);
-				var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-				var setRecords:Function = function():void
+				var setRecords:Function = function(keysVector:Vector.<IQualifiedKey>):void
 				{
 					if (isGeom) // result.data is an array of PGGeom objects.
 					{
@@ -683,9 +681,10 @@ package weave.data.DataSources
 					_attributeHierarchy.detectChanges();
 				};
 	
+				var keyType:String = ColumnUtils.getKeyType(proxyColumn);
 				if (result.data != null)
 				{
-					(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, keyType, result.keys, setRecords, keysVector);
+					(WeaveAPI.QKeyManager as QKeyManager).getQKeysPromise(proxyColumn, keyType, result.keys).then(setRecords);
 				}
 				else // no data in result
 				{
@@ -723,8 +722,7 @@ package weave.data.DataSources
 					// when the promise returns, set column data
 					promise.then(function(tableData:TableData):* {
 						result.data = tableData.columns[result.tableField];
-						keysVector = tableData.qkeys;
-						setRecords();
+						setRecords(tableData.qkeys);
 					});
 				}
 			}

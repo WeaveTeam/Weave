@@ -132,8 +132,10 @@ package weave.data
 		
 		/**
 		 * Get a list of QKey objects, all with the same key type.
-		 * 
-		 * @return An array of QKeys that will be filled in asynchronously.
+		 * @param relevantContext The owner of the WeavePromise. Only one WeavePromise will be generated per owner.
+		 * @param keyType The keyType.
+		 * @param keyStrings An Array of localName values.
+		 * @return A WeavePromise that produces a Vector.<IQualifiedKey>.
 		 */
 		public function getQKeysPromise(relevantContext:Object, keyType:String, keyStrings:Array):WeavePromise
 		{
