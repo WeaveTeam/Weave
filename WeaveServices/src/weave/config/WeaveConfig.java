@@ -15,7 +15,12 @@
 
 package weave.config;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.net.URL;
 import java.rmi.RemoteException;
 
 import weave.utils.BulkSQLLoader;
@@ -30,6 +35,7 @@ public class WeaveConfig
 	private static WeaveContextParams weaveContextParams = null;
 	private static ConnectionConfig _connConfig;
 	private static DataConfig _dataConfig;
+	private static final URL WEAVE_VERSION_EMBEDDED = ConnectionConfig.class.getResource("/weave/weave_version.txt");
 	
 	public static void initWeaveConfig(WeaveContextParams wcp)
 	{
@@ -104,6 +110,22 @@ public class WeaveConfig
 		{
 			_dataConfig = null; // set to null first in case next line fails
 			_dataConfig = cc.initializeNewDataConfig(progress);
+		}
+	}
+	
+	public static String getVersion()
+	{
+		try
+		{
+			BufferedReader in = new BufferedReader(new InputStreamReader(WEAVE_VERSION_EMBEDDED.openStream()));
+			String result = in.readLine();
+			in.close();
+			return result;
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			return null;
 		}
 	}
 	

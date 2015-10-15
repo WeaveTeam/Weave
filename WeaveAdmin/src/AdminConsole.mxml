@@ -98,6 +98,7 @@
 		<![CDATA[
 			import mx.binding.utils.BindingUtils;
 			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
 			
 			import weave.Weave;
 			import weave.api.getCallbackCollection;
@@ -128,6 +129,21 @@
 			
 			private function handleCreationComplete():void
 			{
+				addAsyncResponder(
+					Admin.service.getVersion(),
+					function(event:ResultEvent, _:*):void {
+						if (event.result != version)
+							reportError(lang(
+								"Server and client versions do not match:\n" +
+								"\tServer: {0}\n" +
+								"\tClient: {1}\n" +
+								"Please try clearing your browser cache or redeploying the WAR file.",
+								event.result,
+								version
+							));
+					}
+				);
+
 				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog, true);
 				function handleMessageLog():void
 				{

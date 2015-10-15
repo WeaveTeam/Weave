@@ -4,9 +4,9 @@ License: MPL 2.0
 
 Issue Tracker & Wiki: http://info.oicweave.org/
 
-Developer documentation: http://ivpr.github.com/Weave-Binaries/asdoc/
+Developer documentation: http://WeaveTeam.github.com/Weave-Binaries/asdoc/
 
-Nightly build: https://github.com/IVPR/Weave-Binaries/zipball/master
+Nightly build: https://github.com/WeaveTeam/Weave-Binaries/zipball/master
 
 Components in this repository:
 

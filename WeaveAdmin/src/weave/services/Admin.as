@@ -23,6 +23,7 @@ package weave.services
 	import mx.utils.URLUtil;
 	
 	import weave.api.linkBindableProperty;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
@@ -68,7 +69,7 @@ package weave.services
 		public function getFocusEntityId():int
 		{
 			// if the entity does not exist on the server, don't attempt to focus on it
-			if (!entityCache.entityIsCached(focusEntityId))
+			if (!linkableObjectIsBusy(entityCache) && !entityCache.entityIsCached(focusEntityId))
 				focusEntityId = -1;
 			return focusEntityId;
 		}
@@ -141,7 +142,7 @@ package weave.services
 			service.addHook(
 				service.checkDatabaseConfigExists,
 				null,
-				function handleCheck(event:ResultEvent, token:Object):void
+				function handleCheck(event:ResultEvent, _:*):void
 				{
 					// save info
 					databaseConfigExists = event.result as Boolean;
@@ -160,7 +161,7 @@ package weave.services
 					activeConnectionName = connectionName;
 					activePassword = password;
 				},
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save info
 					userHasAuthenticated = true;
@@ -179,7 +180,7 @@ package weave.services
 			service.addHook(
 				service.saveWeaveFile,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					WeaveAdminService.messageDisplay(null, event.result as String, false);
 					
@@ -201,9 +202,9 @@ package weave.services
 			service.addHook(
 				service.getWeaveFileNames,
 				null,
-				function(event:ResultEvent, user_pass_showAllFiles:Array):void
+				function(event:ResultEvent, args:Array):void
 				{
-					var showAllFiles:Boolean = user_pass_showAllFiles[2];
+					var showAllFiles:Boolean = args[0];
 					if (showAllFiles)
 						weaveFileNames = event.result as Array || [];
 					else
@@ -215,7 +216,7 @@ package weave.services
 			service.addHook(
 				service.getConnectionNames,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save list
 					connectionNames = event.result as Array || [];
@@ -227,16 +228,15 @@ package weave.services
 				function(event:ResultEvent, args:Array):void
 				{
 					// when connection save succeeds and we just changed our password, change our login credentials
-					// 0=activeName, 1=activePass, 2=saveName, 3=savePass, 4=folderName, 5=is_superuser, 6=connectString, 7=overwrite
-					var activeName:String = args[0];
-					var saveName:String = args[2];
-					var savePass:String = args[3];
+					// 0=user, 1=pass, 2=folderName, 3=is_superuser, 4=connectString, 5=overwrite
+					var saveName:String = args[0];
+					var savePass:String = args[1];
 					if (!userHasAuthenticated)
 					{
 						activeConnectionName = saveName;
 						activePassword = savePass;
 					}
-					else if (activeName == saveName && activeConnectionName == saveName)
+					else if (activeConnectionName == saveName)
 					{
 						activePassword = savePass;
 					}
@@ -249,12 +249,11 @@ package weave.services
 			service.addHook(
 				service.removeConnectionInfo,
 				null,
-				function(event:ResultEvent, user_pass_connectionNameToRemove:Array):void
+				function(event:ResultEvent, args:Array):void
 				{
-					var activeUser:String = user_pass_connectionNameToRemove[0];
-					var removedUser:String = user_pass_connectionNameToRemove[2];
+					var removedUser:String = args[0];
 					// if user removed self, log out
-					if (activeUser == removedUser)
+					if (activeConnectionName == removedUser)
 					{
 						activeConnectionName = '';
 						activePassword = '';
@@ -272,7 +271,7 @@ package weave.services
 			service.addHook(
 				service.getDatabaseConfigInfo,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save info
 					databaseConfigInfo = DatabaseConfigInfo(event.result) || new DatabaseConfigInfo();
@@ -281,7 +280,7 @@ package weave.services
 			service.addHook(
 				service.setDatabaseConfigInfo,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save info
 					databaseConfigExists = Boolean(event.result);
@@ -302,7 +301,7 @@ package weave.services
 			service.addHook(
 				service.getUploadedCSVFiles,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save info
 					uploadedCSVFiles = event.result as Array || [];
@@ -311,7 +310,7 @@ package weave.services
 			service.addHook(
 				service.getUploadedSHPFiles,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save info
 					uploadedShapeFiles = event.result as Array || [];
@@ -327,7 +326,7 @@ package weave.services
 			service.addHook(
 				service.getKeyTypes,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save list
 					if (userHasAuthenticated)
@@ -337,12 +336,12 @@ package weave.services
 			service.addHook(
 				service.newEntity,
 				null,
-				function(event:ResultEvent, user0_pass1_meta2_parent3_index4:Array):void
+				function(event:ResultEvent, meta0_parent1_index2:Array):void
 				{
 					var id:int = int(event.result);
 					focusEntityId = id;
 					entityCache.invalidate(id);
-					var parentId:int = user0_pass1_meta2_parent3_index4[3];
+					var parentId:int = meta0_parent1_index2[1];
 					entityCache.invalidate(parentId);
 				}
 			);
@@ -350,7 +349,7 @@ package weave.services
 			service.checkDatabaseConfigExists();
 		}
 		
-		private function handleTableImportResult(event:ResultEvent, token:Object):void
+		private function handleTableImportResult(event:ResultEvent, _:*):void
 		{
 			var tableId:int = int(event.result);
 			var exists:Boolean = false;

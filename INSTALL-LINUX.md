@@ -28,11 +28,11 @@
  Additionally, run this line in your working terminal, or open a fresh terminal to ensure the environment variable is set. 
 4. Clone the Weave git repository either read-only:
  
- ``git clone git://github.com/IVPR/Weave.git``
+ ``git clone git://github.com/WeaveTeam/Weave.git``
  
  Or, if you are a contributor:
 
- ``git clone git@github.com:IVPR/Weave.git``
+ ``git clone git@github.com:WeaveTeam/Weave.git``
 5. Enter the resulting Weave directory.
 6. Edit the ``build.properties`` file. Be sure to set ``WEAVE_DOCROOT`` to some path writable by your user, and to set the various `*_SWF` variables to match the names of those present in your version of the Flex SDK. (The default values for the `*_SWF` variables are set with Flex 4.5.1A in mind.)
 7. Run 

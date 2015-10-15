@@ -13,22 +13,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.services.beans
-{	
-	import flash.utils.ByteArray;
+package weave.beans;
 
-	public class AttributeColumnData 
-	{
-		public static const NO_TABLE_ID:int = -1;
-		
-		public var id:int;
-		public var tableId:int;
-		public var tableField:String;
-		public var metadata:Object;
-		public var keys:Array;
-		public var data:Array;
-		public var thirdColumn:Array;
-		public var metadataTileDescriptors:ByteArray;
-		public var geometryTileDescriptors:ByteArray;
-	}
+import java.util.Map;
+
+public class TableData
+{
+	public int id;
+	public String keyColumn;
+	public Map<String,Object[]> columns;
 }
+

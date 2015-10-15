@@ -128,10 +128,51 @@
 	<target name="data" depends="core">
 		<buildproject targetproject="${DATA}" targetfileext="swc"/>
 	</target>
-        <target name="uispark" depends="data">
-                <exec executable="/bin/bash">
-                    <arg value="set_version.sh"/>
-                </exec>
+
+	<target name="update_version" depends="is_git_version,is_custom_version" unless="VERSION"/>
+
+	<target name="write_version" depends="update_version">
+		<!-- echo message="${GIT_SHORT_VERSION} ${GIT_IS_MODIFIED} ${GIT_BUILD_TIME}"/ -->
+		<echo message="${VERSION}" file="${VERSION_FILE}"/>
+	</target>
+
+	<target name="prep_version_update">
+		<exec searchpath="true"
+			  outputproperty="GIT_PORCELAIN_OUTPUT"
+			  executable="git">
+			<arg value="status"/>
+			<arg value="--porcelain"/>
+			<arg value="-uno"/>
+		</exec>
+		<exec searchpath="true"
+			  outputproperty="GIT_SHORT_VERSION"
+			  executable="git">
+			<arg value="rev-parse"/>
+			<arg value="--short"/>
+			<arg value="HEAD"/>
+		</exec>
+		<condition property="GIT_IS_MODIFIED">
+			<not>
+				<equals arg1="${GIT_PORCELAIN_OUTPUT}" arg2=""/>
+			</not>
+		</condition>
+		<tstamp>
+			<format property="GIT_BUILD_TIME" pattern="EEE MMM d HH:mm:ss z yyyy"/>
+		</tstamp>
+	</target>
+
+
+	<target name="is_git_version" depends="prep_version_update" unless="GIT_IS_MODIFIED">
+		<echo>GIT_isn't_MODIFIED</echo>
+		<property name="VERSION" value="Automated Build ${GIT_SHORT_VERSION}, ${GIT_BUILD_TIME}"/>
+	</target>
+	
+	<target name="is_custom_version" depends="prep_version_update" if="GIT_IS_MODIFIED">
+            <echo>GIT_IS_MODIFIED ${GIT_IS_MODIFIED}</echo>
+		<property name="VERSION" value="Custom"/>
+	</target>
+	
+    <target name="uispark" depends="data,write_version">
 		<buildproject targetproject="${UISPARK}" targetfileext="swc"/>
 	</target>
 	<target name="ui" depends="uispark">
@@ -153,17 +194,22 @@
 	<target name="exampleplugin" depends="ui">
 		<ant dir="${basedir}/${EXAMPLEPLUGIN}" target="build"/>
 	</target>
-	<target name="services" depends="servletutils">
+
+	<target name="copy_version_file" depends="write_version">
+		<copy file="${VERSION_FILE}" tofile="${basedir}/${SERVICES}/src/weave/weave_version.txt"/>
+	</target>
+
+	<target name="services" depends="servletutils,copy_version_file">
 		<ant dir="${basedir}/${SERVICES}" target="dist"/>
 	</target>
 
-        <target name="doc">
-                <ant dir="${basedir}/${CLIENT}" antfile="build-asdoc.xml" target="compile"/>
-                <ant dir="${basedir}/${CLIENT}" antfile="build-jsdoc.xml" target="compile"/>
-                <ant dir="${basedir}/${SERVICES}" target="doc"/>
-        </target>
+    <target name="doc">
+        <ant dir="${basedir}/${CLIENT}" antfile="build-asdoc.xml" target="compile"/>
+        <ant dir="${basedir}/${CLIENT}" antfile="build-jsdoc.xml" target="compile"/>
+        <ant dir="${basedir}/${SERVICES}" target="doc"/>
+    </target>
 
-	<target name="documentmaps" depends="servletutils">
+	<target name="documentmaps" depends="servletutils">
 		<ant dir="${basedir}/${DOCMAPSERVICE}" target="dist"/>
 	</target>
 

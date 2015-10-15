@@ -65,7 +65,7 @@ public class JTSGeometryVertexStream implements IGeometryVertexStream
 			if (partNum == 0)
 				partEndIndex += polygon != null ? polygon.getExteriorRing().getNumPoints() : coords.length;
 			else
-				partEndIndex += polygon.getInteriorRingN(partNum - 1).getNumPoints();
+				partEndIndex += polygon != null ? polygon.getInteriorRingN(partNum - 1).getNumPoints() : coords.length;
 		}
 		
 		return ++index < coords.length;

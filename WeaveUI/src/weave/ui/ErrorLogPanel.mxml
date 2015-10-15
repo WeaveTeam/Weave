@@ -37,11 +37,12 @@
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.api.core.IErrorManager;
 			import weave.api.getCallbackCollection;
+			import weave.api.core.IErrorManager;
 			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
+			import weave.data.DataSources.WeaveDataSource;
 			import weave.utils.DebugUtils;
 			import weave.utils.Identify;
 			
@@ -126,7 +127,12 @@
 				while (errorIndex < WeaveAPI.ErrorManager.errors.length)
 				{
 					if (errorIndex == 0)
+					{
 						console.log.text += StandardLib.substitute('\r\rWeave {0}; Flash {1}', Weave.properties.version.value, Capabilities.version);
+						for each (var wds:WeaveDataSource in WeaveAPI.globalHashMap.getObjects(WeaveDataSource))
+							if (wds.serverVersion)
+								console.log.text += StandardLib.substitute('\rWeave server {0}', wds.serverVersion);
+					}
 					var error:Error = WeaveAPI.ErrorManager.errors[errorIndex++];
 					console.log.text += '\r\r' + ErrorManager.errorToString(error);
 				}

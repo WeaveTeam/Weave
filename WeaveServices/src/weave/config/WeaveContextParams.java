@@ -67,14 +67,17 @@ public class WeaveContextParams
 			docrootPath = null;
 		}
 		if (docrootPath == null)
-			throw new ServletException("ERROR: Docroot unable to be determined from servlet context path: " + context.getRealPath(""));
+			throw new ServletException("ERROR: Docroot unable to be determined from servlet context path: " + contextPath);
 		System.out.println("Docroot set to "+docrootPath);
 		
-		String configPathParam = context.getInitParameter("configPath");
-		String configPathJettyParam = context.getInitParameter("configPathJetty");
-		configPath = context.getRealPath(configPathParam);
-		if (configPath == null)
-			configPath = (new File(contextPath, configPathJettyParam)).getAbsolutePath();
+		boolean isJetty = context.getServerInfo().startsWith("jetty");
+		String configPathParam;
+		if (isJetty)
+			configPathParam = context.getInitParameter("configPathJetty");
+		else
+			configPathParam = context.getInitParameter("configPath");
+		
+		configPath = new File(contextPath, configPathParam).getAbsolutePath();
 		configPath = configPath.replace('\\', '/');
 		System.out.println("configPath set to " + configPath);
 		
@@ -83,7 +86,7 @@ public class WeaveContextParams
 		
 		// if RServePath is not specified, keep it empty
 		if (!Strings.isEmpty(rServePath))
-			rServePath = context.getRealPath(rServePath).replace('\\', '/');
+			rServePath = new File(contextPath, rServePath).getAbsolutePath().replace('\\', '/');
 		
 		// make sure folders exist
 		new File(configPath).mkdirs();

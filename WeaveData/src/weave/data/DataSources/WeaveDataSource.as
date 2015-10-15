@@ -59,8 +59,10 @@ package weave.data.DataSources
 	import weave.services.WeaveDataServlet;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.AttributeColumnData;
+	import weave.services.beans.TableData;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
+	import weave.utils.WeavePromise;
 	
 	/**
 	 * WeaveDataSource is an interface for retrieving columns from Weave data servlets.
@@ -70,6 +72,8 @@ package weave.data.DataSources
 	public class WeaveDataSource extends AbstractDataSource_old implements IDataSource_Service, IDataRowSource, IDataSourceWithAuthentication
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
+
+		const SQLPARAMS:String = 'sqlParams';
 		
 		public function WeaveDataSource()
 		{
@@ -77,6 +81,7 @@ package weave.data.DataSources
 		}
 		
 		private var _service:WeaveDataServlet = null;
+		private var _tablePromiseCache:Object;
 		private var _entityCache:EntityCache = null;
 		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
@@ -266,10 +271,18 @@ package weave.data.DataSources
 			
 			// replace old service
 			disposeObject(_service);
+			disposeObject(_entityCache);
 			_service = registerLinkableChild(this, new WeaveDataServlet(url.value), setIdFields);
 			_entityCache = registerLinkableChild(_service, new EntityCache(_service));
+			_tablePromiseCache = {};
 			
 			url.resumeCallbacks();
+		}
+		
+		public function get serverVersion():String
+		{
+			var info:Object = _service.getServerInfo();
+			return info ? info['version'] : null;
 		}
 		
 		private function setIdFields():void
@@ -517,7 +530,6 @@ package weave.data.DataSources
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
 			// get metadata properties from XML attributes
-			const SQLPARAMS:String = 'sqlParams';
 			var params:Object = getMetadata(proxyColumn, [ENTITY_ID, ColumnMetadata.MIN, ColumnMetadata.MAX, SQLPARAMS], false);
 			var query:AsyncToken;
 			var idFieldsArray:Array = _idFields.getSessionState() as Array;
@@ -620,13 +632,6 @@ package weave.data.DataSources
 					proxyColumn.setInternalColumn(new StreamedGeometryColumn(result.metadataTileDescriptors, result.geometryTileDescriptors, tileService, metadata));
 					return;
 				}
-	
-				// stop if no data
-				if (result.data == null)
-				{
-					proxyColumn.dataUnavailable();
-					return;
-				}
 				
 				var keyType:String = ColumnUtils.getKeyType(proxyColumn);
 				var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
@@ -677,8 +682,51 @@ package weave.data.DataSources
 					// run hierarchy callbacks because we just modified the hierarchy.
 					_attributeHierarchy.detectChanges();
 				};
-				
-				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, keyType, result.keys, setRecords, keysVector);
+	
+				if (result.data != null)
+				{
+					(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, keyType, result.keys, setRecords, keysVector);
+				}
+				else // no data in result
+				{
+					if (!result.tableField || result.tableId == AttributeColumnData.NO_TABLE_ID)
+					{
+						proxyColumn.dataUnavailable();
+						return;
+					}
+					
+					// if table not cached, request table, store in cache, and await data
+					var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(proxyColumn.getMetadata(SQLPARAMS));
+					var hash:String = Compiler.stringify([result.tableId, sqlParams]);
+					var promise:WeavePromise = _tablePromiseCache[hash];
+					if (!promise)
+					{
+						var getTablePromise:WeavePromise = new WeavePromise(_service)
+							.then(function(..._):AsyncToken {
+								return _service.getTable(result.tableId, sqlParams);
+							})
+							.then(null, reportError);
+						promise = getTablePromise
+							.then(function(tableData:TableData):WeavePromise {
+								return (WeaveAPI.QKeyManager as QKeyManager).getQKeysPromise(
+									getTablePromise,
+									keyType,
+									tableData.columns[tableData.keyColumn]
+								).then(function(qkeys:Vector.<IQualifiedKey>):TableData {
+									tableData.qkeys = qkeys;
+									return tableData;
+								});
+							});
+						_tablePromiseCache[hash] = promise;
+					}
+					
+					// when the promise returns, set column data
+					promise.then(function(tableData:TableData):* {
+						result.data = tableData.columns[result.tableField];
+						keysVector = tableData.qkeys;
+						setRecords();
+					});
+				}
 			}
 			catch (e:Error)
 			{

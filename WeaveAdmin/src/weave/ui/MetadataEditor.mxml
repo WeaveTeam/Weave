@@ -25,7 +25,7 @@
 	<mx:HBox width="100%">
 		<mx:Label id="title" fontWeight="bold"/>
 		<mx:Spacer width="100%"/>
-		<mx:Label id="idDisplay"/>
+		<mx:Label id="idDisplay" selectable="true"/>
 	</mx:HBox>
     <ui:CustomTabNavigator width="{width}" height="100%">
         <ui:MetadataGrid id="publicMetaGrid"
@@ -67,16 +67,19 @@
 	import mx.managers.PopUpManager;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.data.ColumnMetadata;
-	import weave.api.data.EntityType;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
+	import weave.api.registerDisposableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.EntityType;
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.api.services.beans.EntityMetadata;
 	import weave.compiler.StandardLib;
 	import weave.core.UIUtils;
+	import weave.data.CSVParser;
 	import weave.data.hierarchy.EntityNode;
 	import weave.services.Admin;
 	import weave.services.EntityCache;
@@ -301,14 +304,32 @@
 		// backwards compatibility - see if entityType is an integer
 		return EntityType.ALL_TYPES[entityType] || entityType;
 	}
+	
+	private const tsvParser:CSVParser = registerDisposableChild(this, new CSVParser(false, '\t'));
 
+	private function isTabDelimited(csv:String):Boolean
+	{
+		var tabIndex:int = csv.indexOf('\t');
+		var commaIndex:int = csv.indexOf(',');
+		var hasTab:Boolean = tabIndex >= 0;
+		var hasComma:Boolean = commaIndex >= 0;
+		return hasTab && hasComma ? tabIndex < commaIndex : hasTab;
+	}
+	
+	private function parseCSV(csv:String):Array
+	{
+		if (isTabDelimited(csv))
+			return tsvParser.parseCSV(csv);
+		return WeaveAPI.CSVParser.parseCSV(csv);
+	}
+	
 	private function saveCSV():void
 	{
 		if (!_csvChanged)
 			return;
 		
 		var csv:String = csvTextArea.text;
-		var rows:Array = WeaveAPI.CSVParser.parseCSV(csv);
+		var rows:Array = parseCSV(csv);
 		if (rows.length < 2)
 		{
 			Alert.show("Nothing to save.", "Error");

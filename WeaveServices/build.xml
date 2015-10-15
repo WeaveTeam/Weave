@@ -16,6 +16,7 @@
                 debug="true"
                 debuglevel="lines,vars,source"/>
         <copy file="src/weave/config/sqlconfig.dtd" tofile="bin/classes/weave/config/sqlconfig.dtd"/>
+        <copy file="src/weave/weave_version.txt" tofile="bin/classes/weave/weave_version.txt"/>
     </target>
     <target name="dist" depends="build">
         <mkdir dir="bin"/>

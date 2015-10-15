@@ -24,6 +24,7 @@ package weave.data
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.compiler.StandardLib;
 	import weave.flascc.stringHash;
+	import weave.utils.WeavePromise;
 	
 	/**
 	 * This class manages a global list of IQualifiedKey objects.
@@ -126,7 +127,21 @@ package weave.data
 			var qkg:QKeyGetter = _qkeyGetterLookup[relevantContext] as QKeyGetter;
 			if (!qkg)
 				_qkeyGetterLookup[relevantContext] = qkg = new QKeyGetter(this, relevantContext);
-			qkg.asyncStart(keyType, keyStrings, asyncCallback, outputKeys);
+			qkg.asyncStart(keyType, keyStrings, outputKeys).then(function(..._):* { asyncCallback(); });
+		}
+		
+		/**
+		 * Get a list of QKey objects, all with the same key type.
+		 * 
+		 * @return An array of QKeys that will be filled in asynchronously.
+		 */
+		public function getQKeysPromise(relevantContext:Object, keyType:String, keyStrings:Array):WeavePromise
+		{
+			var qkg:QKeyGetter = _qkeyGetterLookup[relevantContext] as QKeyGetter;
+			if (!qkg)
+				_qkeyGetterLookup[relevantContext] = qkg = new QKeyGetter(this, relevantContext);
+			qkg.asyncStart(keyType, keyStrings);
+			return qkg;
 		}
 		
 		private const _qkeyGetterLookup:Dictionary = new Dictionary(true);
@@ -226,37 +241,37 @@ internal class QKey implements IQualifiedKey
 
 import flash.utils.getTimer;
 
-import weave.api.core.ILinkableObject;
 import weave.api.data.IQualifiedKey;
-import weave.api.detectLinkableObjectChange;
 import weave.data.QKeyManager;
+import weave.utils.WeavePromise;
 
-internal class QKeyGetter
+internal class QKeyGetter extends WeavePromise
 {
-	public function QKeyGetter(manager:QKeyManager, relevantContext:ILinkableObject)
+	public function QKeyGetter(manager:QKeyManager, relevantContext:Object)
 	{
+		super(relevantContext);
+		
 		this.manager = manager;
-		this.relevantContext = relevantContext;
 	}
 	
-	public function asyncStart(keyType:String, keyStrings:Array, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>):void
+	public function asyncStart(keyType:String, keyStrings:Array, outputKeys:Vector.<IQualifiedKey> = null):QKeyGetter
 	{
 		this.manager = manager;
 		this.keyType = keyType;
 		this.keyStrings = keyStrings;
-		this.outputKeys = outputKeys;
 		this.i = 0;
-		this.asyncCallback = asyncCallback;
+		this.outputKeys = outputKeys || new Vector.<IQualifiedKey>(keyStrings.length);
 		
-		outputKeys.length = keyStrings.length;
+		this.outputKeys.length = keyStrings.length;
 		// high priority because all visualizations depend on key sets
 		WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, lang("Initializing {0} record identifiers", keyStrings.length));
+		
+		return this;
 	}
 	
 	private var asyncCallback:Function;
 	private var i:int;
 	private var manager:QKeyManager;
-	private var relevantContext:ILinkableObject;
 	private var keyType:String;
 	private var keyStrings:Array;
 	private var outputKeys:Vector.<IQualifiedKey>;
@@ -276,7 +291,6 @@ internal class QKeyGetter
 	
 	private function asyncComplete():void
 	{
-		if (asyncCallback != null)
-			asyncCallback();
+		setResult(this.outputKeys);
 	}
 }

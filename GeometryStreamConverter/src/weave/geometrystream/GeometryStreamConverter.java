@@ -109,6 +109,8 @@ public class GeometryStreamConverter
 					if (x <= -Double.MAX_VALUE || x >= Double.MAX_VALUE ||
 						y <= -Double.MAX_VALUE || y >= Double.MAX_VALUE)
 					{
+						if (vertexStream.isEndOfPart())
+							break;
 						continue;
 					}
 					// If this is the first vertex in the chain, save the coordinates.  Otherwise, perform additional checks.
@@ -121,7 +123,11 @@ public class GeometryStreamConverter
 					{
 						// don't add consecutive duplicate points
 						if (x == prevX && y == prevY)
+						{
+							if (vertexStream.isEndOfPart())
+								break;
 							continue;
+						}
 						// stop adding points when the current coord is equal to the first coord and we're at the end of a part
 						if (x == firstX && y == firstY && vertexStream.isEndOfPart())
 							break;
@@ -146,7 +152,7 @@ public class GeometryStreamConverter
 				}
 				
 				if (chainLength == 0)
-					break;
+					continue;
 				
 				// ARC: end points of a part are required points
 				if (geometryMetadata.isLineType())
