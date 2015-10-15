@@ -636,6 +636,12 @@ package weave.data.DataSources
 				
 				var setRecords:Function = function(keysVector:Vector.<IQualifiedKey>):void
 				{
+					if (result.data == null)
+					{
+						proxyColumn.dataUnavailable();
+						return;
+					}
+					
 					if (isGeom) // result.data is an array of PGGeom objects.
 					{
 						var geometriesVector:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
@@ -709,7 +715,7 @@ package weave.data.DataSources
 						
 						var keyStrings:Array;
 						promise = getTablePromise
-							.then(function(tableData:TableData):* {
+							.then(function(tableData:TableData):TableData {
 								var name:String;
 								for each (name in tableData.keyColumns)
 									if (!tableData.columns.hasOwnProperty(name))
@@ -755,8 +761,14 @@ package weave.data.DataSources
 					}
 					
 					// when the promise returns, set column data
-					promise.then(function(tableData:TableData):* {
+					promise.then(function(tableData:TableData):void {
 						result.data = tableData.columns[result.tableField];
+						if (result.data == null)
+						{
+							proxyColumn.dataUnavailable(lang('(Missing column: {0})', result.tableField));
+							return;
+						}
+						
 						setRecords(tableData.derived_qkeys);
 					});
 				}
