@@ -20,6 +20,7 @@ package weave.primitives
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
 	import weave.utils.BLGTreeUtils;
+	import weave.utils.GeoJSON;
 	import weave.utils.VectorUtils;
 	
 	/**
@@ -42,6 +43,35 @@ package weave.primitives
 		{
 			this.geomType = geomType;
 			this.parts[0] = new BLGTree();
+		}
+		
+		/**
+		 * Generates a GeoJson Geometry object.
+		 * @param minImportance No points with importance less than this value will be returned.
+		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
+		 * @return A GeoJson Geometry object.
+		 */
+		public function toGeoJson(minImportance:Number = 0, visibleBounds:IBounds2D = null):Object
+		{
+			var type:String = GeometryType.toGeoJsonType(geomType, true); // Multi- geoms can represent non-Multi geoms
+			var geom:Object = {"type": type};
+			var parts:Vector.<Vector.<BLGNode>> = getSimplifiedGeometry(minImportance, visibleBounds);
+			
+			//TODO - http://geojson.org/geojson-spec.html#geometry-objects
+			if (type == GeoJSON.T_MULTI_POINT)
+			{
+				
+			}
+			else if (type == GeoJSON.T_MULTI_LINE_STRING)
+			{
+				
+			}
+			else if (type == GeoJSON.T_MULTI_POLYGON)
+			{
+				
+			}
+			
+			return geom;
 		}
 
 		/**

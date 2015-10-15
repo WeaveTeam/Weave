@@ -230,5 +230,16 @@ package weave.utils
 			feature[F_P_PROPERTIES] = null;
 			return feature;
 		}
+		
+		/**
+		 * Combines an Array of GeoJson Geometry objects into a single "Multi" Geometry object.
+		 * @param geoms An Array of GeoJson Geometry objects
+		 * @return A single GeoJson Geometry object with type MultiPoint/MultiLineString/MultiPolygon
+		 */
+		public static function getMultiGeomObject(geoms:Array):Object
+		{
+			//TODO
+			return null;
+		}
 	}
 }
