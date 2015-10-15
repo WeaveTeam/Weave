@@ -62,6 +62,7 @@ package weave.data.DataSources
 	import weave.services.beans.TableData;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
+	import weave.utils.VectorUtils;
 	import weave.utils.WeavePromise;
 	
 	/**
@@ -705,14 +706,48 @@ package weave.data.DataSources
 								return _service.getTable(result.tableId, sqlParams);
 							})
 							.then(null, reportError);
+						
+						var keyStrings:Array;
 						promise = getTablePromise
+							.then(function(tableData:TableData):* {
+								var name:String;
+								for each (name in tableData.keyColumns)
+									if (!tableData.columns.hasOwnProperty(name))
+										throw new Error(lang('Table {0} is missing key column "{1}"', tableData.id, name));
+								
+								if (tableData.keyColumns.length == 1)
+								{
+									keyStrings = tableData.columns[tableData.keyColumns[0]];
+									return tableData;
+								}
+								
+								// generate compound keys
+								var nCol:int = tableData.keyColumns.length
+								var iCol:int, iRow:int, nRow:int;
+								for (iCol = 0; iCol < nCol; iCol++)
+								{
+									var keyCol:Array = tableData.columns[tableData.keyColumns[iCol]];
+									if (iCol == 0)
+										keyStrings = new Array(keyCol.length);
+									nRow = keyStrings.length;
+									for (iRow = 0; iRow < nRow; iRow++)
+									{
+										if (iCol == 0)
+											keyStrings[iRow] = new Array(nCol);
+										keyStrings[iRow][iCol] = keyCol[iRow];
+									}
+								}
+								for (iRow = 0; iRow < nRow; iRow++)
+									keyStrings[iRow] = WeaveAPI.CSVParser.createCSVRow(keyStrings[iRow]);
+								return tableData;
+							})
 							.then(function(tableData:TableData):WeavePromise {
 								return (WeaveAPI.QKeyManager as QKeyManager).getQKeysPromise(
 									getTablePromise,
 									keyType,
-									tableData.columns[tableData.keyColumn]
+									keyStrings
 								).then(function(qkeys:Vector.<IQualifiedKey>):TableData {
-									tableData.qkeys = qkeys;
+									tableData.derived_qkeys = qkeys;
 									return tableData;
 								});
 							});
@@ -722,7 +757,7 @@ package weave.data.DataSources
 					// when the promise returns, set column data
 					promise.then(function(tableData:TableData):* {
 						result.data = tableData.columns[result.tableField];
-						setRecords(tableData.qkeys);
+						setRecords(tableData.derived_qkeys);
 					});
 				}
 			}

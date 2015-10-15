@@ -560,7 +560,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		
 		TableData result = new TableData();
 		result.id = id;
-		result.keyColumn = entity.privateMetadata.get(PrivateMetadata.SQLKEYCOLUMN);
+		result.keyColumns = CSVParser.defaultParser.parseCSVRow(entity.privateMetadata.get(PrivateMetadata.SQLKEYCOLUMN), true);
 		result.columns = data;
 		return result;
 	}
