@@ -23,6 +23,7 @@
 				layout="absolute"
 				backgroundColor="#7B96B6"
 				creationComplete="handleCreationComplete()"
+				activate="if (Admin.instance.userHasAuthenticated) Admin.service.keepAlive()"
 				applicationComplete="handleApplicationComplete();">
 	<mx:Style>
 		{ fillAlphas: 1, 1, 1, 1; }
