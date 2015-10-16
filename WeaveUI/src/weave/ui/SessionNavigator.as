@@ -200,6 +200,19 @@ package weave.ui
 				return WeaveAPI.getPath(getSelectedLinkableObject());
 			}
 			
+			public function setSelectedLinkableObject(object:ILinkableObject):void
+			{
+				if (object)
+				{
+					var tree:WeaveTreeItem = (WeaveAPI.SessionManager as SessionManager).getSessionStateTree(object, null);
+					scrollToAndSelectMatchingItem(tree);
+					expandItem(tree, true);
+					setFocus();
+				}
+				else
+					selectedItem = null;
+			}
+			
 			public function getSelectedLinkableObject():ILinkableObject
 			{
 				return selectedTreeItem ? selectedTreeItem.data as ILinkableObject : null;
