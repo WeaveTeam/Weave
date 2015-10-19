@@ -19,19 +19,15 @@ package weave.utils
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	import mx.utils.ObjectUtil;
-	
 	import weave.api.copySessionState;
 	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableDescendants;
-	import weave.api.getLinkableOwner;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
-	import weave.api.data.IDataSource;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
@@ -349,7 +345,7 @@ package weave.utils
 			{
 				var key:IQualifiedKey = keys[i];
 				var genGeoms:Array = geometryColumn.getValueFromKey(key, Array) as Array;
-				var geoJsonGeoms:Array = genGeoms.map(function(genGeom:GeneralizedGeometry):Object {
+				var geoJsonGeoms:Array = genGeoms.map(function(genGeom:GeneralizedGeometry, ..._):Object {
 					return genGeom.toGeoJson(minImportance, visibleBounds);
 				});
 				output[i] = GeoJSON.getMultiGeomObject(geoJsonGeoms);

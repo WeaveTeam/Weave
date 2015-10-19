@@ -54,23 +54,55 @@ package weave.primitives
 		public function toGeoJson(minImportance:Number = 0, visibleBounds:IBounds2D = null):Object
 		{
 			var type:String = GeometryType.toGeoJsonType(geomType, true); // Multi- geoms can represent non-Multi geoms
-			var geom:Object = {"type": type};
+			var coords:Array = [];
 			var parts:Vector.<Vector.<BLGNode>> = getSimplifiedGeometry(minImportance, visibleBounds);
+			var part:Vector.<BLGNode>;
+			var node:BLGNode;
 			
 			//TODO - http://geojson.org/geojson-spec.html#geometry-objects
 			if (type == GeoJSON.T_MULTI_POINT)
 			{
-				
+				for each (part in parts)
+					for each (node in part)
+						coords.push([node.x, node.y]);
 			}
 			else if (type == GeoJSON.T_MULTI_LINE_STRING)
 			{
-				
+				for each (part in parts)
+				{
+					var lineString:Array = [];
+					for each (node in part)
+					{
+						lineString.push([node.x, node.y]);
+					}
+					coords.push(lineString);
+				}
 			}
 			else if (type == GeoJSON.T_MULTI_POLYGON)
 			{
-				
+				var polygon:Array = [];
+				for each (part in parts)
+				{
+					var linearRing:Array = [];
+					for each (node in part)
+					{
+						linearRing.push([node.x, node.y]);
+					}
+					
+					// make sure it's a linear ring
+					var first:Array = linearRing[0];
+					var last:Array = linearRing[linearRing.length - 1];
+					if (first && !(first[0] == last[0] && first[1] == last[1]))
+						linearRing.push(first.concat());
+					
+					polygon.push(linearRing);
+				}
+				coords.push(polygon);
 			}
 			
+			var geom:Object = {};
+			geom[GeoJSON.P_TYPE] = type;
+			geom[GeoJSON.G_P_COORDINATES] = coords;
 			return geom;
 		}
 

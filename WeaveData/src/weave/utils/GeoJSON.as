@@ -233,12 +233,44 @@ package weave.utils
 		
 		/**
 		 * Combines an Array of GeoJson Geometry objects into a single "Multi" Geometry object.
-		 * @param geoms An Array of GeoJson Geometry objects
+		 * This assumes all geometry objects are of the same type.
+		 * @param geoms An Array of GeoJson Geometry objects sharing a common type.
 		 * @return A single GeoJson Geometry object with type MultiPoint/MultiLineString/MultiPolygon
 		 */
 		public static function getMultiGeomObject(geoms:Array):Object
 		{
-			//TODO
+			var first:Object = geoms[0];
+			var type:String = first ? first[P_TYPE] : T_MULTI_POINT;
+			var multiType:String = typeToMultiType(type);
+			
+			var allCoords:Array = geoms.map(function(geom:Object, ..._):Array {
+				return geom[G_P_COORDINATES];
+			});
+			var multiCoords:Array;
+			if (type == multiType)
+			{
+				multiCoords = [];
+				multiCoords = multiCoords.concat.apply(multiCoords, allCoords);
+			}
+			else
+			{
+				multiCoords = allCoords;
+			}
+			
+			var multiGeom:Object = {};
+			multiGeom[P_TYPE] = multiType;
+			multiGeom[G_P_COORDINATES] = multiCoords;
+			return multiGeom;
+		}
+		
+		private static function typeToMultiType(type:String):String
+		{
+			if (type == T_POINT || type == T_MULTI_POINT)
+				return T_MULTI_POINT;
+			if (type == T_LINE_STRING || type == T_MULTI_LINE_STRING)
+				return T_MULTI_LINE_STRING;
+			if (type == T_POLYGON || type == T_MULTI_POLYGON)
+				return T_MULTI_POLYGON;
 			return null;
 		}
 	}
