@@ -17,7 +17,6 @@ package weave.core
 {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	import flash.events.Event;
 	
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableDisplayObject;
@@ -54,16 +53,12 @@ package weave.core
 		private function updateParentLater():void
 		{
 			if (_object)
-				_object.addEventListener(Event.ENTER_FRAME, updateParentNow);
+				WeaveAPI.StageUtils.callLater(this, updateParentNow);
 		}
 		
-		private function updateParentNow(event:Event):void
+		private function updateParentNow():void
 		{
-			if (event.currentTarget != _object)
-				return;
-			
 			changeParent(_object, null, _parent);
-			_object.removeEventListener(Event.ENTER_FRAME, updateParentNow);
 		}
 		
 		private static function changeParent(child:DisplayObject, oldParent:DisplayObjectContainer, newParent:DisplayObjectContainer):void
