@@ -28,8 +28,8 @@ package weave.core
 		public function LinkableCallbackScript()
 		{
 			var callbacks:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
-			callbacks.addImmediateCallback(null, selfCallback);
-			callbacks.addGroupedCallback(null, selfGroupedCallback);
+			callbacks.addImmediateCallback(null, _immediateCallback);
+			callbacks.addGroupedCallback(null, _groupedCallback);
 		}
 		
 		public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap());
@@ -53,19 +53,19 @@ package weave.core
 				|| LinkableFunction.macros.getObject(name) != null;
 		}
 		
-		private function selfCallback():void
+		private function _immediateCallback():void
 		{
 			if (!groupedCallback.value)
-				runScript();
+				_runScript();
 		}
 		
-		private function selfGroupedCallback():void
+		private function _groupedCallback():void
 		{
 			if (groupedCallback.value)
-				runScript();
+				_runScript();
 		}
 		
-		private function runScript():void
+		private function _runScript():void
 		{
 			if (delayWhileBusy.value && WeaveAPI.SessionManager.linkableObjectIsBusy(this))
 				return;
@@ -75,7 +75,7 @@ package weave.core
 			
 			try
 			{
-				if (detectLinkableObjectChange(selfCallback, script))
+				if (detectLinkableObjectChange(_runScript, script))
 					_compiledScript = _compiler.compileToFunction(script.value, _symbolTableProxy, reportError, false);
 				
 				_compiledScript.apply(this);
