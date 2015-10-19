@@ -36,7 +36,6 @@ package weave.core
 			this.addImmediateCallback(this, firstCallback);
 		}
 		
-		private var _oldParent:DisplayObjectContainer = null;
 		private var _parent:DisplayObjectContainer = null;
 		private var _object:DisplayObject = null;
 		
@@ -55,17 +54,16 @@ package weave.core
 		private function updateParentLater():void
 		{
 			if (_object)
-				_object.addEventListener(Event.ENTER_FRAME, updateParent);
+				_object.addEventListener(Event.ENTER_FRAME, updateParentNow);
 		}
 		
-		private function updateParent(event:Event):void
+		private function updateParentNow(event:Event):void
 		{
 			if (event.currentTarget != _object)
 				return;
 			
-			changeParent(_object, _oldParent, _parent);
-			_oldParent = null;
-			_object.removeEventListener(Event.ENTER_FRAME, updateParent);
+			changeParent(_object, null, _parent);
+			_object.removeEventListener(Event.ENTER_FRAME, updateParentNow);
 		}
 		
 		private static function changeParent(child:DisplayObject, oldParent:DisplayObjectContainer, newParent:DisplayObjectContainer):void
@@ -91,8 +89,7 @@ package weave.core
 		 */
 		public function set parent(newParent:DisplayObjectContainer):void
 		{
-			if (!_oldParent)
-				_oldParent = _parent;
+			changeParent(_object, _parent, null);
 			_parent = newParent;
 			updateParentLater();
 		}
