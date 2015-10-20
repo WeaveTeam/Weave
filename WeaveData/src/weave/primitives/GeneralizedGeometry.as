@@ -59,7 +59,6 @@ package weave.primitives
 			var part:Vector.<BLGNode>;
 			var node:BLGNode;
 			
-			//TODO - http://geojson.org/geojson-spec.html#geometry-objects
 			if (type == GeoJSON.T_MULTI_POINT)
 			{
 				for each (part in parts)
