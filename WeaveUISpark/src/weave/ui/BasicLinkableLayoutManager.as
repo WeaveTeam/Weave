@@ -16,6 +16,7 @@
 package weave.ui
 {
 	import flash.display.DisplayObject;
+	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	
 	import mx.core.IVisualElement;
@@ -42,7 +43,13 @@ package weave.ui
 		
 		override public function removeChild(child:DisplayObject):DisplayObject
 		{
-			return removeElement(child as IVisualElement) as DisplayObject;
+			try {
+				return super.removeChild(child);
+			} catch (e:Error) {
+				if (Capabilities.isDebugger)
+					trace(e.getStackTrace());
+			}
+			return null;
 		}
 		
 		private var _idToComponent:Object = {}; // String -> IVisualElement
