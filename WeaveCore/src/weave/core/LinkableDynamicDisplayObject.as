@@ -19,45 +19,71 @@ package weave.core
 	import flash.display.DisplayObjectContainer;
 	import flash.utils.Dictionary;
 	
+	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
+	import weave.api.registerDisposableChild;
+	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableDisplayObject;
+	import weave.api.core.ILinkableVariable;
+	import weave.compiler.StandardLib;
 
 	/**
 	 * This is an generic wrapper for a dynamically created DisplayObject.
 	 * 
 	 * @author adufilie
 	 */	
-	public class LinkableDynamicDisplayObject extends LinkableDynamicObject implements ILinkableDisplayObject, IDisposableObject
+	public class LinkableDynamicDisplayObject implements ILinkableVariable, ILinkableDisplayObject, IDisposableObject
 	{
 		public function LinkableDynamicDisplayObject()
 		{
-			super(DisplayObject);
-			
-			this.addImmediateCallback(this, firstCallback);
 		}
 		
 		private static const objectToLDDO:Dictionary = new Dictionary(true);
 		private var _parent:DisplayObjectContainer = null;
 		private var _object:DisplayObject = null;
+		private const _watcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(DisplayObject, handleWatcher));
 		
-		private function firstCallback():void
+		public function getSessionState():Object
+		{
+			return _watcher.targetPath;
+		}
+		
+		public function setSessionState(state:Object):void
+		{
+			if (StandardLib.compare(state, _watcher.targetPath))
+			{
+				var cc:ICallbackCollection = getCallbackCollection(this);
+				cc.delayCallbacks();
+				_watcher.targetPath = state as Array;
+				cc.triggerCallbacks();
+				cc.resumeCallbacks();
+			}
+		}
+		
+		private function handleWatcher():void
 		{
 			var oldObject:DisplayObject = _object;
-			var newObject:DisplayObject = target as DisplayObject;
+			var newObject:DisplayObject = _watcher.target as DisplayObject;
+			
+			// make sure two instances don't try to take the same target
 			if (oldObject != newObject)
 			{
-				// make sure two instances don't try to take the same target
 				var lddo:LinkableDynamicDisplayObject = objectToLDDO[newObject];
 				if (lddo && !objectWasDisposed(lddo) && lddo != this)
 					newObject = null;
 				else
 					objectToLDDO[newObject] = this;
 				delete objectToLDDO[oldObject];
-				
+			}
+			
+			if (oldObject != newObject)
+			{
 				_object = newObject;
 				changeParent(oldObject, _parent, null);
 				updateParentLater();
+				
+				getCallbackCollection(this).triggerCallbacks();
 			}
 		}
 		
@@ -103,9 +129,8 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		override public function dispose():void
+		public function dispose():void
 		{
-			super.dispose();
 			parent = null;
 		}
 	}
