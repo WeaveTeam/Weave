@@ -16,6 +16,7 @@
 package weave.data.DataSources
 {
 	import flash.net.URLRequest;
+	import flash.utils.Dictionary;
 	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -62,7 +63,6 @@ package weave.data.DataSources
 	import weave.services.beans.TableData;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
-	import weave.utils.VectorUtils;
 	import weave.utils.WeavePromise;
 	
 	/**
@@ -83,6 +83,7 @@ package weave.data.DataSources
 		
 		private var _service:WeaveDataServlet = null;
 		private var _tablePromiseCache:Object;
+		private var _proxyPromiseCache:Dictionary;
 		private var _entityCache:EntityCache = null;
 		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
@@ -276,6 +277,7 @@ package weave.data.DataSources
 			_service = registerLinkableChild(this, new WeaveDataServlet(url.value), setIdFields);
 			_entityCache = registerLinkableChild(_service, new EntityCache(_service));
 			_tablePromiseCache = {};
+			_proxyPromiseCache = new Dictionary(true);
 			
 			url.resumeCallbacks();
 		}
@@ -710,8 +712,7 @@ package weave.data.DataSources
 						var getTablePromise:WeavePromise = new WeavePromise(_service)
 							.then(function(..._):AsyncToken {
 								return _service.getTable(result.tableId, sqlParams);
-							})
-							.then(null, reportError);
+							});
 						
 						var keyStrings:Array;
 						promise = getTablePromise
@@ -756,7 +757,8 @@ package weave.data.DataSources
 									tableData.derived_qkeys = qkeys;
 									return tableData;
 								});
-							});
+							})
+							.then(null, reportError);
 						_tablePromiseCache[hash] = promise;
 					}
 					
@@ -771,6 +773,11 @@ package weave.data.DataSources
 						
 						setRecords(tableData.derived_qkeys);
 					});
+					
+					// make proxyColumn busy while table promise is busy
+					var proxyPromise:WeavePromise = _proxyPromiseCache[proxyColumn];
+					if (!proxyPromise)
+						_proxyPromiseCache[proxyColumn] = proxyPromise = new WeavePromise(proxyColumn).then(function(_:*):* { return promise; });
 				}
 			}
 			catch (e:Error)
