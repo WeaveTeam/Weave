@@ -17,7 +17,9 @@ package weave.core
 {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.utils.Dictionary;
 	
+	import weave.api.objectWasDisposed;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableDisplayObject;
 
@@ -35,6 +37,7 @@ package weave.core
 			this.addImmediateCallback(this, firstCallback);
 		}
 		
+		private static const objectToLDDO:Dictionary = new Dictionary(true);
 		private var _parent:DisplayObjectContainer = null;
 		private var _object:DisplayObject = null;
 		
@@ -44,6 +47,14 @@ package weave.core
 			var newObject:DisplayObject = target as DisplayObject;
 			if (oldObject != newObject)
 			{
+				// make sure two instances don't try to take the same target
+				var lddo:LinkableDynamicDisplayObject = objectToLDDO[newObject];
+				if (lddo && !objectWasDisposed(lddo) && lddo != this)
+					newObject = null;
+				else
+					objectToLDDO[newObject] = this;
+				delete objectToLDDO[oldObject];
+				
 				_object = newObject;
 				changeParent(oldObject, _parent, null);
 				updateParentLater();
