@@ -47,11 +47,10 @@ import weave.beans.PGGeom;
 import weave.beans.TableData;
 import weave.beans.WeaveJsonDataSet;
 import weave.beans.WeaveRecordList;
+import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.ConnectionConfig.WeaveAuthenticationException;
-import weave.config.ConnectionConfig;
 import weave.config.DataConfig;
-import weave.config.WeaveConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
 import weave.config.DataConfig.DataEntityWithRelationships;
@@ -60,6 +59,7 @@ import weave.config.DataConfig.EntityHierarchyInfo;
 import weave.config.DataConfig.EntityType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
+import weave.config.WeaveConfig;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
@@ -271,7 +271,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		
 		if (columnId instanceof Map)
 		{
-			@SuppressWarnings({ "rawtypes" })
+			@SuppressWarnings("rawtypes")
 			Map metadata = (Map)columnId;
 			metadata.put(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
 			int[] ids = findEntityIds(metadata, null);
@@ -336,16 +336,36 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		
 		String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
 		
-		ConnectionInfo connInfo = getColumnConnectionInfo(entity);
-		
 		List<String> keys = null;
 		List<Double> numericData = null;
 		List<String> stringData = null;
 		List<Object> thirdColumn = null; // hack for dimension slider format
 		List<PGGeom> geometricData = null;
 
-		if (!Strings.isEmpty(query))
+		String debug = entity.publicMetadata.get("fakeDataRows");
+		if (!Strings.isEmpty(debug))
 		{
+			String title = entity.publicMetadata.get(PublicMetadata.TITLE);
+			int numRows = 5;
+			try { numRows = Integer.parseInt(debug); } catch (NumberFormatException e) { }
+			keys = new ArrayList<String>(numRows);
+			if (Strings.equal(dataType, DataType.NUMBER) || Strings.equal(dataType, DataType.DATE))
+				numericData = new ArrayList<Double>(numRows);
+			else
+				stringData = new ArrayList<String>(numRows);
+			for (int i = 0; i < numRows; i++)
+			{
+				keys.add("key" + i);
+				if (stringData != null)
+					stringData.add(title + i);
+				else
+					numericData.add((double)i);
+			}
+		}
+		else if (!Strings.isEmpty(query))
+		{
+			ConnectionInfo connInfo = getColumnConnectionInfo(entity);
+			
 			keys = new ArrayList<String>();
 			
 			////// begin MIN/MAX code

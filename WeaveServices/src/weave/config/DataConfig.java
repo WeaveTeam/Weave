@@ -653,6 +653,7 @@ public class DataConfig
 		static public final String NUMBER = "number";
 		static public final String STRING = "string";
 		static public final String GEOMETRY = "geometry";
+		static public final String DATE = "date";
 		
 		/**
 		 * This function determines the corresponding DataType constant for a SQL type defined in java.sql.Types.
