@@ -595,7 +595,7 @@
 				choiceVSlider.maximum = names.length - 1;
 				choiceHSlider.maximum = names.length - 1;
 				
-				if (useChoiceIndex.value)
+				if (useChoiceIndex.value || layoutMode.value == 'VSlider' || layoutMode.value == 'HSlider')
 					handleSelectedAttributeChange();
 			}
 			
