@@ -20,8 +20,8 @@ package weave.services.beans
 	public class TableData
 	{
 		public var id:int;
-		public var keyColumn:String;
+		public var keyColumns:Array;
 		public var columns:Object;
-		public var qkeys:Vector.<IQualifiedKey>;
+		public var derived_qkeys:Vector.<IQualifiedKey>;
 	}
 }

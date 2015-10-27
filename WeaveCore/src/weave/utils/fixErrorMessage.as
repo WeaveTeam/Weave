@@ -135,6 +135,7 @@ internal const FlashErrorCodes:Object = {
 	"1114": "OP_getglobalslot or OP_setglobalslot used with no global scope",
 	"1115": "not a constructor",
 	"1116": "second argument to Function.prototype.apply must be an array",
+	"1132": "Invalid JSON parse input",
 	"1500": "Error opening file",
 	"1501": "Error writing to file",
 	"1502": "A script has executed for longer than 15 seconds",

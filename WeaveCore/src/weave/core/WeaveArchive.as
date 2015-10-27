@@ -122,7 +122,7 @@ package weave.core
 		public static function createScreenshot(thumbnailSize:int = 0):ByteArray
 		{
 			var application:Object = WeaveAPI.topLevelApplication;
-			
+		
 			// HACK to support fixed workspace size
 			var component:IFlexDisplayObject = application.hasOwnProperty('visApp') ? application['visApp'] : application as IFlexDisplayObject;
 			
@@ -144,11 +144,14 @@ package weave.core
 				else
 					WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_SCREENSHOT_PNG);
 			}
-			catch (e:SecurityError)
+			catch (e:Error)
 			{
 				WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_THUMBNAIL_PNG);
 				WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_SCREENSHOT_PNG);
-				WeaveAPI.ErrorManager.reportError(e, "Unable to create screenshot due to lack of permissive policy file for embedded image. " + e.message);
+				var msg:String = "Unable to create screenshot";
+				if (e is SecurityError)
+					msg += " due to lack of permissive policy file for embedded image";
+				WeaveAPI.ErrorManager.reportError(e, msg + ". " + e.message);
 			}
 		}
 		

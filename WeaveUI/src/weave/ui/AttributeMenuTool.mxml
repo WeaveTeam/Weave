@@ -51,7 +51,7 @@
 			<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
 						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
 						change="if (UIUtils.hasFocus(choiceVSlider)) handleAttrSelected(choiceVSlider.maximum - choiceVSlider.value);"
-						mouseDown="choiceVSlider.setFocus()"
+						mouseDown="choiceVSlider.setFocus()" click="handleSelectedAttributeChange()"
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:Canvas>
 		<mx:Canvas label="{lang('Horizontal Slider')}">
@@ -63,7 +63,7 @@
 				<mx:HSlider id="choiceHSlider" fillAlphas="{[1, 1]}" liveDragging="true" tickInterval="1"
 							width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
 							change="if (UIUtils.hasFocus(choiceHSlider)) handleAttrSelected(choiceHSlider.value);"
-							mouseDown="choiceHSlider.setFocus()"
+							mouseDown="choiceHSlider.setFocus()" click="handleSelectedAttributeChange()"
 							/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 			</mx:HBox>
 		</mx:Canvas>
@@ -594,6 +594,9 @@
 				choiceHSlider.labels = names;
 				choiceVSlider.maximum = names.length - 1;
 				choiceHSlider.maximum = names.length - 1;
+				
+				if (useChoiceIndex.value || layoutMode.value == 'VSlider' || layoutMode.value == 'HSlider')
+					handleSelectedAttributeChange();
 			}
 			
 			// called when the user clicks on the combo in the main AttributeMenuTool window

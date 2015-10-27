@@ -15,12 +15,11 @@
 
 package weave.data.AttributeColumns
 {
+	import weave.api.registerLinkableChild;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.registerDisposableChild;
-	import weave.api.registerLinkableChild;
 	import weave.core.SessionManager;
 	import weave.utils.VectorUtils;
 
@@ -169,13 +168,24 @@ package weave.data.AttributeColumns
 		
 		/**
 		 * Call this function when the ProxyColumn should indicate that the requested data is unavailable.
-		 * @param message The message to display in the title of the ProxyColumn. Default is "Data unavailable."
+		 * @param message The message to display in the title of the ProxyColumn.
 		 */
 		public function dataUnavailable(message:String = null):void
 		{
 			delayCallbacks();
 			setInternalColumn(null);
-			_overrideTitle = message || DATA_UNAVAILABLE;
+			if (message)
+			{
+				_overrideTitle = message;
+			}
+			else
+			{
+				var title:String = getMetadata(ColumnMetadata.TITLE);
+				if (title)
+					_overrideTitle = lang('(Data unavailable: {0})', title);
+				else
+					_overrideTitle = DATA_UNAVAILABLE;
+			}
 			triggerCallbacks();
 			resumeCallbacks();
 		}

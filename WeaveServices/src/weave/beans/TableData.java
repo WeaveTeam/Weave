@@ -20,7 +20,7 @@ import java.util.Map;
 public class TableData
 {
 	public int id;
-	public String keyColumn;
+	public String[] keyColumns;
 	public Map<String,Object[]> columns;
 }
 

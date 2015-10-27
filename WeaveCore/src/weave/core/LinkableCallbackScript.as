@@ -27,15 +27,16 @@ package weave.core
 	{
 		public function LinkableCallbackScript()
 		{
-			_callbacks = WeaveAPI.SessionManager.getCallbackCollection(this);
-			_callbacks.addImmediateCallback(null, selfCallback);
+			var callbacks:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+			callbacks.addImmediateCallback(null, _immediateCallback);
+			callbacks.addGroupedCallback(null, _groupedCallback);
 		}
 		
 		public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap());
 		public const script:LinkableString = registerLinkableChild(this, new LinkableString());
 		public const delayWhileBusy:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const groupedCallback:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
-		private var _callbacks:ICallbackCollection;
 		private const _symbolTableProxy:ProxyObject = new ProxyObject(hasVariable, getVariable, null);
 		private var _compiledScript:Function = null;
 		private static const _compiler:Compiler = new Compiler(true);
@@ -52,7 +53,19 @@ package weave.core
 				|| LinkableFunction.macros.getObject(name) != null;
 		}
 		
-		private function selfCallback():void
+		private function _immediateCallback():void
+		{
+			if (!groupedCallback.value)
+				_runScript();
+		}
+		
+		private function _groupedCallback():void
+		{
+			if (groupedCallback.value)
+				_runScript();
+		}
+		
+		private function _runScript():void
 		{
 			if (delayWhileBusy.value && WeaveAPI.SessionManager.linkableObjectIsBusy(this))
 				return;
@@ -62,7 +75,7 @@ package weave.core
 			
 			try
 			{
-				if (detectLinkableObjectChange(selfCallback, script))
+				if (detectLinkableObjectChange(_runScript, script))
 					_compiledScript = _compiler.compileToFunction(script.value, _symbolTableProxy, reportError, false);
 				
 				_compiledScript.apply(this);

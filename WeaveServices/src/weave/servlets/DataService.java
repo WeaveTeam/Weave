@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import javax.servlet.ServletConfig;
@@ -47,11 +48,10 @@ import weave.beans.PGGeom;
 import weave.beans.TableData;
 import weave.beans.WeaveJsonDataSet;
 import weave.beans.WeaveRecordList;
+import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.ConnectionConfig.WeaveAuthenticationException;
-import weave.config.ConnectionConfig;
 import weave.config.DataConfig;
-import weave.config.WeaveConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
 import weave.config.DataConfig.DataEntityWithRelationships;
@@ -60,11 +60,13 @@ import weave.config.DataConfig.EntityHierarchyInfo;
 import weave.config.DataConfig.EntityType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
+import weave.config.WeaveConfig;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
 import weave.utils.MapUtils;
+import weave.utils.Numbers;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
@@ -253,6 +255,59 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
  		return connInfo;
 	}
 	
+	private static class FakeDataProperties
+	{
+		public int[] dim = new int[]{5};
+		public double mean = 0;
+		public double stddev = 1;
+		public int digits = 2;
+		public boolean realKeys = false;
+		public int repeat = 1;
+		
+		public int getNumRows()
+		{
+			int numRows = repeat;
+			for (int i = 0; i < dim.length; i++)
+				numRows *= dim[i];
+			return numRows;
+		}
+		
+		public List<String> generateStrings(String prefix)
+		{
+			int numRows = getNumRows();
+			List<String> strings = new ArrayList<String>(numRows);
+			generateStrings(strings, 0, prefix, "");
+			return strings;
+		}
+		
+		private void generateStrings(List<String> output, int depth, String prefix, String suffix)
+		{
+			int n = dim[depth];
+			for (int i = 1; i <= n; i++)
+			{
+				String newSuffix = suffix + "_" + i;
+				if (depth + 1 < dim.length)
+					generateStrings(output, depth + 1, prefix, newSuffix);
+				else
+					for (int r = 0; r < repeat; r++)
+						output.add(prefix + newSuffix);
+			}
+		}
+		
+		public List<Double> generateDoubles(long seed)
+		{
+			int numRows = getNumRows();
+			List<Double> doubles = new ArrayList<Double>(numRows);
+			Random rand = new Random(seed);
+			for (int i = 0; i < numRows; i++)
+			{
+				Double value = mean + stddev * rand.nextGaussian();
+				value = Numbers.roundSignificant(value, digits);
+				doubles.add(value);
+			}
+			return doubles;
+		}
+	}
 	
 	/**
 	 * This retrieves the data and the public metadata for a single attribute column.
@@ -271,7 +326,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		
 		if (columnId instanceof Map)
 		{
-			@SuppressWarnings({ "rawtypes" })
+			@SuppressWarnings("rawtypes")
 			Map metadata = (Map)columnId;
 			metadata.put(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
 			int[] ids = findEntityIds(metadata, null);
@@ -336,16 +391,51 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		
 		String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
 		
-		ConnectionInfo connInfo = getColumnConnectionInfo(entity);
-		
 		List<String> keys = null;
 		List<Double> numericData = null;
 		List<String> stringData = null;
 		List<Object> thirdColumn = null; // hack for dimension slider format
 		List<PGGeom> geometricData = null;
 
-		if (!Strings.isEmpty(query))
+		boolean getRealKeys = true;
+		boolean getRealData = true;
+		String fakeData = entity.publicMetadata.get("fakeData");
+		if (!Strings.isEmpty(fakeData))
 		{
+			FakeDataProperties props;
+			try
+			{
+				props = GSON.fromJson(fakeData, FakeDataProperties.class);
+			}
+			catch (Exception e)
+			{
+				throw new RemoteException(String.format("Unable to retrieve data for column %s (Invalid \"fakeData\" JSON)", columnId));
+			}
+			
+			getRealKeys = props.realKeys;
+			getRealData = false;
+			
+			String title = entity.publicMetadata.get(PublicMetadata.TITLE);
+			String keyType = entity.publicMetadata.get(PublicMetadata.KEYTYPE);
+			
+			if (!getRealKeys)
+				keys = props.generateStrings(keyType);
+			
+			if (Strings.equal(dataType, DataType.NUMBER) || Strings.equal(dataType, DataType.DATE))
+			{
+				int seed = title.hashCode() ^ keyType.hashCode();
+				if (sqlParams != null)
+					seed ^= Arrays.deepToString(sqlParams).hashCode();
+				numericData = props.generateDoubles(seed);
+			}
+			else
+				stringData = props.generateStrings(title);
+		}
+		
+		if (!Strings.isEmpty(query) && (getRealKeys || getRealData))
+		{
+			ConnectionInfo connInfo = getColumnConnectionInfo(entity);
+			
 			keys = new ArrayList<String>();
 			
 			////// begin MIN/MAX code
@@ -404,7 +494,12 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 					dataType = DataType.fromSQLType(result.columnTypes[1]);
 					entity.publicMetadata.put(PublicMetadata.DATATYPE, dataType); // fill in missing metadata for the client
 				}
-				if (dataType.equalsIgnoreCase(DataType.NUMBER)) // special case: "number" => Double
+				
+				if (!getRealData)
+				{
+					// do nothing
+				}
+				else if (dataType.equalsIgnoreCase(DataType.NUMBER)) // special case: "number" => Double
 				{
 					numericData = new LinkedList<Double>();
 				}
@@ -418,7 +513,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 				}
 				
 				// hack for dimension slider format
-				if (result.columnTypes.length == 3)
+				if (getRealData && result.columnTypes.length == 3)
 					thirdColumn = new LinkedList<Object>();
 				
 				Object keyObj, dataObj;
@@ -470,7 +565,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 						}
 						geometricData.add(bean);
 					}
-					else
+					else if (stringData != null)
 					{
 						stringData.add(dataObj.toString());
 					}
@@ -512,6 +607,14 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		// hack for dimension slider
 		if (thirdColumn != null)
 			result.thirdColumn = thirdColumn.toArray();
+		
+		// truncate fake data or keys if necessary
+		if ((!getRealData || !getRealKeys) && result.keys != null && result.data != null && result.keys.length != result.data.length)
+		{
+			int minLength = Math.min(result.keys.length, result.data.length);
+			result.keys = Arrays.copyOf(result.keys, minLength);
+			result.data = Arrays.copyOf(result.data, minLength);
+		}
 		
 		return result;
 	}
@@ -560,7 +663,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		
 		TableData result = new TableData();
 		result.id = id;
-		result.keyColumn = entity.privateMetadata.get(PrivateMetadata.SQLKEYCOLUMN);
+		result.keyColumns = CSVParser.defaultParser.parseCSVRow(entity.privateMetadata.get(PrivateMetadata.SQLKEYCOLUMN), true);
 		result.columns = data;
 		return result;
 	}

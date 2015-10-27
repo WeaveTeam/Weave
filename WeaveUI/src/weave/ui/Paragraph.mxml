@@ -24,7 +24,7 @@
 	backgroundAlpha="0"
 	selectable="false"
 	focusEnabled="false"
-	resize="invalidateSize()"
+	resize="callLater(invalidateSize)"
     >
 	<mx:Metadata>
 		[DefaultProperty("content")]
@@ -90,8 +90,12 @@
 				}
 				if (_translate)
 					value = lang(value);
-				super.text = value;
-				invalidateSize();
+				
+				if (super.text != value)
+				{
+					super.text = value;
+					invalidateSize();
+				}
 			}
 			
 			override public function set height(value:Number):void
