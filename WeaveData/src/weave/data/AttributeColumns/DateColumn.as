@@ -95,7 +95,7 @@ package weave.data.AttributeColumns
 				return;
 			}
 			
-			_fakeData = !!getMetadata("fakeDataRows");
+			_fakeData = !!getMetadata("fakeData");
 			
 			// read dateFormat metadata
 			_dateFormat = getMetadata(ColumnMetadata.DATE_FORMAT);
@@ -239,8 +239,11 @@ package weave.data.AttributeColumns
 				var value:Object;
 				if (_fakeData)
 				{
-					value = new Date();
-					(value as Date).fullYear = 2000 + StandardLib.asNumber(string);
+					var oneDay:Number = 24 * 60 * 60 * 1000;
+					var fakeTime:Number = StandardLib.asNumber(string) * oneDay;
+					var d:Date = new Date();
+					d.time = d.time - d.time % oneDay + fakeTime;
+					value = d;
 				}
 				else if (_stringToNumberFunction != null)
 				{

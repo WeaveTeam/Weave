@@ -391,12 +391,12 @@ public class WeaveServlet extends HttpServlet
 	
 	public static final String JSONRPC_VERSION = "2.0";
 	
-	private static final Gson GSON = new GsonBuilder()
+	protected static final Gson GSON = new GsonBuilder()
 		.registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
 		.registerTypeHierarchyAdapter(Double.class, new NaNToNullAdapter())
 		.disableHtmlEscaping()
 		.create();
-	private static final Gson GSON_PRETTY = new GsonBuilder()
+	protected static final Gson GSON_PRETTY = new GsonBuilder()
 		.registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
 		.registerTypeHierarchyAdapter(Double.class, new NaNToNullAdapter())
 		.disableHtmlEscaping()
