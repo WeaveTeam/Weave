@@ -15,22 +15,20 @@
 
 package weave.data.KeySets
 {
-	import flash.utils.getTimer;
-	
+	import weave.api.getCallbackCollection;
+	import weave.api.linkableObjectIsBusy;
+	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
+	import weave.api.registerLinkableChild;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.linkableObjectIsBusy;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.data.QKeyManager;
-	import weave.utils.DebugUtils;
 	
 	/**
 	 * This provides the keys from an existing IKeySet in a sorted order.
@@ -140,6 +138,8 @@ package weave.data.KeySets
 				for (var i:int = 0; i < columns.length; i++)
 				{
 					var param:Object = columns[i];
+					if (objectWasDisposed(param))
+						continue;
 					if (param is IAttributeColumn)
 					{
 						var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(param as IAttributeColumn);
