@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -263,6 +264,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		public int digits = 2;
 		public boolean realKeys = false;
 		public int repeat = 1;
+		public int sort = 0;
 		
 		public int getNumRows()
 		{
@@ -305,6 +307,10 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 				value = Numbers.roundSignificant(value, digits);
 				doubles.add(value);
 			}
+			if (sort != 0)
+				Collections.sort(doubles);
+			if (sort < 0)
+				Collections.reverse(doubles);
 			return doubles;
 		}
 	}
