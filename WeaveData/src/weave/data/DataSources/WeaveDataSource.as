@@ -540,12 +540,7 @@ package weave.data.DataSources
 			if (idFieldsArray || params[ENTITY_ID])
 			{
 				var id:Object = idFieldsArray ? getMetadata(proxyColumn, idFieldsArray, true) : StandardLib.asNumber(params[ENTITY_ID]);
-				var sqlParams:Array;
-				try {
-					sqlParams = Compiler.parseConstant(params[SQLPARAMS]) as Array;
-				} catch (e:Error) { }
-				if (!(sqlParams is Array))
-					sqlParams = WeaveAPI.CSVParser.parseCSVRow(params[SQLPARAMS]);
+				var sqlParams:Array = parseSqlParams(params[SQLPARAMS]);
 				query = _service.getColumn(id, params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
 			}
 			else // backwards compatibility - search using metadata
@@ -604,6 +599,18 @@ package weave.data.DataSources
 //		{
 //			DebugUtils.callLater(5000, handleGetAttributeColumn2, arguments);
 //		}
+		
+		private function parseSqlParams(sqlParams:String):Array
+		{
+			var result:Array;
+			try {
+				result = Compiler.parseConstant(sqlParams) as Array;
+			} catch (e:Error) { }
+			if (!(result is Array))
+				result = WeaveAPI.CSVParser.parseCSVRow(sqlParams);
+			return result;
+		}
+		
 		private function handleGetAttributeColumn(event:ResultEvent, proxyColumn:ProxyColumn):void
 		{
 			if (proxyColumn.wasDisposed)
@@ -709,7 +716,7 @@ package weave.data.DataSources
 					}
 					
 					// if table not cached, request table, store in cache, and await data
-					var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(proxyColumn.getMetadata(SQLPARAMS));
+					var sqlParams:Array = parseSqlParams(proxyColumn.getMetadata(SQLPARAMS));
 					var hash:String = Compiler.stringify([result.tableId, sqlParams]);
 					var promise:WeavePromise = _tablePromiseCache[hash];
 					if (!promise)
