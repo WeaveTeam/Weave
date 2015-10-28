@@ -544,7 +544,7 @@ package weave.data.DataSources
 				try {
 					sqlParams = Compiler.parseConstant(params[SQLPARAMS]) as Array;
 				} catch (e:Error) { }
-				if (!sqlParams is Array)
+				if (!(sqlParams is Array))
 					sqlParams = WeaveAPI.CSVParser.parseCSVRow(params[SQLPARAMS]);
 				query = _service.getColumn(id, params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
 			}
