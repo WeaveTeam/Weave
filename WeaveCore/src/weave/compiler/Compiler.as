@@ -210,6 +210,10 @@ package weave.compiler
 		 */
 		private var constants:Object = null;
 		/**
+		 * The eval() function.
+		 */
+		private var _eval:Function = null;
+		/**
 		 * This object maps the name of a global symbol to its value.
 		 */
 		private var globals:Object = null;
@@ -736,6 +740,11 @@ package weave.compiler
 		public function setHashOperator(hashFunction:Function):void
 		{
 			constants[OPERATOR_ESCAPE + '#'] = operators['#'] = hashFunction;
+		}
+		
+		public function setEvalFunction(eval:Function):void
+		{
+			this._eval = eval;
 		}
 		
 		/**
@@ -2531,7 +2540,7 @@ package weave.compiler
 			// create the variables that will be used inside the wrapper function
 
 			const builtInSymbolTable:Object = {};
-			builtInSymbolTable['eval'] = undefined;
+			builtInSymbolTable['eval'] = this._eval as Function || undefined;
 			builtInSymbolTable['this'] = bindThis;
 			
 			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global

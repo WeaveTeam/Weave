@@ -15,24 +15,18 @@
 
 package weave.utils
 {
-	import avmplus.DescribeType;
-	
 	import flash.external.ExternalInterface;
-	import flash.utils.Dictionary;
-	import flash.utils.getDefinitionByName;
 	
 	import mx.core.UIComponent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.core.ILinkableObject;
-	import weave.api.getCallbackCollection;
+	import avmplus.DescribeType;
+	
 	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.GlobalLib;
 	import weave.compiler.ICompiledObject;
 	import weave.compiler.ProxyObject;
-	import weave.compiler.StandardLib;
-	import weave.core.WeaveXMLDecoder;
 	import weave.primitives.MethodChainProxy;
 	
 	public class ConsoleEngine
@@ -41,6 +35,7 @@ package weave.utils
 		{
 			compiler.includeLibraries(GlobalLib, ObjectUtil, WeaveAPI.SessionManager, DescribeType, DebugUtils);
 			compiler.setHashOperator(debugHelper);
+			compiler.setEvalFunction(runCommand);
 		}
 		
 		/**
