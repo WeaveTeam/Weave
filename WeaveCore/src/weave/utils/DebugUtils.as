@@ -425,6 +425,7 @@ package weave.utils
 				output = [];
 			if (DynamicState.isDynamicStateArray(state))
 			{
+				var names:Array = [];
 				for each (var obj:Object in state)
 				{
 					if (DynamicState.isDynamicState(obj))
@@ -437,8 +438,15 @@ package weave.utils
 							output.push([pathPrefix.concat('class'), className]);
 						flattenSessionState(sessionState, pathPrefix, output);
 						pathPrefix.pop();
+						
+						if (objectName)
+							names.push(objectName);
 					}
+					else
+						names.push(obj);
 				}
+				if (names.length)
+					output.push([pathPrefix.concat(), names]);
 			}
 			else if (state is Array)
 			{
