@@ -540,7 +540,12 @@ package weave.data.DataSources
 			if (idFieldsArray || params[ENTITY_ID])
 			{
 				var id:Object = idFieldsArray ? getMetadata(proxyColumn, idFieldsArray, true) : StandardLib.asNumber(params[ENTITY_ID]);
-				var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(params[SQLPARAMS]);
+				var sqlParams:Array;
+				try {
+					sqlParams = Compiler.parseConstant(params[SQLPARAMS]) as Array;
+				} catch (e:Error) { }
+				if (!sqlParams is Array)
+					sqlParams = WeaveAPI.CSVParser.parseCSVRow(params[SQLPARAMS]);
 				query = _service.getColumn(id, params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
 			}
 			else // backwards compatibility - search using metadata
