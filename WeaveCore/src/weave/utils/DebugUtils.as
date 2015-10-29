@@ -150,7 +150,7 @@ package weave.utils
 		 */
 		public static function debugLookup(debugId:* = undefined):Object
 		{
-			if (debugId == undefined)
+			if (debugId === undefined)
 				return getAllDebugIds();
 			for (var object:Object in _idToObjRef[debugId])
 				return object;
