@@ -364,7 +364,7 @@ public class WeaveServlet extends HttpServlet
 					}
 					else // AMF3
 					{
-						ASObject obj = (ASObject)deserializeAmf3(info.inputStream);
+						Map<String,Object> obj = (Map<String,Object>)deserializeAmf3(info.inputStream);
 						methodName = (String) obj.get(METHOD);
 						methodParams = obj.get(PARAMS);
 						info.streamParameterIndex = (Number) obj.get(STREAM_PARAMETER_INDEX);
@@ -1073,6 +1073,13 @@ public class WeaveServlet extends HttpServlet
 			Map<String,Object> map = new HashMap<String,Object>((ASObject)object);
 			for (Map.Entry<String,Object> entry : map.entrySet())
 				entry.setValue(makeASObjectGeneric(entry.getValue()));
+			return map;
+		}
+		if (object instanceof Object[])
+		{
+			Object[] array = (Object[])object;
+			for (int i = 0; i < array.length; i++)
+				array[i] = makeASObjectGeneric(array[i]);
 		}
 		return object;
 	}
