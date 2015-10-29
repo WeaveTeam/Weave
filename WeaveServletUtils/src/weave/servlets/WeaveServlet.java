@@ -1053,16 +1053,28 @@ public class WeaveServlet extends HttpServlet
 	}
 	
 	//  De-serialize a ByteArray/AMF3/Flex object to a Java object  
-	protected ASObject deserializeAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
+	protected Object deserializeAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
 	{
-		ASObject deSerializedObj = null;
+		Object deSerializedObj = null;
 	
 		Amf3Input amf3Input = new Amf3Input(serializationContext);
 		amf3Input.setInputStream(inputStream); // uncompress
-		deSerializedObj = (ASObject) amf3Input.readObject();
+		deSerializedObj = amf3Input.readObject();
 		//amf3Input.close();
 
-		return deSerializedObj;
+		return makeASObjectGeneric(deSerializedObj);
+	}
+	
+	private Object makeASObjectGeneric(Object object)
+	{
+		if (object instanceof ASObject)
+		{
+			@SuppressWarnings("unchecked")
+			Map<String,Object> map = new HashMap<String,Object>((ASObject)object);
+			for (Map.Entry<String,Object> entry : map.entrySet())
+				entry.setValue(makeASObjectGeneric(entry.getValue()));
+		}
+		return object;
 	}
 	
 	protected String methodToString(String name, Object[] params)
