@@ -15,6 +15,7 @@
 
 package weave.core
 {
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.core.IExternalSessionStateInterface;
@@ -360,12 +361,14 @@ package weave.core
 		/**
 		 * Stores information for removeCallback() and removeAllCallbacks()
 		 */
-		private static var _d2d_callback_target:Dictionary2D = new Dictionary2D(true, true);
+		private static var _d2d_callback_target:Dictionary2D = new Dictionary2D(false, true);
+		
+		private static var _funcToWrapper:Dictionary = new Dictionary();
 
 		/**
 		 * @inheritDoc
 		 */
-		public function addCallback(scopeObjectPathOrVariableName:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean
+		public function addCallback(scopeObjectPathOrVariableName:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false, delayWhileBusy:Boolean = true):Boolean
 		{
 			try
 			{
@@ -387,6 +390,13 @@ package weave.core
 					return false;
 				}
 				
+				if (delayWhileBusy)
+				{
+					if (_funcToWrapper[callback] == null)
+						_funcToWrapper[callback] = generateBusyWaitWrapper(callback, object);
+					callback = _funcToWrapper[callback];
+				}
+				
 				_d2d_callback_target.set(callback, object, true);
 				if (immediateMode)
 					getCallbackCollection(object).addImmediateCallback(null, callback, triggerCallbackNow);
@@ -402,11 +412,23 @@ package weave.core
 			return false;
 		}
 		
+		private function generateBusyWaitWrapper(callback:Function, object:ILinkableObject):Function
+		{
+			return function():void {
+				if (!WeaveAPI.SessionManager.linkableObjectIsBusy(object))
+					callback();
+			};
+		}
+		
 		/**
 		 * @inheritDoc
 		 */
 		public function removeCallback(objectPathOrVariableName:Object, callback:Function, everywhere:Boolean = false):Boolean
 		{
+			var wrapper:Function = _funcToWrapper[callback];
+			if (wrapper != null && !removeCallback(objectPathOrVariableName, wrapper, everywhere))
+				return false;
+			
 			if (everywhere)
 			{
 				for (var target:Object in _d2d_callback_target.dictionary[callback])
