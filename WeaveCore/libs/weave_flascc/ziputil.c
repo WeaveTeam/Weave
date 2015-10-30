@@ -229,9 +229,10 @@ void writeZip()
 	}
 
 	// write files to archive
-	bool status0 = true;
+	bool status0;
 	inline_as3(
 		"try {"
+		"    %0 = true;"
 		"    for (var fileName:String in files)"
 		"    {"
 		"        if (!writeFile(%1, fileName, files[fileName]))"
