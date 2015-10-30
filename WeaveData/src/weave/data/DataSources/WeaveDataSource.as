@@ -545,7 +545,7 @@ package weave.data.DataSources
 			}
 			else // backwards compatibility - search using metadata
 			{
-				getMetadata(proxyColumn, [ColumnMetadata.DATA_TYPE, 'dataTable', 'name', 'year'], false, params);
+				getMetadata(proxyColumn, [ColumnMetadata.DATA_TYPE, 'dataTable', 'name', 'year', 'sqlParams'], false, params);
 				// dataType is only used for backwards compatibility with geometry collections
 				if (params[ColumnMetadata.DATA_TYPE] != DataType.GEOMETRY)
 					delete params[ColumnMetadata.DATA_TYPE];
