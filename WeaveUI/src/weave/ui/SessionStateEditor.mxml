@@ -104,8 +104,6 @@ A text editor to change the Session State on the fly.
 	</mx:VDividedBox>
 	<mx:Script>
 		<![CDATA[
-			import avmplus.getQualifiedClassName;
-			
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
 			
@@ -119,13 +117,6 @@ A text editor to change the Session State on the fly.
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.api.core.DynamicState;
-			import weave.api.core.ILinkableCompositeObject;
-			import weave.api.core.ILinkableDynamicObject;
-			import weave.api.core.ILinkableHashMap;
-			import weave.api.core.ILinkableObject;
-			import weave.api.core.ILinkableVariable;
-			import weave.api.data.IColumnWrapper;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
@@ -133,17 +124,21 @@ A text editor to change the Session State on the fly.
 			import weave.api.objectWasDisposed;
 			import weave.api.reportError;
 			import weave.api.setSessionState;
+			import weave.api.core.DynamicState;
+			import weave.api.core.ILinkableCompositeObject;
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.core.ILinkableVariable;
+			import weave.api.data.IColumnWrapper;
 			import weave.compiler.Compiler;
 			import weave.core.ClassUtils;
-			import weave.core.LinkableCallbackScript;
 			import weave.core.LinkableDynamicObject;
-			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.core.LinkableSynchronizer;
 			import weave.core.StageUtils;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
-			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.menus.WeaveContextMenu;
 			import weave.menus.WeaveMenuItem;
 			import weave.primitives.WeaveTreeItem;
@@ -229,8 +224,8 @@ A text editor to change the Session State on the fly.
 						click: function():void {
 							var parent:ILinkableObject = sessionNav.getSelectedLinkableObject();
 							AlertTextBox.show(
-								"Create new object",
-								"Enter the object type",
+								lang("Create new object"),
+								lang("Enter the object type"),
 								"",
 								function(className:String):Boolean {
 									try {
@@ -245,8 +240,40 @@ A text editor to change the Session State on the fly.
 						}
 					}, {
 						shown: isObjectSelected,
+						label: lang('Rename object...'),
+						enabled: function():Boolean {
+							return getLinkableOwner(sessionNav.getSelectedLinkableObject()) is ILinkableHashMap;
+						},
+						click: function():void {
+							var object:ILinkableObject = sessionNav.getSelectedLinkableObject();
+							var parent:ILinkableHashMap = getLinkableOwner(object) as ILinkableHashMap;
+							AlertTextBox.show(
+								lang("Rename object"),
+								lang("Enter a new name"),
+								parent.getName(object),
+								function(name:String):Boolean {
+									return !parent.getObject(name);
+								},
+								function(name:String):void {
+									parent.renameObject(parent.getName(object), name);
+								}
+							);
+						}
+					}, {
+						shown: isObjectSelected,
 						label: lang('Delete selected object'),
 						click: deleteSelectedItem
+					},
+					WeaveMenuItem.TYPE_SEPARATOR,
+					{
+						shown: isObjectSelected,
+						enabled: function():Boolean {
+							return sessionNav.getSelectedLinkableObject() is ILinkableHashMap;
+						},
+						label: lang('Open attribute selector'),
+						click: function():void {
+							AttributeSelectorPanel.open(sessionNav.getSelectedLinkableObject());
+						}
 					},
 					WeaveMenuItem.TYPE_SEPARATOR,
 					{
@@ -278,8 +305,8 @@ A text editor to change the Session State on the fly.
 					return;
 				}
 				AlertTextBox.show(
-					"Create new object",
-					"Enter the name of the new " + className,
+					lang("Create new object"),
+					lang("Enter the name of the new {0}", className),
 					ilh.generateUniqueName(className),
 					null,
 					function(name:String):void
