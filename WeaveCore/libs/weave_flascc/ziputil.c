@@ -298,7 +298,10 @@ void writeFile()
 	);
 	void *fileContent = malloc(contentLength);
 	if (!fileContent)
+	{
+		tracef("Unable to allocate %u bytes for writeFile()", contentLength);
 		AS3_Return(false);
+	}
 	inline_as3(
 		"ram_init.position = %0;"
 		"ram_init.writeBytes(byteArray);"
