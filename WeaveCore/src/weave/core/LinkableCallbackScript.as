@@ -35,7 +35,7 @@ package weave.core
 		public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap());
 		public const script:LinkableString = registerLinkableChild(this, new LinkableString());
 		public const delayWhileBusy:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public const groupedCallback:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const groupedCallback:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		private const _symbolTableProxy:ProxyObject = new ProxyObject(hasVariable, getVariable, null);
 		private var _compiledScript:Function = null;

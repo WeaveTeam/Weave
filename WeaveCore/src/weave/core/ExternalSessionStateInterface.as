@@ -18,11 +18,11 @@ package weave.core
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
+	import weave.api.getCallbackCollection;
 	import weave.api.core.IExternalSessionStateInterface;
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
-	import weave.api.getCallbackCollection;
 	import weave.compiler.Compiler;
 	import weave.compiler.ICompiledObject;
 	import weave.compiler.StandardLib;
@@ -391,11 +391,7 @@ package weave.core
 				}
 				
 				if (delayWhileBusy)
-				{
-					if (_funcToWrapper[callback] == null)
-						_funcToWrapper[callback] = generateBusyWaitWrapper(callback, object);
-					callback = _funcToWrapper[callback];
-				}
+					callback = _funcToWrapper[callback] as Function || (_funcToWrapper[callback] = generateBusyWaitWrapper(callback));
 				
 				_d2d_callback_target.set(callback, object, true);
 				if (immediateMode)
@@ -412,12 +408,15 @@ package weave.core
 			return false;
 		}
 		
-		private function generateBusyWaitWrapper(callback:Function, object:ILinkableObject):Function
+		private function generateBusyWaitWrapper(callback:Function):Function
 		{
-			return function():void {
-				if (!WeaveAPI.SessionManager.linkableObjectIsBusy(object))
-					callback();
+			var wrapper:Function = function():void {
+				for (var target:* in _d2d_callback_target.dictionary[wrapper])
+					if (WeaveAPI.SessionManager.linkableObjectIsBusy(target))
+						return;
+				callback();
 			};
+			return wrapper;
 		}
 		
 		/**
@@ -434,6 +433,7 @@ package weave.core
 				for (var target:Object in _d2d_callback_target.dictionary[callback])
 					getCallbackCollection(target as ILinkableObject).removeCallback(callback);
 				delete _d2d_callback_target.dictionary[callback];
+				delete _funcToWrapper[callback];
 				return true;
 			}
 			
