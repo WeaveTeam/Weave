@@ -19,12 +19,12 @@ package weave.data.AttributeColumns
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
+	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.DateFormat;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.flascc.date_format;
@@ -57,6 +57,7 @@ package weave.data.AttributeColumns
 		private var _dateFormat:String = null;
 		private var _dateDisplayFormat:String = null;
 		private var _durationMode:Boolean = false;
+		private var _fakeData:Boolean = false;
 		
 		/**
 		 * @inheritDoc
@@ -93,6 +94,8 @@ package weave.data.AttributeColumns
 				reportError("Array lengths differ");
 				return;
 			}
+			
+			_fakeData = !!getMetadata("fakeData");
 			
 			// read dateFormat metadata
 			_dateFormat = getMetadata(ColumnMetadata.DATE_FORMAT);
@@ -234,7 +237,15 @@ package weave.data.AttributeColumns
 				var key:IQualifiedKey = _keys[_i];
 				var string:String = _dates[_i];
 				var value:Object;
-				if (_stringToNumberFunction != null)
+				if (_fakeData)
+				{
+					var oneDay:Number = 24 * 60 * 60 * 1000;
+					var fakeTime:Number = StandardLib.asNumber(string) * oneDay;
+					var d:Date = new Date();
+					d.time = d.time - d.time % oneDay + fakeTime;
+					value = d;
+				}
+				else if (_stringToNumberFunction != null)
 				{
 					var number:Number = _stringToNumberFunction(string);
 					if (_numberToStringFunction != null)

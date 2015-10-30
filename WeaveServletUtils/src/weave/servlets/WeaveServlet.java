@@ -364,7 +364,7 @@ public class WeaveServlet extends HttpServlet
 					}
 					else // AMF3
 					{
-						ASObject obj = (ASObject)deserializeAmf3(info.inputStream);
+						Map<String,Object> obj = (Map<String,Object>)deserializeAmf3(info.inputStream);
 						methodName = (String) obj.get(METHOD);
 						methodParams = obj.get(PARAMS);
 						info.streamParameterIndex = (Number) obj.get(STREAM_PARAMETER_INDEX);
@@ -391,12 +391,12 @@ public class WeaveServlet extends HttpServlet
 	
 	public static final String JSONRPC_VERSION = "2.0";
 	
-	private static final Gson GSON = new GsonBuilder()
+	protected static final Gson GSON = new GsonBuilder()
 		.registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
 		.registerTypeHierarchyAdapter(Double.class, new NaNToNullAdapter())
 		.disableHtmlEscaping()
 		.create();
-	private static final Gson GSON_PRETTY = new GsonBuilder()
+	protected static final Gson GSON_PRETTY = new GsonBuilder()
 		.registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
 		.registerTypeHierarchyAdapter(Double.class, new NaNToNullAdapter())
 		.disableHtmlEscaping()
@@ -1053,16 +1053,35 @@ public class WeaveServlet extends HttpServlet
 	}
 	
 	//  De-serialize a ByteArray/AMF3/Flex object to a Java object  
-	protected ASObject deserializeAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
+	protected Object deserializeAmf3(InputStream inputStream) throws ClassNotFoundException, IOException
 	{
-		ASObject deSerializedObj = null;
+		Object deSerializedObj = null;
 	
 		Amf3Input amf3Input = new Amf3Input(serializationContext);
 		amf3Input.setInputStream(inputStream); // uncompress
-		deSerializedObj = (ASObject) amf3Input.readObject();
+		deSerializedObj = amf3Input.readObject();
 		//amf3Input.close();
 
-		return deSerializedObj;
+		return makeASObjectGeneric(deSerializedObj);
+	}
+	
+	private Object makeASObjectGeneric(Object object)
+	{
+		if (object instanceof ASObject)
+		{
+			@SuppressWarnings("unchecked")
+			Map<String,Object> map = new HashMap<String,Object>((ASObject)object);
+			for (Map.Entry<String,Object> entry : map.entrySet())
+				entry.setValue(makeASObjectGeneric(entry.getValue()));
+			return map;
+		}
+		if (object instanceof Object[])
+		{
+			Object[] array = (Object[])object;
+			for (int i = 0; i < array.length; i++)
+				array[i] = makeASObjectGeneric(array[i]);
+		}
+		return object;
 	}
 	
 	protected String methodToString(String name, Object[] params)

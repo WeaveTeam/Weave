@@ -243,11 +243,12 @@ package weave.core
 			if (!treeItem.data)
 			{
 				treeItem.data = root;
-				treeItem.label = objectName;
 				treeItem.children = getTreeItemChildren;
 				// dependency is used to determine when to recalculate children array
 				treeItem.dependency = root is ILinkableHashMap ? (root as ILinkableHashMap).childListCallbacks : root;
 			}
+			if (objectName)
+				treeItem.label = objectName;
 			return treeItem;
 		}
 		

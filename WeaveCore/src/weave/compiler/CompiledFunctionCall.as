@@ -78,6 +78,22 @@ package weave.compiler
 		}
 		
 		/**
+		 * Makes a deep copy of this and any nested CompiledFunctionCall objects suitable for recursive function execution.
+		 */
+		public function clone():CompiledFunctionCall
+		{
+			return _clone(this) as CompiledFunctionCall;
+		}
+		
+		private static function _clone(obj:Object, i:int = -1, a:Array = null):*
+		{
+			var cfc:CompiledFunctionCall = obj as CompiledFunctionCall;
+			if (cfc)
+				return new CompiledFunctionCall(_clone(cfc.compiledMethod), cfc.compiledParams && cfc.compiledParams.map(_clone));
+			return obj;
+		}
+		
+		/**
 		 * This is a compiled object that evaluates to a method.
 		 */
 		public var compiledMethod:ICompiledObject;

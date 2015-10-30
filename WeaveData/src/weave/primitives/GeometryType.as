@@ -15,11 +15,24 @@
 
 package weave.primitives
 {
+	import weave.utils.GeoJSON;
+
 	public class GeometryType
 	{
 		public static const POINT:String = "Point";
 		public static const LINE:String = "Arc";
 		public static const POLYGON:String = "Polygon";
+		
+		public static function toGeoJsonType(type:String, multi:Boolean):String
+		{
+			if (type == POINT)
+				return multi ? GeoJSON.T_MULTI_POINT : GeoJSON.T_POINT;
+			if (type == LINE)
+				return multi ? GeoJSON.T_MULTI_LINE_STRING : GeoJSON.T_LINE_STRING;
+			if (type == POLYGON)
+				return multi ? GeoJSON.T_MULTI_POLYGON : GeoJSON.T_POLYGON;
+			return null;
+		}
 		
 		public static function fromPostGISType(postGISType:int):String
 		{

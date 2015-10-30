@@ -15,14 +15,16 @@
 
 package weave.ui
 {
+	import flash.display.DisplayObject;
+	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	
 	import mx.core.IVisualElement;
 	
 	import spark.components.Group;
 	
-	import weave.api.core.IDisposableObject;
 	import weave.api.getCallbackCollection;
+	import weave.api.core.IDisposableObject;
 	import weave.api.ui.ILinkableLayoutManager;
 	import weave.compiler.StandardLib;
 
@@ -37,6 +39,17 @@ package weave.ui
 		{
 			percentWidth = 100;
 			percentHeight = 100;
+		}
+		
+		override public function removeChild(child:DisplayObject):DisplayObject
+		{
+			try {
+				return super.removeChild(child);
+			} catch (e:Error) {
+				if (Capabilities.isDebugger)
+					trace(e.getStackTrace());
+			}
+			return null;
 		}
 		
 		private var _idToComponent:Object = {}; // String -> IVisualElement

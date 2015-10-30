@@ -364,6 +364,11 @@ package weave.services
 		{
 			return invokeAdmin(authenticate, arguments);
 		}
+		
+		public function keepAlive():AsyncToken
+		{
+			return invokeAdmin(keepAlive, arguments);
+		}
 
 		//////////////////////////////
 		// Weave client config files

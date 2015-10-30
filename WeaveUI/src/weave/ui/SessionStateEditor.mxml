@@ -104,12 +104,13 @@ A text editor to change the Session State on the fly.
 	</mx:VDividedBox>
 	<mx:Script>
 		<![CDATA[
+			import avmplus.getQualifiedClassName;
+			
 			import flash.desktop.Clipboard;
 			import flash.desktop.ClipboardFormats;
 			
 			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
-			import mx.containers.VBox;
 			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.INavigatorContent;
@@ -119,6 +120,7 @@ A text editor to change the Session State on the fly.
 			
 			import weave.Weave;
 			import weave.api.core.DynamicState;
+			import weave.api.core.ILinkableCompositeObject;
 			import weave.api.core.ILinkableDynamicObject;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
@@ -133,15 +135,17 @@ A text editor to change the Session State on the fly.
 			import weave.api.setSessionState;
 			import weave.compiler.Compiler;
 			import weave.core.ClassUtils;
+			import weave.core.LinkableCallbackScript;
 			import weave.core.LinkableDynamicObject;
+			import weave.core.LinkableHashMap;
 			import weave.core.LinkableString;
 			import weave.core.LinkableSynchronizer;
 			import weave.core.StageUtils;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
 			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.menus.WeaveContextMenu;
+			import weave.menus.WeaveMenuItem;
 			import weave.primitives.WeaveTreeItem;
 			import weave.utils.ColumnUtils;
 			import weave.utils.DebugUtils;
@@ -214,17 +218,80 @@ A text editor to change the Session State on the fly.
 						shown: isObjectSelected,
 						label: lang('Link session state with another object'),
 						click: linkStatePath
-					}, {
+					},
+					WeaveMenuItem.TYPE_SEPARATOR,
+					{
 						shown: isObjectSelected,
-						label: lang('Watch selected object'),
-						click: function():void { DebugUtils.watch(sessionNav.getSelectedLinkableObject()); }
+						enabled: function():Boolean {
+							return sessionNav.getSelectedLinkableObject() is ILinkableCompositeObject;
+						},
+						label: lang('New object...'),
+						click: function():void {
+							var parent:ILinkableObject = sessionNav.getSelectedLinkableObject();
+							AlertTextBox.show(
+								"Create new object",
+								"Enter the object type",
+								"",
+								function(className:String):Boolean {
+									try {
+										return Compiler.getDefinition(className) != null;
+									} catch (e:Error) { }
+									return false;
+								},
+								function(className:String):void {
+									callLater(newObject, [parent, Compiler.getDefinition(className)]);
+								}
+							);
+						}
 					}, {
 						shown: isObjectSelected,
 						label: lang('Delete selected object'),
 						click: deleteSelectedItem
+					},
+					WeaveMenuItem.TYPE_SEPARATOR,
+					{
+						shown: isObjectSelected,
+						label: lang('Watch selected object'),
+						click: function():void { DebugUtils.watch(sessionNav.getSelectedLinkableObject()); }
 					}
 				]);
 		    }
+			
+			private function newObject(parent:ILinkableObject, classDef:Class):void
+			{
+				var className:String = getQualifiedClassName(classDef).split('::').pop();
+				
+				if (parent is ILinkableDynamicObject)
+				{
+					var newObject:ILinkableObject = (parent as ILinkableDynamicObject).requestLocalObject(classDef, false);
+					if (newObject)
+						sessionNav.setSelectedLinkableObject(newObject);
+					else
+						reportError("Unable to create new " + className);
+					return;
+				}
+				
+				var ilh:ILinkableHashMap = parent as ILinkableHashMap;
+				if (!ilh)
+				{
+					reportError("Cannot create object under parent of type " + getQualifiedClassName(parent));
+					return;
+				}
+				AlertTextBox.show(
+					"Create new object",
+					"Enter the name of the new " + className,
+					ilh.generateUniqueName(className),
+					null,
+					function(name:String):void
+					{
+						var newObject:ILinkableObject = ilh.requestObject(name, classDef, false);
+						if (newObject)
+							sessionNav.setSelectedLinkableObject(newObject);
+						else
+							reportError("Unable to create new " + className);
+					}
+				);
+			}
 			
 			private function isObjectSelected():Boolean
 			{

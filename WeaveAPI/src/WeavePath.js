@@ -37,6 +37,8 @@ var _addCallback = weave.addCallback;
 weave.addCallback = function(target, callback, triggerNow, immediateMode)
 {
 	callback = asFunction(callback, Array.isArray(target) ? weave.path(target) : weave.path());
+	if (!immediateMode)
+		callback = weave._debounce(callback);
 	return _addCallback.call(this, target, callback, triggerNow, immediateMode);
 };
 var _removeCallback = weave.removeCallback;
@@ -114,7 +116,7 @@ weave.WeavePath.prototype._deleteTempVars = function()
 /**
  * Private function for internal use.
  * 
- * Converts an arguments object to an Array, and then reconstructs the Array using JSON if natualize() was previously called.
+ * Converts an arguments object to an Array.
  * @param args An arguments object.
  * @param option An integer flag for special behavior.
  *   - If set to 1, it handles arguments like (...LIST) where LIST can be either an Array or multiple arguments.
@@ -283,7 +285,7 @@ weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, i
 /**
  * Removes a callback from the object at the current path or from everywhere.
  * @param callback The callback function.
- * @param everywhere Optional paramter, if set to true will remove the callback from every object to which it was added.
+ * @param everywhere Optional parameter, if set to true will remove the callback from every object to which it was added.
  * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.removeCallback = function(callback, everywhere)

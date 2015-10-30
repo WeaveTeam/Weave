@@ -666,7 +666,7 @@ package weave.compiler
 						_sortBuffer[i][p] = array[i][param];
 				
 				fields[p] = p;
-				fieldOptions[p] = Array.RETURNINDEXEDARRAY | guessSortMode(_sortBuffer[0][p]) | sortDirection;
+				fieldOptions[p] = Array.RETURNINDEXEDARRAY | guessSortMode(_sortBuffer, p) | sortDirection;
 			}
 			
 			values = _sortBuffer.slice(0, array.length);
@@ -690,12 +690,18 @@ package weave.compiler
 		}
 		
 		/**
-		 * Guesses the appropriate Array.sort() mode based on a sample item from an Array.
+		 * Guesses the appropriate Array.sort() mode based on the first non-undefined item property from an Array.
 		 * @return Either Array.NUMERIC or 0.
 		 */
-		private static function guessSortMode(sampleItem:Object):int
+		private static function guessSortMode(array:Object, itemProp:*):int
 		{
-			return sampleItem is Number || sampleItem is Date ? Array.NUMERIC : 0;
+			for each (var item:* in array)
+			{
+				var value:* = item[itemProp];
+				if (value !== undefined)
+					return value is Number || value is Date ? Array.NUMERIC : 0;
+			}
+			return 0;
 		}
 		
 		/**

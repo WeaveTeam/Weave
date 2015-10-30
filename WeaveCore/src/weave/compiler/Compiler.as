@@ -15,8 +15,6 @@
 
 package weave.compiler
 {
-	import avmplus.DescribeType;
-	
 	import flash.system.ApplicationDomain;
 	import flash.utils.Dictionary;
 	import flash.utils.Proxy;
@@ -25,6 +23,8 @@ package weave.compiler
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.utils.StringUtil;
+	
+	import avmplus.DescribeType;
 	
 	import weave.utils.fixErrorMessage;
 	
@@ -209,6 +209,10 @@ package weave.compiler
 		 * This object maps the name of a predefined constant to its value.
 		 */
 		private var constants:Object = null;
+		/**
+		 * The eval() function.
+		 */
+		private var _eval:Function = null;
 		/**
 		 * This object maps the name of a global symbol to its value.
 		 */
@@ -736,6 +740,11 @@ package weave.compiler
 		public function setHashOperator(hashFunction:Function):void
 		{
 			constants[OPERATOR_ESCAPE + '#'] = operators['#'] = hashFunction;
+		}
+		
+		public function setEvalFunction(eval:Function):void
+		{
+			this._eval = eval;
 		}
 		
 		/**
@@ -1961,7 +1970,7 @@ package weave.compiler
 						// special case for "y, x = 3;" which at this point is stored as {y, x = 3}
 						if (call.evaluatedMethod == operators[';'])
 						{
-							if (call.evaluatedParams.length != 1 || !(call.compiledParams[0] is CompiledFunctionCall))
+							if (!(call.evaluatedParams.length == 1 && call.compiledParams[0] is CompiledFunctionCall))
 								throwInvalidSyntax(stmt);
 							// remove the operator ';' wrapper
 							tokens[startIndex + iPattern] = token = call = call.compiledParams[0];
@@ -2531,7 +2540,7 @@ package weave.compiler
 			// create the variables that will be used inside the wrapper function
 
 			const builtInSymbolTable:Object = {};
-			builtInSymbolTable['eval'] = undefined;
+			builtInSymbolTable['eval'] = this._eval as Function || undefined;
 			builtInSymbolTable['this'] = bindThis;
 			
 			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
@@ -2562,6 +2571,11 @@ package weave.compiler
 			// this flag is set to useThisScope when the compiledObject is a function definition
 			var cascadeThisScope:Boolean = false;
 			
+			// Each recursive call must use a clone of the CompiledFunctionCall,
+			// so we keep track of recursion depth and re-use copies of the CompiledFunctionCall.
+			var recursion:int = 0;
+			var recursiveCalls:Array = [compiledObject];
+			
 			// this function avoids unnecessary function call overhead by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function():*
 			{
@@ -2591,7 +2605,11 @@ package weave.compiler
 						localSymbolTable[paramNames[i] as String] = i < arguments.length ? arguments[i] : paramDefaults[i];
 				
 				// initialize top-level function and push it onto the stack
-				call = compiledObject as CompiledFunctionCall;
+				call = recursiveCalls[recursion] as CompiledFunctionCall;
+				if (!call)
+					recursiveCalls[recursion] = call = (compiledObject as CompiledFunctionCall).clone();
+				recursion++;
+				
 				call.evalIndex = INDEX_METHOD;
 				stack.length = 1;
 				stack[0] = call;
@@ -2702,6 +2720,7 @@ package weave.compiler
 						{
 							if (method == operators[ST_RETURN])
 							{
+								recursion--;
 								return compiledParams.length ? call.evaluatedParams[0] : undefined;
 							}
 							else if (method == operators[ST_CONTINUE])
@@ -2710,7 +2729,10 @@ package weave.compiler
 								{
 									stack.pop();
 									if (stack.length == 0)
+									{
+										recursion--;
 										return result; // executing continue at top level of script
+									}
 									
 									call = stack[stack.length - 1] as CompiledFunctionCall;
 									method = call.evaluatedMethod;
@@ -2730,6 +2752,7 @@ package weave.compiler
 										continue stackLoop;
 									}
 								}
+								recursion--;
 								return result; // executing break at top level
 							}
 							else if (method == operators[ST_THROW])
@@ -2849,6 +2872,8 @@ package weave.compiler
 					}
 					catch (e:*)
 					{
+						recursion--;
+						
 						var decompiled:String = decompileObject(call);
 						var err:Error = e as Error;
 						if (err)
@@ -2889,7 +2914,10 @@ package weave.compiler
 					stack.pop();
 					// if there is no parent function call, return the result
 					if (stack.length == 0)
+					{
+						recursion--;
 						return result;
+					}
 					// otherwise, store the result in the evaluatedParams array of the parent call
 					call = stack[stack.length - 1] as CompiledFunctionCall;
 					if (call.evalIndex == INDEX_METHOD)

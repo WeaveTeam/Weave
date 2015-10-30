@@ -19,23 +19,20 @@ package weave.utils
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	import mx.utils.ObjectUtil;
-	
 	import weave.api.copySessionState;
+	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableDescendants;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
-	import weave.api.data.IDataSource;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableDescendants;
-	import weave.api.getLinkableOwner;
+	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ExtendedDynamicColumn;
@@ -332,6 +329,28 @@ package weave.utils
 			}
 			
 			return result;			
+		}
+		
+		/**
+		 * @param geometryColumn A column with metadata dataType="geometry"
+		 * @param keys An Array of IQualifiedKeys
+		 * @param minImportance No points with importance less than this value will be returned.
+		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
+		 * @return An Array of GeoJson Geometry objects corresponding to the keys.
+		 */
+		public static function getGeoJsonGeometries(geometryColumn:IAttributeColumn, keys:Array, minImportance:Number = 0, visibleBounds:IBounds2D = null):Array
+		{
+			var output:Array = new Array(keys.length);
+			for (var i:int = 0; i < keys.length; i++)
+			{
+				var key:IQualifiedKey = keys[i];
+				var genGeoms:Array = geometryColumn.getValueFromKey(key, Array) as Array;
+				var geoJsonGeoms:Array = genGeoms.map(function(genGeom:GeneralizedGeometry, ..._):Object {
+					return genGeom.toGeoJson(minImportance, visibleBounds);
+				});
+				output[i] = GeoJSON.getMultiGeomObject(geoJsonGeoms);
+			}
+			return output;
 		}
 		
 		public static function test_getAllValues(column:IAttributeColumn, dataType:Class):Array

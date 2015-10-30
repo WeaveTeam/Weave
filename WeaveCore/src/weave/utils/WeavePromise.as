@@ -186,31 +186,7 @@ package weave.utils
 			
 			var next:WeavePromise = new WeavePromise(this);
 			next.result = undefined;
-			var handler:Handler = new Handler(
-				function(result:Object):void {
-					handler.wasCalled = true;
-					try
-					{
-						next.setResult(onFulfilled(result));
-					}
-					catch (e:Error)
-					{
-						handler.onError(e);
-					}
-				},
-				function(error:Object):void {
-					handler.wasCalled = true;
-					try
-					{
-						next.setError(onRejected(error));
-					}
-					catch (e:Error)
-					{
-						next.setError(e);
-					}
-				}
-			);
-			handlers.push(handler);
+			handlers.push(new Handler(onFulfilled, onRejected, next));
 			
 			if (result !== undefined || error !== undefined)
 			{
@@ -266,15 +242,47 @@ package weave.utils
 	}
 }
 
+import weave.utils.WeavePromise;
+
 internal class Handler
 {
-	public function Handler(onResult:Function, onError:Function)
+	public var onFulfilled:Function;
+	public var onRejected:Function;
+	public var next:WeavePromise;
+	
+	public function Handler(onFulfilled:Function, onRejected:Function, next:WeavePromise)
 	{
-		this.onResult = onResult;
-		this.onError = onError;
+		this.next = next;
+		this.onFulfilled = onFulfilled;
+		this.onRejected = onRejected;
 	}
-	public var onResult:Function;
-	public var onError:Function;
+	
+	public function onResult(result:Object):void
+	{
+		wasCalled = true;
+		try
+		{
+			next.setResult(onFulfilled(result));
+		}
+		catch (e:Error)
+		{
+			onError(e);
+		}
+	}
+	
+	public function onError(error:Object):void
+	{
+		wasCalled = true;
+		try
+		{
+			next.setError(onRejected(error));
+		}
+		catch (e:Error)
+		{
+			next.setError(e);
+		}
+	}
+	
 	/**
 	 * Used as a flag to indicate whether or not this handler has been called 
 	 */

@@ -16,6 +16,7 @@
 package weave.data.DataSources
 {
 	import flash.net.URLRequest;
+	import flash.utils.Dictionary;
 	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -73,7 +74,7 @@ package weave.data.DataSources
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
 
-		const SQLPARAMS:String = 'sqlParams';
+		private static const SQLPARAMS:String = 'sqlParams';
 		
 		public function WeaveDataSource()
 		{
@@ -82,6 +83,7 @@ package weave.data.DataSources
 		
 		private var _service:WeaveDataServlet = null;
 		private var _tablePromiseCache:Object;
+		private var _proxyPromiseCache:Dictionary;
 		private var _entityCache:EntityCache = null;
 		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
@@ -275,6 +277,7 @@ package weave.data.DataSources
 			_service = registerLinkableChild(this, new WeaveDataServlet(url.value), setIdFields);
 			_entityCache = registerLinkableChild(_service, new EntityCache(_service));
 			_tablePromiseCache = {};
+			_proxyPromiseCache = new Dictionary(true);
 			
 			url.resumeCallbacks();
 		}
@@ -537,12 +540,12 @@ package weave.data.DataSources
 			if (idFieldsArray || params[ENTITY_ID])
 			{
 				var id:Object = idFieldsArray ? getMetadata(proxyColumn, idFieldsArray, true) : StandardLib.asNumber(params[ENTITY_ID]);
-				var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(params[SQLPARAMS]);
+				var sqlParams:Array = parseSqlParams(params[SQLPARAMS]);
 				query = _service.getColumn(id, params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
 			}
 			else // backwards compatibility - search using metadata
 			{
-				getMetadata(proxyColumn, [ColumnMetadata.DATA_TYPE, 'dataTable', 'name', 'year'], false, params);
+				getMetadata(proxyColumn, [ColumnMetadata.DATA_TYPE, 'dataTable', 'name', 'year', 'sqlParams'], false, params);
 				// dataType is only used for backwards compatibility with geometry collections
 				if (params[ColumnMetadata.DATA_TYPE] != DataType.GEOMETRY)
 					delete params[ColumnMetadata.DATA_TYPE];
@@ -596,6 +599,18 @@ package weave.data.DataSources
 //		{
 //			DebugUtils.callLater(5000, handleGetAttributeColumn2, arguments);
 //		}
+		
+		private function parseSqlParams(sqlParams:String):Array
+		{
+			var result:Array;
+			try {
+				result = Compiler.parseConstant(sqlParams) as Array;
+			} catch (e:Error) { }
+			if (!(result is Array))
+				result = WeaveAPI.CSVParser.parseCSVRow(sqlParams);
+			return result;
+		}
+		
 		private function handleGetAttributeColumn(event:ResultEvent, proxyColumn:ProxyColumn):void
 		{
 			if (proxyColumn.wasDisposed)
@@ -633,10 +648,14 @@ package weave.data.DataSources
 					return;
 				}
 				
-				var keyType:String = ColumnUtils.getKeyType(proxyColumn);
-				var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-				var setRecords:Function = function():void
+				var setRecords:Function = function(keysVector:Vector.<IQualifiedKey>):void
 				{
+					if (result.data == null)
+					{
+						proxyColumn.dataUnavailable();
+						return;
+					}
+					
 					if (isGeom) // result.data is an array of PGGeom objects.
 					{
 						var geometriesVector:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
@@ -683,9 +702,10 @@ package weave.data.DataSources
 					_attributeHierarchy.detectChanges();
 				};
 	
+				var keyType:String = ColumnUtils.getKeyType(proxyColumn);
 				if (result.data != null)
 				{
-					(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, keyType, result.keys, setRecords, keysVector);
+					(WeaveAPI.QKeyManager as QKeyManager).getQKeysPromise(proxyColumn, keyType, result.keys).then(setRecords);
 				}
 				else // no data in result
 				{
@@ -696,7 +716,7 @@ package weave.data.DataSources
 					}
 					
 					// if table not cached, request table, store in cache, and await data
-					var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(proxyColumn.getMetadata(SQLPARAMS));
+					var sqlParams:Array = parseSqlParams(proxyColumn.getMetadata(SQLPARAMS));
 					var hash:String = Compiler.stringify([result.tableId, sqlParams]);
 					var promise:WeavePromise = _tablePromiseCache[hash];
 					if (!promise)
@@ -704,28 +724,72 @@ package weave.data.DataSources
 						var getTablePromise:WeavePromise = new WeavePromise(_service)
 							.then(function(..._):AsyncToken {
 								return _service.getTable(result.tableId, sqlParams);
-							})
-							.then(null, reportError);
+							});
+						
+						var keyStrings:Array;
 						promise = getTablePromise
+							.then(function(tableData:TableData):TableData {
+								var name:String;
+								for each (name in tableData.keyColumns)
+									if (!tableData.columns.hasOwnProperty(name))
+										throw new Error(lang('Table {0} is missing key column "{1}"', tableData.id, name));
+								
+								if (tableData.keyColumns.length == 1)
+								{
+									keyStrings = tableData.columns[tableData.keyColumns[0]];
+									return tableData;
+								}
+								
+								// generate compound keys
+								var nCol:int = tableData.keyColumns.length
+								var iCol:int, iRow:int, nRow:int;
+								for (iCol = 0; iCol < nCol; iCol++)
+								{
+									var keyCol:Array = tableData.columns[tableData.keyColumns[iCol]];
+									if (iCol == 0)
+										keyStrings = new Array(keyCol.length);
+									nRow = keyStrings.length;
+									for (iRow = 0; iRow < nRow; iRow++)
+									{
+										if (iCol == 0)
+											keyStrings[iRow] = new Array(nCol);
+										keyStrings[iRow][iCol] = keyCol[iRow];
+									}
+								}
+								for (iRow = 0; iRow < nRow; iRow++)
+									keyStrings[iRow] = WeaveAPI.CSVParser.createCSVRow(keyStrings[iRow]);
+								return tableData;
+							})
 							.then(function(tableData:TableData):WeavePromise {
 								return (WeaveAPI.QKeyManager as QKeyManager).getQKeysPromise(
 									getTablePromise,
 									keyType,
-									tableData.columns[tableData.keyColumn]
+									keyStrings
 								).then(function(qkeys:Vector.<IQualifiedKey>):TableData {
-									tableData.qkeys = qkeys;
+									tableData.derived_qkeys = qkeys;
 									return tableData;
 								});
-							});
+							})
+							.then(null, reportError);
 						_tablePromiseCache[hash] = promise;
 					}
 					
 					// when the promise returns, set column data
-					promise.then(function(tableData:TableData):* {
+					promise.then(function(tableData:TableData):void {
 						result.data = tableData.columns[result.tableField];
-						keysVector = tableData.qkeys;
-						setRecords();
+						if (result.data == null)
+						{
+							proxyColumn.dataUnavailable(lang('(Missing column: {0})', result.tableField));
+							return;
+						}
+						
+						setRecords(tableData.derived_qkeys);
 					});
+					
+					// make proxyColumn busy while table promise is busy
+					var proxyPromise:WeavePromise = _proxyPromiseCache[proxyColumn];
+					if (!proxyPromise)
+						_proxyPromiseCache[proxyColumn] = proxyPromise = new WeavePromise(proxyColumn).then(function(_:*):* { return promise; });
 				}
 			}
 			catch (e:Error)

@@ -55,6 +55,20 @@ package weave.ui
 		private var _childNamesForMapChildInput:Array;
 		private const _originalParents:Dictionary = new Dictionary(true);
 		
+		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+		{
+			try
+			{
+				super.updateDisplayList(unscaledWidth, unscaledHeight);
+			}
+			catch (e:Error)
+			{
+				// ignore getChildAt() errors
+				if (e.errorID != 2006)
+					throw e;
+			}
+		}
+		
 		private function handleChildAdd(event:ChildExistenceChangedEvent):void
 		{
 			var child:DisplayObject = event.relatedObject;
