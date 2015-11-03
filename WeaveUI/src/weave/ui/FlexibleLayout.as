@@ -10,6 +10,7 @@ package weave.ui
 	import mx.containers.dividedBoxClasses.BoxDivider;
 	import mx.core.mx_internal;
 	import mx.events.ChildExistenceChangedEvent;
+	import mx.utils.ObjectUtil;
 	
 	import avmplus.getQualifiedClassName;
 	
@@ -34,9 +35,16 @@ package weave.ui
 		private static const FLEX:String = 'flex';
 		private static const DIRECTION:String = 'direction';
 		private static const CHILDREN:String = 'children';
+		private static var LinkableDynamicDisplayObject_QName:String;
+		private static var FlexibleLayout_QName:String;
 		
 		public function FlexibleLayout()
 		{
+			if (!LinkableDynamicDisplayObject_QName)
+				LinkableDynamicDisplayObject_QName = getQualifiedClassName(LinkableDynamicDisplayObject);
+			if (!FlexibleLayout_QName)
+				FlexibleLayout_QName = getQualifiedClassName(FlexibleLayout);
+			
 			setStyle('horizontalGap', 8);
 			setStyle('verticalGap', 8);
 			minWidth = 16;
@@ -52,7 +60,6 @@ package weave.ui
 		private const _flex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		private const _direction:LinkableString = registerLinkableChild(this, new LinkableString(BoxDirection.VERTICAL, verifyDirection), adjustChildFlexValues, true);
 		private const _children:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(), adjustChildFlexValues, true);
-		private var _childNamesForMapChildInput:Array;
 		private const _originalParents:Dictionary = new Dictionary(true);
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -134,13 +141,6 @@ package weave.ui
 			return dynamicState[DynamicState.SESSION_STATE];
 		}
 		
-		private function _mapChildInput(state:Object, i:int, a:Array):Object
-		{
-			var objectName:String = _childNamesForMapChildInput[i] || 'child' + i;
-			var className:String = getQualifiedClassName(state is Array ? LinkableDynamicDisplayObject : FlexibleLayout);
-			return DynamicState.create(objectName, className, state);
-		}
-		
 		public function getSessionState():Object
 		{
 			var children:Array = _children.getSessionState().map(_mapChildOutput);
@@ -162,10 +162,38 @@ package weave.ui
 			var id:Array = state[ID] is String ? [state[ID] as String] : state[ID] as Array;
 			var flex:Number = state[FLEX];
 			var direction:String = state[DIRECTION] as String;
-			var children:Array = id ? [id] : (state[CHILDREN] as Array || []);
+			var children:Array = id ? [id] : (state[CHILDREN] as Array || []).concat();
 			
-			_childNamesForMapChildInput = _children.getNames();
-			children = children.map(_mapChildInput);
+			if (children.length == 1 && !id)
+			{
+				setSessionState(children[0]);
+				return;
+			}
+			
+			for (var i:int = 0; i < children.length; i++)
+			{
+				var objectName:String = 'child' + i;
+				var child:Object = children[i];
+				if (child is Array)
+				{
+					children[i] = DynamicState.create(objectName, LinkableDynamicDisplayObject_QName, child);
+				}
+				else if (child[DIRECTION] == direction && child[CHILDREN] is Array)
+				{
+					var spliceArgs:Array = [i--, 1];
+					for each (var obj:Object in child[CHILDREN])
+					{
+						var newObj:Object = ObjectUtil.copy(obj);
+						newObj[FLEX] *= child[FLEX];
+						spliceArgs.push(newObj);
+					}
+					children.splice.apply(children, spliceArgs);
+				}
+				else
+				{
+					children[i] = DynamicState.create(objectName, FlexibleLayout_QName, children[i]);
+				}
+			}
 			
 			getCallbackCollection(this).delayCallbacks();
 			
