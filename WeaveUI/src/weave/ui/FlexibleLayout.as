@@ -2,12 +2,14 @@ package weave.ui
 {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.utils.Dictionary;
 	
 	import mx.containers.BoxDirection;
 	import mx.containers.DividedBox;
 	import mx.containers.dividedBoxClasses.BoxDivider;
+	import mx.core.UIComponent;
 	import mx.core.mx_internal;
 	import mx.events.ChildExistenceChangedEvent;
 	import mx.utils.ObjectUtil;
@@ -66,6 +68,16 @@ package weave.ui
 		{
 			try
 			{
+				// workaround for missing divider bug
+				while (numChildren > 0 && numDividers < numChildren - 1)
+				{
+					var child:UIComponent = getChildAt(0) as UIComponent;
+					if (!child.includeInLayout)
+						break; // prevent infinite loop
+					// dispatching this event causes DividedBox to create another divider
+					child.dispatchEvent(new Event("includeInLayoutChanged"));
+				}
+				
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 			}
 			catch (e:Error)
