@@ -131,10 +131,7 @@ package weave.ui
 		
 		private function _mapChildOutput(dynamicState:Object, i:int, a:Array):Object
 		{
-			var output:Object = dynamicState[DynamicState.SESSION_STATE];
-			if (DynamicState.isDynamicStateArray(output) && output.length == 1 && output[0][DynamicState.CLASS_NAME] == 'Array')
-				output = output[0][DynamicState.SESSION_STATE];
-			return output;
+			return dynamicState[DynamicState.SESSION_STATE];
 		}
 		
 		private function _mapChildInput(state:Object, i:int, a:Array):Object
@@ -150,19 +147,13 @@ package weave.ui
 			var state:Object = {};
 			state[FLEX] = _flex.value || 1;
 			state[DIRECTION] = _direction.value;
-			if (children.length == 1)
-			{
+			if (children.length == 1 && children[0] is Array)
 				state[ID] = children[0];
-				delete state[CHILDREN];
-			}
 			else
-			{
-				delete state[ID];
 				state[CHILDREN] = children;
-			}
 			return state;
 		}
-		
+				
 		public function setSessionState(state:Object):void
 		{
 			if (!state)
