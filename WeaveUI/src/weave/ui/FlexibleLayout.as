@@ -12,7 +12,6 @@ package weave.ui
 	import mx.core.UIComponent;
 	import mx.core.mx_internal;
 	import mx.events.ChildExistenceChangedEvent;
-	import mx.utils.ObjectUtil;
 	
 	import avmplus.getQualifiedClassName;
 	
@@ -22,6 +21,7 @@ package weave.ui
 	import weave.api.registerLinkableChild;
 	import weave.api.core.DynamicState;
 	import weave.api.core.ILinkableVariable;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableDynamicDisplayObject;
 	import weave.core.LinkableHashMap;
@@ -165,46 +165,66 @@ package weave.ui
 				state[CHILDREN] = children;
 			return state;
 		}
+		
+		private function simplifyState(state:Object):Object
+		{
+			var children:Array = state[CHILDREN] as Array;
+			if (!children)
+				return state;
+			if (children.length == 1)
+				return simplifyState(children[0]);
+			
+			var simpleChildren:Array = [];
+			for (var i:int = 0; i < children.length; i++)
+			{
+				var child:Object = simplifyState(children[i]);
+				if (child[CHILDREN] is Array && child[DIRECTION] === state[DIRECTION])
+				{
+					var childChildren:Array = child[CHILDREN] as Array;
+					for (var ii:int = 0; ii < childChildren.length; ii++)
+					{
+						var childChild:Object = childChildren[ii];
+						childChild[FLEX] *= child[FLEX];
+						simpleChildren.push(childChild);
+					}
+				}
+				else
+				{
+					simpleChildren.push(child);
+				}
+			}
+			state[CHILDREN] = simpleChildren;
+			return state;
+		}
 				
 		public function setSessionState(state:Object):void
 		{
 			if (!state)
 				state = {};
 			
+			try
+			{
+				state = simplifyState(state);
+			}
+			catch (e:Error)
+			{
+				trace(debugId(this), 'received invalid state:', Compiler.stringify(state, null, '\t'));
+			}
+			
 			var id:Array = state[ID] is String ? [state[ID] as String] : state[ID] as Array;
 			var flex:Number = state[FLEX];
 			var direction:String = state[DIRECTION] as String;
 			var children:Array = id ? [id] : (state[CHILDREN] as Array || []).concat();
-			
-			if (children.length == 1 && !id)
-			{
-				setSessionState(children[0]);
-				return;
-			}
 			
 			for (var i:int = 0; i < children.length; i++)
 			{
 				var objectName:String = 'child' + i;
 				var child:Object = children[i];
 				if (child is Array)
-				{
-					children[i] = DynamicState.create(objectName, LinkableDynamicDisplayObject_QName, child);
-				}
-				else if (child[DIRECTION] == direction && child[CHILDREN] is Array)
-				{
-					var spliceArgs:Array = [i--, 1];
-					for each (var obj:Object in child[CHILDREN])
-					{
-						var newObj:Object = ObjectUtil.copy(obj);
-						newObj[FLEX] *= child[FLEX];
-						spliceArgs.push(newObj);
-					}
-					children.splice.apply(children, spliceArgs);
-				}
+					child = DynamicState.create(objectName, LinkableDynamicDisplayObject_QName, child);
 				else
-				{
-					children[i] = DynamicState.create(objectName, FlexibleLayout_QName, children[i]);
-				}
+					child = DynamicState.create(objectName, FlexibleLayout_QName, child);
+				children[i] = child;
 			}
 			
 			getCallbackCollection(this).delayCallbacks();
