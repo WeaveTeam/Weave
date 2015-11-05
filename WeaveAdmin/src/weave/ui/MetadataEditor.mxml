@@ -81,6 +81,7 @@
 	import weave.core.UIUtils;
 	import weave.data.CSVParser;
 	import weave.data.hierarchy.EntityNode;
+	import weave.flascc.writeZip;
 	import weave.services.Admin;
 	import weave.services.EntityCache;
 	
@@ -390,7 +391,6 @@
 					return;
 				}
 			}
-			
 		}
 		
 		// save
@@ -436,6 +436,74 @@
 			PopUpManager.removePopUp(csvWindow);
 		}
 	}
+	
+	/**
+	 * Creates a ZIP containing three CSV files that can be imported directly into the config tables:
+	 * 
+	 * weave_hierarchy(parent_id, child_id, sort_order)
+	 * weave_meta_public(entity_id, meta_name, meta_value)
+	 * weave_meta_private(entity_id, meta_name, meta_value)
+	 * 
+	 * WARNING: THIS DOES NO VALIDATION, SO BAD INPUT WILL PRODUCE A BAD DUMP FILE.
+	 */
+	public function saveCSVDump(delimiter:String = ","):void
+	{
+		var weave_hierarchy:Array = [['parent_id', 'child_id', 'sort_order']];
+		var weave_meta_public:Array = [['entity_id', 'meta_name', 'meta_value']];
+		var weave_meta_private:Array = [['entity_id', 'meta_name', 'meta_value']];
+		
+		var csv:String = csvTextArea.text;
+		var rows:Array = parseCSV(csv);
+		if (rows.length < 2)
+			throw new Error("Nothing to save.");
+		
+		var records:Array = WeaveAPI.CSVParser.convertRowsToRecords(rows, 2);
+		
+		var record:Object;
+		var order:int = 0;
+		var name:String;
+		var value:String;
+		for each (record in records)
+		{
+			var id:int = getInternalId(record);
+			
+			// hierarchy
+			var parent:int = getInternalParent(record);
+			if (parent != EntityCache.ROOT_ID)
+				weave_hierarchy.push([parent, id, ++order]);
+			
+			// public
+			weave_meta_public.push([id, ColumnMetadata.ENTITY_TYPE, getInternalType(record)]);
+			for (name in record[PUBLIC])
+			{
+				value = record[PUBLIC][name];
+				if (value)
+					weave_meta_public.push([id, name, value]);
+			}
+			
+			// private
+			for (name in record[PRIVATE])
+			{
+				value = record[PRIVATE][name];
+				if (value)
+					weave_meta_private.push([id, name, value]);
+			}
+		}
+		
+		var files:Object = {};
+		files['weave_hierarchy.csv'] = weave_hierarchy;
+		files['weave_meta_public.csv'] = weave_meta_public;
+		files['weave_meta_private.csv'] = weave_meta_private;
+		var parser:CSVParser = new CSVParser(false, delimiter);
+		for (name in files)
+		{
+			var bytes:ByteArray = new ByteArray();
+			bytes.writeUTFBytes(parser.createCSV(files[name]));
+			files[name] = bytes;
+		}
+		new FileReference().save(weave.flascc.writeZip(files), "weave_config_dump.zip");
+	}
+	
 	private static const INTERNAL:String = 'internal';
 	private static const PUBLIC:String = 'public';
 	private static const PRIVATE:String = 'private';
