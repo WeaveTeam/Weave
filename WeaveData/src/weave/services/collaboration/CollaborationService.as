@@ -31,27 +31,25 @@ package weave.services.collaboration
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
-	import org.igniterealtime.xiff.auth.*;
-	import org.igniterealtime.xiff.bookmark.*;
-	import org.igniterealtime.xiff.conference.*;
-	import org.igniterealtime.xiff.core.*;
-	import org.igniterealtime.xiff.data.*;
-	import org.igniterealtime.xiff.events.*;
-	import org.igniterealtime.xiff.exception.*;
-	import org.igniterealtime.xiff.filter.*;
-	import org.igniterealtime.xiff.im.*;
-	import org.igniterealtime.xiff.privatedata.*;
-	import org.igniterealtime.xiff.util.*;
-	import org.igniterealtime.xiff.vcard.*;
+	import org.igniterealtime.xiff.conference.Room;
+	import org.igniterealtime.xiff.core.EscapedJID;
+	import org.igniterealtime.xiff.core.UnescapedJID;
+	import org.igniterealtime.xiff.core.XMPPConnection;
+	import org.igniterealtime.xiff.data.Message;
+	import org.igniterealtime.xiff.events.DisconnectionEvent;
+	import org.igniterealtime.xiff.events.LoginEvent;
+	import org.igniterealtime.xiff.events.MessageEvent;
+	import org.igniterealtime.xiff.events.RoomEvent;
+	import org.igniterealtime.xiff.events.XIFFErrorEvent;
 	
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
 	import weave.api.registerDisposableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObject;
 	import weave.core.SessionStateLog;
 	
 	public class CollaborationService extends EventDispatcher implements IDisposableObject
@@ -92,9 +90,10 @@ package weave.services.collaboration
 		{
 			this.root = root;
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
-			// all of these classes are internal
+			// all of these classes are internal so they need fake packages to work across different builds of Weave
+			var pkg:String = getQualifiedClassName(this).split('::')[0];
 			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, Ping, AddonsMessage, AddonStatus])
-			registerClassAlias(getQualifiedClassName(c), c);
+				registerClassAlias(pkg + '::' + getQualifiedClassName(c).split('::').pop(), c);
 			
 			CollaborationWeaveExtension.enable();
 			
