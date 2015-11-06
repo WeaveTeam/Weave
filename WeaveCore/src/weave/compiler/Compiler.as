@@ -291,16 +291,23 @@ package weave.compiler
 		 */
 		public static function parseConstant(constantExpression:String):*
 		{
-			if (!_staticInstance)
-				_staticInstance = new Compiler(false);
-			var compiled:ICompiledObject = _staticInstance.finalize(_staticInstance.compileTokens(_staticInstance.getTokens(constantExpression), false), true);
-			if (compiled is CompiledConstant)
+			try
 			{
-				return (compiled as CompiledConstant).value;
+				if (!_staticInstance)
+					_staticInstance = new Compiler(false);
+				var compiled:ICompiledObject = _staticInstance.finalize(_staticInstance.compileTokens(_staticInstance.getTokens(constantExpression), false), true);
+				if (compiled is CompiledConstant)
+				{
+					return (compiled as CompiledConstant).value;
+				}
+				else
+				{
+					throw new Error("Expression does not evaluate to a constant");
+				}
 			}
-			else
+			catch (e:Error)
 			{
-				throw new Error("Expression does not evaluate to a constant");
+				throw new Error("Expression does not evaluate to a constant. " + e.message);
 			}
 		}
 		
