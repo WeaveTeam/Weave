@@ -540,12 +540,12 @@ package weave.data.DataSources
 			if (idFieldsArray || params[ENTITY_ID])
 			{
 				var id:Object = idFieldsArray ? getMetadata(proxyColumn, idFieldsArray, true) : StandardLib.asNumber(params[ENTITY_ID]);
-				var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(params[SQLPARAMS]);
+				var sqlParams:Array = parseSqlParams(params[SQLPARAMS]);
 				query = _service.getColumn(id, params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
 			}
 			else // backwards compatibility - search using metadata
 			{
-				getMetadata(proxyColumn, [ColumnMetadata.DATA_TYPE, 'dataTable', 'name', 'year'], false, params);
+				getMetadata(proxyColumn, [ColumnMetadata.DATA_TYPE, 'dataTable', 'name', 'year', 'sqlParams'], false, params);
 				// dataType is only used for backwards compatibility with geometry collections
 				if (params[ColumnMetadata.DATA_TYPE] != DataType.GEOMETRY)
 					delete params[ColumnMetadata.DATA_TYPE];
@@ -599,6 +599,18 @@ package weave.data.DataSources
 //		{
 //			DebugUtils.callLater(5000, handleGetAttributeColumn2, arguments);
 //		}
+		
+		private function parseSqlParams(sqlParams:String):Array
+		{
+			var result:Array;
+			try {
+				result = Compiler.parseConstant(sqlParams) as Array;
+			} catch (e:Error) { }
+			if (!(result is Array))
+				result = WeaveAPI.CSVParser.parseCSVRow(sqlParams);
+			return result;
+		}
+		
 		private function handleGetAttributeColumn(event:ResultEvent, proxyColumn:ProxyColumn):void
 		{
 			if (proxyColumn.wasDisposed)
@@ -704,7 +716,7 @@ package weave.data.DataSources
 					}
 					
 					// if table not cached, request table, store in cache, and await data
-					var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(proxyColumn.getMetadata(SQLPARAMS));
+					var sqlParams:Array = parseSqlParams(proxyColumn.getMetadata(SQLPARAMS));
 					var hash:String = Compiler.stringify([result.tableId, sqlParams]);
 					var promise:WeavePromise = _tablePromiseCache[hash];
 					if (!promise)

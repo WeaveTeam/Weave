@@ -15,8 +15,6 @@
 
 package weave.utils
 {
-	import avmplus.DescribeType;
-	
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.TimerEvent;
@@ -27,10 +25,12 @@ package weave.utils
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.api.core.DynamicState;
-	import weave.api.core.ILinkableObject;
+	import avmplus.DescribeType;
+	
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
+	import weave.api.core.DynamicState;
+	import weave.api.core.ILinkableObject;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	
@@ -150,7 +150,7 @@ package weave.utils
 		 */
 		public static function debugLookup(debugId:* = undefined):Object
 		{
-			if (debugId == undefined)
+			if (debugId === undefined)
 				return getAllDebugIds();
 			for (var object:Object in _idToObjRef[debugId])
 				return object;
@@ -414,6 +414,62 @@ package weave.utils
 		}
 		
 		/**
+		 * @param state A session state.
+		 * @return An Array of Arrays, each like [path, value].
+		 */
+		public static function flattenSessionState(state:Object, pathPrefix:Array = null, output:Array = null):Array
+		{
+			if (!pathPrefix)
+				pathPrefix = [];
+			if (!output)
+				output = [];
+			if (DynamicState.isDynamicStateArray(state))
+			{
+				var names:Array = [];
+				for each (var obj:Object in state)
+				{
+					if (DynamicState.isDynamicState(obj))
+					{
+						var objectName:String = obj[DynamicState.OBJECT_NAME];
+						var className:String = obj[DynamicState.CLASS_NAME];
+						var sessionState:Object = obj[DynamicState.SESSION_STATE];
+						pathPrefix.push(objectName);
+						if (className)
+							output.push([pathPrefix.concat('class'), className]);
+						flattenSessionState(sessionState, pathPrefix, output);
+						pathPrefix.pop();
+						
+						if (objectName)
+							names.push(objectName);
+					}
+					else
+						names.push(obj);
+				}
+				if (names.length)
+					output.push([pathPrefix.concat(), names]);
+			}
+			else if (state is Array)
+			{
+				output.push([pathPrefix.concat(), state]);
+			}
+			else if (typeof state === 'object' && state !== null)
+			{
+				for (var key:String in state)
+				{
+					pathPrefix.push(key);
+					flattenSessionState(state[key], pathPrefix, output);
+					pathPrefix.pop();
+				}
+			}
+			else
+			{
+				output.push([pathPrefix.concat(), state]);
+			}
+			
+			return output;
+		}
+		
+		/**
 		 * Traverses a path in a session state using the logic used by SessionManager.
 		 * @param state A full session state.
 		 * @param path A path.
@@ -482,5 +538,14 @@ package weave.utils
 			StandardLib.sortOn(keys, function(key:String):String { return key.split('::').pop(); });
 			return keys.map(function(key:String, i:int, a:Array):String { return '\t' + key + ': ' + debugId(object[key]); }).join('\n');
 		}
+		
+		public static const HISTORY_TO_CSV:String = StandardLib.unIndent(<![CDATA[
+			var data = [['t','path','value']].concat.apply(null, Weave.history.undoHistory.map((e,t)=>flattenSessionState(e.forward).map((a,i)=>[t,'Weave'+a[0].map(n=>EquationColumn.compiler.isValidSymbolName(n)?'.'+n:Compiler.stringify([n])).join(''),Compiler.stringify(a[1])])));
+			var name = WeaveAPI.globalHashMap.generateUniqueName("Session History");
+			var csv = WeaveAPI.globalHashMap.requestObject(name, CSVDataSource, false);
+			csv.csvData.setSessionState(data);
+			var table = WeaveAPI.globalHashMap.requestObject(null, TableTool, false);
+			data[0].forEach(n=>csv.putColumnInHashMap(n, table.columns));
+		]]>);
 	}
 }

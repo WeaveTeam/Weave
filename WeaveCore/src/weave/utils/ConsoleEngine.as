@@ -15,32 +15,29 @@
 
 package weave.utils
 {
-	import avmplus.DescribeType;
-	
 	import flash.external.ExternalInterface;
-	import flash.utils.Dictionary;
-	import flash.utils.getDefinitionByName;
 	
 	import mx.core.UIComponent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.core.ILinkableObject;
-	import weave.api.getCallbackCollection;
+	import avmplus.DescribeType;
+	
+	import weave.api.getSessionState;
 	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.compiler.Compiler;
 	import weave.compiler.GlobalLib;
 	import weave.compiler.ICompiledObject;
 	import weave.compiler.ProxyObject;
-	import weave.compiler.StandardLib;
-	import weave.core.WeaveXMLDecoder;
 	import weave.primitives.MethodChainProxy;
 	
 	public class ConsoleEngine
 	{
 		public function ConsoleEngine()
 		{
-			compiler.includeLibraries(GlobalLib, ObjectUtil, WeaveAPI.SessionManager, DescribeType, DebugUtils);
+			compiler.includeLibraries(GlobalLib, ObjectUtil, DescribeType, DebugUtils);
 			compiler.setHashOperator(debugHelper);
+			compiler.setEvalFunction(runCommand);
 		}
 		
 		/**
@@ -71,6 +68,8 @@ package weave.utils
 			'chain': methodChainer,
 			'display': DebugUtils.debugDisplayList,
 			'debugCompiler': function(script:String):String { return ObjectUtil.toString(new Compiler().compileToObject(script), null, 'evaluatedMethod,evaluatedHost,evaluatedMethodName,evaluatedParams,evalIndex,originalTokens'.split(',')); },
+			'getState': getSessionState as Function,
+			'setState': setSessionState as Function,
 			'_': {}
 		};
 		

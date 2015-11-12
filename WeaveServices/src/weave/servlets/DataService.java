@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -263,6 +264,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		public int digits = 2;
 		public boolean realKeys = false;
 		public int repeat = 1;
+		public int sort = 0;
 		
 		public int getNumRows()
 		{
@@ -305,6 +307,10 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 				value = Numbers.roundSignificant(value, digits);
 				doubles.add(value);
 			}
+			if (sort != 0)
+				Collections.sort(doubles);
+			if (sort < 0)
+				Collections.reverse(doubles);
 			return doubles;
 		}
 	}
@@ -417,15 +423,16 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 			
 			String title = entity.publicMetadata.get(PublicMetadata.TITLE);
 			String keyType = entity.publicMetadata.get(PublicMetadata.KEYTYPE);
+			String sqlParamsStr = "key";
+			if (sqlParams != null)
+				sqlParamsStr = GSON.toJson(sqlParams);
 			
 			if (!getRealKeys)
-				keys = props.generateStrings(keyType);
+				keys = props.generateStrings(sqlParamsStr);
 			
 			if (Strings.equal(dataType, DataType.NUMBER) || Strings.equal(dataType, DataType.DATE))
 			{
-				int seed = title.hashCode() ^ keyType.hashCode();
-				if (sqlParams != null)
-					seed ^= Arrays.deepToString(sqlParams).hashCode();
+				int seed = title.hashCode() ^ keyType.hashCode() ^ sqlParamsStr.hashCode();
 				numericData = props.generateDoubles(seed);
 			}
 			else

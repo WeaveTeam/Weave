@@ -257,6 +257,15 @@ package weave.core
 			return _locked;
 		}
 
+		public function get state():Object
+		{
+			return _sessionStateExternal;
+		}
+		public function set state(value:Object):void
+		{
+			setSessionState(value);
+		}
+
 		/**
 		 * @inheritDoc
 		 */

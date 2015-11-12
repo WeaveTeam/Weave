@@ -133,10 +133,11 @@ package weave.api.core
 		 * @param callback The callback function.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered after it is added.
 		 * @param immediateMode If this is set to true, addImmediateCallback() will be used.  Otherwise, addGroupedCallback() will be used.
+		 * @param delayWhileBusy Specifies whether to delay the callback while the object is busy.
 		 * @return true if successful.
 		 * @see weave.api.core.ICallbackCollection#addGroupedCallback
 		 */
-		function addCallback(scopeObjectPathOrVariableName:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean;
+		function addCallback(scopeObjectPathOrVariableName:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false, delayWhileBusy:Boolean = true):Boolean;
 		
 		/**
 		 * This function will remove a callback that was previously added.

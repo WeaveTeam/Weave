@@ -34,12 +34,12 @@ function asFunction(callback, thisArg)
 	return callback;
 }
 var _addCallback = weave.addCallback;
-weave.addCallback = function(target, callback, triggerNow, immediateMode)
+weave.addCallback = function(target, callback, triggerNow, immediateMode, delayWhileBusy)
 {
 	callback = asFunction(callback, Array.isArray(target) ? weave.path(target) : weave.path());
 	if (!immediateMode)
 		callback = weave._debounce(callback);
-	return _addCallback.call(this, target, callback, triggerNow, immediateMode);
+	return _addCallback.apply(this, Array.prototype.slice.call(arguments));
 };
 var _removeCallback = weave.removeCallback;
 weave.removeCallback = function(target, callback, everywhere)
@@ -270,13 +270,16 @@ weave.WeavePath.prototype.diff = function(/*...relativePath, diff*/)
  * @param callback The callback function.
  * @param triggerCallbackNow Optional parameter, when set to true will trigger the callback now.
  * @param immediateMode Optional parameter, when set to true will use an immediate callback instead of a grouped callback.
+ * @param delayWhileBusy Optional parameter, specifies whether to delay the callback while the object is busy. Default is true.
  * @return The current WeavePath object.
  */
-weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, immediateMode)
+weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, immediateMode, delayWhileBusy)
 {
 	if (this._assertParams('addCallback', arguments))
 	{
-		this.weave.addCallback(this._path, callback, triggerCallbackNow, immediateMode)
+		var args = Array.prototype.slice.call(arguments);
+		args.unshift(this._path);
+		this.weave.addCallback.apply(this.weave, args)
 			|| this._failObject('addCallback', this._path);
 	}
 	return this;

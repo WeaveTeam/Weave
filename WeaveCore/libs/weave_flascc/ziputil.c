@@ -229,9 +229,10 @@ void writeZip()
 	}
 
 	// write files to archive
-	bool status0 = true;
+	bool status0;
 	inline_as3(
 		"try {"
+		"    %0 = true;"
 		"    for (var fileName:String in files)"
 		"    {"
 		"        if (!writeFile(%1, fileName, files[fileName]))"
@@ -285,6 +286,9 @@ void writeFile()
 	mz_zip_archive *zip_archive;
 	AS3_GetScalarFromVar(zip_archive, _zip_archive);
 
+	char *fileName;
+	AS3_MallocString(fileName, _fileName);
+
 	// copy _fileContent from AS3 to C
 	size_t contentLength;
 	inline_nonreentrant_as3(
@@ -298,7 +302,10 @@ void writeFile()
 	);
 	void *fileContent = malloc(contentLength);
 	if (!fileContent)
+	{
+		tracef("writeFile(): Unable to allocate %u bytes for \"%s\"", contentLength, fileName);
 		AS3_Return(false);
+	}
 	inline_as3(
 		"ram_init.position = %0;"
 		"ram_init.writeBytes(byteArray);"
@@ -306,8 +313,6 @@ void writeFile()
 	);
 
 	// write the file
-	char *fileName;
-	AS3_MallocString(fileName, _fileName);
 	mz_bool status = mz_zip_writer_add_mem(zip_archive, fileName, fileContent, contentLength, MZ_DEFAULT_COMPRESSION);
 	free(fileContent);
 	free(fileName);
