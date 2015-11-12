@@ -1,1 +1,0 @@
-optimizer -keep-as3-metadata="Bindable,Managed,ChangeEvent,NonCommittingChangeEvent,Transient" -input MyRsl.swf -output optimized.swf

@@ -1,4 +1,0 @@
-<!--  This Weave session state initializes Weave to have no tools, and to expose whatever data is present on the host server. -->
-<Weave encoding="dynamic">
-	<WeaveDataSource name='WeaveDataSource'/>
-</Weave>
