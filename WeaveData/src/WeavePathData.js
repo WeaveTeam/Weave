@@ -453,11 +453,19 @@ weave.WeavePath.prototype.filterKeys = function (/*...relativePath, keyStringArr
  * path.retrieveRecords({point: {x: x_column, y: y_column}, color: color_column}), which would result in records with the same form.
  * If it is null, all children of the WeavePath will be retrieved. This is equivalent to: path.retrieveRecords(path.getNames());
  * The alphanumeric QualifiedKey for each record will be stored in the 'id' field, which means it is to be considered a reserved name.
- * @param {weave.WeavePath} [keySetPath] A WeavePath object pointing to an IKeySet (columns are also IKeySets.)
+ * @param {weave.WeavePath} [options] An object containing optional parameters:
+ *                                    "keySet": A WeavePath object pointing to an IKeySet (columns are also IKeySets.)
+ *                                    "dataType": A String specifying dataType: string/number/date/geometry
  * @return {Array} An array of record objects.
  */
-weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
+weave.WeavePath.prototype.retrieveRecords = function(pathMapping, options)
 {
+	var dataType = options && options['dataType'];
+	var keySet = options && options['keySet'];
+	
+	if (!keySet && options instanceof weave.WeavePath)
+		keySet = options;
+	
 	// if only one argument given and it's a WeavePath object, assume it's supposed to be keySetPath.
 	if (arguments.length == 1 && pathMapping instanceof weave.WeavePath)
 	{
@@ -479,7 +487,7 @@ weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
     var obj = listChainsAndPaths(pathMapping);
     
     /* Perform the actual retrieval of records */
-    var results = joinColumns(obj.paths, null, true, keySetPath);
+    var results = joinColumns(obj.paths, dataType, true, keySet);
     return results[0]
         .map(this.qkeyToString)
         .map(function(key, iRow) {
