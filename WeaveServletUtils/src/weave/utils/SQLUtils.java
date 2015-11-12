@@ -319,7 +319,8 @@ public class SQLUtils
 			}
 			catch (SQLException e)
 			{
-				e.printStackTrace();
+				if (!isSQLite(conn))
+					e.printStackTrace();
 			}
 			
 			// remember this static, read-only connection.
