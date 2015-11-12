@@ -87,7 +87,7 @@ weave.WeavePath.Keys.qkeyToString = function(key)
  */
 weave.WeavePath.Keys.stringToQKey = function(s) 
 {
-    idx = s.substr(this._keyIdPrefix.length);
+    var idx = s.substr(this._keyIdPrefix.length);
     return this.indexToQKey(idx);
 };
 
