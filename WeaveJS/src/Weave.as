@@ -10,7 +10,6 @@ package
 	{
 		public function Weave()
 		{
-			
 		}
 		
 		/**
@@ -34,6 +33,21 @@ package
 		}
 		
 		//////////////////////////////////////////////////////////////////////////////////
+		
+		/**
+		 * AS->JS Language helper for Map
+		 */
+		public static function newMap():IMap
+		{
+			return new Map();
+		}
+		
+		/**
+		 * AS->JS Language helper for Map
+		 */
+		private static const Map:Class = (function():* {
+			return this['Map'];
+		}).apply(null);
 		
 		/**
 		 * AS->JS Language helper for Object.keys()
