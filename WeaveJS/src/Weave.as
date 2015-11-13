@@ -35,17 +35,27 @@ package
 		//////////////////////////////////////////////////////////////////////////////////
 		
 		/**
-		 * AS->JS Language helper for Map
+		 * AS->JS Language helper for binding class instance functions
 		 */
-		public static function newMap():IMap
+		public static function bindAll(instance:Object):*
 		{
-			return new Map();
+			if (!Object(Object).hasOwnProperty('getPrototypeOf'))
+				return instance;
+			
+			var proto:Object = Object['getPrototypeOf'](instance);
+			for (var key:String in proto)
+			{
+				var prop:* = proto[key];
+				if (typeof prop === 'function')
+					instance[key] = prop.bind(instance);
+			}
+			return instance;
 		}
 		
 		/**
 		 * AS->JS Language helper for Map
 		 */
-		private static const Map:Class = (function():* {
+		public static const Map:Class = (function():* {
 			return this['Map'];
 		}).apply(null);
 		
