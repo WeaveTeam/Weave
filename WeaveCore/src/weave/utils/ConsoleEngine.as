@@ -90,10 +90,10 @@ package weave.utils
 			return new MethodChainProxy(null, args);
 		}
 		
-		private function debugHelper(arg:* = null):*
+		private function debugHelper(arg:* = undefined):*
 		{
 			var type:String = typeof(arg);
-			if (arg == null || type != 'object' && type != 'function')
+			if (arg === undefined || (type != 'object' && type != 'function'))
 				return debugLookup(arg);
 			return debugId(arg);
 		}
