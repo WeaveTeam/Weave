@@ -287,14 +287,14 @@ package
 			return FlexGlobals.topLevelApplication;
 		}
 		
-		private static const _javaScriptInitialized:Dictionary = new Dictionary();
+		private static var _javaScriptInitialized:Boolean = false;
 		
 		/**
 		 * This will be true after initializeJavaScript() completes successfully.
 		 */
 		public static function get javaScriptInitialized():Boolean
 		{
-			return !!_javaScriptInitialized[WeavePath];
+			return _javaScriptInitialized;
 		}
 		
 		/**
@@ -312,76 +312,19 @@ package
 		 *     WeaveAPI.initializeJavaScript(MyScript);
 		 * </listing>
 		 */
-		public static function initializeJavaScript(...scripts):void
+		public static function initializeJavaScript():void
 		{
 			if (!JavaScript.available)
 				return;
 			
 			// we want WeavePath to be initialized first
-			var firstTime:Boolean = !javaScriptInitialized;
-			if (firstTime)
+			if (!_javaScriptInitialized)
 			{
-				// always include WeavePath
-				if (scripts.indexOf(WeavePath) < 0)
-					scripts.unshift(WeavePath);
-				
-				// initialize Direct API before anything else
-				scripts.unshift(IExternalSessionStateInterface);
-			}
-			
-			try
-			{
-				for each (var script:Object in scripts)
-				{
-					// skip scripts we've already initialized
-					if (_javaScriptInitialized[script])
-						continue;
-					
-					if (script is Class)
-					{
-						var instanceInfo:Object = DescribeType.getInfo(script, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_METHODS | DescribeType.HIDE_NSURI_METHODS | DescribeType.USE_ITRAITS | DescribeType.INCLUDE_BASES);
-						if (instanceInfo.traits.bases.indexOf('mx.core::ByteArrayAsset') >= 0)
-						{
-							// run embedded script file
-							JavaScript.exec({"this": "weave"}, new script());
-						}
-						else
-						{
-							// initialize interface
-							registerJavaScriptInterface(ClassRegistry.getSingletonInstance(script as Class), instanceInfo);
-						}
-					}
-					else
-					{
-						// run the script
-						JavaScript.exec({"this": "weave"}, script);
-					}
-					
-					// remember that we initialized the script
-					_javaScriptInitialized[script] = true;
-				}
-				
-				if (firstTime)
-				{
-					addJsonExtension();
-					
-					// call external weaveApiReady(weave)
-					JavaScript.exec(
-						{method: "weaveApiReady"},
-						'if (this[method]) this[method](this);',
-						'if (window[method]) window[method](this);'
-					);
-				}
-			}
-			catch (e:*)
-			{
-				handleExternalError(e);
+				_javaScriptInitialized = true;
+				addJsonExtension();
 			}
 		}
 
-		[Embed(source="WeavePath.js", mimeType="application/octet-stream")]
-		public static const WeavePath:Class;
-		
 		private static function addJsonExtension():void
 		{
 			JavaScript.extendJson(_jsonReplacer, _jsonReviver, _needsReviving);

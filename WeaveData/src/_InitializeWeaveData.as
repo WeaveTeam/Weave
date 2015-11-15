@@ -34,9 +34,6 @@ package
 
 	public class _InitializeWeaveData
 	{
-		[Embed(source="WeavePathData.js", mimeType="application/octet-stream")]
-		public static const WeavePathData:Class;
-		
 		/**
 		 * Register singleton implementations for WeaveAPI framework classes
 		 */

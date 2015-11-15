@@ -49,7 +49,6 @@ package weave.services
 			if(_initialized)
 				return;
 			
-			WeaveAPI.initializeJavaScript(JS_ExternalDownloader);
 			JavaScript.registerMethod("ExternalDownloader_callback", callback);
 			
 			_initialized = true;

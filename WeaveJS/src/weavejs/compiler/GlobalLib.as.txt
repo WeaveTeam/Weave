@@ -1,0 +1,35 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+
+package weavejs.compiler
+{
+	import weavejs.Weave;
+
+	/**
+	 * This provides a set of static functions for use with the Weave Compiler.
+	 * 
+	 * @author adufilie
+	 */
+	public class GlobalLib
+	{
+		public function GlobalLib() {
+			var w:Weave = new Weave();;
+		}
+		public static const clearInterval:Function = Weave.global.clearInterval || Weave.getDefinition('flash.utils.clearInterval');
+		public static const clearTimeout:Function = Weave.global.clearTimeout || Weave.getDefinition('flash.utils.clearTimeout');
+		public static const setInterval:Function = Weave.global.setInterval || Weave.getDefinition('flash.utils.setInterval');
+		public static const setTimeout:Function = Weave.global.setTimeout || Weave.getDefinition('flash.utils.setTimeout');
+	}
+}
