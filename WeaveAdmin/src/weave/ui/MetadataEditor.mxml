@@ -44,7 +44,7 @@
         <mx:Button label="{lang('Save')}" toolTip="{lang('Shortcut: CTRL+Enter')}" enabled="{isChanged}" click="saveChanges()"/>
         <mx:Button label="{lang('Cancel')}" enabled="{isChanged}" click="refresh()"/>
     </mx:HBox>
-	<ui:DraggablePanel id="csvWindow" title="{lang('Metadata for selected items')}" escapeKeyClosesPanel="true">
+	<ui:DraggablePanel id="csvWindow" escapeKeyClosesPanel="true">
 		<mx:VBox width="100%" height="100%" paddingLeft="5" paddingRight="5" paddingTop="5" paddingBottom="5">
 			<ui:Paragraph text="{lang(csvEditorExplanation)}"/>
 			<mx:TextArea id="csvTextArea" fontFamily="_typewriter" fontSize="11" width="100%" height="100%" wordWrap="false" change="_csvChanged = true;"/>
@@ -82,6 +82,7 @@
 	import weave.data.CSVParser;
 	import weave.data.hierarchy.EntityNode;
 	import weave.flascc.writeZip;
+	import weave.menus.WeaveMenuItem;
 	import weave.services.Admin;
 	import weave.services.EntityCache;
 	
@@ -92,10 +93,29 @@
 		rawChildren.addChild(new BusyIndicator(Admin.entityCache));
 		
 		removeChild(csvWindow);
+		
+		csvWindow.panelTitle.value = lang('Metadata for selected items');
 		csvWindow.enableZOrder.value = false;
 		csvWindow.minimizable.value = false;
 		csvWindow.closeable.value = true;
 		csvWindow.maximizable.value = true;
+		csvWindow.enableSubMenu.value = true;
+		csvWindow.subMenuButton.data = [
+			{
+				label: lang('Generate dump for direct SQL import'),
+				click: function(item:WeaveMenuItem):void {
+					AlertTextBox.show(
+						item.label,
+						lang("Please specify a delimiter"),
+						"|",
+						null,
+						function(delim:String):void {
+							saveCSVDump(delim);
+						}
+					);
+				}
+			}
+		];
 		
 		publicMetaGrid.getSuggestedPropertyValues = Admin.instance.getSuggestedPropertyValues;
 		privateMetaGrid.getSuggestedPropertyValues = Admin.instance.getSuggestedPropertyValues;
@@ -494,7 +514,7 @@
 		files['weave_hierarchy.csv'] = weave_hierarchy;
 		files['weave_meta_public.csv'] = weave_meta_public;
 		files['weave_meta_private.csv'] = weave_meta_private;
-		var parser:CSVParser = new CSVParser(false, delimiter);
+		var parser:CSVParser = new CSVParser(false, delimiter, delimiter);
 		for (name in files)
 		{
 			var bytes:ByteArray = new ByteArray();
