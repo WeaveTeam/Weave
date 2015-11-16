@@ -8,8 +8,11 @@ package weavejs.core
 {
 	import weavejs.Weave;
 	import weavejs.api.core.DynamicState;
+	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableVariable;
 	import weavejs.compiler.StandardLib;
+	import weavejs.utils.Utils;
 	
 	/**
 	 * LinkableVariable allows callbacks to be added that will be called when the value changes.
@@ -17,7 +20,7 @@ package weavejs.core
 	 * 
 	 * @author adufilie
 	 */
-	public class LinkableVariable extends CallbackCollection implements ILinkableVariable
+	public class LinkableVariable extends CallbackCollection implements ILinkableVariable, ICallbackCollection, IDisposableObject
 	{
 		/**
 		 * This function is used to prevent the session state from having unwanted values.
@@ -134,7 +137,11 @@ package weavejs.core
 
 			// cast value now in case it is not the appropriate type
 			if (_sessionStateType != null)
-				value = Weave.AS(value, _sessionStateType);
+			{
+				// using a local variable is necessary in order to avoid an 'as' compiler bug
+				var sst:Class = _sessionStateType;
+				value = value as sst;
+			}
 			
 			// stop if verifier says it's not an accepted value
 			if (_verifier != null && !_verifier(value))
@@ -253,5 +260,7 @@ package weavejs.core
 			super.dispose();
 			setSessionState(null);
 		}
+		
+		private static var _init:* = Utils.preserveGetterSetters(LinkableVariable, 'state');
 	}
 }

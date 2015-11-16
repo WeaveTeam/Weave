@@ -6,8 +6,7 @@
 */
 package weavejs.core
 {
-	import weavejs.compiler.StandardLib;
-	import weavejs.core.LinkableVariable;
+	import weavejs.utils.Utils;
 
 	/**
 	 * This is a LinkableVariable which limits its session state to Boolean values.
@@ -33,8 +32,10 @@ package weavejs.core
 		override public function setSessionState(value:Object):void
 		{
 			if (value is String)
-				value = StandardLib.stringCompare(value as String, "true", true) == 0;
+				value = (value === 'true');
 			super.setSessionState(value ? true : false);
 		}
+		
+		private static var _init:* = Utils.preserveGetterSetters(LinkableBoolean, 'value');
 	}
 }

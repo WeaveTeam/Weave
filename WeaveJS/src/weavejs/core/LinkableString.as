@@ -6,6 +6,8 @@
 */
 package weavejs.core
 {
+	import weavejs.utils.Utils;
+
 	/**
 	 * This is a LinkableVariable which limits its session state to String values.
 	 * @author adufilie
@@ -33,5 +35,7 @@ package weavejs.core
 				value = String(value);
 			super.setSessionState(value);
 		}
+		
+		private static var _init:* = Utils.preserveGetterSetters(LinkableString, 'value');
 	}
 }
