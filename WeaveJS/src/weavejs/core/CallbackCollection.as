@@ -177,7 +177,7 @@ package weavejs.core
 						if (_preCallback != null)
 							_preCallback.apply(null, preCallbackParams);
 						
-						entry.callback.apply();
+						entry.callback.apply(entry.context);
 						
 						entry.recursionCount--; // decrease count because the callback finished.
 					}

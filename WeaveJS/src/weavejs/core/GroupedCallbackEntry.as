@@ -189,7 +189,7 @@ package weavejs.core
 			if (recursionCount == 0)
 			{
 				recursionCount++;
-				callback.apply();
+				callback.apply(allContexts[0]);
 				recursionCount--;
 			}
 			// avoid delayed recursion
