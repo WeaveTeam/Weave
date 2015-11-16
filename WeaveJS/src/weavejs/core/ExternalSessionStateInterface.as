@@ -67,30 +67,10 @@ package weavejs.core
 		{
 			var object:ILinkableObject = WeaveAPI.SessionManager.getObject(root, objectPath);
 			if (object)
-			{
-				var state:Object = WeaveAPI.SessionManager.getSessionState(object);
-				convertSessionStateToPrimitives(state); // do not allow XML objects to be returned
-				return state;
-			}
+				return WeaveAPI.SessionManager.getSessionState(object);
 			
 			externalWarning("No ILinkableObject from which to get session state at path {0}", JSON.stringify(objectPath));
 			return null;
-		}
-		
-		/**
-		 * This function modifies a session state, converting any nested XML objects to Strings.
-		 * @param state A session state that may contain nested XML objects.
-		 */
-		private function convertSessionStateToPrimitives(state:Object):void
-		{
-			for (var key:* in state)
-			{
-				var value:* = state[key];
-				if (value is XML)
-					state[key] = (value as XML).toXMLString();
-				else
-					convertSessionStateToPrimitives(value);
-			}
 		}
 		
 		/**
