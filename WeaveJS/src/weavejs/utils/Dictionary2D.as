@@ -6,6 +6,8 @@
 */
 package weavejs.utils
 {
+	import weavejs.Weave;
+
 	/**
 	 * This is a wrapper for a 2-dimensional Map.
 	 * 
@@ -15,7 +17,7 @@ package weavejs.utils
 	{
 		public function Dictionary2D(weakPrimaryKeys:Boolean = false, weakSecondaryKeys:Boolean = false, defaultType:Class = null)
 		{
-			map = weakPrimaryKeys ? new Weave.WeakMap() : new Weave.Map;
+			map = weakPrimaryKeys ? new Utils.WeakMap() : new Utils.Map;
 			weak1 = weakPrimaryKeys;
 			weak2 = weakSecondaryKeys;
 			this.defaultType = defaultType;
@@ -25,13 +27,11 @@ package weavejs.utils
 		 * The primary Map object.
 		 */		
 		public var map:Object;
-		
 		private var weak1:Boolean;
 		private var weak2:Boolean; // used as a constructor parameter for nested Dictionaries
 		private var defaultType:Class; // used for creating objects automatically via get()
 		
 		/**
-		 * 
 		 * @param key1 The first map key.
 		 * @param key2 The second map key.
 		 * @return The value.
@@ -60,8 +60,8 @@ package weavejs.utils
 		{
 			var map2:Object = map.get(key1);
 			if (map2 == null)
-				map.set(key1, map2 = weak2 ? new Weave.WeakMap() : new Weave.Map());
-			map.set(key2, value);
+				map.set(key1, map2 = weak2 ? new Utils.WeakMap() : new Utils.Map());
+			map2.set(key2, value);
 		}
 		
 		/**
@@ -78,18 +78,17 @@ package weavejs.utils
 		 * @param key2 The second dictionary key.
 		 * @private
 		 */
-		private function removeAllSecondary(key2:Object):void
+		public function removeAllSecondary(key2:Object):void
 		{
 			if (weak1)
 				throw new Error("WeakMap cannot be iterated over");
 			_key2ToRemove = key2;
 			map.forEach(removeAllSecondary_each, this);
 		}
-		
 		private var _key2ToRemove:*;
-		private function removeAllSecondary_each(map1:*, key1:*):void
+		private function removeAllSecondary_each(map2:*, key1:*):void
 		{
-			map1['delete'](_key2ToRemove);
+			map2['delete'](_key2ToRemove);
 		}
 		
 		/**
@@ -106,16 +105,53 @@ package weavejs.utils
 			{
 				value = map2.get(key2);
 				map2['delete'](key2);
+				
+				// if entries remain in map2, keep it
+				if (map2.size)
+					return value;
+				
+				// otherwise, remove it
+				map['delete'](key1);
 			}
-			
-			// if entries remain in map2, keep it
-			for (var v2:* in map2)
-				return value;
-			
-			// otherwise, remove it
-			map['delete'](key1);
-			
 			return value;
+		}
+		
+		/**
+		 * Iterates over pairs of keys and corresponding values.
+		 * @param key1_key2_value A function which may return true to stop iterating.
+		 * @param thisArg The 'this' argument for the function.
+		 */
+		public function forEach(key1_key2_value:Function, thisArg:Object):void
+		{
+			if (weak1 || weak2)
+				throw new Error("WeakMap cannot be iterated over");
+			
+			forEach_fn = key1_key2_value;
+			forEach_this = thisArg;
+			
+			map.forEach(forEach1, this);
+			
+			forEach_fn = null;
+			forEach_this = null;
+			forEach_key1 = null;
+			forEach_map2 = null;
+		}
+		private var forEach_fn:Function;
+		private var forEach_this:Object;
+		private var forEach_key1:Object;
+		private var forEach_map2:Object;
+		private function forEach1(map2:*, key1:*):void
+		{
+			if (forEach_fn == null)
+				return;
+			forEach_key1 = key1;
+			forEach_map2 = map2;
+			map2.forEach(forEach2, this);
+		}
+		private function forEach2(value:*, key2:*):void
+		{
+			if (forEach_fn != null && forEach_fn.call(forEach_this, forEach_key1, key2, value))
+				forEach_fn = null;
 		}
 	}
 }
