@@ -35,7 +35,7 @@ package weavejs.path
 			this.qkeyToIndex = shared.qkeyToIndex;
 		}
 		
-		private static var map_weave:Object = new Utils.Map();
+		private static var map_weave:Object = new Utils.WeakMap();
 		
 		private var shared:WeavePathDataShared;
 		
