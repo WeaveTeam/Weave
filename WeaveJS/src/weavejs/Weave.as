@@ -76,7 +76,7 @@ package weavejs
 		 */
 		public function path(...basePath):WeavePath
 		{
-			if (basePath.length == 1 && isArray(basePath[0]))
+			if (basePath.length == 1 && basePath[0] is Array)
 				basePath = basePath[0];
 			return new WeavePathData(this, basePath);
 		}
@@ -170,14 +170,6 @@ package weavejs
 		public static function objectKeys(object:Object):Array
 		{
 			return Object['keys'](object);
-		}
-		
-		/**
-		 * AS->JS Language helper for Array.isArray()
-		 */
-		public static function isArray(value:*):Boolean
-		{
-			return Array['isArray'](value);
 		}
 		
 		/**
@@ -325,7 +317,7 @@ package weavejs
 			
 			// loop over keys in Array or Object
 			var lineBreakIndent:String = lineBreak + indent;
-			var valueIsArray:Boolean = Weave.isArray(value);
+			var valueIsArray:Boolean = value is Array;
 			output = [];
 			if (valueIsArray)
 			{

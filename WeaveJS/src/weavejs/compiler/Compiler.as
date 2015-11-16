@@ -1216,7 +1216,7 @@ package weavejs.compiler
 			
 			// loop over keys in Array or Object
 			var lineBreakIndent:String = lineBreak + indent;
-			var valueIsArray:Boolean = Weave.isArray(value);
+			var valueIsArray:Boolean = value is Array;
 			output = [];
 			if (valueIsArray)
 			{
@@ -2507,7 +2507,7 @@ package weavejs.compiler
 			var LOCAL_SYMBOL_TABLE_INDEX:int = allSymbolTables.push(null) - 1; // placeholder
 			
 			// add custom symbol table(s)
-			if (Weave.isArray(symbolTable))
+			if (symbolTable is Array)
 			{
 				for each (var _symbolTable:Object in symbolTable)
 					allSymbolTables.push(_symbolTable);

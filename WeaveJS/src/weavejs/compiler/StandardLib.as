@@ -153,7 +153,7 @@ package weavejs.compiler
 		 */
 		public static function substitute(format:String, ...args):String
 		{
-			if (args.length == 1 && Weave.isArray(args[0]))
+			if (args.length == 1 && args[0] is Array)
 				args = Weave.toArray(args[0]);
 			var split:Array = format.split('{')
 			var output:String = split[0];
@@ -453,7 +453,7 @@ package weavejs.compiler
 		public static function interpolateColor(normValue:Number, ...colors):Number
 		{
 			// handle an array of colors as the second parameter
-			if (colors.length == 1 && Weave.isArray(colors[0]))
+			if (colors.length == 1 && colors[0] is Array)
 				colors = colors[0];
 			
 			// handle invalid parameters
@@ -579,7 +579,7 @@ package weavejs.compiler
 		 */
 		public static function mean(...args):Number
 		{
-			if (args.length == 1 && Weave.isArray(args[0]))
+			if (args.length == 1 && args[0] is Array)
 				args = args[0];
 			var sum:Number = 0;
 			for each (var value:Number in args)
@@ -592,7 +592,7 @@ package weavejs.compiler
 		 */
 		public static function sum(...args):Number
 		{
-			if (args.length == 1 && Weave.isArray(args[0]))
+			if (args.length == 1 && args[0] is Array)
 				args = args[0];
 			var sum:Number = 0;
 			for each (var value:Number in args)
@@ -678,7 +678,7 @@ package weavejs.compiler
 				return 1;
 			if (a is Date && b is Date)
 				return dateCompare(a as Date, b as Date);
-			if (Weave.isArray(a) && Weave.isArray(b))
+			if (a is Array && b is Array)
 			{
 				var an:int = a.length;
 				var bn:int = b.length;

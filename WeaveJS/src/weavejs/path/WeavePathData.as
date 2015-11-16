@@ -61,8 +61,8 @@ package weavejs.path
 		    var name:String = property_descriptor["name"]
 		    	|| _failMessage('initProperty', 'A "name" is required');
 		    var label:String = property_descriptor["label"];
-		    var children:Array = Weave.isArray(property_descriptor["children"])
-		    	? Array.prototype.slice.call(property_descriptor["children"])
+		    var children:Array = property_descriptor["children"] is Array
+		    	? Weave.toArray(property_descriptor["children"])
 		    	: undefined;
 		    var type:String = property_descriptor["type"] || (children ? "LinkableHashMap" : "LinkableVariable");
 		    
@@ -345,7 +345,7 @@ package weavejs.path
 			if (!pathMapping)
 				pathMapping = this.getNames();
 		
-		    if (Weave.isArray(pathMapping)) // array of child names
+		    if (pathMapping is Array) // array of child names
 		    {
 				var names:Array = Weave.toArray(pathMapping);
 				pathMapping = {};
@@ -511,11 +511,11 @@ package weavejs.path
 			var useDataSource:Boolean = arguments.length > 1;
 			this.forEach(metadataMapping, function(value:Object, key:String, a:Array):void {
 				var path:WeavePathData = this.push(key) as WeavePathData;
-				var func:Function = Weave.isArray(value) ? path.setColumns : path.setColumn;
+				var func:Function = value is Array ? path.setColumns : path.setColumn;
 				var args:Array = useDataSource ? [value, dataSourceName] : [value];
 				func.apply(path, args);
 			});
-			if (Weave.isArray(metadataMapping))
+			if (metadataMapping is Array)
 				while (this.getType(metadataMapping.length))
 					this.remove(metadataMapping.length);
 			return this;

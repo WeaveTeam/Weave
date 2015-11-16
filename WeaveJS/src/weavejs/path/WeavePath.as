@@ -71,7 +71,7 @@ package weavejs.path
 		 */
 		protected static function _A(args:Array, option:int = 0):Array
 		{
-			if (args.length == option && Weave.isArray(args[0]))
+			if (args.length == option && args[0] is Array)
 				return [].concat(args[0], Array.prototype.slice.call(args, 1));
 			return Array.prototype.slice.call(args);
 		}
@@ -328,7 +328,7 @@ package weavejs.path
 		{
 			if (_assertParams('forEach', arguments, 2))
 			{
-				if (Weave.isArray(items) && Array.prototype.forEach)
+				if (items is Array && Array.prototype.forEach)
 					items.forEach(visitorFunction, this);
 				else
 					for (var key:String in items) visitorFunction.call(this, items[key], key, items);
