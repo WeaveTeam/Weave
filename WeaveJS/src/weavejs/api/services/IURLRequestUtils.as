@@ -15,11 +15,6 @@
 
 package weavejs.api.services
 {
-	import flash.net.URLRequest;
-	import flash.utils.ByteArray;
-	
-	import mx.rpc.AsyncToken;
-
 	/**
 	 * An interface for GET and POST URL requests.
 	 * 

@@ -207,28 +207,6 @@ package weavejs.api.core
 		function unlinkSessionState(first:ILinkableObject, second:ILinkableObject):void;
 
 		/**
-		 * This function will link the session state of an ILinkableVariable to a bindable property of an object.
-		 * Prior to linking, the value of the ILinkableVariable will be copied over to the bindable property.
-		 * @param linkableVariable An ILinkableVariable to link to a bindable property.
-		 * @param bindableParent An object with a bindable property.
-		 * @param bindablePropertyName The variable name of the bindable property.
-		 * @param delay A number of milliseconds to delay before setting the linkable variable to reflect a change in the bindable property while the bindableParent has focus.
-		 * @param onlyWhenFocused If this is set to true and the bindableParent is a UIComponent, the bindable value will only be copied to the linkableVariable when the component has focus.
-		 * @param delayWhenFocused If this is set to true and the bindableParent is a UIComponent, setting the bindable value will be delayed until the component loses focus. This avoids interrupting the user when typing numbers in a text area.
-		 * @see #unlinkBindableProperty()
-		 */
-		function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false, delayWhenFocused:Boolean = true):void;
-
-		/**
-		 * This function will unlink an ILinkableVariable from a bindable property that has been previously linked with linkBindableProperty().
-		 * @param linkableVariable An ILinkableVariable to unlink from a bindable property.
-		 * @param bindableParent An object with a bindable property.
-		 * @param bindablePropertyName The variable name of the bindable property.
-		 * @see #linkBindableProperty()
-		 */
-		function unlinkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String):void;
-		
-		/**
 		 * This function should be called when an ILinkableObject or IDisposableObject is no longer needed.
 		 * @param object An ILinkableObject or an IDisposableObject to clean up.
 		 * @see #objectWasDisposed()

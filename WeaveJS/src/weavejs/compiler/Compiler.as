@@ -20,6 +20,7 @@ package weavejs.compiler
 	import weavejs.compiler.ICompiledObject;
 	import weavejs.compiler.ProxyObject;
 	import weavejs.compiler.StandardLib;
+	import weavejs.utils.Utils;
 	
 	/**
 	 * This class can compile simple ActionScript expressions into functions.
@@ -184,11 +185,11 @@ package weavejs.compiler
 		private static const maxUnicodeEscapeChars:uint = 8; // {10FFFF}
 		private static const unicodeRegex:RegExp = /^(\{[0-9A-Fa-f]+\}|[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/;
 		
-		private const JUMP_LOOKUP:Object = new Weave.Map(); // Function -> true
-		private const LOOP_LOOKUP:Object = new Weave.Map(); // Function -> true or ST_BREAK or ST_CONTINUE
-		private const BRANCH_LOOKUP:Object = new Weave.Map(); // Function -> Boolean, for short-circuiting
-		private const ASSIGN_OP_LOOKUP:Object = new Weave.Map(); // Function -> true
-		private const PURE_OP_LOOKUP:Object = new Weave.Map(); // Function -> true
+		private const JUMP_LOOKUP:Object = new Utils.Map(); // Function -> true
+		private const LOOP_LOOKUP:Object = new Utils.Map(); // Function -> true or ST_BREAK or ST_CONTINUE
+		private const BRANCH_LOOKUP:Object = new Utils.Map(); // Function -> Boolean, for short-circuiting
+		private const ASSIGN_OP_LOOKUP:Object = new Utils.Map(); // Function -> true
+		private const PURE_OP_LOOKUP:Object = new Utils.Map(); // Function -> true
 		private const MAX_OPERATOR_LENGTH:int = 4;
 		
 		/**
@@ -287,7 +288,7 @@ package weavejs.compiler
 				if (!_staticInstance)
 					_staticInstance = new Compiler(false);
 				var compiled:ICompiledObject = _staticInstance.finalize(_staticInstance.compileTokens(_staticInstance.getTokens(constantExpression), false), true);
-				if (Weave.IS(compiled, CompiledConstant))
+				if (compiled is CompiledConstant)
 				{
 					return (compiled as CompiledConstant).value;
 				}
@@ -615,12 +616,12 @@ package weavejs.compiler
 			// operators with alphabetic names
 			pureOperators['void'] = function(..._):void { };
 			pureOperators['typeof'] = function(value:*):* { return typeof(value); };
-			pureOperators['as'] = Weave.AS;
+			pureOperators['as'] = Utils.AS;
 			pureOperators['is'] = pureOperators['instanceof'] = function(a:*, classOrQName:*):Boolean {
 				var classDef:Class = Weave.asClass(classOrQName);
 				if (!classDef && classOrQName)
 					classDef = Weave.asClass(getDefinition(String(classOrQName)));
-				return Weave.IS(a, classDef);
+				return a is classDef;
 			};
 			// assignment operators -- first arg is host object, last arg is new value, remaining args are a chain of property names
 			assignmentOperators['=']    = function(o:*, ...a):* { for (var i:int = 0; i < a.length - 2; i++) o = o[a[i]]; return o[a[i]] =    a[i + 1]; };
@@ -1025,8 +1026,8 @@ package weavejs.compiler
 			// next step: function applications
 			for (i = 0; i < tokens.length; i++)
 			{
-				call = Weave.AS(tokens[i], CompiledFunctionCall);
-				if (call && call.evaluatedMethod == operators[','] && Weave.IS(tokens[i - 1], ICompiledObject) && !isFunctionHeader(tokens[i - 1]))
+				call = tokens[i] as CompiledFunctionCall;
+				if (call && call.evaluatedMethod == operators[','] && tokens[i - 1] is ICompiledObject && !isFunctionHeader(tokens[i - 1]))
 					tokens.splice(i - 1, 2, new CompiledFunctionCall(tokens[i - 1], call.compiledParams));
 			}
 			
@@ -1051,15 +1052,15 @@ package weavejs.compiler
 			//next step: object literal property declarations: [variable, ":", expr]
 			for (i = 0; i < tokens.length; i++)
 			{
-				if (tokens[i + 1] == ':' && Weave.IS(tokens[i + 2], ICompiledObject))
+				if (tokens[i + 1] == ':' && tokens[i + 2] is ICompiledObject)
 				{
-					var constant:CompiledConstant = Weave.AS(tokens[i], CompiledConstant);
+					var constant:CompiledConstant = tokens[i] as CompiledConstant;
 					if (constant && !(typeof constant.value === 'string') && constants.hasOwnProperty(constant.name) && isValidSymbolName(constant.name))
 						constant = new CompiledConstant(constant.name, constant.name);
 					
-					call = Weave.AS(tokens[i], CompiledFunctionCall);
+					call = tokens[i] as CompiledFunctionCall;
 					if (isVariableLookup(call))
-						constant = Weave.AS(call.compiledMethod, CompiledConstant);
+						constant = call.compiledMethod as CompiledConstant;
 					
 					if (constant && typeof constant.value === 'string')
 						tokens.splice(i, 3, compileOperator(":", [constant, tokens[i + 2]]));
@@ -1083,14 +1084,14 @@ package weavejs.compiler
 				{
 					if (tokens[i] == ';')
 					{
-						call = Weave.AS(tokens[i - 1], CompiledFunctionCall);
+						call = tokens[i - 1] as CompiledFunctionCall;
 						
 						if (_jumpStatements.indexOf(tokens[i - 1]) >= 0 || (call && call.evaluatedMethod == operators['(']))
 						{
 							// support for "return;" and "while (cond);"
 							tokens[i] = compileOperator(';', []);
 						}
-						else if (Weave.IS(tokens[i - 1], CompiledConstant) || (call && call.evaluatedMethod != operators[';']))
+						else if (tokens[i - 1] is CompiledConstant || (call && call.evaluatedMethod != operators[';']))
 						{
 							// support for "while (cond) expr;"
 							tokens.splice(i - 1, 2, compileOperator(';', [tokens[i - 1]]));
@@ -1132,9 +1133,9 @@ package weavejs.compiler
 		 */
 		private function _betweenTwoTokens(token1:Object, token2:Object):String
 		{
-			if (Weave.IS(token1, ICompiledObject))
+			if (token1 is ICompiledObject)
 				token1 = decompileObject(token1 as ICompiledObject);
-			if (Weave.IS(token2, ICompiledObject))
+			if (token2 is ICompiledObject)
 				token2 = decompileObject(token2 as ICompiledObject);
 			if (token1 && token2)
 				return ' between ' + token1 + ' and ' + token2;
@@ -1191,7 +1192,7 @@ package weavejs.compiler
 		 */
 		public static function stringify(value:*, replacer:Function = null, indent:* = null, json_values_only:Boolean = false):String
 		{
-			indent = typeof indent === 'number' ? StandardLib.lpad('', indent, ' ') : Weave.AS(indent, String) || ''
+			indent = typeof indent === 'number' ? StandardLib.lpad('', indent, ' ') : indent as String || ''
 			return _stringify("", value, replacer, indent ? '\n' : '', indent, json_values_only);
 		}
 		private static function _stringify(key:String, value:*, replacer:Function, lineBreak:String, indent:String, json_values_only:Boolean):String
@@ -1208,7 +1209,7 @@ package weavejs.compiler
 			// non-string primitives
 			if (value == null || typeof value != 'object')
 			{
-				if (json_values_only && (value === undefined || !isFinite(Weave.AS(value, Number))))
+				if (json_values_only && (value === undefined || !isFinite(value as Number)))
 					value = null;
 				return String(value) || String(null);
 			}
@@ -1399,20 +1400,20 @@ package weavejs.compiler
 				
 				// unless it's an operator, compile the token to the left
 				token = open > 0 ? tokens[open - 1] : null;
-				compiledToken = Weave.AS(token, ICompiledObject);
+				compiledToken = token as ICompiledObject;
 				if (open > 0 && !compiledToken && !operators.hasOwnProperty(token))
 				{
 					// The function token hasn't been compiled yet.
 					if (constants.hasOwnProperty(token))
-						compiledToken = new CompiledConstant(Weave.AS(token, String), constants[token]);
+						compiledToken = new CompiledConstant(token as String, constants[token]);
 					else
-						compiledToken = compileVariable(Weave.AS(token, String)) as ICompiledObject;
+						compiledToken = compileVariable(token as String) as ICompiledObject;
 				}
 
 				// handle access and descendants operators
 				if ('..'.indexOf(tokens[open]) == 0)
 				{
-					var propertyToken:String = Weave.AS(tokens[open + 1], String);
+					var propertyToken:String = tokens[open + 1] as String;
 					
 					if (!compiledToken || !propertyToken || operators.hasOwnProperty(propertyToken))
 						throw new Error("Misplaced '" + tokens[open] + "' " + _betweenTwoTokens(token, tokens[open + 1]));
@@ -1432,7 +1433,7 @@ package weavejs.compiler
 				if (leftBracket == '{')
 				{
 					var block:ICompiledObject = compileTokens(subArray, true);
-					var blockCall:CompiledFunctionCall = Weave.AS(block, CompiledFunctionCall);
+					var blockCall:CompiledFunctionCall = block as CompiledFunctionCall;
 					if (blockCall)
 					{
 						var blockItems:Array = null;
@@ -1492,7 +1493,7 @@ package weavejs.compiler
 					continue;
 				}
 				
-				var compiledCall:CompiledFunctionCall = Weave.AS(compiledToken, CompiledFunctionCall);
+				var compiledCall:CompiledFunctionCall = compiledToken as CompiledFunctionCall;
 				// if there is a compiled token to the left, this is a function call (unless the token is a function header or is a call to operator ';')
 				if (leftBracket == '(' && compiledToken && !isFunctionHeader(compiledToken) && !(compiledCall && compiledCall.evaluatedMethod == operators[';']))
 				{
@@ -1593,11 +1594,11 @@ package weavejs.compiler
 		{
 			for (var i:int = 1; i < compiledTokens.length; i++)
 			{
-				var op:String = Weave.AS(compiledTokens[i], String);
+				var op:String = compiledTokens[i] as String;
 				if (operatorSymbols.indexOf(op) < 0)
 					continue;
 				
-				var call:CompiledFunctionCall = Weave.AS(compiledTokens[i - 1], CompiledFunctionCall);
+				var call:CompiledFunctionCall = compiledTokens[i - 1] as CompiledFunctionCall;
 				if (!call)
 					continue;
 				
@@ -1631,7 +1632,7 @@ package weavejs.compiler
 			var index:int = compiledTokens.length;
 			while (index--) // right to left
 			{
-				var token:String = Weave.AS(compiledTokens[index], String);
+				var token:String = compiledTokens[index] as String;
 				
 				// skip tokens that are not listed unary operators
 				if (operatorSymbols.indexOf(token) < 0)
@@ -1654,9 +1655,9 @@ package weavejs.compiler
 					throw new Error("Misplaced unary operator '" + token + "'");
 				
 				// skip infix operator
-				if (index > 0 && Weave.IS(compiledTokens[index - 1], ICompiledObject))
+				if (index > 0 && compiledTokens[index - 1] is ICompiledObject)
 				{
-					call = Weave.AS(compiledTokens[index - 1], CompiledFunctionCall);
+					call = compiledTokens[index - 1] as CompiledFunctionCall;
 					if (!call || call.evaluatedMethod != operators[';'])
 						continue;
 				}
@@ -1667,7 +1668,7 @@ package weavejs.compiler
 				
 				if (assignmentOperators.hasOwnProperty(token)) // unary assignment operators
 				{
-					call = Weave.AS(nextToken, CompiledFunctionCall);
+					call = nextToken as CompiledFunctionCall;
 					if (call && !call.compiledParams) // variable lookup
 					{
 						compiledTokens.splice(index, 2, compileOperator(token, [call.compiledMethod, newUndefinedConstant()]));
@@ -1733,7 +1734,7 @@ package weavejs.compiler
 					trace("compile infix operator", compiledTokens.slice(index - 1, index + 2).join(' '));
 				
 				// special case for comma - simplify multiple commas into one operator ',' call
-				var call:CompiledFunctionCall = Weave.AS(compiledTokens[index - 1], CompiledFunctionCall);
+				var call:CompiledFunctionCall = compiledTokens[index - 1] as CompiledFunctionCall;
 				if (compiledTokens[index] == ',' && call && call.evaluatedMethod == operators[','])
 				{
 					// append next parameter to existing ',' operator call
@@ -1763,7 +1764,7 @@ package weavejs.compiler
 				throw new Error("compileFunctionHeader called with unsupported operator: " + functionOperator);
 			
 			// when compiling a function operator, only the argument list should be provided
-			var args:CompiledFunctionCall = Weave.AS(paramsToken, CompiledFunctionCall);
+			var args:CompiledFunctionCall = paramsToken as CompiledFunctionCall;
 			if (!args)
 				throwInvalidSyntax(functionOperator);
 			
@@ -1779,7 +1780,7 @@ package weavejs.compiler
 			var variableValues:Array = [];
 			for each (var token:Object in args.compiledParams)
 			{
-				var variable:CompiledFunctionCall = Weave.AS(token, CompiledFunctionCall);
+				var variable:CompiledFunctionCall = token as CompiledFunctionCall;
 				if (!variable)
 					throwInvalidSyntax(functionOperator);
 				
@@ -1789,7 +1790,7 @@ package weavejs.compiler
 					variableNames.push(variable.evaluatedMethod);
 					variableValues.push(undefined);
 				}
-				else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2 && Weave.IS(variable.compiledParams[1], CompiledConstant))
+				else if (variable.evaluatedMethod == operators['='] && variable.compiledParams.length == 2 && variable.compiledParams[1] is CompiledConstant)
 				{
 					// local variable assignment
 					variableNames.push(variable.evaluatedParams[0]);
@@ -1822,11 +1823,11 @@ package weavejs.compiler
 		
 		private function compileVariableAssignment(variableToken:*, assignmentOperator:String, valueToken:*):CompiledFunctionCall
 		{
-			var lhs:CompiledFunctionCall = Weave.AS(variableToken, CompiledFunctionCall);
-			var rhs:ICompiledObject = Weave.AS(valueToken, ICompiledObject);
+			var lhs:CompiledFunctionCall = variableToken as CompiledFunctionCall;
+			var rhs:ICompiledObject = valueToken as ICompiledObject;
 
 			if (!rhs)
-				throw new Error("Invalid right-hand-side of '" + assignmentOperator + "': " + (Weave.AS(valueToken, String) || decompileObject(valueToken)));
+				throw new Error("Invalid right-hand-side of '" + assignmentOperator + "': " + (valueToken as String || decompileObject(valueToken)));
 			
 			// lhs should either be a variable lookup or a call to operator '.'
 			if (lhs && !lhs.compiledParams) // lhs is a variable lookup
@@ -1840,7 +1841,7 @@ package weavejs.compiler
 				return compileOperator(assignmentOperator, lhs.compiledParams);
 			}
 			else
-				throw new Error("Invalid left-hand-side of '" + assignmentOperator + "': " + (Weave.AS(variableToken, String) || decompileObject(variableToken)));
+				throw new Error("Invalid left-hand-side of '" + assignmentOperator + "': " + (variableToken as String || decompileObject(variableToken)));
 		}
 		
 		/**
@@ -1850,7 +1851,7 @@ package weavejs.compiler
 		 */
 		private function compileStatement(tokens:Array, startIndex:int):void
 		{
-			var stmt:String = Weave.AS(tokens[startIndex], String);
+			var stmt:String = tokens[startIndex] as String;
 			var call:CompiledFunctionCall;
 			
 			// stop if tokens does not start with a statement
@@ -1859,14 +1860,14 @@ package weavejs.compiler
 				// complain about missing ';' after non-statement except for last token
 				if (startIndex < tokens.length - 1)
 				{
-					call = Weave.AS(tokens[startIndex], CompiledFunctionCall);
+					call = tokens[startIndex] as CompiledFunctionCall;
 					if (!call || (call.evaluatedMethod != operators[';'] && !tokenIsStatement(call)))
 					{
 						if (stmt)
 							throw new Error("Unexpected " + stmt);
 						var next:Object = tokens[startIndex + 1];
-						if (Weave.IS(next, ICompiledObject))
-							next = decompileObject(Weave.AS(next, ICompiledObject));
+						if (next is ICompiledObject)
+							next = decompileObject(next as ICompiledObject);
 						throw new Error("Missing ';' before " + next);
 					}
 				}
@@ -1885,7 +1886,7 @@ package weavejs.compiler
 					
 					var type:String = pattern[iPattern];
 					var token:Object = tokens[startIndex + iPattern];
-					call = Weave.AS(token, CompiledFunctionCall);
+					call = token as CompiledFunctionCall;
 					
 					if (statements.hasOwnProperty(type) && token != type)
 						continue nextPattern;
@@ -1925,7 +1926,7 @@ package weavejs.compiler
 						// special case for "y, x = 3;" which at this point is stored as {y, x = 3}
 						if (call.evaluatedMethod == operators[';'])
 						{
-							if (!(call.evaluatedParams.length == 1 && Weave.IS(call.compiledParams[0], CompiledFunctionCall)))
+							if (!(call.evaluatedParams.length == 1 && call.compiledParams[0] is CompiledFunctionCall))
 								throwInvalidSyntax(stmt);
 							// remove the operator ';' wrapper
 							tokens[startIndex + iPattern] = token = call = call.compiledParams[0];
@@ -1939,7 +1940,7 @@ package weavejs.compiler
 						if (call.evaluatedMethod == operators['in'] && call.compiledParams.length == 2)
 						{
 							// check the variable
-							call = Weave.AS(call.compiledParams[0], CompiledFunctionCall);
+							call = call.compiledParams[0] as CompiledFunctionCall;
 							if (!isVariableLookup(call))
 								throwInvalidSyntax(stmt);
 							// save single variable name
@@ -1953,7 +1954,7 @@ package weavejs.compiler
 						varNames = [];
 						for (var iParam:int = 0; iParam < call.compiledParams.length; iParam++)
 						{
-							var variable:CompiledFunctionCall = Weave.AS(call.compiledParams[iParam], CompiledFunctionCall);
+							var variable:CompiledFunctionCall = call.compiledParams[iParam] as CompiledFunctionCall;
 							if (!variable)
 								throwInvalidSyntax(stmt);
 							
@@ -2002,17 +2003,17 @@ package weavejs.compiler
 					originalTokens = null;
 					
 					// support multiple imports separated by commas
-					call = Weave.AS(params[0], CompiledFunctionCall);
+					call = params[0] as CompiledFunctionCall;
 					if (call && call.evaluatedMethod == operators[';'] && call.compiledParams.length == 1)
 						params[0] = call.compiledParams[0];
 					
-					call = Weave.AS(params[0], CompiledFunctionCall);
+					call = params[0] as CompiledFunctionCall;
 					if (call && call.evaluatedMethod == operators[','])
 						params = call.compiledParams;
 					
 					for (var i:int = 0; i < params.length; i++)
 					{
-						var _lib:CompiledConstant = Weave.AS(params[i], CompiledConstant);
+						var _lib:CompiledConstant = params[i] as CompiledConstant;
 						if (_lib && typeof _lib.value === 'string')
 						{
 							try
@@ -2076,7 +2077,7 @@ package weavejs.compiler
 						// implemented as "for (each|in)(\in(list), item=undefined, stmt)
 						var _in:CompiledFunctionCall = forParams.compiledParams[0];
 						var _item:ICompiledObject;
-						var _var:CompiledFunctionCall = Weave.AS(_in.compiledParams[0], CompiledFunctionCall);
+						var _var:CompiledFunctionCall = _in.compiledParams[0] as CompiledFunctionCall;
 						if (_var.evaluatedMethod == operators[','] && _var.compiledParams.length == 2) // represented as (var x, x)
 						{
 							_var.compiledParams[1] = compileVariableAssignment(_var.compiledParams[1], '=', newUndefinedConstant());
@@ -2112,11 +2113,11 @@ package weavejs.compiler
 		{
 			for (var index:int = 0; index < tokens.length; index++)
 			{
-				var statement:String = Weave.AS(tokens[index], String);
+				var statement:String = tokens[index] as String;
 				if (statements[statement]) // requires parameters?
 				{
 					// statement parameters must be wrapped in operator ';' call
-					var params:CompiledFunctionCall = Weave.AS(tokens[index + 1], CompiledFunctionCall);
+					var params:CompiledFunctionCall = tokens[index + 1] as CompiledFunctionCall;
 					if (!params || params.evaluatedMethod != operators['('])
 						throwInvalidSyntax(statement);
 					
@@ -2133,19 +2134,19 @@ package weavejs.compiler
 					if (statement == ST_FOR || statement == ST_FOR_EACH)
 					{
 						// if 'for' or 'for each' has only one param, it must be the 'in' operator
-						var call:CompiledFunctionCall = Weave.AS(params.compiledParams[0], CompiledFunctionCall); // the first statement param
+						var call:CompiledFunctionCall = params.compiledParams[0] as CompiledFunctionCall; // the first statement param
 						if (!call || call.evaluatedMethod != operators['in'] || call.compiledParams.length != 2)
 							throwInvalidSyntax(statement);
 						
 						// check the first parameter of the 'in' operator
-						call = Weave.AS(call.compiledParams[0], CompiledFunctionCall);
+						call = call.compiledParams[0] as CompiledFunctionCall;
 						
 						if (call && call.evaluatedMethod == operators[','] && call.compiledParams.length == 2)
 						{
-							var _var:CompiledFunctionCall = Weave.AS(call.compiledParams[0], CompiledFunctionCall);
+							var _var:CompiledFunctionCall = call.compiledParams[0] as CompiledFunctionCall;
 							if (!_var || _var.evaluatedMethod != operators[ST_VAR])
 								throwInvalidSyntax(statement);
-							call = Weave.AS(call.compiledParams[1], CompiledFunctionCall); // should be the variable
+							call = call.compiledParams[1] as CompiledFunctionCall; // should be the variable
 						}
 							
 						// the 'in' operator must have a variable or property reference as its first parameter
@@ -2164,11 +2165,11 @@ package weavejs.compiler
 		
 		private function tokenIsStatement(token:Object):Boolean
 		{
-			var call:CompiledFunctionCall = Weave.AS(token, CompiledFunctionCall);
+			var call:CompiledFunctionCall = token as CompiledFunctionCall;
 			if (!call)
 				return statements.hasOwnProperty(token);
 			
-			var method:Function = Weave.AS(call.evaluatedMethod, Function);
+			var method:Function = call.evaluatedMethod as Function;
 			return JUMP_LOOKUP.get(method) || LOOP_LOOKUP.get(method);
 		}
 		
@@ -2196,7 +2197,7 @@ package weavejs.compiler
 			{
 				// there is at least one var declaration, so we need to include it at the beginning.
 				var varDeclarations:CompiledFunctionCall = compileOperator(ST_VAR, [new CompiledConstant(null, names)]);
-				var call:CompiledFunctionCall = Weave.AS(compiledObject, CompiledFunctionCall);
+				var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 				if (call && call.evaluatedMethod == operators[';'])
 				{
 					call.compiledParams.unshift(varDeclarations);
@@ -2212,11 +2213,11 @@ package weavejs.compiler
 		 */
 		private function _finalize(compiledObject:ICompiledObject, forceInlineObjectConstants:Boolean, varLookup:Object):ICompiledObject
 		{
-			if (Weave.IS(compiledObject, CompiledConstant))
+			if (compiledObject is CompiledConstant)
 				return compiledObject;
 			
 			var i:int;
-			var call:CompiledFunctionCall = Weave.AS(compiledObject, CompiledFunctionCall);
+			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 			
 			// function headers should not appear alone
 			if (isFunctionHeader(call))
@@ -2269,7 +2270,7 @@ package weavejs.compiler
 				i = params.length;
 				while (i--)
 				{
-					var nestedCall:CompiledFunctionCall = Weave.AS(params[i], CompiledFunctionCall);
+					var nestedCall:CompiledFunctionCall = params[i] as CompiledFunctionCall;
 					if (!nestedCall)
 						continue;
 					var nestedMethod:Object = nestedCall.evaluatedMethod;
@@ -2284,7 +2285,7 @@ package weavejs.compiler
 				call.evaluateConstants();
 			}
 			
-			if ((method == operators[ST_IF] || method == operators['?:']) && Weave.IS(params[INDEX_CONDITION], CompiledConstant))
+			if ((method == operators[ST_IF] || method == operators['?:']) && params[INDEX_CONDITION] is CompiledConstant)
 			{
 				if (debug)
 					trace('optimized short-circuited ?: operator:',decompileObject(compiledObject));
@@ -2293,25 +2294,25 @@ package weavejs.compiler
 				return index < params.length ? params[index] : newUndefinedConstant();
 			}
 			
-			if (method == operators['&&'] && params.length == 2 && Weave.IS(params[INDEX_CONDITION], CompiledConstant) && !call.evaluatedParams[INDEX_CONDITION])
+			if (method == operators['&&'] && params.length == 2 && params[INDEX_CONDITION] is CompiledConstant && !call.evaluatedParams[INDEX_CONDITION])
 			{
 				if (debug)
 					trace('optimized short-circuited && operator:',decompileObject(compiledObject));
 				return params[INDEX_CONDITION];
 			}
 			
-			if (method == operators['||'] && params.length == 2 && Weave.IS(params[INDEX_CONDITION], CompiledConstant) && call.evaluatedParams[INDEX_CONDITION])
+			if (method == operators['||'] && params.length == 2 && params[INDEX_CONDITION] is CompiledConstant && call.evaluatedParams[INDEX_CONDITION])
 			{
 				if (debug)
 					trace('optimized short-circuited || operator:',decompileObject(compiledObject));
 				return params[INDEX_CONDITION];
 			}
 			
-			if (PURE_OP_LOOKUP.get(Weave.AS(method, Function)) || (forceInlineObjectConstants && (method == operators['{'] || method == operators['['])))
+			if (PURE_OP_LOOKUP.get(method as Function) || (forceInlineObjectConstants && (method == operators['{'] || method == operators['['])))
 			{
 				// if all parameters are constants, just evaluate the pure operator as a constant.
 				for each (var param:Object in params)
-					if (!Weave.IS(param, CompiledConstant))
+					if (!param is CompiledConstant)
 						return call; // cannot be optimized
 					
 				if (debug)
@@ -2329,18 +2330,18 @@ package weavejs.compiler
 		public function decompileObject(compiledObject:ICompiledObject):String
 		{
 			// special case for constants
-			if (Weave.IS(compiledObject, CompiledConstant))
+			if (compiledObject is CompiledConstant)
 				return (compiledObject as CompiledConstant).name;
 			
 			var i:int;
-			var call:CompiledFunctionCall = Weave.AS(compiledObject, CompiledFunctionCall);
+			var call:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 			
 			// if originalTokens is specified, decompile those instead.
 			if (call.originalTokens)
 			{
 				var tokens:Array = call.originalTokens.concat();
 				for (i = 0; i < tokens.length; i++)
-					if (Weave.IS(tokens[i], ICompiledObject))
+					if (tokens[i] is ICompiledObject)
 						tokens[i] = decompileObject(tokens[i]);
 				return tokens.join(' ');
 			}
@@ -2349,7 +2350,7 @@ package weavejs.compiler
 			if (isVariableLookup(call))
 				return decompileObject(call.compiledMethod);
 			
-			var cMethod:CompiledConstant = Weave.AS(call.compiledMethod, CompiledConstant);
+			var cMethod:CompiledConstant = call.compiledMethod as CompiledConstant;
 			var cParams:Array = call.compiledParams;
 			
 			// decompile each param
@@ -2367,7 +2368,7 @@ package weavejs.compiler
 			if (cMethod && constants[cMethod.name] == cMethod.value && operators[op] == cMethod.value)
 			{
 				var n:int = cParams.length;
-				if (n > 0 && (ASSIGN_OP_LOOKUP.get(Weave.AS(cMethod.value, Function)) || op == '.' || op == '..'))
+				if (n > 0 && (ASSIGN_OP_LOOKUP.get(cMethod.value as Function) || op == '.' || op == '..'))
 				{
 					var result:String = params[0];
 					for (i = 1; i < n; i++)
@@ -2376,10 +2377,10 @@ package weavejs.compiler
 						if (i == n - 1 && op != '.' && op != '..')
 							break;
 						// if the evaluated param compiles as a variable, use the '.' syntax
-						var constant:CompiledConstant = Weave.AS(cParams[i], CompiledConstant);
+						var constant:CompiledConstant = cParams[i] as CompiledConstant;
 						var variable:CompiledFunctionCall = null;
 						try {
-							variable = Weave.AS(compileToObject(constant.value), CompiledFunctionCall);
+							variable = compileToObject(constant.value) as CompiledFunctionCall;
 							if (!isVariableLookup(variable))
 								variable = null;
 						} catch (e:Error) { }
@@ -2428,7 +2429,7 @@ package weavejs.compiler
 					return '{' + str + '}';
 				}
 				
-				if (PURE_OP_LOOKUP.get(Weave.AS(cMethod.value, Function)) || op == 'in')
+				if (PURE_OP_LOOKUP.get(cMethod.value as Function) || op == 'in')
 				{
 					if (n == 1) // unary op
 					{
@@ -2487,7 +2488,7 @@ package weavejs.compiler
 			if (symbolTable == null)
 				symbolTable = {};
 			
-			if (Weave.IS(compiledObject, CompiledConstant))
+			if (compiledObject is CompiledConstant)
 			{
 				// create a new variable for the value to avoid the overhead of
 				// accessing a member variable of the CompiledConstant object.
@@ -2498,7 +2499,7 @@ package weavejs.compiler
 			// create the variables that will be used inside the wrapper function
 
 			var builtInSymbolTable:Object = {};
-			builtInSymbolTable['eval'] = Weave.AS(this._eval, Function) || undefined;
+			builtInSymbolTable['eval'] = this._eval as Function || undefined;
 			builtInSymbolTable['this'] = bindThis;
 			
 			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
@@ -2563,7 +2564,7 @@ package weavejs.compiler
 						localSymbolTable[paramNames[i]] = i < arguments.length ? arguments[i] : paramDefaults[i];
 				
 				// initialize top-level function and push it onto the stack
-				call = Weave.AS(recursiveCalls[recursion], CompiledFunctionCall);
+				call = recursiveCalls[recursion] as CompiledFunctionCall;
 				if (!call)
 					recursiveCalls[recursion] = call = (compiledObject as CompiledFunctionCall).clone();
 				recursion++;
@@ -2574,7 +2575,7 @@ package weavejs.compiler
 				stackLoop: while (true)
 				{
 					// evaluate the CompiledFunctionCall on top of the stack
-					call = Weave.AS(stack[stack.length - 1], CompiledFunctionCall);
+					call = stack[stack.length - 1] as CompiledFunctionCall;
 					
 					// if we got here because of a break, advance evalIndex
 					if (method == operators[ST_BREAK])
@@ -2585,7 +2586,7 @@ package weavejs.compiler
 					
 					if (compiledParams)
 					{
-						if (LOOP_LOOKUP.get(Weave.AS(method, Function)) && call.evalIndex == INDEX_METHOD)
+						if (LOOP_LOOKUP.get(method as Function) && call.evalIndex == INDEX_METHOD)
 						{
 							if (method == operators[ST_DO] || method == operators[ST_FOR_DO])
 							{
@@ -2602,20 +2603,20 @@ package weavejs.compiler
 							
 							// handle branching and short-circuiting
 							// skip evaluation of true or false branch depending on condition and branch operator
-							if (BRANCH_LOOKUP.get(Weave.AS(method, Function)) !== undefined && call.evalIndex > INDEX_CONDITION)
+							if (BRANCH_LOOKUP.get(method as Function) !== undefined && call.evalIndex > INDEX_CONDITION)
 								if (BRANCH_LOOKUP.get(method) == (call.evalIndex != (call.evaluatedParams[INDEX_CONDITION] ? INDEX_TRUE : INDEX_FALSE)))
 									continue;
 							
 							if (call.evalIndex == INDEX_METHOD)
-								subCall = Weave.AS(call.compiledMethod, CompiledFunctionCall);
+								subCall = call.compiledMethod as CompiledFunctionCall;
 							else
-								subCall = Weave.AS(compiledParams[call.evalIndex], CompiledFunctionCall);
+								subCall = compiledParams[call.evalIndex] as CompiledFunctionCall;
 							
 							if (subCall != null)
 							{
 								// special case for for-in and for-each
 								// implemented as "for (each|in)(\in(list), item=undefined, stmt)
-								if (LOOP_LOOKUP.get(Weave.AS(method, Function)) && call.evalIndex == INDEX_FOR_ITEM && (method == operators[ST_FOR_IN] || method == operators[ST_FOR_EACH]))
+								if (LOOP_LOOKUP.get(method as Function) && call.evalIndex == INDEX_FOR_ITEM && (method == operators[ST_FOR_IN] || method == operators[ST_FOR_EACH]))
 								{
 									if ((call.evaluatedParams[INDEX_FOR_LIST] as Array).length > 0)
 									{
@@ -2624,7 +2625,7 @@ package weavejs.compiler
 										if (method == operators[ST_FOR_EACH])
 										{
 											// get property value from property name
-											var _in:CompiledFunctionCall = Weave.AS(call.compiledParams[INDEX_FOR_LIST], CompiledFunctionCall);
+											var _in:CompiledFunctionCall = call.compiledParams[INDEX_FOR_LIST] as CompiledFunctionCall;
 											result = _in.evaluatedParams[0][result]; // property value
 										}
 										// set item value
@@ -2655,13 +2656,13 @@ package weavejs.compiler
 						if (!compiledParams) // no compiled params means it's a variable lookup
 						{
 							// call.compiledMethod is a constant and call.evaluatedMethod is the method name
-							symbolName = Weave.AS(method, String);
+							symbolName = method as String;
 							// find the variable
 							for (i = 0; i < allSymbolTables.length; i++) // max i after loop will be length
 							{
 								if (allSymbolTables[i] && allSymbolTables[i].hasOwnProperty(symbolName))
 								{
-									if (i == THIS_SYMBOL_TABLE_INDEX || Weave.IS(allSymbolTables[i], ProxyObject))
+									if (i == THIS_SYMBOL_TABLE_INDEX || allSymbolTables[i] is ProxyObject)
 									{
 										propertyHost = allSymbolTables[i];
 										propertyName = symbolName;
@@ -2674,7 +2675,7 @@ package weavejs.compiler
 							if (i == allSymbolTables.length)
 								result = getDefinition(symbolName);
 						}
-						else if (JUMP_LOOKUP.get(Weave.AS(method, Function)))
+						else if (JUMP_LOOKUP.get(method as Function))
 						{
 							if (method == operators[ST_RETURN])
 							{
@@ -2694,7 +2695,7 @@ package weavejs.compiler
 									
 									call = stack[stack.length - 1] as CompiledFunctionCall;
 									method = call.evaluatedMethod;
-									if (LOOP_LOOKUP.get(Weave.AS(method, Function)) && LOOP_LOOKUP.get(Weave.AS(method, Function)) != ST_BREAK)
+									if (LOOP_LOOKUP.get(method as Function) && LOOP_LOOKUP.get(method as Function) != ST_BREAK)
 										break; // loop will be handled below.
 								}
 							}
@@ -2702,9 +2703,9 @@ package weavejs.compiler
 							{
 								while (stack.length > 1)
 								{
-									call = Weave.AS(stack.pop(), CompiledFunctionCall);
+									call = stack.pop() as CompiledFunctionCall;
 									method = call.evaluatedMethod;
-									if (LOOP_LOOKUP.get(Weave.AS(method, Function)) && LOOP_LOOKUP.get(Weave.AS(method, Function)) != ST_CONTINUE)
+									if (LOOP_LOOKUP.get(method as Function) && LOOP_LOOKUP.get(method as Function) != ST_CONTINUE)
 									{
 										method = operators[ST_BREAK];
 										continue stackLoop;
@@ -2719,7 +2720,7 @@ package weavejs.compiler
 								throw call.evaluatedParams[0];
 							}
 						}
-						else if (ASSIGN_OP_LOOKUP.get(Weave.AS(method, Function)) && compiledParams.length == 2) // two params means local assignment
+						else if (ASSIGN_OP_LOOKUP.get(method as Function) && compiledParams.length == 2) // two params means local assignment
 						{
 							// local assignment
 							symbolName = call.evaluatedParams[0];
@@ -2741,7 +2742,7 @@ package weavejs.compiler
 						{
 							for each (result in call.evaluatedParams)
 							{
-								symbolName = Weave.AS(result, String);
+								symbolName = result as String;
 								if (symbolName)
 									result = getDefinition(result);
 								else if (!Weave.isClass(result))
@@ -2809,7 +2810,7 @@ package weavejs.compiler
 								method == operators['=>'] || (cascadeThisScope && bindThis !== null) ? builtInSymbolTable['this'] : null
 							);
 						}
-						else if (Weave.IS(call.evaluatedHost, ProxyObject))
+						else if (call.evaluatedHost is ProxyObject)
 						{
 							// use Proxy.callProperty
 							var proxyParams:Array = call.evaluatedParams.concat();
@@ -2833,7 +2834,7 @@ package weavejs.compiler
 						recursion--;
 						
 						var decompiled:String = decompileObject(call);
-						var err:Error = Weave.AS(e, Error);
+						var err:Error = e as Error;
 						if (err)
 							err.message = decompiled + '\n' + err.message;
 						else
@@ -2849,7 +2850,7 @@ package weavejs.compiler
 					}
 					
 					// handle while and for loops
-					if (LOOP_LOOKUP.get(Weave.AS(method, Function)))
+					if (LOOP_LOOKUP.get(method as Function))
 					{
 						if (method == operators[ST_FOR_IN] || method == operators[ST_FOR_EACH])
 						{
@@ -2874,7 +2875,7 @@ package weavejs.compiler
 						return result;
 					}
 					// otherwise, store the result in the evaluatedParams array of the parent call
-					call = Weave.AS(stack[stack.length - 1], CompiledFunctionCall);
+					call = stack[stack.length - 1] as CompiledFunctionCall;
 					if (call.evalIndex == INDEX_METHOD)
 					{ 
 						call.evaluatedHost = propertyHost;
@@ -2893,7 +2894,7 @@ package weavejs.compiler
 			if (flattenFunctionDefinition && compiledObjectIsFunctionDefinition(compiledObject))
 			{
 				cascadeThisScope = useThisScope;
-				return Weave.AS(wrapperFunction(), Function);
+				return wrapperFunction() as Function;
 			}
 			
 			return wrapperFunction;
@@ -2904,13 +2905,13 @@ package weavejs.compiler
 		 */
 		private function isVariableLookup(token:Object):Boolean
 		{
-			var cfc:CompiledFunctionCall = Weave.AS(token, CompiledFunctionCall);
+			var cfc:CompiledFunctionCall = token as CompiledFunctionCall;
 			return cfc && !cfc.compiledParams;
 		}
 		
 		private function isFunctionHeader(token:Object):Boolean
 		{
-			var cfc:CompiledFunctionCall = Weave.AS(token, CompiledFunctionCall);
+			var cfc:CompiledFunctionCall = token as CompiledFunctionCall;
 			return cfc && (cfc.evaluatedMethod == operators[FUNCTION] || cfc.evaluatedMethod == operators['=>'])
 				&& cfc.evaluatedParams[0][FUNCTION_CODE] === undefined;
 		}
@@ -2922,7 +2923,7 @@ package weavejs.compiler
 		 */
 		public function compiledObjectIsFunctionDefinition(compiledObject:ICompiledObject):Boolean
 		{
-			var cfc:CompiledFunctionCall = Weave.AS(compiledObject, CompiledFunctionCall);
+			var cfc:CompiledFunctionCall = compiledObject as CompiledFunctionCall;
 			return cfc && (cfc.evaluatedMethod == operators[FUNCTION] || cfc.evaluatedMethod == operators['=>']);
 		}
 		
@@ -2936,7 +2937,7 @@ package weavejs.compiler
 		 */
 		public static function cast(object:Object, type:Class):*
 		{
-			if (Weave.IS(object, type) || object === null || Weave.className(object.constructor) != 'Object')
+			if (object is type || object === null || Weave.className(object.constructor) != 'Object')
 				return type(object);
 			var newObj:Object = new type();
 			for (var key:String in object)

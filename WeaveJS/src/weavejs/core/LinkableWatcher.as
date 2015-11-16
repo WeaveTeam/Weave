@@ -13,17 +13,18 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.core
+package weavejs.core
 {
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableCompositeObject;
-	import weave.api.core.ILinkableDynamicObject;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
-	import weave.api.core.ISessionManager;
-	import weave.compiler.StandardLib;
-	import weave.primitives.Dictionary2D;
+	import weavejs.WeaveAPI;
+	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.IDisposableObject;
+	import weavejs.api.core.ILinkableCompositeObject;
+	import weavejs.api.core.ILinkableDynamicObject;
+	import weavejs.api.core.ILinkableHashMap;
+	import weavejs.api.core.ILinkableObject;
+	import weavejs.api.core.ISessionManager;
+	import weavejs.compiler.StandardLib;
+	import weavejs.utils.Dictionary2D;
 	
 	/**
 	 * This is used to dynamically attach a set of callbacks to different targets.
@@ -57,7 +58,7 @@ package weave.core
 		private var _target:ILinkableObject; // the current target or ancestor of the to-be-target
 		private var _foundTarget:Boolean = true; // false when _target is not the desired target
 		protected var _targetPath:Array; // the path that is being watched
-		private var _pathDependencies:Dictionary2D = new Dictionary2D(true, false); // (ILinkableCompositeObject, String) -> child object
+		private var _pathDependencies:Dictionary2D = new Dictionary2D(); // (ILinkableCompositeObject, String) -> child object
 		
 		/**
 		 * This is the linkable object currently being watched.
@@ -263,28 +264,29 @@ package weave.core
 		
 		private function handlePathDependencies():void
 		{
+			_pathDependencies.forEach(handlePathDependencies_each, this);
+		}
+		private function handlePathDependencies_each(parent:ILinkableObject, pathElement:String, child:ILinkableObject):Boolean
+		{
 			var sm:ISessionManager = WeaveAPI.SessionManager;
-			for (var parent:Object in _pathDependencies.dictionary)
+			var newChild:ILinkableObject = sm.getObject(parent, [pathElement]);
+			if (sm.objectWasDisposed(parent) || child != newChild)
 			{
-				for (var pathElement:Object in _pathDependencies.dictionary[parent])
-				{
-					var oldChild:ILinkableObject = _pathDependencies.get(parent, pathElement);
-					var newChild:ILinkableObject = sm.getObject(parent as ILinkableObject, [pathElement]);
-					if (sm.objectWasDisposed(parent) || oldChild != newChild)
-					{
-						resetPathDependencies();
-						handlePath();
-						return;
-					}
-				}
+				resetPathDependencies();
+				handlePath();
+				return true; // stop iterating
 			}
+			return false; // continue iterating
 		}
 		
 		private function resetPathDependencies():void
 		{
-			for (var parent:Object in _pathDependencies.dictionary)
-				getDependencyCallbacks(parent as ILinkableObject).removeCallback(handlePathDependencies);
-			_pathDependencies = new Dictionary2D(true, false);
+			_pathDependencies.map.forEach(resetPathDependencies_each, this);
+			_pathDependencies = new Dictionary2D();
+		}
+		private function resetPathDependencies_each(map_child:Object, parent:ILinkableObject):void
+		{
+			getDependencyCallbacks(parent).removeCallback(handlePathDependencies);
 		}
 		
 		/**

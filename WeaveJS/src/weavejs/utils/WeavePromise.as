@@ -13,20 +13,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.utils
+package weavejs.utils
 {
-	import mx.core.mx_internal;
-	import mx.rpc.AsyncResponder;
-	import mx.rpc.AsyncToken;
-	import mx.rpc.Fault;
-	import mx.rpc.events.FaultEvent;
-	import mx.rpc.events.ResultEvent;
-	
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
-	import weave.api.getCallbackCollection;
-	import weave.api.objectWasDisposed;
-	import weave.api.registerDisposableChild;
+	import weavejs.api.core.IDisposableObject;
+	import weavejs.api.core.ILinkableObject;
 	
 	/**
 	 * Use this when you need a Promise chain to depend on ILinkableObjects and resolve multiple times.

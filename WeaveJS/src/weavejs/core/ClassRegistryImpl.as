@@ -13,15 +13,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.core
+package weavejs.core
 {
-	import avmplus.DescribeType;
-	
-	import flash.utils.Dictionary;
-	import flash.utils.getDefinitionByName;
-	import flash.utils.getQualifiedClassName;
-	
-	import weave.api.core.IClassRegistry;
+	import weavejs.Weave;
+	import weavejs.api.core.IClassRegistry;
+	import weavejs.utils.Utils;
 	
 	/**
 	 * Manages a set of implementations of interfaces.
@@ -30,40 +26,31 @@ package weave.core
 	{
 		public function ClassRegistryImpl()
 		{
-			try
-			{
-				MX_Singleton = getDefinitionByName('mx.core.Singleton');
-			}
-			catch (e:Error)
-			{
-				// it doesn't matter if it failed - we have backup functionality
-			}
+			this.singletonInstances = new Utils.Map();
+			this.singletonImplementations = new Utils.Map();
+			this.implementations = new Utils.Map();
+			this.displayNames = new Utils.Map();
 		}
-		
-		/**
-		 * mx.core.Singleton
-		 */
-		private var MX_Singleton:Object;
 		
 		/**
 		 * interface Class -&gt; singleton implementation instance.
 		 */
-		public const singletonInstances:Dictionary = new Dictionary();
+		public var singletonInstances:Object;
 		
 		/**
 		 * interface Class -&gt; implementation Class
 		 */
-		public const singletonImplementations:Dictionary = new Dictionary();
+		public var singletonImplementations:Object;
 		
 		/**
 		 * interface Class -&gt; Array&lt;implementation Class&gt;
 		 */
-		public const implementations:Dictionary = new Dictionary();
+		public var implementations:Object;
 		
 		/**
 		 * implementation Class -&gt; String
 		 */
-		public const displayNames:Dictionary = new Dictionary();
+		public var displayNames:Object;
 		
 		/**
 		 * This registers an implementation for a singleton interface.
@@ -73,29 +60,12 @@ package weave.core
 		 */
 		public function registerSingletonImplementation(theInterface:Class, theImplementation:Class):Boolean
 		{
-			if (!singletonImplementations[theInterface])
+			if (!singletonImplementations.get(theInterface))
 			{
 				verifyImplementation(theInterface, theImplementation);
-				singletonImplementations[theInterface] = theImplementation;
-				
-				// let mx.core.Singleton take precedence if it is available
-				if (MX_Singleton)
-				{
-					try
-					{
-						var interfaceName:String = getQualifiedClassName(theInterface);
-						MX_Singleton['registerClass'](interfaceName, theImplementation);
-						singletonImplementations[theInterface] = MX_Singleton['getClass'](interfaceName);
-					}
-					catch (e:Error)
-					{
-						// registerClass() and getClass() should not have failed, so give up on MX_Singleton
-						MX_Singleton = null;
-						trace(e.getStackTrace());
-					}
-				}
+				singletonImplementations.set(theInterface, theImplementation);
 			}
-			return singletonImplementations[theInterface] == theImplementation;
+			return singletonImplementations.get(theInterface) == theImplementation;
 		}
 		
 		/**
@@ -104,21 +74,7 @@ package weave.core
 		 */
 		public function getSingletonImplementation(theInterface:Class):Class
 		{
-			if (!singletonImplementations[theInterface] && MX_Singleton)
-			{
-				try
-				{
-					var interfaceName:String = getQualifiedClassName(theInterface);
-					singletonImplementations[theInterface] = MX_Singleton['getClass'](interfaceName);
-				}
-				catch (e:Error)
-				{
-					// getClass() should not have failed, so give up on MX_Singleton
-					MX_Singleton = null;
-					trace(e.getStackTrace());
-				}
-			}
-			return singletonImplementations[theInterface];
+			return singletonImplementations.get(theInterface);
 		}
 		
 		/**
@@ -132,30 +88,14 @@ package weave.core
 		 */
 		public function getSingletonInstance(theInterface:Class):*
 		{
-			if (!singletonInstances[theInterface])
+			if (!singletonInstances.get(theInterface))
 			{
-				if (MX_Singleton)
-				{
-					try
-					{
-						var interfaceName:String = getQualifiedClassName(theInterface);
-						// This may fail if there is no registered class,
-						// or the class doesn't have a getInstance() method.
-						return singletonInstances[theInterface] = MX_Singleton['getInstance'](interfaceName);
-					}
-					catch (e:Error)
-					{
-						if (!getSingletonImplementation(theInterface))
-							throw e; // no class registered for interface
-					}
-				}
-				
 				var classDef:Class = getSingletonImplementation(theInterface);
 				if (classDef)
-					singletonInstances[theInterface] = new classDef();
+					singletonInstances.set(theInterface, new classDef());
 			}
 			
-			return singletonInstances[theInterface];
+			return singletonInstances.get(theInterface);
 		}
 		
 		/**
@@ -168,13 +108,13 @@ package weave.core
 		{
 			verifyImplementation(theInterface, theImplementation);
 			
-			var array:Array = implementations[theInterface] as Array;
+			var array:Array = implementations.get(theInterface);
 			if (!array)
-				implementations[theInterface] = array = [];
+				implementations.set(theInterface, array = []);
 			
 			// overwrite existing displayName if specified
-			if (displayName || !displayNames[theImplementation])
-				displayNames[theImplementation] = displayName || getQualifiedClassName(theImplementation).split(':').pop();
+			if (displayName || !displayNames.get(theImplementation))
+				displayNames.set(theImplementation, displayName || Weave.className(theImplementation).split(':').pop());
 			
 			if (array.indexOf(theImplementation) < 0)
 			{
@@ -191,7 +131,7 @@ package weave.core
 		 */
 		public function getImplementations(theInterface:Class):Array
 		{
-			var array:Array = implementations[theInterface] as Array;
+			var array:Array = implementations.get(theInterface);
 			return array ? array.concat() : [];
 		}
 		
@@ -202,8 +142,8 @@ package weave.core
 		 */
 		public function getDisplayName(theImplementation:Class):String
 		{
-			var str:String = displayNames[theImplementation] as String;
-			return str && lang(str);
+			var str:String = displayNames.get(theImplementation);
+			return str;// && lang(str);
 		}
 		
 		/**
@@ -212,8 +152,8 @@ package weave.core
 		 */
 		private function _sortImplementations(impl1:Class, impl2:Class):int
 		{
-			var name1:String = displayNames[impl1] as String;
-			var name2:String = displayNames[impl2] as String;
+			var name1:String = displayNames.get(impl1);
+			var name2:String = displayNames.get(impl2);
 			if (name1 < name2)
 				return -1;
 			if (name1 > name2)
@@ -226,10 +166,8 @@ package weave.core
 		 */
 		public static function verifyImplementation(theInterface:Class, theImplementation:Class):void
 		{
-			var interfaceName:String = getQualifiedClassName(theInterface);
-			var classInfo:Object = DescribeType.getInfo(theImplementation, DescribeType.INCLUDE_TRAITS | DescribeType.INCLUDE_INTERFACES | DescribeType.USE_ITRAITS);
-			if (classInfo.traits.interfaces.indexOf(interfaceName) < 0)
-				throw new Error(getQualifiedClassName(theImplementation) + ' does not implement ' + interfaceName);
+			if (!theImplementation.prototype is theInterface)
+				throw new Error(Weave.className(theImplementation) + ' does not implement ' + Weave.className(theInterface));
 		}
 	}
 }

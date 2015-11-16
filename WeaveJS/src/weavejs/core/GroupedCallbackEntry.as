@@ -8,6 +8,7 @@ package weavejs.core
 {
 	import weavejs.Weave;
 	import weavejs.api.core.ICallbackCollection;
+	import weavejs.utils.Utils;
 
 	/**
 	 * @private
@@ -108,7 +109,7 @@ package weavejs.core
 		private static function get _entryLookup():Object
 		{
 			if (__entryLookup == null)
-				__entryLookup = new Weave.Map();
+				__entryLookup = new Utils.Map();
 			return __entryLookup;
 		}
 		

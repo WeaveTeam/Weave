@@ -13,20 +13,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.core
+package weavejs.core
 {
-	import flash.utils.getTimer;
-	
-	import mx.utils.ObjectUtil;
-	
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
-	import weave.api.core.ILinkableVariable;
-	import weave.api.getCallbackCollection;
-	import weave.api.registerDisposableChild;
-	import weave.api.registerLinkableChild;
-	import weave.compiler.StandardLib;
+	import weavejs.Weave;
+	import weavejs.WeaveAPI;
+	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.IDisposableObject;
+	import weavejs.api.core.ILinkableObject;
+	import weavejs.api.core.ILinkableVariable;
+	import weavejs.compiler.StandardLib;
 
 	/**
 	 * This class saves the session history of an ILinkableObject.
@@ -72,7 +67,7 @@ package weave.core
 		private var _undoActive:Boolean = false; // true while an undo operation is active
 		private var _redoActive:Boolean = false; // true while a redo operation is active
 		
-		private var _syncTime:int = getTimer(); // this is set to getTimer() when synchronization occurs
+		private var _syncTime:int = Weave.getTimer(); // this is set to getTimer() when synchronization occurs
 		private var _triggerDelay:int = -1; // this is set to (getTimer() - _syncTime) when immediate callbacks are triggered for the first time since the last synchronization occurred
 		private var _saveTime:uint = 0; // this is set to getTimer() + _syncDelay to determine when the next diff should be computed and logged
 		private var _savePending:Boolean = false; // true when a diff should be computed
@@ -181,7 +176,7 @@ package weave.core
 			{
 				var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
 				var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
-				trace('immediate diff:', ObjectUtil.toString(forwardDiff));
+				Weave.log('immediate diff:', forwardDiff);
 			}
 		}
 		
@@ -197,13 +192,13 @@ package weave.core
 			immediateCallback();
 			// It is ok to save a diff some time after the last time grouped callbacks are called.
 			// If callbacks are triggered again before the next frame, the immediateCallback will reset this value.
-			_saveTime = getTimer() + _syncDelay;
+			_saveTime = Weave.getTimer() + _syncDelay;
 			
 			if (debug && (_undoActive || _redoActive))
 			{
 				var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
 				var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
-				trace('grouped diff:', ObjectUtil.toString(forwardDiff));
+				Weave.log('grouped diff:', forwardDiff);
 			}
 		}
 		
@@ -219,13 +214,13 @@ package weave.core
 				return;
 			}
 			
-			var currentTime:int = getTimer();
+			var currentTime:int = Weave.getTimer();
 			
 			// remember how long it's been since the last synchronization
 			if (_triggerDelay < 0)
 				_triggerDelay = currentTime - _syncTime;
 			
-			if (!immediately && getTimer() < _saveTime)
+			if (!immediately && Weave.getTimer() < _saveTime)
 			{
 				// we have to wait until the next frame to save the diff because grouped callbacks haven't finished.
 				WeaveAPI.StageUtils.callLater(this, saveDiff);
@@ -366,7 +361,7 @@ package weave.core
 						diff = logEntry.forward;
 					}
 					if (debug)
-						trace('apply ' + (delta < 0 ? 'undo' : 'redo'), logEntry.id + ':', ObjectUtil.toString(diff));
+						Weave.log('apply ' + (delta < 0 ? 'undo' : 'redo'), logEntry.id + ':', diff);
 					
 					if (stepsRemaining == 0 && enableLogging.value)
 					{
@@ -392,7 +387,7 @@ package weave.core
 					{
 						var newState:Object = WeaveAPI.SessionManager.getSessionState(_subject);
 						var resultDiff:Object = WeaveAPI.SessionManager.computeDiff(_prevState, newState);
-						trace('resulting diff:', ObjectUtil.toString(resultDiff));
+						Weave.log('resulting diff:', resultDiff);
 					}
 				}
 				getCallbackCollection(_subject).resumeCallbacks();
@@ -431,11 +426,11 @@ package weave.core
 				f[i] = f[i].id;
 			if (logEntry)
 			{
-				trace("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-				trace('NEW HISTORY (backward) ' + logEntry.id + ':', ObjectUtil.toString(logEntry.backward));
-				trace("===============================================================");
-				trace('NEW HISTORY (forward) ' + logEntry.id + ':', ObjectUtil.toString(logEntry.forward));
-				trace(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+				Weave.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+				Weave.log('NEW HISTORY (backward) ' + logEntry.id + ':', logEntry.backward);
+				Weave.log("===============================================================");
+				Weave.log('NEW HISTORY (forward) ' + logEntry.id + ':', logEntry.forward);
+				Weave.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 			}
 			trace('undo ['+h+']','redo ['+f+']');
 		}
@@ -500,7 +495,7 @@ package weave.core
 				_savePending = false;
 				_saveTime = 0;
 				_triggerDelay = -1;
-				_syncTime = getTimer();
+				_syncTime = Weave.getTimer();
 			
 				WeaveAPI.SessionManager.setSessionState(_subject, _prevState);
 			}
@@ -511,49 +506,5 @@ package weave.core
 				cc.resumeCallbacks();
 			}
 		}
-	}
-}
-import flash.utils.getTimer;
-
-internal class LogEntry
-{
-	/**
-	 * This is an entry in the session history log.  It contains both undo and redo session state diffs.
-	 * The triggerDelay is the time it took for the user to make a change since the last synchronization.
-	 * This time difference does not include the time it took to set the session state.  This way, when
-	 * the session state is replayed at a reasonable speed regardless of the speed of the computer.
-	 * @param id
-	 * @param forward The diff for applying redo.
-	 * @param backward The diff for applying undo.
-	 * @param triggerDelay The length of time between the last synchronization and the diff.
-	 */
-	public function LogEntry(id:int, forward:Object, backward:Object, triggerDelay:int, diffDuration:int)
-	{
-		this.id = id;
-		this.forward = forward;
-		this.backward = backward;
-		this.triggerDelay = triggerDelay;
-		this.diffDuration = diffDuration;
-	}
-	
-	public var id:int;
-	public var forward:Object; // the diff for applying redo
-	public var backward:Object; // the diff for applying undo
-	public var triggerDelay:int; // the length of time between the last synchronization and the diff
-	public var diffDuration:int; // the length of time in which the diff took place
-	
-	/**
-	 * This will convert an Array of generic objects to an Array of LogEntry objects.
-	 * Generic objects are easier to create backwards compatibility for.
-	 */
-	public static function convertGenericObjectsToLogEntries(array:Array, defaultTriggerDelay:int):Array
-	{
-		for (var i:int = 0; i < array.length; i++)
-		{
-			var o:Object = array[i];
-			if (!(o is LogEntry))
-				array[i] = new LogEntry(o.id, o.forward, o.backward, o.triggerDelay || defaultTriggerDelay, o.diffDuration);
-		}
-		return array;
 	}
 }

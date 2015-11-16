@@ -95,21 +95,6 @@ package weavejs.api.core
 		function removeObject(objectPath:Array):Boolean;
 
 		/**
-		 * This function serializes a session state from Object format to XML String format.
-		 * @param sessionState A session state object.
-		 * @param tagName The name to use for the root XML tag that gets generated from the session state.
-		 * @return An XML serialization of the session state.
-		 */
-		function convertSessionStateObjectToXML(sessionState:Object, tagName:String = null):String;
-
-		/**
-		 * This function converts a session state from XML format to Object format.  Nested XML objects will be converted to Strings before returning.
-		 * @param sessionState A session state that has been encoded in an XML String.
-		 * @return The deserialized session state object.
-		 */
-		function convertSessionStateXMLToObject(sessionStateXML:String):Object;
-		
-		/**
 		 * This function will evaluate an expression using the compiler. An object path may be passed as the first parameter
 		 * to act as the <code>this</code> pointer for the expression, or libraries may be included by passing an array of fully 
 		 * qualified names.

@@ -13,15 +13,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.core
+package weavejs.core
 {
-	import weave.api.detectLinkableObjectChange;
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableObject;
-	import weave.compiler.Compiler;
-	import weave.compiler.ProxyObject;
+	import weavejs.Weave;
+	import weavejs.WeaveAPI;
+	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.ILinkableObject;
+	import weavejs.compiler.Compiler;
+	import weavejs.compiler.ProxyObject;
 	
 	public class LinkableCallbackScript implements ILinkableObject
 	{
@@ -76,13 +75,13 @@ package weave.core
 			try
 			{
 				if (detectLinkableObjectChange(_runScript, script))
-					_compiledScript = _compiler.compileToFunction(script.value, _symbolTableProxy, reportError, false);
+					_compiledScript = _compiler.compileToFunction(script.value, _symbolTableProxy, Weave.error, false);
 				
 				_compiledScript.apply(this);
 			}
 			catch (e:Error)
 			{
-				reportError(e);
+				Weave.error(e);
 			}
 		}
 	}

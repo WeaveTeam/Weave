@@ -13,20 +13,16 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.core
+package weavejs.core
 {
-	import flash.utils.Dictionary;
-	import flash.utils.getQualifiedClassName;
-	
-	import weave.api.disposeObject;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
-	import weave.api.core.DynamicState;
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.IChildListCallbackInterface;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
+	import weavejs.Weave;
+	import weavejs.WeaveAPI;
+	import weavejs.api.core.DynamicState;
+	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.IChildListCallbackInterface;
+	import weavejs.api.core.ILinkableHashMap;
+	import weavejs.api.core.ILinkableObject;
+	import weavejs.utils.Utils;
 	
 	/**
 	 * Allows dynamically creating instances of objects implementing ILinkableObject at runtime.
@@ -43,20 +39,23 @@ package weave.core
 		 */
 		public function LinkableHashMap(typeRestriction:Class = null)
 		{
-			if (typeRestriction != null)
-			{
-				_typeRestriction = typeRestriction;
-				_typeRestrictionClassName = getQualifiedClassName(typeRestriction);
-			}
+			super();
+			_typeRestriction = typeRestriction;
+			_childListCallbacks = WeaveAPI.SessionManager.newLinkableChild(this, ChildListCallbackInterface);
+			_orderedNames = []; // an ordered list of names appearing in _nameToObjectMap
+			_nameToObjectMap = {}; // maps an identifying name to an object
+			_map_objectToNameMap = new Utils.WeakMap(); // maps an object to an identifying name
+			_nameIsLocked = {}; // maps an identifying name to a value of true if that name is locked.
+			_previousNameMap = {}; // maps a previously used name to a value of true.  used when generating unique names.
 		}
-		private const _childListCallbacks:ChildListCallbackInterface = newLinkableChild(this, ChildListCallbackInterface);
-		private const _orderedNames:Array = []; // an ordered list of names appearing in _nameToObjectMap
-		private const _nameToObjectMap:Object = {}; // maps an identifying name to an object
-		private const _objectToNameMap:Dictionary = new Dictionary(true); // maps an object to an identifying name
-		private const _nameIsLocked:Object = {}; // maps an identifying name to a value of true if that name is locked.
-		private const _previousNameMap:Object = {}; // maps a previously used name to a value of true.  used when generating unique names.
-		private var _typeRestriction:Class = null; // restricts the type of object that can be stored
-		private var _typeRestrictionClassName:String = null; // qualified class name of _typeRestriction
+		
+		private var _childListCallbacks:ChildListCallbackInterface;
+		private var _orderedNames:Array; // an ordered list of names appearing in _nameToObjectMap
+		private var _nameToObjectMap:Object; // maps an identifying name to an object
+		private var _map_objectToNameMap:Object; // maps an object to an identifying name
+		private var _nameIsLocked:Object; // maps an identifying name to a value of true if that name is locked.
+		private var _previousNameMap:Object; // maps a previously used name to a value of true.  used when generating unique names.
+		private var _typeRestriction:Class; // restricts the type of object that can be stored
 		
 		/**
 		 * @inheritDoc
@@ -97,7 +96,7 @@ package weave.core
 			for (var i:int = 0; i < _orderedNames.length; i++)
 			{
 				var name:String = _orderedNames[i];
-				var object:ILinkableObject = _nameToObjectMap[name] as ILinkableObject;
+				var object:ILinkableObject = _nameToObjectMap[name];
 				if (filter == null || object is filter)
 					result.push(object);
 			}
@@ -108,14 +107,14 @@ package weave.core
 		 */
 		public function getObject(name:String):ILinkableObject
 		{
-			return _nameToObjectMap[name] as ILinkableObject;
+			return _nameToObjectMap[name];
 		}
 		/**
 		 * @inheritDoc
 		 */
 		public function getName(object:ILinkableObject):String
 		{
-			return _objectToNameMap[object] as String;
+			return _map_objectToNameMap.get(object);
 		}
 		/**
 		 * @inheritDoc
@@ -130,7 +129,7 @@ package weave.core
 			// append each name in newOrder to the end of _orderedNames
 			for (i = 0; i < newOrder.length; i++)
 			{
-				name = newOrder[i] as String;
+				name = newOrder[i];
 				// ignore bogus names and append each name only once.
 				if (_nameToObjectMap[name] == undefined || haveSeen[name] != undefined)
 					continue;
@@ -159,12 +158,13 @@ package weave.core
 			if (changeDetected)
 				_childListCallbacks.runCallbacks(null, null, null);
 		}
+		
 		/**
 		 * @inheritDoc
 		 */
 		public function requestObject(name:String, classDef:Class, lockObject:Boolean):*
 		{
-			var className:String = classDef ? getQualifiedClassName(classDef) : null;
+			var className:String = classDef ? Weave.className(classDef) : null;
 			var result:* = initObjectByClassName(name, className, lockObject);
 			return classDef ? result as classDef : null;
 		}
@@ -181,7 +181,7 @@ package weave.core
 			}
 			
 			delayCallbacks(); // make sure callbacks only trigger once
-			//var className:String = getQualifiedClassName(objectToCopy);
+			//var className:String = Weave.className(objectToCopy);
 			var classDef:Class = Object(objectToCopy).constructor; //ClassUtils.getClassDefinition(className);
 			var sessionState:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
 			//  if the name refers to the same object, remove the existing object so it can be replaced with a new one.
@@ -234,14 +234,15 @@ package weave.core
 				// if no name is specified, generate a unique one now.
 				if (!name)
 					name = generateUniqueName(className.split("::").pop());
-				if ( ClassUtils.classImplements(className, SessionManager.ILinkableObject_QName)
-					&& (_typeRestriction == null || ClassUtils.classIs(className, _typeRestrictionClassName)) )
+				var classDef:Class = Weave.getDefinition(className);
+				var typeRestriction:Class = _typeRestriction; // avoid 'is' compiler bug
+				if (Weave.isLinkable(classDef.prototype)
+					&& (typeRestriction == null || classDef.prototype is typeRestriction) )
 				{
 //					try
 //					{
 						// If this name is not associated with an object of the specified type,
 						// associate the name with a new object of the specified type.
-						var classDef:Class = ClassUtils.getClassDefinition(className);
 						var object:Object = _nameToObjectMap[name];
 						if (!object || object.constructor != classDef)
 							createAndSaveNewObject(name, classDef, lockObject);
@@ -263,8 +264,9 @@ package weave.core
 			{
 				removeObject(name);
 			}
-			return _nameToObjectMap[name] as ILinkableObject;
+			return _nameToObjectMap[name];
 		}
+		
 		/**
 		 * (private)
 		 * @param name The identifying name to associate with a new object.
@@ -280,10 +282,10 @@ package weave.core
 			// create a new object
 			var object:ILinkableObject = new classDef();
 			// register the object as a child of this LinkableHashMap
-			registerLinkableChild(this, object);
+			WeaveAPI.SessionManager.registerLinkableChild(this, object);
 			// save the name-object mappings
 			_nameToObjectMap[name] = object;
-			_objectToNameMap[object] = name;
+			_map_objectToNameMap.set(object, name);
 			// add the name to the end of _orderedNames
 			_orderedNames.push(name);
 			// remember that this name was used.
@@ -295,6 +297,7 @@ package weave.core
 			// make sure the callback variables signal that the object was added
 			_childListCallbacks.runCallbacks(name, object, null);
 	    }
+		
 		/**
 		 * This function will lock an object in place for a given identifying name.
 		 * If there is no object using the specified name, this function will have no effect.
@@ -305,6 +308,7 @@ package weave.core
 	    	if (name != null && _nameToObjectMap[name] != null)
 		    	_nameIsLocked[name] = true;
 	    }
+		
 		/**
 		 * @inheritDoc
 		 */
@@ -312,6 +316,7 @@ package weave.core
 		{
 			return _nameIsLocked[name] ? true : false;
 		}
+		
 		/**
 		 * @inheritDoc
 		 */
@@ -320,14 +325,14 @@ package weave.core
 			if (!name || _nameIsLocked[name])
 				return;
 			
-			var object:ILinkableObject = _nameToObjectMap[name] as ILinkableObject;
+			var object:ILinkableObject = _nameToObjectMap[name];
 			if (object == null)
 				return; // do nothing if the name isn't mapped to an object.
 			
 			//trace(LinkableHashMap, "removeObject",name,object);
 			// remove name & associated object
 			delete _nameToObjectMap[name];
-			delete _objectToNameMap[object];
+			_map_objectToNameMap['delete'](object);
 			var index:int = _orderedNames.indexOf(name);
 			_orderedNames.splice(index, 1);
 
@@ -335,7 +340,7 @@ package weave.core
 			_childListCallbacks.runCallbacks(name, null, object);
 
 			// dispose the object AFTER the callbacks know that the object was removed
-			disposeObject(object);
+			WeaveAPI.SessionManager.disposeObject(object);
 		}
 
 		/**
@@ -392,7 +397,7 @@ package weave.core
 				var object:ILinkableObject = _nameToObjectMap[name];
 				result[i] = DynamicState.create(
 						name,
-						getQualifiedClassName(object),
+						Weave.className(object),
 						WeaveAPI.SessionManager.getSessionState(object)
 					);
 			}
@@ -464,9 +469,9 @@ package weave.core
 				for (i = 0; i < newStateArray.length; i++)
 				{
 					typedState = newStateArray[i];
-					if (typedState is String)
+					if (typeof typedState === 'string')
 					{
-						objectName = typedState as String;
+						objectName = String(typedState);
 						if (removeMissingDynamicObjects)
 							remainingObjects[objectName] = true;
 						newNameOrder.push(objectName);
@@ -478,7 +483,7 @@ package weave.core
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					if (objectName == null)
 						continue;
-					var object:ILinkableObject = _nameToObjectMap[objectName] as ILinkableObject;
+					var object:ILinkableObject = _nameToObjectMap[objectName];
 					if (object == null)
 						continue;
 					// if object is newly created, we want to apply an absolute session state

@@ -15,11 +15,6 @@
 
 package weavejs.api.core
 {
-	import flash.display.Stage;
-	import flash.events.Event;
-	import flash.events.KeyboardEvent;
-	import flash.events.MouseEvent;
-	
 	/**
 	 * This allows you to add callbacks that will be called when an event occurs on the stage.
 	 * 
@@ -151,11 +146,6 @@ package weavejs.api.core
 		 * @see WeaveAPI
 		 */
 		function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null, description:String = null):void;
-		
-		/**
-		 * This is the stage.
-		 */
-		function get stage():Stage;
 		
 		/**
 		 * This is the last event that occurred on the stage.

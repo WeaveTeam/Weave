@@ -17,10 +17,13 @@ package weavejs.path
 		public static const DC:String = 'weave.data.AttributeColumns::DynamicColumn';
 		public static const RC:String = 'weave.data.AttributeColumns::ReferencedColumn';
 		
-		public function WeavePathDataShared(weave:Weave)
+		public function WeavePathDataShared()
 		{
 			Weave.bindAll(this);
-			
+		}
+		
+		public function init(weave:Weave):void
+		{
 			this.weave = weave;
 			
 			this.probe_keyset = weave.path(DEFAULT_PROBE_KEY_SET);

@@ -13,10 +13,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.primitives
+package weavejs.utils
 {
-	import weave.api.core.ILinkableObject;
-	import weave.api.core.ILinkableVariable;
+	import weavejs.Weave;
+	import weavejs.WeaveAPI;
+	import weavejs.api.core.ILinkableObject;
+	import weavejs.api.core.ILinkableVariable;
 	
 	/**
 	 * Facilitates the creation of dynamic trees.
@@ -82,7 +84,7 @@ package weave.primitives
 		{
 			if (params is String)
 			{
-				this.label = params;
+				this.label = params as String;
 				this.data = params;
 			}
 			else
@@ -233,27 +235,11 @@ package weave.primitives
 		{
 			try
 			{
-				try
-				{
-					// first try calling the function with no parameters
-					return func.call(this);
-				}
-				catch (e:*)
-				{
-					if (!(e is ArgumentError))
-					{
-						if (e is Error)
-							trace((e as Error).getStackTrace());
-						throw e;
-					}
-				}
-				
-				// on ArgumentError, pass in this WeaveTreeItem as the first parameter
 				return func.call(this, this);
 			}
 			catch (e:Error)
 			{
-				WeaveAPI.ErrorManager.reportError(e);
+				Weave.error(e);
 			}
 		}
 		
@@ -301,7 +287,7 @@ package weave.primitives
 		 * This property is checked by Flex's default data descriptor.
 		 * If this property is not set, the <code>data</code> property will be used as the label.
 		 */
-		public function get label():String
+		public function get label():*
 		{
 			const id:String = 'label';
 			if (isCached(id))
@@ -323,7 +309,7 @@ package weave.primitives
 		 * If this tree item specifies a dependency, the Array can be filled asynchronously.
 		 * This property is checked by Flex's default data descriptor.
 		 */
-		public function get children():Array
+		public function get children():*
 		{
 			const id:String = 'children';
 			
@@ -382,5 +368,7 @@ package weave.primitives
 		 * For example, it can be used to store state information if the tree is populated asynchronously.
 		 */
 		public var data:Object = null;
+		
+		private static var _init:* = Utils.preserveGetterSetters(WeaveTreeItem, 'label', 'children', 'dependency');
 	}
 }

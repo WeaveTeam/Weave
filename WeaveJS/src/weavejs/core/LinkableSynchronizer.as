@@ -13,12 +13,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.core
+package weavejs.core
 {
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableObject;
-	import weave.api.registerDisposableChild;
-	import weave.api.registerLinkableChild;
+	import weavejs.WeaveAPI;
+	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.ILinkableObject;
 	
 	public class LinkableSynchronizer implements ILinkableObject
 	{

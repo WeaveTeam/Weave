@@ -13,10 +13,10 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.core
+package weavejs.core
 {
-	import weave.api.core.IChildListCallbackInterface;
-	import weave.api.core.ILinkableObject;
+	import weavejs.api.core.IChildListCallbackInterface;
+	import weavejs.api.core.ILinkableObject;
 	
 	/**
 	 * @private

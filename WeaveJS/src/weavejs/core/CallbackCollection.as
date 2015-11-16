@@ -156,7 +156,7 @@ package weavejs.core
 					var shouldRemoveEntry:Boolean;
 					if (entry.callback == null)
 						shouldRemoveEntry = true;
-					else if (Weave.IS(entry.context, CallbackCollection)) // special case
+					else if (entry.context is CallbackCollection) // special case
 						shouldRemoveEntry = (entry.context as CallbackCollection)._wasDisposed;
 					else
 						shouldRemoveEntry = Weave.objectWasDisposed(entry.context);

@@ -6,11 +6,21 @@ one at https://mozilla.org/MPL/2.0/.
 */
 package weavejs
 {
+	import weavejs.api.core.IExternalSessionStateInterface;
+	import weavejs.api.core.ILinkableHashMap;
+	import weavejs.api.core.ILinkableObject;
+	import weavejs.api.core.ISessionManager;
+	import weavejs.compiler.StandardLib;
 	import weavejs.core.CallbackCollection;
+	import weavejs.core.ExternalSessionStateInterface;
 	import weavejs.core.LinkableBoolean;
+	import weavejs.core.LinkableHashMap;
 	import weavejs.core.LinkableNumber;
 	import weavejs.core.LinkableString;
 	import weavejs.core.LinkableVariable;
+	import weavejs.core.SessionManager;
+	import weavejs.path.WeavePath;
+	import weavejs.path.WeavePathData;
 	
 	public class Weave
 	{
@@ -26,10 +36,16 @@ package weavejs
 		public function Weave()
 		{
 			super();
+			
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
+			
+			root = new LinkableHashMap();
+			directAPI = new ExternalSessionStateInterface(root);
 		}
 		
 		public function test():void
 		{
+			//var lv:LinkableString = root.requestObject('yo', LinkableString, false);
 			var lv:LinkableString = new LinkableString('yo');
 			lv.addImmediateCallback(this, function():void { Weave.log('lv', lv.state); }, true);
 			lv.state = 'hello';
@@ -40,12 +56,15 @@ package weavejs
 			lv.state = '3';
 		}
 		
-//		public var root:ILinkableHashMap;
+		/**
+		 * The root object in the session state
+		 */
+		public var root:ILinkableHashMap;
 		
 		/**
 		 * Instance of IExternalSessionStateInterface
 		 */
-		public var directAPI:Object;
+		public var directAPI:IExternalSessionStateInterface;
 		
 		/**
 		 * Creates a WeavePath object.  WeavePath objects are immutable after they are created.
@@ -55,14 +74,31 @@ package weavejs
 		 * @return A WeavePath object.
 		 * @see WeavePath
 		 */
-//		public function path(...basePath):WeavePath
-//		{
-//			if (basePath.length == 1 && isArray(basePath[0]))
-//				basePath = basePath[0];
-//			return new WeavePathData(null, basePath);
-//		}
+		public function path(...basePath):WeavePath
+		{
+			if (basePath.length == 1 && isArray(basePath[0]))
+				basePath = basePath[0];
+			return new WeavePathData(this, basePath);
+		}
 		
+		/**
+		 * A shortcut for WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path).
+		 * @see weave.api.core.ISessionManager#getObject()
+		 */
+		public function getObject(path:Array):ILinkableObject
+		{
+			return WeaveAPI.SessionManager.getObject(root, path);
+		}
 		
+		/**
+		 * A shortcut for WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, object).
+		 * @see weave.api.core.ISessionManager#getPath()
+		 */
+		public function getPath(object:ILinkableObject):Array
+		{
+			return WeaveAPI.SessionManager.getPath(root, object);
+		}
+
 		
 		//////////////////////////////////////////////////////////////////////////////////
 		// static Weave API functions
@@ -70,21 +106,10 @@ package weavejs
 		
 		public static function objectWasDisposed(object:Object):Boolean
 		{
-			var WeaveAPI:Object = global.WeaveAPI;
-			if (WeaveAPI)
-				return WeaveAPI.SessionManager.objectWasDisposed(object);
+			//return WeaveAPI.SessionManager.objectWasDisposed(object);
 			
-			log('objectWasDisposed(): WeaveAPI missing');
+			log('objectWasDisposed(): Not implemented yet');
 			return false;
-		}
-		
-		public static function reportError(...args):void
-		{
-			var console:Object = global.console;
-			if (console)
-				console.error.apply(console, args);
-			else
-				log.apply(null, args);
 		}
 		
 		public static function callLater(context:Object, func:Function, args:Array = null):void
@@ -109,13 +134,26 @@ package weavejs
 		public static const global:Object = (function():* { return this; }).apply(null);
 		
 		/**
+		 * Calls console.error()
+		 */
+		public static function error(...args):void
+		{
+			global.console.error.apply(global.console, args);
+		}
+		
+		/**
+		 * Calls console.log()
+		 */
+		public static function log(...args):void
+		{
+			global.console.log.apply(global.console, args);
+		}
+		
+		/**
 		 * AS->JS Language helper for binding class instance functions
 		 */
 		public static function bindAll(instance:Object):*
 		{
-			if (!Object(Object).hasOwnProperty('getPrototypeOf'))
-				return instance;
-			
 			var proto:Object = Object['getPrototypeOf'](instance);
 			for (var key:String in proto)
 			{
@@ -127,27 +165,11 @@ package weavejs
 		}
 		
 		/**
-		 * AS->JS Language helper for Map
-		 */
-		public static const Map:Class = (function():* { return this['Map']; }).apply(null);
-		
-		/**
-		 * AS->JS Language helper for WeakMap
-		 */
-		public static const WeakMap:Class = (function():* { return this['WeakMap']; }).apply(null);
-		
-		/**
 		 * AS->JS Language helper for Object.keys()
 		 */
 		public static function objectKeys(object:Object):Array
 		{
-			if (Object(Object).hasOwnProperty('keys'))
-				return Object['keys'](object);
-			
-			var keys:Array = [];
-			for (var key:* in object)
-				keys.push(key);
-			return keys;
+			return Object['keys'](object);
 		}
 		
 		/**
@@ -155,22 +177,30 @@ package weavejs
 		 */
 		public static function isArray(value:*):Boolean
 		{
-			if (Object(Array).hasOwnProperty('isArray'))
-				return Array['isArray'](value);
-			
-			return value is Array;
+			return Array['isArray'](value);
 		}
 		
 		/**
 		 * AS->JS Language helper for converting array-like objects to Arrays
+		 * Also works on Iterator objects to extract an Array of values
 		 */
 		public static function toArray(value:*):Array
 		{
-			// just return the value if it doesn't need conversion
-			if (value is Array)
-				return value;
+			// special case for Iterator
+			if (value is global.Iterator)
+			{
+				var values:Array = [];
+				while (true)
+				{
+					var next:Object = value.next();
+					if (next.done)
+						break;
+					values.push(next.value);
+				}
+				return values;
+			}
 			
-			return Array.prototype.slice.call(value);
+			return value as Array;
 		}
 		
 		/**
@@ -183,19 +213,26 @@ package weavejs
 			return object;
 		}
 		
-		private static const FLEXJS_CLASS_INFO:String = 'FLEXJS_CLASS_INFO';
-		public static function className(def:Class):String
+		/**
+		 * Gets the qualified class name from a class definition or an object instance.
+		 */
+		public static function className(def:Object):String
 		{
-			if (def.prototype.hasOwnProperty(FLEXJS_CLASS_INFO))
-				return def.prototype[FLEXJS_CLASS_INFO]['names'][0]['qName'];
+			if (!def)
+				return null;
 			
-			if (def.hasOwnProperty('name'))
-				return def.name;
+			if (!def.prototype)
+				def = def.constructor;
 			
-			// ActionScript "[class MyClass]"
-			var str:String = String(def);
-			return str.substring(7, str.length - 1);
+			if (def.prototype && def.prototype.FLEXJS_CLASS_INFO)
+				return def.prototype.FLEXJS_CLASS_INFO.names[0].qName;
+			
+			return def.name;
 		}
+		
+		public static const defaultPackages:Array = [
+			'weavejs.core'
+		];
 		
 		public static function getDefinition(name:String):*
 		{
@@ -207,53 +244,18 @@ package weavejs
 				else
 					break;
 			}
-			if (def !== undefined)
-				return def;
 			
-			var domain:Object = global.root.loaderInfo.applicationDomain;
-			if (domain.hasDefinition(name))
-				return domain.getDefinition(name);
-			return undefined;
-		}
-		
-		public static function log(...args):void
-		{
-			if (global.trace)
-				global.trace.apply(null, args);
-			else
-				global.console.log.apply(global.console, args);
-		}
-		
-		/**
-		 * Safe 'as' operator
-		 * - won't crash if left is null
-		 * - won't compile incorrectly by changing 'this.ClassDef' to 'ClassDef'
-		 */
-		public static function AS(left:Object, right:Class):*
-		{
-			if (left == null)
-				return null;
-			if (right == Array)
+			if (!def)
 			{
-				if (left is Array)
-					return left;
-				return Array.prototype.slice.call(left);
+				for each (var pkg:String in defaultPackages)
+				{
+					def = getDefinition(pkg + '.' + name);
+					if (def)
+						return def;
+				}
 			}
-			return left as right;
-		}
-		
-		/**
-		 * Safe 'is' operator
-		 * - won't crash if left is null
-		 * - won't compile incorrectly by changing 'this.ClassDef' to 'ClassDef'
-		 */
-		public static function IS(left:Object, right:Class):Boolean
-		{
-			if (left == null)
-				return false;
-			if (right == Array)
-				return Array['isArray'](left);
-			return left is right;
+			
+			return def;
 		}
 		
 		/**
@@ -273,5 +275,99 @@ package weavejs
 		{
 			return isClass(classDef) ? classDef : null;
 		}
+		
+		/**
+		 * Current time in milliseconds
+		 */
+		public static function getTimer():Number
+		{
+			return Date['now']();
+		}
+		
+		/**
+		 * Checks if an object implements ILinkableObject
+		 */
+		public static function isLinkable(object:Object):Boolean
+		{
+			return object is ILinkableObject;
+		}
+		
+		/**
+		 * Generates a deterministic JSON-like representation of an object, meaning object keys appear in sorted order.
+		 * @param value The object to stringify.
+		 * @param replacer A function like function(key:String, value:*):*
+		 * @param indent Either a Number or a String to specify indentation of nested values
+		 * @param json_values_only If this is set to true, only JSON-compatible values will be used (NaN/Infinity/undefined -> null)
+		 */
+		public static function stringify(value:*, replacer:Function = null, indent:* = null, json_values_only:Boolean = false):String
+		{
+			indent = typeof indent === 'number' ? StandardLib.lpad('', indent, ' ') : indent as String || ''
+			return _stringify("", value, replacer, indent ? '\n' : '', indent, json_values_only);
+		}
+		private static function _stringify(key:String, value:*, replacer:Function, lineBreak:String, indent:String, json_values_only:Boolean):String
+		{
+			if (replacer != null)
+				value = replacer(key, value);
+			
+			var output:Array;
+			var item:*;
+			
+			if (typeof value === 'string')
+				return encodeString(value);
+			
+			// non-string primitives
+			if (value == null || typeof value != 'object')
+			{
+				if (json_values_only && (value === undefined || !isFinite(value as Number)))
+					value = null;
+				return String(value) || String(null);
+			}
+			
+			// loop over keys in Array or Object
+			var lineBreakIndent:String = lineBreak + indent;
+			var valueIsArray:Boolean = Weave.isArray(value);
+			output = [];
+			if (valueIsArray)
+			{
+				for (var i:int = 0; i < value.length; i++)
+					output.push(_stringify(String(i), value[i], replacer, lineBreakIndent, indent, json_values_only));
+			}
+			else if (typeof value == 'object')
+			{
+				for (key in value)
+					output.push(encodeString(key) + ": " + _stringify(key, value[key], replacer, lineBreakIndent, indent, json_values_only));
+				// sort keys
+				output.sort();
+			}
+			
+			if (output.length == 0)
+				return valueIsArray ? "[]" : "{}";
+			
+			return (valueIsArray ? "[" : "{")
+				+ lineBreakIndent
+				+ output.join(indent ? ',' + lineBreakIndent : ', ')
+				+ lineBreak
+				+ (valueIsArray ? "]" : "}");
+		}
+		/**
+		 * This function surrounds a String with quotes and escapes special characters using ActionScript string literal format.
+		 * @param string A String that may contain special characters.
+		 * @param quote Set this to either a double-quote or a single-quote.
+		 * @return The given String formatted for ActionScript.
+		 */
+		private static function encodeString(string:String, quote:String = '"'):String
+		{
+			if (string == null)
+				return 'null';
+			var result:Array = new Array(string.length);
+			for (var i:int = 0; i < string.length; i++)
+			{
+				var chr:String = string.charAt(i);
+				var esc:String = chr == quote ? quote : ENCODE_LOOKUP[chr];
+				result[i] = esc ? '\\' + esc : chr;
+			}
+			return quote + result.join('') + quote;
+		}
+		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\'};
 	}
 }

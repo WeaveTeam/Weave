@@ -7,6 +7,7 @@
 package weavejs.path
 {
 	import weavejs.Weave;
+	import weavejs.utils.Utils;
 
 	public class WeavePathData extends WeavePath
 	{
@@ -14,11 +15,13 @@ package weavejs.path
 		{
 			super(weave, basePath);
 			
-			if (!map_weave)
-				map_weave = new Weave.WeakMap();
-			var shared:WeavePathDataShared = map_weave.get(weave) as WeavePathDataShared;
+			var shared:WeavePathDataShared = map_weave.get(weave);// as WeavePathDataShared;
 			if (!shared)
-				map_weave.set(weave, shared = new WeavePathDataShared(weave));
+			{
+				map_weave.set(weave, shared = new WeavePathDataShared());
+				// init() must be called AFTER caching in map_weave to avoid infinite recursion
+				shared.init(weave);
+			}
 			
 			this.shared = shared;
 			
@@ -32,7 +35,7 @@ package weavejs.path
 			this.qkeyToIndex = shared.qkeyToIndex;
 		}
 		
-		private static var map_weave:Object;
+		private static var map_weave:Object = new Utils.Map();
 		
 		private var shared:WeavePathDataShared;
 		
