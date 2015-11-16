@@ -192,7 +192,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		
 		if (info == null || !Strings.equal(pass, info.pass))
 		{
-			System.out.println(String.format("authenticate failed, name=\"%s\" pass=\"%s\"", user, pass));
+			//System.out.println(String.format("authenticate failed, name=\"%s\" pass=\"%s\"", user, pass));
 			throw new RemoteException("Incorrect username or password.");
 		}
 		return info;
