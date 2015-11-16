@@ -20,8 +20,6 @@ package
 		{
 			// make Weave accessible from global scope
 			Weave.global.Weave = Weave;
-			
-			new Weave().test();
 		}
 	}
 }
