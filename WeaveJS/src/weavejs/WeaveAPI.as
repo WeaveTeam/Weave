@@ -16,8 +16,6 @@
 package weavejs
 {
 	import weavejs.api.core.IClassRegistry;
-	import weavejs.api.core.ILinkableHashMap;
-	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ILocaleManager;
 	import weavejs.api.core.IProgressIndicator;
 	import weavejs.api.core.ISessionManager;
