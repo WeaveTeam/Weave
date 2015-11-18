@@ -7,6 +7,12 @@
 package weavejs.path
 {
 	import weavejs.Weave;
+	import weavejs.WeaveAPI;
+	import weavejs.api.core.ILinkableDynamicObject;
+	import weavejs.api.core.ILinkableHashMap;
+	import weavejs.api.core.ILinkableObject;
+	import weavejs.core.SessionManager;
+	import weavejs.utils.JS;
 
 	public class WeavePath
 	{
@@ -32,31 +38,6 @@ package weavejs.path
 			// "private" instance variables
 			this._path = _A(basePath, 1);
 			this._parent = null; // parent WeavePath returned by pop()
-		}
-		
-		/**
-		 * Stores JavaScript variables common to all WeavePath objects.
-		 * Used by vars(), exec(), and getValue()
-		 * @private
-		 */
-		protected static var _vars:Object = {};
-		
-		/**
-		 * Remembers which JavaScript variables should be unset after the next call to exec() or getValue().
-		 * @private
-		 */
-		protected static var _tempVars:Object = {};
-		
-		/**
-		 * Cleans up temporary variables.
-		 * @private
-		 */
-		protected static function _deleteTempVars():void
-		{
-			for (var key:String in _tempVars)
-				if (_tempVars[key])
-					delete _vars[key];
-			_tempVars = {};
 		}
 		
 		/**
@@ -86,8 +67,8 @@ package weavejs.path
 		 */
 		public function push(...relativePath):WeavePath
 		{
-			var args:Array = _A(relativePath, 1);
-			var newWeavePath:WeavePath = new this.constructor(this.weave, this._path.concat(args));
+			relativePath = _A(relativePath, 1);
+			var newWeavePath:WeavePath = new this.constructor(this.weave, this.getPath(relativePath));
 			newWeavePath._parent = this;
 			return newWeavePath;
 		}
@@ -119,9 +100,9 @@ package weavejs.path
 			if (_assertParams('request', args))
 			{
 				var type:String = args.pop();
-				var pathcopy:Array = this._path.concat(args);
-				this.weave.directAPI.requestObject(pathcopy, type)
-					|| _failPath('request', pathcopy);
+				var relativePath:Array = args;
+				this.weave.directAPI.requestObject(this.push(relativePath), type)
+					|| _failPath('request', this.getPath(relativePath));
 			}
 			return this;
 		};
@@ -134,9 +115,9 @@ package weavejs.path
 		 */
 		public function remove(...relativePath):WeavePath
 		{
-			var pathcopy:Array = this._path.concat(_A(relativePath, 1));
-			this.weave.directAPI.removeObject(pathcopy)
-				|| _failPath('remove', pathcopy);
+			relativePath = _A(relativePath, 1);
+			this.weave.directAPI.removeObject(this.push(relativePath))
+				|| _failPath('remove', this.getPath(relativePath));
 			return this;
 		};
 		
@@ -147,11 +128,18 @@ package weavejs.path
 		 */
 		public function reorder(...orderedNames):WeavePath
 		{
-			var args:Array = _A(orderedNames, 1);
-			if (_assertParams('reorder', args))
+			orderedNames = _A(orderedNames, 1);
+			if (_assertParams('reorder', orderedNames))
 			{
-				this.weave.directAPI.setChildNameOrder(this._path, args)
-					|| _failMessage('reorder', 'path does not refer to an ILinkableHashMap: ' + this._path);
+				var hashMap:ILinkableHashMap = this.getObject() as ILinkableHashMap;
+				if (hashMap)
+				{
+					// it's ok if there are no names specified, because that wouldn't accomplish anything anyway
+					if (orderedNames)
+						hashMap.setNameOrder(orderedNames);
+				}
+				
+				_failMessage('reorder', 'path does not refer to an ILinkableHashMap: ' + this);
 			}
 			return this;
 		};
@@ -170,9 +158,11 @@ package weavejs.path
 			if (_assertParams('state', args))
 			{
 				var state:Object = args.pop();
-				var pathcopy:Array = this._path.concat(args);
-				this.weave.directAPI.setSessionState(pathcopy, state, true)
-					|| _failObject('state', pathcopy);
+				var obj:ILinkableObject = this.getObject(args);
+				if (obj)
+					WeaveAPI.SessionManager.setSessionState(obj, state, true);
+				else
+					_failObject('state', this.getPath(args));
 			}
 			return this;
 		};
@@ -191,9 +181,11 @@ package weavejs.path
 			if (_assertParams('diff', args))
 			{
 				var diff:Object = args.pop();
-				var pathcopy:Array = this._path.concat(args);
-				this.weave.directAPI.setSessionState(pathcopy, diff, false)
-					|| _failObject('diff', pathcopy);
+				var obj:ILinkableObject = this.getObject(args);
+				if (obj)
+					WeaveAPI.SessionManager.setSessionState(obj, diff, false);
+				else
+					_failObject('diff', this.getPath(args));
 			}
 			return this;
 		}
@@ -213,8 +205,8 @@ package weavejs.path
 			if (_assertParams('addCallback', arguments))
 			{
 				var args:Array = Array.prototype.slice.call(arguments);
-				args.unshift(this._path);
-				this.weave.directAPI.addCallback.apply(this.weave, args)
+				args.unshift(this);
+				this.weave.directAPI.addCallback.apply(this.weave.directAPI, args)
 					|| _failObject('addCallback', this._path);
 			}
 			return this;
@@ -230,73 +222,9 @@ package weavejs.path
 		{
 			if (_assertParams('removeCallback', arguments))
 			{
-				this.weave.directAPI.removeCallback(this._path, callback, everywhere)
+				this.weave.directAPI.removeCallback(this, callback, everywhere)
 					|| _failObject('removeCallback', this._path);
 			}
-			return this;
-		}
-		
-		/**
-		 * Specifies additional variables to be used in subsequent calls to exec() and getValue().
-		 * The variables will be made globally available for any WeavePath object created from the same Weave instance.
-		 * @param newVars An object mapping variable names to values.
-		 * @param temporary Optional parameter. If set to true, these variables will be unset after the next call to exec() or getValue()
-		 *                  no matter how either function is called, including from inside custom WeavePath functions.
-		 * @return The current WeavePath object.
-		 */
-		public function vars(newVars, temporary):WeavePath
-		{
-			for (var key:String in newVars)
-			{
-				_tempVars[key] = !!temporary;
-				_vars[key] = newVars[key];
-			}
-			return this;
-		}
-		
-		/**
-		 * Specifies additional libraries to be included in subsequent calls to exec() and getValue().
-		 * @param libraries An Array (or multiple parameters) specifying ActionScript class names to include as libraries.
-		 * @return The current WeavePath object.
-		 */
-		public function libs(...libraries):WeavePath
-		{
-			var args:Array = _A(libraries, 1);
-			if (_assertParams('libs', args))
-			{
-				// include libraries for future evaluations
-				this.weave.directAPI.evaluateExpression(null, null, null, args);
-			}
-			return this;
-		}
-		
-		/**
-		 * Evaluates an ActionScript expression using the current path, vars, and libs.
-		 * The 'this' context within the script will be the object at the current path.
-		 * @param script The script to be evaluated by Weave under the scope of the object at the current path.
-		 * @param callback_or_variableName Optional callback function or variable name.
-		 * - If given a callback function, the function will be passed the result of
-		 *   evaluating the expression, setting the 'this' value to the current WeavePath object.
-		 * - If given a variable name, the result will be stored as a variable
-		 *   as if it was passed as an object property to WeavePath.vars().  It may then be used
-		 *   in future calls to WeavePath.exec() or retrieved with WeavePath.getValue().
-		 * @return The current WeavePath object.
-		 */
-		public function exec(script, callback_or_variableName):WeavePath
-		{
-			var type:String = typeof callback_or_variableName;
-			var callback:Function = type == 'function' ? callback_or_variableName : null;
-			// Passing "" as the variable name avoids the overhead of converting the ActionScript object to a JavaScript object.
-			var variableName:String = type == 'string' ? callback_or_variableName : "";
-			_vars[''] = Weave.objectKeys(_vars); // include a list of keys in property '' so undefined variables will be preserved
-			var result:* = this.weave.directAPI.evaluateExpression(this._path, script, _vars, null, variableName);
-			_deleteTempVars();
-			// if an AS var was saved, delete the corresponding JS var if present to avoid overriding it in future expressions
-			if (variableName)
-				delete _vars[variableName];
-			if (callback)
-				callback.apply(this, [result]);
-			
 			return this;
 		}
 		
@@ -381,8 +309,7 @@ package weavejs.path
 		 */
 		public function trace(...args):WeavePath
 		{
-			args = _A(args);
-			this.weave.directAPI.evaluateExpression(null, "weaveTrace.apply(null, args)", {"args": args}, null, "");
+			JS.log.apply(Weave, _A(args));
 			return this;
 		}
 		
@@ -399,6 +326,22 @@ package weavejs.path
 			return this._path.concat(_A(relativePath, 1));
 		}
 		
+		private function _getChildNames(...relativePath):Array
+		{
+			relativePath = _A(relativePath, 1);
+			var object:ILinkableObject = this.getObject(relativePath);
+			if (object)
+			{
+				if (object is ILinkableHashMap)
+					return (object as ILinkableHashMap).getNames();
+				if (object is ILinkableDynamicObject)
+					return [null];
+				return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object, true);
+			}
+			
+			throw new Error("No ILinkableObject for which to get child names at " + this);
+		}
+		
 		/**
 		 * Gets an Array of child names under the object at the current path or relative to the current path.
 		 * @param relativePath An optional Array (or multiple parameters) specifying descendant names relative to the current path.
@@ -407,7 +350,8 @@ package weavejs.path
 		 */
 		public function getNames(...relativePath):Array
 		{
-			return this.weave.directAPI.getChildNames(this._path.concat(_A(relativePath, 1)));
+			relativePath = _A(relativePath, 1);
+			return _getChildNames(relativePath)
 		}
 		
 		/**
@@ -419,7 +363,7 @@ package weavejs.path
 		public function getChildren(...relativePath):Array
 		{
 			relativePath = _A(relativePath, 1);
-			return this.weave.directAPI.getChildNames(this._path.concat(relativePath))
+			return _getChildNames(relativePath)
 				.map(function(name:String):WeavePath { return this.push(relativePath.concat(name)); }, this);
 		}
 		
@@ -431,7 +375,8 @@ package weavejs.path
 		 */
 		public function getType(...relativePath):String
 		{
-			return this.weave.directAPI.getObjectType(this._path.concat(_A(relativePath, 1)));
+			relativePath = _A(relativePath, 1);
+			return Weave.className(this.getObject(relativePath));
 		}
 		
 		/**
@@ -442,7 +387,13 @@ package weavejs.path
 		 */
 		public function getState(...relativePath):Object
 		{
-			return this.weave.directAPI.getSessionState(this._path.concat(_A(relativePath, 1)));
+			relativePath = _A(relativePath, 1);
+			var obj:ILinkableObject = this.getObject(relativePath);
+			if (obj)
+				return WeaveAPI.SessionManager.getSessionState(obj);
+			else
+				JS.error("No ILinkableObject from which to get session state at " + this.push(relativePath));
+			return null;
 		}
 		
 		/**
@@ -458,9 +409,11 @@ package weavejs.path
 			if (_assertParams('getDiff', args))
 			{
 				var previousState:Object = args.pop();
-				var pathcopy:Array = this._path.concat(args);
-				var script:String = "return WeaveAPI.SessionManager.computeDiff(previousState, WeaveAPI.SessionManager.getSessionState(this));";
-				return this.weave.directAPI.evaluateExpression(pathcopy, script, {"previousState": previousState});
+				var obj:ILinkableObject = this.getObject(args);
+				if (obj)
+					return WeaveAPI.SessionManager.computeDiff(previousState, WeaveAPI.SessionManager.getSessionState(obj));
+				else
+					JS.error("No ILinkableObject from which to get diff at " + this.push(args));
 			}
 			return null;
 		}
@@ -478,9 +431,11 @@ package weavejs.path
 			if (_assertParams('getReverseDiff', args))
 			{
 				var otherState:Object = args.pop();
-				var pathcopy:Array = this._path.concat(args);
-				var script:String = "return WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(this), otherState);";
-				return this.weave.directAPI.evaluateExpression(pathcopy, script, {"otherState": otherState});
+				var obj:ILinkableObject = this.getObject(args);
+				if (obj)
+					return WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(obj), otherState);
+				else
+					JS.error("No ILinkableObject from which to get reverse diff at " + this.push(args));
 			}
 			return null;
 		}
@@ -491,12 +446,20 @@ package weavejs.path
 		 * @param script_or_variableName The script to be evaluated by Weave, or simply a variable name.
 		 * @return The result of evaluating the script or variable.
 		 */
-		public function getValue(script_or_variableName:*):Object
+		public function getValue(...func_args):Object
 		{
-			_vars[''] = Weave.objectKeys(_vars); // include a list of keys in property '' so undefined variables will be preserved
-			var result:* = this.weave.directAPI.evaluateExpression(this._path, script_or_variableName, _vars);
-			_deleteTempVars();
-			return result;
+			if (_assertParams('getValue', func_args))
+			{
+				var a:Array = _A(func_args);
+				return a.shift().apply(this, a);
+			}
+			return null;
+		}
+		
+		public function getObject(...relativePath):ILinkableObject
+		{
+			relativePath = _A(relativePath, 1);
+			return WeaveAPI.SessionManager.getObject(weave.root, this.getPath(relativePath));
 		}
 		
 		/**

@@ -13,15 +13,17 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.core
+package weavejs.core
 {
-	import flash.utils.getQualifiedClassName;
-	
-	import weave.api.core.DynamicState;
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableDynamicObject;
-	import weave.api.core.ILinkableObject;
-	import weave.api.core.ISessionManager;
+	import weavejs.Weave;
+	import weavejs.WeaveAPI;
+	import weavejs.api.core.DynamicState;
+	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.ILinkableDynamicObject;
+	import weavejs.api.core.ILinkableHashMap;
+	import weavejs.api.core.ILinkableObject;
+	import weavejs.api.core.ISessionManager;
+	import weavejs.utils.JS;
 
 	/**
 	 * This object links to an internal ILinkableObject.
@@ -37,12 +39,10 @@ package weave.core
 		public function LinkableDynamicObject(typeRestriction:Class = null)
 		{
 			super(typeRestriction);
-			if (typeRestriction)
-				_typeRestrictionClassName = getQualifiedClassName(typeRestriction);
 		}
 		
 		// the callback collection for this object
-		private const cc:CallbackCollection = WeaveAPI.SessionManager.newDisposableChild(this, CallbackCollection);
+		private var cc:CallbackCollection = WeaveAPI.SessionManager.newDisposableChild(this, CallbackCollection);
 		
 		// this is a constraint on the type of object that can be linked
 		private var _typeRestrictionClassName:String = null;
@@ -69,7 +69,7 @@ package weave.core
 			if (!obj)
 				return [];
 			
-			var className:String = getQualifiedClassName(obj);
+			var className:String = Weave.className(obj);
 			var sessionState:Object = obj as Array || WeaveAPI.SessionManager.getSessionState(obj as ILinkableObject);
 			return [DynamicState.create(null, className, sessionState)];
 		}
@@ -131,10 +131,10 @@ package weave.core
 				else
 				{
 					var prevTarget:ILinkableObject = target;
+					var classDef:Class = Weave.getDefinition(className);
 					// if className is not specified, make no change unless removeMissingDynamicObjects is true
 					if (className || removeMissingDynamicObjects)
-						setLocalObjectType(className);
-					var classDef:Class = ClassUtils.getClassDefinition(className);
+						setLocalObjectType(classDef);
 					if ((!className && target) || (classDef && target is classDef))
 						WeaveAPI.SessionManager.setSessionState(target, sessionState, prevTarget != target || removeMissingDynamicObjects);
 				}
@@ -161,7 +161,7 @@ package weave.core
 			
 			// if the target can be found by a path, use the path
 			var sm:ISessionManager = WeaveAPI.SessionManager;
-			var path:Array = sm.getPath(WeaveAPI.globalHashMap, newTarget);
+			var path:Array = sm.getPath(Weave.getRoot(this), newTarget);
 			if (path)
 			{
 				targetPath = path;
@@ -196,7 +196,7 @@ package weave.core
 			super.targetPath = path;
 		}
 		
-		private function setLocalObjectType(className:String):void
+		private function setLocalObjectType(classDef:Class):void
 		{
 			// stop if locked
 			if (_locked)
@@ -206,10 +206,9 @@ package weave.core
 			
 			targetPath = null;
 			
-			if ( ClassUtils.classImplements(className, SessionManager.ILinkableObject_QName)
-				&& (_typeRestriction == null || ClassUtils.classIs(className, _typeRestrictionClassName)) )
+			if ( Weave.isLinkable(classDef)
+				&& (_typeRestriction == null || JS.IS(classDef.prototype, _typeRestriction)) )
 			{
-				var classDef:Class = ClassUtils.getClassDefinition(className);
 				var obj:Object = target;
 				if (!obj || obj.constructor != classDef)
 					super.target = new classDef();
@@ -230,7 +229,7 @@ package weave.core
 			cc.delayCallbacks();
 			
 			if (objectType)
-				setLocalObjectType(getQualifiedClassName(objectType));
+				setLocalObjectType(objectType);
 			else
 				target = null;
 			
@@ -257,7 +256,7 @@ package weave.core
 				cc.delayCallbacks();
 				
 				targetPath = [name];
-				WeaveAPI.globalHashMap.requestObject(name, objectType, lockObject);
+				Weave.getRoot(this).requestObject(name, objectType, lockObject);
 				if (lockObject)
 					_locked = true;
 				
@@ -323,8 +322,9 @@ package weave.core
 			else
 			{
 				// when switcing from a local object to a global one that doesn't exist yet, copy the local object
-				if (target && !targetPath && !WeaveAPI.globalHashMap.getObject(newGlobalName))
-					WeaveAPI.globalHashMap.requestObjectCopy(newGlobalName, internalObject);
+				var root:ILinkableHashMap = Weave.getRoot(this);
+				if (target && !targetPath && !root.getObject(newGlobalName))
+					root.requestObjectCopy(newGlobalName, internalObject);
 				
 				// link to new global name
 				targetPath = [newGlobalName];
@@ -407,14 +407,14 @@ package weave.core
 		
 		////////////////////////////////////////////////////////////////////////
 		// ICallbackCollection interface included for backwards compatibility
-		/** @inheritDoc */ public function addImmediateCallback(relevantContext:Object, callback:Function, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void { cc.addImmediateCallback(relevantContext, callback, runCallbackNow, alwaysCallLast); }
-		/** @inheritDoc */ public function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void { cc.addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow); }
-		/** @inheritDoc */ public function addDisposeCallback(relevantContext:Object, callback:Function):void { cc.addDisposeCallback(relevantContext, callback); }
-		/** @inheritDoc */ public function removeCallback(callback:Function):void { cc.removeCallback(callback); }
-		/** @inheritDoc */ public function get triggerCounter():uint { return cc.triggerCounter; }
-		/** @inheritDoc */ public function triggerCallbacks():void { cc.triggerCallbacks(); }
-		/** @inheritDoc */ public function get callbacksAreDelayed():Boolean { return cc.callbacksAreDelayed; }
-		/** @inheritDoc */ public function delayCallbacks():void { cc.delayCallbacks(); }
-		/** @inheritDoc */ public function resumeCallbacks():void { cc.resumeCallbacks(); }
+		public function addImmediateCallback(relevantContext:Object, callback:Function, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void { cc.addImmediateCallback(relevantContext, callback, runCallbackNow, alwaysCallLast); }
+		public function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void { cc.addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow); }
+		public function addDisposeCallback(relevantContext:Object, callback:Function):void { cc.addDisposeCallback(relevantContext, callback); }
+		public function removeCallback(callback:Function):void { cc.removeCallback(callback); }
+		public function get triggerCounter():uint { return cc.triggerCounter; }
+		public function triggerCallbacks():void { cc.triggerCallbacks(); }
+		public function get callbacksAreDelayed():Boolean { return cc.callbacksAreDelayed; }
+		public function delayCallbacks():void { cc.delayCallbacks(); }
+		public function resumeCallbacks():void { cc.resumeCallbacks(); }
 	}
 }

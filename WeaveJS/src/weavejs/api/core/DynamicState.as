@@ -67,6 +67,8 @@ package weavejs.api.core
 		 */
 		public static function isDynamicState(object:Object, handleBypassDiff:Boolean = false):Boolean
 		{
+			if (typeof object !== 'object')
+				return false;
 			var matchCount:int = 0;
 			for (var name:* in object)
 			{
@@ -116,8 +118,9 @@ package weavejs.api.core
 				object[BYPASS_DIFF] = true;
 				object = object[SESSION_STATE];
 			}
-			for (var key:* in object)
-				alterSessionStateToBypassDiff(object[key]);
+			if (typeof object === 'object')
+				for (var key:* in object)
+					alterSessionStateToBypassDiff(object[key]);
 		}
 	}
 }

@@ -15,6 +15,7 @@
 
 package weavejs.core
 {
+	import weavejs.Weave;
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
@@ -186,7 +187,7 @@ package weavejs.core
 			
 			// traverse the path, finding ILinkableDynamicObject path dependencies along the way
 			var sm:ISessionManager = WeaveAPI.SessionManager;
-			var node:ILinkableObject = WeaveAPI.globalHashMap;
+			var node:ILinkableObject = Weave.getRoot(this);
 			var subPath:Array = [];
 			for each (var name:* in _targetPath)
 			{

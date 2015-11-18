@@ -7,6 +7,7 @@
 package weavejs.path
 {
 	import weavejs.Weave;
+	import weavejs.utils.JS;
 
 	public class WeavePathDataShared
 	{
@@ -19,7 +20,7 @@ package weavejs.path
 		
 		public function WeavePathDataShared()
 		{
-			Weave.bindAll(this);
+			JS.bindAll(this);
 		}
 		
 		public function init(weave:Weave):void
@@ -30,12 +31,16 @@ package weavejs.path
 			this.selection_keyset = weave.path(DEFAULT_SELECTION_KEY_SET);
 			this.subset_filter = weave.path(DEFAULT_SUBSET_KEY_FILTER);
 			
-			this.isColumn = weave.directAPI.evaluateExpression(null, "o => o is IAttributeColumn");
-			this.joinColumns = weave.directAPI.evaluateExpression(null, "ColumnUtils.joinColumns");
-			this.getLabel = weave.directAPI.evaluateExpression(null, "WeaveAPI.EditorManager.getLabel");
-			this.setLabel = weave.directAPI.evaluateExpression(null, "WeaveAPI.EditorManager.setLabel");
-			this.getColumnType = weave.directAPI.evaluateExpression(null, 'o => { for each (var t in types) if (o is t) return t; }', {types: [EDC, DC, RC]});
-			this.getFirstDataSourceName = weave.directAPI.evaluateExpression([], '() => this.getNames(IDataSource)[0]');
+//			this.isColumn = function(o:*):Boolean { return o is IAttributeColumn; }
+//			this.joinColumns = ColumnUtils.joinColumns;
+//			this.getLabel = WeaveAPI.EditorManager.getLabel;
+//			this.setLabel = WeaveAPI.EditorManager.setLabel;
+//			this.getColumnType = function(o:*):String {
+//				for each (var t:String in [EDC, DC, RC])
+//					if (o is Weave.getDefinition(t))
+//						return t;
+//			}
+//			this.getFirstDataSourceName = function():String { return weave.root.getNames(IDataSource)[0]; };
 		}
 		
 		public var weave:Weave;
@@ -133,8 +138,8 @@ package weavejs.path
 		public function _flushKeys(pathArray:Array):void
 		{
 			var key_buffers:Object = this._getKeyBuffers(pathArray);
-			var add_keys:Array = Weave.objectKeys(key_buffers.add);
-			var remove_keys:Array = Weave.objectKeys(key_buffers.remove);
+			var add_keys:Array = JS.objectKeys(key_buffers.add);
+			var remove_keys:Array = JS.objectKeys(key_buffers.remove);
 			
 			add_keys = add_keys.map(this.stringToQKey, this);
 			remove_keys = remove_keys.map(this.stringToQKey, this);
@@ -142,8 +147,9 @@ package weavejs.path
 			key_buffers.add = {};
 			key_buffers.remove = {};
 			
-			weave.directAPI.evaluateExpression(pathArray, 'this.addKeys(keys)', {keys: add_keys}, null, "");
-			weave.directAPI.evaluateExpression(pathArray, 'this.removeKeys(keys)', {keys: remove_keys}, null, "");
+			var obj:Object = weave.path(pathArray).getObject();
+			obj.addKeys(add_keys);
+			obj.removeKeys(remove_keys);
 			
 			key_buffers.timeout_id = null;
 		}
@@ -157,7 +163,7 @@ package weavejs.path
 		{
 			var key_buffers:Object = this._getKeyBuffers(pathArray);
 			if (key_buffers.timeout_id === null)
-				key_buffers.timeout_id = Weave.global.setTimeout(_flushKeys, 25, pathArray);
+				key_buffers.timeout_id = JS.setTimeout(_flushKeys, 25, pathArray);
 		}
 		
 		/**

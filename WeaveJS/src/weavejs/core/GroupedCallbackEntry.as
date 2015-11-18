@@ -8,7 +8,7 @@ package weavejs.core
 {
 	import weavejs.Weave;
 	import weavejs.api.core.ICallbackCollection;
-	import weavejs.utils.Utils;
+	import weavejs.utils.JS;
 
 	/**
 	 * @private
@@ -105,13 +105,7 @@ package weavejs.core
 		/**
 		 * This maps a groupedCallback function to its corresponding GroupedCallbackEntry.
 		 */
-		private static var __entryLookup:Object;
-		private static function get _entryLookup():Object
-		{
-			if (__entryLookup == null)
-				__entryLookup = new Utils.Map();
-			return __entryLookup;
-		}
+		private static var _entryLookup:Object = new JS.Map();
 		
 		/**
 		 * This is a list of GroupedCallbackEntry objects in the order they were triggered.
@@ -126,8 +120,10 @@ package weavejs.core
 			// context will be an array of contexts
 			super([], groupedCallback);
 			
+			JS.bindAll(this);
+			
 			if (!_initialized)
-				_initialized = Weave.global.setInterval(_handleGroupedCallbacks, 0);
+				_initialized = JS.setInterval(_handleGroupedCallbacks, 0);
 		}
 		
 		/**

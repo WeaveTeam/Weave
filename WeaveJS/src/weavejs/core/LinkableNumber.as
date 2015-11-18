@@ -6,8 +6,6 @@
 */
 package weavejs.core
 {
-	import weavejs.utils.Utils;
-
 	/**
 	 * This is a LinkableVariable which limits its session state to Number values.
 	 * @author adufilie
@@ -58,7 +56,5 @@ package weavejs.core
 				return true;
 			return _sessionStateInternal == otherSessionState;
 		}
-		
-		private static var _init:* = Utils.preserveGetterSetters(LinkableNumber, 'value');
 	}
 }

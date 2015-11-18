@@ -6,8 +6,6 @@
 */
 package weavejs.core
 {
-	import weavejs.utils.Utils;
-
 	/**
 	 * This is a LinkableVariable which limits its session state to Boolean values.
 	 * @author adufilie
@@ -35,7 +33,5 @@ package weavejs.core
 				value = (value === 'true');
 			super.setSessionState(value ? true : false);
 		}
-		
-		private static var _init:* = Utils.preserveGetterSetters(LinkableBoolean, 'value');
 	}
 }

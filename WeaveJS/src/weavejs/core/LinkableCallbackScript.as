@@ -19,8 +19,7 @@ package weavejs.core
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.compiler.Compiler;
-	import weavejs.compiler.ProxyObject;
+	import weavejs.utils.JS;
 	
 	public class LinkableCallbackScript implements ILinkableObject
 	{
@@ -31,25 +30,16 @@ package weavejs.core
 			callbacks.addGroupedCallback(null, _groupedCallback);
 		}
 		
-		public const variables:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap());
-		public const script:LinkableString = registerLinkableChild(this, new LinkableString());
-		public const delayWhileBusy:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public const groupedCallback:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public var variables:LinkableHashMap = Weave.registerLinkableChild(this, new LinkableHashMap());
+		public var script:LinkableString = Weave.registerLinkableChild(this, new LinkableString());
+		public var delayWhileBusy:LinkableBoolean = Weave.registerLinkableChild(this, new LinkableBoolean(true));
+		public var groupedCallback:LinkableBoolean = Weave.registerLinkableChild(this, new LinkableBoolean(true));
 		
-		private const _symbolTableProxy:ProxyObject = new ProxyObject(hasVariable, getVariable, null);
-		private var _compiledScript:Function = null;
-		private static const _compiler:Compiler = new Compiler(true);
+		private var _compiledFunction:Function;
 		
-		public function getVariable(name:String):*
+		public function get(variableName:String):ILinkableObject
 		{
-			return variables.getObject(name)
-				|| LinkableFunction.evaluateMacro(name);
-		}
-		
-		public function hasVariable(name:String):Boolean
-		{
-			return variables.getObject(name) != null
-				|| LinkableFunction.macros.getObject(name) != null;
+			return variables.getObject(variableName);
 		}
 		
 		private function _immediateCallback():void
@@ -74,14 +64,13 @@ package weavejs.core
 			
 			try
 			{
-				if (detectLinkableObjectChange(_runScript, script))
-					_compiledScript = _compiler.compileToFunction(script.value, _symbolTableProxy, Weave.error, false);
-				
-				_compiledScript.apply(this);
+				if (Weave.detectLinkableObjectChange(this, script))
+					_compiledFunction = JS.global.eval("(function(){ return eval(" + JSON.stringify(script.value) + "); })");
+				_compiledFunction.call(this);
 			}
 			catch (e:Error)
 			{
-				Weave.error(e);
+				JS.error(e);
 			}
 		}
 	}

@@ -6,8 +6,6 @@
 */
 package weavejs.utils
 {
-	import weavejs.Weave;
-
 	/**
 	 * This is a wrapper for a 2-dimensional Map.
 	 * 
@@ -17,7 +15,7 @@ package weavejs.utils
 	{
 		public function Dictionary2D(weakPrimaryKeys:Boolean = false, weakSecondaryKeys:Boolean = false, defaultType:Class = null)
 		{
-			map = weakPrimaryKeys ? new Utils.WeakMap() : new Utils.Map;
+			map = weakPrimaryKeys ? new JS.WeakMap() : new JS.Map;
 			weak1 = weakPrimaryKeys;
 			weak2 = weakSecondaryKeys;
 			this.defaultType = defaultType;
@@ -60,8 +58,22 @@ package weavejs.utils
 		{
 			var map2:Object = map.get(key1);
 			if (map2 == null)
-				map.set(key1, map2 = weak2 ? new Utils.WeakMap() : new Utils.Map());
+				map.set(key1, map2 = weak2 ? new JS.WeakMap() : new JS.Map());
 			map2.set(key2, value);
+		}
+		
+		public function primaryKeys():Array
+		{
+			if (weak1)
+				throwWeakIterationError();
+			return JS.mapKeys(map);
+		}
+		
+		public function secondaryKeys(key1:Object):Array
+		{
+			if (weak2)
+				throwWeakIterationError();
+			return JS.mapKeys(map.get(key1));
 		}
 		
 		/**
@@ -81,7 +93,7 @@ package weavejs.utils
 		public function removeAllSecondary(key2:Object):void
 		{
 			if (weak1)
-				throw new Error("WeakMap cannot be iterated over");
+				throwWeakIterationError();
 			_key2ToRemove = key2;
 			map.forEach(removeAllSecondary_each, this);
 		}
@@ -116,6 +128,11 @@ package weavejs.utils
 			return value;
 		}
 		
+		private static function throwWeakIterationError():void
+		{
+			throw new Error("WeakMap cannot be iterated over");
+		}
+		
 		/**
 		 * Iterates over pairs of keys and corresponding values.
 		 * @param key1_key2_value A function which may return true to stop iterating.
@@ -124,7 +141,7 @@ package weavejs.utils
 		public function forEach(key1_key2_value:Function, thisArg:Object):void
 		{
 			if (weak1 || weak2)
-				throw new Error("WeakMap cannot be iterated over");
+				throwWeakIterationError();
 			
 			forEach_fn = key1_key2_value;
 			forEach_this = thisArg;

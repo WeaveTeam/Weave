@@ -17,7 +17,7 @@ package weavejs.core
 			this.callback = callback;
 			
 			if (CallbackCollection.debug)
-				addCallback_stackTrace = new Error(STACK_TRACE_ADD).getStackTrace();
+				addCallback_stackTrace = new Error(STACK_TRACE_ADD);
 		}
 		
 		/**
@@ -51,11 +51,11 @@ package weavejs.core
 		/**
 		 * This is a stack trace from when the callback was added.
 		 */
-		public var addCallback_stackTrace:String = null;
+		public var addCallback_stackTrace:Error = null;
 		/**
 		 * This is a stack trace from when the callback was removed.
 		 */
-		public var removeCallback_stackTrace:String = null;
+		public var removeCallback_stackTrace:Error = null;
 		
 		/**
 		 * Call this when the callback entry is no longer needed.
@@ -63,7 +63,7 @@ package weavejs.core
 		public function dispose():void
 		{
 			if (CallbackCollection.debug && callback != null)
-				removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE).getStackTrace();
+				removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE);
 			
 			context = null;
 			callback = null;

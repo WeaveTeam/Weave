@@ -58,12 +58,7 @@ package weavejs.compiler
 		{
 			if (value == null)
 				return '';
-			try
-			{
-				return value;
-			}
-			catch (e:Error) { }
-			return '';
+			return String(value);
 		}
 		
 		/**
@@ -154,7 +149,7 @@ package weavejs.compiler
 		public static function substitute(format:String, ...args):String
 		{
 			if (args.length == 1 && args[0] is Array)
-				args = Weave.toArray(args[0]);
+				args = args[0] as Array;
 			var split:Array = format.split('{')
 			var output:String = split[0];
 			for (var i:int = 1; i < split.length; i++)
@@ -709,17 +704,6 @@ package weavejs.compiler
 				return stringCompare(qna, qnb);
 			
 			var p:String;
-			
-			// test if objects are dynamic
-			try
-			{
-				a[''];
-				b[''];
-			}
-			catch (e:Error)
-			{
-				return 1; // not dynamic objects
-			}
 			
 			// if there are properties in a not found in b, return -1
 			for (p in a)

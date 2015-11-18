@@ -15,9 +15,11 @@
 
 package weavejs.core
 {
+	import weavejs.Weave;
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableObject;
+	import weavejs.utils.JS;
 	
 	public class LinkableSynchronizer implements ILinkableObject
 	{
@@ -31,14 +33,14 @@ package weavejs.core
 			_callbacks.addImmediateCallback(null, selfCallback);
 		}
 		
-		public const primaryPath:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), setPrimaryPath);
-		public const secondaryPath:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), setSecondaryPath);
+		public var primaryPath:LinkableVariable = Weave.registerLinkableChild(this, new LinkableVariable(Array), setPrimaryPath);
+		public var secondaryPath:LinkableVariable = Weave.registerLinkableChild(this, new LinkableVariable(Array), setSecondaryPath);
 		
-		public const primaryTransform:LinkableFunction = registerLinkableChild(this, new LinkableFunction(null, false, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handlePrimaryTransform);
-		public const secondaryTransform:LinkableFunction = registerLinkableChild(this, new LinkableFunction(null, false, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handleSecondaryTransform);
+		public var primaryTransform:LinkableFunction = Weave.registerLinkableChild(this, new LinkableFunction(null, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handlePrimaryTransform);
+		public var secondaryTransform:LinkableFunction = Weave.registerLinkableChild(this, new LinkableFunction(null, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handleSecondaryTransform);
 		
-		private const primaryWatcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(null, synchronize));
-		private const secondaryWatcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(null, synchronize));
+		private var primaryWatcher:LinkableWatcher = Weave.registerDisposableChild(this, new LinkableWatcher(null, synchronize));
+		private var secondaryWatcher:LinkableWatcher = Weave.registerDisposableChild(this, new LinkableWatcher(null, synchronize));
 		
 		private function setPrimaryPath():void
 		{
@@ -130,7 +132,7 @@ package weavejs.core
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(e, "primaryTransform: " + e.message);
+					JS.error("Error evaluating primaryTransform", e);
 				}
 			}
 			else if (!secondaryTransform.value)
@@ -157,7 +159,7 @@ package weavejs.core
 				}
 				catch (e:Error)
 				{
-					WeaveAPI.ErrorManager.reportError(e, "secondaryTransform: " + e.message);
+					JS.error("Error evaluating secondaryTransform", e);
 				}
 			}
 			else if (!primaryTransform.value)

@@ -22,7 +22,7 @@ package weavejs.core
 	import weavejs.api.core.IChildListCallbackInterface;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.utils.Utils;
+	import weavejs.utils.JS;
 	
 	/**
 	 * Allows dynamically creating instances of objects implementing ILinkableObject at runtime.
@@ -39,12 +39,11 @@ package weavejs.core
 		 */
 		public function LinkableHashMap(typeRestriction:Class = null)
 		{
-			super();
 			_typeRestriction = typeRestriction;
 			_childListCallbacks = WeaveAPI.SessionManager.newLinkableChild(this, ChildListCallbackInterface);
 			_orderedNames = []; // an ordered list of names appearing in _nameToObjectMap
 			_nameToObjectMap = {}; // maps an identifying name to an object
-			_map_objectToNameMap = new Utils.WeakMap(); // maps an object to an identifying name
+			_map_objectToNameMap = new JS.WeakMap(); // maps an object to an identifying name
 			_nameIsLocked = {}; // maps an identifying name to a value of true if that name is locked.
 			_previousNameMap = {}; // maps a previously used name to a value of true.  used when generating unique names.
 		}
@@ -236,7 +235,7 @@ package weavejs.core
 					name = generateUniqueName(className.split("::").pop());
 				var classDef:Class = Weave.getDefinition(className);
 				var typeRestriction:Class = _typeRestriction; // avoid 'is' compiler bug
-				if (Weave.isLinkable(classDef.prototype)
+				if (Weave.isLinkable(classDef)
 					&& (typeRestriction == null || classDef.prototype is typeRestriction) )
 				{
 //					try

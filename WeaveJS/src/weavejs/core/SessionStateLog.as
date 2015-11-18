@@ -22,6 +22,7 @@ package weavejs.core
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ILinkableVariable;
 	import weavejs.compiler.StandardLib;
+	import weavejs.utils.JS;
 
 	/**
 	 * This class saves the session history of an ILinkableObject.
@@ -35,12 +36,17 @@ package weavejs.core
 		
 		public function SessionStateLog(subject:ILinkableObject, syncDelay:uint = 0)
 		{
+			JS.bindAll(this);
+			_syncTime = JS.now();
+			_undoHistory = [];
+			_redoHistory = [];
+			
 			_subject = subject;
 			_syncDelay = syncDelay;
 			_prevState = WeaveAPI.SessionManager.getSessionState(_subject); // remember the initial state
-			registerDisposableChild(_subject, this); // make sure this is disposed when _subject is disposed
+			WeaveAPI.SessionManager.registerDisposableChild(_subject, this); // make sure this is disposed when _subject is disposed
 			
-			var cc:ICallbackCollection = getCallbackCollection(_subject);
+			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(_subject);
 			cc.addImmediateCallback(this, immediateCallback);
 			cc.addGroupedCallback(this, groupedCallback);
 		}
@@ -61,13 +67,13 @@ package weavejs.core
 		private var _subject:ILinkableObject; // the object we are monitoring
 		private var _syncDelay:uint; // the number of milliseconds to wait before automatically synchronizing
 		private var _prevState:Object = null; // the previously seen session state of the subject
-		private var _undoHistory:Array = []; // diffs that can be undone
-		private var _redoHistory:Array = []; // diffs that can be redone
+		private var _undoHistory:Array; // diffs that can be undone
+		private var _redoHistory:Array; // diffs that can be redone
 		private var _nextId:int = 0; // gets incremented each time a new diff is created
 		private var _undoActive:Boolean = false; // true while an undo operation is active
 		private var _redoActive:Boolean = false; // true while a redo operation is active
 		
-		private var _syncTime:int = Weave.getTimer(); // this is set to getTimer() when synchronization occurs
+		private var _syncTime:int; // this is set to getTimer() when synchronization occurs
 		private var _triggerDelay:int = -1; // this is set to (getTimer() - _syncTime) when immediate callbacks are triggered for the first time since the last synchronization occurred
 		private var _saveTime:uint = 0; // this is set to getTimer() + _syncDelay to determine when the next diff should be computed and logged
 		private var _savePending:Boolean = false; // true when a diff should be computed
@@ -75,7 +81,7 @@ package weavejs.core
 		/**
 		 * When this is set to true, changes in the session state of the subject will be automatically logged.
 		 */
-		public const enableLogging:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), synchronizeNow);
+		public var enableLogging:LinkableBoolean = Weave.registerLinkableChild(this, new LinkableBoolean(true), synchronizeNow);
 		
 		/**
 		 * This will squash a sequence of undos or redos into a single undo or redo.
@@ -83,7 +89,7 @@ package weavejs.core
 		 */		
 		public function squashHistory(directionalSquashCount:int):void
 		{
-			var cc:ICallbackCollection = getCallbackCollection(this);
+			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
 			cc.delayCallbacks();
 			
 			synchronizeNow();
@@ -133,7 +139,7 @@ package weavejs.core
 		 */
 		public function clearHistory(directional:int = 0):void
 		{
-			var cc:ICallbackCollection = getCallbackCollection(this);
+			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
 			cc.delayCallbacks();
 			
 			synchronizeNow();
@@ -163,7 +169,7 @@ package weavejs.core
 				return;
 			
 			// we have to wait until grouped callbacks are called before we save the diff
-			_saveTime = uint.MAX_VALUE;
+			_saveTime = Number.MAX_VALUE;
 			
 			// make sure only one call to saveDiff() is pending
 			if (!_savePending)
@@ -176,7 +182,7 @@ package weavejs.core
 			{
 				var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
 				var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
-				Weave.log('immediate diff:', forwardDiff);
+				JS.log('immediate diff:', forwardDiff);
 			}
 		}
 		
@@ -192,13 +198,13 @@ package weavejs.core
 			immediateCallback();
 			// It is ok to save a diff some time after the last time grouped callbacks are called.
 			// If callbacks are triggered again before the next frame, the immediateCallback will reset this value.
-			_saveTime = Weave.getTimer() + _syncDelay;
+			_saveTime = JS.now() + _syncDelay;
 			
 			if (debug && (_undoActive || _redoActive))
 			{
 				var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
 				var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
-				Weave.log('grouped diff:', forwardDiff);
+				JS.log('grouped diff:', forwardDiff);
 			}
 		}
 		
@@ -214,20 +220,20 @@ package weavejs.core
 				return;
 			}
 			
-			var currentTime:int = Weave.getTimer();
+			var currentTime:int = JS.now();
 			
 			// remember how long it's been since the last synchronization
 			if (_triggerDelay < 0)
 				_triggerDelay = currentTime - _syncTime;
 			
-			if (!immediately && Weave.getTimer() < _saveTime)
+			if (!immediately && JS.now() < _saveTime)
 			{
 				// we have to wait until the next frame to save the diff because grouped callbacks haven't finished.
-				WeaveAPI.StageUtils.callLater(this, saveDiff);
+				Weave.callLater(this, saveDiff);
 				return;
 			}
 			
-			var cc:ICallbackCollection = getCallbackCollection(this);
+			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
 			cc.delayCallbacks();
 			
 			var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
@@ -248,7 +254,7 @@ package weavejs.core
 					{
 						_redoHistory[0] = newEntry;
 					}
-					else if (ObjectUtil.compare(oldEntry.forward, newEntry.forward) != 0)
+					else if (StandardLib.compare(oldEntry.forward, newEntry.forward) != 0)
 					{
 						_redoHistory.unshift(newEntry);
 					}
@@ -264,7 +270,7 @@ package weavejs.core
 						newEntry.triggerDelay = oldEntry.triggerDelay;
 						newEntry.diffDuration = oldEntry.diffDuration;
 						
-						if (!enableHistoryRewrite && ObjectUtil.compare(oldEntry.forward, newEntry.forward) == 0)
+						if (!enableHistoryRewrite && StandardLib.compare(oldEntry.forward, newEntry.forward) == 0)
 							newEntry = oldEntry; // keep old entry
 					}
 					// save new undo entry
@@ -336,7 +342,7 @@ package weavejs.core
 				
 				var combine:Boolean = stepsRemaining > 2;
 				var baseDiff:Object = null;
-				getCallbackCollection(_subject).delayCallbacks();
+				WeaveAPI.SessionManager.getCallbackCollection(_subject).delayCallbacks();
 				// when logging is disabled, revert to previous state before applying diffs
 				if (!enableLogging.value)
 				{
@@ -361,7 +367,7 @@ package weavejs.core
 						diff = logEntry.forward;
 					}
 					if (debug)
-						Weave.log('apply ' + (delta < 0 ? 'undo' : 'redo'), logEntry.id + ':', diff);
+						JS.log('apply ' + (delta < 0 ? 'undo' : 'redo'), logEntry.id + ':', diff);
 					
 					if (stepsRemaining == 0 && enableLogging.value)
 					{
@@ -387,16 +393,16 @@ package weavejs.core
 					{
 						var newState:Object = WeaveAPI.SessionManager.getSessionState(_subject);
 						var resultDiff:Object = WeaveAPI.SessionManager.computeDiff(_prevState, newState);
-						Weave.log('resulting diff:', resultDiff);
+						JS.log('resulting diff:', resultDiff);
 					}
 				}
-				getCallbackCollection(_subject).resumeCallbacks();
+				WeaveAPI.SessionManager.getCallbackCollection(_subject).resumeCallbacks();
 				
 				_undoActive = delta < 0 && _savePending;
 				_redoActive = delta > 0 && _savePending;
 				if (!_savePending)
 					_prevState = WeaveAPI.SessionManager.getSessionState(_subject);
-				getCallbackCollection(this).triggerCallbacks();
+				WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
 			}
 		}
 		
@@ -426,11 +432,11 @@ package weavejs.core
 				f[i] = f[i].id;
 			if (logEntry)
 			{
-				Weave.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-				Weave.log('NEW HISTORY (backward) ' + logEntry.id + ':', logEntry.backward);
-				Weave.log("===============================================================");
-				Weave.log('NEW HISTORY (forward) ' + logEntry.id + ':', logEntry.forward);
-				Weave.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+				JS.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+				JS.log('NEW HISTORY (backward) ' + logEntry.id + ':', logEntry.backward);
+				JS.log("===============================================================");
+				JS.log('NEW HISTORY (forward) ' + logEntry.id + ':', logEntry.forward);
+				JS.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 			}
 			trace('undo ['+h+']','redo ['+f+']');
 		}
@@ -441,7 +447,7 @@ package weavejs.core
 		 */		
 		public function getSessionState():Object
 		{
-			var cc:ICallbackCollection = getCallbackCollection(this);
+			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
 			cc.delayCallbacks();
 			synchronizeNow();
 			
@@ -466,7 +472,7 @@ package weavejs.core
 		public function setSessionState(state:Object):void
 		{
 			// make sure callbacks only run once while we set the session state
-			var cc:ICallbackCollection = getCallbackCollection(this);
+			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
 			cc.delayCallbacks();
 			enableLogging.delayCallbacks();
 			try
@@ -495,7 +501,7 @@ package weavejs.core
 				_savePending = false;
 				_saveTime = 0;
 				_triggerDelay = -1;
-				_syncTime = Weave.getTimer();
+				_syncTime = JS.now();
 			
 				WeaveAPI.SessionManager.setSessionState(_subject, _prevState);
 			}

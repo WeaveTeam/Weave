@@ -15,7 +15,6 @@
 
 package weavejs.utils
 {
-	import weavejs.Weave;
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ILinkableVariable;
@@ -31,7 +30,7 @@ package weavejs.utils
 		 * @param WeaveTreeItem_implementation The implementation of WeaveTreeItem to use.
 		 * @param items Item descriptors.
 		 */
-		public static const createItems:Function = function(WeaveTreeItem_implementation:Class, items:Array):Array
+		public static function createItems(WeaveTreeItem_implementation:Class, items:Array):Array
 		{
 			// flatten
 			var n:int = 0;
@@ -41,24 +40,28 @@ package weavejs.utils
 				items = [].concat.apply(null, items);
 			}
 			
-			return items.map(_mapItems, WeaveTreeItem_implementation).filter(_filterItemsRemoveNulls);
-		};
+			return items
+				.map(function(item:Object, i:int, a:Array):Object {
+					return _mapItem(WeaveTreeItem_implementation || WeaveTreeItem, item);
+				})
+				.filter(_filterItemsRemoveNulls);
+		}
 		
 		/**
 		 * Used for mapping an Array of params objects to an Array of WeaveTreeItem objects.
-		 * The "this" argument is used to specify a particular WeaveTreeItem implementation.
+		 * @param WeaveTreeItem_implementation The implementation of WeaveTreeItem to use.
+		 * @param items Item descriptors.
 		 */
-		protected static const _mapItems:Function = function(item:Object, i:int, a:Array):Object
+		protected static function _mapItem(WeaveTreeItem_implementation, item:Object):Object
 		{
 			// If the item is a Class definition, create an instance of that Class.
-			if (item is Class)
+			if (JS.isClass(item))
 				return new item();
 			
 			// If the item is a String or an Object, we can pass it to the constructor.
 			if (item is String || (item != null && Object(item).constructor == Object))
 			{
-				var ItemClass:Class = this as Class || WeaveTreeItem;
-				return new ItemClass(item);
+				return new WeaveTreeItem_implementation(item);
 			}
 			
 			// If the item is any other type, return the original item.
@@ -239,7 +242,7 @@ package weavejs.utils
 			}
 			catch (e:Error)
 			{
-				Weave.error(e);
+				JS.error(e);
 			}
 		}
 		
@@ -325,7 +328,7 @@ package weavejs.utils
 				var iOut:int = 0;
 				for (var i:int = 0; i < items.length; i++)
 				{
-					var item:Object = _mapItems.call(childItemClass, items[i], i, items);
+					var item:Object = _mapItem(childItemClass, items[i]);
 					if (item != null)
 						items[iOut++] = item;
 				}
@@ -368,7 +371,5 @@ package weavejs.utils
 		 * For example, it can be used to store state information if the tree is populated asynchronously.
 		 */
 		public var data:Object = null;
-		
-		private static var _init:* = Utils.preserveGetterSetters(WeaveTreeItem, 'label', 'children', 'dependency');
 	}
 }

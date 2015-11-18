@@ -10,6 +10,7 @@ package weavejs.core
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableObject;
+	import weavejs.utils.JS;
 	
 	/**
 	 * This class manages a list of callback functions.
@@ -37,13 +38,16 @@ package weavejs.core
 		 */
 		public function CallbackCollection(preCallback:Function = null)
 		{
+			JS.bindAll(this);
 			this._preCallback = preCallback;
+			this._callbackEntries = [];
+			this._disposeCallbackEntries = [];
 		}
 
 		/**
 		 * This is a list of CallbackEntry objects in the order they were created.
 		 */
-		private var _callbackEntries:Array = new Array();
+		private var _callbackEntries:Array;
 
 		/**
 		 * This is the function that gets called immediately before every callback.
@@ -96,7 +100,7 @@ package weavejs.core
 			{
 				// increase the recursion count while the function is running
 				entry.recursionCount++;
-				callback.apply();
+				callback.apply(relevantContext);
 				entry.recursionCount--;
 			}
 		}
@@ -175,7 +179,7 @@ package weavejs.core
 						entry.recursionCount++; // increase count to signal that we are currently running this callback.
 						
 						if (_preCallback != null)
-							_preCallback.apply(null, preCallbackParams);
+							_preCallback.apply(this, preCallbackParams);
 						
 						entry.callback.apply(entry.context);
 						
@@ -265,7 +269,7 @@ package weavejs.core
 		/**
 		 * A list of CallbackEntry objects for when dispose() is called.
 		 */		
-		private var _disposeCallbackEntries:Array = [];
+		private var _disposeCallbackEntries:Array;
 
 		/**
 		 * @inheritDoc
@@ -283,7 +287,7 @@ package weavejs.core
 			{
 				var entry:CallbackEntry = _disposeCallbackEntries.shift();
 				if (entry.callback != null && !Weave.objectWasDisposed(entry.context))
-					entry.callback.apply();
+					entry.callback.apply(entry.context);
 			}
 		}
 		

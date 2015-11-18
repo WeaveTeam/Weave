@@ -12,7 +12,7 @@ package weavejs.core
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableVariable;
 	import weavejs.compiler.StandardLib;
-	import weavejs.utils.Utils;
+	import weavejs.utils.JS;
 	
 	/**
 	 * LinkableVariable allows callbacks to be added that will be called when the value changes.
@@ -155,7 +155,7 @@ package weavejs.core
 				if (type == 'object' && value.constructor != Object && value.constructor != Array)
 				{
 					// convert to dynamic Object prior to sessionStateEquals comparison
-					value = Weave.copyObject(value);
+					value = JS.copyObject(value);
 					wasCopied = true;
 				}
 			}
@@ -171,7 +171,7 @@ package weavejs.core
 			if (type == 'object')
 			{
 				if (!wasCopied)
-					value = Weave.copyObject(value);
+					value = JS.copyObject(value);
 				
 				DynamicState.alterSessionStateToBypassDiff(value);
 				
@@ -179,7 +179,7 @@ package weavejs.core
 				_sessionStateExternal = value;
 				
 				// save internal copy
-				_sessionStateInternal = Weave.copyObject(value);
+				_sessionStateInternal = JS.copyObject(value);
 			}
 			else
 			{
@@ -260,7 +260,5 @@ package weavejs.core
 			super.dispose();
 			setSessionState(null);
 		}
-		
-		private static var _init:* = Utils.preserveGetterSetters(LinkableVariable, 'state');
 	}
 }

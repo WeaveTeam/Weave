@@ -7,19 +7,24 @@
 package
 {
 	import weavejs.Weave;
-	import weavejs.utils.Utils;
+	import weavejs.utils.JS;
 	
 	public class WeaveJS
 	{
-		public static const _init:* = Utils.fix_is_as();
+		public static const _init:* = JS.fix_is();
 		
 		public function WeaveJS()
 		{
 		}
+		
 		public function start():void
 		{
 			// make Weave accessible from global scope
-			Weave.global.Weave = Weave;
+			JS.global.Weave = Weave;
+			
+			// for testing only
+			JS.global.weave = new Weave();
+			JS.global.weave.test();
 		}
 	}
 }

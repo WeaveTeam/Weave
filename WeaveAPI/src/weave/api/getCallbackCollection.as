@@ -15,6 +15,7 @@
 
 package weave.api
 {
+	import weave.WeaveAPI;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	

@@ -19,13 +19,7 @@ package weavejs
 	import weavejs.api.core.ILocaleManager;
 	import weavejs.api.core.IProgressIndicator;
 	import weavejs.api.core.ISessionManager;
-	import weavejs.api.data.IAttributeColumnCache;
-	import weavejs.api.data.ICSVParser;
-	import weavejs.api.data.IQualifiedKeyManager;
-	import weavejs.api.data.IStatisticsCache;
-	import weavejs.api.ui.IEditorManager;
 	import weavejs.core.ClassRegistryImpl;
-	import weavejs.utils.Utils;
 	
 	/**
 	 * Static functions for managing implementations of Weave framework classes.
@@ -72,9 +66,7 @@ package weavejs
 		 */
 		public static function get SessionManager():ISessionManager
 		{
-			if (!_classRegistry)
-				ClassRegistry;
-			return _classRegistry.singletonInstances[ISessionManager]
+			return (_classRegistry || ClassRegistry).singletonInstances[ISessionManager]
 				|| _classRegistry.getSingletonInstance(ISessionManager);
 		}
 		
@@ -85,9 +77,7 @@ package weavejs
 //		 */
 //		public static function get StageUtils():IStageUtils
 //		{
-//			if (!_classRegistry)
-//				ClassRegistry;
-//			return _classRegistry.singletonInstances[IStageUtils]
+//			return (_classRegistry || ClassRegistry).singletonInstances[IStageUtils]
 //				|| _classRegistry.getSingletonInstance(IStageUtils);
 //		}
 //		/**
@@ -95,9 +85,7 @@ package weavejs
 //		 */
 //		public static function get ExternalSessionStateInterface():IExternalSessionStateInterface
 //		{
-//			if (!_classRegistry)
-//				ClassRegistry;
-//			return _classRegistry.singletonInstances[IExternalSessionStateInterface]
+//			return (_classRegistry || ClassRegistry).singletonInstances[IExternalSessionStateInterface]
 //				|| _classRegistry.getSingletonInstance(IExternalSessionStateInterface);
 //		}
 		/**
@@ -105,69 +93,55 @@ package weavejs
 		 */
 		public static function get ProgressIndicator():IProgressIndicator
 		{
-			if (!_classRegistry)
-				ClassRegistry;
-			return _classRegistry.singletonInstances[IProgressIndicator]
+			return (_classRegistry || ClassRegistry).singletonInstances[IProgressIndicator]
 				|| _classRegistry.getSingletonInstance(IProgressIndicator);
 		}
-		/**
-		 * This is the singleton instance of the registered IAttributeColumnCache implementation.
-		 */
-		public static function get AttributeColumnCache():IAttributeColumnCache
-		{
-			if (!_classRegistry)
-				ClassRegistry;
-			return _classRegistry.singletonInstances[IAttributeColumnCache]
-				|| _classRegistry.getSingletonInstance(IAttributeColumnCache);
-		}
-		/**
-		 * This is the singleton instance of the registered IStatisticsCache implementation.
-		 */
-		public static function get StatisticsCache():IStatisticsCache
-		{
-			if (!_classRegistry)
-				ClassRegistry;
-			return _classRegistry.singletonInstances[IStatisticsCache]
-				|| _classRegistry.getSingletonInstance(IStatisticsCache);
-		}
+//		/**
+//		 * This is the singleton instance of the registered IAttributeColumnCache implementation.
+//		 */
+//		public static function get AttributeColumnCache():IAttributeColumnCache
+//		{
+//			return (_classRegistry || ClassRegistry).singletonInstances[IAttributeColumnCache]
+//				|| _classRegistry.getSingletonInstance(IAttributeColumnCache);
+//		}
+//		/**
+//		 * This is the singleton instance of the registered IStatisticsCache implementation.
+//		 */
+//		public static function get StatisticsCache():IStatisticsCache
+//		{
+//			return (_classRegistry || ClassRegistry).singletonInstances[IStatisticsCache]
+//				|| _classRegistry.getSingletonInstance(IStatisticsCache);
+//		}
 //		/**
 //		 * This is the singleton instance of the registered IProjectionManager implementation.
 //		 */
 //		public static function get ProjectionManager():IProjectionManager
 //		{
-//			if (!_classRegistry)
-//				ClassRegistry;
-//			return _classRegistry.singletonInstances[IProjectionManager]
+//			return (_classRegistry || ClassRegistry).singletonInstances[IProjectionManager]
 //				|| _classRegistry.getSingletonInstance(IProjectionManager);
 //		}
-		/**
-		 * This is the singleton instance of the registered IQualifiedKeyManager implementation.
-		 */
-		public static function get QKeyManager():IQualifiedKeyManager
-		{
-			if (!_classRegistry)
-				ClassRegistry;
-			return _classRegistry.singletonInstances[IQualifiedKeyManager]
-				|| _classRegistry.getSingletonInstance(IQualifiedKeyManager);
-		}
-		/**
-		 * This is the singleton instance of the registered ICSVParser implementation.
-		 */
-		public static function get CSVParser():ICSVParser
-		{
-			if (!_classRegistry)
-				ClassRegistry;
-			return _classRegistry.singletonInstances[ICSVParser]
-				|| _classRegistry.getSingletonInstance(ICSVParser);
-		}
+//		/**
+//		 * This is the singleton instance of the registered IQualifiedKeyManager implementation.
+//		 */
+//		public static function get QKeyManager():IQualifiedKeyManager
+//		{
+//			return (_classRegistry || ClassRegistry).singletonInstances[IQualifiedKeyManager]
+//				|| _classRegistry.getSingletonInstance(IQualifiedKeyManager);
+//		}
+//		/**
+//		 * This is the singleton instance of the registered ICSVParser implementation.
+//		 */
+//		public static function get CSVParser():ICSVParser
+//		{
+//			return (_classRegistry || ClassRegistry).singletonInstances[ICSVParser]
+//				|| _classRegistry.getSingletonInstance(ICSVParser);
+//		}
 //		/**
 //		 * This is the singleton instance of the registered IURLRequestUtils implementation.
 //		 */
 //		public static function get URLRequestUtils():IURLRequestUtils
 //		{
-//			if (!_classRegistry)
-//				ClassRegistry;
-//			return _classRegistry.singletonInstances[IURLRequestUtils]
+//			return (_classRegistry || ClassRegistry).singletonInstances[IURLRequestUtils]
 //				|| _classRegistry.getSingletonInstance(IURLRequestUtils);
 //		}
 		/**
@@ -175,33 +149,16 @@ package weavejs
 		 */
 		public static function get LocaleManager():ILocaleManager
 		{
-			if (!_classRegistry)
-				ClassRegistry;
-			return _classRegistry.singletonInstances[ILocaleManager]
+			return (_classRegistry || ClassRegistry).singletonInstances[ILocaleManager]
 				|| _classRegistry.getSingletonInstance(ILocaleManager);
 		}
-		/**
-		 * This is the singleton instance of the registered IEditorManager implementation.
-		 */
-		public static function get EditorManager():IEditorManager
-		{
-			if (!_classRegistry)
-				ClassRegistry;
-			return _classRegistry.singletonInstances[IEditorManager]
-				|| _classRegistry.getSingletonInstance(IEditorManager);
-		}
-		
-		private static var _init:* = Utils.preserveGetterSetters(
-			WeaveAPI,
-			'ClassRegistry',
-			'LocaleManager',
-			'ProgressIndicator',
-			'SessionManager',
-			'AttributeColumnCache',
-			'CSVParser',
-			'QualifiedKeyManager',
-			'StatisticsCache',
-			'EditorManager'
-		);
+//		/**
+//		 * This is the singleton instance of the registered IEditorManager implementation.
+//		 */
+//		public static function get EditorManager():IEditorManager
+//		{
+//			return (_classRegistry || ClassRegistry).singletonInstances[IEditorManager]
+//				|| _classRegistry.getSingletonInstance(IEditorManager);
+//		}
 	}
 }

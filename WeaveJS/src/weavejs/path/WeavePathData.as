@@ -7,7 +7,7 @@
 package weavejs.path
 {
 	import weavejs.Weave;
-	import weavejs.utils.Utils;
+	import weavejs.utils.JS;
 
 	public class WeavePathData extends WeavePath
 	{
@@ -35,7 +35,7 @@ package weavejs.path
 			this.qkeyToIndex = shared.qkeyToIndex;
 		}
 		
-		private static var map_weave:Object = new Utils.WeakMap();
+		private static var map_weave:Object = new JS.WeakMap();
 		
 		private var shared:WeavePathDataShared;
 		
@@ -61,9 +61,7 @@ package weavejs.path
 		    var name:String = property_descriptor["name"]
 		    	|| _failMessage('initProperty', 'A "name" is required');
 		    var label:String = property_descriptor["label"];
-		    var children:Array = property_descriptor["children"] is Array
-		    	? Weave.toArray(property_descriptor["children"])
-		    	: undefined;
+		    var children:Array = property_descriptor["children"];
 		    var type:String = property_descriptor["type"] || (children ? "LinkableHashMap" : "LinkableVariable");
 		    
 		    var new_prop:WeavePathData = this.push(name) as WeavePathData;
@@ -161,8 +159,7 @@ package weavejs.path
 		public function getKeys(...relativePath):Array
 		{
 		    var args:Array = _A(relativePath, 1);
-		    var path:Array = this._path.concat(args);
-		    var raw_keys:Array = this.weave.directAPI.evaluateExpression(path, "this.keys");
+		    var raw_keys:Array = this.getObject(args)['keys'];
 		    return raw_keys.map(this.qkeyToString);
 		}
 		
@@ -275,8 +272,7 @@ package weavejs.path
 		    {
 		        var keyStringArray:Array = args.pop();
 		        var keyObjectArray:Array = keyStringArray.map(this.stringToQKey);
-		        var path:Array = this._path.concat(args);
-		        this.weave.directAPI.evaluateExpression(path, 'this.replaceKeys(keys)', {keys: keyObjectArray}, null, "");
+				this.getObject(args)['replaceKeys'](keyObjectArray);
 		
 		        return this;
 		    };
@@ -292,19 +288,16 @@ package weavejs.path
 		
 		public function filterKeys(...relativePath_keyStringArray):Array
 		{
-		    var args:Array = _A(relativePath_keyStringArray, 2);
-		    if (_assertParams('filterKeys', args))
-		    {
-		        var keyStringArray:Array = args.pop();
-		        var keyObjects:Array = keyStringArray.map(this.stringToQKey);
-		        var path:Array = this._path.concat(args);
-		        var resultArray:Array = this.weave.directAPI.evaluateExpression(
-		            path,
-		            'WeaveAPI.QKeyManager.convertToQKeys(keys).filter(key => this.containsKey(key))',
-		            {keys: keyObjects}
-		        );
-		        return resultArray.map(this.qkeyToString, this);
-		    }
+//		    var args:Array = _A(relativePath_keyStringArray, 2);
+//		    if (_assertParams('filterKeys', args))
+//		    {
+//		        var keyStringArray:Array = args.pop();
+//		        var keyObjects:Array = keyStringArray.map(this.stringToQKey);
+//				var obj:Object = this.getObject(args);
+//				return WeaveAPI.QKeyManager.convertToQKeys(keyObjects)
+//					.filter(function(key:*):Boolean { return obj.containsKey(key); })
+//		        	.map(this.qkeyToString, this);
+//		    }
 			return null;
 		}
 		
@@ -347,7 +340,7 @@ package weavejs.path
 		
 		    if (pathMapping is Array) // array of child names
 		    {
-				var names:Array = Weave.toArray(pathMapping);
+				var names:Array = pathMapping as Array;
 				pathMapping = {};
 				for each (var name:String in names)
 					pathMapping[name] = this.push(name);

@@ -17,7 +17,7 @@ package weavejs.core
 {
 	import weavejs.Weave;
 	import weavejs.api.core.IClassRegistry;
-	import weavejs.utils.Utils;
+	import weavejs.utils.JS;
 	
 	/**
 	 * Manages a set of implementations of interfaces.
@@ -26,10 +26,10 @@ package weavejs.core
 	{
 		public function ClassRegistryImpl()
 		{
-			this.singletonInstances = new Utils.Map();
-			this.singletonImplementations = new Utils.Map();
-			this.implementations = new Utils.Map();
-			this.displayNames = new Utils.Map();
+			this.singletonInstances = new JS.Map();
+			this.singletonImplementations = new JS.Map();
+			this.implementations = new JS.Map();
+			this.displayNames = new JS.Map();
 		}
 		
 		/**
