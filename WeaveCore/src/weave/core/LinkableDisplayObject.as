@@ -50,7 +50,7 @@ package weave.core
 		/**
 		 * The qualified class name of a DisplayObject.
 		 */
-		public const className:LinkableString = newLinkableChild(this, LinkableString, handleClassDefChange);
+		public var className:LinkableString = newLinkableChild(this, LinkableString, handleClassDefChange);
 		
 		/**
 		 * Session state containing an object mapping an event name to a script to be called when the event fires.
@@ -58,17 +58,17 @@ package weave.core
 		 * The "event" variable will be set to the event object.
 		 * The "owner" variable can be used inside the script to get a pointer to the LinkableDisplayObject.
 		 */
-		public const events:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable, updateEventListeners);
+		public var events:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable, updateEventListeners);
 		
 		/**
 		 * Session state containing an object mapping the DisplayObject's property names to values.
 		 */
-		public const properties:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable, handlePropertiesChange, true);
+		public var properties:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable, handlePropertiesChange, true);
 		
 		/**
 		 * Child linkable objects.
 		 */
-		public const children:ILinkableHashMap = newLinkableChild(this, LinkableHashMap);
+		public var children:ILinkableHashMap = newLinkableChild(this, LinkableHashMap);
 		
 		private var _parent:DisplayObjectContainer = null; // The parent passed to setParentContainer()
 		private var _displayObject:DisplayObject = null; // the internal DisplayObject
@@ -285,8 +285,8 @@ package weave.core
 			}
 		}
 		
-		private const symbolTable:Object = {owner: this};
-		private const compiler:Compiler = new Compiler();
+		private var symbolTable:Object = {owner: this};
+		private var compiler:Compiler = new Compiler();
 		
 		/**
 		 * This function generates an event listener that executes JavaScript code. 

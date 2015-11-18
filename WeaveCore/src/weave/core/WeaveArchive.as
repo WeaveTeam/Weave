@@ -46,13 +46,13 @@ package weave.core
 		 * This is a dynamic object containing all the files (ByteArray objects) in the archive.
 		 * The property names used in this object must be valid filenames or serialize() will fail.
 		 */
-		public const files:OrderedHashMap = new OrderedHashMap();
+		public var files:OrderedHashMap = new OrderedHashMap();
 		
 		/**
 		 * This is a dynamic object containing all the amf objects stored in the archive.
 		 * The property names used in this object must be valid filenames or serialize() will fail.
 		 */
-		public const objects:OrderedHashMap = new OrderedHashMap();
+		public var objects:OrderedHashMap = new OrderedHashMap();
 		
 		private static const FOLDER_AMF:String = "weave-amf"; // folder used for amf-encoded objects
 		private static const FOLDER_FILES:String = "weave-files"; // folder used for raw files

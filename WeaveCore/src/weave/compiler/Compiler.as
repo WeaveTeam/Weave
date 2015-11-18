@@ -185,17 +185,17 @@ package weavejs.compiler
 		private static const maxUnicodeEscapeChars:uint = 8; // {10FFFF}
 		private static const unicodeRegex:RegExp = /^(\{[0-9A-Fa-f]+\}|[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])/;
 		
-		private const JUMP_LOOKUP:Object = new Utils.Map(); // Function -> true
-		private const LOOP_LOOKUP:Object = new Utils.Map(); // Function -> true or ST_BREAK or ST_CONTINUE
-		private const BRANCH_LOOKUP:Object = new Utils.Map(); // Function -> Boolean, for short-circuiting
-		private const ASSIGN_OP_LOOKUP:Object = new Utils.Map(); // Function -> true
-		private const PURE_OP_LOOKUP:Object = new Utils.Map(); // Function -> true
-		private const MAX_OPERATOR_LENGTH:int = 4;
+		private var JUMP_LOOKUP:Object = new Utils.Map(); // Function -> true
+		private var LOOP_LOOKUP:Object = new Utils.Map(); // Function -> true or ST_BREAK or ST_CONTINUE
+		private var BRANCH_LOOKUP:Object = new Utils.Map(); // Function -> Boolean, for short-circuiting
+		private var ASSIGN_OP_LOOKUP:Object = new Utils.Map(); // Function -> true
+		private var PURE_OP_LOOKUP:Object = new Utils.Map(); // Function -> true
+		private var MAX_OPERATOR_LENGTH:int = 4;
 		
 		/**
 		 * This is a list of objects and/or classes containing functions and constants supported by the compiler.
 		 */
-		private const libraries:Array = [];
+		private var libraries:Array = [];
 		
 		/**
 		 * This object maps the name of a predefined constant to its value.

@@ -26,6 +26,7 @@ package weavejs.core
 	import weavejs.api.core.ISessionManager;
 	import weavejs.compiler.StandardLib;
 	import weavejs.utils.Dictionary2D;
+	import weavejs.utils.JS;
 	
 	/**
 	 * This is used to dynamically attach a set of callbacks to different targets.
@@ -85,7 +86,7 @@ package weavejs.core
 		protected function internalSetTarget(newTarget:ILinkableObject):void
 		{
 			if (_foundTarget && _typeRestriction)
-				newTarget = newTarget as _typeRestriction as ILinkableObject;
+				newTarget = JS.AS(newTarget, _typeRestriction) as ILinkableObject;
 			
 			// do nothing if the targets are the same.
 			if (_target == newTarget)

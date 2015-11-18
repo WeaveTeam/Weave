@@ -42,7 +42,7 @@ package weave.core
 		private static const objectToLDDO:Dictionary = new Dictionary(true);
 		private var _parent:DisplayObjectContainer = null;
 		private var _object:DisplayObject = null;
-		private const _watcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(DisplayObject, handleWatcher));
+		private var _watcher:LinkableWatcher = registerDisposableChild(this, new LinkableWatcher(DisplayObject, handleWatcher));
 		
 		public function getSessionState():Object
 		{

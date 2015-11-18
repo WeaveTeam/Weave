@@ -60,7 +60,7 @@ package weave.core
 			addEventCallback(Event.RENDER, null, handleCallLater);
 		}
 		
-		private const eventManager:EventManager = new EventManager();
+		private var eventManager:EventManager = new EventManager();
 		
 		public static function get debug_fps():Boolean { return EventCallbackCollection.debug_fps; }
 		public static function set debug_fps(value:Boolean):void { EventCallbackCollection.debug_fps = value; }
@@ -71,10 +71,10 @@ package weave.core
 		public var averageFrameTime:int = 0;
 		
 		private var pauseForGCIfCollectionImminent:Function = null;
-		private const frameTimes:Array = [];
-		private const _stackTraceMap:Dictionary = new Dictionary(true); // used by callLater to remember stack traces
-		private const _taskElapsedTime:Dictionary = new Dictionary(true);
-		private const _taskStartTime:Dictionary = new Dictionary(true);
+		private var frameTimes:Array = [];
+		private var _stackTraceMap:Dictionary = new Dictionary(true); // used by callLater to remember stack traces
+		private var _taskElapsedTime:Dictionary = new Dictionary(true);
+		private var _taskStartTime:Dictionary = new Dictionary(true);
 		private var _currentTaskStopTime:int = 0; // set on enterFrame, used by _iterateTask
 		
 		/**
@@ -111,10 +111,10 @@ package weave.core
 		 * The Arrays get populated by callLater().
 		 * There are four nested Arrays corresponding to the four priorities (0, 1, 2, 3) defined by static constants in WeaveAPI.
 		 */
-		private const _priorityCallLaterQueues:Array = [[], [], [], []];
+		private var _priorityCallLaterQueues:Array = [[], [], [], []];
 		private var _activePriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE + 1; // task priority that is currently being processed
 		private var _activePriorityElapsedTime:uint = 0; // elapsed time for active task priority
-		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE, 300, 200, 100]; // An Array of allocated times corresponding to callLater queues.
+		private var _priorityAllocatedTimes:Array = [int.MAX_VALUE, 300, 200, 100]; // An Array of allocated times corresponding to callLater queues.
 		private var _deactivatedMaxComputationTimePerFrame:uint = 1000;
 		private var _nextCallLaterPriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE; // private variable to control the priority of the next callLater() internally
 
@@ -750,7 +750,7 @@ internal class EventManager
 	/**
 	 * This is a mapping from event type to corresponding EventCallbackCollection.
 	 */
-	public const callbackCollections:Object = {};
+	public var callbackCollections:Object = {};
 	
 	public var stage:Stage;
 	public var event:Event = null; // the current event
@@ -767,8 +767,8 @@ internal class EventManager
 	public var deactivated:Boolean = true; // true when application is deactivated
 	public var useDeactivatedFrameRate:Boolean = false; // true when deactivated and framerate drop detected
 	
-	public const lastMouseDownPoint:Point = new Point(NaN, NaN); // stage coords of last mouseDown event
-	public const lastThrottledMousePoint:Point = new Point(NaN, NaN); // stage coords of mouse for last throttled mouseMove event
+	public var lastMouseDownPoint:Point = new Point(NaN, NaN); // stage coords of last mouseDown event
+	public var lastThrottledMousePoint:Point = new Point(NaN, NaN); // stage coords of mouse for last throttled mouseMove event
 	public var triggeredThrottledMouseThisFrame:Boolean = false; // set to false on enterFrame, set to true on throttled mouse move
 	public var nextThrottledMouseMoveTime:int = 0; // time threshold before triggering throttled mouse move again
 	public var throttledMouseMoveInterval:int = 100; // time threshold before triggering throttled mouse move again

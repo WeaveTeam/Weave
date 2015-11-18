@@ -44,9 +44,6 @@ package weavejs.core
 		// the callback collection for this object
 		private var cc:CallbackCollection = WeaveAPI.SessionManager.newDisposableChild(this, CallbackCollection);
 		
-		// this is a constraint on the type of object that can be linked
-		private var _typeRestrictionClassName:String = null;
-		
 		// when this is true, the linked object cannot be changed
 		private var _locked:Boolean = false;
 		

@@ -29,7 +29,7 @@ package weave.core
 	 */
 	public class EditorManager implements IEditorManager
 	{
-		private const _editorLookup:Dictionary = new Dictionary(true);
+		private var _editorLookup:Dictionary = new Dictionary(true);
 		
 		/**
 		 * @inheritDoc
@@ -83,7 +83,7 @@ package weave.core
 			return null;
 		}
 		
-		private const labels:Dictionary = new Dictionary(true);
+		private var labels:Dictionary = new Dictionary(true);
 		
 		/**
 		 * @inheritDoc

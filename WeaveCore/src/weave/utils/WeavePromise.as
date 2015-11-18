@@ -64,8 +64,8 @@ package weavejs.utils
 		protected var relevantContext:Object;
 		private var result:* = undefined;
 		private var error:* = undefined;
-		private const handlers:Array = []; // array of Handler objects
-		private const dependencies:Array = [];
+		private var handlers:Array = []; // array of Handler objects
+		private var dependencies:Array = [];
 		
 		public function setResult(result:Object):void
 		{

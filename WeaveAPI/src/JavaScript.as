@@ -597,9 +597,9 @@ package
 				}
 			}
 			
-			const CODE_PARAM:String = '__code_from_flash__';
-			const ARGS_PARAM:String = '__arguments_from_flash__';
-			const RESULT_VAR:String = '__result_for_flash__';
+			var CODE_PARAM:String = '__code_from_flash__';
+			var ARGS_PARAM:String = '__arguments_from_flash__';
+			var RESULT_VAR:String = '__result_for_flash__';
 			
 			// if the code references "this", we need to use Function.apply() to make the symbol work as expected
 			var appliedCode:String;
@@ -614,11 +614,11 @@ package
 			try
 			{
 				// we need to use eval() in order to receive syntax errors
-				const TRY_CODE:String = json
+				var TRY_CODE:String = json
 					? 'return JSON.stringify(window.eval(' + CODE_PARAM + '), ' + JS_this + '.' + JSON_REPLACER + ');'
 					: 'var ' + RESULT_VAR + ' = eval(' + CODE_PARAM + '); return ' + JS_this + '.' + JSON_REPLACER + '("", ' + RESULT_VAR + ');';
 				
-				const CATCH_CODE:String = marshallExceptions
+				var CATCH_CODE:String = marshallExceptions
 					? 'if (e.toString() == "[object Error]") e.toString = function(){ return this.name + ": " + this.message; }; throw e;'
 					: 'e.message += "\\n" + ' + CODE_PARAM + '; if (typeof console != "undefined") console.error(e);';
 				

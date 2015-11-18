@@ -40,20 +40,14 @@ package weavejs.core
 		public function LinkableHashMap(typeRestriction:Class = null)
 		{
 			_typeRestriction = typeRestriction;
-			_childListCallbacks = WeaveAPI.SessionManager.newLinkableChild(this, ChildListCallbackInterface);
-			_orderedNames = []; // an ordered list of names appearing in _nameToObjectMap
-			_nameToObjectMap = {}; // maps an identifying name to an object
-			_map_objectToNameMap = new JS.WeakMap(); // maps an object to an identifying name
-			_nameIsLocked = {}; // maps an identifying name to a value of true if that name is locked.
-			_previousNameMap = {}; // maps a previously used name to a value of true.  used when generating unique names.
 		}
 		
-		private var _childListCallbacks:ChildListCallbackInterface;
-		private var _orderedNames:Array; // an ordered list of names appearing in _nameToObjectMap
-		private var _nameToObjectMap:Object; // maps an identifying name to an object
-		private var _map_objectToNameMap:Object; // maps an object to an identifying name
-		private var _nameIsLocked:Object; // maps an identifying name to a value of true if that name is locked.
-		private var _previousNameMap:Object; // maps a previously used name to a value of true.  used when generating unique names.
+		private var _childListCallbacks:ChildListCallbackInterface = WeaveAPI.SessionManager.newLinkableChild(this, ChildListCallbackInterface);
+		private var _orderedNames:Array = []; // an ordered list of names appearing in _nameToObjectMap
+		private var _nameToObjectMap:Object = {}; // maps an identifying name to an object
+		private var _map_objectToNameMap:Object = new JS.WeakMap(); // maps an object to an identifying name
+		private var _nameIsLocked:Object = {}; // maps an identifying name to a value of true if that name is locked.
+		private var _previousNameMap:Object = {}; // maps a previously used name to a value of true.  used when generating unique names.
 		private var _typeRestriction:Class; // restricts the type of object that can be stored
 		
 		/**
@@ -234,9 +228,8 @@ package weavejs.core
 				if (!name)
 					name = generateUniqueName(className.split("::").pop());
 				var classDef:Class = Weave.getDefinition(className);
-				var typeRestriction:Class = _typeRestriction; // avoid 'is' compiler bug
 				if (Weave.isLinkable(classDef)
-					&& (typeRestriction == null || classDef.prototype is typeRestriction) )
+					&& (_typeRestriction == null || JS.IS(classDef.prototype, _typeRestriction)) )
 				{
 //					try
 //					{

@@ -169,9 +169,9 @@ package weave.core
 
 		private var _taskCount:int = 0;
 		private var _maxTaskCount:int = 0;
-		private const _progress:Dictionary = new Dictionary();
-		private const _description:Dictionary = new Dictionary();
-		private const _stackTrace:Dictionary = new Dictionary();
+		private var _progress:Dictionary = new Dictionary();
+		private var _description:Dictionary = new Dictionary();
+		private var _stackTrace:Dictionary = new Dictionary();
 		
 		public function test():void
 		{

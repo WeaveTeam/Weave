@@ -38,8 +38,8 @@ package weave.core
 			addImmediateCallback(this, handleSessionStateChange);
 		}
 		
-		public const objectType:LinkableString = newLinkableChild(this, LinkableString);
-		public const properties:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable);
+		public var objectType:LinkableString = newLinkableChild(this, LinkableString);
+		public var properties:UntypedLinkableVariable = newLinkableChild(this, UntypedLinkableVariable);
 		
 		private var _typeRestrictionQName:String = null; // restriction on the type of object that can be generated
 		private var _generatedObject:Object = null; // returned by public getter

@@ -43,7 +43,7 @@ package weave.utils
 		/**
 		 * The compiler used by the console.
 		 */
-		public const compiler:Compiler = new Compiler();
+		public var compiler:Compiler = new Compiler();
 		
 		/**
 		 * This is the context in which expressions will be evaluated (The "this" argument passed to Function.apply).
@@ -55,7 +55,7 @@ package weave.utils
 		 * A set of additional functions available in the console.
 		 * These can be customized as necessary.
 		 */
-		public const consoleMethods:Object = {
+		public var consoleMethods:Object = {
 			'exec': JavaScript.exec,
 			'call': function(...args):* {
 				ExternalInterface.marshallExceptions = true;
@@ -74,7 +74,7 @@ package weave.utils
 		};
 		
 		
-		private const symbolTable:Object = consoleMethods;
+		private var symbolTable:Object = consoleMethods;
 		
 		private function styleProxy(component:UIComponent):ProxyObject
 		{
