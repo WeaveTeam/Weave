@@ -114,11 +114,11 @@ package weave.data.DataSources
 			return super.initializationComplete;
 		}
 		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			validateKeyType();
 			
-			super.initialize();
+			super.initialize(forceRefresh);
 		}
 		
 		public static const PROPERTY_NAME:String = "TransposedDataSource_propertyName";

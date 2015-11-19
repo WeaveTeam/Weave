@@ -46,12 +46,12 @@ package weave.data.DataSources
         {
         }
 		
-        override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
         {
             // recalculate all columns previously requested
-            //refreshAllProxyColumns();
+            //forceRefresh = true;
             
-            super.initialize();
+            super.initialize(forceRefresh);
         }
 		
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString);

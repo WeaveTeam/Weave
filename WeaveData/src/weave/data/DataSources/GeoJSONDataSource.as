@@ -15,36 +15,27 @@
 
 package weave.data.DataSources
 {
-	import flash.net.URLLoaderDataFormat;
-	import flash.net.URLRequest;
-	import flash.system.Capabilities;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getTimer;
 	
-	import mx.rpc.events.FaultEvent;
-	import mx.rpc.events.ResultEvent;
-	
+	import weave.api.detectLinkableObjectChange;
+	import weave.api.linkableObjectIsBusy;
+	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
-	import weave.api.detectLinkableObjectChange;
-	import weave.api.linkableObjectIsBusy;
-	import weave.api.newLinkableChild;
-	import weave.api.reportError;
 	import weave.compiler.Compiler;
-	import weave.compiler.StandardLib;
 	import weave.core.LinkableFile;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.ProjectionManager;
 	import weave.primitives.GeneralizedGeometry;
-	import weave.services.addAsyncResponder;
 	import weave.utils.GeoJSON;
 	import weave.utils.VectorUtils;
 	
@@ -102,7 +93,7 @@ package weave.data.DataSources
 		/**
 		 * This gets called as a grouped callback.
 		 */		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			_rootNode = null;
 			
@@ -113,9 +104,7 @@ package weave.data.DataSources
 			}
 			
 			// recalculate all columns previously requested because data may have changed.
-			refreshAllProxyColumns();
-
-			super.initialize();
+			super.initialize(true);
 		}
 		
 		private function handleFile():void
@@ -315,9 +304,6 @@ package weave.data.DataSources
 		}
 	}
 }
-
-import flash.system.Capabilities;
-import flash.utils.getDefinitionByName;
 
 import weave.api.data.ColumnMetadata;
 import weave.api.data.IColumnReference;

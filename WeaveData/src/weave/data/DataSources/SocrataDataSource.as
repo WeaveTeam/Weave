@@ -55,11 +55,11 @@ package weave.data.DataSources
 		/**
 		 * This gets called when callbacks are triggered.
 		 */		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			// TODO handle url change
 			
-			super.initialize();
+			super.initialize(forceRefresh);
 		}
 		
 		override protected function refreshHierarchy():void

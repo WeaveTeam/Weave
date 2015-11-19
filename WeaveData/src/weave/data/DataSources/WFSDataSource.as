@@ -77,7 +77,7 @@ package weave.data.DataSources
 			wfsDataService = registerLinkableChild(this, new WFSServlet(url.value, useURLsInGetCapabilities.value));
 		}
 		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			// backwards compatibility
 			if(_attributeHierarchy.value != null)
@@ -94,7 +94,7 @@ package weave.data.DataSources
 				HierarchyUtils.convertOldHierarchyFormat(_attributeHierarchy.value, 'attribute', {'projectionSRS': ColumnMetadata.PROJECTION});
 			}
 			
-			super.initialize();
+			super.initialize(forceRefresh);
 		}
 		private function _convertOldDataType(value:String):String
 		{

@@ -302,9 +302,9 @@ package weave.data.DataSources
 		/**
 		 * This gets called as a grouped callback when the session state changes.
 		 */
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
-			super.initialize();
+			super.initialize(forceRefresh);
 		}
 		
 		override protected function get initializationComplete():Boolean
