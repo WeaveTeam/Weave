@@ -199,7 +199,7 @@
 			}
 			
 			/**
-			 * This function(event ListeSner) gets called during dataGrid Resize event
+			 * This function(event Listener) gets called during dataGrid Resize event
 			 * handleDataGridHorizontalScroll calls updateColumnWidths, when the dataGridHorizontalScrollPosition.value is Maximum
 			 * handleDataGridHorizontalScroll is called to update FilterComponents Position
 			 */			
