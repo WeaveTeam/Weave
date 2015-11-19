@@ -15,14 +15,11 @@
 
 package weavejs.core
 {
-	import weavejs.Weave;
-	import weavejs.WeaveAPI;
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.api.core.ISessionManager;
 	import weavejs.utils.JS;
 
 	/**
@@ -42,7 +39,7 @@ package weavejs.core
 		}
 		
 		// the callback collection for this object
-		private var cc:CallbackCollection = WeaveAPI.SessionManager.newDisposableChild(this, CallbackCollection);
+		private var cc:CallbackCollection = Weave.disposableChild(this, CallbackCollection);
 		
 		// when this is true, the linked object cannot be changed
 		private var _locked:Boolean = false;
@@ -67,7 +64,7 @@ package weavejs.core
 				return [];
 			
 			var className:String = Weave.className(obj);
-			var sessionState:Object = obj as Array || WeaveAPI.SessionManager.getSessionState(obj as ILinkableObject);
+			var sessionState:Object = obj as Array || Weave.getState(obj as ILinkableObject);
 			return [DynamicState.create(null, className, sessionState)];
 		}
 		
@@ -133,7 +130,7 @@ package weavejs.core
 					if (className || removeMissingDynamicObjects)
 						setLocalObjectType(classDef);
 					if ((!className && target) || (classDef && target is classDef))
-						WeaveAPI.SessionManager.setSessionState(target, sessionState, prevTarget != target || removeMissingDynamicObjects);
+						Weave.setState(target, sessionState, prevTarget != target || removeMissingDynamicObjects);
 				}
 			}
 			finally
@@ -157,8 +154,7 @@ package weavejs.core
 			cc.delayCallbacks();
 			
 			// if the target can be found by a path, use the path
-			var sm:ISessionManager = WeaveAPI.SessionManager;
-			var path:Array = sm.getPath(Weave.getRoot(this), newTarget);
+			var path:Array = Weave.findPath(Weave.getRoot(this), newTarget);
 			if (path)
 			{
 				targetPath = path;
@@ -167,7 +163,7 @@ package weavejs.core
 			{
 				// it's ok to assign a local object that we own or that doesn't have an owner yet
 				// otherwise, unset the target
-				var owner:ILinkableObject = sm.getLinkableOwner(newTarget);
+				var owner:ILinkableObject = Weave.getOwner(newTarget);
 				if (owner === this || !owner)
 					super.target = newTarget;
 				else
@@ -180,7 +176,7 @@ package weavejs.core
 		override protected function internalSetTarget(newTarget:ILinkableObject):void
 		{
 			// don't allow recursive linking
-			if (newTarget === this || WeaveAPI.SessionManager.getLinkableDescendants(newTarget, LinkableDynamicObject).indexOf(this) >= 0)
+			if (newTarget === this || Weave.getDescendants(newTarget, LinkableDynamicObject).indexOf(this) >= 0)
 				newTarget = null;
 			
 			super.internalSetTarget(newTarget);
@@ -203,8 +199,7 @@ package weavejs.core
 			
 			targetPath = null;
 			
-			if ( Weave.isLinkable(classDef)
-				&& (_typeRestriction == null || JS.IS(classDef.prototype, _typeRestriction)) )
+			if ( Weave.isLinkable(classDef) && (_typeRestriction == null || JS.IS(classDef.prototype, _typeRestriction)) )
 			{
 				var obj:Object = target;
 				if (!obj || obj.constructor != classDef)
@@ -274,10 +269,7 @@ package weavejs.core
 			var classDef:Class = objectToCopy ? Object(objectToCopy).constructor : null;
 			var object:ILinkableObject = requestLocalObject(classDef, false);
 			if (object != null && objectToCopy != null)
-			{
-				var state:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
-				WeaveAPI.SessionManager.setSessionState(object, state, true);
-			}
+				Weave.copyState(objectToCopy, object);
 			cc.resumeCallbacks();
 		}
 		

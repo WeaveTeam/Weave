@@ -6,11 +6,9 @@
 */
 package weavejs.core
 {
-	import weavejs.Weave;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.utils.JS;
 	
 	/**
 	 * This class manages a list of callback functions.
@@ -38,7 +36,6 @@ package weavejs.core
 		 */
 		public function CallbackCollection(preCallback:Function = null)
 		{
-			JS.bindAll(this);
 			this._preCallback = preCallback;
 			this._callbackEntries = [];
 			this._disposeCallbackEntries = [];
@@ -163,7 +160,7 @@ package weavejs.core
 					else if (entry.context is CallbackCollection) // special case
 						shouldRemoveEntry = (entry.context as CallbackCollection)._wasDisposed;
 					else
-						shouldRemoveEntry = Weave.objectWasDisposed(entry.context);
+						shouldRemoveEntry = Weave.wasDisposed(entry.context);
 					if (shouldRemoveEntry)
 					{
 						entry.dispose();
@@ -286,7 +283,7 @@ package weavejs.core
 			while (_disposeCallbackEntries.length)
 			{
 				var entry:CallbackEntry = _disposeCallbackEntries.shift();
-				if (entry.callback != null && !Weave.objectWasDisposed(entry.context))
+				if (entry.callback != null && !Weave.wasDisposed(entry.context))
 					entry.callback.apply(entry.context);
 			}
 		}

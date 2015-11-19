@@ -15,8 +15,6 @@
 
 package weavejs.core
 {
-	import weavejs.Weave;
-	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.utils.JS;
@@ -29,18 +27,18 @@ package weavejs.core
 		
 		public function LinkableSynchronizer()
 		{
-			_callbacks = WeaveAPI.SessionManager.getCallbackCollection(this);
+			_callbacks = Weave.getCallbacks(this);
 			_callbacks.addImmediateCallback(null, selfCallback);
 		}
 		
-		public var primaryPath:LinkableVariable = Weave.registerLinkableChild(this, new LinkableVariable(Array), setPrimaryPath);
-		public var secondaryPath:LinkableVariable = Weave.registerLinkableChild(this, new LinkableVariable(Array), setSecondaryPath);
+		public var primaryPath:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array), setPrimaryPath);
+		public var secondaryPath:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array), setSecondaryPath);
 		
-		public var primaryTransform:LinkableFunction = Weave.registerLinkableChild(this, new LinkableFunction(null, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handlePrimaryTransform);
-		public var secondaryTransform:LinkableFunction = Weave.registerLinkableChild(this, new LinkableFunction(null, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handleSecondaryTransform);
+		public var primaryTransform:LinkableFunction = Weave.linkableChild(this, new LinkableFunction(null, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handlePrimaryTransform);
+		public var secondaryTransform:LinkableFunction = Weave.linkableChild(this, new LinkableFunction(null, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handleSecondaryTransform);
 		
-		private var primaryWatcher:LinkableWatcher = Weave.registerDisposableChild(this, new LinkableWatcher(null, synchronize));
-		private var secondaryWatcher:LinkableWatcher = Weave.registerDisposableChild(this, new LinkableWatcher(null, synchronize));
+		private var primaryWatcher:LinkableWatcher = Weave.disposableChild(this, new LinkableWatcher(null, synchronize));
+		private var secondaryWatcher:LinkableWatcher = Weave.disposableChild(this, new LinkableWatcher(null, synchronize));
 		
 		private function setPrimaryPath():void
 		{
@@ -77,17 +75,17 @@ package weavejs.core
 			{
 				// check objects individually since one may have been disposed
 				if (_primary)
-					WeaveAPI.SessionManager.getCallbackCollection(_primary).removeCallback(primaryCallback);
+					Weave.getCallbacks(_primary).removeCallback(primaryCallback);
 				if (_secondary)
-					WeaveAPI.SessionManager.getCallbackCollection(_secondary).removeCallback(secondaryCallback);
+					Weave.getCallbacks(_secondary).removeCallback(secondaryCallback);
 				
 				_primary = primary;
 				_secondary = secondary;
 				
 				if (primary && secondary)
 				{
-					WeaveAPI.SessionManager.getCallbackCollection(_secondary).addImmediateCallback(this, secondaryCallback);
-					WeaveAPI.SessionManager.getCallbackCollection(_primary).addImmediateCallback(this, primaryCallback);
+					Weave.getCallbacks(_secondary).addImmediateCallback(this, secondaryCallback);
+					Weave.getCallbacks(_primary).addImmediateCallback(this, primaryCallback);
 					
 					// if primaryTransform is not given but secondaryTransform is, call secondaryCallback.
 					// otherwise, call primaryCallback.
@@ -126,9 +124,9 @@ package weavejs.core
 			{
 				try
 				{
-					var state:Object = WeaveAPI.SessionManager.getSessionState(_primary);
+					var state:Object = Weave.getState(_primary);
 					var transformedState:Object = primaryTransform.apply(null, [state, _primary, _secondary]);
-					WeaveAPI.SessionManager.setSessionState(_secondary, transformedState, true);
+					Weave.setState(_secondary, transformedState, true);
 				}
 				catch (e:Error)
 				{
@@ -137,7 +135,7 @@ package weavejs.core
 			}
 			else if (!secondaryTransform.value)
 			{
-				WeaveAPI.SessionManager.copySessionState(_primary, _secondary);
+				Weave.copyState(_primary, _secondary);
 			}
 		}
 		private function secondaryCallback():void
@@ -153,9 +151,9 @@ package weavejs.core
 			{
 				try
 				{
-					var state:Object = WeaveAPI.SessionManager.getSessionState(_secondary);
+					var state:Object = Weave.getState(_secondary);
 					var transformedState:Object = secondaryTransform.apply(null, [state, _primary, _secondary]);
-					WeaveAPI.SessionManager.setSessionState(_primary, transformedState, true);
+					Weave.setState(_primary, transformedState, true);
 				}
 				catch (e:Error)
 				{
@@ -164,7 +162,7 @@ package weavejs.core
 			}
 			else if (!primaryTransform.value)
 			{
-				WeaveAPI.SessionManager.copySessionState(_secondary, _primary);
+				Weave.copyState(_secondary, _primary);
 			}
 		}
 	}

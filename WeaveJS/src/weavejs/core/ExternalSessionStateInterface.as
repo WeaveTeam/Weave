@@ -15,8 +15,6 @@
 
 package weavejs.core
 {
-	import weavejs.Weave;
-	import weavejs.WeaveAPI;
 	import weavejs.api.core.IExternalSessionStateInterface;
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
@@ -38,23 +36,17 @@ package weavejs.core
 	 */
 	public class ExternalSessionStateInterface implements IExternalSessionStateInterface
 	{
-		public function ExternalSessionStateInterface(root:ILinkableHashMap)
+		public function ExternalSessionStateInterface()
 		{
-			this.root = root;
 		}
-		
-		/**
-		 * The root object in the session state tree.
-		 */
-		private var root:ILinkableHashMap;
 		
 		/**
 		 * @inheritDoc
 		 */
-		public function requestObject(path:WeavePath, objectType:String):Boolean
+		public function requestObject(path:WeavePath, objectType:Object):Boolean
 		{
 			// get class definition
-			var classDef:Class = Weave.getDefinition(objectType);
+			var classDef:Class = JS.asClass(objectType) || Weave.getDefinition(String(objectType));
 			if (classDef == null)
 			{
 				throwError("No class definition for {0}", JSON.stringify(objectType));
@@ -66,7 +58,7 @@ package weavejs.core
 			if (!objectPath || !objectPath.length)
 			{
 				// check for exact match only
-				if (Object(root).constructor == classDef)
+				if (Object(path.weave.root).constructor == classDef)
 					return true;
 				
 				throwError("Cannot request an object at the root path");
@@ -77,7 +69,7 @@ package weavejs.core
 			// executed when it is accessed (registering deprecated class definitions, for example).
 			var parentPath:Array = objectPath.concat();
 			var childName:Object = parentPath.pop();
-			var parent:ILinkableObject = WeaveAPI.SessionManager.getObject(root, parentPath);
+			var parent:ILinkableObject = Weave.followPath(path.weave.root, parentPath);
 			
 			// request the child object
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
@@ -92,7 +84,7 @@ package weavejs.core
 			else if (dynamicObject)
 				child = dynamicObject.requestGlobalObject(childName as String, classDef, false);
 			else
-				child = WeaveAPI.SessionManager.getObject(root, objectPath);
+				child = Weave.followPath(path.weave.root, objectPath);
 			
 			// check for exact match only
 			if (child && child.constructor == classDef)
@@ -115,7 +107,7 @@ package weavejs.core
 			
 			var parentPath:Array = path.getPath();
 			var childName:Object = parentPath.pop();
-			var parent:ILinkableObject = WeaveAPI.SessionManager.getObject(root, parentPath);
+			var parent:ILinkableObject = Weave.followPath(path.weave.root, parentPath);
 			
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 			if (hashMap)
@@ -173,7 +165,7 @@ package weavejs.core
 					return false;
 				}
 				
-				var object:ILinkableObject = WeaveAPI.SessionManager.getObject(root, path.getPath());
+				var object:ILinkableObject = path.getObject();
 				if (!object)
 				{
 					throwError("No ILinkableObject to which to add a callback at path or variable {0}", JSON.stringify(path));
@@ -193,9 +185,9 @@ package weavejs.core
 				
 				_d2d_callback_target.set(callback, object, true);
 				if (immediateMode)
-					WeaveAPI.SessionManager.getCallbackCollection(object).addImmediateCallback(null, callback, triggerCallbackNow);
+					Weave.getCallbacks(object).addImmediateCallback(null, callback, triggerCallbackNow);
 				else
-					WeaveAPI.SessionManager.getCallbackCollection(object).addGroupedCallback(null, callback, triggerCallbackNow);
+					Weave.getCallbacks(object).addGroupedCallback(null, callback, triggerCallbackNow);
 				return true;
 			}
 			catch (e:Error)
@@ -211,7 +203,7 @@ package weavejs.core
 			var wrapper:Function = function():void {
 				var targets:Array = _d2d_callback_target.secondaryKeys(wrapper);
 				for each (var target:ILinkableObject in targets)
-					if (WeaveAPI.SessionManager.linkableObjectIsBusy(target))
+					if (Weave.isBusy(target))
 						return;
 				callback.apply(path);
 			};
@@ -231,7 +223,7 @@ package weavejs.core
 			{
 				var targets:Array = _d2d_callback_target.secondaryKeys(callback);
 				for each (var target:ILinkableObject in targets)
-					WeaveAPI.SessionManager.getCallbackCollection(target).removeCallback(callback);
+					Weave.getCallbacks(target).removeCallback(callback);
 				
 				_d2d_callback_target.removeAllPrimary(callback);
 				_map_func_wrapper['delete'](callback);
@@ -246,7 +238,7 @@ package weavejs.core
 					return false;
 				}
 
-				var object:ILinkableObject = WeaveAPI.SessionManager.getObject(root, path.getPath());
+				var object:ILinkableObject = path.getObject();
 				if (!object)
 				{
 					warning("No ILinkableObject from which to remove a callback at path or variable {0}", JSON.stringify(path));
@@ -254,7 +246,7 @@ package weavejs.core
 				}
 				
 				_d2d_callback_target.remove(callback, object);
-				WeaveAPI.SessionManager.getCallbackCollection(object).removeCallback(callback);
+				Weave.getCallbacks(object).removeCallback(callback);
 				return true;
 			}
 			catch (e:Error)
@@ -275,7 +267,7 @@ package weavejs.core
 		}
 		private function removeAllCallbacks_each(callback:Function, target:ILinkableObject, value:*):void
 		{
-			WeaveAPI.SessionManager.getCallbackCollection(target).removeCallback(callback);
+			Weave.getCallbacks(target).removeCallback(callback);
 		}
 		
 		private static function throwError(format:String, ...args):void

@@ -4,9 +4,11 @@ Mozilla Public License, v. 2.0. If a copy of the MPL
 was not distributed with this file, You can obtain
 one at https://mozilla.org/MPL/2.0/.
 */
-package weavejs
+package
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.IExternalSessionStateInterface;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ISessionManager;
@@ -42,13 +44,11 @@ package weavejs
 		
 		public function Weave()
 		{
-			super();
-			
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IExternalSessionStateInterface, ExternalSessionStateInterface);
 			
 			root = new LinkableHashMap();
 			history = new SessionStateLog(root, HISTORY_SYNC_DELAY);
-			directAPI = new ExternalSessionStateInterface(root);
 		}
 		
 		public function test():void
@@ -92,11 +92,6 @@ package weavejs
 		public var history:SessionStateLog;
 		
 		/**
-		 * Instance of IExternalSessionStateInterface
-		 */
-		public var directAPI:ExternalSessionStateInterface;
-		
-		/**
 		 * Creates a WeavePath object.  WeavePath objects are immutable after they are created.
 		 * This is a shortcut for "new WeavePath(weave, basePath)".
 		 * @param basePath An optional Array (or multiple parameters) specifying the path to an object in the session state.
@@ -108,11 +103,14 @@ package weavejs
 		{
 			if (basePath.length == 1 && basePath[0] is Array)
 				basePath = basePath[0];
+			// handle path(linkableObject)
+			if (basePath.length == 1 && isLinkable(basePath[0]))
+				basePath = getPath(basePath[0]);
 			return new WeavePathData(this, basePath);
 		}
 		
 		/**
-		 * A shortcut for WeaveAPI.SessionManager.getObject(WeaveAPI.globalHashMap, path).
+		 * A shortcut for WeaveAPI.SessionManager.getObject(weave.root, path).
 		 * @see weave.api.core.ISessionManager#getObject()
 		 */
 		public function getObject(path:Array):ILinkableObject
@@ -121,7 +119,7 @@ package weavejs
 		}
 		
 		/**
-		 * A shortcut for WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, object).
+		 * A shortcut for WeaveAPI.SessionManager.getPath(weave.root, object).
 		 * @see weave.api.core.ISessionManager#getPath()
 		 */
 		public function getPath(object:ILinkableObject):Array
@@ -133,35 +131,62 @@ package weavejs
 		
 		
 		//////////////////////////////////////////////////////////////////////////////////
-		// static Weave API functions
+		// static functions for linkable objects
 		//////////////////////////////////////////////////////////////////////////////////
+		
+		/**
+		 * Shortcut for WeaveAPI.SessionManager.getPath()
+		 * @copy weave.api.core.ISessionManager#getPath()
+		 */
+		public static function findPath(root:ILinkableObject, descendant:ILinkableObject):Array
+		{
+			return WeaveAPI.SessionManager.getPath(root, descendant);
+		}
+		
+		/**
+		 * Shortcut for WeaveAPI.SessionManager.getObject()
+		 * @copy weave.api.core.ISessionManager#getObject()
+		 */
+		public static function followPath(root:ILinkableObject, path:Array):ILinkableObject
+		{
+			return WeaveAPI.SessionManager.getObject(root, path);
+		}
+		
+		/**
+		 * Shortcut for WeaveAPI.SessionManager.getCallbackCollection()
+		 * @copy weave.api.core.ISessionManager#getCallbackCollection()
+		 */
+		public static function getCallbacks(linkableObject:ILinkableObject):ICallbackCollection
+		{
+			return WeaveAPI.SessionManager.getCallbackCollection(linkableObject);
+		}
 
 		/**
 		 * This function is used to detect if callbacks of a linkable object were triggered since the last time this function
 		 * was called with the same parameters, likely by the observer.  Note that once this function returns true, subsequent calls will
 		 * return false until the callbacks are triggered again.  It's a good idea to specify a private object or function as the observer
-		 * so no other code can call detectLinkableObjectChange with the same observer and linkableObject parameters.
+		 * so no other code can call detectChange with the same observer and linkableObject parameters.
 		 * @param observer The object that is observing the change.
 		 * @param linkableObject The object that is being observed.
 		 * @param moreLinkableObjects More objects that are being observed.
 		 * @return A value of true if the callbacks for any of the objects have triggered since the last time this function was called
 		 *         with the same observer for any of the specified linkable objects.
 		 */
-		public static function detectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, ...moreLinkableObjects):Boolean
+		public static function detectChange(observer:Object, linkableObject:ILinkableObject, ...moreLinkableObjects):Boolean
 		{
 			var changeDetected:Boolean = false;
 			moreLinkableObjects.unshift(linkableObject);
 			// it's important not to short-circuit like a boolean OR (||) because we need to clear the 'changed' flag on each object.
 			for each (linkableObject in moreLinkableObjects)
-			if (linkableObject && _internalDetectLinkableObjectChange(observer, linkableObject, true)) // clear 'changed' flag
+			if (linkableObject && _internalDetectChange(observer, linkableObject, true)) // clear 'changed' flag
 				changeDetected = true;
 			return changeDetected;
 		}
 		/**
-		 * This function is used to detect if callbacks of a linkable object were triggered since the last time detectLinkableObjectChange
+		 * This function is used to detect if callbacks of a linkable object were triggered since the last time detectChange
 		 * was called with the same parameters, likely by the observer.  Note that once this function returns true, subsequent calls will
 		 * return false until the callbacks are triggered again, unless clearChangedNow is set to false.  It may be a good idea to specify
-		 * a private object as the observer so no other code can call detectLinkableObjectChange with the same observer and linkableObject
+		 * a private object as the observer so no other code can call detectChange with the same observer and linkableObject
 		 * parameters.
 		 * @param observer The object that is observing the change.
 		 * @param linkableObject The object that is being observed.
@@ -170,7 +195,7 @@ package weavejs
 		 * @return A value of true if the callbacks for the linkableObject have triggered since the last time this function was called
 		 *         with the same observer and linkableObject parameters.
 		 */
-		public static function _internalDetectLinkableObjectChange(observer:Object, linkableObject:ILinkableObject, clearChangedNow:Boolean = true):Boolean
+		public static function _internalDetectChange(observer:Object, linkableObject:ILinkableObject, clearChangedNow:Boolean = true):Boolean
 		{
 			var previousCount:* = d2d_linkableObject_observer_triggerCounter.get(linkableObject, observer); // untyped to handle undefined value
 			var newCount:uint = WeaveAPI.SessionManager.getCallbackCollection(linkableObject).triggerCounter;
@@ -187,30 +212,7 @@ package weavejs
 		 * equals the previous triggerCounter value from linkableObject observed by the observer.
 		 */
 		private static const d2d_linkableObject_observer_triggerCounter:Dictionary2D = new Dictionary2D(true, true);
-		/**
-		 * Shortcut for WeaveAPI.SessionManager.getCallbackCollection()
-		 * @copy weave.api.core.ISessionManager#getCallbackCollection()
-		 */
-		public static function getCallbackCollection(linkableObject:ILinkableObject):ICallbackCollection
-		{
-			return WeaveAPI.SessionManager.getCallbackCollection(linkableObject);
-		}
-		/**
-		 * Finds the closest ancestor of a descendant given the ancestor type.
-		 * @param descendant An object with ancestors.
-		 * @param ancestorType The Class definition used to determine which ancestor to return.
-		 * @return The closest ancestor of the given type.
-		 * @see weave.api.core.ISessionManager#getLinkableOwner()
-		 */
-		public static function getLinkableAncestor(descendant:ILinkableObject, ancestorType:Class):ILinkableObject
-		{
-			var sm:ISessionManager = WeaveAPI.SessionManager;
-			do {
-				descendant = sm.getLinkableOwner(descendant);
-			} while (descendant && !(descendant is ancestorType));
-			
-			return descendant;
-		}
+		
 		/**
 		 * Finds the root ILinkableHashMap for a given ILinkableObject.
 		 * @param object An ILinkableObject.
@@ -228,22 +230,42 @@ package weavejs
 			}
 			return object as ILinkableHashMap;
 		}
+		
 		/**
-		 * Shortcut for WeaveAPI.SessionManager.getLinkableDescendants()
-		 * @copy weave.api.core.ISessionManager#getLinkableDescendants()
+		 * Finds the closest ancestor of a descendant given the ancestor type.
+		 * @param descendant An object with ancestors.
+		 * @param ancestorType The Class definition used to determine which ancestor to return.
+		 * @return The closest ancestor of the given type.
+		 * @see weave.api.core.ISessionManager#getLinkableOwner()
 		 */
-		public static function getLinkableDescendants(object:ILinkableObject, filter:Class = null):Array
+		public static function getAncestor(descendant:ILinkableObject, ancestorType:Class):ILinkableObject
 		{
-			return WeaveAPI.SessionManager.getLinkableDescendants(object, filter);
+			var sm:ISessionManager = WeaveAPI.SessionManager;
+			do {
+				descendant = sm.getLinkableOwner(descendant);
+			} while (descendant && !(descendant is ancestorType));
+			
+			return descendant;
 		}
+		
 		/**
 		 * Shortcut for WeaveAPI.SessionManager.getLinkableOwner()
 		 * @copy weave.api.core.ISessionManager#getLinkableOwner()
 		 */
-		public static function getLinkableOwner(child:ILinkableObject):ILinkableObject
+		public static function getOwner(child:ILinkableObject):ILinkableObject
 		{
 			return WeaveAPI.SessionManager.getLinkableOwner(child);
 		}
+		
+		/**
+		 * Shortcut for WeaveAPI.SessionManager.getLinkableDescendants()
+		 * @copy weave.api.core.ISessionManager#getLinkableDescendants()
+		 */
+		public static function getDescendants(object:ILinkableObject, filter:Class = null):Array
+		{
+			return WeaveAPI.SessionManager.getLinkableDescendants(object, filter);
+		}
+		
 		/**
 		 * Shortcut for WeaveAPI.SessionManager.getSessionState()
 		 * @copy weave.api.core.ISessionManager#getSessionState()
@@ -252,6 +274,7 @@ package weavejs
 		{
 			return WeaveAPI.SessionManager.getSessionState(linkableObject);
 		}
+		
 		/**
 		 * Shortcut for WeaveAPI.SessionManager.setSessionState()
 		 * @copy weave.api.core.ISessionManager#setSessionState()
@@ -260,6 +283,7 @@ package weavejs
 		{
 			WeaveAPI.SessionManager.setSessionState(linkableObject, newState, removeMissingDynamicObjects);
 		}
+		
 		/**
 		 * Shortcut for WeaveAPI.SessionManager.copySessionState()
 		 * @copy weave.api.core.ISessionManager#copySessionState()
@@ -268,6 +292,7 @@ package weavejs
 		{
 			WeaveAPI.SessionManager.copySessionState(source, destination);
 		}
+		
 		/**
 		 * Shortcut for WeaveAPI.SessionManager.linkSessionState()
 		 * @copy weave.api.core.ISessionManager#linkSessionState()
@@ -276,6 +301,7 @@ package weavejs
 		{
 			WeaveAPI.SessionManager.linkSessionState(primary, secondary);
 		}
+		
 		/**
 		 * Shortcut for WeaveAPI.SessionManager.unlinkSessionState()
 		 * @copy weave.api.core.ISessionManager#unlinkSessionState()
@@ -284,68 +310,92 @@ package weavejs
 		{
 			WeaveAPI.SessionManager.unlinkSessionState(first, second);
 		}
+		
 		/**
-		 * Shortcut for WeaveAPI.SessionManager.newDisposableChild()
-		 * @copy weave.api.core.ISessionManager#newDisposableChild()
+		 * Shortcut for WeaveAPI.SessionManager.computeDiff()
+		 * @copy weave.api.core.ISessionManager#computeDiff()
 		 */
-		public static function newDisposableChild(disposableParent:Object, disposableChildType:Class):*
+		public static function computeDiff(oldState:Object, newState:Object):Object
 		{
-			return WeaveAPI.SessionManager.newDisposableChild(disposableParent, disposableChildType);
+			return WeaveAPI.SessionManager.computeDiff(oldState, newState);
 		}
+		
 		/**
-		 * Shortcut for WeaveAPI.SessionManager.newLinkableChild()
-		 * @copy weave.api.core.ISessionManager#newLinkableChild()
+		 * Shortcut for WeaveAPI.SessionManager.combineDiff()
+		 * @copy weave.api.core.ISessionManager#combineDiff()
 		 */
-		public static function newLinkableChild(linkableParent:Object, linkableChildType:Class, callback:Function = null, useGroupedCallback:Boolean = false):*
+		public static function combineDiff(baseDiff:Object, diffToAdd:Object):Object
 		{
-			return WeaveAPI.SessionManager.newLinkableChild(linkableParent, linkableChildType, callback, useGroupedCallback);
+			return WeaveAPI.SessionManager.combineDiff(baseDiff, diffToAdd);
 		}
+		
 		/**
-		 * Shortcut for WeaveAPI.SessionManager.registerDisposableChild()
-		 * @copy weave.api.core.ISessionManager#registerDisposableChild()
+		 * Shortcut for WeaveAPI.SessionManager.newDisposableChild() and WeaveAPI.SessionManager.registerDisposableChild()
+		 * @see weave.api.core.ISessionManager#newDisposableChild()
+		 * @see weave.api.core.ISessionManager#registerDisposableChild()
 		 */
-		public static function registerDisposableChild(disposableParent:Object, disposableChild:Object):*
+		public static function disposableChild(disposableParent:Object, disposableChildOrType:Object):*
 		{
-			return WeaveAPI.SessionManager.registerDisposableChild(disposableParent, disposableChild);
+			if (JS.isClass(disposableChildOrType))
+				return WeaveAPI.SessionManager.newDisposableChild(disposableParent, JS.asClass(disposableChildOrType));
+			return WeaveAPI.SessionManager.registerDisposableChild(disposableParent, disposableChildOrType);
 		}
+		
 		/**
-		 * Shortcut for WeaveAPI.SessionManager.registerLinkableChild()
-		 * @copy weave.api.core.ISessionManager#registerLinkableChild()
+		 * Shortcut for WeaveAPI.SessionManager.newLinkableChild() and WeaveAPI.SessionManager.registerLinkableChild()
+		 * @see weave.api.core.ISessionManager#newLinkableChild()
+		 * @see weave.api.core.ISessionManager#registerLinkableChild()
 		 */
-		public static function registerLinkableChild(linkableParent:Object, linkableChild:ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):*
+		public static function linkableChild(linkableParent:Object, linkableChildOrType:Object, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
-			return WeaveAPI.SessionManager.registerLinkableChild(linkableParent, linkableChild, callback, useGroupedCallback);
+			if (JS.isClass(linkableChildOrType))
+				return WeaveAPI.SessionManager.newLinkableChild(linkableParent, JS.asClass(linkableChildOrType), callback, useGroupedCallback);
+			return WeaveAPI.SessionManager.registerLinkableChild(linkableParent, linkableChildOrType as ILinkableObject, callback, useGroupedCallback);
 		}
+		
 		/**
 		 * Shortcut for WeaveAPI.SessionManager.disposeObject()
 		 * @copy weave.api.core.ISessionManager#disposeObject()
 		 */
-		public static function disposeObject(object:Object):void
+		public static function dispose(object:Object):void
 		{
 			WeaveAPI.SessionManager.disposeObject(object);
 		}
+		
 		/**
 		 * Shortcut for WeaveAPI.SessionManager.objectWasDisposed()
 		 * @copy weave.api.core.ISessionManager#objectWasDisposed()
 		 */
-		public static function objectWasDisposed(object:Object):Boolean
+		public static function wasDisposed(object:Object):Boolean
 		{
 			return WeaveAPI.SessionManager.objectWasDisposed(object);
 		}
+		
 		/**
 		 * Shortcut for WeaveAPI.SessionManager.linkableObjectIsBusy()
 		 * @copy weave.api.core.ISessionManager#linkableObjectIsBusy()
 		 */
-		public static function linkableObjectIsBusy(object:ILinkableObject):Boolean
+		public static function isBusy(object:ILinkableObject):Boolean
 		{
 			return WeaveAPI.SessionManager.linkableObjectIsBusy(object);
 		}
 		
+		/**
+		 * Checks if an object or class implements ILinkableObject
+		 */
+		public static function isLinkable(objectOrClass:Object):Boolean
+		{
+			if (objectOrClass is ILinkableObject)
+				return true;
+			// test class definition
+			return objectOrClass && objectOrClass.prototype is ILinkableObject;
+		}
+		
 		public static function callLater(context:Object, func:Function, args:Array = null):void
 		{
-			// temporary solution
+			// temporary solution?
 			JS.setTimeout(function():void {
-				if (!objectWasDisposed(context))
+				if (!wasDisposed(context))
 					func.apply(context, args);
 			}, 0);
 		}
@@ -400,17 +450,6 @@ package weavejs
 			}
 			
 			return def;
-		}
-		
-		/**
-		 * Checks if an object or class implements ILinkableObject
-		 */
-		public static function isLinkable(object:Object):Boolean
-		{
-			if (object is ILinkableObject)
-				return true;
-			// test class definition
-			return object && object.prototype is ILinkableObject;
 		}
 		
 		/**

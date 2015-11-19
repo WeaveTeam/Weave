@@ -15,7 +15,6 @@
 
 package weavejs.utils
 {
-	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ILinkableVariable;
 	
@@ -256,9 +255,9 @@ package weavejs.utils
 		 */
 		protected function isCached(id:String):Boolean
 		{
-			if (_dependency && WeaveAPI.SessionManager.objectWasDisposed(_dependency))
+			if (_dependency && Weave.wasDisposed(_dependency))
 				dependency = null;
-			return _dependency && _counter[id] === WeaveAPI.SessionManager.getCallbackCollection(_dependency).triggerCounter;
+			return _dependency && _counter[id] === Weave.getCallbacks(_dependency).triggerCounter;
 		}
 		
 		/**
@@ -273,11 +272,11 @@ package weavejs.utils
 			if (arguments.length == 1)
 				return _cache[id];
 			
-			if (_dependency && WeaveAPI.SessionManager.objectWasDisposed(_dependency))
+			if (_dependency && Weave.wasDisposed(_dependency))
 				dependency = null;
 			if (_dependency)
 			{
-				_counter[id] = WeaveAPI.SessionManager.getCallbackCollection(_dependency).triggerCounter;
+				_counter[id] = Weave.getCallbacks(_dependency).triggerCounter;
 				_cache[id] = newValue;
 			}
 			return newValue;
@@ -355,7 +354,7 @@ package weavejs.utils
 		 */
 		public function get dependency():ILinkableObject
 		{
-			if (_dependency && WeaveAPI.SessionManager.objectWasDisposed(_dependency))
+			if (_dependency && Weave.wasDisposed(_dependency))
 				dependency = null;
 			return _dependency;
 		}

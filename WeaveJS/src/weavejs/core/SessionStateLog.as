@@ -15,7 +15,6 @@
 
 package weavejs.core
 {
-	import weavejs.Weave;
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
@@ -36,17 +35,16 @@ package weavejs.core
 		
 		public function SessionStateLog(subject:ILinkableObject, syncDelay:uint = 0)
 		{
-			JS.bindAll(this);
 			_syncTime = JS.now();
 			_undoHistory = [];
 			_redoHistory = [];
 			
 			_subject = subject;
 			_syncDelay = syncDelay;
-			_prevState = WeaveAPI.SessionManager.getSessionState(_subject); // remember the initial state
-			WeaveAPI.SessionManager.registerDisposableChild(_subject, this); // make sure this is disposed when _subject is disposed
+			_prevState = Weave.getState(_subject); // remember the initial state
+			Weave.disposableChild(_subject, this); // make sure this is disposed when _subject is disposed
 			
-			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(_subject);
+			var cc:ICallbackCollection = Weave.getCallbacks(_subject);
 			cc.addImmediateCallback(this, immediateCallback);
 			cc.addGroupedCallback(this, groupedCallback);
 		}
@@ -81,7 +79,7 @@ package weavejs.core
 		/**
 		 * When this is set to true, changes in the session state of the subject will be automatically logged.
 		 */
-		public var enableLogging:LinkableBoolean = Weave.registerLinkableChild(this, new LinkableBoolean(true), synchronizeNow);
+		public var enableLogging:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true), synchronizeNow);
 		
 		/**
 		 * This will squash a sequence of undos or redos into a single undo or redo.
@@ -89,7 +87,7 @@ package weavejs.core
 		 */		
 		public function squashHistory(directionalSquashCount:int):void
 		{
-			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+			var cc:ICallbackCollection = Weave.getCallbacks(this);
 			cc.delayCallbacks();
 			
 			synchronizeNow();
@@ -114,10 +112,10 @@ package weavejs.core
 				for (var i:int = 0; i <= last; i++)
 				{
 					entry = entries[last - i] as LogEntry;
-					squashBackward = WeaveAPI.SessionManager.combineDiff(squashBackward, entry.backward);
+					squashBackward = Weave.combineDiff(squashBackward, entry.backward);
 					
 					entry = entries[i] as LogEntry;
-					squashForward = WeaveAPI.SessionManager.combineDiff(squashForward, entry.forward);
+					squashForward = Weave.combineDiff(squashForward, entry.forward);
 					
 					totalDuration += entry.diffDuration;
 					totalDelay += entry.triggerDelay;
@@ -139,7 +137,7 @@ package weavejs.core
 		 */
 		public function clearHistory(directional:int = 0):void
 		{
-			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+			var cc:ICallbackCollection = Weave.getCallbacks(this);
 			cc.delayCallbacks();
 			
 			synchronizeNow();
@@ -180,8 +178,8 @@ package weavejs.core
 			
 			if (debug && (_undoActive || _redoActive))
 			{
-				var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
-				var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
+				var state:Object = Weave.getState(_subject);
+				var forwardDiff:* = Weave.computeDiff(_prevState, state);
 				JS.log('immediate diff:', forwardDiff);
 			}
 		}
@@ -202,8 +200,8 @@ package weavejs.core
 			
 			if (debug && (_undoActive || _redoActive))
 			{
-				var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
-				var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
+				var state:Object = Weave.getState(_subject);
+				var forwardDiff:* = Weave.computeDiff(_prevState, state);
 				JS.log('grouped diff:', forwardDiff);
 			}
 		}
@@ -233,15 +231,15 @@ package weavejs.core
 				return;
 			}
 			
-			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+			var cc:ICallbackCollection = Weave.getCallbacks(this);
 			cc.delayCallbacks();
 			
-			var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
-			var forwardDiff:* = WeaveAPI.SessionManager.computeDiff(_prevState, state);
+			var state:Object = Weave.getState(_subject);
+			var forwardDiff:* = Weave.computeDiff(_prevState, state);
 			if (forwardDiff !== undefined)
 			{
 				var diffDuration:int = currentTime - (_syncTime + _triggerDelay);
-				var backwardDiff:* = WeaveAPI.SessionManager.computeDiff(state, _prevState);
+				var backwardDiff:* = Weave.computeDiff(state, _prevState);
 				var oldEntry:LogEntry;
 				var newEntry:LogEntry;
 				if (_undoActive)
@@ -342,13 +340,13 @@ package weavejs.core
 				
 				var combine:Boolean = stepsRemaining > 2;
 				var baseDiff:Object = null;
-				WeaveAPI.SessionManager.getCallbackCollection(_subject).delayCallbacks();
+				Weave.getCallbacks(_subject).delayCallbacks();
 				// when logging is disabled, revert to previous state before applying diffs
 				if (!enableLogging.value)
 				{
-					var state:Object = WeaveAPI.SessionManager.getSessionState(_subject);
+					var state:Object = Weave.getState(_subject);
 					// baseDiff becomes the change that needs to occur to get back to the previous state
-					baseDiff = WeaveAPI.SessionManager.computeDiff(state, _prevState);
+					baseDiff = Weave.computeDiff(state, _prevState);
 					if (baseDiff != null)
 						combine = true;
 				}
@@ -372,37 +370,37 @@ package weavejs.core
 					if (stepsRemaining == 0 && enableLogging.value)
 					{
 						// remember the session state right before applying the last step so we can rewrite the history if necessary
-						_prevState = WeaveAPI.SessionManager.getSessionState(_subject);
+						_prevState = Weave.getState(_subject);
 					}
 					
 					if (combine)
 					{
-						baseDiff = WeaveAPI.SessionManager.combineDiff(baseDiff, diff);
+						baseDiff = Weave.combineDiff(baseDiff, diff);
 						if (stepsRemaining <= 1)
 						{
-							WeaveAPI.SessionManager.setSessionState(_subject, baseDiff, false);
+							Weave.setState(_subject, baseDiff, false);
 							combine = false;
 						}
 					}
 					else
 					{
-						WeaveAPI.SessionManager.setSessionState(_subject, diff, false);
+						Weave.setState(_subject, diff, false);
 					}
 					
 					if (debug)
 					{
-						var newState:Object = WeaveAPI.SessionManager.getSessionState(_subject);
-						var resultDiff:Object = WeaveAPI.SessionManager.computeDiff(_prevState, newState);
+						var newState:Object = Weave.getState(_subject);
+						var resultDiff:Object = Weave.computeDiff(_prevState, newState);
 						JS.log('resulting diff:', resultDiff);
 					}
 				}
-				WeaveAPI.SessionManager.getCallbackCollection(_subject).resumeCallbacks();
+				Weave.getCallbacks(_subject).resumeCallbacks();
 				
 				_undoActive = delta < 0 && _savePending;
 				_redoActive = delta > 0 && _savePending;
 				if (!_savePending)
-					_prevState = WeaveAPI.SessionManager.getSessionState(_subject);
-				WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+					_prevState = Weave.getState(_subject);
+				Weave.getCallbacks(this).triggerCallbacks();
 			}
 		}
 		
@@ -447,7 +445,7 @@ package weavejs.core
 		 */		
 		public function getSessionState():Object
 		{
-			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+			var cc:ICallbackCollection = Weave.getCallbacks(this);
 			cc.delayCallbacks();
 			synchronizeNow();
 			
@@ -472,7 +470,7 @@ package weavejs.core
 		public function setSessionState(state:Object):void
 		{
 			// make sure callbacks only run once while we set the session state
-			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+			var cc:ICallbackCollection = Weave.getCallbacks(this);
 			cc.delayCallbacks();
 			enableLogging.delayCallbacks();
 			try
@@ -503,7 +501,7 @@ package weavejs.core
 				_triggerDelay = -1;
 				_syncTime = JS.now();
 			
-				WeaveAPI.SessionManager.setSessionState(_subject, _prevState);
+				Weave.setState(_subject, _prevState);
 			}
 			finally
 			{

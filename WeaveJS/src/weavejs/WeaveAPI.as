@@ -16,6 +16,7 @@
 package weavejs
 {
 	import weavejs.api.core.IClassRegistry;
+	import weavejs.api.core.IExternalSessionStateInterface;
 	import weavejs.api.core.ILocaleManager;
 	import weavejs.api.core.IProgressIndicator;
 	import weavejs.api.core.ISessionManager;
@@ -80,14 +81,14 @@ package weavejs
 //			return (_classRegistry || ClassRegistry).singletonInstances[IStageUtils]
 //				|| _classRegistry.getSingletonInstance(IStageUtils);
 //		}
-//		/**
-//		 * This is the singleton instance of the registered IExternalSessionStateInterface implementation.
-//		 */
-//		public static function get ExternalSessionStateInterface():IExternalSessionStateInterface
-//		{
-//			return (_classRegistry || ClassRegistry).singletonInstances[IExternalSessionStateInterface]
-//				|| _classRegistry.getSingletonInstance(IExternalSessionStateInterface);
-//		}
+		/**
+		 * This is the singleton instance of the registered IExternalSessionStateInterface implementation.
+		 */
+		public static function get ExternalSessionStateInterface():IExternalSessionStateInterface
+		{
+			return (_classRegistry || ClassRegistry).singletonInstances[IExternalSessionStateInterface]
+				|| _classRegistry.getSingletonInstance(IExternalSessionStateInterface);
+		}
 		/**
 		 * This is the singleton instance of the registered IProgressIndicator implementation.
 		 */

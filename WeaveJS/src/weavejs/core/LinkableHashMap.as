@@ -15,7 +15,6 @@
 
 package weavejs.core
 {
-	import weavejs.Weave;
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
@@ -42,7 +41,7 @@ package weavejs.core
 			_typeRestriction = typeRestriction;
 		}
 		
-		private var _childListCallbacks:ChildListCallbackInterface = WeaveAPI.SessionManager.newLinkableChild(this, ChildListCallbackInterface);
+		private var _childListCallbacks:ChildListCallbackInterface = Weave.linkableChild(this, ChildListCallbackInterface);
 		private var _orderedNames:Array = []; // an ordered list of names appearing in _nameToObjectMap
 		private var _nameToObjectMap:Object = {}; // maps an identifying name to an object
 		private var _map_objectToNameMap:Object = new JS.WeakMap(); // maps an object to an identifying name
@@ -176,13 +175,13 @@ package weavejs.core
 			delayCallbacks(); // make sure callbacks only trigger once
 			//var className:String = Weave.className(objectToCopy);
 			var classDef:Class = Object(objectToCopy).constructor; //ClassUtils.getClassDefinition(className);
-			var sessionState:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
+			var sessionState:Object = Weave.getState(objectToCopy);
 			//  if the name refers to the same object, remove the existing object so it can be replaced with a new one.
 			if (name == getName(objectToCopy))
 				removeObject(name);
 			var object:ILinkableObject = requestObject(name, classDef, false);
 			if (object != null)
-				WeaveAPI.SessionManager.setSessionState(object, sessionState);
+				Weave.setState(object, sessionState);
 			resumeCallbacks();
 			
 			return object;
@@ -274,7 +273,7 @@ package weavejs.core
 			// create a new object
 			var object:ILinkableObject = new classDef();
 			// register the object as a child of this LinkableHashMap
-			WeaveAPI.SessionManager.registerLinkableChild(this, object);
+			Weave.linkableChild(this, object);
 			// save the name-object mappings
 			_nameToObjectMap[name] = object;
 			_map_objectToNameMap.set(object, name);
@@ -332,7 +331,7 @@ package weavejs.core
 			_childListCallbacks.runCallbacks(name, null, object);
 
 			// dispose the object AFTER the callbacks know that the object was removed
-			WeaveAPI.SessionManager.disposeObject(object);
+			Weave.dispose(object);
 		}
 
 		/**
@@ -390,7 +389,7 @@ package weavejs.core
 				result[i] = DynamicState.create(
 						name,
 						Weave.className(object),
-						WeaveAPI.SessionManager.getSessionState(object)
+						Weave.getState(object)
 					);
 			}
 			//trace(LinkableHashMap, "getSessionState LinkableHashMap " + ObjectUtil.toString(result));
@@ -424,7 +423,7 @@ package weavejs.core
 				// first pass: delay callbacks of all children
 				for each (objectName in _orderedNames)
 				{
-					callbacks = WeaveAPI.SessionManager.getCallbackCollection(_nameToObjectMap[objectName]);
+					callbacks = Weave.getCallbacks(_nameToObjectMap[objectName]);
 					delayed.push(callbacks)
 					callbacks.delayCallbacks();
 				}
@@ -451,7 +450,7 @@ package weavejs.core
 				// next pass: delay callbacks of all children (again, because there may be new children)
 				for each (objectName in _orderedNames)
 				{
-					callbacks = WeaveAPI.SessionManager.getCallbackCollection(_nameToObjectMap[objectName]);
+					callbacks = Weave.getCallbacks(_nameToObjectMap[objectName]);
 					delayed.push(callbacks)
 					callbacks.delayCallbacks();
 				}
@@ -479,7 +478,7 @@ package weavejs.core
 					if (object == null)
 						continue;
 					// if object is newly created, we want to apply an absolute session state
-					WeaveAPI.SessionManager.setSessionState(object, typedState[DynamicState.SESSION_STATE], newObjects[objectName] || removeMissingDynamicObjects);
+					Weave.setState(object, typedState[DynamicState.SESSION_STATE], newObjects[objectName] || removeMissingDynamicObjects);
 					if (removeMissingDynamicObjects)
 						remainingObjects[objectName] = true;
 					newNameOrder.push(objectName);
@@ -504,7 +503,7 @@ package weavejs.core
 			
 			// next pass: delay callbacks of all children
 			for each (callbacks in delayed)
-				if (!WeaveAPI.SessionManager.objectWasDisposed(callbacks))
+				if (!Weave.wasDisposed(callbacks))
 					callbacks.resumeCallbacks();
 			
 			resumeCallbacks();

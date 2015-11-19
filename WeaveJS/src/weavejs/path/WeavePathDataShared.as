@@ -6,7 +6,6 @@
 */
 package weavejs.path
 {
-	import weavejs.Weave;
 	import weavejs.utils.JS;
 
 	public class WeavePathDataShared
@@ -14,13 +13,13 @@ package weavejs.path
 		public static const DEFAULT_PROBE_KEY_SET:String = 'defaultProbeKeySet';
 		public static const DEFAULT_SELECTION_KEY_SET:String = 'defaultSelectionKeySet';
 		public static const DEFAULT_SUBSET_KEY_FILTER:String = 'defaultSubsetKeyFilter';
-		public static const EDC:String = 'weave.data.AttributeColumns::ExtendedDynamicColumn';
-		public static const DC:String = 'weave.data.AttributeColumns::DynamicColumn';
-		public static const RC:String = 'weave.data.AttributeColumns::ReferencedColumn';
+		public static const EDC:String = 'weave.data.AttributeColumns.ExtendedDynamicColumn';
+		public static const DC:String = 'weave.data.AttributeColumns.DynamicColumn';
+		public static const RC:String = 'weave.data.AttributeColumns.ReferencedColumn';
 		
 		public function WeavePathDataShared()
 		{
-			JS.bindAll(this);
+			//JS.bindAll(this);
 		}
 		
 		public function init(weave:Weave):void
@@ -40,7 +39,6 @@ package weavejs.path
 //					if (o is Weave.getDefinition(t))
 //						return t;
 //			}
-//			this.getFirstDataSourceName = function():String { return weave.root.getNames(IDataSource)[0]; };
 		}
 		
 		public var weave:Weave;
@@ -221,6 +219,11 @@ package weavejs.path
 		public var getLabel:Function;
 		public var setLabel:Function;
 		public var getColumnType:Function;
-		public var getFirstDataSourceName:Function;
+		
+		public function getFirstDataSourceName():String
+		{
+			return null;
+			//return weave.root.getNames(IDataSource)[0];
+		}
 	}
 }

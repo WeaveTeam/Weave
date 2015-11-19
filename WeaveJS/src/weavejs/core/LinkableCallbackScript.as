@@ -15,8 +15,6 @@
 
 package weavejs.core
 {
-	import weavejs.Weave;
-	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.utils.JS;
@@ -25,15 +23,15 @@ package weavejs.core
 	{
 		public function LinkableCallbackScript()
 		{
-			var callbacks:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+			var callbacks:ICallbackCollection = Weave.getCallbacks(this);
 			callbacks.addImmediateCallback(null, _immediateCallback);
 			callbacks.addGroupedCallback(null, _groupedCallback);
 		}
 		
-		public var variables:LinkableHashMap = Weave.registerLinkableChild(this, new LinkableHashMap());
-		public var script:LinkableString = Weave.registerLinkableChild(this, new LinkableString());
-		public var delayWhileBusy:LinkableBoolean = Weave.registerLinkableChild(this, new LinkableBoolean(true));
-		public var groupedCallback:LinkableBoolean = Weave.registerLinkableChild(this, new LinkableBoolean(true));
+		public var variables:LinkableHashMap = Weave.linkableChild(this, new LinkableHashMap());
+		public var script:LinkableString = Weave.linkableChild(this, new LinkableString());
+		public var delayWhileBusy:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
+		public var groupedCallback:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
 		
 		private var _compiledFunction:Function;
 		
@@ -56,7 +54,7 @@ package weavejs.core
 		
 		private function _runScript():void
 		{
-			if (delayWhileBusy.value && WeaveAPI.SessionManager.linkableObjectIsBusy(this))
+			if (delayWhileBusy.value && Weave.isBusy(this))
 				return;
 			
 			if (!script.value)
@@ -64,7 +62,7 @@ package weavejs.core
 			
 			try
 			{
-				if (Weave.detectLinkableObjectChange(this, script))
+				if (Weave.detectChange(this, script))
 					_compiledFunction = JS.global.eval("(function(){ return eval(" + JSON.stringify(script.value) + "); })");
 				_compiledFunction.call(this);
 			}

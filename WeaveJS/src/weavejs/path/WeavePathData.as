@@ -6,7 +6,6 @@
 */
 package weavejs.path
 {
-	import weavejs.Weave;
 	import weavejs.utils.JS;
 
 	public class WeavePathData extends WeavePath

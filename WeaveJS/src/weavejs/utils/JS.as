@@ -101,9 +101,8 @@ package weavejs.utils
 		/**
 		 * AS->JS Language helper for binding class instance functions
 		 */
-		public static function bindAll(instance:Object):*
+		private static function bindAll(instance:Object):*
 		{
-			return instance;
 			var proto:Object = Object['getPrototypeOf'](instance);
 			for (var key:String in proto)
 			{

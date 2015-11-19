@@ -6,7 +6,6 @@
 */
 package weavejs.core
 {
-	import weavejs.Weave;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.utils.JS;
 
@@ -120,8 +119,6 @@ package weavejs.core
 			// context will be an array of contexts
 			super([], groupedCallback);
 			
-			JS.bindAll(this);
-			
 			if (!_initialized)
 				_initialized = JS.setInterval(_handleGroupedCallbacks, 0);
 		}
@@ -172,7 +169,7 @@ package weavejs.core
 			var allContexts:Array = context as Array;
 			// remove the contexts that have been disposed.
 			for (var i:int = 0; i < allContexts.length; i++)
-				if (Weave.objectWasDisposed(allContexts[i]))
+				if (Weave.wasDisposed(allContexts[i]))
 					allContexts.splice(i--, 1);
 			// if there are no more relevant contexts for this callback, don't run it.
 			if (allContexts.length == 0)

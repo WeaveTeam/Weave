@@ -15,7 +15,6 @@
 
 package weavejs.core
 {
-	import weavejs.Weave;
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
@@ -50,10 +49,10 @@ package weavejs.core
 			_typeRestriction = typeRestriction;
 			
 			if (immediateCallback != null)
-				WeaveAPI.SessionManager.getCallbackCollection(this).addImmediateCallback(null, immediateCallback);
+				Weave.getCallbacks(this).addImmediateCallback(null, immediateCallback);
 			
 			if (groupedCallback != null)
-				WeaveAPI.SessionManager.getCallbackCollection(this).addGroupedCallback(null, groupedCallback);
+				Weave.getCallbacks(this).addGroupedCallback(null, groupedCallback);
 		}
 		
 		protected var _typeRestriction:Class;
@@ -72,7 +71,7 @@ package weavejs.core
 		}
 		public function set target(newTarget:ILinkableObject):void
 		{
-			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+			var cc:ICallbackCollection = Weave.getCallbacks(this);
 			cc.delayCallbacks();
 			targetPath = null;
 			internalSetTarget(newTarget);
@@ -92,19 +91,17 @@ package weavejs.core
 			if (_target == newTarget)
 				return;
 			
-			var sm:SessionManager = WeaveAPI.SessionManager as SessionManager;
-			
 			// unlink from old target
 			if (_target)
 			{
-				sm.getCallbackCollection(_target).removeCallback(_handleTargetTrigger);
-				sm.getCallbackCollection(_target).removeCallback(_handleTargetDispose);
+				Weave.getCallbacks(_target).removeCallback(_handleTargetTrigger);
+				Weave.getCallbacks(_target).removeCallback(_handleTargetDispose);
 				
 				// if we own the previous target, dispose it
-				if (sm.getLinkableOwner(_target) == this)
-					sm.disposeObject(_target);
+				if (Weave.getOwner(_target) == this)
+					Weave.dispose(_target);
 				else
-					sm.unregisterLinkableChild(this, _target);
+					(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _target);
 			}
 			
 			_target = newTarget;
@@ -113,12 +110,12 @@ package weavejs.core
 			if (_target)
 			{
 				// we want to register the target as a linkable child (for busy status)
-				sm.registerLinkableChild(this, _target);
+				Weave.linkableChild(this, _target);
 				// we don't want the target triggering our callbacks directly
-				sm.getCallbackCollection(_target).removeCallback(sm.getCallbackCollection(this).triggerCallbacks);
-				sm.getCallbackCollection(_target).addImmediateCallback(this, _handleTargetTrigger, false, true);
+				Weave.getCallbacks(_target).removeCallback(Weave.getCallbacks(this).triggerCallbacks);
+				Weave.getCallbacks(_target).addImmediateCallback(this, _handleTargetTrigger, false, true);
 				// we need to know when the target is disposed
-				sm.getCallbackCollection(_target).addDisposeCallback(this, _handleTargetDispose);
+				Weave.getCallbacks(_target).addDisposeCallback(this, _handleTargetDispose);
 			}
 			
 			if (_foundTarget)
@@ -128,7 +125,7 @@ package weavejs.core
 		private function _handleTargetTrigger():void
 		{
 			if (_foundTarget)
-				WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+				Weave.getCallbacks(this).triggerCallbacks();
 			else
 				handlePath();
 		}
@@ -142,7 +139,7 @@ package weavejs.core
 			else
 			{
 				_target = null;
-				WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+				Weave.getCallbacks(this).triggerCallbacks();
 			}
 		}
 		
@@ -165,7 +162,7 @@ package weavejs.core
 				path = null;
 			if (StandardLib.compare(_targetPath, path) != 0)
 			{
-				var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+				var cc:ICallbackCollection = Weave.getCallbacks(this);
 				cc.delayCallbacks();
 				
 				resetPathDependencies();
@@ -187,7 +184,6 @@ package weavejs.core
 			}
 			
 			// traverse the path, finding ILinkableDynamicObject path dependencies along the way
-			var sm:ISessionManager = WeaveAPI.SessionManager;
 			var node:ILinkableObject = Weave.getRoot(this);
 			var subPath:Array = [];
 			for each (var name:* in _targetPath)
@@ -196,7 +192,7 @@ package weavejs.core
 					addPathDependency(node as ILinkableCompositeObject, name);
 				
 				subPath[0] = name;
-				var child:ILinkableObject = sm.getObject(node, subPath);
+				var child:ILinkableObject = Weave.followPath(node, subPath);
 				if (child)
 				{
 					node = child;
@@ -224,14 +220,14 @@ package weavejs.core
 					
 					// must trigger here when we lose the target because internalSetTarget() won't trigger when _foundTarget is false
 					if (lostTarget)
-						sm.getCallbackCollection(this).triggerCallbacks();
+						Weave.getCallbacks(this).triggerCallbacks();
 					
 					return;
 				}
 			}
 			
 			// we found a desired target if there is no type restriction or the object fits the restriction
-			_foundTarget = !_typeRestriction || node is _typeRestriction;
+			_foundTarget = !_typeRestriction || JS.IS(node, _typeRestriction);
 			internalSetTarget(node);
 		}
 		
@@ -248,7 +244,7 @@ package weavejs.core
 			
 			if (!_pathDependencies.get(parent, pathElement))
 			{
-				var child:ILinkableObject = WeaveAPI.SessionManager.getObject(parent, [pathElement]);
+				var child:ILinkableObject = Weave.followPath(parent, [pathElement]);
 				_pathDependencies.set(parent, pathElement, child);
 				var dependencyCallbacks:ICallbackCollection = getDependencyCallbacks(parent);
 				dependencyCallbacks.addImmediateCallback(this, handlePathDependencies);
@@ -261,7 +257,7 @@ package weavejs.core
 			var lhm:ILinkableHashMap = parent as ILinkableHashMap;
 			if (lhm)
 				return lhm.childListCallbacks;
-			return WeaveAPI.SessionManager.getCallbackCollection(parent);
+			return Weave.getCallbacks(parent);
 		}
 		
 		private function handlePathDependencies():void
@@ -270,9 +266,8 @@ package weavejs.core
 		}
 		private function handlePathDependencies_each(parent:ILinkableObject, pathElement:String, child:ILinkableObject):Boolean
 		{
-			var sm:ISessionManager = WeaveAPI.SessionManager;
-			var newChild:ILinkableObject = sm.getObject(parent, [pathElement]);
-			if (sm.objectWasDisposed(parent) || child != newChild)
+			var newChild:ILinkableObject = Weave.followPath(parent, [pathElement]);
+			if (Weave.wasDisposed(parent) || child != newChild)
 			{
 				resetPathDependencies();
 				handlePath();

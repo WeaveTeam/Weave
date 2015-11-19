@@ -15,7 +15,6 @@
 
 package weavejs.core
 {
-	import weavejs.Weave;
 	import weavejs.api.core.IClassRegistry;
 	import weavejs.utils.JS;
 	

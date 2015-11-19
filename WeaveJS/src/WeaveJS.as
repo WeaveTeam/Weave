@@ -6,7 +6,6 @@
 */
 package
 {
-	import weavejs.Weave;
 	import weavejs.utils.JS;
 	
 	public class WeaveJS
@@ -19,9 +18,6 @@ package
 		
 		public function start():void
 		{
-			// make Weave accessible from global scope
-			JS.global.Weave = Weave;
-			
 			// for testing only
 			JS.global.weave = new Weave();
 			JS.global.weave.test();

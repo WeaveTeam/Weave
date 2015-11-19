@@ -1,4 +1,5 @@
 /bin
 /bin-debug
+/bin-release
 /.settings
 /.flexLibProperties

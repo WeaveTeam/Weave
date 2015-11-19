@@ -6,8 +6,8 @@
 */
 package weavejs.path
 {
-	import weavejs.Weave;
 	import weavejs.WeaveAPI;
+	import weavejs.api.core.IExternalSessionStateInterface;
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
@@ -101,7 +101,7 @@ package weavejs.path
 			{
 				var type:String = args.pop();
 				var relativePath:Array = args;
-				this.weave.directAPI.requestObject(this.push(relativePath), type)
+				WeaveAPI.ExternalSessionStateInterface.requestObject(this.push(relativePath), type)
 					|| _failPath('request', this.getPath(relativePath));
 			}
 			return this;
@@ -116,7 +116,7 @@ package weavejs.path
 		public function remove(...relativePath):WeavePath
 		{
 			relativePath = _A(relativePath, 1);
-			this.weave.directAPI.removeObject(this.push(relativePath))
+			WeaveAPI.ExternalSessionStateInterface.removeObject(this.push(relativePath))
 				|| _failPath('remove', this.getPath(relativePath));
 			return this;
 		};
@@ -160,7 +160,7 @@ package weavejs.path
 				var state:Object = args.pop();
 				var obj:ILinkableObject = this.getObject(args);
 				if (obj)
-					WeaveAPI.SessionManager.setSessionState(obj, state, true);
+					Weave.setState(obj, state, true);
 				else
 					_failObject('state', this.getPath(args));
 			}
@@ -183,7 +183,7 @@ package weavejs.path
 				var diff:Object = args.pop();
 				var obj:ILinkableObject = this.getObject(args);
 				if (obj)
-					WeaveAPI.SessionManager.setSessionState(obj, diff, false);
+					Weave.setState(obj, diff, false);
 				else
 					_failObject('diff', this.getPath(args));
 			}
@@ -206,7 +206,8 @@ package weavejs.path
 			{
 				var args:Array = Array.prototype.slice.call(arguments);
 				args.unshift(this);
-				this.weave.directAPI.addCallback.apply(this.weave.directAPI, args)
+				var essi:IExternalSessionStateInterface = WeaveAPI.ExternalSessionStateInterface;
+				essi.addCallback.apply(essi, args)
 					|| _failObject('addCallback', this._path);
 			}
 			return this;
@@ -222,7 +223,7 @@ package weavejs.path
 		{
 			if (_assertParams('removeCallback', arguments))
 			{
-				this.weave.directAPI.removeCallback(this, callback, everywhere)
+				WeaveAPI.ExternalSessionStateInterface.removeCallback(this, callback, everywhere)
 					|| _failObject('removeCallback', this._path);
 			}
 			return this;
@@ -390,7 +391,7 @@ package weavejs.path
 			relativePath = _A(relativePath, 1);
 			var obj:ILinkableObject = this.getObject(relativePath);
 			if (obj)
-				return WeaveAPI.SessionManager.getSessionState(obj);
+				return Weave.getState(obj);
 			else
 				JS.error("No ILinkableObject from which to get session state at " + this.push(relativePath));
 			return null;
@@ -411,7 +412,7 @@ package weavejs.path
 				var previousState:Object = args.pop();
 				var obj:ILinkableObject = this.getObject(args);
 				if (obj)
-					return WeaveAPI.SessionManager.computeDiff(previousState, WeaveAPI.SessionManager.getSessionState(obj));
+					return Weave.computeDiff(previousState, Weave.getState(obj));
 				else
 					JS.error("No ILinkableObject from which to get diff at " + this.push(args));
 			}
@@ -433,7 +434,7 @@ package weavejs.path
 				var otherState:Object = args.pop();
 				var obj:ILinkableObject = this.getObject(args);
 				if (obj)
-					return WeaveAPI.SessionManager.computeDiff(WeaveAPI.SessionManager.getSessionState(obj), otherState);
+					return Weave.computeDiff(Weave.getState(obj), otherState);
 				else
 					JS.error("No ILinkableObject from which to get reverse diff at " + this.push(args));
 			}
@@ -459,7 +460,7 @@ package weavejs.path
 		public function getObject(...relativePath):ILinkableObject
 		{
 			relativePath = _A(relativePath, 1);
-			return WeaveAPI.SessionManager.getObject(weave.root, this.getPath(relativePath));
+			return weave.getObject(this.getPath(relativePath));
 		}
 		
 		/**
