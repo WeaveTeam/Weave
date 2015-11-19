@@ -213,7 +213,9 @@
 				if (enableProbing.value == false || !_probe)
 					return;
 				ProbeTextUtils.getProbeText([], null);
-				var key:IQualifiedKey = dataProvider.getItemAt(event.rowIndex) as IQualifiedKey;
+				var key:IQualifiedKey;
+				if (event.rowIndex < dataProvider.length)
+					key = dataProvider.getItemAt(event.rowIndex) as IQualifiedKey;
 				if (key)
 					_probe.replaceKeys([key]);
 				else
