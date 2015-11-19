@@ -754,7 +754,7 @@ package weave.data.DataSources
 								
 								// generate compound keys
 								var nCol:int = tableData.keyColumns.length;
-								var iCol:int, iRow:int, nRow:int;
+								var iCol:int, iRow:int, nRow:int = 0;
 								for (iCol = 0; iCol < nCol; iCol++)
 								{
 									var keyCol:Array = tableData.columns[tableData.keyColumns[iCol]];
@@ -770,6 +770,16 @@ package weave.data.DataSources
 								}
 								for (iRow = 0; iRow < nRow; iRow++)
 									keyStrings[iRow] = WeaveAPI.CSVParser.createCSVRow(keyStrings[iRow]);
+								
+								// if no key columns were specified, generate keys
+								if (!keyStrings)
+								{
+									var col:Array;
+									for each (col in tableData.columns)
+										break;
+									keyStrings = col.map(function(v:*, i:int, a:Array):String { return 'row' + i; });
+								}
+								
 								return tableData;
 							})
 							.then(function(tableData:TableData):WeavePromise {

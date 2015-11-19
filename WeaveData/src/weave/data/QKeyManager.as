@@ -258,6 +258,8 @@ internal class QKeyGetter extends WeavePromise
 	
 	public function asyncStart(keyType:String, keyStrings:Array, outputKeys:Vector.<IQualifiedKey> = null):QKeyGetter
 	{
+		if (!keyStrings)
+			keyStrings = [];
 		this.manager = manager;
 		this.keyType = keyType;
 		this.keyStrings = keyStrings;
