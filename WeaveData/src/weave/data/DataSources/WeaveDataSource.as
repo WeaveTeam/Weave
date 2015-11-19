@@ -76,6 +76,8 @@ package weave.data.DataSources
 
 		private static const SQLPARAMS:String = 'sqlParams';
 		
+		public static var debug:Boolean = false;
+		
 		public function WeaveDataSource()
 		{
 			url.addImmediateCallback(this, handleURLChange, true);
@@ -723,12 +725,22 @@ package weave.data.DataSources
 					{
 						var getTablePromise:WeavePromise = new WeavePromise(_service)
 							.then(function(..._):AsyncToken {
+								if (debug)
+									weaveTrace('invoking getTable()', hash);
 								return _service.getTable(result.tableId, sqlParams);
 							});
 						
 						var keyStrings:Array;
 						promise = getTablePromise
 							.then(function(tableData:TableData):TableData {
+								if (debug)
+									weaveTrace('received', debugId(tableData), hash);
+								
+								if (!tableData.keyColumns)
+									tableData.keyColumns = [];
+								if (!tableData.columns)
+									tableData.columns = {};
+								
 								var name:String;
 								for each (name in tableData.keyColumns)
 									if (!tableData.columns.hasOwnProperty(name))
@@ -741,7 +753,7 @@ package weave.data.DataSources
 								}
 								
 								// generate compound keys
-								var nCol:int = tableData.keyColumns.length
+								var nCol:int = tableData.keyColumns.length;
 								var iCol:int, iRow:int, nRow:int;
 								for (iCol = 0; iCol < nCol; iCol++)
 								{
@@ -761,11 +773,15 @@ package weave.data.DataSources
 								return tableData;
 							})
 							.then(function(tableData:TableData):WeavePromise {
+								if (debug)
+									weaveTrace('promising QKeys', debugId(tableData), hash);
 								return (WeaveAPI.QKeyManager as QKeyManager).getQKeysPromise(
 									getTablePromise,
 									keyType,
 									keyStrings
 								).then(function(qkeys:Vector.<IQualifiedKey>):TableData {
+									if (debug)
+										weaveTrace('got QKeys', debugId(tableData), hash);
 									tableData.derived_qkeys = qkeys;
 									return tableData;
 								});
