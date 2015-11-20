@@ -24,6 +24,16 @@ package weavejs.utils
 		}
 		
 		/**
+		 * Compiles a script into a function with optional parameter names.
+		 * @param script A String containing JavaScript code.
+		 * @param paramNames A list of parameter names for the generated function, so that these variable names can be used in the script.
+		 */
+		public static function compile(script:String, paramNames:Array = null):Function
+		{
+			return global.eval("(function(" + (paramNames ? paramNames.join(',') : '') + "){ return eval(" + JSON.stringify(script) + "); })");
+		}
+		
+		/**
 		 * AS->JS Language helper for Map
 		 */
 		public static const Map:Class = (function():* { return this['Map']; }).apply(null);

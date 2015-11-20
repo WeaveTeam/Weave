@@ -63,7 +63,7 @@ package weavejs.core
 			try
 			{
 				if (Weave.detectChange(this, script))
-					_compiledFunction = JS.global.eval("(function(){ return eval(" + JSON.stringify(script.value) + "); })");
+					_compiledFunction = JS.compile(script.value);
 				_compiledFunction.call(this);
 			}
 			catch (e:Error)

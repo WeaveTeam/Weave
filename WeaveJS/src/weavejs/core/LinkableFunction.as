@@ -67,7 +67,7 @@ package weavejs.core
 				// in case compile fails, prevent re-compiling erroneous code
 				_compiledMethod = RETURN_UNDEFINED;
 				_isFunctionDefinition = false;
-				_compiledMethod = JS.global.eval("(function(" + _paramNames.join(',') + "){ return eval(" + JSON.stringify(value) + "); })");
+				_compiledMethod = JS.compile(value, _paramNames);
 			}
 		}
 		

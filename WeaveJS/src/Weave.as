@@ -8,12 +8,10 @@ package
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
-	import weavejs.api.core.IExternalSessionStateInterface;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ISessionManager;
 	import weavejs.compiler.StandardLib;
-	import weavejs.core.ExternalSessionStateInterface;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableCallbackScript;
 	import weavejs.core.LinkableDynamicObject;
@@ -45,7 +43,9 @@ package
 		public function Weave()
 		{
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IExternalSessionStateInterface, ExternalSessionStateInterface);
+			
+			// set this property for backwards compatibility
+			this['WeavePath'] = WeavePath;
 			
 			root = new LinkableHashMap();
 			history = new SessionStateLog(root, HISTORY_SYNC_DELAY);
@@ -60,7 +60,7 @@ package
 			lv.addGroupedCallback(this, function():void { JS.log('grouped', lv.state); }, true);
 			lv.state = 'hello';
 			lv.state = 'hello';
-			path('ls').state('hi').addCallback(function():void { JS.log(this+'', this.getState()); });
+			path('ls').state('hi').addCallback(this, function():void { JS.log(this+'', this.getState()); });
 			lv.state = 'world';
 			path('script')
 				.request('LinkableCallbackScript')

@@ -7,10 +7,10 @@
 package weavejs.path
 {
 	import weavejs.WeaveAPI;
-	import weavejs.api.core.IExternalSessionStateInterface;
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
+	import weavejs.compiler.StandardLib;
 	import weavejs.core.SessionManager;
 	import weavejs.utils.JS;
 
@@ -97,14 +97,64 @@ package weavejs.path
 		public function request(...relativePath_objectType):WeavePath
 		{
 			var args:Array = _A(relativePath_objectType, 2);
-			if (_assertParams('request', args))
+			if (!_assertParams('request', args))
+				return this;
+			
+			var type:String = args.pop();
+			var relativePath:Array = args;
+
+			var classDef:Class;
+			var className:String;
+			if (JS.isClass(type))
 			{
-				var type:String = args.pop();
-				var relativePath:Array = args;
-				WeaveAPI.ExternalSessionStateInterface.requestObject(this.push(relativePath), type)
-					|| _failPath('request', this.getPath(relativePath));
+				classDef = JS.asClass(type);
+				className = Weave.className(classDef);
 			}
-			return this;
+			else
+			{
+				className = type as String; // may not be full qualified class name, but useful for error messages
+				classDef = Weave.getDefinition(className);
+				if (!classDef)
+					throw new Error("No class definition for {0}", className);
+			}
+			
+			// stop if at root path
+			var objectPath:Array = _path.concat(relativePath);
+			if (!objectPath.length)
+			{
+				// check for exact class match only
+				if (Object(weave.root).constructor == classDef)
+					return this;
+				
+				throw new Error("Cannot request an object at the root path");
+			}
+			
+			// Get parent object first in case there is some backwards compatibility code that gets
+			// executed when it is accessed (registering deprecated class definitions, for example).
+			var parentPath:Array = objectPath.concat();
+			var childName:Object = parentPath.pop();
+			var parent:ILinkableObject = weave.getObject(parentPath);
+			
+			// request the child object
+			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
+			var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
+			var child:Object = null;
+			if (hashMap)
+			{
+				if (childName is Number)
+					childName = hashMap.getNames()[childName];
+				child = hashMap.requestObject(childName as String, classDef, false);
+			}
+			else if (dynamicObject)
+				child = dynamicObject.requestGlobalObject(childName as String, classDef, false);
+			else
+				child = weave.getObject(objectPath);
+			
+			// check for exact match only
+			if (child && child.constructor == classDef)
+				return this;
+			
+			throw new Error(StandardLib.substitute("Request for {0} failed at path {1}", type as String || Weave.className(type), JSON.stringify(objectPath)));
 		};
 		
 		/**
@@ -116,9 +166,41 @@ package weavejs.path
 		public function remove(...relativePath):WeavePath
 		{
 			relativePath = _A(relativePath, 1);
-			WeaveAPI.ExternalSessionStateInterface.removeObject(this.push(relativePath))
-				|| _failPath('remove', this.getPath(relativePath));
-			return this;
+			
+			if (_path.length + relativePath.length == 0)
+				throw new Error("Cannot remove root object");
+			
+			var parentPath:Array = _path.concat(relativePath);
+			var childName:Object = parentPath.pop();
+			var parent:ILinkableObject = weave.getObject(parentPath);
+			
+			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
+			if (hashMap)
+			{
+				if (childName is Number)
+					childName = hashMap.getNames()[childName];
+				
+				if (hashMap.objectIsLocked(childName as String))
+					throw new Error("Object is locked and cannot be removed: " + push(relativePath));
+				
+				hashMap.removeObject(childName as String);
+				return this;
+			}
+			
+			var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
+			if (dynamicObject)
+			{
+				if (dynamicObject.locked)
+					throw new Error("Object is locked and cannot be removed: " + push(relativePath));
+				
+				dynamicObject.removeObject();
+				return this;
+			}
+			
+			if (parent)
+				throw new Error("Parent object does not support dynamic children, so cannot remove child: " + push(relativePath));
+			else
+				throw new Error("No parent from which to remove a child: " + push(relativePath));
 		};
 		
 		/**
@@ -194,37 +276,64 @@ package weavejs.path
 		 * Adds a callback to the object at the current path.
 		 * When the callback is called, a WeavePath object initialized at the current path will be used as the 'this' context.
 		 * If the same callback is added to multiple paths, only the last path will be used as the 'this' context.
+		 * @param context The thisArg for the function. When the context is disposed with Weave.dispose(), the callback will be disabled.
 		 * @param callback The callback function.
 		 * @param triggerCallbackNow Optional parameter, when set to true will trigger the callback now.
 		 * @param immediateMode Optional parameter, when set to true will use an immediate callback instead of a grouped callback.
 		 * @param delayWhileBusy Optional parameter, specifies whether to delay the callback while the object is busy. Default is true.
 		 * @return The current WeavePath object.
 		 */
-		public function addCallback(callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false, delayWhileBusy:Boolean = true):WeavePath
+		public function addCallback(context:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false, delayWhileBusy:Boolean = true):WeavePath
 		{
-			if (_assertParams('addCallback', arguments))
+			// backwards compatibility - shift arguments
+			if (typeof context === 'function' && typeof callback !== 'function')
 			{
-				var args:Array = Array.prototype.slice.call(arguments);
-				args.unshift(this);
-				var essi:IExternalSessionStateInterface = WeaveAPI.ExternalSessionStateInterface;
-				essi.addCallback.apply(essi, args)
-					|| _failObject('addCallback', this._path);
+				delayWhileBusy = immediateMode;
+				immediateMode = triggerCallbackNow;
+				triggerCallbackNow = callback;
+				callback = context as Function;
 			}
+			
+			var object:ILinkableObject = getObject();
+			if (!object)
+				throw new Error("No ILinkableObject to which to add a callback: " + this);
+			
+			if (immediateMode)
+				Weave.getCallbacks(object).addImmediateCallback(context, callback, triggerCallbackNow, false);
+			else
+				Weave.getCallbacks(object).addGroupedCallback(context, callback, triggerCallbackNow/*, delayWhileBusy*/);
 			return this;
 		}
 		
 		/**
 		 * Removes a callback from the object at the current path or from everywhere.
 		 * @param callback The callback function.
-		 * @param everywhere Optional parameter, if set to true will remove the callback from every object to which it was added.
 		 * @return The current WeavePath object.
 		 */
-		public function removeCallback(callback, everywhere):WeavePath
+		public function removeCallback(callback:Function):WeavePath
 		{
-			if (_assertParams('removeCallback', arguments))
+			var object:ILinkableObject = getObject();
+			if (!object)
+				throw new Error("No ILinkableObject from which to remove a callback: " + this);
+			
+			Weave.getCallbacks(object).removeCallback(callback);
+			return this;
+		}
+		
+		/**
+		 * Evaluates an ActionScript expression using the current path, vars, and libs.
+		 * The 'this' context within the script will be the object at the current path.
+		 * @param script_or_function Either a String containing JavaScript code, or a Function.
+		 * @param callback Optional callback function to be passed the result of evaluating the script or function. The 'this' argument will be the current WeavePath object.
+		 * @return The current WeavePath object.
+		 */
+		public function exec(script_or_function:*, callback:Function = null):WeavePath
+		{
+			if (_assertParams('exec', arguments))
 			{
-				WeaveAPI.ExternalSessionStateInterface.removeCallback(this, callback, everywhere)
-					|| _failObject('removeCallback', this._path);
+				var result:* = getValue(script_or_function);
+				if (callback != null)
+					callback.call(this, result);
 			}
 			return this;
 		}
@@ -235,13 +344,12 @@ package weavejs.path
 		 * @param args An optional list of arguments to pass to the function.
 		 * @return The current WeavePath object.
 		 */
-		public function call(...func_args):WeavePath
+		public function call(func:Function, ...args):WeavePath
 		{
-			if (_assertParams('call', func_args))
-			{
-				var a:Array = _A(func_args);
-				a.shift().apply(this, a);
-			}
+			if (!func)
+				_assertParams('call', []);
+			else
+				func.apply(this, args);
 			return this;
 		}
 		
@@ -253,7 +361,7 @@ package weavejs.path
 		 *                        If items is an Array, the key will be an integer. If items is an Object, the key will be a String.
 		 * @return The current WeavePath object.
 		 */
-		public function forEach(items, visitorFunction):WeavePath
+		public function forEach(items:Object, visitorFunction:Function):WeavePath
 		{
 			if (_assertParams('forEach', arguments, 2))
 			{
@@ -442,19 +550,19 @@ package weavejs.path
 		}
 		
 		/**
-		 * Returns the value of an ActionScript expression or variable using the current path, vars, and libs.
-		 * The 'this' context within the script will be set to the object at the current path.
-		 * @param script_or_variableName The script to be evaluated by Weave, or simply a variable name.
-		 * @return The result of evaluating the script or variable.
+		 * Returns the value of an ActionScript expression or variable using the current path as the 'this' argument.
+		 * @param script_or_function Either a String containing JavaScript code, or a Function.
+		 * @return The result of evaluating the script or function.
 		 */
-		public function getValue(...func_args):Object
+		public function getValue(script_or_function:*, ...args):Object
 		{
-			if (_assertParams('getValue', func_args))
-			{
-				var a:Array = _A(func_args);
-				return a.shift().apply(this, a);
-			}
-			return null;
+			if (!script_or_function)
+				_assertParams('getValue', []);
+			
+			if (script_or_function is String)
+				script_or_function = JS.compile(script_or_function);
+			
+			return script_or_function.apply(this, args);
 		}
 		
 		public function getObject(...relativePath):ILinkableObject
