@@ -609,7 +609,11 @@ package weave.data.DataSources
 				result = Compiler.parseConstant(sqlParams) as Array;
 			} catch (e:Error) { }
 			if (!(result is Array))
+			{
 				result = WeaveAPI.CSVParser.parseCSVRow(sqlParams);
+				if (result && result.length == 0)
+					result = null;
+			}
 			return result;
 		}
 		
