@@ -316,6 +316,7 @@ package
 							return func;
 						var id = flash[JSON_REPLACER]('', func);
 						var debounced = debounce(func, wait);
+						debounced['this'] = func['this'];
 						debounced[JSON_FUNCTION_PREFIX] = id;
 						return lookup[id] = debounced;
 					};
