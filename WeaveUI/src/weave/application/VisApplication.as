@@ -52,13 +52,14 @@ package weave.application
 	
 	import weave.Weave;
 	import weave.WeaveProperties;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
-	import weave.api.data.IAttributeColumn;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.registerDisposableChild;
 	import weave.api.reportError;
+	import weave.api.setSessionState;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.WeaveArchive;
@@ -81,14 +82,13 @@ package weave.application
 	import weave.services.addAsyncResponder;
 	import weave.ui.CirclePlotterSettings;
 	import weave.ui.CustomContextMenuManager;
+	import weave.ui.DataSourceAuthenticationMonitor;
 	import weave.ui.DraggablePanel;
 	import weave.ui.ErrorLogPanel;
 	import weave.ui.ExportSessionStateOptions;
 	import weave.ui.PenTool;
 	import weave.ui.PrintPanel;
 	import weave.ui.QuickMenuPanel;
-	import weave.ui.TextTool;
-	import weave.ui.DataSourceAuthenticationMonitor;
 	import weave.ui.WeaveProgressBar;
 	import weave.ui.collaboration.CollaborationMenuBar;
 	import weave.ui.controlBars.VisTaskbar;
@@ -234,6 +234,12 @@ package weave.application
 		}
 		private var _loadFileCallbacks:Array = [];
 		/**
+		 * When this is set to true, loadFile will not reload previously loaded files.
+		 * Instead, it will load the previously loaded state under that file name.
+		 */
+		public var hack_loadFileSaveLocalState:Boolean = false;
+		private var hack_loadFileSaveLocalState_cache:Object = {};
+		/**
 		 * Loads a session state file from a URL.
 		 * @param url The URL to the session state file (.weave or .xml) specified as a String, a URLRequest, or an Object containing properties "url", "requestHeaders", "method".
 		 *            Example:  {"url": "myfile.ext", "requestHeaders": {"Content-type", "foo"}, method: "POST"}
@@ -242,6 +248,24 @@ package weave.application
 		 */
 		public function loadFile(url:Object, callback:Function = null, noCacheHack:Boolean = false):void
 		{
+			if (hack_loadFileSaveLocalState)
+			{
+				hack_loadFileSaveLocalState_cache[Weave.fileName] = Weave.root.getSessionState();
+				
+				if (typeof url != 'string')
+					url = url.url;
+				var fileName:String = url.split('/').pop();
+				var cachedState:Object = hack_loadFileSaveLocalState_cache[fileName];
+				if (cachedState)
+				{
+					Weave.fileName = fileName;
+					setSessionState(Weave.root, cachedState);
+					if (callback != null)
+						callback();
+					return;
+				}
+			}
+			
 			var request:URLRequest;
 			if (url is URLRequest)
 			{
