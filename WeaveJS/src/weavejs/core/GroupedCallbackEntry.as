@@ -14,7 +14,7 @@ package weavejs.core
 	 */
 	internal class GroupedCallbackEntry extends CallbackEntry
 	{
-		public static function addGroupedCallback(callbackCollection:ICallbackCollection, relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean):void
+		public static function addGroupedCallback(callbackCollection:ICallbackCollection, relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean, delayWhileBusy:Boolean):void
 		{
 			// get (or create) the shared entry for the groupedCallback
 			var entry:GroupedCallbackEntry = _entryLookup.get(groupedCallback);
@@ -27,6 +27,10 @@ package weavejs.core
 			
 			// add this context to the list of relevant contexts
 			(entry.context as Array).push(relevantContext);
+			
+			// once delayWhileBusy is set to true, don't set it to false
+			if (delayWhileBusy)
+				entry.delayWhileBusy = true;
 			
 			// make sure the actual function is not already added as a callback.
 			callbackCollection.removeCallback(groupedCallback);
@@ -134,6 +138,11 @@ package weavejs.core
 		public var triggeredAgain:Boolean = false;
 		
 		/**
+		 * Specifies whether to delay the callback while the contexts are busy.
+		 */
+		public var delayWhileBusy:Boolean = false;
+		
+		/**
 		 * Marks the entry to be handled later (unless already triggered this frame).
 		 * This also takes care of preventing recursion.
 		 */
@@ -169,8 +178,12 @@ package weavejs.core
 			var allContexts:Array = context as Array;
 			// remove the contexts that have been disposed.
 			for (var i:int = 0; i < allContexts.length; i++)
+			{
 				if (Weave.wasDisposed(allContexts[i]))
 					allContexts.splice(i--, 1);
+				else if (delayWhileBusy && Weave.isBusy(allContexts[i]))
+					return;
+			}
 			// if there are no more relevant contexts for this callback, don't run it.
 			if (allContexts.length == 0)
 			{

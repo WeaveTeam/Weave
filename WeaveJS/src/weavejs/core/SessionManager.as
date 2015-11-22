@@ -733,6 +733,9 @@ package weavejs.core
 		 */
 		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
 		{
+			if (!linkableObject)
+				return false;
+			
 			var busy:Boolean = false;
 			
 			array_busyTraversal[array_busyTraversal.length] = linkableObject; // push

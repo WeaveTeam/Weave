@@ -304,9 +304,9 @@ package weavejs.core
 		/**
 		 * @inheritDoc
 		 */
-		public function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void
+		public function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false, delayWhileBusy:Boolean = true):void
 		{
-			GroupedCallbackEntry.addGroupedCallback(this, relevantContext, groupedCallback, triggerCallbackNow);
+			GroupedCallbackEntry.addGroupedCallback(this, relevantContext, groupedCallback, triggerCallbackNow, delayWhileBusy);
 		}
 		
 		public static const STACK_TRACE_TRIGGER:String = "This is the stack trace from when the callbacks were last triggered.";

@@ -41,8 +41,9 @@ package weavejs.api.core
 		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
 		 * @param groupedCallback The callback function that will only be allowed to run during a scheduled time each frame.  It must not require any parameters.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
+		 * @param delayWhileBusy Specifies whether to delay the callback while the object is busy.
 		 */
-		function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void;
+		function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false, delayWhileBusy:Boolean = true):void;
 		
 		/**
 		 * This will add a callback that will only be called once, when this callback collection is disposed.

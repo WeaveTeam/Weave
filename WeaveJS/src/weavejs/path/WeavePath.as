@@ -280,7 +280,7 @@ package weavejs.path
 		 * @param callback The callback function.
 		 * @param triggerCallbackNow Optional parameter, when set to true will trigger the callback now.
 		 * @param immediateMode Optional parameter, when set to true will use an immediate callback instead of a grouped callback.
-		 * @param delayWhileBusy Optional parameter, specifies whether to delay the callback while the object is busy. Default is true.
+		 * @param delayWhileBusy Optional parameter, specifies whether to delay a grouped callback while the object is busy. Default is true.
 		 * @return The current WeavePath object.
 		 */
 		public function addCallback(context:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false, delayWhileBusy:Boolean = true):WeavePath
@@ -292,6 +292,7 @@ package weavejs.path
 				immediateMode = triggerCallbackNow;
 				triggerCallbackNow = callback;
 				callback = context as Function;
+				context = this;
 			}
 			
 			var object:ILinkableObject = getObject();
@@ -301,7 +302,7 @@ package weavejs.path
 			if (immediateMode)
 				Weave.getCallbacks(object).addImmediateCallback(context, callback, triggerCallbackNow, false);
 			else
-				Weave.getCallbacks(object).addGroupedCallback(context, callback, triggerCallbackNow/*, delayWhileBusy*/);
+				Weave.getCallbacks(object).addGroupedCallback(context, callback, triggerCallbackNow, delayWhileBusy);
 			return this;
 		}
 		

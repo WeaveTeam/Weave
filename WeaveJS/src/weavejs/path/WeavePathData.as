@@ -72,6 +72,7 @@ package weavejs.path
 		        var immediate:* = property_descriptor["immediate"];
 		        if (callback)
 		            new_prop.addCallback(
+						new_prop,
 		                callback,
 		                triggerNow !== undefined ? triggerNow : true,
 		                immediate !== undefined ? immediate : false
@@ -242,7 +243,8 @@ package weavejs.path
 		    };
 		
 			// wrapper function 'this' context becomes the WeavePath
-		    this.push('keyCallbacks').addCallback(wrapper, false, true);
+			var p:WeavePath = this.push('keyCallbacks');
+			p.addCallback(p, wrapper, false, true);
 		
 		    if (triggerCallbackNow)
 		    {
