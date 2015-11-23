@@ -18,7 +18,7 @@
 <DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 		xmlns="weave.ui.*" 
 		borderColor="#939178"
-		title="Error Log"
+		title="Error Log / Console"
 		escapeKeyClosesPanel="true"
 		>
 	<Console id="console" context="{errorManager}" padding="0"/>

@@ -199,7 +199,7 @@
 			}
 			
 			/**
-			 * This function(event ListeSner) gets called during dataGrid Resize event
+			 * This function(event Listener) gets called during dataGrid Resize event
 			 * handleDataGridHorizontalScroll calls updateColumnWidths, when the dataGridHorizontalScrollPosition.value is Maximum
 			 * handleDataGridHorizontalScroll is called to update FilterComponents Position
 			 */			
@@ -213,7 +213,9 @@
 				if (enableProbing.value == false || !_probe)
 					return;
 				ProbeTextUtils.getProbeText([], null);
-				var key:IQualifiedKey = dataProvider.getItemAt(event.rowIndex) as IQualifiedKey;
+				var key:IQualifiedKey;
+				if (event.rowIndex < dataProvider.length)
+					key = dataProvider.getItemAt(event.rowIndex) as IQualifiedKey;
 				if (key)
 					_probe.replaceKeys([key]);
 				else

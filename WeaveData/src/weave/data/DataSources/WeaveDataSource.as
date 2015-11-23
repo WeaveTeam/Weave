@@ -76,6 +76,8 @@ package weave.data.DataSources
 
 		private static const SQLPARAMS:String = 'sqlParams';
 		
+		public static var debug:Boolean = false;
+		
 		public function WeaveDataSource()
 		{
 			url.addImmediateCallback(this, handleURLChange, true);
@@ -300,9 +302,9 @@ package weave.data.DataSources
 		/**
 		 * This gets called as a grouped callback when the session state changes.
 		 */
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
-			super.initialize();
+			super.initialize(forceRefresh);
 		}
 		
 		override protected function get initializationComplete():Boolean
@@ -607,7 +609,11 @@ package weave.data.DataSources
 				result = Compiler.parseConstant(sqlParams) as Array;
 			} catch (e:Error) { }
 			if (!(result is Array))
+			{
 				result = WeaveAPI.CSVParser.parseCSVRow(sqlParams);
+				if (result && result.length == 0)
+					result = null;
+			}
 			return result;
 		}
 		
@@ -723,12 +729,22 @@ package weave.data.DataSources
 					{
 						var getTablePromise:WeavePromise = new WeavePromise(_service)
 							.then(function(..._):AsyncToken {
+								if (debug)
+									weaveTrace('invoking getTable()', hash);
 								return _service.getTable(result.tableId, sqlParams);
 							});
 						
 						var keyStrings:Array;
 						promise = getTablePromise
 							.then(function(tableData:TableData):TableData {
+								if (debug)
+									weaveTrace('received', debugId(tableData), hash);
+								
+								if (!tableData.keyColumns)
+									tableData.keyColumns = [];
+								if (!tableData.columns)
+									tableData.columns = {};
+								
 								var name:String;
 								for each (name in tableData.keyColumns)
 									if (!tableData.columns.hasOwnProperty(name))
@@ -741,8 +757,8 @@ package weave.data.DataSources
 								}
 								
 								// generate compound keys
-								var nCol:int = tableData.keyColumns.length
-								var iCol:int, iRow:int, nRow:int;
+								var nCol:int = tableData.keyColumns.length;
+								var iCol:int, iRow:int, nRow:int = 0;
 								for (iCol = 0; iCol < nCol; iCol++)
 								{
 									var keyCol:Array = tableData.columns[tableData.keyColumns[iCol]];
@@ -758,14 +774,28 @@ package weave.data.DataSources
 								}
 								for (iRow = 0; iRow < nRow; iRow++)
 									keyStrings[iRow] = WeaveAPI.CSVParser.createCSVRow(keyStrings[iRow]);
+								
+								// if no key columns were specified, generate keys
+								if (!keyStrings)
+								{
+									var col:Array;
+									for each (col in tableData.columns)
+										break;
+									keyStrings = col.map(function(v:*, i:int, a:Array):String { return 'row' + i; });
+								}
+								
 								return tableData;
 							})
 							.then(function(tableData:TableData):WeavePromise {
+								if (debug)
+									weaveTrace('promising QKeys', debugId(tableData), hash);
 								return (WeaveAPI.QKeyManager as QKeyManager).getQKeysPromise(
 									getTablePromise,
 									keyType,
 									keyStrings
 								).then(function(qkeys:Vector.<IQualifiedKey>):TableData {
+									if (debug)
+										weaveTrace('got QKeys', debugId(tableData), hash);
 									tableData.derived_qkeys = qkeys;
 									return tableData;
 								});

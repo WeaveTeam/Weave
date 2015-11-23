@@ -241,9 +241,10 @@ package weave.services
 						activePassword = savePass;
 					}
 					
-					// refresh list
+					// refresh lists that may have changed
 					service.getConnectionNames();
 					service.getDatabaseConfigInfo();
+					service.getWeaveFileNames(false);
 				}
 			);
 			service.addHook(

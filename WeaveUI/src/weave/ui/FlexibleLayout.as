@@ -2,12 +2,14 @@ package weave.ui
 {
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.utils.Dictionary;
 	
 	import mx.containers.BoxDirection;
 	import mx.containers.DividedBox;
 	import mx.containers.dividedBoxClasses.BoxDivider;
+	import mx.core.UIComponent;
 	import mx.core.mx_internal;
 	import mx.events.ChildExistenceChangedEvent;
 	
@@ -19,6 +21,7 @@ package weave.ui
 	import weave.api.registerLinkableChild;
 	import weave.api.core.DynamicState;
 	import weave.api.core.ILinkableVariable;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableDynamicDisplayObject;
 	import weave.core.LinkableHashMap;
@@ -34,9 +37,16 @@ package weave.ui
 		private static const FLEX:String = 'flex';
 		private static const DIRECTION:String = 'direction';
 		private static const CHILDREN:String = 'children';
+		private static var LinkableDynamicDisplayObject_QName:String;
+		private static var FlexibleLayout_QName:String;
 		
 		public function FlexibleLayout()
 		{
+			if (!LinkableDynamicDisplayObject_QName)
+				LinkableDynamicDisplayObject_QName = getQualifiedClassName(LinkableDynamicDisplayObject);
+			if (!FlexibleLayout_QName)
+				FlexibleLayout_QName = getQualifiedClassName(FlexibleLayout);
+			
 			setStyle('horizontalGap', 8);
 			setStyle('verticalGap', 8);
 			minWidth = 16;
@@ -52,13 +62,22 @@ package weave.ui
 		private const _flex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		private const _direction:LinkableString = registerLinkableChild(this, new LinkableString(BoxDirection.VERTICAL, verifyDirection), adjustChildFlexValues, true);
 		private const _children:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(), adjustChildFlexValues, true);
-		private var _childNamesForMapChildInput:Array;
 		private const _originalParents:Dictionary = new Dictionary(true);
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			try
 			{
+				// workaround for missing divider bug
+				while (numChildren > 0 && numDividers < numChildren - 1)
+				{
+					var child:UIComponent = getChildAt(0) as UIComponent;
+					if (!child.includeInLayout)
+						break; // prevent infinite loop
+					// dispatching this event causes DividedBox to create another divider
+					child.dispatchEvent(new Event("includeInLayoutChanged"));
+				}
+				
 				super.updateDisplayList(unscaledWidth, unscaledHeight);
 			}
 			catch (e:Error)
@@ -131,17 +150,7 @@ package weave.ui
 		
 		private function _mapChildOutput(dynamicState:Object, i:int, a:Array):Object
 		{
-			var output:Object = dynamicState[DynamicState.SESSION_STATE];
-			if (DynamicState.isDynamicStateArray(output) && output.length == 1 && output[0][DynamicState.CLASS_NAME] == 'Array')
-				output = output[0][DynamicState.SESSION_STATE];
-			return output;
-		}
-		
-		private function _mapChildInput(state:Object, i:int, a:Array):Object
-		{
-			var objectName:String = _childNamesForMapChildInput[i] || 'child' + i;
-			var className:String = getQualifiedClassName(state is Array ? LinkableDynamicDisplayObject : FlexibleLayout);
-			return DynamicState.create(objectName, className, state);
+			return dynamicState[DynamicState.SESSION_STATE];
 		}
 		
 		public function getSessionState():Object
@@ -150,31 +159,73 @@ package weave.ui
 			var state:Object = {};
 			state[FLEX] = _flex.value || 1;
 			state[DIRECTION] = _direction.value;
-			if (children.length == 1)
-			{
+			if (children.length == 1 && children[0] is Array)
 				state[ID] = children[0];
-				delete state[CHILDREN];
-			}
 			else
-			{
-				delete state[ID];
 				state[CHILDREN] = children;
-			}
 			return state;
 		}
 		
+		private function simplifyState(state:Object):Object
+		{
+			var children:Array = state[CHILDREN] as Array;
+			if (!children)
+				return state;
+			if (children.length == 1)
+				return simplifyState(children[0]);
+			
+			var simpleChildren:Array = [];
+			for (var i:int = 0; i < children.length; i++)
+			{
+				var child:Object = simplifyState(children[i]);
+				if (child[CHILDREN] is Array && child[DIRECTION] === state[DIRECTION])
+				{
+					var childChildren:Array = child[CHILDREN] as Array;
+					for (var ii:int = 0; ii < childChildren.length; ii++)
+					{
+						var childChild:Object = childChildren[ii];
+						childChild[FLEX] *= child[FLEX];
+						simpleChildren.push(childChild);
+					}
+				}
+				else
+				{
+					simpleChildren.push(child);
+				}
+			}
+			state[CHILDREN] = simpleChildren;
+			return state;
+		}
+				
 		public function setSessionState(state:Object):void
 		{
 			if (!state)
 				state = {};
 			
+			try
+			{
+				state = simplifyState(state);
+			}
+			catch (e:Error)
+			{
+				trace(debugId(this), 'received invalid state:', Compiler.stringify(state, null, '\t'));
+			}
+			
 			var id:Array = state[ID] is String ? [state[ID] as String] : state[ID] as Array;
 			var flex:Number = state[FLEX];
 			var direction:String = state[DIRECTION] as String;
-			var children:Array = id ? [id] : (state[CHILDREN] as Array || []);
+			var children:Array = id ? [id] : (state[CHILDREN] as Array || []).concat();
 			
-			_childNamesForMapChildInput = _children.getNames();
-			children = children.map(_mapChildInput);
+			for (var i:int = 0; i < children.length; i++)
+			{
+				var objectName:String = 'child' + i;
+				var child:Object = children[i];
+				if (child is Array)
+					child = DynamicState.create(objectName, LinkableDynamicDisplayObject_QName, child);
+				else
+					child = DynamicState.create(objectName, FlexibleLayout_QName, child);
+				children[i] = child;
+			}
 			
 			getCallbackCollection(this).delayCallbacks();
 			

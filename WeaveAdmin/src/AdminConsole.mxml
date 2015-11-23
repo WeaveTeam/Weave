@@ -110,8 +110,6 @@
 			import weave.services.beans.ConnectionInfo;
 			import weave.ui.DraggablePanel;
 			import weave.ui.ErrorLogPanel;
-			import weave.ui.LoginPopup;
-			import weave.ui.SessionStateEditor;
 			import weave.ui.TranslationPanel;
 			import weave.ui.WeaveProgressBar;
 			import weave.ui.admin.WizardPanel;
@@ -185,6 +183,7 @@
 			private function handleApplicationComplete():void
 			{
 				WeaveAPI.initializeJavaScript();
+				WeaveAPI.callExternalWeaveReady();
 				getCallbackCollection(WeaveAPI.ErrorManager).addGroupedCallback(this, ErrorLogPanel.openErrorLog, WeaveAPI.ErrorManager.errors.length > 0);
 			}
 			

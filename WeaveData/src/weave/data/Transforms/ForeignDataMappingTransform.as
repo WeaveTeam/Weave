@@ -61,12 +61,10 @@ package weave.data.Transforms
 				&& !linkableObjectIsBusy(dataColumns);
 		}
 		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			// recalculate all columns previously requested
-			refreshAllProxyColumns();
-			
-			super.initialize();
+			super.initialize(true);
 		}
 		
 		override public function getHierarchyRoot():IWeaveTreeNode

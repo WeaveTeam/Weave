@@ -154,9 +154,9 @@ package weave.data.DataSources
 		private const outputCSV:CSVDataSource = newLinkableChild(this, CSVDataSource);
 		private var _service:AMF3Servlet;
 		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
-			super.initialize();
+			super.initialize(forceRefresh);
 		}
 		
 		private function handleURLChange():void

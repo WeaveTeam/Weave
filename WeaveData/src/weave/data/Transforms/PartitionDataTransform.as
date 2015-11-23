@@ -56,12 +56,10 @@ package weave.data.Transforms
 			return ["Partition by", "Columns to partition"];
 		}
 		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			// recalculate all columns previously requested
-			refreshAllProxyColumns();
-			
-			super.initialize();
+			super.initialize(true);
 		}
 		
 		override public function getHierarchyRoot():IWeaveTreeNode

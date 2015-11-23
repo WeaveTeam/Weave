@@ -372,7 +372,7 @@ package weave.utils
 		 * @param keyFilter Either an IKeyFilter or an Array of IQualifiedKey objects used to filter the results.
 		 * @return An Array of Arrays, the first being IQualifiedKeys and the rest being Arrays data values from the given columns that correspond to the IQualifiedKeys. 
 		 */
-		public static function joinColumns(columns:Array, dataType:Class = null, allowMissingData:Boolean = false, keyFilter:Object = null):Array
+		public static function joinColumns(columns:Array, dataType:Object = null, allowMissingData:Boolean = false, keyFilter:Object = null):Array
 		{
 			var keys:Array;
 			var key:IQualifiedKey;
@@ -401,6 +401,10 @@ package weave.utils
 						if (!filter || filter.containsKey(qkey))
 							keys.push(qkey);
 			}
+			
+			if (dataType is String)
+				dataType = DataType.getClass(dataType as String);
+			
 			// put the keys in the result
 			var result:Array = [keys];
 			// get all the data values in the same order as the common keys
@@ -408,7 +412,7 @@ package weave.utils
 			{
 				column = columns[cIndex];
 				
-				var dt:Class = dataType;
+				var dt:Class = dataType as Class;
 				if (!dt && column)
 					dt = DataType.getClass(column.getMetadata(ColumnMetadata.DATA_TYPE));
 				

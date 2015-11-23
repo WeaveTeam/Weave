@@ -61,6 +61,8 @@ public class SQLUtils
 	
 	public static String DEFAULT_SQLITE_DATABASE = "sqlite_master";
 	
+	public static boolean debug = false;
+	
 	/**
 	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
 	 * @return A driver name that can be used in the getConnection() function.
@@ -304,7 +306,12 @@ public class SQLUtils
 			{
 				conn = _staticReadOnlyConnections.get(key);
 				if (connectionIsValid(conn))
+				{
+					if (debug)
+						System.out.println("DEBUG: cleaned up invalid connection\n\t" + connectString);
+
 					return conn;
+				}
 				// if connection is not valid, remove this entry from the Map
 				_staticReadOnlyConnections.remove(key);
 			}
@@ -319,7 +326,8 @@ public class SQLUtils
 			}
 			catch (SQLException e)
 			{
-				e.printStackTrace();
+				if (!isSQLite(conn))
+					e.printStackTrace();
 			}
 			
 			// remember this static, read-only connection.
@@ -657,6 +665,9 @@ public class SQLUtils
 		SQLResult result = null;
 		try
 		{
+			if (debug)
+				System.out.println(String.format("DEBUG: executing query\n\t%s\n\t%s", query, params == null ? "" : Arrays.deepToString(params)));
+			
 			long time1 = System.currentTimeMillis();
 			
 			if (params == null || params.length == 0)

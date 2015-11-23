@@ -68,11 +68,9 @@ package weave.data.Transforms
 				&& !linkableObjectIsBusy(dataColumns);
 		}
 
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
-			refreshAllProxyColumns();
-
-			super.initialize();
+			super.initialize(true);
 		}
 
 		public const groupByColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
@@ -235,7 +233,7 @@ internal class AggregateColumn extends AbstractAttributeColumn implements IPrimi
 			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _dataColumn);
 		
 		_metadata = copyValues(metadata);
-		_dataColumn = registerLinkableChild(this, dataColumn);
+		_dataColumn = dataColumn && registerLinkableChild(this, dataColumn);
 		_keys = keys;
 		_cacheTriggerCounter = 0;
 		triggerCallbacks();
@@ -244,7 +242,7 @@ internal class AggregateColumn extends AbstractAttributeColumn implements IPrimi
 	override public function getMetadata(propertyName:String):String
 	{
 		return super.getMetadata(propertyName)
-			|| _dataColumn.getMetadata(propertyName);
+			|| (_dataColumn && _dataColumn.getMetadata(propertyName));
 	}
 	
 	override public function getMetadataPropertyNames():Array
@@ -267,7 +265,7 @@ internal class AggregateColumn extends AbstractAttributeColumn implements IPrimi
 	 */
 	override public function containsKey(key:IQualifiedKey):Boolean
 	{
-		return _dataColumn.containsKey(key);
+		return _dataColumn && _dataColumn.containsKey(key);
 	}
 	
 	public function deriveStringFromNumber(value:Number):String
@@ -320,7 +318,7 @@ internal class AggregateColumn extends AbstractAttributeColumn implements IPrimi
 		
 		// get input keys from groupKey
 		var keys:Array = EquationColumnLib.getAssociatedKeys(_groupByColumn, groupKey, true);
-		var meta_dataType:String = _dataColumn.getMetadata(ColumnMetadata.DATA_TYPE);
+		var meta_dataType:String = _dataColumn ? _dataColumn.getMetadata(ColumnMetadata.DATA_TYPE) : null;
 		var inputType:Class = DataType.getClass(meta_dataType);
 
 		if (dataType === Array)
@@ -386,6 +384,8 @@ internal class AggregateColumn extends AbstractAttributeColumn implements IPrimi
 	private static function getValues(column:IAttributeColumn, keys:Array, dataType:Class):Array
 	{
 		var values:Array = [];
+		if (!column)
+			return values;
 		for each (var key:IQualifiedKey in keys)
 		{
 			if (!column.containsKey(key))

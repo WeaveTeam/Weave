@@ -88,7 +88,7 @@ package weave.data.DataSources
 			}
 		}
 		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			if (detectLinkableObjectChange(initialize, dbfUrl) && dbfUrl.value)
 				addAsyncResponder(
@@ -106,9 +106,7 @@ package weave.data.DataSources
 				);
 			
 			// recalculate all columns previously requested because data may have changed.
-			refreshAllProxyColumns();
-			
-			super.initialize();
+			super.initialize(true);
 		}
 		
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString);

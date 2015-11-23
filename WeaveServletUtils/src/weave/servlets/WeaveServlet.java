@@ -55,7 +55,6 @@ import weave.beans.JsonRpcResponseModel;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
 import weave.utils.MapUtils;
-import weave.utils.Strings;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -332,21 +331,36 @@ public class WeaveServlet extends HttpServlet
 			//Map<String, String[]> urlParams = new HashMap<String,String[]>(request.getParameterMap());
 			
 			List<String> urlParamNames = Collections.list(request.getParameterNames());
-			HashMap<String, String> urlParams = new HashMap<String,String>();
+			HashMap<String, Object> urlParams = new HashMap<String,Object>();
 			for (String paramName : urlParamNames)
-				urlParams.put(paramName, request.getParameter(paramName)); // assumes parameters only have one value
+			{
+				Object value = request.getParameter(paramName); // assumes parameters only have one value
+				try
+				{
+					// attempt to parse as JSON
+					value = GSON.fromJson((String)value, Object.class);
+				}
+				catch (Exception e)
+				{
+					// keep string value
+				}
+				urlParams.put(paramName, value);
+			}
 			
 			// for testing
 			String SET_CONTENT_TYPE = "setContentType";
 			if (urlParams.containsKey(SET_CONTENT_TYPE))
-				info.setContentType = Strings.equal("true", urlParams.remove(SET_CONTENT_TYPE).toLowerCase());
+			{
+				Object value = urlParams.remove(SET_CONTENT_TYPE);
+				info.setContentType = value instanceof Boolean ? (Boolean)value : false;
+			}
 			
 			if (request.getMethod().equals("GET"))
 			{
 				JsonRpcRequestModel json = new JsonRpcRequestModel();
 				json.jsonrpc = JSONRPC_VERSION;
 				json.id = "";
-				json.method = urlParams.remove(METHOD);
+				json.method = (String)urlParams.remove(METHOD);
 				json.params = urlParams;
 				info.currentJsonRequest = json;
 				info.prettyPrinting = true;
@@ -360,7 +374,7 @@ public class WeaveServlet extends HttpServlet
 					Object methodParams;
 					if (info.inputStream.peek() == '[' || info.inputStream.peek() == '{') // json
 					{
-						handleArrayOfJsonRequests(info.inputStream,response);
+						handleArrayOfJsonRequests(info.inputStream, response);
 					}
 					else // AMF3
 					{
@@ -428,7 +442,7 @@ public class WeaveServlet extends HttpServlet
 		}
 	}
 	
-	private void handleArrayOfJsonRequests(PeekableInputStream inputStream,HttpServletResponse response) throws IOException
+	private void handleArrayOfJsonRequests(PeekableInputStream inputStream, HttpServletResponse response) throws IOException
 	{
 		try
 		{

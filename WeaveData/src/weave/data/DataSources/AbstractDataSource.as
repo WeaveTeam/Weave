@@ -125,12 +125,14 @@ package weave.data.DataSources
 		 * This function will be called as a grouped callback the frame after the session state for the data source changes.
 		 * When overriding this function, super.initialize() should be called.
 		 */
-		protected function initialize():void
+		protected function initialize(forceRefresh:Boolean = false):void
 		{
 			// set initialized to true so other parts of the code know if this function has been called.
 			_initializeCalled = true;
-
-			handleAllPendingColumnRequests();
+			if (forceRefresh)
+				refreshAllProxyColumns(initializationComplete);
+			else
+				handleAllPendingColumnRequests(initializationComplete);
 		}
 		
 		/**
@@ -173,11 +175,11 @@ package weave.data.DataSources
 		 * for the pending column, it is recommended to call super.handlePendingColumnRequest() instead.
 		 * @param request The request that needs to be handled.
 		 */
-		protected function handlePendingColumnRequest(column:ProxyColumn):void
+		protected function handlePendingColumnRequest(column:ProxyColumn, forced:Boolean = false):void
 		{
 			// If data source is already initialized (session state is stable, not currently changing), we can request the column now.
 			// Otherwise, we have to wait.
-			if (initializationComplete)
+			if (initializationComplete || forced)
 			{
 				_proxyColumns[column] = false; // no longer pending
 				WeaveAPI.ProgressIndicator.removeTask(column);
@@ -192,20 +194,20 @@ package weave.data.DataSources
 		/**
 		 * This function will call handlePendingColumnRequest() on each pending column request.
 		 */
-		protected function handleAllPendingColumnRequests():void
+		protected function handleAllPendingColumnRequests(forced:Boolean = false):void
 		{
 			for (var proxyColumn:Object in _proxyColumns)
 				if (_proxyColumns[proxyColumn]) // pending?
-					handlePendingColumnRequest(proxyColumn as ProxyColumn);
+					handlePendingColumnRequest(proxyColumn as ProxyColumn, forced);
 		}
 		
 		/**
 		 * Calls requestColumnFromSource() on all ProxyColumn objects created previously via getAttributeColumn().
 		 */
-		protected function refreshAllProxyColumns():void
+		protected function refreshAllProxyColumns(forced:Boolean = false):void
 		{
 			for (var proxyColumn:Object in _proxyColumns)
-				handlePendingColumnRequest(proxyColumn as ProxyColumn);
+				handlePendingColumnRequest(proxyColumn as ProxyColumn, forced);
 		}
 		
 		/**

@@ -313,7 +313,10 @@ A text editor to change the Session State on the fly.
 					{
 						var newObject:ILinkableObject = ilh.requestObject(name, classDef, false);
 						if (newObject)
+						{
 							sessionNav.setSelectedLinkableObject(newObject);
+							sessionNav.scrollToAndSelectMatchingItem(sessionNav.selectedItem);
+						}
 						else
 							reportError("Unable to create new " + className);
 					}

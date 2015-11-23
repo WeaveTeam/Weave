@@ -418,16 +418,14 @@ package weave.data.DataSources
 		/**
 		 * This gets called as a grouped callback.
 		 */		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			// if url is specified, do not use csvDataString
 			if (url.value)
 				csvData.setSessionState(null);
 			
 			// recalculate all columns previously requested because CSV data may have changed.
-			refreshAllProxyColumns();
-
-			super.initialize();
+			super.initialize(true);
 		}
 		
 		/**

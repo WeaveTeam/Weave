@@ -364,13 +364,22 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 			return result;
 		}
 		
-		//TODO - check if entity is a table
-		
 		String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
+		String fakeData = entity.publicMetadata.get("fakeData");
+		String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
+		
 		int tableId = DataConfig.NULL;
 		String tableField = null;
 		
-		if (Strings.isEmpty(query))
+		boolean getRealKeys = true;
+		boolean getRealData = true;
+		
+		// special case when sqlParams is an empty Array - don't query
+		if (sqlParams != null && sqlParams.length == 0)
+		{
+			fakeData = "{dim:[0]}";
+		}
+		else if (Strings.isEmpty(query))
 		{
 			String entityType = entity.publicMetadata.get(PublicMetadata.ENTITYTYPE);
 			tableField = entity.privateMetadata.get(PrivateMetadata.SQLCOLUMN);
@@ -395,17 +404,12 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 			}
 		}
 		
-		String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
-		
 		List<String> keys = null;
 		List<Double> numericData = null;
 		List<String> stringData = null;
 		List<Object> thirdColumn = null; // hack for dimension slider format
 		List<PGGeom> geometricData = null;
 
-		boolean getRealKeys = true;
-		boolean getRealData = true;
-		String fakeData = entity.publicMetadata.get("fakeData");
 		if (!Strings.isEmpty(fakeData))
 		{
 			FakeDataProperties props;
@@ -486,10 +490,17 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 				Connection conn = getStaticReadOnlyConnection(connInfo);
 				
 				// use default sqlParams if not specified by query params
-				if (sqlParams == null || sqlParams.length == 0)
+				if (sqlParams == null)
 				{
 					String sqlParamsString = entity.privateMetadata.get(PrivateMetadata.SQLPARAMS);
-					sqlParams = CSVParser.defaultParser.parseCSVRow(sqlParamsString, true);
+					try
+					{
+						sqlParams = (Object[])GSON.fromJson(sqlParamsString, Object[].class);
+					}
+					catch (Exception e)
+					{
+						sqlParams = CSVParser.defaultParser.parseCSVRow(sqlParamsString, true);
+					}
 				}
 				
 				SQLResult result = SQLUtils.getResultFromQuery(conn, query, sqlParams, false);

@@ -59,9 +59,9 @@ package weave.data.DataSources
 				&& xlsSheetsArray.length > 0;
 		}
 		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
-			super.initialize();
+			super.initialize(forceRefresh);
 
 			if (detectLinkableObjectChange(initialize, url) && url.value)
 			{

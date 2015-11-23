@@ -343,7 +343,7 @@ package weave.core
 		
 		private function applyDiffForLinkableVariable(base:Object, diff:Object):Object
 		{
-			if (base === null || diff === null || typeof(base) != 'object' || typeof(diff) != 'object')
+			if (base === null || diff === null || typeof(base) != 'object' || typeof(diff) != 'object' || diff is Array)
 				return diff; // don't need to make a copy because LinkableVariable makes copies anyway
 			
 			for (var key:String in diff)

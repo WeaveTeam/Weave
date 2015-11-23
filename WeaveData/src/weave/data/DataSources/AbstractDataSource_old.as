@@ -15,13 +15,12 @@
 
 package weave.data.DataSources
 {
-	import weave.api.core.ICallbackCollection;
-	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.data.IWeaveTreeNode;
 	import weave.core.LinkableXML;
-	import weave.core.SessionManager;
 	import weave.data.hierarchy.XMLEntityNode;
 	import weave.utils.HierarchyUtils;
 	
@@ -45,7 +44,7 @@ package weave.data.DataSources
 		 * It will be called the frame after the session state for the data source changes.
 		 * When overriding this function, super.initialize() should be called.
 		 */
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			// set initialized to true so other parts of the code know if this function has been called.
 			_initializeCalled = true;
@@ -63,7 +62,10 @@ package weave.data.DataSources
 				initializeHierarchySubtree(null);
 			}
 			
-			handleAllPendingColumnRequests();
+			if (forceRefresh)
+				refreshAllProxyColumns(initializationComplete);
+			else
+				handleAllPendingColumnRequests(initializationComplete);
 		}
 		
 		/**
