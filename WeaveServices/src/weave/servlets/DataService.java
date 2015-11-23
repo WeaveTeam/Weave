@@ -89,6 +89,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	
 	public DataService()
 	{
+		//hack_memoizeEverything = new HashMap<String, Object>();
 	}
 	
 	public void init(ServletConfig config) throws ServletException
