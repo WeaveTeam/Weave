@@ -32,10 +32,10 @@ import org.apache.solr.common.*;
 public class DocumentMapService extends WeaveServlet
 {
 	private static final long serialVersionUID = 1L;
-	
+
 	private ServletConfig config;
 
-	public void init(ServletConfig config) throws ServletException 
+	public void init(ServletConfig config) throws ServletException
 	{
 		this.config = config;
 		super.init(config);
@@ -44,8 +44,9 @@ public class DocumentMapService extends WeaveServlet
 	{
 		ServletContext application = config.getServletContext();
 		/* TODO: Figure out the 'right way' to get the deployment directory. */
-		Path servletPath = Paths.get("webapps", application.getServletContextName());
-		return new DocumentCollection(Paths.get(application.getInitParameter("collectionsPath")), name, servletPath.toAbsolutePath(), getSolr());
+
+		Path servletPath = Paths.get(application.getRealPath(""));
+		return new DocumentCollection(Paths.get(application.getRealPath("")).resolve("../document-collections"), name, servletPath.toAbsolutePath(), getSolr());
 	}
 
 	private static SolrClient _solr = null;
@@ -53,15 +54,15 @@ public class DocumentMapService extends WeaveServlet
 	{
 		if (_solr == null)
 		{
-			_solr = new HttpSolrClient("http://localhost:8080/solr/docmaps");
+			_solr = new HttpSolrClient("http://localhost:8983/solr/docmaps");
 		}
-		
+
 		return _solr;
 	}
 
 	public void createCollection(String name) throws RemoteException
 	{
-		try 
+		try
 		{
 			getCollection(name).create();
 		}
@@ -88,7 +89,7 @@ public class DocumentMapService extends WeaveServlet
 		try
 		{
 			ServletContext application = config.getServletContext();
-			Path collectionsPath = Paths.get(application.getInitParameter("collectionsPath"));
+			Path collectionsPath = Paths.get(application.getRealPath("")).resolve("../document-collections");
 			ArrayList<String> collectionList = new ArrayList<String>();
 			try {
 				DirectoryStream<Path> stream = Files.newDirectoryStream(collectionsPath);
@@ -122,7 +123,7 @@ public class DocumentMapService extends WeaveServlet
 
 	public void addDocuments(String collectionName, String fileName, InputStream fileStream) throws RemoteException
 	{
-		try 
+		try
 		{
 			if (Arrays.equals(getMagicBytes(fileStream), PDF_BYTES))
 				getCollection(collectionName).addDocument(fileName, fileStream);
@@ -255,7 +256,7 @@ public class DocumentMapService extends WeaveServlet
 			throw new RemoteException("Failed to get topics.");
 		}
 	}
-	
+
 	// docID -> title
 	public Map<String,String> getDocMetadata(String collectionName, String property) throws RemoteException
 	{
@@ -279,7 +280,7 @@ public class DocumentMapService extends WeaveServlet
 			throw new RemoteException("Failed to get titles.");
 		}
 	}
-	
+
 	// docID -> (topicID -> Double)
 	public Map<String,Map<String,Double>> getDocTopicWeights(String collectionName) throws RemoteException
 	{
