@@ -30,7 +30,8 @@ package weavejs.utils
 		 */
 		public static function compile(script:String, paramNames:Array = null):Function
 		{
-			return global.eval("(function(" + (paramNames ? paramNames.join(',') : '') + "){ return eval(" + JSON.stringify(script) + "); })");
+			var params:String = paramNames ? paramNames.join(',') : '';
+			return global.eval("(function(" + params + "){ return eval(" + JSON.stringify(script) + "); })");
 		}
 		
 		/**
@@ -101,6 +102,14 @@ package weavejs.utils
 		public static function objectKeys(object:Object):Array
 		{
 			return Object['keys'](object);
+		}
+		
+		/**
+		 * Tests if a value is of a primitive type.
+		 */
+		public static function isPrimitive(value:*):Boolean
+		{
+			return value === null || typeof value !== 'object';
 		}
 		
 		/**

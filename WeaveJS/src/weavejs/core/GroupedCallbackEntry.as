@@ -17,6 +17,9 @@ package weavejs.core
 	{
 		public static function addGroupedCallback(callbackCollection:ICallbackCollection, relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean, delayWhileBusy:Boolean):void
 		{
+			if (!relevantContext)
+				relevantContext = callbackCollection;
+			
 			// make sure the actual function is not already added as a callback.
 			callbackCollection.removeCallback(relevantContext, groupedCallback);
 			
@@ -41,6 +44,9 @@ package weavejs.core
 		
 		public static function removeGroupedCallback(callbackCollection:ICallbackCollection, relevantContext:Object, groupedCallback:Function):void
 		{
+			if (!relevantContext)
+				relevantContext = callbackCollection;
+			
 			var entry:GroupedCallbackEntry = d2d_context_callback_entry.get(relevantContext, groupedCallback);
 			if (entry)
 			{

@@ -60,7 +60,7 @@ package
 			lv.addGroupedCallback(this, function():void { JS.log('grouped', lv.state); }, true);
 			lv.state = 'hello';
 			lv.state = 'hello';
-			path('ls').state('hi').addCallback(this, function():void { JS.log(this+'', this.getState()); });
+			path('ls').state('hi').addCallback(function():void { JS.log(this+'', this.getState()); }, null);
 			lv.state = 'world';
 			path('script')
 				.request('LinkableCallbackScript')

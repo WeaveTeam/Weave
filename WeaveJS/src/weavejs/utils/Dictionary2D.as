@@ -58,7 +58,10 @@ package weavejs.utils
 		{
 			var map2:Object = map.get(key1);
 			if (map2 == null)
-				map.set(key1, map2 = weak2 ? new JS.WeakMap() : new JS.Map());
+			{
+				map2 = (weak2 ? new JS.WeakMap() : new JS.Map());
+				map.set(key1, map2);
+			}
 			map2.set(key2, value);
 		}
 		
