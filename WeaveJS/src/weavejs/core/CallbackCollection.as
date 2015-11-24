@@ -37,14 +37,12 @@ package weavejs.core
 		public function CallbackCollection(preCallback:Function = null)
 		{
 			this._preCallback = preCallback;
-			this._callbackEntries = [];
-			this._disposeCallbackEntries = [];
 		}
 
 		/**
 		 * This is a list of CallbackEntry objects in the order they were created.
 		 */
-		private var _callbackEntries:Array;
+		private var _callbackEntries:Array = [];
 
 		/**
 		 * This is the function that gets called immediately before every callback.
@@ -85,7 +83,7 @@ package weavejs.core
 				return;
 			
 			// remove the callback if it was previously added
-			removeCallback(callback);
+			removeCallback(relevantContext, callback);
 			
 			var entry:CallbackEntry = new CallbackEntry(relevantContext, callback);
 			if (alwaysCallLast)
@@ -192,10 +190,10 @@ package weavejs.core
 		/**
 		 * @inheritDoc
 		 */
-		public final function removeCallback(callback:Function):void
+		public final function removeCallback(relevantContext:Object, callback:Function):void
 		{
 			// if the callback was added as a grouped callback, we need to remove the trigger function
-			GroupedCallbackEntry.removeGroupedCallback(this, callback);
+			GroupedCallbackEntry.removeGroupedCallback(this, relevantContext, callback);
 			
 			// find the matching CallbackEntry, if any
 			for (var outerLoop:int = 0; outerLoop < 2; outerLoop++)
@@ -204,7 +202,7 @@ package weavejs.core
 				for (var index:int = 0; index < entries.length; index++)
 				{
 					var entry:CallbackEntry = entries[index];
-					if (entry != null && callback === entry.callback)
+					if (entry.callback === callback && entry.context === relevantContext)
 					{
 						// Remove the callback by setting the function pointer to null.
 						// This is done instead of removing the entry because we may be looping over the _callbackEntries Array right now.
@@ -257,7 +255,7 @@ package weavejs.core
 		{
 			// don't do anything if the dispose callback was already added
 			for each (var entry:CallbackEntry in _disposeCallbackEntries)
-				if (entry.callback === callback)
+				if (entry.callback === callback && entry.context === relevantContext)
 					return;
 			
 			_disposeCallbackEntries.push(new CallbackEntry(relevantContext, callback));
@@ -266,7 +264,7 @@ package weavejs.core
 		/**
 		 * A list of CallbackEntry objects for when dispose() is called.
 		 */		
-		private var _disposeCallbackEntries:Array;
+		private var _disposeCallbackEntries:Array = [];
 
 		/**
 		 * @inheritDoc
@@ -274,15 +272,18 @@ package weavejs.core
 		public function dispose():void
 		{
 			// remove all callbacks
+			var entry:CallbackEntry;
 			if (debug)
 				_oldEntries = _oldEntries ? _oldEntries.concat(_callbackEntries) : _callbackEntries.concat();
+			for each (entry in _callbackEntries)
+				entry.dispose();
 			_callbackEntries.length = 0;
 			_wasDisposed = true;
 			
 			// run & remove dispose callbacks
 			while (_disposeCallbackEntries.length)
 			{
-				var entry:CallbackEntry = _disposeCallbackEntries.shift();
+				entry = _disposeCallbackEntries.shift();
 				if (entry.callback != null && !Weave.wasDisposed(entry.context))
 					entry.callback.apply(entry.context);
 			}

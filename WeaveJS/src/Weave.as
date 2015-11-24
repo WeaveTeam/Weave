@@ -11,7 +11,6 @@ package
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ISessionManager;
-	import weavejs.compiler.StandardLib;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableCallbackScript;
 	import weavejs.core.LinkableDynamicObject;
@@ -28,6 +27,7 @@ package
 	import weavejs.path.WeavePathData;
 	import weavejs.utils.Dictionary2D;
 	import weavejs.utils.JS;
+	import weavejs.utils.StandardLib;
 	
 	public class Weave
 	{

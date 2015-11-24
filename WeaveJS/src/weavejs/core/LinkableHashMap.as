@@ -15,7 +15,6 @@
 
 package weavejs.core
 {
-	import weavejs.WeaveAPI;
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IChildListCallbackInterface;

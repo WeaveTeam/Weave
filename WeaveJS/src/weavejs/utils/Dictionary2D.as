@@ -118,8 +118,8 @@ package weavejs.utils
 				value = map2.get(key2);
 				map2['delete'](key2);
 				
-				// if entries remain in map2, keep it
-				if (map2.size)
+				// if map2 is a WeakMap or entries remain in map2, keep it
+				if (weak2 || map2.size)
 					return value;
 				
 				// otherwise, remove it

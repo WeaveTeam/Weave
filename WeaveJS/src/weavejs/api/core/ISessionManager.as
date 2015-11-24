@@ -32,6 +32,11 @@ package weavejs.api.core
 		function getCallbackCollection(linkableObject:ILinkableObject):ICallbackCollection;
 		
 		/**
+		 * This function gets the ILinkableObject associated with an ICallbackCollection.
+		 */
+		function getLinkableObjectFromCallbackCollection(callbackCollection:ICallbackCollection):ILinkableObject
+		
+		/**
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
 		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed.
 		 * 

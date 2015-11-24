@@ -13,7 +13,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weavejs.compiler
+package weavejs.utils
 {
 	/**
 	 * This provides a set of useful static functions.

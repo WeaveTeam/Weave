@@ -15,13 +15,12 @@
 
 package weavejs.core
 {
-	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ILinkableVariable;
-	import weavejs.compiler.StandardLib;
 	import weavejs.utils.JS;
+	import weavejs.utils.StandardLib;
 
 	/**
 	 * This class saves the session history of an ILinkableObject.

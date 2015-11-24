@@ -15,8 +15,8 @@
 
 package weavejs.core
 {
-	import weavejs.compiler.StandardLib;
 	import weavejs.utils.JS;
+	import weavejs.utils.StandardLib;
 	
 	/**
 	 * LinkableFunction allows a function to be defined by a String that can use macros defined in the static macros hash map.

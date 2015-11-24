@@ -6,15 +6,24 @@
 */
 package weavejs.core
 {
+	import weavejs.api.core.IDisposableObject;
+
 	/**
 	 * @private
 	 */
-	internal class CallbackEntry
+	internal class CallbackEntry implements IDisposableObject
 	{
+		/**
+		 * @param context The "this" argument for the callback function. When the context is disposed, this callback entry will be disposed.
+		 * @param callback The callback function.
+		 */
 		public function CallbackEntry(context:Object, callback:Function)
 		{
 			this.context = context;
 			this.callback = callback;
+			
+			if (context)
+				Weave.disposableChild(context, this);
 			
 			if (CallbackCollection.debug)
 				addCallback_stackTrace = new Error(STACK_TRACE_ADD);

@@ -75,9 +75,9 @@ package weavejs.core
 			{
 				// check objects individually since one may have been disposed
 				if (_primary)
-					Weave.getCallbacks(_primary).removeCallback(primaryCallback);
+					Weave.getCallbacks(_primary).removeCallback(this, primaryCallback);
 				if (_secondary)
-					Weave.getCallbacks(_secondary).removeCallback(secondaryCallback);
+					Weave.getCallbacks(_secondary).removeCallback(this, secondaryCallback);
 				
 				_primary = primary;
 				_secondary = secondary;

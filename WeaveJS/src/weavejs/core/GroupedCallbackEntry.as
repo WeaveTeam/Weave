@@ -7,6 +7,7 @@
 package weavejs.core
 {
 	import weavejs.api.core.ICallbackCollection;
+	import weavejs.utils.Dictionary2D;
 	import weavejs.utils.JS;
 
 	/**
@@ -16,38 +17,48 @@ package weavejs.core
 	{
 		public static function addGroupedCallback(callbackCollection:ICallbackCollection, relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean, delayWhileBusy:Boolean):void
 		{
+			// make sure the actual function is not already added as a callback.
+			callbackCollection.removeCallback(relevantContext, groupedCallback);
+			
 			// get (or create) the shared entry for the groupedCallback
-			var entry:GroupedCallbackEntry = _entryLookup.get(groupedCallback);
+			var entry:GroupedCallbackEntry = d2d_context_callback_entry.get(relevantContext, groupedCallback);
 			if (!entry)
-				_entryLookup.set(groupedCallback, entry = new GroupedCallbackEntry(groupedCallback));
+			{
+				entry = new GroupedCallbackEntry(relevantContext, groupedCallback);
+				d2d_context_callback_entry.set(relevantContext, groupedCallback, entry);
+			}
 			
-			// context shouldn't be null because we use it to determine when to clean up the GroupedCallbackEntry.
-			if (relevantContext == null)
-				relevantContext = callbackCollection;
-			
-			// add this context to the list of relevant contexts
-			(entry.context as Array).push(relevantContext);
+			// add this callbackCollection to the list of targets
+			entry.targets.push(callbackCollection);
 			
 			// once delayWhileBusy is set to true, don't set it to false
 			if (delayWhileBusy)
 				entry.delayWhileBusy = true;
 			
-			// make sure the actual function is not already added as a callback.
-			callbackCollection.removeCallback(groupedCallback);
-			
 			// add the trigger function as a callback
-			// The relevantContext parameter is set to null for entry.trigger so the same callback can be added multiple times to the same
-			// target using different contexts without having the side effect of losing the callback when one of those contexts is disposed.
-			// The entry.trigger function will be removed once all contexts are disposed.
-			callbackCollection.addImmediateCallback(null, entry.trigger, triggerCallbackNow);
+			callbackCollection.addImmediateCallback(relevantContext, entry.trigger, triggerCallbackNow);
 		}
 		
-		public static function removeGroupedCallback(callbackCollection:ICallbackCollection, groupedCallback:Function):void
+		public static function removeGroupedCallback(callbackCollection:ICallbackCollection, relevantContext:Object, groupedCallback:Function):void
 		{
-			// remove the trigger function as a callback
-			var entry:GroupedCallbackEntry = _entryLookup.get(groupedCallback);
+			var entry:GroupedCallbackEntry = d2d_context_callback_entry.get(relevantContext, groupedCallback);
 			if (entry)
-				callbackCollection.removeCallback(entry.trigger);
+			{
+				// remove the trigger function as a callback
+				callbackCollection.removeCallback(relevantContext, entry.trigger);
+				
+				// remove the callbackCollection from the list of targets
+				var index:int = entry.targets.indexOf(callbackCollection);
+				if (index >= 0)
+				{
+					entry.targets.splice(index, 1);
+					if (entry.targets.length == 0)
+					{
+						// when there are no more targets, remove the entry
+						d2d_context_callback_entry.remove(relevantContext, groupedCallback);
+					}
+				}
+			}
 		}
 		
 		/**
@@ -108,7 +119,7 @@ package weavejs.core
 		/**
 		 * This maps a groupedCallback function to its corresponding GroupedCallbackEntry.
 		 */
-		private static var _entryLookup:Object = new JS.Map();
+		private static const d2d_context_callback_entry:Dictionary2D = new Dictionary2D(true, true);
 		
 		/**
 		 * This is a list of GroupedCallbackEntry objects in the order they were triggered.
@@ -118,10 +129,10 @@ package weavejs.core
 		/**
 		 * Constructor
 		 */
-		public function GroupedCallbackEntry(groupedCallback:Function)
+		public function GroupedCallbackEntry(context:Object, groupedCallback:Function)
 		{
 			// context will be an array of contexts
-			super([], groupedCallback);
+			super(context, groupedCallback);
 			
 			if (!_initialized)
 				_initialized = JS.setInterval(_handleGroupedCallbacks, 0);
@@ -141,6 +152,11 @@ package weavejs.core
 		 * Specifies whether to delay the callback while the contexts are busy.
 		 */
 		public var delayWhileBusy:Boolean = false;
+		
+		/**
+		 * An Array of ICallbackCollections to which the callback was added.
+		 */
+		public var targets:Array = [];
 		
 		/**
 		 * Marks the entry to be handled later (unless already triggered this frame).
@@ -167,28 +183,23 @@ package weavejs.core
 		}
 		
 		/**
-		 * Checks the context(s) before calling groupedCallback
+		 * Checks the context and targets before calling groupedCallback
 		 */
 		public function handleGroupedCallback():void
 		{
-			if (!context)
-				return;
-			
-			// first, make sure there is at least one relevant context for this callback.
-			var allContexts:Array = context as Array;
-			// remove the contexts that have been disposed.
-			for (var i:int = 0; i < allContexts.length; i++)
+			for (var i:int = 0; i < targets.length; i++)
 			{
-				if (Weave.wasDisposed(allContexts[i]))
-					allContexts.splice(i--, 1);
-				else if (delayWhileBusy && Weave.isBusy(allContexts[i]))
+				var target:ICallbackCollection = targets[i];
+				if (Weave.wasDisposed(target))
+					targets.splice(i--, 1);
+				else if (delayWhileBusy && Weave.isBusy(target))
 					return;
 			}
 			// if there are no more relevant contexts for this callback, don't run it.
-			if (allContexts.length == 0)
+			if (targets.length == 0)
 			{
 				dispose();
-				_entryLookup['delete'](callback);
+				d2d_context_callback_entry.remove(context, callback);
 				return;
 			}
 			
@@ -196,11 +207,18 @@ package weavejs.core
 			if (recursionCount == 0)
 			{
 				recursionCount++;
-				callback.apply(allContexts[0]);
+				callback.apply(context);
 				recursionCount--;
 			}
 			// avoid delayed recursion
 			triggeredAgain = false;
+		}
+		
+		override public function dispose():void
+		{
+			for each (var target:ICallbackCollection in targets)
+				removeGroupedCallback(target, context, callback);
+			super.dispose();
 		}
 	}
 }

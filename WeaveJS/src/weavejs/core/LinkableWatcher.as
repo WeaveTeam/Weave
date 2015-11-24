@@ -22,10 +22,9 @@ package weavejs.core
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.api.core.ISessionManager;
-	import weavejs.compiler.StandardLib;
 	import weavejs.utils.Dictionary2D;
 	import weavejs.utils.JS;
+	import weavejs.utils.StandardLib;
 	
 	/**
 	 * This is used to dynamically attach a set of callbacks to different targets.
@@ -94,8 +93,8 @@ package weavejs.core
 			// unlink from old target
 			if (_target)
 			{
-				Weave.getCallbacks(_target).removeCallback(_handleTargetTrigger);
-				Weave.getCallbacks(_target).removeCallback(_handleTargetDispose);
+				Weave.getCallbacks(_target).removeCallback(this, _handleTargetTrigger);
+				Weave.getCallbacks(_target).removeCallback(this, _handleTargetDispose);
 				
 				// if we own the previous target, dispose it
 				if (Weave.getOwner(_target) == this)
@@ -112,7 +111,7 @@ package weavejs.core
 				// we want to register the target as a linkable child (for busy status)
 				Weave.linkableChild(this, _target);
 				// we don't want the target triggering our callbacks directly
-				Weave.getCallbacks(_target).removeCallback(Weave.getCallbacks(this).triggerCallbacks);
+				Weave.getCallbacks(_target).removeCallback(this, Weave.getCallbacks(this).triggerCallbacks);
 				Weave.getCallbacks(_target).addImmediateCallback(this, _handleTargetTrigger, false, true);
 				// we need to know when the target is disposed
 				Weave.getCallbacks(_target).addDisposeCallback(this, _handleTargetDispose);
@@ -283,7 +282,7 @@ package weavejs.core
 		}
 		private function resetPathDependencies_each(map_child:Object, parent:ILinkableObject):void
 		{
-			getDependencyCallbacks(parent).removeCallback(handlePathDependencies);
+			getDependencyCallbacks(parent).removeCallback(this, handlePathDependencies);
 		}
 		
 		/**

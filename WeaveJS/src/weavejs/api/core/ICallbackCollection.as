@@ -25,7 +25,7 @@ package weavejs.api.core
 		/**
 		 * This adds the given function as a callback.  The function must not require any parameters.
 		 * The callback function will not be called recursively as a result of it triggering callbacks recursively.
-		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
+		 * @param relevantContext The 'this' argument for the callback. The callback will be removed when the relevantContext object is disposed via Weave.dispose().
 		 * @param callback The function to call when callbacks are triggered.
 		 * @param runCallbackNow If this is set to true, the callback will be run immediately after it is added.
 		 * @param alwaysCallLast If this is set to true, the callback will be always be called after any callbacks that were added with alwaysCallLast=false.  Use this to establish the desired child-to-parent triggering order.
@@ -38,10 +38,13 @@ package weavejs.api.core
 		 * if it were only triggered once.  For this reason, grouped callback functions cannot have any parameters.  Adding a grouped
 		 * callback to a ICallbackCollection will undo any previous effects of addImmediateCallback() or addDisposeCallback() made to the
 		 * same ICallbackCollection.  The callback function will not be called recursively as a result of it triggering callbacks recursively.
-		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
+		 * @param relevantContext The 'this' argument for the callback. The callback will be removed when the relevantContext object is disposed via Weave.dispose().
 		 * @param groupedCallback The callback function that will only be allowed to run during a scheduled time each frame.  It must not require any parameters.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered to run during the scheduled time after it is added.
 		 * @param delayWhileBusy Specifies whether to delay the callback while the object is busy.
+		 *                       Once a given relevantContext/groupedCallback pair has been added with delayWhileBusy enabled,
+		 *                       it will remain enabled even if the delayWhileBusy parameter is set to false in subsequent calls
+		 *                       to addGroupedCallback() with the same relevantContext/groupedCallback parameters.
 		 */
 		function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false, delayWhileBusy:Boolean = true):void;
 		
@@ -54,9 +57,10 @@ package weavejs.api.core
 		
 		/**
 		 * This function will remove a callback that was previously added.
+		 * @param relevantContext The relevantContext parameter that was given when the callback was added.
 		 * @param callback The function to remove from the list of callbacks.
 		 */
-		function removeCallback(callback:Function):void;
+		function removeCallback(relevantContext:Object, callback:Function):void;
 
 		/**
 		 * This will increase the triggerCounter, run immediate callbacks, and trigger grouped callbacks to be called later.

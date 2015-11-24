@@ -69,7 +69,8 @@ package weavejs.utils
 		
 		/**
 		 * AS->JS Language helper for converting array-like objects to Arrays
-		 * Also works on Iterator objects to extract an Array of values
+		 * Extracts an Array of values from an Iterator object.
+		 * Converts Arguments object to an Array.
 		 */
 		public static function toArray(value:*):Array
 		{
@@ -87,6 +88,10 @@ package weavejs.utils
 				return values;
 			}
 			
+			// special case for Arguments
+			if (Object.prototype.toString.call(value) === '[object Arguments]')
+				return Array.prototype.slice.call(value);
+			
 			return value as Array;
 		}
 		
@@ -103,9 +108,16 @@ package weavejs.utils
 		 */
 		public static function copyObject(object:Object):Object
 		{
-			if (object !== null && typeof object === 'object')
-				return JSON.parse(JSON.stringify(object));
-			return object;
+			// check for primitive values
+			if (object === null || typeof object !== 'object')
+				return object;
+			
+			var copy:Object = object is Array ? [] : {};
+			for (var key:String in object)
+				copy[key] = copyObject(object[key]);
+			return copy;
+			
+			//return JSON.parse(JSON.stringify(object));
 		}
 		
 		/**

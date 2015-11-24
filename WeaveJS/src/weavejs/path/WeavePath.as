@@ -10,9 +10,9 @@ package weavejs.path
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.compiler.StandardLib;
 	import weavejs.core.SessionManager;
 	import weavejs.utils.JS;
+	import weavejs.utils.StandardLib;
 
 	public class WeavePath
 	{
@@ -276,23 +276,23 @@ package weavejs.path
 		 * Adds a callback to the object at the current path.
 		 * When the callback is called, a WeavePath object initialized at the current path will be used as the 'this' context.
 		 * If the same callback is added to multiple paths, only the last path will be used as the 'this' context.
-		 * @param context The thisArg for the function. When the context is disposed with Weave.dispose(), the callback will be disabled.
+		 * @param relevantContext The thisArg for the function. When the context is disposed with Weave.dispose(), the callback will be disabled.
 		 * @param callback The callback function.
 		 * @param triggerCallbackNow Optional parameter, when set to true will trigger the callback now.
 		 * @param immediateMode Optional parameter, when set to true will use an immediate callback instead of a grouped callback.
 		 * @param delayWhileBusy Optional parameter, specifies whether to delay a grouped callback while the object is busy. Default is true.
 		 * @return The current WeavePath object.
 		 */
-		public function addCallback(context:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false, delayWhileBusy:Boolean = true):WeavePath
+		public function addCallback(relevantContext:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false, delayWhileBusy:Boolean = true):WeavePath
 		{
 			// backwards compatibility - shift arguments
-			if (typeof context === 'function' && typeof callback !== 'function')
+			if (typeof relevantContext === 'function' && typeof callback !== 'function')
 			{
 				delayWhileBusy = immediateMode;
 				immediateMode = triggerCallbackNow;
 				triggerCallbackNow = callback;
-				callback = context as Function;
-				context = this;
+				callback = relevantContext as Function;
+				relevantContext = this;
 			}
 			
 			var object:ILinkableObject = getObject();
@@ -300,24 +300,32 @@ package weavejs.path
 				throw new Error("No ILinkableObject to which to add a callback: " + this);
 			
 			if (immediateMode)
-				Weave.getCallbacks(object).addImmediateCallback(context, callback, triggerCallbackNow, false);
+				Weave.getCallbacks(object).addImmediateCallback(relevantContext, callback, triggerCallbackNow, false);
 			else
-				Weave.getCallbacks(object).addGroupedCallback(context, callback, triggerCallbackNow, delayWhileBusy);
+				Weave.getCallbacks(object).addGroupedCallback(relevantContext, callback, triggerCallbackNow, delayWhileBusy);
 			return this;
 		}
 		
 		/**
 		 * Removes a callback from the object at the current path or from everywhere.
+		 * @param relevantContext The relevantContext parameter that was given when the callback was added.
 		 * @param callback The callback function.
 		 * @return The current WeavePath object.
 		 */
-		public function removeCallback(callback:Function):WeavePath
+		public function removeCallback(relevantContext:Object, callback:Function):WeavePath
 		{
 			var object:ILinkableObject = getObject();
 			if (!object)
 				throw new Error("No ILinkableObject from which to remove a callback: " + this);
 			
-			Weave.getCallbacks(object).removeCallback(callback);
+			// backwareds compatibility
+			if (arguments.length == 1)
+			{
+				callback = relevantContext as Function;
+				relevantContext = null;
+			}
+			
+			Weave.getCallbacks(object).removeCallback(relevantContext, callback);
 			return this;
 		}
 		

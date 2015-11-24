@@ -399,7 +399,7 @@ package weavejs.core
 		public function addImmediateCallback(relevantContext:Object, callback:Function, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void { cc.addImmediateCallback(relevantContext, callback, runCallbackNow, alwaysCallLast); }
 		public function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false, delayWhileBusy:Boolean = true):void { cc.addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow, delayWhileBusy); }
 		public function addDisposeCallback(relevantContext:Object, callback:Function):void { cc.addDisposeCallback(relevantContext, callback); }
-		public function removeCallback(callback:Function):void { cc.removeCallback(callback); }
+		public function removeCallback(relevantContext:Object, callback:Function):void { cc.removeCallback(relevantContext, callback); }
 		public function get triggerCounter():uint { return cc.triggerCounter; }
 		public function triggerCallbacks():void { cc.triggerCallbacks(); }
 		public function get callbacksAreDelayed():Boolean { return cc.callbacksAreDelayed; }

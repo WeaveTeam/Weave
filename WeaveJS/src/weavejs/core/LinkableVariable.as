@@ -10,8 +10,8 @@ package weavejs.core
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableVariable;
-	import weavejs.compiler.StandardLib;
 	import weavejs.utils.JS;
+	import weavejs.utils.StandardLib;
 	
 	/**
 	 * LinkableVariable allows callbacks to be added that will be called when the value changes.

@@ -27,9 +27,9 @@ package weavejs.core
 	import weavejs.api.core.ILinkableObjectWithNewProperties;
 	import weavejs.api.core.ILinkableVariable;
 	import weavejs.api.core.ISessionManager;
-	import weavejs.compiler.StandardLib;
 	import weavejs.utils.Dictionary2D;
 	import weavejs.utils.JS;
+	import weavejs.utils.StandardLib;
 	import weavejs.utils.WeaveTreeItem;
 
 	/**
@@ -158,7 +158,7 @@ package weavejs.core
 			
 			d2d_child_parent.remove(child, parent);
 			d2d_parent_child.remove(parent, child);
-			getCallbackCollection(child).removeCallback(getCallbackCollection(parent).triggerCallbacks);
+			getCallbackCollection(child).removeCallback(parent, getCallbackCollection(parent).triggerCallbacks);
 			
 			_treeCallbacks.triggerCallbacks();
 		}
@@ -308,9 +308,9 @@ package weavejs.core
 		{
 			_treeCallbacks.addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow);
 		}
-		public function removeTreeCallback(groupedCallback:Function):void
+		public function removeTreeCallback(relevantContext, groupedCallback:Function):void
 		{
-			_treeCallbacks.removeCallback(groupedCallback);
+			_treeCallbacks.removeCallback(relevantContext, groupedCallback);
 		}
 		private var _treeCallbacks:CallbackCollection = new CallbackCollection();
 
@@ -615,7 +615,7 @@ package weavejs.core
 		private var d2d_task_owner:Dictionary2D = new Dictionary2D(false, true); // task cannot use weak pointer because it may be a function
 		private var map_busyTraversal:Object = new JS.WeakMap(); // ILinkableObject -> Boolean
 		private var array_busyTraversal:Array = [];
-		private var map_unbusyTriggerCounts:Object = new JS.WeakMap(); // ILinkableObject -> int
+		private var map_unbusyTriggerCounts:Object = new JS.Map(); // ILinkableObject -> int
 		private var map_unbusyStackTraces:Object = new JS.WeakMap(); // ILinkableObject -> String
 		
 		private function disposeBusyTaskPointers(disposedObject:ILinkableObject):void
@@ -733,6 +733,10 @@ package weavejs.core
 		 */
 		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
 		{
+			// get the ILinkableObject associated with the the ICallbackCollection
+			if (linkableObject is ICallbackCollection)
+				linkableObject = getLinkableObjectFromCallbackCollection(linkableObject as ICallbackCollection);
+			
 			if (!linkableObject)
 				return false;
 			
@@ -794,9 +798,14 @@ package weavejs.core
 		
 		
 		/**
-		 * This maps an ILinkableObject to a ICallbackCollection associated with it.
+		 * This maps an ILinkableObject to the ICallbackCollection associated with it.
 		 */
 		private var map_ILinkableObject_ICallbackCollection:Object = new JS.WeakMap();
+		
+		/**
+		 * This maps an ICallbackCollection to the ILinkableObject associated with it.
+		 */
+		private var map_ICallbackCollection_ILinkableObject:Object = new JS.WeakMap();
 
 		/**
 		 * @inheritDoc
@@ -816,8 +825,17 @@ package weavejs.core
 				if (CallbackCollection.debug)
 					(objectCC as CallbackCollection)._linkableObject = linkableObject;
 				map_ILinkableObject_ICallbackCollection.set(linkableObject, objectCC);
+				map_ICallbackCollection_ILinkableObject.set(objectCC, linkableObject);
 			}
 			return objectCC;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getLinkableObjectFromCallbackCollection(callbackCollection:ICallbackCollection):ILinkableObject
+		{
+			return map_ICallbackCollection_ILinkableObject.get(callbackCollection) || callbackCollection;
 		}
 		
 		/**
@@ -1102,8 +1120,8 @@ package weavejs.core
 			var setFirst:Function = d2d_lhs_rhs_setState.remove(first, second) as Function;
 			var setSecond:Function = d2d_lhs_rhs_setState.remove(second, first) as Function;
 			
-			getCallbackCollection(second).removeCallback(setFirst);
-			getCallbackCollection(first).removeCallback(setSecond);
+			getCallbackCollection(second).removeCallback(first, setFirst);
+			getCallbackCollection(first).removeCallback(second, setSecond);
 		}
 
 
