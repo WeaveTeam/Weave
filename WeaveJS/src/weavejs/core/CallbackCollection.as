@@ -95,7 +95,7 @@ package weavejs.core
 			{
 				// increase the recursion count while the function is running
 				entry.recursionCount++;
-				callback.apply(relevantContext);
+				callback.apply(relevantContext || callback['this']);
 				entry.recursionCount--;
 			}
 		}
@@ -176,7 +176,7 @@ package weavejs.core
 						if (_preCallback != null)
 							_preCallback.apply(this, preCallbackParams);
 						
-						entry.callback.apply(entry.context);
+						entry.callback.apply(entry.context || entry.callback['this']);
 						
 						entry.recursionCount--; // decrease count because the callback finished.
 					}
@@ -284,8 +284,9 @@ package weavejs.core
 			while (_disposeCallbackEntries.length)
 			{
 				entry = _disposeCallbackEntries.shift();
+				
 				if (entry.callback != null && !Weave.wasDisposed(entry.context))
-					entry.callback.apply(entry.context);
+					entry.callback.apply(entry.context || entry.callback['this']);
 			}
 		}
 		

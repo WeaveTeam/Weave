@@ -18,7 +18,7 @@ package weavejs.core
 		public static function addGroupedCallback(callbackCollection:ICallbackCollection, relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean, delayWhileBusy:Boolean):void
 		{
 			if (!relevantContext)
-				relevantContext = callbackCollection;
+				relevantContext = CONTEXT_PLACEHOLDER;
 			
 			// make sure the actual function is not already added as a callback.
 			callbackCollection.removeCallback(relevantContext, groupedCallback);
@@ -45,7 +45,7 @@ package weavejs.core
 		public static function removeGroupedCallback(callbackCollection:ICallbackCollection, relevantContext:Object, groupedCallback:Function):void
 		{
 			if (!relevantContext)
-				relevantContext = callbackCollection;
+				relevantContext = CONTEXT_PLACEHOLDER;
 			
 			var entry:GroupedCallbackEntry = d2d_context_callback_entry.get(relevantContext, groupedCallback);
 			if (entry)
@@ -106,6 +106,11 @@ package weavejs.core
 				entry.triggered = entry.triggeredAgain = false;
 			_triggeredEntries.length = 0;
 		}
+		
+		/**
+		 * Used as a placeholder for a missing context because null cannot be used as a WeakMap key.
+		 */
+		private static const CONTEXT_PLACEHOLDER:Object = {};
 		
 		/**
 		 * True while handling grouped callbacks.
@@ -213,7 +218,9 @@ package weavejs.core
 			if (recursionCount == 0)
 			{
 				recursionCount++;
-				callback.apply(context);
+				
+				callback.apply(context === CONTEXT_PLACEHOLDER ? callback['this'] : context);
+				
 				recursionCount--;
 			}
 			// avoid delayed recursion

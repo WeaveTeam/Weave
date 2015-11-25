@@ -13,11 +13,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.utils
+package weavejs.utils
 {
-	import flash.utils.getTimer;
-	
-	import weave.compiler.StandardLib;
+	import weavejs.utils.StandardLib;
 	
 	/**
 	 * This class acts like a stop watch that supports nested begin/end times.
@@ -38,7 +36,7 @@ package weave.utils
 		 */
 		public static function begin():void
 		{
-			debugTimes.push(getTimer());
+			debugTimes.push(JS.now());
 		}
 		
 		/**
@@ -73,7 +71,7 @@ package weave.utils
 		public static function end(debugString:String, ...debugStrings):int
 		{
 			debugStrings.unshift(debugString);
-			var elapsedTime:int = (getTimer() - debugTimes.pop());
+			var elapsedTime:int = JS.now() - debugTimes.pop();
 			var elapsed:String = '['+elapsedTime+' ms elapsed] ';
 			var elapsedIndent:String = StandardLib.lpad('| ', elapsed.length);
 			var indent:String = StandardLib.rpad('', debugTimes.length * 2, '| ');

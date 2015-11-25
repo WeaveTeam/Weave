@@ -13,19 +13,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.core
+package weavejs.core
 {
-	import flash.system.Capabilities;
-	import flash.utils.Dictionary;
-	
-	import mx.rpc.AsyncResponder;
-	import mx.rpc.AsyncToken;
-	
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.ILinkableObject;
-	import weave.api.core.IProgressIndicator;
-	import weave.api.getCallbackCollection;
-	import weave.compiler.StandardLib;
+	import weavejs.WeaveAPI;
+	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.ILinkableObject;
+	import weavejs.api.core.IProgressIndicator;
+	import weavejs.utils.DebugUtils;
+	import weavejs.utils.JS;
+	import weavejs.utils.StandardLib;
 
 	public class ProgressIndicator implements IProgressIndicator
 	{
@@ -37,21 +33,22 @@ package weave.core
 		public function debugTasks():Array
 		{
 			var result:Array = [];
-			for (var task:Object in _progress)
-				result.push(debugId(task));
+			var tasks:Array = JS.mapKeys(map_task_progress);
+			for each (var task:Object in tasks)
+				result.push(DebugUtils.debugId(task));
 			return result;
 		}
 		public function getDescriptions():Array
 		{
 			var result:Array = [];
-			for (var task:Object in _progress)
+			var tasks:Array = JS.mapKeys(map_task_progress);
+			for each (var task:Object in tasks)
 			{
-				var desc:String = _description[task] || "Unnamed task";
+				var desc:String = map_task_description.get(task) || "Unnamed task";
 				if (desc)
-					result.push(debugId(task) + " (" + StandardLib.roundSignificant(100*_progress[task], 3) + "%) " + desc);
+					result.push(DebugUtils.debugId(task) + " (" + StandardLib.roundSignificant(100 * map_task_progress.get(task), 3) + "%) " + desc);
 			}
-			StandardLib.sort(result);
-			return result;
+			return result.sort();
 		}
 		
 		/**
@@ -67,13 +64,16 @@ package weave.core
 		 */
 		public function addTask(taskToken:Object, busyObject:ILinkableObject = null, description:String = null):void
 		{
-			var cc:ICallbackCollection = getCallbackCollection(this);
+			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
 			cc.delayCallbacks();
 			
-			if (taskToken is AsyncToken && _progress[taskToken] === undefined)
-				(taskToken as AsyncToken).addResponder(new AsyncResponder(handleAsyncToken, handleAsyncToken, taskToken));
+			if (taskToken is JS.Promise && map_task_progress.get(taskToken) === undefined)
+			{
+				var remove:Function = removeTask.bind(this, taskToken);
+				taskToken.then(remove, remove);
+			}
 			
-			_description[taskToken] = description;
+			map_task_description.set(taskToken, description);
 			
 			// add task before WeaveAPI.SessionManager.assignBusyTask()
 			updateTask(taskToken, NaN); // NaN is used as a special case when adding the task
@@ -84,17 +84,12 @@ package weave.core
 			cc.resumeCallbacks();
 		}
 		
-		private function handleAsyncToken(event:Object, token:AsyncToken):void
-		{
-			removeTask(token);
-		}
-		
 		/**
 		 * @inheritDoc
 		 */
 		public function hasTask(taskToken:Object):Boolean
 		{
-			return _progress[taskToken] !== undefined;
+			return map_task_progress.get(taskToken) !== undefined;
 		}
 		
 		/**
@@ -103,23 +98,23 @@ package weave.core
 		public function updateTask(taskToken:Object, progress:Number):void
 		{
 			// if this token isn't in the Dictionary yet, increase count
-			if (_progress[taskToken] === undefined)
+			if (map_task_progress.get(taskToken) === undefined)
 			{
 				// expecting NaN from addTask()
 				if (!isNaN(progress))
 					throw new Error("updateTask() called, but task was not previously added with addTask()");
 				if (debug)
-					_stackTrace[taskToken] = new Error("Stack trace").getStackTrace();
+					map_task_stackTrace.set(taskToken, new Error("Stack trace"));
 				
 				// increase count when new task is added
 				_taskCount++;
 				_maxTaskCount++;
 			}
 			
-			if (_progress[taskToken] !== progress)
+			if (map_task_progress.get(taskToken) !== progress)
 			{
-				_progress[taskToken] = progress;
-				getCallbackCollection(this).triggerCallbacks();
+				map_task_progress.set(taskToken, progress);
+				WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
 			}
 		}
 		
@@ -129,14 +124,14 @@ package weave.core
 		public function removeTask(taskToken:Object):void
 		{
 			// if the token isn't in the dictionary, do nothing
-			if (_progress[taskToken] === undefined)
+			if (map_task_progress['delete'](taskToken) === undefined)
 				return;
 
-			var stackTrace:String = _stackTrace[taskToken]; // check this when debugging
+			var stackTrace:String = map_task_stackTrace['delete'](taskToken); // check this when debugging
 			
-			delete _progress[taskToken];
-			delete _description[taskToken];
-			delete _stackTrace[taskToken];
+			map_task_progress['delete'](taskToken);
+			map_task_description['delete'](taskToken);
+			map_task_stackTrace['delete'](taskToken);
 			_taskCount--;
 			// reset max count when count drops to 1
 			if (_taskCount == 1)
@@ -144,7 +139,7 @@ package weave.core
 			
 			WeaveAPI.SessionManager.unassignBusyTask(taskToken);
 
-			getCallbackCollection(this).triggerCallbacks();
+			WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
 		}
 		
 		/**
@@ -154,10 +149,10 @@ package weave.core
 		{
 			// add up the percentages
 			var sum:Number = 0;
-			for (var task:Object in _progress)
+			for (var task:Object in map_task_progress)
 			{
-				var stackTrace:String = _stackTrace[task]; // check this when debugging
-				var progress:Number = _progress[task];
+				var stackTrace:String = map_task_stackTrace.get(task); // check this when debugging
+				var progress:Number = map_task_progress.get(task);
 				if (isFinite(progress))
 					sum += progress;
 			}
@@ -169,21 +164,18 @@ package weave.core
 
 		private var _taskCount:int = 0;
 		private var _maxTaskCount:int = 0;
-		private var _progress:Dictionary = new Dictionary();
-		private var _description:Dictionary = new Dictionary();
-		private var _stackTrace:Dictionary = new Dictionary();
+		private var map_task_progress:Object = new JS.Map();
+		private var map_task_description:Object = new JS.Map();
+		private var map_task_stackTrace:Object = new JS.Map();
 		
 		public function test():void
 		{
-			for(var i:Object in _progress)
+			for(var i:Object in map_task_progress)
 			{
-				var stackTrace:String = _stackTrace[i]; // check this when debugging
-				var description:String = _description[i];
-				var args:Array = [debugId(i), description, stackTrace];
-				if (Capabilities.isDebugger)
-					trace.apply(null, args);
-				else
-					weaveTrace.apply(null, args);
+				var stackTrace:String = map_task_stackTrace.get(i); // check this when debugging
+				var description:String = map_task_description.get(i);
+				var args:Array = [DebugUtils.debugId(i), description, stackTrace];
+				JS.log.apply(JS, args);
 			}
 		}
 	}

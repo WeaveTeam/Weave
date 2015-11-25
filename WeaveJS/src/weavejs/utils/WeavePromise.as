@@ -15,6 +15,7 @@
 
 package weavejs.utils
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableObject;
 	
@@ -49,7 +50,7 @@ package weavejs.utils
 			}
 			
 			if (relevantContext)
-				registerDisposableChild(relevantContext, this);
+				Weave.disposableChild(relevantContext, this);
 			
 			if (resolver != null)
 			{
@@ -69,7 +70,7 @@ package weavejs.utils
 		
 		public function setResult(result:Object):void
 		{
-			if (objectWasDisposed(relevantContext))
+			if (Weave.wasDisposed(relevantContext))
 			{
 				setBusy(false);
 				return;
@@ -78,16 +79,9 @@ package weavejs.utils
 			this.result = undefined;
 			this.error = undefined;
 			
-			if (result is AsyncToken)
+			if (result is JS.Promise)
 			{
-				(result as AsyncToken).addResponder(new AsyncResponder(
-					function(event:ResultEvent, token:Object):void {
-						setResult(event.result);
-					},
-					function(event:FaultEvent, token:Object):void {
-						setError(event.fault);
-					}
-				));
+				result.then(setResult, setError);
 			}
 			else if (result is WeavePromise)
 			{
@@ -107,7 +101,7 @@ package weavejs.utils
 		
 		public function setError(error:Object):void
 		{
-			if (objectWasDisposed(relevantContext))
+			if (Weave.wasDisposed(relevantContext))
 			{
 				setBusy(false);
 				return;
@@ -149,7 +143,7 @@ package weavejs.utils
 			if (handlers.length == 0)
 				setBusy(false);
 			
-			if (objectWasDisposed(relevantContext))
+			if (Weave.wasDisposed(relevantContext))
 			{
 				setBusy(false);
 				return;
@@ -157,7 +151,7 @@ package weavejs.utils
 			
 			for (var i:int = 0; i < handlers.length; i++)
 			{
-				var handler:Handler = handlers[i];
+				var handler:WeavePromiseHandler = handlers[i];
 				if (newHandlersOnly && handler.wasCalled)
 					continue;
 				if (result !== undefined)
@@ -176,12 +170,12 @@ package weavejs.utils
 			
 			var next:WeavePromise = new WeavePromise(this);
 			next.result = undefined;
-			handlers.push(new Handler(onFulfilled, onRejected, next));
+			handlers.push(new WeavePromiseHandler(onFulfilled, onRejected, next));
 			
 			if (result !== undefined || error !== undefined)
 			{
 				// callLater will not call the function if the context was disposed
-				WeaveAPI.StageUtils.callLater(relevantContext, callHandlers, [true]);
+				WeaveAPI.Scheduler.callLater(relevantContext, callHandlers, [true]);
 				setBusy(true);
 			}
 			
@@ -196,7 +190,7 @@ package weavejs.utils
 			}
 			for each (var dependency:ILinkableObject in linkableObjects)
 			{
-				getCallbackCollection(dependency).addGroupedCallback(relevantContext, callHandlers, true);
+				Weave.getCallbacks(dependency).addGroupedCallback(relevantContext, callHandlers, true);
 			}
 			return this;
 		}
@@ -206,22 +200,15 @@ package weavejs.utils
 			return WeaveAPI.SessionManager.linkableObjectIsBusy(dependency);
 		}
 		
-		public function getAsyncToken():AsyncToken
+		public function getPromise():Object
 		{
-			var asyncToken:AsyncToken = new AsyncToken();
-			then(
-				function(result:*):void
-				{
-					asyncToken.mx_internal::applyResult(ResultEvent.createEvent(result, asyncToken));
-				},
-				function(error:*):void
-				{
-					var fault:Fault = new Fault("Error", "Broken promise");
-					fault.content = error;
-					asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault, asyncToken));
-				}
-			);
-			return asyncToken;
+			var var_resolve:Function, var_reject:Function;
+			var promise:Object = new JS.Promise(function(resolve:Function, reject:Function):void {
+				var_resolve = resolve;
+				var_reject = reject;
+			});
+			then(var_resolve, var_reject);
+			return promise;
 		}
 		
 		public function dispose():void
@@ -230,51 +217,4 @@ package weavejs.utils
 			setBusy(false);
 		}
 	}
-}
-
-import weave.utils.WeavePromise;
-
-internal class Handler
-{
-	public var onFulfilled:Function;
-	public var onRejected:Function;
-	public var next:WeavePromise;
-	
-	public function Handler(onFulfilled:Function, onRejected:Function, next:WeavePromise)
-	{
-		this.next = next;
-		this.onFulfilled = onFulfilled;
-		this.onRejected = onRejected;
-	}
-	
-	public function onResult(result:Object):void
-	{
-		wasCalled = true;
-		try
-		{
-			next.setResult(onFulfilled(result));
-		}
-		catch (e:Error)
-		{
-			onError(e);
-		}
-	}
-	
-	public function onError(error:Object):void
-	{
-		wasCalled = true;
-		try
-		{
-			next.setError(onRejected(error));
-		}
-		catch (e:Error)
-		{
-			next.setError(e);
-		}
-	}
-	
-	/**
-	 * Used as a flag to indicate whether or not this handler has been called 
-	 */
-	public var wasCalled:Boolean = false;
 }

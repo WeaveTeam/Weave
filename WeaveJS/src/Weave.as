@@ -10,6 +10,8 @@ package
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
+	import weavejs.api.core.IProgressIndicator;
+	import weavejs.api.core.IScheduler;
 	import weavejs.api.core.ISessionManager;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableCallbackScript;
@@ -21,6 +23,8 @@ package
 	import weavejs.core.LinkableSynchronizer;
 	import weavejs.core.LinkableVariable;
 	import weavejs.core.LinkableWatcher;
+	import weavejs.core.ProgressIndicator;
+	import weavejs.core.Scheduler;
 	import weavejs.core.SessionManager;
 	import weavejs.core.SessionStateLog;
 	import weavejs.path.WeavePath;
@@ -43,6 +47,8 @@ package
 		public function Weave()
 		{
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IScheduler, Scheduler);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IProgressIndicator, ProgressIndicator);
 			
 			// set this property for backwards compatibility
 			this['WeavePath'] = WeavePath;
@@ -60,7 +66,7 @@ package
 			lv.addGroupedCallback(this, function():void { JS.log('grouped', lv.state); }, true);
 			lv.state = 'hello';
 			lv.state = 'hello';
-			path('ls').state('hi').addCallback(function():void { JS.log(this+'', this.getState()); }, null);
+			path('ls').state('hi').addCallback(null, function():void { JS.log(this+'', this.getState()); });
 			lv.state = 'world';
 			path('script')
 				.request('LinkableCallbackScript')

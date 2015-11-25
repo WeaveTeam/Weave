@@ -63,8 +63,8 @@ package weavejs.core
 		{
 			if (_triggerCount != triggerCounter)
 			{
+				// in case compile fails, set variables now to prevent re-compiling erroneous code
 				_triggerCount = triggerCounter;
-				// in case compile fails, prevent re-compiling erroneous code
 				_compiledMethod = RETURN_UNDEFINED;
 				_isFunctionDefinition = false;
 				_compiledMethod = JS.compile(value, _paramNames);

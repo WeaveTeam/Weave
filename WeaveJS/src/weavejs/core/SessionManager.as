@@ -611,8 +611,8 @@ package weavejs.core
 		}
 		
 		private var map_task_stackTrace:Object = new JS.Map();
-		private var d2d_owner_task:Dictionary2D = new Dictionary2D(true, false); // task cannot use weak pointer because it may be a function
-		private var d2d_task_owner:Dictionary2D = new Dictionary2D(false, true); // task cannot use weak pointer because it may be a function
+		private var d2d_owner_task:Dictionary2D = new Dictionary2D(false, false);
+		private var d2d_task_owner:Dictionary2D = new Dictionary2D(false, false);
 		private var map_busyTraversal:Object = new JS.WeakMap(); // ILinkableObject -> Boolean
 		private var array_busyTraversal:Array = [];
 		private var map_unbusyTriggerCounts:Object = new JS.Map(); // ILinkableObject -> int
@@ -636,7 +636,7 @@ package weavejs.core
 			if (d2d_task_owner.get(taskToken, busyObject))
 				return;
 			
-			if (taskToken is JS.global.Promise && !WeaveAPI.ProgressIndicator.hasTask(taskToken))
+			if (taskToken is JS.Promise && !WeaveAPI.ProgressIndicator.hasTask(taskToken))
 			{
 				var unassign:Function = unassignBusyTask.bind(this, taskToken);
 				taskToken.then(unassign, unassign);
@@ -663,14 +663,15 @@ package weavejs.core
 			{
 				d2d_owner_task.remove(owner, taskToken);
 				
-				// if there are other tasks, continue to next owner
-				if (d2d_owner_task.map.get(owner).size)
+				// if there are other tasks for this owner, continue to next owner
+				var map_task:Object = d2d_owner_task.map.get(owner);
+				if (map_task && map_task.size)
 					continue;
 				
-				// when there are no more tasks, check later to see if callbacks trigger
+				// when there are no more tasks for this owner, check later to see if callbacks trigger
 				map_unbusyTriggerCounts.set(owner, getCallbackCollection(owner).triggerCounter);
 				// immediate priority because we want to trigger as soon as possible
-				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
+				WeaveAPI.Scheduler.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 				
 				if (debugBusyTasks)
 				{

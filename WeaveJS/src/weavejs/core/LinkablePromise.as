@@ -13,19 +13,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.core
+package weavejs.core
 {
-	import mx.core.mx_internal;
-	import mx.rpc.AsyncResponder;
-	import mx.rpc.AsyncToken;
-	import mx.rpc.events.FaultEvent;
-	import mx.rpc.events.ResultEvent;
-	
-	import weave.api.core.ICallbackCollection;
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
-	import weave.api.registerLinkableChild;
-	import weave.utils.WeavePromise;
+	import weavejs.WeaveAPI;
+	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.IDisposableObject;
+	import weavejs.api.core.ILinkableObject;
+	import weavejs.utils.JS;
+	import weavejs.utils.WeavePromise;
 	
 	/**
 	 * Use this class to build dependency trees involving asynchronous calls.
@@ -50,23 +45,15 @@ package weave.core
 		 */
 		public static function fromIterativeTask(initialize:Function, iterativeTask:Function, priority:uint, description:* = null, validateNow:Boolean = false):LinkablePromise
 		{
-			var promise:LinkablePromise;
-			var asyncToken:AsyncToken;
-			
-			function asyncStart():AsyncToken
-			{
+			var linkablePromise:LinkablePromise;
+			var asyncStart:Function = function():Object {
 				if (initialize != null)
 					initialize();
-				WeaveAPI.StageUtils.startTask(promise, iterativeTask, priority, asyncComplete);
-				return asyncToken = new AsyncToken();
-			}
-			
-			function asyncComplete():void
-			{
-				asyncToken.mx_internal::applyResult(ResultEvent.createEvent(null, asyncToken));
-			}
-			
-			return promise = new LinkablePromise(asyncStart, description, validateNow);
+				return new JS.Promise(function(resolve:Function, reject:Function):void {
+					WeaveAPI.Scheduler.startTask(linkablePromise, iterativeTask, priority, resolve);
+				});
+			};
+			return linkablePromise = new LinkablePromise(asyncStart, description, validateNow);
 		}
 		
 		/**
@@ -79,8 +66,8 @@ package weave.core
 			_task = task;
 			_description = description;
 			_callbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
-			_callbackCollection.addImmediateCallback(null, _immediateCallback);
-			_callbackCollection.addGroupedCallback(null, _groupedCallback, validateNow);
+			_callbackCollection.addImmediateCallback(this, _immediateCallback);
+			_callbackCollection.addGroupedCallback(this, _groupedCallback, validateNow);
 			if (validateNow)
 			{
 				_lazy = false;
@@ -94,7 +81,7 @@ package weave.core
 		private var _callbackCollection:ICallbackCollection;
 		private var _lazy:Boolean = true;
 		private var _invalidated:Boolean = true;
-		private var _asyncToken:AsyncToken;
+		private var _jsPromise:Object;
 		private var _selfTriggeredCount:uint = 0;
 		private var _result:Object;
 		private var _error:Object;
@@ -141,7 +128,7 @@ package weave.core
 			
 			// reset variables
 			_invalidated = true;
-			_asyncToken = null;
+			_jsPromise = null;
 			_result = null;
 			_error = null;
 			
@@ -190,57 +177,57 @@ package weave.core
 				_invalidated = false;
 				
 				if (invokeResult is WeavePromise)
-					_asyncToken = (invokeResult as WeavePromise).getAsyncToken();
+					_jsPromise = (invokeResult as WeavePromise).getPromise();
 				else
-					_asyncToken = invokeResult as AsyncToken;
-				if (_asyncToken)
+					_jsPromise = invokeResult as JS.Promise;
+				if (_jsPromise)
 				{
-					_asyncToken.addResponder(new AsyncResponder(_handleResult, _handleFault, _asyncToken));
+					_jsPromise.then(_handleResult.bind(this, _jsPromise), _handleFault.bind(this, _jsPromise));
 				}
 				else
 				{
 					_result = invokeResult;
-					WeaveAPI.StageUtils.callLater(this, _handleResult);
+					WeaveAPI.Scheduler.callLater(this, _handleResult);
 				}
 			}
 			catch (invokeError:Error)
 			{
 				_invalidated = false;
-				_asyncToken = null;
+				_jsPromise = null;
 				_error = invokeError;
-				WeaveAPI.StageUtils.callLater(this, _handleFault);
+				WeaveAPI.Scheduler.callLater(this, _handleFault);
 			}
 		}
 		
-		private function _handleResult(event:ResultEvent = null, asyncToken:AsyncToken = null):void
+		private function _handleResult(jsPromise:Object = null, result:* = undefined):void
 		{
 			// stop if asyncToken is no longer relevant
-			if (_invalidated || _asyncToken != asyncToken)
+			if (_invalidated || _jsPromise != jsPromise)
 				return;
 			
 			// no longer busy
 			WeaveAPI.ProgressIndicator.removeTask(_groupedCallback);
 			
-			// if there is an event, save the result
-			if (event)
-				_result = event.result;
+			// if there is a promise, save the result
+			if (jsPromise)
+				_result = result;
 			
 			_selfTriggeredCount = _callbackCollection.triggerCounter + 1;
 			_callbackCollection.triggerCallbacks();
 		}
 		
-		private function _handleFault(event:FaultEvent = null, asyncToken:AsyncToken = null):void
+		private function _handleFault(jsPromise:Object = null, error:* = undefined):void
 		{
 			// stop if asyncToken is no longer relevant
-			if (_invalidated || _asyncToken != asyncToken)
+			if (_invalidated || _jsPromise != jsPromise)
 				return;
 			
 			// no longer busy
 			WeaveAPI.ProgressIndicator.removeTask(_groupedCallback);
 			
-			// if there is an event, save the error
-			if (event)
-				_error = event.fault;
+			// if there is a promise, save the error
+			if (jsPromise)
+				_error = error;
 			
 			_selfTriggeredCount = _callbackCollection.triggerCounter + 1;
 			_callbackCollection.triggerCallbacks();
@@ -253,7 +240,7 @@ package weave.core
 		{
 			otherDependencies.unshift(dependency);
 			for each (dependency in otherDependencies)
-				registerLinkableChild(this, dependency);
+				Weave.linkableChild(this, dependency);
 			return this;
 		}
 		
@@ -262,7 +249,7 @@ package weave.core
 			WeaveAPI.ProgressIndicator.removeTask(_groupedCallback);
 			_lazy = true;
 			_invalidated = true;
-			_asyncToken = null;
+			_jsPromise = null;
 			_result = null;
 			_error = null;
 		}

@@ -288,21 +288,30 @@ package weavejs.path
 			// backwards compatibility - shift arguments
 			if (typeof relevantContext === 'function' && typeof callback !== 'function')
 			{
-				delayWhileBusy = immediateMode;
-				immediateMode = triggerCallbackNow;
-				triggerCallbackNow = callback;
-				callback = relevantContext as Function;
+				if (arguments.length > 3)
+					delayWhileBusy = immediateMode;
+				if (arguments.length > 2)
+					immediateMode = triggerCallbackNow;
+				if (arguments.length > 1)
+					triggerCallbackNow = callback;
+				if (arguments.length > 0)
+					callback = relevantContext as Function;
 				relevantContext = null;
 			}
+			
+			// When no context is specified, save a pointer to this WeavePath object
+			// on the callback function itself where CallbackCollection looks for it.
+			if (!relevantContext)
+				callback['this'] = this;
 			
 			var object:ILinkableObject = getObject();
 			if (!object)
 				throw new Error("No ILinkableObject to which to add a callback: " + this);
 			
 			if (immediateMode)
-				Weave.getCallbacks(object).addImmediateCallback(relevantContext || this, callback, triggerCallbackNow, false);
+				Weave.getCallbacks(object).addImmediateCallback(relevantContext, callback, triggerCallbackNow, false);
 			else
-				Weave.getCallbacks(object).addGroupedCallback(relevantContext || this, callback, triggerCallbackNow, delayWhileBusy);
+				Weave.getCallbacks(object).addGroupedCallback(relevantContext, callback, triggerCallbackNow, delayWhileBusy);
 			return this;
 		}
 		

@@ -18,6 +18,7 @@ package weavejs
 	import weavejs.api.core.IClassRegistry;
 	import weavejs.api.core.ILocaleManager;
 	import weavejs.api.core.IProgressIndicator;
+	import weavejs.api.core.IScheduler;
 	import weavejs.api.core.ISessionManager;
 	import weavejs.core.ClassRegistryImpl;
 	
@@ -70,7 +71,14 @@ package weavejs
 				|| _classRegistry.getSingletonInstance(ISessionManager);
 		}
 		
-		public static var StageUtils:Object;
+		/**
+		 * This is the singleton instance of the registered IScheduler implementation.
+		 */
+		public static function get Scheduler():IScheduler
+		{
+			return (_classRegistry || ClassRegistry).singletonInstances[IScheduler]
+				|| _classRegistry.getSingletonInstance(IScheduler);
+		}
 		
 //		/**
 //		 * This is the singleton instance of the registered IStageUtils implementation.
@@ -80,6 +88,7 @@ package weavejs
 //			return (_classRegistry || ClassRegistry).singletonInstances[IStageUtils]
 //				|| _classRegistry.getSingletonInstance(IStageUtils);
 //		}
+
 		/**
 		 * This is the singleton instance of the registered IProgressIndicator implementation.
 		 */
@@ -88,6 +97,7 @@ package weavejs
 			return (_classRegistry || ClassRegistry).singletonInstances[IProgressIndicator]
 				|| _classRegistry.getSingletonInstance(IProgressIndicator);
 		}
+		
 //		/**
 //		 * This is the singleton instance of the registered IAttributeColumnCache implementation.
 //		 */

@@ -30,9 +30,14 @@ package weavejs.utils
 		 */
 		public static function compile(script:String, paramNames:Array = null):Function
 		{
-			var params:String = paramNames ? paramNames.join(',') : '';
-			return global.eval("(function(" + params + "){ return eval(" + JSON.stringify(script) + "); })");
+			var paramsStr:String = paramNames ? paramNames.join(',') : '';
+			return global.eval("(function(" + paramsStr + "){ return eval(" + JSON.stringify(script) + "); })");
 		}
+		
+		/**
+		 * AS->JS Language helper for Promise
+		 */
+		public static const Promise:Class = (function():* { return this['Promise']; }).apply(null);
 		
 		/**
 		 * AS->JS Language helper for Map
@@ -69,19 +74,32 @@ package weavejs.utils
 		}
 		
 		/**
+		 * Tests if an object can be iterated over. If this returns true, then toArray()
+		 * can be called to get all the values from the iterator as an Array.
+		 */
+		public static function isIterable(value:*):Boolean
+		{
+			return value && typeof value[global.Symbol.iterator] === 'function';
+		}
+		
+		/**
 		 * AS->JS Language helper for converting array-like objects to Arrays
 		 * Extracts an Array of values from an Iterator object.
 		 * Converts Arguments object to an Array.
 		 */
 		public static function toArray(value:*):Array
 		{
-			// special case for Iterator
-			if (value is global.Iterator)
+			if (value is Array)
+				return value;
+			
+			// special case for iterable object
+			if (value && typeof value[global.Symbol.iterator] === 'function')
 			{
+				var iterator:Object = value[global.Symbol.iterator]();
 				var values:Array = [];
 				while (true)
 				{
-					var next:Object = value.next();
+					var next:Object = iterator.next();
 					if (next.done)
 						break;
 					values.push(next.value);
@@ -93,7 +111,7 @@ package weavejs.utils
 			if (Object.prototype.toString.call(value) === '[object Arguments]')
 				return Array.prototype.slice.call(value);
 			
-			return value as Array;
+			return null;
 		}
 		
 		/**
