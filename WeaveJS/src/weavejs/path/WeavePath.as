@@ -292,7 +292,7 @@ package weavejs.path
 				immediateMode = triggerCallbackNow;
 				triggerCallbackNow = callback;
 				callback = relevantContext as Function;
-				relevantContext = this;
+				relevantContext = null;
 			}
 			
 			var object:ILinkableObject = getObject();
@@ -300,9 +300,9 @@ package weavejs.path
 				throw new Error("No ILinkableObject to which to add a callback: " + this);
 			
 			if (immediateMode)
-				Weave.getCallbacks(object).addImmediateCallback(relevantContext, callback, triggerCallbackNow, false);
+				Weave.getCallbacks(object).addImmediateCallback(relevantContext || this, callback, triggerCallbackNow, false);
 			else
-				Weave.getCallbacks(object).addGroupedCallback(relevantContext, callback, triggerCallbackNow, delayWhileBusy);
+				Weave.getCallbacks(object).addGroupedCallback(relevantContext || this, callback, triggerCallbackNow, delayWhileBusy);
 			return this;
 		}
 		
@@ -318,14 +318,14 @@ package weavejs.path
 			if (!object)
 				throw new Error("No ILinkableObject from which to remove a callback: " + this);
 			
-			// backwareds compatibility
+			// backwards compatibility
 			if (arguments.length == 1)
 			{
 				callback = relevantContext as Function;
 				relevantContext = null;
 			}
 			
-			Weave.getCallbacks(object).removeCallback(relevantContext, callback);
+			Weave.getCallbacks(object).removeCallback(relevantContext || this, callback);
 			return this;
 		}
 		
