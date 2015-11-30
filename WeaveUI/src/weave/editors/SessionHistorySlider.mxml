@@ -22,6 +22,7 @@
 -->
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 xmlns="weave.editors.*"
+		 mouseDown="handleMouseDown();"
 		 click="handleAnyClick();"
 		 backgroundColor="0xCCCCCC"
 		 width="100%" horizontalGap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
@@ -222,11 +223,16 @@
 			public function hasPendingChanges():Boolean { return false; }
 			public function applyChanges():void { }
 			
+			private var _enabledOnMouseDown:Boolean;
+			private function handleMouseDown():void
+			{
+				_enabledOnMouseDown = Weave.properties.enableSessionHistoryControls.value;
+			}
 			// called when anything is clicked
 			private function handleAnyClick():void
 			{
 				// hack so slider doesn't disappear
-				Weave.properties.enableSessionHistoryControls.value = true;
+				Weave.properties.enableSessionHistoryControls.value = _enabledOnMouseDown;
 			}
 			
 			// called when slider value changes
