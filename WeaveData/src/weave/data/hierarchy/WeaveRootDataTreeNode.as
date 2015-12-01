@@ -15,12 +15,11 @@
 
 package weave.data.hierarchy
 {
+    import weave.api.registerLinkableChild;
     import weave.api.core.ILinkableHashMap;
     import weave.api.core.ILinkableObject;
     import weave.api.data.IDataSource;
     import weave.api.data.IWeaveTreeNode;
-    import weave.api.registerLinkableChild;
-    import weave.data.AttributeColumnCache;
 
     public class WeaveRootDataTreeNode extends WeaveTreeDescriptorNode implements ILinkableObject
     {
@@ -28,13 +27,14 @@ package weave.data.hierarchy
 		{
 			var rootNode:WeaveRootDataTreeNode = this;
 			registerLinkableChild(this, root.childListCallbacks);
+			globalColumnDataSource = registerLinkableChild(this, new GlobalColumnDataSource(root));
 			
 			super({
 				dependency: rootNode,
 				label: lang('Data Sources'),
 				hasChildBranches: true,
 				children: function():Array {
-					var sources:Array = root.getObjects(IDataSource).concat(AttributeColumnCache.globalColumnDataSource);
+					var sources:Array = root.getObjects(IDataSource).concat(globalColumnDataSource);
 					var nodes:Array = sources.map(
 						function(ds:IDataSource, ..._):* {
 							registerLinkableChild(rootNode, ds);
@@ -51,5 +51,7 @@ package weave.data.hierarchy
 				}
 			});
 		}
+		
+		private var globalColumnDataSource:GlobalColumnDataSource;
     }
 }

@@ -15,15 +15,15 @@
 
 package weave.data.AttributeColumns
 {
+	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
+	import weave.api.setSessionState;
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newDisposableChild;
-	import weave.api.newLinkableChild;
-	import weave.api.objectWasDisposed;
-	import weave.api.setSessionState;
 	import weave.core.CallbackCollection;
 	import weave.core.ClassUtils;
 	import weave.core.LinkableDynamicObject;
@@ -109,13 +109,25 @@ package weave.data.AttributeColumns
 					_dataSource = null;
 				
 				var col:IAttributeColumn = null;
+				var meta:Object = metadata.state;
 				if (dataSourceName.value && !_dataSource && dataSourceName.value != 'null')
 				{
 					// data source was named but not found
 				}
+				else if (!_dataSource)
+				{
+					// data source is not named - get global column
+					var name:String;
+					if (meta is String)
+						name = meta as String;
+					else if (meta && typeof meta === 'object')
+						name = meta['name'];
+					col = WeaveAPI.globalHashMap.getObject(name) as IAttributeColumn;
+				}
 				else
 				{
-					col = WeaveAPI.AttributeColumnCache.getColumn(_dataSource, metadata.getSessionState());
+					// get column from data source
+					col = WeaveAPI.AttributeColumnCache.getColumn(_dataSource, meta);
 				}
 				_columnWatcher.target = _internalColumn = col;
 				
