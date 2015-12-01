@@ -24,10 +24,9 @@ package weave.data.hierarchy
 
     public class WeaveRootDataTreeNode extends WeaveTreeDescriptorNode implements ILinkableObject
     {
-		public function WeaveRootDataTreeNode()
+		public function WeaveRootDataTreeNode(root:ILinkableHashMap)
 		{
 			var rootNode:WeaveRootDataTreeNode = this;
-			var root:ILinkableHashMap = WeaveAPI.globalHashMap;
 			registerLinkableChild(this, root.childListCallbacks);
 			
 			super({

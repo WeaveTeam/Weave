@@ -724,7 +724,7 @@ weave.WeaveTreeNode = function(serial, parent) {
 	this.parent = parent;
 	weave.WeaveTreeNode.cache[this.serial] = this;
 	if (this.serial == 0)
-		weave.evaluateExpression(null, 'var lookup = ' + weaveTreeNodeLookup + '; if (lookup[0] === undefined) lookup[lookup[0] = new WeaveRootDataTreeNode()] = 0; return null;');
+		weave.evaluateExpression(null, 'var lookup = ' + weaveTreeNodeLookup + '; if (lookup[0] === undefined) lookup[lookup[0] = new WeaveRootDataTreeNode(WeaveAPI.globalHashMap)] = 0; return null;');
 };
 weave.WeaveTreeNode.cache = {}; // serial -> WeaveTreeNode
 weave.WeaveTreeNode.prototype.getLabel = _createNodeFunction('node.getLabel()');
