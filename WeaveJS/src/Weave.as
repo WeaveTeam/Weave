@@ -44,6 +44,13 @@ package
 		
 		private static const HISTORY_SYNC_DELAY:int = 100;
 		
+		public var date:Date = new Date();
+		
+		public function testme():void
+		{
+			JS.log(date);
+		}
+		
 		public function Weave()
 		{
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
@@ -509,11 +516,13 @@ package
 			if (output.length == 0)
 				return valueIsArray ? "[]" : "{}";
 			
-			return (valueIsArray ? "[" : "{")
+			var lb:String = valueIsArray ? "[" : "{";
+			var rb:String = valueIsArray ? "]" : "}";
+			return lb
 				+ lineBreakIndent
 				+ output.join(indent ? ',' + lineBreakIndent : ', ')
 				+ lineBreak
-				+ (valueIsArray ? "]" : "}");
+				+ rb;
 		}
 		/**
 		 * This function surrounds a String with quotes and escapes special characters using ActionScript string literal format.

@@ -331,7 +331,7 @@ package weavejs.core
 			{
 				var logEntry:LogEntry;
 				var diff:Object;
-				var debug:Boolean = debug && stepsRemaining == 1;
+				var debug:Boolean = SessionStateLog.debug && stepsRemaining == 1;
 				
 				// if something changed and we're not currently undoing/redoing, save the diff now
 				if (_savePending && !_undoActive && !_redoActive)
@@ -364,7 +364,7 @@ package weavejs.core
 						diff = logEntry.forward;
 					}
 					if (debug)
-						JS.log('apply ' + (delta < 0 ? 'undo' : 'redo'), logEntry.id + ':', diff);
+						JS.log('apply', delta < 0 ? 'undo' : 'redo', logEntry.id + ':', diff);
 					
 					if (stepsRemaining == 0 && enableLogging.value)
 					{

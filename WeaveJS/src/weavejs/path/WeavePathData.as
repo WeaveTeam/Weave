@@ -61,7 +61,9 @@ package weavejs.path
 		    	|| _failMessage('initProperty', 'A "name" is required');
 		    var label:String = property_descriptor["label"];
 		    var children:Array = property_descriptor["children"];
-		    var type:String = property_descriptor["type"] || (children ? "LinkableHashMap" : "LinkableVariable");
+		    var type:String = property_descriptor["type"];
+			if (!type)
+				type = children ? "LinkableHashMap" : "LinkableVariable";
 		    
 		    var new_prop:WeavePathData = this.push(name) as WeavePathData;
 		

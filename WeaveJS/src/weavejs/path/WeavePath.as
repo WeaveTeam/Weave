@@ -298,6 +298,8 @@ package weavejs.path
 					callback = relevantContext as Function;
 				relevantContext = null;
 			}
+			else if (!_assertParams('addCallback', arguments, 2))
+				return this;
 			
 			// When no context is specified, save a pointer to this WeavePath object
 			// on the callback function itself where CallbackCollection looks for it.
@@ -328,11 +330,13 @@ package weavejs.path
 				throw new Error("No ILinkableObject from which to remove a callback: " + this);
 			
 			// backwards compatibility
-			if (arguments.length == 1)
+			if (arguments.length == 1 && typeof relevantContext === 'function')
 			{
 				callback = relevantContext as Function;
 				relevantContext = null;
 			}
+			else if (!_assertParams('removeCallback', arguments, 2))
+				return this;
 			
 			Weave.getCallbacks(object).removeCallback(relevantContext || this, callback);
 			return this;
@@ -606,8 +610,8 @@ package weavejs.path
 				minLength = 1;
 			if (args.length < minLength)
 			{
-				var msg:String = 'requires at least ' + ((minLength == 1) ? 'one parameter' : (minLength + ' parameters'));
-				_failMessage(methodName, msg);
+				var min_params:String = (minLength == 1) ? 'one parameter' : (minLength + ' parameters');
+				_failMessage(methodName, 'requires at least ' + min_params);
 				return false;
 			}
 			return true;

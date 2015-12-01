@@ -15,7 +15,7 @@ package weavejs.utils
 	{
 		public function Dictionary2D(weakPrimaryKeys:Boolean = false, weakSecondaryKeys:Boolean = false, defaultType:Class = null)
 		{
-			map = weakPrimaryKeys ? new JS.WeakMap() : new JS.Map;
+			map = weakPrimaryKeys ? new JS.WeakMap() : new JS.Map();
 			weak1 = weakPrimaryKeys;
 			weak2 = weakSecondaryKeys;
 			this.defaultType = defaultType;
@@ -59,7 +59,7 @@ package weavejs.utils
 			var map2:Object = map.get(key1);
 			if (map2 == null)
 			{
-				map2 = (weak2 ? new JS.WeakMap() : new JS.Map());
+				map2 = weak2 ? new JS.WeakMap() : new JS.Map();
 				map.set(key1, map2);
 			}
 			map2.set(key2, value);
