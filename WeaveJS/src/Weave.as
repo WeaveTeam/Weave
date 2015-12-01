@@ -13,6 +13,7 @@ package
 	import weavejs.api.core.IProgressIndicator;
 	import weavejs.api.core.IScheduler;
 	import weavejs.api.core.ISessionManager;
+	import weavejs.api.data.IAttributeColumnCache;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableCallbackScript;
 	import weavejs.core.LinkableDynamicObject;
@@ -27,6 +28,7 @@ package
 	import weavejs.core.Scheduler;
 	import weavejs.core.SessionManager;
 	import weavejs.core.SessionStateLog;
+	import weavejs.data.AttributeColumnCache;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathData;
 	import weavejs.utils.Dictionary2D;
@@ -53,6 +55,7 @@ package
 		
 		public function Weave()
 		{
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IScheduler, Scheduler);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IProgressIndicator, ProgressIndicator);
@@ -544,5 +547,41 @@ package
 			return quote + result.join('') + quote;
 		}
 		private static const ENCODE_LOOKUP:Object = {'\b':'b', '\f':'f', '\n':'n', '\r':'r', '\t':'t', '\\':'\\'};
+		
+		/**
+		 * This is a convenient global function for retrieving localized text.
+		 * Sample syntax:
+		 *     Weave.lang("hello world")
+		 * 
+		 * You can also specify a format string with parameters which will be passed to StandardLib.substitute():
+		 *     Weave.lang("{0} and {1}", first, second)
+		 * 
+		 * @param text The original text or format string to translate.
+		 * @param parameters Parameters to be passed to StandardLib.substitute() if the text is to be treated as a format string.
+		 */
+		public static function lang(text:String, ...parameters):String
+		{
+			var newText:String = text;
+			
+			try
+			{
+				// call localize() either way to let the LocaleManager know that we are interested in translations of this text.
+				newText = WeaveAPI.LocaleManager.localize(text);
+				
+				if (WeaveAPI.LocaleManager.getLocale() == 'developer')
+				{
+					parameters.unshift(text);
+					return 'lang("' + parameters.join('", "') + '")';
+				}
+			}
+			catch (e:Error)
+			{
+			}
+			
+			if (parameters.length)
+				return StandardLib.substitute(newText, parameters);
+			
+			return newText;
+		}
 	}
 }
