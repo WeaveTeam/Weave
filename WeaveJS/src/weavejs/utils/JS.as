@@ -163,7 +163,7 @@ package weavejs.utils
 		}
 		
 		/**
-		 * Tests if something looks like a Class.
+		 * Implementation of "classDef is Class"
 		 */
 		public static function isClass(classDef:Object):Boolean
 		{
@@ -218,7 +218,7 @@ package weavejs.utils
 		
 		/**
 		 * Safe version of 'as' operator
-		 * - won't compile "obj as this.classDef" incorrectly as "...Language.as(obj, classDef)"
+		 * Using this will avoid the bug where "obj as this.classDef" compiles incorrectly as "...Language.as(obj, classDef)"
 		 */
 		public static function AS(leftOperand:Object, rightOperand:Class):*
 		{
@@ -234,12 +234,8 @@ package weavejs.utils
 		{
 			var superClass:Object;
 			
-			if (leftOperand == null)
+			if (leftOperand == null || rightOperand == null)
 				return false;
-			
-			if (leftOperand && rightOperand == null) {
-				return false;
-			}
 			
 			// (adufilie) separated instanceof check to catch more cases.
 			if (leftOperand instanceof rightOperand)
