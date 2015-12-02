@@ -15,6 +15,8 @@
 
 package weave.data.hierarchy
 {
+	import flash.utils.Dictionary;
+	
 	import weave.api.getCallbackCollection;
 	import weave.api.registerLinkableChild;
 	import weave.api.core.ICallbackCollection;
@@ -27,8 +29,18 @@ package weave.data.hierarchy
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.hierarchy.ColumnTreeNode;
 	
-	internal class GlobalColumnDataSource implements IDataSource
+	public class GlobalColumnDataSource implements IDataSource
 	{
+		public static function getInstance(root:ILinkableHashMap):IDataSource
+		{
+			var instance:IDataSource = instances[root];
+			if (!instance)
+				instances[root] = instance = new GlobalColumnDataSource(root);
+			return instance;
+		}
+		
+		private static const instances:Dictionary = new Dictionary(true);
+		
 		public function GlobalColumnDataSource(root:ILinkableHashMap)
 		{
 			this._root = root;

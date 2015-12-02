@@ -27,7 +27,7 @@ package weave.data.hierarchy
 		{
 			var rootNode:WeaveRootDataTreeNode = this;
 			registerLinkableChild(this, root.childListCallbacks);
-			globalColumnDataSource = registerLinkableChild(this, new GlobalColumnDataSource(root));
+			globalColumnDataSource = registerLinkableChild(this, GlobalColumnDataSource.getInstance(root));
 			
 			super({
 				dependency: rootNode,
@@ -52,6 +52,6 @@ package weave.data.hierarchy
 			});
 		}
 		
-		private var globalColumnDataSource:GlobalColumnDataSource;
+		private var globalColumnDataSource:IDataSource;
     }
 }

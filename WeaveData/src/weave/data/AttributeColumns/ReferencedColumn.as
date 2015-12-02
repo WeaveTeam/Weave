@@ -31,6 +31,7 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableVariable;
 	import weave.core.LinkableWatcher;
 	import weave.core.WeaveXMLDecoder;
+	import weave.data.hierarchy.GlobalColumnDataSource;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	
@@ -43,7 +44,7 @@ package weave.data.AttributeColumns
 	{
 		public function ReferencedColumn()
 		{
-			WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateDataSource);
+			WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateDataSource, true);
 		}
 		
 		private var _dataSource:IDataSource;
@@ -51,6 +52,8 @@ package weave.data.AttributeColumns
 		private function updateDataSource():void
 		{
 			var ds:IDataSource = WeaveAPI.globalHashMap.getObject(dataSourceName.value) as IDataSource;
+			if (!ds)
+				ds = GlobalColumnDataSource.getInstance(WeaveAPI.globalHashMap);
 			if (_dataSource != ds)
 			{
 				_dataSource = ds;
@@ -211,8 +214,8 @@ package weave.data.AttributeColumns
 	}
 }
 
-import weave.api.core.ILinkableObject;
 import weave.api.newLinkableChild;
+import weave.api.core.ILinkableObject;
 import weave.core.LinkableString;
 import weave.core.LinkableXML;
 import weave.data.AttributeColumns.ReferencedColumn;
