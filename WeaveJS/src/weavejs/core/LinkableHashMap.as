@@ -416,7 +416,7 @@ package weavejs.core
 			var typedState:Object;
 			var remainingObjects:Object = removeMissingDynamicObjects ? {} : null; // maps an objectName to a value of true
 			var newObjects:Object = {}; // maps an objectName to a value of true if the object is newly created as a result of setting the session state
-			var newNameOrder:Array = []; // the order the object names appear in the vector
+			var newNameOrder:Array = []; // the order the object names appear in the array
 			if (newStateArray != null)
 			{
 				// first pass: delay callbacks of all children

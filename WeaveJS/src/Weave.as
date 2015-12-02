@@ -29,6 +29,7 @@ package
 	import weavejs.core.SessionManager;
 	import weavejs.core.SessionStateLog;
 	import weavejs.data.AttributeColumnCache;
+	import weavejs.data.sources.CSVDataSource;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathData;
 	import weavejs.utils.Dictionary2D;
@@ -94,7 +95,7 @@ package
 				.state('primaryTransform', 'state + "_transformed"')
 				.state('secondaryPath', ['ls2'])
 				.call(function():void { JS.log(this.weave.path('ls2').getState()) });
-			
+			//path('csv').request(CSVDataSource);
 		}
 		
 		/**

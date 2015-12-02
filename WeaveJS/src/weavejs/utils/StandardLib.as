@@ -24,6 +24,14 @@ package weavejs.utils
 	public class StandardLib
 	{
 		/**
+		 * @TODO - use a library
+		 */
+		public static function formatNumber(number:Number, precision:int = -1):String
+		{
+			return String(number);
+		}
+		
+		/**
 		 * This function will cast a value of any type to a Number,
 		 * interpreting the empty string ("") and null as NaN.
 		 * @param value A value to cast to a Number.
@@ -594,6 +602,29 @@ package weavejs.utils
 		}
 		
 		/**
+		 * Sorts an Array of items in place using properties, lookup tables, or replacer functions.
+		 * @param array An Array to sort.
+		 * @param params Specifies how to get values used to sort items in the array.
+		 *               This can either be an Array of params or a single param, each of which can be one of the following:<br>
+		 *               Array: values are looked up based on index (Such an Array must be nested in a params array rather than given alone as a single param)<br>
+		 *               Object or Dictionary: values are looked up using items in the array as keys<br>
+		 *               Property name: values are taken from items in the array using a property name<br>
+		 *               Replacer function: array items are passed through this function to get values<br>
+		 * @param sortDirections Specifies sort direction(s) (1 or -1) corresponding to the params.
+		 * @param inPlace Set this to true to modify the original Array in place or false to return a new, sorted copy.
+		 * @param returnSortedIndexArray Set this to true to return a new Array of sorted indices.
+		 * @return Either the original Array or a new one.
+		 * @see Array#sortOn()
+		 */
+		public static function sortOn(array:*, params:*, sortDirections:* = undefined, inPlace:Boolean = true, returnSortedIndexArray:Boolean = false):*
+		{
+			//TODO
+			if (returnSortedIndexArray || !inPlace)
+				return array.concat();
+			return array;
+		}
+		
+		/**
 		 * This will return the type of item found in the Array if each item has the same type.
 		 * @param a An Array to check.
 		 * @return The type of all items in the Array, or null if the types differ. 
@@ -632,6 +663,29 @@ package weavejs.utils
 		public static function logTransform(normValue:Number, factor:Number = 1024):Number
 		{
 			return Math.log(1 + normValue * factor) / Math.log(1 + factor);
+		}
+		
+		/**
+		 * This will generate a date string from a Number or a Date object using the specified date format.
+		 * @param value The Date object or date string to format.
+		 * @param formatString The format of the date string to be generated.
+		 * @param formatAsUniversalTime If set to true, the date string will be generated using universal time.
+		 *        If set to false, the timezone of the user's computer will be used.
+		 * @return The resulting formatted date string.
+		 * 
+		 * @see mx.formatters::DateFormatter#formatString
+		 * @see Date
+		 */
+		public static function formatDate(value:Object, formatString:String = null, formatAsUniversalTime:Boolean = true):String
+		{
+			//TODO
+			if (value is Number)
+			{
+				var date:Date = new Date();
+				date.time = value as Number;
+				value = date;
+			}
+			return String(value);
 		}
 		
 		/**

@@ -132,7 +132,7 @@ package weavejs.utils
 		
 		private function callHandlers(newHandlersOnly:Boolean = false):void
 		{
-			if (dependencies.some(dependencyIsBusy))
+			if (dependencies.some(Weave.isBusy))
 			{
 				if (handlers.length)
 					setBusy(true);
@@ -193,11 +193,6 @@ package weavejs.utils
 				Weave.getCallbacks(dependency).addGroupedCallback(relevantContext, callHandlers, true);
 			}
 			return this;
-		}
-		
-		private static function dependencyIsBusy(dependency:ILinkableObject, i:int, a:Array):Boolean
-		{
-			return WeaveAPI.SessionManager.linkableObjectIsBusy(dependency);
 		}
 		
 		public function getPromise():Object

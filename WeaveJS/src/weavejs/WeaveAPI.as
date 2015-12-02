@@ -20,6 +20,11 @@ package weavejs
 	import weavejs.api.core.IProgressIndicator;
 	import weavejs.api.core.IScheduler;
 	import weavejs.api.core.ISessionManager;
+	import weavejs.api.data.IAttributeColumnCache;
+	import weavejs.api.data.ICSVParser;
+	import weavejs.api.data.IQualifiedKeyManager;
+	import weavejs.api.data.IStatisticsCache;
+	import weavejs.api.services.IURLRequestUtils;
 	import weavejs.core.ClassRegistryImpl;
 	
 	/**
@@ -98,22 +103,24 @@ package weavejs
 				|| _classRegistry.getSingletonInstance(IProgressIndicator);
 		}
 		
-//		/**
-//		 * This is the singleton instance of the registered IAttributeColumnCache implementation.
-//		 */
-//		public static function get AttributeColumnCache():IAttributeColumnCache
-//		{
-//			return (_classRegistry || ClassRegistry).singletonInstances[IAttributeColumnCache]
-//				|| _classRegistry.getSingletonInstance(IAttributeColumnCache);
-//		}
-//		/**
-//		 * This is the singleton instance of the registered IStatisticsCache implementation.
-//		 */
-//		public static function get StatisticsCache():IStatisticsCache
-//		{
-//			return (_classRegistry || ClassRegistry).singletonInstances[IStatisticsCache]
-//				|| _classRegistry.getSingletonInstance(IStatisticsCache);
-//		}
+		/**
+		 * This is the singleton instance of the registered IAttributeColumnCache implementation.
+		 */
+		public static function get AttributeColumnCache():IAttributeColumnCache
+		{
+			return (_classRegistry || ClassRegistry).singletonInstances[IAttributeColumnCache]
+				|| _classRegistry.getSingletonInstance(IAttributeColumnCache);
+		}
+		
+		/**
+		 * This is the singleton instance of the registered IStatisticsCache implementation.
+		 */
+		public static function get StatisticsCache():IStatisticsCache
+		{
+			return (_classRegistry || ClassRegistry).singletonInstances[IStatisticsCache]
+				|| _classRegistry.getSingletonInstance(IStatisticsCache);
+		}
+		
 //		/**
 //		 * This is the singleton instance of the registered IProjectionManager implementation.
 //		 */
@@ -122,30 +129,34 @@ package weavejs
 //			return (_classRegistry || ClassRegistry).singletonInstances[IProjectionManager]
 //				|| _classRegistry.getSingletonInstance(IProjectionManager);
 //		}
-//		/**
-//		 * This is the singleton instance of the registered IQualifiedKeyManager implementation.
-//		 */
-//		public static function get QKeyManager():IQualifiedKeyManager
-//		{
-//			return (_classRegistry || ClassRegistry).singletonInstances[IQualifiedKeyManager]
-//				|| _classRegistry.getSingletonInstance(IQualifiedKeyManager);
-//		}
-//		/**
-//		 * This is the singleton instance of the registered ICSVParser implementation.
-//		 */
-//		public static function get CSVParser():ICSVParser
-//		{
-//			return (_classRegistry || ClassRegistry).singletonInstances[ICSVParser]
-//				|| _classRegistry.getSingletonInstance(ICSVParser);
-//		}
-//		/**
-//		 * This is the singleton instance of the registered IURLRequestUtils implementation.
-//		 */
-//		public static function get URLRequestUtils():IURLRequestUtils
-//		{
-//			return (_classRegistry || ClassRegistry).singletonInstances[IURLRequestUtils]
-//				|| _classRegistry.getSingletonInstance(IURLRequestUtils);
-//		}
+		
+		/**
+		 * This is the singleton instance of the registered IQualifiedKeyManager implementation.
+		 */
+		public static function get QKeyManager():IQualifiedKeyManager
+		{
+			return (_classRegistry || ClassRegistry).singletonInstances[IQualifiedKeyManager]
+				|| _classRegistry.getSingletonInstance(IQualifiedKeyManager);
+		}
+		
+		/**
+		 * This is the singleton instance of the registered ICSVParser implementation.
+		 */
+		public static function get CSVParser():ICSVParser
+		{
+			return (_classRegistry || ClassRegistry).singletonInstances[ICSVParser]
+				|| _classRegistry.getSingletonInstance(ICSVParser);
+		}
+		
+		/**
+		 * This is the singleton instance of the registered IURLRequestUtils implementation.
+		 */
+		public static function get URLRequestUtils():IURLRequestUtils
+		{
+			return (_classRegistry || ClassRegistry).singletonInstances[IURLRequestUtils]
+				|| _classRegistry.getSingletonInstance(IURLRequestUtils);
+		}
+		
 		/**
 		 * This is the singleton instance of the registered ILocaleManager implementation.
 		 */
