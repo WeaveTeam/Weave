@@ -160,7 +160,8 @@ package weavejs.data.hierarchy
 			}
 			
 			// finally, check each child
-			for each (var child:IWeaveTreeNode in this.getChildren())
+			var childs:Array = this.getChildren();
+			for each (var child:IWeaveTreeNode in childs)
 			{
 				var path:Array = HierarchyUtils.findPathToNode(child, descendant);
 				if (path)

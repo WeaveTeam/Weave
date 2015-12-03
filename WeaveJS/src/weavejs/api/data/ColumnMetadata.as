@@ -39,7 +39,8 @@ package weavejs.api.data
 		public static function getAllMetadata(column:IAttributeColumn):Object
 		{
 			var meta:Object = {};
-			for each (var name:String in column.getMetadataPropertyNames())
+			var names:Array = column.getMetadataPropertyNames();
+			for each (var name:String in names)
 				meta[name] = column.getMetadata(name);
 			return meta;
 		}

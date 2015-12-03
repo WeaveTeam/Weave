@@ -339,7 +339,8 @@ package weavejs.core
 		public function removeAllObjects():void
 		{
 			delayCallbacks();
-			for each (var name:String in _orderedNames.concat()) // iterate over a copy of the list
+			var names:Array = _orderedNames.concat(); // iterate over a copy of the list
+			for each (var name:String in names)
 				removeObject(name);
 			resumeCallbacks();
 		}
@@ -356,7 +357,8 @@ package weavejs.core
 			removeAllObjects();
 			
 			// remove all locked objects
-			for each (var name:String in _orderedNames.concat()) // iterate over a copy of the list
+			var names:Array = _orderedNames.concat(); // iterate over a copy of the list
+			for each (var name:String in names)
 			{
 				_nameIsLocked[name] = undefined; // make sure removeObject() will carry out its action
 				removeObject(name);
@@ -486,7 +488,8 @@ package weavejs.core
 			if (removeMissingDynamicObjects)
 			{
 				// third pass: remove objects based on the Boolean flags in remainingObjects.
-				for each (objectName in _orderedNames.concat()) // iterate over a copy of the list
+				var names:Array = _orderedNames.concat(); // iterate over a copy of the list
+				for each (objectName in names)
 				{
 					if (remainingObjects[objectName] !== true)
 					{

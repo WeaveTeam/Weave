@@ -47,7 +47,8 @@ package weavejs.data.hierarchy
 			if (root.equals(descendant))
 				return [root];
 			
-			for each (var child:IWeaveTreeNode in root.getChildren())
+			var childs:Array = root.getChildren();
+			for each (var child:IWeaveTreeNode in childs)
 			{
 				var path:Array = findPathToNode(child, descendant);
 				if (path)
@@ -74,8 +75,11 @@ package weavejs.data.hierarchy
 			if (ref && ref.getColumnMetadata())
 				output.push(ref);
 			if (node)
-				for each (var child:IWeaveTreeNode in node.getChildren())
+			{
+				var childs:Array = node.getChildren();
+				for each (var child:IWeaveTreeNode in childs)
 					getAllColumnReferences(child, output);
+			}
 			return output;
 		}
 	}
