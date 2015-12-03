@@ -394,7 +394,9 @@ package weavejs.data.columns
 		
 		public static function detectDateFormats(dates:*):Array
 		{
-			return flascc.dates_detect(dates, DateFormat.FOR_AUTO_DETECT);
+			//TODO
+			return [];
+			//return flascc.dates_detect(dates, DateFormat.FOR_AUTO_DETECT);
 		}
 	}
 }

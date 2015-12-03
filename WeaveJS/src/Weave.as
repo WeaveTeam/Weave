@@ -101,7 +101,7 @@ package
 				.state('secondaryPath', ['ls2'])
 				.call(function():void { JS.log(this.weave.path('ls2').getState()) });
 			path('csv').request(CSVDataSource)
-				.state('csvData', [['a', 'b'], [1, "2"], [3, "4"]])
+				.state('csvData', [['a', 'b'], [1, "one"], [2, "two"]])
 				.addCallback(null, function():void {
 					var csv:CSVDataSource = this.getObject() as CSVDataSource;
 					var ids:Array = csv.getColumnIds();
