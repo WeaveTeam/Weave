@@ -56,7 +56,7 @@ package weavejs.core
 			if (!linkableChildType)
 				throw new Error("newLinkableChild(): Child type parameter cannot be null.");
 			
-			if (!Weave.isLinkable(linkableChildType.prototype))
+			if (!Weave.isLinkable(linkableChildType))
 			{
 				var childQName:String = Weave.className(linkableChildType);
 				if (Weave.getDefinition(childQName))
@@ -205,7 +205,7 @@ package weavejs.core
 		 */
 		public function getLinkableOwner(child:ILinkableObject):ILinkableObject
 		{
-			return map_child_owner.get(child);
+			return map_child_owner.get(child) as ILinkableObject;
 		}
 		
 		/**
@@ -878,7 +878,7 @@ package weavejs.core
 					{
 						(object as IDisposableObject).dispose();
 					}
-					else if (object.hasOwnProperty(DISPOSE))
+					else if (typeof object[DISPOSE] === 'function')
 					{
 						// call dispose() anyway if it exists, because it is common to forget to implement IDisposableObject.
 						object[DISPOSE]();
