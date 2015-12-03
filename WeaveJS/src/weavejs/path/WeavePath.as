@@ -133,7 +133,7 @@ package weavejs.path
 			// executed when it is accessed (registering deprecated class definitions, for example).
 			var parentPath:Array = objectPath.concat();
 			var childName:Object = parentPath.pop();
-			var parent:ILinkableObject = weave.getObject(parentPath);
+			var parent:ILinkableObject = Weave.followPath(weave.root, parentPath);
 			
 			// request the child object
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
@@ -148,7 +148,7 @@ package weavejs.path
 			else if (dynamicObject)
 				child = dynamicObject.requestGlobalObject(childName as String, classDef, false);
 			else
-				child = weave.getObject(objectPath);
+				child = Weave.followPath(weave.root, objectPath);
 			
 			// check for exact match only
 			if (child && child.constructor == classDef)
@@ -172,7 +172,7 @@ package weavejs.path
 			
 			var parentPath:Array = _path.concat(relativePath);
 			var childName:Object = parentPath.pop();
-			var parent:ILinkableObject = weave.getObject(parentPath);
+			var parent:ILinkableObject = Weave.followPath(weave.root, parentPath);
 			
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 			if (hashMap)
@@ -590,7 +590,7 @@ package weavejs.path
 		public function getObject(...relativePath):ILinkableObject
 		{
 			relativePath = _A(relativePath, 1);
-			return weave.getObject(this.getPath(relativePath));
+			return Weave.followPath(weave.root, this.getPath(relativePath));
 		}
 		
 		/**

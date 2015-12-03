@@ -8,6 +8,7 @@ package
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.IProgressIndicator;
@@ -40,7 +41,7 @@ package
 	import weavejs.utils.JS;
 	import weavejs.utils.StandardLib;
 	
-	public class Weave
+	public class Weave implements IDisposableObject
 	{
 		private static const dependencies:Array = [
 			LinkableNumber,LinkableString,LinkableBoolean,LinkableVariable,
@@ -69,8 +70,20 @@ package
 			// set this property for backwards compatibility
 			this['WeavePath'] = WeavePath;
 			
-			root = new LinkableHashMap();
-			history = new SessionStateLog(root, HISTORY_SYNC_DELAY);
+			root = disposableChild(this, LinkableHashMap);
+			history = disposableChild(this, new SessionStateLog(root, HISTORY_SYNC_DELAY));
+			map_root_weave.set(root, this);
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function dispose():void
+		{
+			Weave.dispose(this);
+			map_root_weave['delete'](root);
+			root = null;
+			history = null;
 		}
 		
 		public function test():void
@@ -100,18 +113,21 @@ package
 				.state('primaryTransform', 'state + "_transformed"')
 				.state('secondaryPath', ['ls2'])
 				.call(function():void { JS.log(this.weave.path('ls2').getState()) });
+			var print:Function = function():void {
+				JS.log("column", this.getMetadata("title"));
+				for each (var key:IQualifiedKey in this.keys)
+					JS.log(key, this.getValueFromKey(key), this.getValueFromKey(key, Number), this.getValueFromKey(key, String));
+			};
 			path('csv').request(CSVDataSource)
 				.state('csvData', [['a', 'b'], [1, "one"], [2, "two"]])
 				.addCallback(null, function():void {
+					JS.log(this+"");
 					var csv:CSVDataSource = this.getObject() as CSVDataSource;
 					var ids:Array = csv.getColumnIds();
 					for each (var id:* in ids)
 					{
 						var col:IAttributeColumn = csv.getColumnById(id);
-						col.addGroupedCallback(null, function(id:*, col:IAttributeColumn):void {
-							for each (var key:IQualifiedKey in col.keys)
-								JS.log(id, key, col.getValueFromKey(key), col.getValueFromKey(key, Number), col.getValueFromKey(key, String));
-						}.bind(this, id, col), true);
+						col.addGroupedCallback(col, print, true);
 					}
 				});
 		}
@@ -140,26 +156,8 @@ package
 				basePath = basePath[0];
 			// handle path(linkableObject)
 			if (basePath.length == 1 && isLinkable(basePath[0]))
-				basePath = getPath(basePath[0]);
+				basePath = findPath(root, basePath[0]);
 			return new WeavePathData(this, basePath);
-		}
-		
-		/**
-		 * A shortcut for WeaveAPI.SessionManager.getObject(weave.root, path).
-		 * @see weave.api.core.ISessionManager#getObject()
-		 */
-		public function getObject(path:Array):ILinkableObject
-		{
-			return WeaveAPI.SessionManager.getObject(root, path);
-		}
-		
-		/**
-		 * A shortcut for WeaveAPI.SessionManager.getPath(weave.root, object).
-		 * @see weave.api.core.ISessionManager#getPath()
-		 */
-		public function getPath(object:ILinkableObject):Array
-		{
-			return WeaveAPI.SessionManager.getPath(root, object);
 		}
 
 		
@@ -168,6 +166,29 @@ package
 		//////////////////////////////////////////////////////////////////////////////////
 		// static functions for linkable objects
 		//////////////////////////////////////////////////////////////////////////////////
+		
+		private static const map_root_weave:Object = new JS.Map();
+		
+		/**
+		 * Finds the Weave instance for a given ILinkableObject.
+		 * @param object An ILinkableObject.
+		 * @return The Weave instance.
+		 */
+		public static function getWeave(object:ILinkableObject):Weave
+		{
+			return map_root_weave.get(getRoot(object));
+		}
+		
+		/**
+		 * Gets a WeavePath from an ILinkableObject.
+		 * @param object An ILinkableObject.
+		 * @return A WeavePath, or null if the object is not registered with a Weave instance.
+		 */
+		public static function getPath(object:ILinkableObject):WeavePath
+		{
+			var weave:Weave = Weave.getWeave(object);
+			return weave ? weave.path(object) : null;
+		}
 		
 		/**
 		 * Shortcut for WeaveAPI.SessionManager.getPath()
