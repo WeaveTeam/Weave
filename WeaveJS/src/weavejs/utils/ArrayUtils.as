@@ -385,7 +385,18 @@ package weavejs.utils
 			{
 				i = (imin + imax) / 2;
 				var a:* = sortedUniqueValues[i];
-				var c:int = compare != null ? compare(item, a) : (item < a ? -1 : (item > a ? 1 : 0));
+				
+				//var c:int = compare != null ? compare(item, a) : (item < a ? -1 : (item > a ? 1 : 0));
+				// TEMPORARY WORKAROUND for compiler bug
+				var c:int;
+				if (compare != null)
+					c = compare(item, a);
+				else if (item < a)
+					c = -1;
+				else
+					c = item > a ? 1 : 0;
+				// END TEMPORARY WORKAROUND
+				
 				if (c < 0)
 					imax = i - 1;
 				else if (c > 0)
