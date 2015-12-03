@@ -42,6 +42,7 @@ package weavejs.core
 		public static var debug_fps:Boolean = false;
 		public static var debug_async_time:Boolean = false;
 		public static var debug_async_stack:Boolean = false;
+		public static var debug_async_stack_elapsed:Boolean = false;
 		public static var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
 		public static var debug_callLater:Boolean = false; // set this to true to delay async tasks
 		public static var debug_visibility:Boolean = false; // set this to true to delay async tasks
@@ -579,7 +580,7 @@ package weavejs.core
 				if (debug_delayTasks)
 					break;
 			}
-			if (false && debug_async_stack)
+			if (debug_async_stack && debug_async_stack_elapsed)
 			{
 				var start:int = int(map_task_startTime.get(task));
 				var elapsed:int = int(map_task_elapsedTime.get(task)) + (time - debug_time);

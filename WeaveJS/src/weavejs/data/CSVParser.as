@@ -300,11 +300,11 @@ package weavejs.data
 			var _:Object = {};
 			_.parser = WeaveAPI.CSVParser;
 			_.csv=[
-				"internal,internal,public,public,public,private,private,test",
-				"id,type,title,keyType,dataType,connection,sqlQuery,empty",
-				"2,1,state name,fips,string,resd,\"select fips,name from myschema.state_data\",",
-				"3,1,population,fips,number,resd,\"select fips,pop from myschema.state_data\",",
-				"1,0,state data table"
+				'internal,internal,public,public,public,private,private,test',
+				'id,type,title,keyType,dataType,connection,sqlQuery,empty',
+				'2,1,state name,fips,string,resd,"select fips,name from myschema.state_data",',
+				'3,1,population,fips,number,resd,"select fips,pop from myschema.state_data",',
+				'1,0,state data table'
 			].join('\n');
 			_.table = _.parser.parseCSV(_.csv);
 			_.records = _.parser.convertRowsToRecords(_.table, 2);

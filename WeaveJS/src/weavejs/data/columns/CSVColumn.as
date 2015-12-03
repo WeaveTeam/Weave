@@ -49,12 +49,12 @@ package weavejs.data.columns
 			return super.getMetadata(propertyName);
 		}
 
-		public const title:LinkableString = Weave.linkableChild(this, LinkableString);
+		public var title:LinkableString = Weave.linkableChild(this, LinkableString);
 
 		/**
 		 * This should contain a two-column CSV with the first column containing the keys and the second column containing the values.
 		 */
-		public const data:LinkableVariable = Weave.linkableChild(this, LinkableVariable, invalidate);
+		public var data:LinkableVariable = Weave.linkableChild(this, LinkableVariable, invalidate);
 		
 		/**
 		 * Use this function to set the keys and data of the column.
@@ -83,12 +83,12 @@ package weavejs.data.columns
 		/**
 		 * This is the key type of the first column in the csvData.
 		 */
-		public const keyType:LinkableString = Weave.linkableChild(this, LinkableString, invalidate);
+		public var keyType:LinkableString = Weave.linkableChild(this, LinkableString, invalidate);
 		
 		/**
 		 * If this is set to true, the data will be parsed as numbers to produce the numeric data.
 		 */
-		public const numericMode:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean, invalidate);
+		public var numericMode:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean, invalidate);
 
 		private var map_key_index:Object = null; // This maps a key to a row index.
 		private var _keys:Array = []; // list of keys from the first CSV column

@@ -33,7 +33,7 @@ package weavejs.data.hierarchy
 		 *     <code>dependency, data</code><br>
 		 * The following properties are used by WeaveTreeDescriptorNode but not for equality comparison:
 		 *     <code>label, children, hasChildBranches</code><br>
-		 * @params An values for the properties of this WeaveTreeDescriptorNode.
+		 * @param params An values for the properties of this WeaveTreeDescriptorNode.
 		 */
 		public function WeaveTreeDescriptorNode(params:Object)
 		{
@@ -104,7 +104,7 @@ package weavejs.data.hierarchy
 		 */
 		public function hasChildBranches():Boolean
 		{
-			const id:String = 'hasChildBranches';
+			var id:String = 'hasChildBranches';
 			if (isCached(id))
 				return cache(id);
 			

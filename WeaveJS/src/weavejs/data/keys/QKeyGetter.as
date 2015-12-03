@@ -51,7 +51,7 @@ package weavejs.data.keys
 		private var keyType:String;
 		private var keyStrings:Array;
 		private var outputKeys:Array;
-		private const batch:uint = 5000;
+		private var batch:uint = 5000;
 		
 		private function iterate(stopTime:int):Number
 		{

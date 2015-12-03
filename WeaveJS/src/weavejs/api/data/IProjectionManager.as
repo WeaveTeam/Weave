@@ -15,9 +15,8 @@
 
 package weavejs.api.data
 {
-	import flash.geom.Point;
-	
-	import weavejs.api.primitives.IBounds2D;
+	import weavejs.utils.Bounds2D;
+	import weavejs.utils.Point;
 	
 	/**
 	 * An interface for reprojecting columns of geometries and individual coordinates.
@@ -67,8 +66,8 @@ package weavejs.api.data
 		 * @param yGridSize The y dimension of the grid used to approximate the transform.
 		 * @return The transformed bounds, inputAndOutput.
 		 */
-		function transformBounds(sourceSRS:String, destinationSRS:String, inputAndOutput:IBounds2D,
-			xGridSize:int = 32, yGridSize:int = 32):IBounds2D
+		function transformBounds(sourceSRS:String, destinationSRS:String, inputAndOutput:Bounds2D,
+			xGridSize:int = 32, yGridSize:int = 32):Bounds2D
 
 	}
 }

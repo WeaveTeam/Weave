@@ -23,11 +23,9 @@ package weavejs.utils
 	 */
 	public class StandardLib
 	{
-		/**
-		 * @TODO - use a library
-		 */
 		public static function formatNumber(number:Number, precision:int = -1):String
 		{
+			//TODO - use a library
 			return String(number);
 		}
 		

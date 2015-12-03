@@ -39,6 +39,11 @@ package weavejs.api.data
 		public static const DEFAULT:String = SAME;
 		
 		/**
+		 * The string displayed when data for a record is ambiguous.
+		 */
+		public static const AMBIGUOUS_DATA:String = "Ambiguous data";
+		
+		/**
 		 * Maps an aggregation method to a short description of its behavior.
 		 */
 		public static const HELP:Object = {

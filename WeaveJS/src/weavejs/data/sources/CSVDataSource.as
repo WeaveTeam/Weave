@@ -577,7 +577,7 @@ package weavejs.data.sources
 			var i:int = strings.length;
 			outerLoop: while (i--)
 			{
-				var string:String = StandardLib.trim(strings[i]);
+				var string:String = StandardLib.trim(String(strings[i]));
 				for each (var nullValue:String in nullValues)
 				{
 					var a:String = nullValue && nullValue.toLocaleLowerCase();

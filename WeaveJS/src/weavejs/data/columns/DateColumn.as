@@ -37,7 +37,7 @@ package weavejs.data.columns
 			super(metadata);
 		}
 		
-		private const _uniqueKeys:Array = new Array();
+		private var _uniqueKeys:Array = new Array();
 		private var map_key_data:Object = new JS.Map();
 		
 		// temp variables for async task

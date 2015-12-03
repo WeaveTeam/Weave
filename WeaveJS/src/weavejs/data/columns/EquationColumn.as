@@ -15,20 +15,21 @@
 
 package weavejs.data.columns
 {
-	import flash.utils.Dictionary;
-	
+	import weavejs.WeaveAPI;
 	import weavejs.api.data.ColumnMetadata;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IKeySet;
 	import weavejs.api.data.IPrimitiveColumn;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.core.LinkableBoolean;
-	import weavejs.core.LinkableFunction;
 	import weavejs.core.LinkableHashMap;
 	import weavejs.core.LinkableString;
-	import weavejs.utils.ColumnUtils;
-	import weavejs.utils.EquationColumnLib;
-	import weavejs.utils.VectorUtils;
+	import weavejs.core.LinkableVariable;
+	import weavejs.data.EquationColumnLib;
+	import weavejs.utils.ArrayUtils;
+	import weavejs.utils.Dictionary2D;
+	import weavejs.utils.JS;
+	import weavejs.utils.StandardLib;
 	
 	/**
 	 * This is a column of data derived from an equation with variables.
@@ -41,9 +42,6 @@ package weavejs.data.columns
 		
 		public function EquationColumn()
 		{
-			getCallbackCollection(LinkableFunction.macroLibraries).addImmediateCallback(this, equation.triggerCallbacks, false, true);
-			getCallbackCollection(LinkableFunction.macros).addImmediateCallback(this, equation.triggerCallbacks, false, true);
-			
 			setMetadataProperty(ColumnMetadata.TITLE, "Untitled Equation");
 			//setMetadataProperty(AttributeColumnMetadata.DATA_TYPE, DataType.NUMBER);
 			
@@ -55,14 +53,14 @@ package weavejs.data.columns
 			// make callbacks trigger when statistics change for listed variables
 			var newColumn:IAttributeColumn = variables.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				getCallbackCollection(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn)).addImmediateCallback(this, triggerCallbacks);
+				Weave.getCallbacks(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn)).addImmediateCallback(this, triggerCallbacks);
 		}
 		
 		/**
 		 * This is all the keys in all the variables columns
 		 */
 		private var _allKeys:Array = null;
-		private var _allKeysLookup:Dictionary;
+		private var map_allKeys:Object;
 		private var _allKeysTriggerCount:uint = 0;
 		/**
 		 * This is a cache of metadata values derived from the metadata session state.
@@ -78,31 +76,19 @@ package weavejs.data.columns
 		 */
 		private var compiledEquation:Function = null;
 		/**
-		 * This flag is set to true when the equation evaluates to a constant.
-		 */
-		private var _equationIsConstant:Boolean = false;
-		/**
-		 * This value is set to the result of the function when it compiles into a constant.
-		 */
-		private var _constantResult:* = undefined;
-		/**
-		 * This is a proxy object providing access to the variables.
-		 */		
-		private const _symbolTableProxy:ProxyObject = new ProxyObject(hasVariable, variableGetter, null);
-		/**
 		 * This is the last error thrown from the compiledEquation.
 		 */		
 		private var _lastError:String;
 		/**
 		 * This is a mapping from keys to cached data values.
 		 */
-		private const _equationResultCache:Dictionary2D = new Dictionary2D();
+		private var d2d_key_dataType_value:Dictionary2D = new Dictionary2D();
 		/**
 		 * This is used to determine when to clear the cache.
 		 */		
 		private var _cacheTriggerCount:uint = 0;
 		/**
-		 * This is used as a placeholder in _equationResultCache.
+		 * This is used as a placeholder in d2d_key_dataType_value.
 		 */		
 		private static const UNDEFINED:Object = {};
 		
@@ -110,16 +96,16 @@ package weavejs.data.columns
 		/**
 		 * This is the equation that will be used in getValueFromKey().
 		 */
-		public const equation:LinkableString = newLinkableChild(this, LinkableString);
+		public var equation:LinkableString = Weave.linkableChild(this, LinkableString);
 		/**
 		 * This is a list of named variables made available to the compiled equation.
 		 */
-		public const variables:LinkableHashMap = newLinkableChild(this, LinkableHashMap);
+		public var variables:LinkableHashMap = Weave.linkableChild(this, LinkableHashMap);
 		
 		/**
 		 * This holds the metadata for the column.
 		 */
-		public const metadata:UntypedLinkableVariable = registerLinkableChild(this, new UntypedLinkableVariable(null, verifyMetadata));
+		public var metadata:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(null, verifyMetadata));
 		
 		private function verifyMetadata(value:Object):Boolean
 		{
@@ -129,7 +115,7 @@ package weavejs.data.columns
 		/**
 		 * Specify whether or not we should filter the keys by the column's keyType.
 		 */
-		public const filterByKeyType:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public var filterByKeyType:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(false));
 		
 		/**
 		 * This function intercepts requests for dataType and title metadata and uses the corresponding linkable variables.
@@ -149,14 +135,14 @@ package weavejs.data.columns
 			
 			_cachedMetadata[propertyName] = undefined; // prevent infinite recursion
 			
-			var value:String = metadata.value ? metadata.value[propertyName] as String : null;
+			var value:String = metadata.state ? metadata.state[propertyName] as String : null;
 			if (value != null)
 			{
 				if (value.charAt(0) == '{' && value.charAt(value.length - 1) == '}')
 				{
 					try
 					{
-						var func:Function = compiler.compileToFunction(value, _symbolTableProxy, errorHandler);
+						var func:Function = JS.compile(value);
 						value = func.apply(this, arguments);
 					}
 					catch (e:*)
@@ -182,7 +168,7 @@ package weavejs.data.columns
 			if (_lastError != str)
 			{
 				_lastError = str;
-				reportError(e);
+				JS.error(e);
 			}
 		}
 		
@@ -193,7 +179,7 @@ package weavejs.data.columns
 		
 		override public function getMetadataPropertyNames():Array
 		{
-			return VectorUtils.getKeys(metadata.getSessionState());
+			return JS.objectKeys(metadata.getSessionState());
 		}
 
 		/**
@@ -203,10 +189,10 @@ package weavejs.data.columns
 		 */
 		public function setMetadataProperty(propertyName:String, value:String):void
 		{
-			value = StringUtil.trim(value);
-			var _metadata:Object = metadata.value || {};
+			value = StandardLib.trim(value);
+			var _metadata:Object = metadata.state || {};
 			_metadata[propertyName] = value;
-			metadata.value = _metadata; // this triggers callbacks
+			metadata.state = _metadata; // this triggers callbacks
 		}
 		
 		/**
@@ -231,19 +217,22 @@ package weavejs.data.columns
 			if (_allKeysTriggerCount != variables.triggerCounter)
 			{
 				_allKeys = null;
-				_allKeysLookup = new Dictionary(true);
+				map_allKeys = new JS.WeakMap();
 				_allKeysTriggerCount = variables.triggerCounter; // prevent infinite recursion
 
 				var variableColumns:Array = variables.getObjects(IKeySet);
 
-				_allKeys = ColumnUtils.getAllKeys(variableColumns);
+				_allKeys = ArrayUtils.union.apply(ArrayUtils, ArrayUtils.pluck(variableColumns, 'keys'));
 
 				if (filterByKeyType.value && (_allKeys.length > 0))
 				{
 					var keyType:String = this.getMetadata(ColumnMetadata.KEY_TYPE);
-					_allKeys = _allKeys.filter(new KeyFilterFunction(keyType).filter);
+					_allKeys = _allKeys.filter(function filter(key:IQualifiedKey, i:int, a:Array):Boolean {
+						return key.keyType == keyType;
+					});
 				}
-				VectorUtils.fillKeys(_allKeysLookup, _allKeys);
+				for each (var key:IQualifiedKey in _allKeys)
+					map_allKeys.set(key, true);
 			}
 			return _allKeys || [];
 		}
@@ -254,24 +243,7 @@ package weavejs.data.columns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return keys && _allKeysLookup[key];
-		}
-
-		private function variableGetter(name:String):*
-		{
-			if (name == 'get')
-				return variables.getObject as Function;
-			return variables.getObject(name)
-				|| LinkableFunction.evaluateMacro(name)
-				|| undefined;
-		}
-		
-		private function hasVariable(name:String):Boolean
-		{
-			if (name == 'get')
-				return true;
-			return variables.getObject(name) != null
-				|| LinkableFunction.macros.getObject(name) != null;
+			return keys && map_allKeys.has(key);
 		}
 		
 		/**
@@ -287,30 +259,13 @@ package weavejs.data.columns
 			
 			try
 			{
-				// check if the equation evaluates to a constant
-				var compiledObject:ICompiledObject = compiler.compileToObject(equation.value);
-				if (compiledObject is CompiledConstant)
-				{
-					// save the constant result of the function
-					_equationIsConstant = true;
-					_equationResultCache.dictionary = null; // we don't need a cache
-					_constantResult = (compiledObject as CompiledConstant).value;
-				}
-				else
-				{
-					// compile into a function
-					compiledEquation = compiler.compileObjectToFunction(compiledObject, _symbolTableProxy, errorHandler, false, ['key', 'dataType']);
-					_equationIsConstant = false;
-					_equationResultCache.dictionary = new Dictionary(); // create a new cache
-					_constantResult = undefined;
-				}
+				compiledEquation = JS.compile(equation.value, ['key', 'dataType'].concat(variables.getNames()));
+				d2d_key_dataType_value = new Dictionary2D(); // create a new cache
 			}
 			catch (e:Error)
 			{
 				// if compiling fails
-				_equationIsConstant = true;
-				_constantResult = undefined;
-				
+				compiledEquation = function(..._):* { return undefined; };
 				_compileError = e.message;
 			}
 			
@@ -333,52 +288,50 @@ package weavejs.data.columns
 			if (dataType == null)
 				dataType = Array;
 			
-			var value:* = _constantResult;
-			if (!_equationIsConstant)
+			// check the cache
+			var value:* = d2d_key_dataType_value.get(key, dataType);
+			// define cached value if missing
+			if (value === undefined)
 			{
-				// check the cache
-				value = _equationResultCache.get(key, dataType);
-				// define cached value if missing
-				if (value === undefined)
+				// prevent recursion caused by compiledEquation
+				d2d_key_dataType_value.set(key, dataType, UNDEFINED);
+				
+				// prepare EquationColumnLib static parameter before calling the compiled equation
+				var prevKey:IQualifiedKey = EquationColumnLib.currentRecordKey;
+				EquationColumnLib.currentRecordKey = key;
+				try
 				{
-					// prevent recursion caused by compiledEquation
-					_equationResultCache.set(key, dataType, UNDEFINED);
-					
-					// prepare EquationColumnLib static parameter before calling the compiled equation
-					var prevKey:IQualifiedKey = EquationColumnLib.currentRecordKey;
-					EquationColumnLib.currentRecordKey = key;
-					try
-					{
-						value = compiledEquation.apply(this, arguments);
-						if (debug)
-							trace(debugId(this),getMetadata(ColumnMetadata.TITLE),key.keyType,key.localName,dataType,value);
-					}
-					catch (e:Error)
-					{
-						if (_lastError != e.message)
-						{
-							_lastError = e.message;
-							reportError(e);
-						}
-						//value = e;
-					}
-					finally
-					{
-						EquationColumnLib.currentRecordKey = prevKey;
-					}
-					
-					// save value in cache
-					if (value !== undefined)
-						_equationResultCache.set(key, dataType, value);
-					//trace('('+equation.value+')@"'+key+'" = '+value);
+					var args:Array = variables.getObjects();
+					args.unshift(key, dataType);
+					value = compiledEquation.apply(this, args);
+					if (debug)
+						JS.log(this,getMetadata(ColumnMetadata.TITLE),key.keyType,key.localName,dataType,value);
 				}
-				else if (value === UNDEFINED)
+				catch (e:Error)
 				{
-					value = undefined;
+					if (_lastError != e.message)
+					{
+						_lastError = e.message;
+						JS.error(e);
+					}
+					//value = e;
 				}
-				else if (debug)
-					trace('>',debugId(this),getMetadata(ColumnMetadata.TITLE),key.keyType,key.localName,dataType,value);
+				finally
+				{
+					EquationColumnLib.currentRecordKey = prevKey;
+				}
+				
+				// save value in cache
+				if (value !== undefined)
+					d2d_key_dataType_value.set(key, dataType, value);
+				//trace('('+equation.value+')@"'+key+'" = '+value);
 			}
+			else if (value === UNDEFINED)
+			{
+				value = undefined;
+			}
+			else if (debug)
+				JS.log('>',this,getMetadata(ColumnMetadata.TITLE),key.keyType,key.localName,dataType,value);
 			
 			if (dataType == IQualifiedKey)
 			{
@@ -400,14 +353,14 @@ package weavejs.data.columns
 		private var _numberToStringFunction:Function = null;
 		public function deriveStringFromNumber(number:Number):String
 		{
-			if (detectLinkableObjectChange(deriveStringFromNumber, metadata))
+			if (Weave.detectChange(deriveStringFromNumber, metadata))
 			{
 				try
 				{
 					_numberToStringFunction = StandardLib.formatNumber;
 					var n2s:String = getMetadata(ColumnMetadata.STRING);
 					if (n2s)
-						_numberToStringFunction = compiler.compileToFunction(n2s, _symbolTableProxy, errorHandler, false, ['number']);
+						_numberToStringFunction = JS.compile(n2s, ['number']);
 				}
 				catch (e:*)
 				{
@@ -421,7 +374,7 @@ package weavejs.data.columns
 				{
 					var string:String = _numberToStringFunction.apply(this, arguments);
 					if (debug)
-						trace(debugId(this), getMetadata(ColumnMetadata.TITLE), 'deriveStringFromNumber', number, string);
+						JS.log(this, getMetadata(ColumnMetadata.TITLE), 'deriveStringFromNumber', number, string);
 					return string;
 				}
 				catch (e:Error)
@@ -431,31 +384,5 @@ package weavejs.data.columns
 			}
 			return '';
 		}
-
-		override public function toString():String
-		{
-			return StandardLib.substitute('{0};"{1}";({2})', debugId(this), getMetadata(ColumnMetadata.TITLE), equation.value);
-		}
-		
-		//---------------------------------
-		// backwards compatibility
-		[Deprecated(replacement="metadata")] public function set columnTitle(value:String):void { setMetadataProperty(ColumnMetadata.TITLE, value); }
-	}
-}
-
-import weave.api.data.IQualifiedKey;
-
-internal class KeyFilterFunction
-{
-	public function KeyFilterFunction(keyType:String)
-	{
-		this.keyType = keyType;
-	}
-	
-	public var keyType:String;
-	
-	public function filter(key:IQualifiedKey, i:int, a:Array):Boolean
-	{
-		return key.keyType == this.keyType;
 	}
 }

@@ -116,7 +116,7 @@ package weavejs.data.columns
 				{
 					var aggregation:String = (_metadata && _metadata[ColumnMetadata.AGGREGATION]) as String || Aggregation.DEFAULT;
 					if (aggregation == Aggregation.SAME)
-						return StringColumn.AMBIGUOUS_DATA;
+						return Weave.lang(Aggregation.AMBIGUOUS_DATA);
 				}
 				return StandardLib.formatNumber(number);
 			}

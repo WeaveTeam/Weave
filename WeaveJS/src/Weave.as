@@ -1,8 +1,8 @@
 /*
-This Source Code Form is subject to the terms of the
-Mozilla Public License, v. 2.0. If a copy of the MPL
-was not distributed with this file, You can obtain
-one at https://mozilla.org/MPL/2.0/.
+	This Source Code Form is subject to the terms of the
+	Mozilla Public License, v. 2.0. If a copy of the MPL
+	was not distributed with this file, You can obtain
+	one at https://mozilla.org/MPL/2.0/.
 */
 package
 {
@@ -13,7 +13,10 @@ package
 	import weavejs.api.core.IProgressIndicator;
 	import weavejs.api.core.IScheduler;
 	import weavejs.api.core.ISessionManager;
+	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IAttributeColumnCache;
+	import weavejs.api.data.IQualifiedKey;
+	import weavejs.api.data.IQualifiedKeyManager;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableCallbackScript;
 	import weavejs.core.LinkableDynamicObject;
@@ -29,6 +32,7 @@ package
 	import weavejs.core.SessionManager;
 	import weavejs.core.SessionStateLog;
 	import weavejs.data.AttributeColumnCache;
+	import weavejs.data.keys.QKeyManager;
 	import weavejs.data.sources.CSVDataSource;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathData;
@@ -58,6 +62,7 @@ package
 		{
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IQualifiedKeyManager, QKeyManager);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IScheduler, Scheduler);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IProgressIndicator, ProgressIndicator);
 			
@@ -95,7 +100,20 @@ package
 				.state('primaryTransform', 'state + "_transformed"')
 				.state('secondaryPath', ['ls2'])
 				.call(function():void { JS.log(this.weave.path('ls2').getState()) });
-			//path('csv').request(CSVDataSource);
+			path('csv').request(CSVDataSource)
+				.state('csvData', [['a', 'b'], [1, "2"], [3, "4"]])
+				.addCallback(null, function():void {
+					var csv:CSVDataSource = this.getObject() as CSVDataSource;
+					var ids:Array = csv.getColumnIds();
+					for each (var id:* in ids)
+					{
+						var col:IAttributeColumn = csv.getColumnById(id);
+						col.addGroupedCallback(null, function(id:*, col:IAttributeColumn):void {
+							for each (var key:IQualifiedKey in col.keys)
+								JS.log(id, key, col.getValueFromKey(key), col.getValueFromKey(key, Number), col.getValueFromKey(key, String));
+						}.bind(this, id, col), true);
+					}
+				});
 		}
 		
 		/**

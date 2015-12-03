@@ -50,6 +50,6 @@ package weavejs.data
 			return column;
 		}
 		
-		private const d2d_dataSource_metadataHash:Dictionary2D = new Dictionary2D(true, true);
+		private var d2d_dataSource_metadataHash:Dictionary2D = new Dictionary2D(true, false);
 	}
 }

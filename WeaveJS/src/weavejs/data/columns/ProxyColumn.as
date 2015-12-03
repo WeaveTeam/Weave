@@ -184,12 +184,12 @@ package weavejs.data.columns
 				if (title)
 					_overrideTitle = Weave.lang('(Data unavailable: {0})', title);
 				else
-					_overrideTitle = DATA_UNAVAILABLE;
+					_overrideTitle = Weave.lang(DATA_UNAVAILABLE);
 			}
 			triggerCallbacks();
 			resumeCallbacks();
 		}
 		
-		public static const DATA_UNAVAILABLE:String = Weave.lang('(Data unavailable)');
+		private static const DATA_UNAVAILABLE:String = '(Data unavailable)';
 	}
 }

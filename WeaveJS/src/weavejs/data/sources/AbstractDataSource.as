@@ -15,8 +15,6 @@
 
 package weavejs.data.sources
 {
-	import flash.utils.Dictionary;
-	
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
@@ -27,6 +25,7 @@ package weavejs.data.sources
 	import weavejs.data.columns.ProxyColumn;
 	import weavejs.data.hierarchy.HierarchyUtils;
 	import weavejs.utils.DebugUtils;
+	import weavejs.utils.JS;
 	
 	/**
 	 * This is a base class to make it easier to develope a new class that implements IDataSource.
@@ -57,7 +56,7 @@ package weavejs.data.sources
 		/**
 		 * ProxyColumn -> (true if pending, false if not pending)
 		 */
-		protected var _proxyColumns:Dictionary = new Dictionary(true);
+		protected var map_proxyColumn_pending:Object = new JS.Map();
 		
 		private var _hierarchyRefresh:ICallbackCollection = Weave.linkableChild(this, CallbackCollection, refreshHierarchy);
 		
@@ -181,13 +180,13 @@ package weavejs.data.sources
 			// Otherwise, we have to wait.
 			if (initializationComplete || forced)
 			{
-				_proxyColumns[column] = false; // no longer pending
+				map_proxyColumn_pending.set(column, false); // no longer pending
 				WeaveAPI.ProgressIndicator.removeTask(column);
 				requestColumnFromSource(column);
 			}
 			else
 			{
-				_proxyColumns[column] = true; // pending
+				map_proxyColumn_pending.set(column, true); // pending
 			}
 		}
 		
@@ -196,8 +195,9 @@ package weavejs.data.sources
 		 */
 		protected function handleAllPendingColumnRequests(forced:Boolean = false):void
 		{
-			for (var proxyColumn:Object in _proxyColumns)
-				if (_proxyColumns[proxyColumn]) // pending?
+			var cols:Array = JS.mapKeys(map_proxyColumn_pending);
+			for each (var proxyColumn:Object in cols)
+				if (map_proxyColumn_pending.get(proxyColumn)) // pending?
 					handlePendingColumnRequest(proxyColumn as ProxyColumn, forced);
 		}
 		
@@ -206,7 +206,8 @@ package weavejs.data.sources
 		 */
 		protected function refreshAllProxyColumns(forced:Boolean = false):void
 		{
-			for (var proxyColumn:Object in _proxyColumns)
+			var cols:Array = JS.mapKeys(map_proxyColumn_pending);
+			for each (var proxyColumn:Object in cols)
 				handlePendingColumnRequest(proxyColumn as ProxyColumn, forced);
 		}
 		
@@ -216,10 +217,11 @@ package weavejs.data.sources
 		 */
 		public function dispose():void
 		{
-			for (var column:Object in _proxyColumns)
+			var cols:Array = JS.mapKeys(map_proxyColumn_pending);
+			for each (var column:Object in cols)
 				WeaveAPI.ProgressIndicator.removeTask(column);
 			_initializeCalled = false;
-			_proxyColumns = null;
+			map_proxyColumn_pending = null;
 		}
 	}
 }

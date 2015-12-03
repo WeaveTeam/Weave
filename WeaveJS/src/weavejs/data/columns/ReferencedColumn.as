@@ -67,12 +67,12 @@ package weavejs.data.columns
 		/**
 		 * This is the name of an IDataSource in the top level session state.
 		 */
-		public const dataSourceName:LinkableString = Weave.linkableChild(this, LinkableString, updateDataSource);
+		public var dataSourceName:LinkableString = Weave.linkableChild(this, LinkableString, updateDataSource);
 		
 		/**
 		 * This holds the metadata used to identify a column.
 		 */
-		public const metadata:LinkableVariable = Weave.linkableChild(this, LinkableVariable);
+		public var metadata:LinkableVariable = Weave.linkableChild(this, LinkableVariable);
 		
 		/**
 		 * @inheritDoc
@@ -102,7 +102,7 @@ package weavejs.data.columns
 		 */
 		private var _internalColumn:IAttributeColumn = null;
 		
-		private const _columnWatcher:LinkableWatcher = Weave.linkableChild(this, LinkableWatcher);
+		private var _columnWatcher:LinkableWatcher = Weave.linkableChild(this, LinkableWatcher);
 		
 		/**
 		 * @inheritDoc 

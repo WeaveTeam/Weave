@@ -291,7 +291,7 @@ package weavejs.utils
 		 */
 		public function get label():*
 		{
-			const id:String = 'label';
+			var id:String = 'label';
 			if (isCached(id))
 				return _cache[id];
 			
@@ -313,7 +313,7 @@ package weavejs.utils
 		 */
 		public function get children():*
 		{
-			const id:String = 'children';
+			var id:String = 'children';
 			
 			var items:Array;
 			if (isCached(id))

@@ -30,6 +30,7 @@ package weavejs.data.columns
 	{
 		public function AbstractAttributeColumn(metadata:Object = null)
 		{
+			super();
 			if (metadata)
 				setMetadata(metadata);
 		}

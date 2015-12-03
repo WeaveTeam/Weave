@@ -15,8 +15,6 @@
 
 package weavejs.api.data
 {
-	import flash.utils.Dictionary;
-	
 	import weavejs.api.core.ILinkableObject;
 
 	/**
@@ -83,11 +81,11 @@ package weavejs.api.data
 		/**
 		 * Gets a Dictionary mapping IQualifiedKeys to sort indices derived from sorting the numeric values in the column.
 		 */
-		function getSortIndex():Dictionary;
+		function getSortIndex():Object;
 		
 		/**
 		 * TEMPORARY SOLUTION - Gets a Dictionary mapping IQualifiedKey to Numeric data.
 		 */
-		function hack_getNumericData():Dictionary;
+		function hack_getNumericData():Object;
 	}
 }

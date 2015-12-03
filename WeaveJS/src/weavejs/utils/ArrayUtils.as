@@ -262,13 +262,13 @@ package weavejs.utils
 			{
 				var pivotIndex:int = partition(list, left, right, (left + right) / 2, compareFunction);
 				if (medianIndex == pivotIndex)
-					return medianIndex;
+					break;
 				if (medianIndex < pivotIndex)
 					right = pivotIndex - 1;
 				else
 					left = pivotIndex + 1;
 			}
-			return -1;
+			return medianIndex;
 		}
 
 		/**
