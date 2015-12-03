@@ -33,7 +33,7 @@ package weave.data.hierarchy
 		 *     <code>dependency, data</code><br>
 		 * The following properties are used by WeaveTreeDescriptorNode but not for equality comparison:
 		 *     <code>label, children, hasChildBranches</code><br>
-		 * @params An values for the properties of this WeaveTreeDescriptorNode.
+		 * @param params An values for the properties of this WeaveTreeDescriptorNode.
 		 */
 		public function WeaveTreeDescriptorNode(params:Object)
 		{

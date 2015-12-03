@@ -19,7 +19,6 @@ package weave.core
 	import flash.utils.getQualifiedClassName;
 	
 	import weave.api.disposeObject;
-	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.core.DynamicState;
