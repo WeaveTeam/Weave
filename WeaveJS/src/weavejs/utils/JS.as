@@ -292,5 +292,15 @@ package weavejs.utils
 			
 			return false;
 		}
+		
+		/**
+		 * Similar to Object.hasOwnProperty(), except it also checks prototypes.
+		 */
+		public static function hasProperty(object:Object, prop:String):Boolean
+		{
+			while (object != null && !Object['getOwnPropertyDescriptor'](object, prop))
+				object = Object['getPrototypeOf'](object);
+			return object != null;
+		}
 	}
 }

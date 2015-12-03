@@ -16,6 +16,7 @@
 package weavejs.data.hierarchy
 {
     import weavejs.api.data.IWeaveTreeNode;
+    import weavejs.utils.JS;
     import weavejs.utils.StandardLib;
     import weavejs.utils.WeaveTreeItem;
 
@@ -41,7 +42,7 @@ package weavejs.data.hierarchy
 			
 			for (var key:String in params)
 			{
-				if (this[key] is Function && this.hasOwnProperty('_' + key))
+				if (this[key] is Function && JS.hasProperty(this, '_' + key))
 					this['_' + key] = params[key];
 				else
 					this[key] = params[key];
