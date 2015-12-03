@@ -149,7 +149,8 @@ package weavejs.core
 		{
 			// add up the percentages
 			var sum:Number = 0;
-			for (var task:Object in map_task_progress)
+			var tasks:Array = JS.mapKeys(map_task_progress);
+			for each (var task:Object in tasks)
 			{
 				var stackTrace:String = map_task_stackTrace.get(task); // check this when debugging
 				var progress:Number = map_task_progress.get(task);
@@ -170,12 +171,12 @@ package weavejs.core
 		
 		public function test():void
 		{
-			for(var i:Object in map_task_progress)
+			var tasks:Array = JS.mapKeys(map_task_progress);
+			for each (var task:Object in tasks)
 			{
-				var stackTrace:String = map_task_stackTrace.get(i); // check this when debugging
-				var description:String = map_task_description.get(i);
-				var args:Array = [DebugUtils.debugId(i), description, stackTrace];
-				JS.log.apply(JS, args);
+				var stackTrace:String = map_task_stackTrace.get(task); // check this when debugging
+				var description:String = map_task_description.get(task);
+				JS.log(DebugUtils.debugId(task), description, stackTrace);
 			}
 		}
 	}
