@@ -113,11 +113,12 @@ package weave.data
 			var dataSource:*;
 			for (dataSource in cache)
 			{
-				// skip global columns (EquationColumn, CSVColumn)
-				if (!dataSource || objectWasDisposed(dataSource))
+				var dataSourceName:String = WeaveAPI.globalHashMap.getName(dataSource);
+				
+				// skip disposed data sources and global columns (EquationColumn, CSVColumn)
+				if (!dataSourceName)
 					continue;
 				
-				var dataSourceName:String = WeaveAPI.globalHashMap.getName(dataSource);
 				for (var metadataHash:String in cache[dataSource])
 				{
 					var column:IAttributeColumn = (cache[dataSource][metadataHash] as WeakReference).value as IAttributeColumn;
@@ -184,7 +185,8 @@ package weave.data
 			var dataSource:IDataSource = WeaveAPI.globalHashMap.getObject(dataSourceName) as IDataSource;
 			if (!dataSource)
 			{
-				reportError("Data source not found: " + dataSourceName);
+				if (dataSourceName)
+					reportError("Data source not found: " + dataSourceName);
 				return;
 			}
 			var column:IAttributeColumn;
