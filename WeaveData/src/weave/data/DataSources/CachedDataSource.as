@@ -16,6 +16,7 @@
 package weave.data.DataSources
 {
 	import weave.api.newLinkableChild;
+	import weave.api.core.ICallbackCollection;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.data.DataSources.AbstractDataSource;
@@ -24,5 +25,9 @@ package weave.data.DataSources
 	{
 		public const type:LinkableString = newLinkableChild(this, LinkableString);
 		public const state:LinkableVariable = newLinkableChild(this, LinkableVariable);
+		override public function get hierarchyRefresh():ICallbackCollection
+		{
+			return null;
+		}
 	}
 }
