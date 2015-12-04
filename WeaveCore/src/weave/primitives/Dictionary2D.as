@@ -73,6 +73,22 @@ package weave.primitives
 			d2[key2] = value;
 		}
 		
+		public function primaryKeys():Array
+		{
+			var keys:Array = [];
+			for (var key:* in dictionary)
+				keys.push(key);
+			return keys;
+		}
+		
+		public function secondaryKeys(key1:Object):Array
+		{
+			var keys:Array = [];
+			for (var key:* in dictionary[key1])
+				keys.push(key);
+			return keys;
+		}
+
 		/**
 		 * This removes all values associated with the given primary key.
 		 * @param key1 The first dictionary key.
