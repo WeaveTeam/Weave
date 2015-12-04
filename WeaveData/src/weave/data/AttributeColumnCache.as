@@ -15,20 +15,21 @@
 
 package weave.data
 {
-	import avmplus.getQualifiedClassName;
-	
 	import flash.utils.Dictionary;
 	
+	import avmplus.getQualifiedClassName;
+	
+	import weave.api.getLinkableDescendants;
+	import weave.api.getSessionState;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getLinkableDescendants;
-	import weave.api.getSessionState;
-	import weave.api.registerLinkableChild;
-	import weave.api.setSessionState;
 	import weave.compiler.Compiler;
 	import weave.core.ClassUtils;
 	import weave.data.AttributeColumns.DateColumn;
@@ -95,7 +96,7 @@ package weave.data
 				promise.depend(column);
 			}
 			promise.setResult(null);
-			return promise.then(_convertToCachedDataSources);
+			return promise.then(_convertToCachedDataSources, reportError);
 		}
 		
 		private function _convertToCachedDataSources(promiseResult:*):Array
