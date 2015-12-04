@@ -406,22 +406,23 @@ package weave
 				else if ((WeaveAPI.URLRequestUtils as URLRequestUtils).saveCache) // temporary hack
 					WeaveAPI.URLRequestUtils.setCache(null);
 				
-				// load column cache if present
-				var columnCache:Object = archive.objects[WeaveArchive.ARCHIVE_COLUMN_CACHE_AMF];
-				if (columnCache)
-					(WeaveAPI.AttributeColumnCache as AttributeColumnCache).restoreCache(columnCache);
-				
 				// remove all local files and replace with list from archive
 				for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())
 					WeaveAPI.URLRequestUtils.removeLocalFile(fileName);
 				for (fileName in archive.files)
 					WeaveAPI.URLRequestUtils.saveLocalFile(fileName, archive.files[fileName]);
 				
+				// load session history
 				plugins = archive.objects[WeaveArchive.ARCHIVE_PLUGINS_AMF] as Array || [];
 				if (setPluginList(plugins, content))
 				{
 					history.setSessionState(_history);
 				}
+				
+				// load column cache if present - must be done after loading session history because data sources must be present
+				var columnCache:Object = archive.objects[WeaveArchive.ARCHIVE_COLUMN_CACHE_AMF];
+				if (columnCache)
+					(WeaveAPI.AttributeColumnCache as AttributeColumnCache).restoreCache(columnCache);
 			}
 			
 			// hack for forcing VisApplication menu to refresh

@@ -182,6 +182,10 @@ package weave.core
 			if (WeaveAPI.URLRequestUtils['saveCache'])
 				output.objects[ARCHIVE_URL_CACHE_AMF] = WeaveAPI.URLRequestUtils.getCache();
 			
+			// TEMPORARY SOLUTION - column cache
+			if (WeaveAPI.AttributeColumnCache['saveCache'])
+				output.objects[ARCHIVE_COLUMN_CACHE_AMF] = WeaveAPI.AttributeColumnCache['saveCache'];
+			
 			return output.serialize();
 		}
 	}

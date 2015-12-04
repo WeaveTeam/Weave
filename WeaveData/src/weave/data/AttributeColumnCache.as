@@ -21,9 +21,9 @@ package weave.data
 	
 	import weave.api.getLinkableDescendants;
 	import weave.api.getSessionState;
+	import weave.api.objectWasDisposed;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
-	import weave.api.setSessionState;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
@@ -31,7 +31,6 @@ package weave.data
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.compiler.Compiler;
-	import weave.core.ClassUtils;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -58,11 +57,11 @@ package weave.data
 
 			// Get the column pointer associated with the hash value.
 			var hashCode:String = Compiler.stringify(metadata);
-			var weakRef:WeakReference = d2d_dataSource_metadataHash.get(dataSource, hashCode) as WeakReference;
+			var weakRef:WeakReference = d2d_dataSource_metadataHash_weakRef.get(dataSource, hashCode) as WeakReference;
 			if (weakRef != null && weakRef.value != null)
 			{
 				if (WeaveAPI.SessionManager.objectWasDisposed(weakRef.value))
-					d2d_dataSource_metadataHash.remove(dataSource, hashCode);
+					d2d_dataSource_metadataHash_weakRef.remove(dataSource, hashCode);
 				else
 					return weakRef.value as IAttributeColumn;
 			}
@@ -70,12 +69,15 @@ package weave.data
 			// If no column is associated with this hash value, request the
 			// column from its data source and save the column pointer.
 			var column:IAttributeColumn = dataSource.getAttributeColumn(metadata);
-			d2d_dataSource_metadataHash.set(dataSource, hashCode, new WeakReference(column));
+			d2d_dataSource_metadataHash_weakRef.set(dataSource, hashCode, new WeakReference(column));
 
 			return column;
 		}
 		
-		private const d2d_dataSource_metadataHash:Dictionary2D = new Dictionary2D(true, true);
+		private const d2d_dataSource_metadataHash_weakRef:Dictionary2D = new Dictionary2D(true, true);
+		
+		// TEMPORARY SOLUTION for WeaveArchive to access this cache data
+		public var saveCache:Object = null;
 		
 		/**
 		 * Creates a cache dump and modifies the session state so data sources are non-functional.
@@ -84,37 +86,43 @@ package weave.data
 		public function convertToCachedDataSources():WeavePromise
 		{
 			var promise:WeavePromise = new WeavePromise(WeaveAPI.globalHashMap);
-			
-			// request data from every column
-			var column:IAttributeColumn;
-			for each (column in getLinkableDescendants(WeaveAPI.globalHashMap, IAttributeColumn))
-			{
-				// simply requesting the keys will cause the data to be requested
-				if (column.keys.length)
-					column.getValueFromKey(column.keys[0]);
-				// wait for the column to finish any async tasks
-				promise.depend(column);
-			}
 			promise.setResult(null);
-			return promise.then(_convertToCachedDataSources, reportError);
+			var dispose:Function = function():void { promise.dispose(); };
+			return promise
+				.then(function(_:*):* {
+					// request data from every column
+					var column:IAttributeColumn;
+					for each (column in getLinkableDescendants(WeaveAPI.globalHashMap, IAttributeColumn))
+					{
+						// simply requesting the keys will cause the data to be requested
+						if (column.keys.length)
+							column.getValueFromKey(column.keys[0]);
+						// wait for the column to finish any async tasks
+						promise.depend(column);
+					}
+				})
+				.then(_convertToCachedDataSources, reportError)
+				.then(dispose, dispose);
 		}
 		
 		private function _convertToCachedDataSources(promiseResult:*):Array
 		{
 			//cache data from AttributeColumnCache
 			var output:Array = [];
-			var cache:Dictionary = d2d_dataSource_metadataHash.dictionary;
+			var cache:Dictionary = d2d_dataSource_metadataHash_weakRef.dictionary;
 			var dataSource:*;
 			for (dataSource in cache)
 			{
 				// skip global columns (EquationColumn, CSVColumn)
-				if (!dataSource)
+				if (!dataSource || objectWasDisposed(dataSource))
 					continue;
 				
 				var dataSourceName:String = WeaveAPI.globalHashMap.getName(dataSource);
 				for (var metadataHash:String in cache[dataSource])
 				{
 					var column:IAttributeColumn = (cache[dataSource][metadataHash] as WeakReference).value as IAttributeColumn;
+					if (!column || objectWasDisposed(column))
+						continue;
 					var metadata:Object = ColumnMetadata.getAllMetadata(column);
 					var dataType:String = column.getMetadata(ColumnMetadata.DATA_TYPE);
 					var keys:Array = [];
@@ -151,23 +159,13 @@ package weave.data
 				cds.state.state = state;
 			}
 			
+			// repopulate cache for newly created data sources
+			restoreCache(output);
+			
+			// TEMPORARY SOLUTION
+			saveCache = output;
+			
 			return output;
-		}
-		
-		/**
-		 * Restores a session state to what it was before calling convertToCachedDataSources().
-		 */
-		public function restoreFromCachedDataSources():void
-		{
-			for each (var cds:CachedDataSource in WeaveAPI.globalHashMap.getObjects(CachedDataSource))
-			{
-				d2d_dataSource_metadataHash.removeAllPrimary(cds);
-				var name:String = WeaveAPI.globalHashMap.getName(cds);
-				var classDef:Class = ClassUtils.getClassDefinition(cds.type.value);
-				var state:Object = cds.state.state;
-				var dataSource:IDataSource = WeaveAPI.globalHashMap.requestObject(name, classDef, false);
-				setSessionState(dataSource, state);
-			}
 		}
 		
 		/**
@@ -184,6 +182,11 @@ package weave.data
 		{
 			// create the column object
 			var dataSource:IDataSource = WeaveAPI.globalHashMap.getObject(dataSourceName) as IDataSource;
+			if (!dataSource)
+			{
+				reportError("Data source not found: " + dataSourceName);
+				return;
+			}
 			var column:IAttributeColumn;
 			var keyType:String = metadata[ColumnMetadata.KEY_TYPE];
 			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
@@ -235,7 +238,19 @@ package weave.data
 			}
 			
 			// insert into cache
-			d2d_dataSource_metadataHash.set(dataSource, metadataHash, column);
+			d2d_dataSource_metadataHash_weakRef.set(dataSource, metadataHash, new WeakReference(column));
+		}
+		
+		/**
+		 * Restores a session state to what it was before calling convertToCachedDataSources().
+		 */
+		public function restoreFromCachedDataSources():void
+		{
+			for each (var cds:CachedDataSource in WeaveAPI.globalHashMap.getObjects(CachedDataSource))
+			{
+				d2d_dataSource_metadataHash_weakRef.removeAllPrimary(cds);
+				cds.hierarchyRefresh.triggerCallbacks();
+			}
 		}
 	}
 }

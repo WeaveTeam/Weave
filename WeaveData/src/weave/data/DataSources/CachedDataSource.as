@@ -16,18 +16,24 @@
 package weave.data.DataSources
 {
 	import weave.api.newLinkableChild;
-	import weave.api.core.ICallbackCollection;
+	import weave.api.setSessionState;
+	import weave.api.data.IDataSource;
+	import weave.core.ClassUtils;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
-	import weave.data.DataSources.AbstractDataSource;
 
 	public class CachedDataSource extends AbstractDataSource
 	{
 		public const type:LinkableString = newLinkableChild(this, LinkableString);
 		public const state:LinkableVariable = newLinkableChild(this, LinkableVariable);
-		override public function get hierarchyRefresh():ICallbackCollection
+		
+		override protected function refreshHierarchy():void
 		{
-			return null;
+			var name:String = WeaveAPI.globalHashMap.getName(this);
+			var classDef:Class = ClassUtils.getClassDefinition(type.value);
+			var state:Object = state.state;
+			var dataSource:IDataSource = WeaveAPI.globalHashMap.requestObject(name, classDef, false);
+			setSessionState(dataSource, state);
 		}
 	}
 }

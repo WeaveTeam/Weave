@@ -47,15 +47,22 @@
 													SessionStateEditor.openDefaultEditor(data as IDataSource);
 												}
 											},{
-												label: lang('Refresh'),
+												label: function():String {
+													if (data is CachedDataSource)
+														return lang("Restore this data source");
+													return lang('Refresh');
+												},
 												click: function():void {
 													var ds:IDataSource = data as IDataSource;
 													if (ds)
 													{
 														ds.hierarchyRefresh.triggerCallbacks();
-														// TEMPORARY SOLUTION until all data sources behave correctly - force creating a new copy
-														var ghm:ILinkableHashMap = WeaveAPI.globalHashMap;
-														ghm.requestObjectCopy(ghm.getName(ds), ds);
+														if (!(ds is CachedDataSource))
+														{
+															// TEMPORARY SOLUTION until all data sources behave correctly - force creating a new copy
+															var ghm:ILinkableHashMap = WeaveAPI.globalHashMap;
+															ghm.requestObjectCopy(ghm.getName(ds), ds);
+														}
 													}
 												}
 											},
@@ -78,6 +85,7 @@
 									import weave.api.core.ILinkableObject;
 									import weave.api.data.IDataSource;
 									import weave.core.UIUtils;
+									import weave.data.DataSources.CachedDataSource;
 									import weave.menus.WeaveMenuItem;
 									import weave.ui.SessionStateEditor;
 									
