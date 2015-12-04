@@ -211,7 +211,7 @@ package weave.data
 								geoms.push(geom);
 							}
 						}
-						gc.setGeometries(keys, geoms);
+						gc.setGeometries(geomKeys, geoms);
 					});
 			}
 			else if (dataType == DataType.DATE)
