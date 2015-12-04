@@ -44,7 +44,52 @@ package weave.primitives
 			this.geomType = geomType;
 			this.parts[0] = new BLGTree();
 		}
-		
+
+		/**
+		 * Derives GeneralizedGeometry objects from a GeoJSON geometry object.
+		 * @param geoJsonGeom A GeoJSON geometry object.
+		 * @return An array of GeneralizedGeometry objects
+		 */
+		public static function fromGeoJson(geoJsonGeom:Object):Array
+		{
+			var type:String = geoJsonGeom[GeoJSON.P_TYPE];
+			var coords:Array = geoJsonGeom[GeoJSON.G_P_COORDINATES];
+
+			// convert coords to MultiPolygon format: multi[ poly[ line[ point[] ] ] ]
+			if (type == GeoJSON.T_POINT)
+				type = GeometryType.POINT, coords = /*multi*/[/*poly*/[/*line*/[/*point*/coords]]];
+			else if (type == GeoJSON.T_MULTI_POINT)
+				type = GeometryType.POINT, coords = /*multi*/[/*poly*/[/*line*/coords]];
+			else if (type == GeoJSON.T_LINE_STRING)
+				type = GeometryType.LINE, coords = /*multi*/[/*poly*/[/*line*/coords]];
+			else if (type == GeoJSON.T_MULTI_LINE_STRING)
+				type = GeometryType.LINE, coords = /*multi*/[/*poly line*/coords];
+			else if (type == GeoJSON.T_POLYGON)
+				type = GeometryType.POLYGON, coords = /*multi*/[/*poly*/coords];
+			else if (type == GeoJSON.T_MULTI_POLYGON)
+				type = GeometryType.POLYGON;
+			
+			var result:Array = [];
+			for each (var poly:Array in coords)
+			{
+				var geom:GeneralizedGeometry = new GeneralizedGeometry(type);
+				var xyCoords:Array = [];
+				for each (var part:Array in poly)
+				{
+					// add part marker if this is not the first part
+					if (xyCoords.length > 0)
+						xyCoords.push(NaN, NaN);
+					// push x,y coords
+					for each (var point:Array in part)
+					xyCoords.push(point[0], point[1]);
+				}
+				geom.setCoordinates(xyCoords, BLGTreeUtils.METHOD_SAMPLE);
+				result.push(geom);
+			}
+
+			return result;
+		}
+
 		/**
 		 * Generates a GeoJson Geometry object.
 		 * @param minImportance No points with importance less than this value will be returned.

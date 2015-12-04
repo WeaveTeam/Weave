@@ -16,18 +16,35 @@
 package weave.menus
 {
 	import flash.events.Event;
-	import flash.net.FileFilter;
 	import flash.net.FileReference;
+	import flash.utils.ByteArray;
+	import flash.utils.Dictionary;
+	
+	import avmplus.getQualifiedClassName;
 	
 	import weave.Weave;
-	import weave.api.data.IDataSource;
-	import weave.api.data.IDataSource_File;
 	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableDescendants;
+	import weave.api.getSessionState;
 	import weave.api.linkableObjectIsBusy;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataType;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.ui.ISelectableAttributes;
+	import weave.core.WeaveArchive;
+	import weave.data.AttributeColumnCache;
+	import weave.data.QKeyManager;
+	import weave.data.AttributeColumns.DateColumn;
+	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
+	import weave.data.AttributeColumns.StringColumn;
+	import weave.data.DataSources.AbstractDataSource;
+	import weave.data.DataSources.CachedDataSource;
 	import weave.data.KeySets.KeySet;
 	import weave.ui.ExportSessionStateOptions;
 	import weave.utils.ColumnUtils;
@@ -186,6 +203,18 @@ package weave.menus
 								lang("Ok"),
 								lang("Cancel")
 							);
+						}
+					},
+					{
+						label: lang("Convert to local data sources"),
+						click: function():void {
+							(WeaveAPI.AttributeColumnCache as AttributeColumnCache)
+								.convertToCachedDataSources()
+								.then(function(cache:Array):void {
+									var content:ByteArray = new ByteArray();
+									content.writeObject(cache);
+									WeaveAPI.URLRequestUtils.saveLocalFile(WeaveArchive.ARCHIVE_COLUMN_CACHE_AMF, content);
+								});
 						}
 					},
 					TYPE_SEPARATOR,

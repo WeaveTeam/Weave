@@ -27,11 +27,11 @@ package weave
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.UIDUtil;
 	
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.core.LibraryUtils;
@@ -40,6 +40,7 @@ package weave
 	import weave.core.WeaveArchive;
 	import weave.core.WeaveXMLDecoder;
 	import weave.core.WeaveXMLEncoder;
+	import weave.data.AttributeColumnCache;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
@@ -404,6 +405,11 @@ package weave
 					WeaveAPI.URLRequestUtils.setCache(urlCache);
 				else if ((WeaveAPI.URLRequestUtils as URLRequestUtils).saveCache) // temporary hack
 					WeaveAPI.URLRequestUtils.setCache(null);
+				
+				// load column cache if present
+				var columnCache:Object = archive.objects[WeaveArchive.ARCHIVE_COLUMN_CACHE_AMF];
+				if (columnCache)
+					(WeaveAPI.AttributeColumnCache as AttributeColumnCache).restoreCache(columnCache);
 				
 				// remove all local files and replace with list from archive
 				for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())

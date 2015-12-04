@@ -15,6 +15,7 @@
 
 package weavejs.data.columns
 {
+	import weavejs.api.data.ColumnMetadata;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.core.CallbackCollection;
@@ -33,6 +34,8 @@ package weavejs.data.columns
 			super();
 			if (metadata)
 				setMetadata(metadata);
+			// make sure dataType will be included in getMetadataPropertyNames() result
+			_metadata[ColumnMetadata.DATA_TYPE] = getMetadata(ColumnMetadata.DATA_TYPE);
 		}
 		
 		protected var _metadata:Object = null;
