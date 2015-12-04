@@ -53,7 +53,6 @@ package weave.visualization.plotters
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.GeometryType;
 	import weave.utils.CachedBitmap;
-	import weave.utils.ColumnUtils;
 	import weave.visualization.plotters.styles.ExtendedFillStyle;
 	import weave.visualization.plotters.styles.ExtendedLineStyle;
 	

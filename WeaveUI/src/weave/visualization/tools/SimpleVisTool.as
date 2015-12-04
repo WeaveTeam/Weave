@@ -27,7 +27,6 @@ package weave.visualization.tools
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableDescendants;
 	import weave.api.getLinkableOwner;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
