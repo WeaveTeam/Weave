@@ -87,7 +87,7 @@ package weave.data
 		{
 			var promise:WeavePromise = new WeavePromise(WeaveAPI.globalHashMap);
 			promise.setResult(null);
-			var dispose:Function = function():void { promise.dispose(); };
+			var dispose:Function = function(_:*):void { promise.dispose(); };
 			return promise
 				.then(function(_:*):* {
 					// request data from every column
