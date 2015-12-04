@@ -15,20 +15,20 @@
 
 package weave.data
 {
-	import flash.utils.Dictionary;
-	
 	import avmplus.getQualifiedClassName;
 	
-	import weave.api.getLinkableDescendants;
-	import weave.api.getSessionState;
-	import weave.api.registerLinkableChild;
-	import weave.api.setSessionState;
+	import flash.utils.Dictionary;
+	
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IAttributeColumnCache;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.getLinkableDescendants;
+	import weave.api.getSessionState;
+	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.compiler.Compiler;
 	import weave.core.ClassUtils;
 	import weave.data.AttributeColumns.DateColumn;
@@ -113,7 +113,7 @@ package weave.data
 				var dataSourceName:String = WeaveAPI.globalHashMap.getName(dataSource);
 				for (var metadataHash:String in cache[dataSource])
 				{
-					var column:IAttributeColumn = cache[dataSource][metadataHash];
+					var column:IAttributeColumn = (cache[dataSource][metadataHash] as WeakReference).value as IAttributeColumn;
 					var metadata:Object = ColumnMetadata.getAllMetadata(column);
 					var dataType:String = column.getMetadata(ColumnMetadata.DATA_TYPE);
 					var keys:Array = [];
@@ -163,8 +163,9 @@ package weave.data
 				d2d_dataSource_metadataHash.removeAllPrimary(cds);
 				var name:String = WeaveAPI.globalHashMap.getName(cds);
 				var classDef:Class = ClassUtils.getClassDefinition(cds.type.value);
+				var state:Object = cds.state.state;
 				var dataSource:IDataSource = WeaveAPI.globalHashMap.requestObject(name, classDef, false);
-				setSessionState(dataSource, cds.state.state);
+				setSessionState(dataSource, state);
 			}
 		}
 		
