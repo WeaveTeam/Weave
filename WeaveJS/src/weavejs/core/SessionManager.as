@@ -39,10 +39,6 @@ package weavejs.core
 	 */
 	public class SessionManager implements ISessionManager
 	{
-		public function SessionManager()
-		{
-		}
-		
 		public var debugBusyTasks:Boolean = false;
 		
 		/**
@@ -193,11 +189,7 @@ package weavejs.core
 		 */
 		private function _getRegisteredChildren(parent:ILinkableObject):Array
 		{
-			var result:Array = [];
-			var children:Array = d2d_parent_child.secondaryKeys(parent);
-			for each (var child:ILinkableObject in children)
-				result.push(child);
-			return result;
+			return d2d_parent_child.secondaryKeys(parent);
 		}
 
 		/**
@@ -443,7 +435,7 @@ package weavejs.core
 		/**
 		 * keeps track of which objects are currently being traversed
 		 */
-		private var _getSessionStateIgnoreList:Object = new JS.WeakMap();
+		private var map_obj_getSessionStateIgnore:Object = new JS.WeakMap();
 		
 		/**
 		 * @inheritDoc
@@ -490,13 +482,13 @@ package weavejs.core
 						JS.error('Unable to get property "'+name+'" of class "'+Weave.className(linkableObject)+'"');
 					}
 					// first pass: set result[name] to the ILinkableObject
-					if (property != null && !_getSessionStateIgnoreList.get(property))
+					if (property != null && !map_obj_getSessionStateIgnore.get(property))
 					{
 						// skip this property if it should not appear in the session state under the parent.
 						if (!d2d_child_parent.get(property, linkableObject))
 							continue;
 						// avoid infinite recursion in implicit session states
-						_getSessionStateIgnoreList.set(property, true);
+						map_obj_getSessionStateIgnore.set(property, true);
 						resultNames.push(name);
 						resultProperties.push(property);
 					}
@@ -526,7 +518,7 @@ package weavejs.core
 				}
 			}
 			
-			_getSessionStateIgnoreList.set(linkableObject, undefined);
+			map_obj_getSessionStateIgnore.set(linkableObject, undefined);
 			
 			return result;
 		}
