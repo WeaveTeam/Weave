@@ -231,7 +231,8 @@ package weave.data.DataSources
 						if (getTimer() > stopTime)
 							return i / jsonData.qkeys.length;
 						
-						for each (var geom:GeneralizedGeometry in jsonData.convertToGeneralizedGeometries(i))
+						var geoms:Array = GeneralizedGeometry.fromGeoJson(jsonData.geometries[i]);
+						for each (var geom:GeneralizedGeometry in geoms)
 						{
 							keys.push(jsonData.qkeys[i]);
 							geoms.push(geom);
@@ -313,8 +314,6 @@ import weave.api.data.IWeaveTreeNode;
 import weave.compiler.StandardLib;
 import weave.data.ProjectionManager;
 import weave.primitives.GeneralizedGeometry;
-import weave.primitives.GeometryType;
-import weave.utils.BLGTreeUtils;
 import weave.utils.GeoJSON;
 import weave.utils.VectorUtils;
 
@@ -472,52 +471,7 @@ internal class GeoJSONData
 		var values:Array = ids;
 		if (propertyName && propertyNames.indexOf(propertyName) >= 0)
 			values = VectorUtils.pluck(properties, propertyName);
-		
+
 		qkeys = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(keyType, values));
-	}
-	
-	/**
-	 * Derives GeneralizedGeometry objects from the GeoJSON data and overwrites the existing GeoJSON Geometry object.
-	 * @param index Index in the geometries Array.
-	 * @return An Array of GeneralizedGeometry objects
-	 */
-	public function convertToGeneralizedGeometries(index:int):Array
-	{
-		var obj:Object = geometries[index];
-		var type:String = obj[GeoJSON.P_TYPE];
-		var coords:Array = obj[GeoJSON.G_P_COORDINATES];
-		
-		// convert coords to MultiPolygon format: multi[ poly[ line[ point[] ] ] ]
-		if (type == GeoJSON.T_POINT)
-			type = GeometryType.POINT, coords = /*multi*/[/*poly*/[/*line*/[/*point*/coords]]];
-		else if (type == GeoJSON.T_MULTI_POINT)
-			type = GeometryType.POINT, coords = /*multi*/[/*poly*/[/*line*/coords]];
-		else if (type == GeoJSON.T_LINE_STRING)
-			type = GeometryType.LINE, coords = /*multi*/[/*poly*/[/*line*/coords]];
-		else if (type == GeoJSON.T_MULTI_LINE_STRING)
-			type = GeometryType.LINE, coords = /*multi*/[/*poly line*/coords];
-		else if (type == GeoJSON.T_POLYGON)
-			type = GeometryType.POLYGON, coords = /*multi*/[/*poly*/coords];
-		else if (type == GeoJSON.T_MULTI_POLYGON)
-			type = GeometryType.POLYGON;
-		
-		var result:Array = [];
-		for each (var poly:Array in coords)
-		{
-			var geom:GeneralizedGeometry = new GeneralizedGeometry(type);
-			var xyCoords:Array = [];
-			for each (var part:Array in poly)
-			{
-				// add part marker if this is not the first part
-				if (xyCoords.length > 0)
-					xyCoords.push(NaN, NaN);
-				// push x,y coords
-				for each (var point:Array in part)
-					xyCoords.push(point[0], point[1]);
-			}
-			geom.setCoordinates(xyCoords, BLGTreeUtils.METHOD_SAMPLE);
-			result.push(geom);
-		}
-		return result;
 	}
 }

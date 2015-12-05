@@ -96,6 +96,8 @@ public class WeaveServlet extends HttpServlet
 	private static final long serialVersionUID = 1L;
 	public static long debugThreshold = 1000;
 	
+	protected Map<String,Object> hack_memoizeEverything = null;
+	
 	/**
 	 * The name of the property which contains the remote method name.
 	 */
@@ -696,7 +698,25 @@ public class WeaveServlet extends HttpServlet
 		// Invoke the method on the object with the arguments 
 		try
 		{
-			Object result = exposedMethod.method.invoke(exposedMethod.instance, params);
+			Object result;
+			if (hack_memoizeEverything != null)
+			{
+				String memo = GSON.toJson(new Object[]{methodName, params});
+				if (hack_memoizeEverything.containsKey(memo))
+				{
+					result = hack_memoizeEverything.get(memo);
+				}
+				else
+				{
+					result = exposedMethod.method.invoke(exposedMethod.instance, params);
+					if (result != null)
+						hack_memoizeEverything.put(memo, result);
+				}
+			}
+			else
+			{
+				result = exposedMethod.method.invoke(exposedMethod.instance, params);
+			}
 			sendResult(result, exposedMethod.method.getReturnType());
 		}
 		catch (InvocationTargetException e)

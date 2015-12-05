@@ -89,6 +89,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	
 	public DataService()
 	{
+		//hack_memoizeEverything = new HashMap<String, Object>();
 	}
 	
 	public void init(ServletConfig config) throws ServletException
@@ -264,6 +265,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		public int digits = 2;
 		public boolean realKeys = false;
 		public int repeat = 1;
+		public boolean repeatKeys = false;
 		public int sort = 0;
 		
 		public int getNumRows()
@@ -274,25 +276,30 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 			return numRows;
 		}
 		
-		public List<String> generateStrings(String prefix)
+		public List<String> generateStrings(String prefix, boolean forKeys)
 		{
 			int numRows = getNumRows();
 			List<String> strings = new ArrayList<String>(numRows);
-			generateStrings(strings, 0, prefix, "");
+			generateStrings(strings, 0, prefix, "", forKeys && !repeatKeys);
 			return strings;
 		}
 		
-		private void generateStrings(List<String> output, int depth, String prefix, String suffix)
+		private void generateStrings(List<String> output, int depth, String prefix, String suffix, boolean noRepeat)
 		{
 			int n = dim[depth];
 			for (int i = 1; i <= n; i++)
 			{
 				String newSuffix = suffix + "_" + i;
 				if (depth + 1 < dim.length)
-					generateStrings(output, depth + 1, prefix, newSuffix);
+					generateStrings(output, depth + 1, prefix, newSuffix, noRepeat);
 				else
 					for (int r = 0; r < repeat; r++)
-						output.add(prefix + newSuffix);
+					{
+						if (noRepeat)
+							output.add(prefix + newSuffix + "_" + r);
+						else
+							output.add(prefix + newSuffix);
+					}
 			}
 		}
 		
@@ -379,7 +386,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		{
 			fakeData = "{dim:[0]}";
 		}
-		else if (Strings.isEmpty(query))
+		else if (Strings.isEmpty(query) && Strings.isEmpty(fakeData))
 		{
 			String entityType = entity.publicMetadata.get(PublicMetadata.ENTITYTYPE);
 			tableField = entity.privateMetadata.get(PrivateMetadata.SQLCOLUMN);
@@ -432,7 +439,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 				sqlParamsStr = GSON.toJson(sqlParams);
 			
 			if (!getRealKeys)
-				keys = props.generateStrings(sqlParamsStr);
+				keys = props.generateStrings(sqlParamsStr, true);
 			
 			if (Strings.equal(dataType, DataType.NUMBER) || Strings.equal(dataType, DataType.DATE))
 			{
@@ -440,7 +447,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 				numericData = props.generateDoubles(seed);
 			}
 			else
-				stringData = props.generateStrings(title);
+				stringData = props.generateStrings(title, false);
 		}
 		
 		if (!Strings.isEmpty(query) && (getRealKeys || getRealData))

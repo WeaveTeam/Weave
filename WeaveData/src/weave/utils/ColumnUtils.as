@@ -391,7 +391,7 @@ package weave.utils
 				// count the number of appearances of each key in each column
 				var keyCounts:Dictionary = new Dictionary();
 				for each (column in columns)
-					for each (key in column.keys)
+					for each (key in column ? column.keys : null)
 						keyCounts[key] = int(keyCounts[key]) + 1;
 				// get a list of keys
 				keys = [];

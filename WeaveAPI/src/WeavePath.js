@@ -38,7 +38,11 @@ weave.addCallback = function(target, callback, triggerNow, immediateMode, delayW
 {
 	callback = asFunction(callback, Array.isArray(target) ? weave.path(target) : weave.path());
 	if (!immediateMode)
+	{
+		var thisArg = callback['this'];
 		callback = weave._debounce(callback);
+		callback['this'] = thisArg;
+	}
 	return _addCallback.apply(this, Array.prototype.slice.call(arguments));
 };
 var _removeCallback = weave.removeCallback;

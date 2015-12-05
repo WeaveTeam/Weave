@@ -198,7 +198,7 @@ package weave.utils
 		}
 		/**
 		 * randomizes the order of the elements in the vector in O(n) time by modifying the given array.
-		 * @param the vector to randomize
+		 * @param vector the vector to randomize
 		 */
 		public static function randomSort(vector:*):void
 		{

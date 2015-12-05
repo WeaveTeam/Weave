@@ -40,18 +40,17 @@
 			import mx.events.ListEvent;
 			
 			import weave.api.copySessionState;
+			import weave.api.getCallbackCollection;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
 			import weave.api.core.ILinkableHashMap;
 			import weave.api.core.ILinkableObject;
 			import weave.api.data.IColumnReference;
 			import weave.api.data.IDataSource;
 			import weave.api.data.IExternalLink;
 			import weave.api.data.IWeaveTreeNode;
-			import weave.api.getCallbackCollection;
-			import weave.api.newLinkableChild;
-			import weave.api.registerLinkableChild;
 			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
-			import weave.data.AttributeColumnCache;
 			import weave.data.AttributeColumns.DynamicColumn;
 			import weave.data.AttributeColumns.ReferencedColumn;
 			import weave.data.hierarchy.EntityNodeSearch;
@@ -111,7 +110,7 @@
 					var root:IWeaveTreeNode = ds.getHierarchyRoot();
 					explorer.rootNode = root;
 					explorer.folderView.showRoot = true;
-					if (!root.hasChildBranches() && !explorer.fileView.selectedItem)
+					if (root && !root.hasChildBranches() && !explorer.fileView.selectedItem)
 						explorer.expandPathAndSelectNode(root);
 				}
 				else
@@ -129,7 +128,7 @@
 				
 				registerLinkableChild(this, explorer);
 
-				explorer.rootNode = new WeaveRootDataTreeNode();
+				explorer.rootNode = new WeaveRootDataTreeNode(WeaveAPI.globalHashMap);
 				
 				explorer.folderView.dragEnabled = false;
 				explorer.fileView.dragEnabled = true;
@@ -218,7 +217,7 @@
 			
 			private function handleReferencedColumn():void
 			{
-				var ds:IDataSource = referencedColumn.getDataSource() || AttributeColumnCache.globalColumnDataSource;
+				var ds:IDataSource = referencedColumn.getDataSource();
 				if (ds)
 				{
 					var meta:Object = referencedColumn.metadata.getSessionState();

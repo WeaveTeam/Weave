@@ -17,6 +17,7 @@ package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.compiler.StandardLib;
@@ -53,6 +54,8 @@ package weave.data.AttributeColumns
 					trace('WARNING: Certain features may not work correctly when setting metadata more than once.');
 				// make a copy because we don't want any surprises (metadata being set afterwards)
 				_metadata = copyValues(metadata);
+				// make sure dataType will be included in getMetadataPropertyNames() result
+				_metadata[ColumnMetadata.DATA_TYPE] = getMetadata(ColumnMetadata.DATA_TYPE);
 				triggerCallbacks();
 			}
 		}

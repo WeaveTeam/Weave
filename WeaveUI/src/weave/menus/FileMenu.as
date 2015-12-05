@@ -16,18 +16,21 @@
 package weave.menus
 {
 	import flash.events.Event;
-	import flash.net.FileFilter;
 	import flash.net.FileReference;
 	
+	import mx.controls.Alert;
+	
 	import weave.Weave;
-	import weave.api.data.IDataSource;
-	import weave.api.data.IDataSource_File;
 	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableDescendants;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.reportError;
+	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSource_File;
 	import weave.api.ui.ISelectableAttributes;
+	import weave.data.AttributeColumnCache;
 	import weave.data.AttributeColumns.ReferencedColumn;
+	import weave.data.DataSources.CachedDataSource;
 	import weave.data.KeySets.KeySet;
 	import weave.ui.ExportSessionStateOptions;
 	import weave.utils.ColumnUtils;
@@ -186,6 +189,23 @@ package weave.menus
 								lang("Ok"),
 								lang("Cancel")
 							);
+						}
+					},
+					{
+						enabled: function():Boolean {
+							// only enable this item if there is at least one data source that is not cached
+							for each (var ds:IDataSource in WeaveAPI.globalHashMap.getObjects(IDataSource))
+								if (!(ds is CachedDataSource))
+									return true;
+							return false;
+						},
+						label: lang("Convert to local data sources"),
+						click: function():void {
+							(WeaveAPI.AttributeColumnCache as AttributeColumnCache)
+								.convertToCachedDataSources()
+								.then(function(cache:Object):void {
+									Alert.show("Column data has been cached. You can now save the .weave archive.");
+								});
 						}
 					},
 					TYPE_SEPARATOR,

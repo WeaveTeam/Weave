@@ -27,11 +27,11 @@ package weave
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.UIDUtil;
 	
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.core.LibraryUtils;
@@ -40,6 +40,7 @@ package weave
 	import weave.core.WeaveArchive;
 	import weave.core.WeaveXMLDecoder;
 	import weave.core.WeaveXMLEncoder;
+	import weave.data.AttributeColumnCache;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
@@ -411,11 +412,17 @@ package weave
 				for (fileName in archive.files)
 					WeaveAPI.URLRequestUtils.saveLocalFile(fileName, archive.files[fileName]);
 				
+				// load session history
 				plugins = archive.objects[WeaveArchive.ARCHIVE_PLUGINS_AMF] as Array || [];
 				if (setPluginList(plugins, content))
 				{
 					history.setSessionState(_history);
 				}
+				
+				// load column cache if present - must be done after loading session history because data sources must be present
+				var columnCache:Object = archive.objects[WeaveArchive.ARCHIVE_COLUMN_CACHE_AMF];
+				if (columnCache)
+					(WeaveAPI.AttributeColumnCache as AttributeColumnCache).restoreCache(columnCache);
 			}
 			
 			// hack for forcing VisApplication menu to refresh

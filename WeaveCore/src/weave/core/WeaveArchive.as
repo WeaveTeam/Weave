@@ -102,6 +102,7 @@ package weave.core
 		public static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
 		public static const ARCHIVE_HISTORY_AMF:String = "history.amf";
 		public static const ARCHIVE_URL_CACHE_AMF:String = "url-cache.amf";
+		public static const ARCHIVE_COLUMN_CACHE_AMF:String = "column-cache.amf";
 		private static const _pngEncoder:PNGEncoder = new PNGEncoder();
 		
 		private static var _history:SessionStateLog;
@@ -180,6 +181,10 @@ package weave.core
 			// TEMPORARY SOLUTION - url cache
 			if (WeaveAPI.URLRequestUtils['saveCache'])
 				output.objects[ARCHIVE_URL_CACHE_AMF] = WeaveAPI.URLRequestUtils.getCache();
+			
+			// TEMPORARY SOLUTION - column cache
+			if (WeaveAPI.AttributeColumnCache['saveCache'])
+				output.objects[ARCHIVE_COLUMN_CACHE_AMF] = WeaveAPI.AttributeColumnCache['saveCache'];
 			
 			return output.serialize();
 		}

@@ -104,6 +104,7 @@ weave.WeavePath.Keys._getKeyBuffers = function (pathArray)
     var key_buffers_dict = this._key_buffers || (this._key_buffers = {});
     var key_buffers = key_buffers_dict[path_key] || (key_buffers_dict[path_key] = {});
 
+    if (key_buffers.set === undefined) key_buffers.set = null;
     if (key_buffers.add === undefined) key_buffers.add = {};
     if (key_buffers.remove === undefined) key_buffers.remove = {};
     if (key_buffers.timeout_id === undefined) key_buffers.timeout_id = null;
@@ -120,12 +121,20 @@ weave.WeavePath.Keys._flushKeys = function (pathArray)
     var key_buffers = this._getKeyBuffers(pathArray);
     var add_keys = Object.keys(key_buffers.add);
     var remove_keys = Object.keys(key_buffers.remove);
+    var set_keys = key_buffers.set;
 
     add_keys = add_keys.map(this.stringToQKey, this);
     remove_keys = remove_keys.map(this.stringToQKey, this);
+    set_keys = set_keys && set_keys.map(this.stringToQKey, this);
 
     key_buffers.add = {};
     key_buffers.remove = {};
+    key_buffers.set = null;
+
+    if (set_keys)
+    {
+        weave.evaluateExpression(pathArray, 'this.replaceKeys(keys)', {keys: set_keys}, null, "");
+    }
 
     weave.evaluateExpression(pathArray, 'this.addKeys(keys)', {keys: add_keys}, null, "");
     weave.evaluateExpression(pathArray, 'this.removeKeys(keys)', {keys: remove_keys}, null, "");
@@ -162,6 +171,17 @@ weave.WeavePath.Keys._addKeys = function(pathArray, keyStringArray)
 
     this._flushKeysLater(pathArray);
 };
+
+weave.WeavePath.Keys._setKeys = function(pathArray, keyStringArray)
+{
+    var key_buffers = this._getKeyBuffers(pathArray);
+
+    key_buffers.set = [].concat(keyStringArray);
+    key_buffers.add = {};
+    key_buffers.remove = {};
+
+    this._flushKeysLater(pathArray);
+}
 
 /**
  * Queue keys to be removed from a specified path.
@@ -398,7 +418,7 @@ weave.WeavePath.prototype.addKeySetCallback = function (callback, triggerCallbac
     return this;
 };
 /**
- * Replaces the contents of the KeySet at this path with the specified keys.
+ * Replaces the contents of the KeySet at this path with the specified keys. These will not be set immediately, but are queued with a flush timeout of approx. 25 ms.
  * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
  *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
  * @param {Array} keyStringArray An array of alphanumeric keystrings that correspond to QualifiedKeys.
@@ -410,9 +430,9 @@ weave.WeavePath.prototype.setKeys = function(/*...relativePath, keyStringArray*/
     if (this._assertParams('setKeys', args))
     {
         var keyStringArray = args.pop();
-        var keyObjectArray = keyStringArray.map(this.stringToQKey);
         var path = this._path.concat(args);
-        this.weave.evaluateExpression(path, 'this.replaceKeys(keys)', {keys: keyObjectArray}, null, "");
+        
+        this.weave.WeavePath.Keys._setKeys(path, keyStringArray);
 
         return this;
     };
@@ -467,7 +487,7 @@ weave.WeavePath.prototype.retrieveRecords = function(pathMapping, options)
 {
 	var dataType = options && options['dataType'];
 	var keySet = options && options['keySet'];
-	
+
 	if (!keySet && options instanceof weave.WeavePath)
 		keySet = options;
 	
@@ -704,7 +724,7 @@ weave.WeaveTreeNode = function(serial, parent) {
 	this.parent = parent;
 	weave.WeaveTreeNode.cache[this.serial] = this;
 	if (this.serial == 0)
-		weave.evaluateExpression(null, 'var lookup = ' + weaveTreeNodeLookup + '; if (lookup[0] === undefined) lookup[lookup[0] = new WeaveRootDataTreeNode()] = 0; return null;');
+		weave.evaluateExpression(null, 'var lookup = ' + weaveTreeNodeLookup + '; if (lookup[0] === undefined) lookup[lookup[0] = new WeaveRootDataTreeNode(WeaveAPI.globalHashMap)] = 0; return null;');
 };
 weave.WeaveTreeNode.cache = {}; // serial -> WeaveTreeNode
 weave.WeaveTreeNode.prototype.getLabel = _createNodeFunction('node.getLabel()');

@@ -253,6 +253,7 @@ package weave.data.AttributeColumns
 			
 			switch (aggregation)
 			{
+				default:
 				case Aggregation.SAME:
 					var first:String = strings[0];
 					for each (var value:String in strings)
@@ -265,9 +266,6 @@ package weave.data.AttributeColumns
 				
 				case Aggregation.LAST:
 					return strings[strings.length - 1];
-				
-				default:
-					return undefined;
 			}
 		}
 		
