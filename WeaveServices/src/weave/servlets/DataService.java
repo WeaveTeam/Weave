@@ -260,6 +260,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	private static class FakeDataProperties
 	{
 		public int[] dim = new int[]{5};
+		public boolean sequence = false;
 		public double mean = 0;
 		public double stddev = 1;
 		public int digits = 2;
@@ -308,10 +309,18 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 			int numRows = getNumRows();
 			List<Double> doubles = new ArrayList<Double>(numRows);
 			Random rand = new Random(seed);
+			Double value = mean;
 			for (int i = 0; i < numRows; i++)
 			{
-				Double value = mean + stddev * rand.nextGaussian();
-				value = Numbers.roundSignificant(value, digits);
+				if (sequence)
+				{
+					value += stddev;
+				}
+				else
+				{
+					value = mean + stddev * rand.nextGaussian();
+					value = Numbers.roundSignificant(value, digits);
+				}
 				doubles.add(value);
 			}
 			if (sort != 0)
