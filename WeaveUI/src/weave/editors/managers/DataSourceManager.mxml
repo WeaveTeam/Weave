@@ -57,12 +57,11 @@
 													if (ds)
 													{
 														ds.hierarchyRefresh.triggerCallbacks();
-														if (!(ds is CachedDataSource))
-														{
-															// TEMPORARY SOLUTION until all data sources behave correctly - force creating a new copy
-															var ghm:ILinkableHashMap = WeaveAPI.globalHashMap;
-															ghm.requestObjectCopy(ghm.getName(ds), ds);
-														}
+														// TEMPORARY SOLUTION until all data sources behave correctly - force creating a new copy
+														var ghm:ILinkableHashMap = WeaveAPI.globalHashMap;
+														var name:String = ghm.getName(ds);
+														if (name)
+															ghm.requestObjectCopy(name, ds);
 													}
 												}
 											},

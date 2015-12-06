@@ -63,7 +63,10 @@ package weave.menus
 					for each (var dataSource:IDataSource in dataSources)
 					{
 						dataSource.hierarchyRefresh.triggerCallbacks();
-						ghm.requestObjectCopy(ghm.getName(dataSource), dataSource);
+						// TEMPORARY SOLUTION until all data sources behave correctly - force creating a new copy
+						var name:String = ghm.getName(dataSource);
+						if (name)
+							ghm.requestObjectCopy(name, dataSource);
 					}
 				},
 				enabled: function():Boolean { return WeaveAPI.globalHashMap.getObjects(IDataSource).length > 0; }
