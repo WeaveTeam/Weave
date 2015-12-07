@@ -269,6 +269,8 @@ package weave.data.AttributeColumns
 						if (!string)
 							continue;
 						value = parseDate(string);
+						if (value is Date && isNaN((value as Date).time))
+							value = StandardLib.asNumber(string);
 					}
 					catch (e:Error)
 					{

@@ -175,6 +175,7 @@ package weave.data
 		 */
 		public function restoreCache(cacheData:Object):void
 		{
+			saveCache = cacheData;
 			for each (var args:Array in cacheData)
 				addToColumnCache.apply(this, args);
 		}
