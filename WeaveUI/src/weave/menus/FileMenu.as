@@ -199,7 +199,7 @@ package weave.menus
 									return true;
 							return false;
 						},
-						label: lang("Convert to local data sources"),
+						label: lang("Convert to cached data sources"),
 						click: function():void {
 							(WeaveAPI.AttributeColumnCache as AttributeColumnCache)
 								.convertToCachedDataSources()
