@@ -19,17 +19,21 @@
 
 package weave.data.DataSources
 {
-	import avmplus.getQualifiedClassName;
-	
-	import flash.geom.Point;
-	
 	import mx.collections.ArrayCollection;
-	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.core.ICallbackCollection;
+	import avmplus.getQualifiedClassName;
+	
+	import weave.api.detectLinkableObjectChange;
+	import weave.api.disposeObject;
+	import weave.api.getCallbackCollection;
+	import weave.api.linkableObjectIsBusy;
+	import weave.api.objectWasDisposed;
+	import weave.api.registerDisposableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
@@ -37,37 +41,28 @@ package weave.data.DataSources
 	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
-	import weave.api.detectLinkableObjectChange;
-	import weave.api.disposeObject;
-	import weave.api.getCallbackCollection;
-	import weave.api.linkableObjectIsBusy;
-	import weave.api.newLinkableChild;
-	import weave.api.objectWasDisposed;
-	import weave.api.registerDisposableChild;
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
 	import weave.compiler.Compiler;
-	import weave.core.CallbackCollection;
 	import weave.core.LinkableHashMap;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
+	import weave.data.QKeyManager;
 	import weave.data.AttributeColumns.AbstractAttributeColumn;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.EquationColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.QKeyManager;
 	import weave.data.hierarchy.ColumnTreeNode;
 	import weave.services.AMF3Servlet;
 	import weave.services.ProxyAsyncToken;
 	import weave.services.addAsyncResponder;
 	import weave.utils.VectorUtils;
-	import weave.utils.WeavePromise;
 	
 	public class DocumentMapDataSource extends AbstractDataSource implements IDataSource_Service
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, DocumentMapDataSource, "Document Map server");
+		
+		public const NO_CACHE_HACK:Boolean = true;
 		
 		public function DocumentMapDataSource()
 		{
@@ -87,6 +82,7 @@ package weave.data.DataSources
 		public static const TABLE_DOC_METADATA:String = 'document_metadata';
 		public static const TABLE_DOC_FILES:String = 'document_files';
 		public static const TABLE_DOC_WEIGHTS:String = 'document_weights';
+		public static const TABLE_DOC_SEARCH:String = 'document_search';
 		public static const TABLE_NODES:String = 'nodes';
 		
 		public static const COLUMN_DOC_TITLE:String = 'title';
@@ -337,6 +333,14 @@ package weave.data.DataSources
 							setRecords(cachedColumn, keysVector, dataVector);
 						}, keysVector);
 						return data;
+					});
+				
+				if (table == TABLE_DOC_SEARCH)
+					rpc('searchContent', [collection, column], function(ac:ArrayCollection):Array {
+						var localNames:Array = ac.source;
+						var qkeys:Vector.<IQualifiedKey> = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(getKeyType(collection), localNames));
+						setRecords(cachedColumn, qkeys, Vector.<String>(localNames));
+						return localNames;
 					});
 			}
 			
@@ -605,25 +609,6 @@ package weave.data.DataSources
 				(column as StringColumn).setRecords(keysVector, dataVector);
 			else
 				throw new Error("Unsupported column type " + getQualifiedClassName(column));
-		}
-
-		public function searchRecords(collection:String, query:String):WeavePromise
-		{
-			return new WeavePromise(this, function (resolve:Function, reject:Function):void
-				{
-					var token:AsyncToken = _service.invokeAsyncMethod("searchContent", [collection, query]); 
-					addAsyncResponder(token, function (event:ResultEvent, token:Object):void
-					{
-						var localNames:Array = (event.result as ArrayCollection).source;
-						var keys:Array = WeaveAPI.QKeyManager.getQKeys(getKeyType(collection), localNames);
-						resolve(keys);
-					},
-					function (event:FaultEvent, token:Object):void
-					{
-						reject(event);
-					});
-				}
-			);
 		}
 	}
 }

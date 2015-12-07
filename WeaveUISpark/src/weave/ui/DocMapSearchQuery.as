@@ -21,18 +21,19 @@ package weave.ui
 	import mx.rpc.events.FaultEvent;
 	
 	import weave.Weave;
-	import weave.api.core.ILinkableObject;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.core.ILinkableObject;
+	import weave.api.data.IQualifiedKey;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkablePromise;
 	import weave.core.LinkableString;
 	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.ImageColumn;
+	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.DataSources.DocumentMapDataSource;
 	import weave.data.KeySets.FilteredKeySet;
@@ -43,17 +44,21 @@ package weave.ui
 	{
 		public function DocMapSearchQuery()
 		{
-			promise.depend(queryString, collectionName, dataSourceName);
+			promise.depend(queryString, collectionName, dataSourceName, searchResult);
 			filteredKeys.setSingleKeySource(_keys);
 			filteredKeys.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
 		}
 		
+		private const searchResult:ProxyColumn = newLinkableChild(this, ProxyColumn);
 		private const promise:LinkablePromise = registerLinkableChild(this, new LinkablePromise(makePromise, describePromise), handlePromise);
 		private function makePromise():WeavePromise
 		{
 			var ds:DocumentMapDataSource = getDataSource();
 			if (ds)
-				return ds.searchRecords(collectionName.value, queryString.value);
+			{
+				var meta:Object = ds.getColumnMetadata(collectionName.value, DocumentMapDataSource.TABLE_DOC_SEARCH, queryString.value);
+				searchResult.setInternalColumn(WeaveAPI.AttributeColumnCache.getColumn(ds, meta));
+			}
 			return null;
 		}
 		private function describePromise():String
@@ -62,8 +67,7 @@ package weave.ui
 		}
 		private function handlePromise():void
 		{
-			if (promise.result is Array)
-				_keys.replaceKeys(promise.result as Array);
+			_keys.replaceKeys(searchResult.keys);
 			if (promise.error)
 			{
 				var e:* = promise.error;
