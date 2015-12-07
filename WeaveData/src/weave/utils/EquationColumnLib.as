@@ -469,6 +469,11 @@ package weave.utils
 					return NaN;
 				return int(value);
 			}
+			else if (newType == Array)
+			{
+				if (value != null && !(value is Array))
+					value = [value];
+			}
 
 			return value as newType;
 		}

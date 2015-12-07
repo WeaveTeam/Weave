@@ -130,7 +130,11 @@ package weave.data
 					var data:Array = [];
 					for each (var key:IQualifiedKey in column.keys)
 					{
-						for each (var value:* in column.getValueFromKey(key, Array))
+						var values:* = column.getValueFromKey(key, Array);
+						// special case if column misbehaves and does not actually return an array when one is requested (not sure if this occurs)
+						if (values != null && !(values is Array))
+							values = [values];
+						for each (var value:* in values)
 						{
 							if (dataType == DataType.GEOMETRY)
 							{
