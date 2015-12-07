@@ -291,7 +291,7 @@ package weave.utils
 			}
 			function onToolTipHide(event:ToolTipEvent):void
 			{
-				if ((event.toolTip as UIComponent).contains(staticBitmapBorder))
+				if (staticBitmapBorder && (event.toolTip as UIComponent).contains(staticBitmapBorder))
 					(event.toolTip as UIComponent).removeChild(staticBitmapBorder);
 			}
 		}
