@@ -34,8 +34,6 @@ package weavejs.data.columns
 			super();
 			if (metadata)
 				setMetadata(metadata);
-			// make sure dataType will be included in getMetadataPropertyNames() result
-			_metadata[ColumnMetadata.DATA_TYPE] = getMetadata(ColumnMetadata.DATA_TYPE);
 		}
 		
 		protected var _metadata:Object = null;
@@ -50,6 +48,8 @@ package weavejs.data.columns
 				throw new Error("Cannot call setMetadata() if already set");
 			// make a copy because we don't want any surprises (metadata being set afterwards)
 			_metadata = copyValues(metadata);
+			// make sure dataType will be included in getMetadataPropertyNames() result
+			_metadata[ColumnMetadata.DATA_TYPE] = getMetadata(ColumnMetadata.DATA_TYPE);
 		}
 		
 		/**
