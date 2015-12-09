@@ -19,8 +19,7 @@ package
 		public function start():void
 		{
 			// for testing only
-			JS.global.weave = new Weave();
-			JS.global.weave.test();
+			WeaveTest.test(JS.global.weave = new Weave());
 		}
 	}
 }
