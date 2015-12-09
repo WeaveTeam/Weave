@@ -108,7 +108,7 @@ package weavejs.core
 		/**
 		 * When the current frame elapsed time reaches this threshold, callLater processing will be done in later frames.
 		 */
-		[Bindable] public var maxComputationTimePerFrame:uint = 100;
+		public var maxComputationTimePerFrame:uint = 100;
 		private var maxComputationTimePerFrame_noActivity:uint = 250;
 		
 		/**
