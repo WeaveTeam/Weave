@@ -268,7 +268,10 @@ package weavejs.utils
 				for each (var obj:Object in stateToModify)
 				{
 					if (DynamicState.isDynamicState(obj) && !Weave.getDefinition(obj[DynamicState.CLASS_NAME]))
+					{
+						obj[DynamicState.CLASS_NAME] = Weave.className(LinkableHashMap);
 						obj[DynamicState.SESSION_STATE] = replaceUnknownObjectsInState(obj[DynamicState.SESSION_STATE], obj[DynamicState.CLASS_NAME]);
+					}
 				}
 			}
 			else if (!JS.isPrimitive(stateToModify))
