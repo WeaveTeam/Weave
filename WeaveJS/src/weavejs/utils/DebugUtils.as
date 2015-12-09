@@ -17,8 +17,9 @@ package weavejs.utils
 {
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.utils.JS;
-	import weavejs.utils.StandardLib;
+	import weavejs.core.LinkableHashMap;
+	import weavejs.core.LinkableString;
+	import weavejs.core.LinkableVariable;
 	
 	/**
 	 * Tools for debugging.
@@ -259,5 +260,29 @@ package weavejs.utils
 //			var table:TableTool = weave.root.requestObject(null, TableTool, false);
 //			data[0].forEach(n=>csv.putColumnInHashMap(n, table.columns));
 //		}
+		
+		public static function replaceUnknownObjectsInState(stateToModify:Object, className:String = null):Object
+		{
+			if (DynamicState.isDynamicStateArray(stateToModify))
+			{
+				for each (var obj:Object in stateToModify)
+				{
+					if (DynamicState.isDynamicState(obj) && !Weave.getDefinition(obj[DynamicState.CLASS_NAME]))
+						obj[DynamicState.SESSION_STATE] = replaceUnknownObjectsInState(obj[DynamicState.SESSION_STATE], obj[DynamicState.CLASS_NAME]);
+				}
+			}
+			else if (!JS.isPrimitive(stateToModify))
+			{
+				var newState:Array = [DynamicState.create("class", Weave.className(LinkableString), className)];
+				for (var key:String in stateToModify)
+				{
+					var value:Object = stateToModify[key];
+					var type:String = Weave.className(JS.isPrimitive(value) ? LinkableVariable : LinkableHashMap);
+					newState.push(DynamicState.create(key, type, value));
+				}
+				stateToModify = newState;
+			}
+			return stateToModify;
+		}
 	}
 }
