@@ -269,6 +269,7 @@ package weavejs.utils
 				case "\r":
 				case "\n":
 				case "\f":
+				/*
 					// non breaking space
 				case "\u00A0":
 					// line seperator
@@ -278,7 +279,7 @@ package weavejs.utils
 					// ideographic space
 				case "\u3000":
 					return true;
-					
+				*/
 				default:
 					return false;
 			}
