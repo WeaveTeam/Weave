@@ -267,21 +267,23 @@ package weavejs.utils
 			{
 				for each (var obj:Object in stateToModify)
 				{
-					if (DynamicState.isDynamicState(obj) && !Weave.getDefinition(obj[DynamicState.CLASS_NAME]))
-					{
+					if (!DynamicState.isDynamicState(obj))
+						continue;
+					if (!Weave.getDefinition(obj[DynamicState.CLASS_NAME]))
 						obj[DynamicState.CLASS_NAME] = Weave.className(LinkableHashMap);
-						obj[DynamicState.SESSION_STATE] = replaceUnknownObjectsInState(obj[DynamicState.SESSION_STATE], obj[DynamicState.CLASS_NAME]);
-					}
+					obj[DynamicState.SESSION_STATE] = replaceUnknownObjectsInState(obj[DynamicState.SESSION_STATE], obj[DynamicState.CLASS_NAME]);
 				}
 			}
 			else if (!JS.isPrimitive(stateToModify))
 			{
-				var newState:Array = [DynamicState.create("class", Weave.className(LinkableString), className)];
+				var newState:Array = [];
+				if (className)
+					newState.push(DynamicState.create("class", Weave.className(LinkableString), className));
 				for (var key:String in stateToModify)
 				{
 					var value:Object = stateToModify[key];
 					var type:String = Weave.className(JS.isPrimitive(value) ? LinkableVariable : LinkableHashMap);
-					newState.push(DynamicState.create(key, type, value));
+					newState.push(DynamicState.create(key, type, replaceUnknownObjectsInState(value)));
 				}
 				stateToModify = newState;
 			}
