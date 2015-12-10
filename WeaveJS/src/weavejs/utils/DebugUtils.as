@@ -16,6 +16,7 @@
 package weavejs.utils
 {
 	import weavejs.api.core.DynamicState;
+	import weavejs.api.core.ILinkableCompositeObject;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.core.LinkableHashMap;
 	import weavejs.core.LinkableString;
@@ -269,9 +270,12 @@ package weavejs.utils
 				{
 					if (!DynamicState.isDynamicState(obj))
 						continue;
-					if (!Weave.getDefinition(obj[DynamicState.CLASS_NAME]))
-						obj[DynamicState.CLASS_NAME] = Weave.className(LinkableHashMap);
-					obj[DynamicState.SESSION_STATE] = replaceUnknownObjectsInState(obj[DynamicState.SESSION_STATE], obj[DynamicState.CLASS_NAME]);
+					className = obj[DynamicState.CLASS_NAME];
+					var classDef:Class = Weave.getDefinition(className);
+					if (!classDef)
+						obj[DynamicState.CLASS_NAME] = Weave.className(classDef = LinkableHashMap);
+					if (classDef.prototype is ILinkableCompositeObject)
+						obj[DynamicState.SESSION_STATE] = replaceUnknownObjectsInState(obj[DynamicState.SESSION_STATE], className);
 				}
 			}
 			else if (!JS.isPrimitive(stateToModify))
