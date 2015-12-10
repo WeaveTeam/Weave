@@ -2,17 +2,27 @@ package weavejs.utils
 {
 	public class JS
 	{
+		private static function getGlobal(name:String):*
+		{
+			var Fn:Class = Function;
+			var fn:Function = new Fn("return " + name + ";");
+			return fn();
+		}
+		
 		/**
 		 * AS->JS Language helper to get the global scope
 		 */
-		public static const global:Object = (function():* { return this; }).apply(null);
+		public static const global:Object = getGlobal("window");
+		
+		private static const console:Object = getGlobal("console");
+		private static const Symbol:Object = getGlobal("Symbol");
 		
 		/**
 		 * Calls console.error()
 		 */
 		public static function error(...args):void
 		{
-			global.console.error.apply(global.console, args);
+			console.error.apply(console, args);
 		}
 		
 		/**
@@ -20,7 +30,7 @@ package weavejs.utils
 		 */
 		public static function log(...args):void
 		{
-			global.console.log.apply(global.console, args);
+			console.log.apply(console, args);
 		}
 		
 		/**
@@ -31,23 +41,23 @@ package weavejs.utils
 		public static function compile(script:String, paramNames:Array = null):Function
 		{
 			var paramsStr:String = paramNames ? paramNames.join(',') : '';
-			return global.eval("(function(" + paramsStr + "){ return eval(" + JSON.stringify(script) + "); })");
+			return global['eval']("(function(" + paramsStr + "){ return eval(" + JSON.stringify(script) + "); })");
 		}
 		
 		/**
 		 * AS->JS Language helper for Promise
 		 */
-		public static const Promise:Class = (function():* { return this['Promise']; }).apply(null);
+		public static const Promise:Class = getGlobal('Promise');
 		
 		/**
 		 * AS->JS Language helper for Map
 		 */
-		public static const Map:Class = (function():* { return this['Map']; }).apply(null);
+		public static const Map:Class = getGlobal('Map');
 		
 		/**
 		 * AS->JS Language helper for WeakMap
 		 */
-		public static const WeakMap:Class = (function():* { return this['WeakMap']; }).apply(null);
+		public static const WeakMap:Class = getGlobal('WeakMap');
 		
 		/**
 		 * AS->JS Language helper for getting an Array of Map keys.
@@ -79,7 +89,7 @@ package weavejs.utils
 		 */
 		public static function isIterable(value:*):Boolean
 		{
-			return value && typeof value[global.Symbol.iterator] === 'function';
+			return value && typeof value[Symbol.iterator] === 'function';
 		}
 		
 		/**
@@ -93,9 +103,9 @@ package weavejs.utils
 				return value;
 			
 			// special case for iterable object
-			if (value && typeof value[global.Symbol.iterator] === 'function')
+			if (value && typeof value[Symbol.iterator] === 'function')
 			{
-				var iterator:Object = value[global.Symbol.iterator]();
+				var iterator:Object = value[Symbol.iterator]();
 				var values:Array = [];
 				while (true)
 				{
@@ -186,7 +196,7 @@ package weavejs.utils
 		public static function setTimeout(func:Function, delay:int, ...params):int
 		{
 			params.unshift(func, delay);
-			return global.setTimeout.apply(global, params);
+			return global['setTimeout'].apply(global, params);
 		}
 		
 		/**
@@ -195,7 +205,7 @@ package weavejs.utils
 		public static function setInterval(func:Function, delay:int, ...params):int
 		{
 			params.unshift(func, delay);
-			return global.setInterval.apply(global, params);
+			return global['setInterval'].apply(global, params);
 		}
 		
 		/**
@@ -206,12 +216,16 @@ package weavejs.utils
 			return Date['now']();
 		}
 		
+		private static var Language:Class;
+		
 		/**
 		 * Fixes bugs with the "is" operator.
 		 */
 		public static function fix_is():*
 		{
-			global.org.apache.flex.utils.Language['is'] = IS;
+			if (!Language)
+				Language = getGlobal("org.apache.flex.utils.Language");
+			Language['is'] = IS;
 			if (!(true is Boolean))
 				throw new Error('"is" operator is broken')
 		}
@@ -222,7 +236,9 @@ package weavejs.utils
 		 */
 		public static function AS(leftOperand:Object, rightOperand:Class):*
 		{
-			return global.org.apache.flex.utils.Language['as'](leftOperand, rightOperand);
+			if (!Language)
+				Language = getGlobal("org.apache.flex.utils.Language");
+			return Language['as'](leftOperand, rightOperand);
 		}
 		
 		/**
