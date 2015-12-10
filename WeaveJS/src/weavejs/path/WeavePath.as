@@ -584,7 +584,7 @@ package weavejs.path
 			if (script_or_function is String)
 				script_or_function = JS.compile(script_or_function);
 			
-			return script_or_function.apply(this, args);
+			return script_or_function.apply(getObject(), args);
 		}
 		
 		public function getObject(...relativePath):ILinkableObject
