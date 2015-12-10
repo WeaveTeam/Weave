@@ -17,6 +17,7 @@ package
 	import weavejs.api.data.IAttributeColumnCache;
 	import weavejs.api.data.IQualifiedKeyManager;
 	import weavejs.core.LinkableHashMap;
+	import weavejs.core.LinkableVariable;
 	import weavejs.core.ProgressIndicator;
 	import weavejs.core.Scheduler;
 	import weavejs.core.SessionManager;
@@ -24,7 +25,7 @@ package
 	import weavejs.data.AttributeColumnCache;
 	import weavejs.data.keys.QKeyManager;
 	import weavejs.path.WeavePath;
-	import weavejs.path.WeavePathData;
+	import weavejs.path.WeavePathUI;
 	import weavejs.utils.Dictionary2D;
 	import weavejs.utils.JS;
 	import weavejs.utils.StandardLib;
@@ -40,9 +41,10 @@ package
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IQualifiedKeyManager, QKeyManager);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IScheduler, Scheduler);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IProgressIndicator, ProgressIndicator);
+			registerClass("weave.ui::FlexibleLayout", LinkableVariable);
 			
 			// set this property for backwards compatibility
-			this['WeavePath'] = WeavePath;
+			this['WeavePath'] = WeavePathUI;
 			
 			root = disposableChild(this, LinkableHashMap);
 			history = disposableChild(this, new SessionStateLog(root, HISTORY_SYNC_DELAY));
@@ -85,7 +87,7 @@ package
 			// handle path(linkableObject)
 			if (basePath.length == 1 && isLinkable(basePath[0]))
 				basePath = findPath(root, basePath[0]);
-			return new WeavePathData(this, basePath);
+			return new WeavePathUI(this, basePath);
 		}
 
 		
@@ -390,6 +392,26 @@ package
 		// static general helper functions
 		//////////////////////////////////////////////////////////////////////////////////
 		
+		private static const map_name_class:Object = new JS.Map();
+		private static const map_class_name:Object = new JS.Map();
+		
+		public static const defaultPackages:Array = [
+			'weavejs.core'
+		];
+		
+		/**
+		 * Registers a class for use with Weave.className() and Weave.getDefinition().
+		 */
+		public static function registerClass(name:String, definition:Class):void
+		{
+			map_name_class.set(name, definition);
+			map_class_name.set(definition, name);
+			
+			var shortName:String = name.split('.').pop().split(':').pop();
+			if (shortName != name)
+				registerClass(shortName, definition);
+		}
+		
 		/**
 		 * Gets the qualified class name from a class definition or an object instance.
 		 */
@@ -397,6 +419,9 @@ package
 		{
 			if (!def)
 				return null;
+			
+			if (map_class_name.has(def))
+				return map_class_name.get(def);
 			
 			if (!def.prototype)
 				def = def.constructor;
@@ -406,10 +431,6 @@ package
 			
 			return def.name;
 		}
-		
-		public static const defaultPackages:Array = [
-			'weavejs.core'
-		];
 		
 		public static function getDefinition(name:String):*
 		{
@@ -422,8 +443,10 @@ package
 				else
 					break;
 			}
+			if (def)
+				return def;
 			
-			if (!def && names.length == 1)
+			if (names.length == 1)
 			{
 				for each (var pkg:String in defaultPackages)
 				{
@@ -433,7 +456,7 @@ package
 				}
 			}
 			
-			return def;
+			return map_name_class.get(name);
 		}
 		
 		/**
