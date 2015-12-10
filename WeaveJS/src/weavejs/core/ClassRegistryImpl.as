@@ -25,31 +25,27 @@ package weavejs.core
 	{
 		public function ClassRegistryImpl()
 		{
-			this.singletonInstances = new JS.Map();
-			this.singletonImplementations = new JS.Map();
-			this.implementations = new JS.Map();
-			this.displayNames = new JS.Map();
 		}
 		
 		/**
 		 * interface Class -&gt; singleton implementation instance.
 		 */
-		public var singletonInstances:Object;
+		public var singletonInstances:Object = new JS.Map();
 		
 		/**
 		 * interface Class -&gt; implementation Class
 		 */
-		public var singletonImplementations:Object;
+		public var singletonImplementations:Object = new JS.Map();
 		
 		/**
 		 * interface Class -&gt; Array&lt;implementation Class&gt;
 		 */
-		public var implementations:Object;
+		public var implementations:Object = new JS.Map();
 		
 		/**
 		 * implementation Class -&gt; String
 		 */
-		public var displayNames:Object;
+		public var displayNames:Object = new JS.Map();
 		
 		/**
 		 * This registers an implementation for a singleton interface.
