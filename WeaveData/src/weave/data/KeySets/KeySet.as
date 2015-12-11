@@ -17,11 +17,10 @@ package weave.data.KeySets
 {
 	import flash.utils.Dictionary;
 	
+	import weave.api.newLinkableChild;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newLinkableChild;
 	import weave.compiler.Compiler;
-	import weave.compiler.StandardLib;
 	import weave.core.LinkableVariable;
 	
 	/**
@@ -72,7 +71,7 @@ package weave.data.KeySets
 			// each row of CSV represents a different keyType (keyType is the first token in the row)
 			var newKeys:Array = [];
 			for each (var row:Array in _sessionStateInternal)
-				newKeys.push.apply(null, WeaveAPI.QKeyManager.getQKeys(row[0], row.slice(1)));
+				newKeys.push.apply(newKeys, WeaveAPI.QKeyManager.getQKeys(row[0], row.slice(1)));
 			
 			// avoid internal recursion while still allowing callbacks to cause recursion afterwards
 			delayCallbacks();
