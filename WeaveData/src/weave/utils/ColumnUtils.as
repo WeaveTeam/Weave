@@ -49,6 +49,8 @@ package weave.utils
 	 */
 	public class ColumnUtils
 	{
+		public static var debugKeyTypes:Boolean = false;
+		
 		/**
 		 * This is a shortcut for column.getMetadata(ColumnMetadata.TITLE).
 		 * @param column A column to get the title of.
@@ -58,8 +60,7 @@ package weave.utils
 		{
 			var title:String = column.getMetadata(ColumnMetadata.TITLE) || ProxyColumn.DATA_UNAVAILABLE;
 			
-			// debug code
-			if (false)
+			if (debugKeyTypes)
 			{
 				var keyType:String = column.getMetadata(ColumnMetadata.KEY_TYPE);
 				if (keyType)
