@@ -39,6 +39,7 @@ package weave.data.AttributeColumns
 	{
 		public function ColorColumn()
 		{
+			super();
 			_internalColumnStats = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(internalDynamicColumn));
 		}
 		

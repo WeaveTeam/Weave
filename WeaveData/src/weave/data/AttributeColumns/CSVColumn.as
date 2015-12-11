@@ -35,6 +35,7 @@ package weave.data.AttributeColumns
 	{
 		public function CSVColumn()
 		{
+			super();
 			numericMode.value = false;
 		}
 		

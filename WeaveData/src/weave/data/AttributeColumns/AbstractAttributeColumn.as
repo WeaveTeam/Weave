@@ -20,6 +20,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.compiler.Compiler;
 	import weave.core.CallbackCollection;
 	import weave.primitives.Dictionary2D;
 	import weave.utils.ColumnUtils;
@@ -35,6 +36,7 @@ package weave.data.AttributeColumns
 	{
 		public function AbstractAttributeColumn(metadata:Object = null)
 		{
+			super();
 			if (metadata)
 				setMetadata(metadata);
 		}
@@ -64,16 +66,16 @@ package weave.data.AttributeColumns
 			if (obj_or_xml is XML_Class)
 				return HierarchyUtils.getMetadata(XML(obj_or_xml));
 			
-			var obj:Object = {};
+			var copy:Object = {};
 			for (var key:String in obj_or_xml)
 			{
 				var value:* = obj_or_xml[key];
 				if (value is Array)
-					obj[key] = WeaveAPI.CSVParser.createCSVRow(value as Array);
+					copy[key] = Compiler.stringify(value);
 				else
-					obj[key] = value;
+					copy[key] = value;
 			}
-			return obj;
+			return copy;
 		}
 		
 		// metadata for this attributeColumn (statistics, description, unit, etc)

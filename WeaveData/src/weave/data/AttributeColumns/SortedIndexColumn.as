@@ -40,6 +40,7 @@ package weave.data.AttributeColumns
 	{
 		public function SortedIndexColumn()
 		{
+			super();
 			this.addImmediateCallback(this, _updateStats);
 		}
 		

@@ -267,6 +267,7 @@ package weave.data.AttributeColumns
 				case Aggregation.LAST:
 					return strings[strings.length - 1];
 			}
+			return null;
 		}
 		
 		public static function getSupportedAggregationModes():Array

@@ -62,6 +62,7 @@ package weave.data.AttributeColumns
 
 		public function EquationColumn()
 		{
+			super();
 			getCallbackCollection(LinkableFunction.macroLibraries).addImmediateCallback(this, equation.triggerCallbacks, false, true);
 			getCallbackCollection(LinkableFunction.macros).addImmediateCallback(this, equation.triggerCallbacks, false, true);
 			

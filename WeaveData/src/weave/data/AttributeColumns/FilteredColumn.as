@@ -33,6 +33,7 @@ package weave.data.AttributeColumns
 	{
 		public function FilteredColumn()
 		{
+			super();
 			_filteredKeySet.setSingleKeySource(internalDynamicColumn);
 		}
 		
@@ -54,8 +55,9 @@ package weave.data.AttributeColumns
 		override public function get keys():Array
 		{
 			// also make internal column request because it may trigger callbacks
-			internalDynamicColumn.keys;
-			return _filteredKeySet.keys;
+			if (internalDynamicColumn.keys)
+				return _filteredKeySet.keys;
+			return [];
 		}
 		
 		/**

@@ -29,6 +29,7 @@ package weave.data.AttributeColumns
 	{
 		public function SortedColumn()
 		{
+			super();
 			registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(internalDynamicColumn));
 			sortCopyAscending = SortedKeySet.generateSortCopyFunction([internalDynamicColumn], [1]);
 			sortCopyDescending = SortedKeySet.generateSortCopyFunction([internalDynamicColumn], [-1]);

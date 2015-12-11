@@ -44,6 +44,7 @@ package weave.data.AttributeColumns
 	{
 		public function ReferencedColumn()
 		{
+			super();
 			WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateDataSource, true);
 		}
 		

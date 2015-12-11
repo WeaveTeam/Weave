@@ -28,6 +28,7 @@ package weave.data.AttributeColumns
 	{
 		public function NormalizedColumn(min:Number = 0, max:Number = 1)
 		{
+			super();
 			_stats = WeaveAPI.StatisticsCache.getColumnStatistics(internalDynamicColumn);
 			// when stats update, we need to trigger our callbacks because the values returned by getValueFromKey() will be different.
 			getCallbackCollection(_stats).addImmediateCallback(this, triggerCallbacks);
