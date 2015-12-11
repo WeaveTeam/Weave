@@ -38,7 +38,6 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.GeneralizedGeometry;
-	import weave.utils.ColumnUtils;
 	
 	/**
 	 * A glyph represents a point of data at an X and Y coordinate.
