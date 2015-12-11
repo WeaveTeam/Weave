@@ -464,7 +464,7 @@ package weavejs.core
 				// implicit session state
 				// first pass: get property names
 				
-				var propertyNames:Array = Object['getOwnPropertyNames'](linkableObject);
+				var propertyNames:Array = JS.getPropertyNames(linkableObject, true);
 				var resultNames:Array = [];
 				var resultProperties:Array = [];
 				var property:ILinkableObject = null;
@@ -540,7 +540,7 @@ package weavejs.core
 			var name:String;
 			// get the names from the object itself because each instance must have different
 			// linkable children, so we don't want to grab them from the prototype
-			var propertyNames:Array = Object['getOwnPropertyNames'](linkableObject);
+			var propertyNames:Array = JS.getPropertyNames(linkableObject, true);
 			
 			var linkableNames:Array = [];
 			for each (name in propertyNames)

@@ -350,5 +350,48 @@ package weavejs.util
 				object = Object['getPrototypeOf'](object);
 			return object != null;
 		}
+		
+		/**
+		 * Similar to Object.getOwnPropertyNames(), except it also checks prototypes.
+		 */
+		public static function getPropertyNames(object:Object, useCache:Boolean):Array
+		{
+			if (object == null || object === Object.prototype)
+				return [];
+			
+			if (useCache && map_obj_names.has(object))
+				return map_obj_names.get(object);
+			
+			var names:Array = getPropertyNames(Object['getPrototypeOf'](object), useCache);
+			// if the names array is in the cache, make a copy
+			if (useCache)
+				names = names.concat();
+			
+			// prepare to skip duplicate names
+			++skip_id;
+			var name:String;
+			for each (name in names)
+				map_prop_skip.set(name, skip_id);
+			
+			// add own property names
+			var ownNames:Array = Object['getOwnPropertyNames'](object);
+			for each (name in ownNames)
+			{
+				// skip duplicate names
+				if (map_prop_skip.get(name) !== skip_id)
+				{
+					map_prop_skip.set(name, skip_id);
+					names.push(name);
+				}
+			}
+			
+			// save in cache
+			map_obj_names.set(object, names);
+			return names;
+		}
+		
+		private static const map_obj_names:Object = new JS.WeakMap();
+		private static const map_prop_skip:Object = new JS.Map();
+		private static var skip_id:int = 0;
 	}
 }
