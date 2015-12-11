@@ -680,8 +680,7 @@ package weave.data.DataSources
 						// hack for dimension slider
 						var newColumn:SecondaryKeyNumColumn = new SecondaryKeyNumColumn(metadata);
 						newColumn.baseTitle = metadata['baseTitle'];
-						var secKeyVector:Vector.<String> = Vector.<String>(result.thirdColumn);
-						newColumn.updateRecords(keysVector, secKeyVector, result.data);
+						newColumn.updateRecords(keysVector, result.thirdColumn, result.data);
 						proxyColumn.setInternalColumn(newColumn);
 						proxyColumn.setMetadata(null); // this will allow SecondaryKeyNumColumn to use its getMetadata() code
 					}
