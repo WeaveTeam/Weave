@@ -504,6 +504,18 @@ weave.WeavePath.prototype.getType = function(/*...relativePath*/)
 };
 
 /**
+ * Gets the simple type (unqualified class name) of the object at the current path or relative to the current path.
+ * @param relativePath An optional Array (or multiple parameters) specifying descendant names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return The unqualified class name of the object at the current or descendant path, or null if there is no object.
+ */
+weave.WeavePath.prototype.getSimpleType = function(/*...relativePath*/)
+{
+	var type = this.weave.getObjectType(this._path.concat(this._A(arguments, 1)));
+	return type && type.split('.').pop().split(':').pop();
+};
+
+/**
  * Gets the session state of an object at the current path or relative to the current path.
  * @param relativePath An optional Array (or multiple parameters) specifying descendant names relative to the current path.
  *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
