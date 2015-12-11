@@ -16,7 +16,7 @@
 package weavejs.core
 {
 	import weavejs.api.core.IClassRegistry;
-	import weavejs.utils.JS;
+	import weavejs.util.JS;
 	
 	/**
 	 * Manages a set of implementations of interfaces.

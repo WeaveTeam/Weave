@@ -1,0 +1,477 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+
+package weavejs.geom
+{
+	/**
+	 * Binary Line Generalization Tree
+	 * This class defines a structure to represent a streamed polygon.
+	 * 
+	 * Reference: van Oosterom, P. 1990. Reactive data structures
+	 *  for geographic information systems. PhD thesis, Department
+	 *  of Computer Science, Leiden University, The Netherlands.
+	 * 
+	 * 
+	 * @author adufilie
+	 */
+	public class BLGTree
+	{
+		/**
+		 * Create an empty tree.
+		 */
+		public function BLGTree()
+		{
+		}
+
+		/**
+		 * This is the root of the BLGTree.
+		 */
+		private var rootNode:BLGNode = null;
+
+		public function get isEmpty():Boolean
+		{
+			return rootNode == null;
+		}
+		
+		/**
+		 * Insert a new vertex into the BLGTree.
+		 */
+		public function insert(index:int, importance:Number, x:Number, y:Number):void
+		{
+			// if this new point would have been in the previous traversal,
+			// then the previous traversal is now invalid.
+			if (importance >= previousTraversalMinImportance)
+				previousTraversalMinImportance = -1; // reset this value so previous traversal won't be reused
+
+			// create a new node object to hold these values
+			var newNode:BLGNode = new BLGNode(index, importance, x, y);
+			_insert(newNode);
+		}
+		
+		/**
+		 * @private
+		 */
+		private function _insert(newNode:BLGNode):void
+		{
+			// base case: tree is empty, save as root node
+			if (rootNode == null)
+			{
+				rootNode = newNode;
+				return;
+			}
+			// iteratively traverse the tree until an appropriate insertion point is found
+			var currentNode:BLGNode = rootNode;
+			while (true)
+			{
+				// base case: if the new index is the same as the current index, keep old node
+				if (currentNode.index == newNode.index)
+				{
+					if (newNode.left != null || newNode.right != null) // sanity check -- this should never happen
+						throw new Error("BLGNode.insert: new node with children has index identical to an existing node");
+					return;
+				}
+				// if the new importance is greater than this importance, tree needs to be restructured.
+				if (newNode.importance > currentNode.importance)
+				{
+					// pull out the values of this node and replace with new node
+					var tempIndex:int = currentNode.index;
+					var tempImportance:Number = currentNode.importance;
+					var tempX:Number = currentNode.x;
+					var tempY:Number = currentNode.y;
+					var tempLeft:BLGNode = currentNode.left;
+					var tempRight:BLGNode = currentNode.right;
+					
+					currentNode.index = newNode.index;
+					currentNode.importance = newNode.importance;
+					currentNode.x = newNode.x;
+					currentNode.y = newNode.y;
+					currentNode.left = newNode.left;
+					currentNode.right = newNode.right;
+					
+					newNode.index = tempIndex;
+					newNode.importance = tempImportance;
+					newNode.x = tempX;
+					newNode.y = tempY;
+					newNode.left = tempLeft;
+					newNode.right = tempRight;
+					// now 'currentNode' is the new node with no children and 'newNode' is the old tree.
+					// we can insert the old tree into the new node below.
+				}
+				// the new node's importance is <= the importance of this node
+				// if the new index is < this index, place it to the left 
+				if (newNode.index < currentNode.index)
+				{
+					if (currentNode.left != null)
+					{
+						// travel down the tree to find the appropriate insertion spot
+						currentNode = currentNode.left;
+						continue;
+					}
+					// found insertion point
+					currentNode.left = newNode;
+					// newNode.left is ok because all child indices will be < currentNode; newNode.right is questionable
+					newNode = newNode.right;
+					currentNode.left.right = null; // clear previous reference to newNode
+					break;
+				}
+				// otherwise, place it to the right of this node
+				else // new index > this index
+				{
+					if (currentNode.right != null)
+					{
+						// travel down the tree to find the appropriate insertion spot
+						currentNode = currentNode.right;
+						continue;
+					}
+					// found insertion point, done
+					currentNode.right = newNode;
+					// newNode.right is ok because all child indices will be > currentNode; newNode.left is questionable
+					newNode = newNode.left;
+					currentNode.right.left = null; // clear previous reference to newNode
+					break;
+				}
+			}
+			// currentNode is a node that was just inserted
+			// newNode is a tree to shuffle around currentNode
+			var leftTraversalNode:BLGNode = currentNode; // for traversing down the left side of currentNode
+			var rightTraversalNode:BLGNode = currentNode; // for traversing down the right side of currentNode
+			while (newNode != null)
+			{
+				// shuffle newNode around currentNode
+				if (newNode.index < currentNode.index) // newNode should go to the left of currentNode
+				{
+					if (newNode.index < leftTraversalNode.index) // will only happen once, when leftTraversalNode == currentNode
+					{
+						/*
+						// for debugging
+						if (leftTraversalNode != currentNode)
+							throw new Error("Unexpected error. leftTraversalNode != currentNode");
+						*/
+						
+						if (leftTraversalNode.left != null)
+						{
+							// travel down the tree to find the appropriate insertion spot
+							leftTraversalNode = leftTraversalNode.left;
+							continue;
+						}
+						// found insertion point
+						leftTraversalNode.left = newNode;
+						// newNode.left is ok because all child indices will be < currentNode; newNode.right is questionable
+						newNode = newNode.right;
+						leftTraversalNode.left.right = null; // clear previous reference to newNode
+						continue;
+					}
+					// everything under leftTraversalNode is < currentNode, so insert to the right of leftTraversalNode
+					if (leftTraversalNode.right != null)
+					{
+						// travel down the tree to find the appropriate insertion spot
+						leftTraversalNode = leftTraversalNode.right;
+						continue;
+					}
+					// found insertion point
+					leftTraversalNode.right = newNode;
+					// newNode.left is ok because all child indices will be < currentNode; newNode.right is questionable
+					newNode = newNode.right;
+					leftTraversalNode.right.right = null; // clear previous reference to newNode
+				}
+				else // newNode should go to the right of currentNode
+				{
+					if (newNode.index > rightTraversalNode.index) // will only happen once, when rightTraversalNode == currentNode
+					{
+						/*
+						// for debugging
+						if (rightTraversalNode != currentNode)
+							throw new Error("Unexpected error. rightTraversalNode != currentNode");
+						*/
+						
+						if (rightTraversalNode.right != null)
+						{
+							// travel down the tree to find the appropriate insertion spot
+							rightTraversalNode = rightTraversalNode.right;
+							continue;
+						}
+						// found insertion point
+						rightTraversalNode.right = newNode;
+						// newNode.right is ok because all child indices will be > currentNode; newNode.left is questionable
+						newNode = newNode.left;
+						rightTraversalNode.right.left = null; // clear previous reference to newNode
+						continue;
+					}
+					// everything under rightTraversalNode is > currentNode, so insert to the left of rightTraversalNode
+					if (rightTraversalNode.left != null)
+					{
+						// travel down the tree to find the appropriate insertion spot
+						rightTraversalNode = rightTraversalNode.left;
+						continue;
+					}
+					// found insertion point
+					rightTraversalNode.left = newNode;
+					// newNode.right is ok because all child indices will be > currentNode; newNode.left is questionable
+					newNode = newNode.left;
+					rightTraversalNode.left.left = null; // clear previous reference to newNode
+				}
+			}
+		}
+
+		/**
+		 * operationStack and nodeStack
+		 * used internally in getPointVector() to keep track of the current traversal operation
+		 */
+		private var operationStack:Array = [];
+		private var nodeStack:Array = [];
+		private static const OP_VISIT:int = 0; // constant used with operationStack
+		private static const OP_TRAVERSE:int = 1; // constant used with operationStack
+		
+		/**
+		 * This function performs an in-order traversal of nodes, skipping those
+		 * with importance &lt; minImportance.  The visit operation is to append the
+		 * current node to the traversalVector.
+		 * @param minImportance No points with importance less than this value will be returned.
+		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
+		 * @return A list of BLGNodes, ordered by point index.
+		 */
+		public function getPointVector(minImportance:Number = 0, visibleBounds:Bounds2D = null):Array/*Vector.<BLGNode>*/
+		{
+			if (minImportance == previousTraversalMinImportance && previousTraversalVisibleBounds.equals(visibleBounds))
+				return traversalVector; // avoid redundant computation
+
+ 			var resultCount:int = 0; // the number of nodes that have been stored in the traversalVector
+			if (rootNode != null)
+			{
+				// traverse the tree
+				// begin by putting a traverse operation on the stack
+				operationStack[0] = OP_TRAVERSE;
+				nodeStack[0] = rootNode;
+				var prevPrevGridTest:uint = 0;
+				var prevGridTest:uint = 0;
+				var gridTest:uint;
+				var stackPos:int = 0;
+				var node:BLGNode;
+				var operation:int;
+				// loop until the stack is empty
+				while (stackPos >= 0)
+				{
+					// get next node & operation
+					node = nodeStack[stackPos];
+					operation = operationStack[stackPos];
+					// pop off stacks with cleanup
+					nodeStack[stackPos] = null;
+					operationStack[stackPos] = null;
+					stackPos--;
+					
+					// handle operation
+					if (operation == OP_TRAVERSE)
+					{
+						// if this node is unimportant, its children are also unimportant, so do nothing
+						if (node.importance < minImportance)
+							continue;
+						
+						// push three new operations on the stack, reverse order
+	
+						// push third operation if necessary
+						if (node.right != null)
+						{
+							stackPos++;
+							operationStack[stackPos] = OP_TRAVERSE;
+							nodeStack[stackPos] = node.right; // right side last for in-order traversal
+						}
+						
+						// push second operation
+						stackPos++;
+						operationStack[stackPos] = OP_VISIT;
+						nodeStack[stackPos] = node;
+						
+						// push first operation if necessary
+						if (node.left != null)
+						{
+							stackPos++;
+							operationStack[stackPos] = OP_TRAVERSE;
+							nodeStack[stackPos] = node.left; // left side first for in-order traversal
+						}
+					}
+					else // OP_VISIT
+					{
+						/*
+						// for debugging
+						if (resultCount > 0 && traversalVector[resultCount - 1].index > node.index)
+						{
+							var errorMsg:String = StandardLib.substitute(
+								"Unexpected error. OP_VISIT out of order ({0} to {1})",
+								traversalVector[resultCount - 1].index,
+								node.index
+							);
+							throw new Error(errorMsg);
+						}
+						*/
+						if (visibleBounds != null)
+						{
+							gridTest = visibleBounds.getGridTest(node.x, node.y);
+							if (prevPrevGridTest & prevGridTest & gridTest)
+							{
+								// Drop previous node.  Keep current prevPrevGridTest value.
+								resultCount--;
+							}
+							else
+							{
+								// Don't drop previous node.  Shift prev grid test values.
+								prevPrevGridTest = prevGridTest;
+							}
+							prevGridTest = gridTest;
+						}
+						// copy this node to the results
+						traversalVector[resultCount++] = node;
+					}
+				}
+			}
+			// truncate vector to number of results
+			traversalVector.length = resultCount;
+			previousTraversalMinImportance = minImportance; // remember this value to avoid rudundant computation
+			previousTraversalVisibleBounds.copyFrom(visibleBounds); // remember this value to avoid rudundant computation
+			
+			/*
+			// for debugging
+			for (var i:int = 0, prev:int = -1; i < traversalVector.length; i++)
+			{
+				if (traversalVector[i].index < prev)
+				{
+					trace("PROBLEM:",prev,"to",traversalVector[i].index);
+					break;
+				}
+				prev = traversalVector[i].index;
+			}
+			*/
+			
+			return traversalVector;
+		}
+		
+		/**
+		 * This vector is used in getPointVector().  It contains pointers to nodes that
+		 * are currently being traversed. The first entry in the vector is the root node,
+		 * and each other entry corresponds to a child node of the previous entry.
+		 */
+		private var traversalVector:Array/*Vector.<BLGNode>*/ = [];
+		/**
+		 * This is the minImportance value from the last traversal.
+		 * It can be used to avoid redundant traversal computations.
+		 */
+		private var previousTraversalMinImportance:Number = -1;
+		/**
+		 * This is the visibleBounds value from the last traversal.
+		 * It can be used to avoid redundant traversal computations.
+		 */
+		private var previousTraversalVisibleBounds:Bounds2D = new Bounds2D();
+
+		private static function assertTrue(bool:Boolean):void
+		{
+			if (!bool)
+				throw new Error("Assertion failed");
+		}
+		
+		private static function assertValid(node:BLGNode, assertNode:Function):void
+		{
+			if (!node)
+				return;
+			
+			assertNode(node);
+			if (node.left)
+			{
+				assertTrue(node.left.index < node.index);
+				assertValid(node.left, assertNode);
+			}
+			if (node.right)
+			{
+				assertTrue(node.index < node.right.index);
+				assertValid(node.right, assertNode);
+			}
+		}
+		
+		/**
+		 * @param splitIndex An index to split the tree at.
+		 * @return A new BLGTree containing all the points whose index >= splitIndex.
+		 */
+		public function splitAtIndex(splitIndex:int):BLGTree
+		{
+			// reset these values so previous traversal won't be reused
+			previousTraversalMinImportance = -1;
+			traversalVector.length = 0;
+			
+			// create new tree for points whose index >= splitIndex
+			var newTree:BLGTree = new BLGTree();
+			
+			while (true)
+			{
+				// traverse down right side of this tree until we find a subtree that should go to the new tree
+				var parent:BLGNode = null;
+				var subtree:BLGNode = this.rootNode;
+				while (subtree && subtree.index < splitIndex)
+				{
+					parent = subtree;
+					subtree = subtree.right;
+				}
+				
+				// stop if no appropriate subtree found
+				if (!subtree)
+					break;
+				
+				// remove subtree
+				if (parent)
+					parent.right = null;
+				else
+					this.rootNode = null;
+				
+				// add to new tree
+				newTree._insert(subtree);
+				
+				// traverse down left side of new tree until we find a subtree that should go back to the old tree
+				parent = null;
+				subtree = newTree.rootNode;
+				while (subtree && subtree.index >= splitIndex)
+				{
+					parent = subtree;
+					subtree = subtree.left;
+				}
+				
+				// stop if no appropriate subtree found
+				if (!subtree)
+					break;
+				
+				// remove subtree
+				if (parent)
+					parent.left = null;
+				else
+					newTree.rootNode = null;
+				
+				// add to old tree
+				this._insert(subtree);
+			}
+			
+			//assertValid(this.rootNode, function(node:BLGNode):void{ assertTrue(node.index < splitIndex); });
+			//assertValid(newTree.rootNode, function(node:BLGNode):void{ assertTrue(node.index >= splitIndex); });
+			
+			// return new tree
+			return newTree;
+		}
+
+		/**
+		 * Removes all points from the BLGTree.
+		 */
+		public function clear():void
+		{
+			rootNode = null;
+			traversalVector.length = 0;
+			previousTraversalMinImportance = -1;
+		}
+	}
+}

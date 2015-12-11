@@ -20,10 +20,10 @@ package weavejs.data
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IColumnStatistics;
 	import weavejs.api.data.IQualifiedKey;
-	import weavejs.data.keys.QKeyManager;
-	import weavejs.utils.DebugUtils;
-	import weavejs.utils.JS;
-	import weavejs.utils.StandardLib;
+	import weavejs.data.key.QKeyManager;
+	import weavejs.util.DebugUtils;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 	
 	internal class ColumnStatistics implements IColumnStatistics
 	{
@@ -186,12 +186,12 @@ package weavejs.data
 		private var standardDeviation:Number;
 		
 		//TODO - make runningTotals use sorted order instead of original key order
-		private var map_runningTotals:Object;
+		private var map_key_runningTotal:Object;
 		
 		private var outKeys:Array;
 		private var outNumbers:Array;
-		private var map_sortIndex:Object; // IQualifiedKey -> int
-		private var hack_map_numericData:Object; // IQualifiedKey -> Number
+		private var map_key_sortIndex:Object; // IQualifiedKey -> int
+		private var hack_map_key_number:Object; // IQualifiedKey -> Number
 		private var median:Number;
 		
 		private function asyncStart():void
@@ -211,11 +211,11 @@ package weavejs.data
 			
 			outKeys = new Array(keys.length);
 			outNumbers = new Array(keys.length);
-			map_sortIndex = new JS.WeakMap();
-			hack_map_numericData = new JS.WeakMap();
+			map_key_sortIndex = new JS.WeakMap();
+			hack_map_key_number = new JS.WeakMap();
 			median = NaN;
 			
-			map_runningTotals = new JS.WeakMap();
+			map_key_runningTotal = new JS.WeakMap();
 			
 			// high priority because preparing data is often a prerequisite for other things
 			WeaveAPI.Scheduler.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, Weave.lang("Calculating statistics for {0} values in {1}", keys.length, DebugUtils.debugId(column)));
@@ -251,9 +251,9 @@ package weavejs.data
 						max = value;
 					
 					//TODO - make runningTotals use sorted order instead of original key order
-					map_runningTotals.set(key, sum);
+					map_key_runningTotal.set(key, sum);
 					
-					hack_map_numericData.set(key, value);
+					hack_map_key_number.set(key, value);
 					outKeys[count] = key;
 					outNumbers[count] = value;
 					++count;
@@ -283,7 +283,7 @@ package weavejs.data
 			median = outNumbers[outIndices[int(count / 2)]];
 			i = count;
 			while (--i >= 0)
-				map_sortIndex.set(outKeys[outIndices[i]], i);
+				map_key_sortIndex.set(outKeys[outIndices[i]], i);
 			
 			// BEGIN code to get custom min,max
 			var tempNumber:Number;
@@ -309,9 +309,9 @@ package weavejs.data
 			map_method_result.set(getVariance, variance);
 			map_method_result.set(getStandardDeviation, standardDeviation);
 			map_method_result.set(getMedian, median);
-			map_method_result.set(getSortIndex, map_sortIndex);
-			map_method_result.set(hack_getNumericData, hack_map_numericData);
-			map_method_result.set(getRunningTotals, map_runningTotals);
+			map_method_result.set(getSortIndex, map_key_sortIndex);
+			map_method_result.set(hack_getNumericData, hack_map_key_number);
+			map_method_result.set(getRunningTotals, map_key_runningTotal);
 			
 			//trace('stats calculated', debugId(this), debugId(column), String(column));
 			

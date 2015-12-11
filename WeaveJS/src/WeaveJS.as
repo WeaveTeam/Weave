@@ -6,7 +6,7 @@
 */
 package
 {
-	import weavejs.utils.JS;
+	import weavejs.util.JS;
 	
 	public class WeaveJS
 	{

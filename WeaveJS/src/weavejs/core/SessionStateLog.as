@@ -19,8 +19,8 @@ package weavejs.core
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ILinkableVariable;
-	import weavejs.utils.JS;
-	import weavejs.utils.StandardLib;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 
 	/**
 	 * This class saves the session history of an ILinkableObject.

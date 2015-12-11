@@ -11,8 +11,8 @@ package weavejs.path
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.core.SessionManager;
-	import weavejs.utils.JS;
-	import weavejs.utils.StandardLib;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 
 	public class WeavePath
 	{

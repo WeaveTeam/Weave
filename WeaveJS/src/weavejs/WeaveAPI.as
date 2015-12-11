@@ -25,7 +25,7 @@ package weavejs
 	import weavejs.api.data.IProjectionManager;
 	import weavejs.api.data.IQualifiedKeyManager;
 	import weavejs.api.data.IStatisticsCache;
-	import weavejs.api.services.IURLRequestUtils;
+	import weavejs.api.service.IURLRequestUtils;
 	import weavejs.core.ClassRegistryImpl;
 	
 	/**

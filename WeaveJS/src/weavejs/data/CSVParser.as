@@ -18,7 +18,7 @@ package weavejs.data
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.data.ICSVParser;
-	import weavejs.utils.JS;
+	import weavejs.util.JS;
 
 	/**
 	 * Parses and generates CSV-encoded data.

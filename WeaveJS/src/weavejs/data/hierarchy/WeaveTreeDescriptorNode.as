@@ -16,9 +16,9 @@
 package weavejs.data.hierarchy
 {
     import weavejs.api.data.IWeaveTreeNode;
-    import weavejs.utils.JS;
-    import weavejs.utils.StandardLib;
-    import weavejs.utils.WeaveTreeItem;
+    import weavejs.util.JS;
+    import weavejs.util.StandardLib;
+    import weavejs.util.WeaveTreeItem;
 
 	/**
 	 * A node in a tree whose leaves identify attribute columns.
@@ -38,14 +38,18 @@ package weavejs.data.hierarchy
 		 */
 		public function WeaveTreeDescriptorNode(params:Object)
 		{
+			super();
 			childItemClass = WeaveTreeDescriptorNode;
 			
-			for (var key:String in params)
+			if (typeof params === 'object')
 			{
-				if (this[key] is Function && JS.hasProperty(this, '_' + key))
-					this['_' + key] = params[key];
-				else
-					this[key] = params[key];
+				for (var key:String in params)
+				{
+					if (this[key] is Function && JS.hasProperty(this, '_' + key))
+						this['_' + key] = params[key];
+					else
+						this[key] = params[key];
+				}
 			}
 		}
 		

@@ -19,9 +19,9 @@ package weavejs.core
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.IProgressIndicator;
-	import weavejs.utils.DebugUtils;
-	import weavejs.utils.JS;
-	import weavejs.utils.StandardLib;
+	import weavejs.util.DebugUtils;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 
 	public class ProgressIndicator implements IProgressIndicator
 	{

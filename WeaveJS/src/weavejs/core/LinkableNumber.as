@@ -50,7 +50,7 @@ package weavejs.core
 		override protected function sessionStateEquals(otherSessionState:*):Boolean
 		{
 			// We must check for null here because we can't set _sessionStateInternal = NaN in the constructor.
-			if (_sessionStateInternal === null)
+			if (_sessionStateInternal == null)
 				_sessionStateInternal = _sessionStateExternal = NaN;
 			if (isNaN(_sessionStateInternal) && isNaN(otherSessionState))
 				return true;

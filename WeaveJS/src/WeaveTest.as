@@ -6,6 +6,7 @@
 */
 package
 {
+	import weavejs.api.core.ILinkableVariable;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.core.LinkableBoolean;
@@ -19,16 +20,108 @@ package
 	import weavejs.core.LinkableVariable;
 	import weavejs.core.LinkableWatcher;
 	import weavejs.core.SessionStateLog;
-	import weavejs.data.sources.CSVDataSource;
-	import weavejs.utils.DebugUtils;
-	import weavejs.utils.JS;
+	import weavejs.data.bin.AbstractBinningDefinition;
+	import weavejs.data.bin.CategoryBinningDefinition;
+	import weavejs.data.bin.CustomSplitBinningDefinition;
+	import weavejs.data.bin.DynamicBinningDefinition;
+	import weavejs.data.bin.EqualIntervalBinningDefinition;
+	import weavejs.data.bin.ExplicitBinningDefinition;
+	import weavejs.data.bin.NaturalJenksBinningDefinition;
+	import weavejs.data.bin.NumberClassifier;
+	import weavejs.data.bin.QuantileBinningDefinition;
+	import weavejs.data.bin.SimpleBinningDefinition;
+	import weavejs.data.bin.SingleValueClassifier;
+	import weavejs.data.bin.StandardDeviationBinningDefinition;
+	import weavejs.data.bin.StringClassifier;
+	import weavejs.data.column.AbstractAttributeColumn;
+	import weavejs.data.column.AlwaysDefinedColumn;
+	import weavejs.data.column.BinnedColumn;
+	import weavejs.data.column.CSVColumn;
+	import weavejs.data.column.ColorColumn;
+	import weavejs.data.column.ColumnDataTask;
+	import weavejs.data.column.CombinedColumn;
+	import weavejs.data.column.DateColumn;
+	import weavejs.data.column.DynamicColumn;
+	import weavejs.data.column.EquationColumn;
+	import weavejs.data.column.ExtendedDynamicColumn;
+	import weavejs.data.column.FilteredColumn;
+	import weavejs.data.column.GeometryColumn;
+	import weavejs.data.column.NormalizedColumn;
+	import weavejs.data.column.NumberColumn;
+	import weavejs.data.column.ProxyColumn;
+	import weavejs.data.column.ReferencedColumn;
+	import weavejs.data.column.SecondaryKeyNumColumn;
+	import weavejs.data.column.SortedColumn;
+	import weavejs.data.column.SortedIndexColumn;
+	import weavejs.data.column.StringColumn;
+	import weavejs.data.column.StringLookup;
+	import weavejs.data.key.ColumnDataFilter;
+	import weavejs.data.key.DynamicKeyFilter;
+	import weavejs.data.key.DynamicKeySet;
+	import weavejs.data.key.FilteredKeySet;
+	import weavejs.data.key.KeyFilter;
+	import weavejs.data.key.KeySet;
+	import weavejs.data.key.KeySetCallbackInterface;
+	import weavejs.data.key.KeySetUnion;
+	import weavejs.data.key.SortedKeySet;
+	import weavejs.data.source.CSVDataSource;
+	import weavejs.util.DebugUtils;
+	import weavejs.util.JS;
 	
 	public class WeaveTest
 	{
 		private static const dependencies:Array = [
+			ILinkableVariable,
 			LinkableNumber,LinkableString,LinkableBoolean,LinkableVariable,
 			LinkableHashMap,LinkableDynamicObject,LinkableWatcher,
 			LinkableCallbackScript,LinkableSynchronizer,LinkableFunction,
+			
+			ColumnDataFilter,
+			DynamicKeyFilter,
+			DynamicKeySet,
+			FilteredKeySet,
+			KeyFilter,
+			KeySet,
+			KeySetCallbackInterface,
+			KeySetUnion,
+			SortedKeySet,
+			
+			AbstractBinningDefinition,
+			CategoryBinningDefinition,
+			CustomSplitBinningDefinition,
+			DynamicBinningDefinition,
+			EqualIntervalBinningDefinition,
+			ExplicitBinningDefinition,
+			NaturalJenksBinningDefinition,
+			NumberClassifier,
+			QuantileBinningDefinition,
+			SimpleBinningDefinition,
+			SingleValueClassifier,
+			StandardDeviationBinningDefinition,
+			StringClassifier,
+			
+			AbstractAttributeColumn,
+			AlwaysDefinedColumn,
+			BinnedColumn,
+			ColorColumn,
+			ColumnDataTask,
+			CombinedColumn,
+			CSVColumn,
+			DateColumn,
+			DynamicColumn,
+			EquationColumn,
+			ExtendedDynamicColumn,
+			FilteredColumn,
+			GeometryColumn,
+			NormalizedColumn,
+			NumberColumn,
+			ProxyColumn,
+			ReferencedColumn,
+			SecondaryKeyNumColumn,
+			SortedColumn,
+			SortedIndexColumn,
+			StringColumn,
+			StringLookup,
 			null
 		];
 		

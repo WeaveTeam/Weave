@@ -16,6 +16,7 @@ package
 	import weavejs.api.core.ISessionManager;
 	import weavejs.api.data.IAttributeColumnCache;
 	import weavejs.api.data.IQualifiedKeyManager;
+	import weavejs.api.data.IStatisticsCache;
 	import weavejs.core.LinkableHashMap;
 	import weavejs.core.LinkableVariable;
 	import weavejs.core.ProgressIndicator;
@@ -23,12 +24,13 @@ package
 	import weavejs.core.SessionManager;
 	import weavejs.core.SessionStateLog;
 	import weavejs.data.AttributeColumnCache;
-	import weavejs.data.keys.QKeyManager;
+	import weavejs.data.StatisticsCache;
+	import weavejs.data.key.QKeyManager;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathUI;
-	import weavejs.utils.Dictionary2D;
-	import weavejs.utils.JS;
-	import weavejs.utils.StandardLib;
+	import weavejs.util.Dictionary2D;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 	
 	public class Weave implements IDisposableObject
 	{
@@ -41,6 +43,7 @@ package
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IQualifiedKeyManager, QKeyManager);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IScheduler, Scheduler);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IProgressIndicator, ProgressIndicator);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IStatisticsCache, StatisticsCache);
 			registerClass("weave.ui::FlexibleLayout", LinkableVariable);
 			
 			// set this property for backwards compatibility
@@ -396,7 +399,22 @@ package
 		private static const map_class_name:Object = new JS.Map();
 		
 		public static const defaultPackages:Array = [
-			'weavejs.core'
+			'weavejs',
+			'weavejs.api',
+			'weavejs.api.core',
+			'weavejs.api.data',
+			'weavejs.api.service',
+			'weavejs.api.ui',
+			'weavejs.core',
+			'weavejs.data',
+			'weavejs.data.bin',
+			'weavejs.data.column',
+			'weavejs.data.hierarchy',
+			'weavejs.data.key',
+			'weavejs.data.source',
+			'weavejs.geom',
+			'weavejs.path',
+			'weavejs.util'
 		];
 		
 		/**
@@ -456,7 +474,12 @@ package
 				}
 			}
 			
-			return map_name_class.get(name);
+			def = map_name_class.get(name);
+			if (def)
+				return def;
+			
+			if (name.indexOf("::") > 0)
+				return getDefinition(name.split('::').pop());
 		}
 		
 		/**

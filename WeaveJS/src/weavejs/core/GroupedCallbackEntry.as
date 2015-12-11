@@ -7,8 +7,8 @@
 package weavejs.core
 {
 	import weavejs.api.core.ICallbackCollection;
-	import weavejs.utils.Dictionary2D;
-	import weavejs.utils.JS;
+	import weavejs.util.Dictionary2D;
+	import weavejs.util.JS;
 
 	/**
 	 * @private

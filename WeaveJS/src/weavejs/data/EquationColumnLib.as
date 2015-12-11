@@ -22,10 +22,10 @@ package weavejs.data
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IKeySet;
 	import weavejs.api.data.IQualifiedKey;
-	import weavejs.data.columns.DynamicColumn;
-	import weavejs.utils.JS;
-	import weavejs.utils.Point;
-	import weavejs.utils.StandardLib;
+	import weavejs.data.column.DynamicColumn;
+	import weavejs.geom.Point;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 	
 	/**
 	 * This class contains static functions that access values from IAttributeColumn objects.
@@ -465,6 +465,11 @@ package weavejs.data
 			else if (newType == Boolean)
 			{
 				value = StandardLib.asBoolean(value);
+			}
+			else if (newType == Array)
+			{
+				if (value != null && !(value is Array))
+					value = [value];
 			}
 
 			return value as newType;

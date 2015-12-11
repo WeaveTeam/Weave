@@ -22,9 +22,9 @@ package weavejs.core
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.utils.Dictionary2D;
-	import weavejs.utils.JS;
-	import weavejs.utils.StandardLib;
+	import weavejs.util.Dictionary2D;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 	
 	/**
 	 * This is used to dynamically attach a set of callbacks to different targets.

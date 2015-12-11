@@ -21,7 +21,7 @@ package weavejs.data.hierarchy
     import weavejs.api.data.IWeaveTreeNode;
     import weavejs.api.data.IWeaveTreeNodeWithPathFinding;
     import weavejs.data.hierarchy.HierarchyUtils;
-    import weavejs.utils.StandardLib;
+    import weavejs.util.StandardLib;
 
 	/**
 	 * A node in a tree whose leaves identify attribute columns.
