@@ -17,6 +17,7 @@ package weave.menus
 {
 	import flash.events.Event;
 	import flash.net.FileReference;
+	import flash.system.Capabilities;
 	
 	import mx.controls.Alert;
 	
@@ -36,6 +37,7 @@ package weave.menus
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.PopUpUtils;
+	import weave.visualization.tools.ExternalTool;
 
 	public class FileMenu extends WeaveMenuItem
 	{
@@ -206,6 +208,18 @@ package weave.menus
 								.then(function(cache:Object):void {
 									Alert.show("Column data has been cached. You can now save the .weave archive.");
 								});
+						}
+					},
+					{
+						shown: function():Boolean {
+							return Capabilities.isDebugger && Weave.properties.version.value == 'Custom';
+						},
+						label: lang("Export to HTML5"),
+						click: function():void {
+//							var url:String = '/weavejs/js-debug/index.html';
+//							var url:String = 'weave-export.html';
+							var url:String = '/weave-html5/';
+							ExternalTool.launch(WeaveAPI.globalHashMap, url, ExternalTool.generateWindowName());
 						}
 					},
 					TYPE_SEPARATOR,

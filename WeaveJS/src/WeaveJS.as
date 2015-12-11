@@ -6,6 +6,7 @@
 */
 package
 {
+	import weavejs.path.WeavePath;
 	import weavejs.util.JS;
 	
 	public class WeaveJS
@@ -16,10 +17,25 @@ package
 		{
 		}
 		
+		private static const WEAVE_EXTERNAL_TOOLS:String = "WeaveExternalTools";
 		public function start():void
 		{
-			// for testing only
-			WeaveTest.test(JS.global.weave = new Weave());
+			var window:Object = JS.global;
+			var weave:Weave = new Weave();
+			window.weave = weave;
+			
+			if (window.opener && window.opener[WEAVE_EXTERNAL_TOOLS] && window.opener[WEAVE_EXTERNAL_TOOLS][window.name])
+			{
+				// ownerPath is a WeavePath from ActionScript Weave
+				var ownerPath:* = window.opener.WeaveExternalTools[window.name].path;
+				WeavePath.migrate(ownerPath, weave);
+			}
+			else
+			{
+				// TEMPORARY until we read a session state using url params
+				WeaveTest.test(weave);
+				return;
+			}
 		}
 	}
 }

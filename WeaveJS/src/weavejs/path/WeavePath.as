@@ -7,9 +7,13 @@
 package weavejs.path
 {
 	import weavejs.WeaveAPI;
+	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
+	import weavejs.core.LinkableHashMap;
+	import weavejs.core.LinkableString;
+	import weavejs.core.LinkableVariable;
 	import weavejs.core.SessionManager;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
@@ -511,6 +515,19 @@ package weavejs.path
 		}
 		
 		/**
+		 * Gets the simple type (unqualified class name) of the object at the current path or relative to the current path.
+		 * @param relativePath An optional Array (or multiple parameters) specifying descendant names relative to the current path.
+		 *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+		 * @return The unqualified class name of the object at the current or descendant path, or null if there is no object.
+		 */
+		public function getSimpleType(...relativePath):String
+		{
+			relativePath = _A(relativePath, 1);
+			var type:String = Weave.className(this.getObject(relativePath));
+			return type && type.split('.').pop().split(':').pop();
+		}
+		
+		/**
 		 * Gets the session state of an object at the current path or relative to the current path.
 		 * @param relativePath An optional Array (or multiple parameters) specifying descendant names relative to the current path.
 		 *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
@@ -634,5 +651,75 @@ package weavejs.path
 				str += ' (path: ' + JSON.stringify(path) + ')';
 			throw new Error(str);
 		}
+		
+		public static function migrate(source:WeavePath, destination:Weave):void
+		{
+			//TODO
+			//destination.path().setState(getLoadableState(source));
+			
+			// TEMPORARY
+			_migrate(source, destination.path());
+			var delayed:Array = _migrateDelayed;
+			_migrateDelayed = [];
+			for each (var cc:ICallbackCollection in delayed)
+				cc.resumeCallbacks();
+		}
+		
+		// TEMPORARY
+		public static function _migrate(path1:WeavePath, path2:WeavePath):void
+		{
+			if (path2._path.length == 1)
+				JS.log('init', JSON.stringify(path2._path[0]));
+
+			var type1:String = path1.getType();
+			if (!type1)
+			{
+				path2.remove();
+				return;
+			}
+			var state1:Object = path1.getState();
+			var def2:Class = Weave.getDefinition(type1);
+			if (def2)
+				path2.request(def2).state(state1);
+			else if (path1.getNames().length == 0)
+				path2.request(LinkableVariable).state(state1);
+			else
+				path2.request(LinkableHashMap).push('class').request(LinkableString).state(type1);
+			
+			var callbacks2:ICallbackCollection = Weave.getCallbacks(path2.getObject());
+			callbacks2.delayCallbacks();
+			_migrateDelayed.push(callbacks2);
+			// no matter what, we need to traverse children because there may be dynamically created child objects we don't have definitions for
+			path1.forEachName(function(name:String, i:int, a:Array):void { WeavePath._migrate(path1.push(name), path2.push(name)); });
+		}
+		
+		// TEMPORARY
+		private static var _migrateDelayed:Array = [];
+		
+//		public static function getLoadableState(path:WeavePath):Object
+//		{
+//			return null;
+//			
+//			var type1:String = path1.getType();
+//			if (!type1)
+//			{
+//				path2.remove();
+//				return;
+//			}
+//			var state1:Object = path1.getState();
+//			var def2:Class = Weave.getDefinition(type1);
+//			if (def2)
+//				path2.request(def2).state(state1);
+//			else if (path1.getNames().length == 0)
+//				path2.request(LinkableVariable).state(state1);
+//			else
+//				path2.request(LinkableHashMap).push('class').request(LinkableString).state(type1);
+//			
+//			var object2:ILinkableObject = path2.getObject();
+//			Weave.getCallbacks(object2).delayCallbacks();
+//			// no matter what, we need to traverse children because there may be dynamically created child objects we don't have definitions for
+//			path1.forEachName(function(name:String, i:int, a:Array):void { WeavePath.migrate(path1.push(name), path2.push(name)); });
+//			Weave.getCallbacks(object2).resumeCallbacks();
+//		}
 	}
 }
