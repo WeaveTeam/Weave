@@ -30,6 +30,7 @@ package weave.core
 	import mx.utils.ObjectUtil;
 	
 	import avmplus.DescribeType;
+	import avmplus.getQualifiedClassName;
 	
 	import weave.api.reportError;
 	import weave.api.core.DynamicState;
@@ -48,7 +49,7 @@ package weave.core
 	import weave.primitives.Map;
 	import weave.primitives.WeakMap;
 	import weave.primitives.WeaveTreeItem;
-
+	
 	/**
 	 * This is a collection of core functions in the Weave session framework.
 	 * 
@@ -309,6 +310,23 @@ package weave.core
 			if (children.length == 0)
 				children = null;
 			return children;
+		}
+		
+		/**
+		 * Gets a session state tree containing type information at each node.
+		 */
+		public function getTypedStateTree(root:ILinkableObject):Object
+		{
+			return getTypedStateFromTreeNode(getSessionStateTree(root, null));
+		}
+		private function getTypedStateFromTreeNode(node:WeaveTreeItem, i:int = 0, a:Array = null):Object
+		{
+			var state:Object;
+			if (node.children)
+				state = (node.children as Array).map(getTypedStateFromTreeNode);
+			else
+				state = getSessionState(node.data as ILinkableObject);
+			return DynamicState.create(node.label, getQualifiedClassName(node.data), state);
 		}
 		
 		/**

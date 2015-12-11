@@ -15,6 +15,8 @@
 
 package weavejs.core
 {
+	import avmplus.getQualifiedClassName;
+	
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
@@ -290,6 +292,23 @@ package weavejs.core
 			if (children.length == 0)
 				children = null;
 			return children;
+		}
+		
+		/**
+		 * Gets a session state tree where each node is a DynamicState object.
+		 */
+		public function getTypedStateTree(root:ILinkableObject):Object
+		{
+			return getTypedStateFromTreeNode(getSessionStateTree(root, null));
+		}
+		private function getTypedStateFromTreeNode(node:WeaveTreeItem, i:int = 0, a:Array = null):Object
+		{
+			var state:Object;
+			if (node.children)
+				state = (node.children as Array).map(getTypedStateFromTreeNode);
+			else
+				state = getSessionState(node.data as ILinkableObject);
+			return DynamicState.create(node.label, getQualifiedClassName(node.data), state);
 		}
 		
 		/**

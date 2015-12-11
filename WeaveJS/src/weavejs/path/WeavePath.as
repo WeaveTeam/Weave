@@ -7,6 +7,7 @@
 package weavejs.path
 {
 	import weavejs.WeaveAPI;
+	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
@@ -654,72 +655,50 @@ package weavejs.path
 		
 		public static function migrate(source:WeavePath, destination:Weave):void
 		{
-			//TODO
-			//destination.path().setState(getLoadableState(source));
-			
-			// TEMPORARY
-			_migrate(source, destination.path());
-			var delayed:Array = _migrateDelayed;
-			_migrateDelayed = [];
-			for each (var cc:ICallbackCollection in delayed)
-				cc.resumeCallbacks();
-		}
-		
-		// TEMPORARY
-		public static function _migrate(path1:WeavePath, path2:WeavePath):void
-		{
-			if (path2._path.length == 1)
-				JS.log('init', JSON.stringify(path2._path[0]));
-
-			var type1:String = path1.getType();
-			if (!type1)
+			var typedState:Object = source.getValue("WeaveAPI.SessionManager.getTypedStateTree(this)");
+			var delayed:Array = [];
+			_setTypedState(destination.path(), typedState, delayed);
+			// resume in reverse order
+			for (var i:int = delayed.length - 1; i >= 0; i--)
 			{
-				path2.remove();
-				return;
+				var cc:ICallbackCollection = delayed[i];
+				cc.resumeCallbacks();
 			}
-			var state1:Object = path1.getState();
-			var def2:Class = Weave.getDefinition(type1);
-			if (def2)
-				path2.request(def2).state(state1);
-			else if (path1.getNames().length == 0)
-				path2.request(LinkableVariable).state(state1);
-			else
-				path2.request(LinkableHashMap).push('class').request(LinkableString).state(type1);
-			
-			var callbacks2:ICallbackCollection = Weave.getCallbacks(path2.getObject());
-			callbacks2.delayCallbacks();
-			_migrateDelayed.push(callbacks2);
-			// no matter what, we need to traverse children because there may be dynamically created child objects we don't have definitions for
-			path1.forEachName(function(name:String, i:int, a:Array):void { WeavePath._migrate(path1.push(name), path2.push(name)); });
 		}
 		
-		// TEMPORARY
-		private static var _migrateDelayed:Array = [];
-		
-//		public static function getLoadableState(path:WeavePath):Object
-//		{
-//			return null;
-//			
-//			var type1:String = path1.getType();
-//			if (!type1)
-//			{
-//				path2.remove();
-//				return;
-//			}
-//			var state1:Object = path1.getState();
-//			var def2:Class = Weave.getDefinition(type1);
-//			if (def2)
-//				path2.request(def2).state(state1);
-//			else if (path1.getNames().length == 0)
-//				path2.request(LinkableVariable).state(state1);
-//			else
-//				path2.request(LinkableHashMap).push('class').request(LinkableString).state(type1);
-//			
-//			var object2:ILinkableObject = path2.getObject();
-//			Weave.getCallbacks(object2).delayCallbacks();
-//			// no matter what, we need to traverse children because there may be dynamically created child objects we don't have definitions for
-//			path1.forEachName(function(name:String, i:int, a:Array):void { WeavePath.migrate(path1.push(name), path2.push(name)); });
-//			Weave.getCallbacks(object2).resumeCallbacks();
-//		}
+		private static function _setTypedState(path:WeavePath, typedState:Object, delayedCallbacks:Array):void
+		{
+			var type:String = typedState[DynamicState.CLASS_NAME];
+			var state:Object = typedState[DynamicState.SESSION_STATE];
+			var hasChildren:Boolean = DynamicState.isDynamicStateArray(state);
+			var def:Class = Weave.getDefinition(type);
+			if (def)
+				path.request(def);
+			else if (hasChildren)
+				path.request(LinkableHashMap).push('class').request(LinkableString).state(type);
+			else
+				path.request(LinkableVariable);
+			
+			// delay callbacks before setting state
+			var cc:ICallbackCollection = Weave.getCallbacks(path.getObject());
+			cc.delayCallbacks();
+			delayedCallbacks.push(cc);
+			
+			if (hasChildren)
+			{
+				for each (typedState in state)
+				{
+					var name:String = typedState[DynamicState.OBJECT_NAME];
+					if (name)
+						_setTypedState(path.push(name), typedState, delayedCallbacks);
+					else
+						path.state(typedState);
+				}
+			}
+			else
+			{
+				path.state(typedState);
+			}
+		}
 	}
 }
