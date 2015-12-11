@@ -438,20 +438,23 @@ package
 			if (!def)
 				return null;
 			
-			if (map_class_name.has(def))
-				return map_class_name.get(def);
-			
 			if (!def.prototype)
 				def = def.constructor;
 			
 			if (def.prototype && def.prototype.FLEXJS_CLASS_INFO)
 				return def.prototype.FLEXJS_CLASS_INFO.names[0].qName;
 			
+			if (map_class_name.has(def))
+				return map_class_name.get(def);
+			
 			return def.name;
 		}
 		
 		public static function getDefinition(name:String):*
 		{
+			if (!name)
+				return undefined;
+			
 			var def:* = JS.global;
 			var names:Array = name.split('.');
 			for each (var key:String in names)
