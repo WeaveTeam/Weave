@@ -90,8 +90,8 @@ package weave.data.AttributeColumns
 			var uniqueKeyIndex:int = 0;
 			for (var geomIndex:int = 0; geomIndex < geometries.length; geomIndex++)
 			{
-				geom = geometries[geomIndex];
-				key = keys[geomIndex];
+				geom = geometries[geomIndex] as GeneralizedGeometry;
+				key = keys[geomIndex] as IQualifiedKey;
 				_geometryVector[geomIndex] = geom;
 				if (_keyToGeometryArrayMapping[key] == undefined)
 				{
