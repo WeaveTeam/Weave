@@ -390,8 +390,8 @@ package weavejs.util
 			return names;
 		}
 		
-		private static const map_obj_names:Object = new JS.WeakMap();
-		private static const map_prop_skip:Object = new JS.Map();
+		private static const map_obj_names:Object = new JS['WeakMap']();
+		private static const map_prop_skip:Object = new JS['Map']();
 		private static var skip_id:int = 0;
 	}
 }
