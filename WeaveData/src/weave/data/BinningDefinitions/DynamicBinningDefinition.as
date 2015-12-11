@@ -15,17 +15,17 @@
 
 package weave.data.BinningDefinitions
 {
+	import weave.api.getCallbackCollection;
+	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
+	import weave.api.registerDisposableChild;
+	import weave.api.reportError;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinClassifier;
 	import weave.api.data.IBinningDefinition;
-	import weave.api.getCallbackCollection;
-	import weave.api.newDisposableChild;
-	import weave.api.newLinkableChild;
-	import weave.api.registerDisposableChild;
-	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
@@ -104,6 +104,9 @@ package weave.data.BinningDefinitions
 		 */
 		public static function getBinsFromJson(json:String, output:ILinkableHashMap, toStringColumn:IAttributeColumn = null):Boolean
 		{
+			if (!tempNumberClassifier)
+				tempNumberClassifier = new NumberClassifier();
+			
 			getCallbackCollection(output).delayCallbacks();
 			output.removeAllObjects();
 			
@@ -218,6 +221,6 @@ package weave.data.BinningDefinitions
 		protected var overrideBinsOutput:ILinkableHashMap = registerDisposableChild(this, new LinkableHashMap(IBinClassifier));
 		
 		// reusable temporary object
-		private static const tempNumberClassifier:NumberClassifier = new NumberClassifier();
+		private static var tempNumberClassifier:NumberClassifier;
 	}
 }

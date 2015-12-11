@@ -19,12 +19,11 @@ package weave.data.BinningDefinitions
 	
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.data.IAttributeColumn;
 	import weave.api.newDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.data.IAttributeColumn;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableHashMap;
 	import weave.core.LinkableNumber;
 	import weave.core.StageUtils;
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
@@ -53,7 +52,7 @@ package weave.data.BinningDefinitions
 		public const numOfBins:LinkableNumber = registerLinkableChild(this,new LinkableNumber(5));
 		
 		// reusable temporary object
-		private static const _tempNumberClassifier:NumberClassifier = new NumberClassifier();
+		private const _tempNumberClassifier:NumberClassifier = newDisposableChild(this, NumberClassifier);
 		
 		private var _column:IAttributeColumn = null;
 		private var asyncSort:AsyncSort = newDisposableChild(this, AsyncSort);

@@ -15,9 +15,10 @@
 
 package weave.data.BinningDefinitions
 {
-	import weave.api.data.IAttributeColumn;
 	import weave.api.getCallbackCollection;
+	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.data.IAttributeColumn;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.data.BinClassifiers.NumberClassifier;
@@ -90,7 +91,7 @@ package weave.data.BinningDefinitions
 		}
 		
 		// reusable temporary object
-		private static const tempNumberClassifier:NumberClassifier = new NumberClassifier();
+		private var tempNumberClassifier:NumberClassifier = newDisposableChild(this, NumberClassifier);
 
 		// backwards compatibility
 		[Deprecated(replacement="splitValues")] public function set binRange(value:String):void { splitValues.value = value; }
