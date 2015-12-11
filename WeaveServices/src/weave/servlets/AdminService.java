@@ -1029,8 +1029,8 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	////////////////
 	// Data import
 
-	private Pattern doublePattern = Pattern.compile("(0|0?\\.[0-9]+|[1-9][0-9]*(\\.[0-9]+)?)([eE][-+]?[0-9]+)?");
-	private Pattern intPattern = Pattern.compile("0|[1-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?"); // up to 10 digits
+	private Pattern doublePattern = Pattern.compile("-?(0|0?\\.[0-9]+|[1-9][0-9]*(\\.[0-9]+)?)([eE][-+]?[0-9]+)?");
+	private Pattern intPattern = Pattern.compile("-?0|-?[1-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?"); // up to 10 digits
 	
 	private boolean valueIsInt(String value)
 	{
