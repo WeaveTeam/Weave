@@ -17,11 +17,11 @@ package weave.visualization.tools
 {
 	import mx.utils.UIDUtil;
 	
+	import weave.api.getLinkableDescendants;
+	import weave.api.reportError;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.getLinkableDescendants;
-	import weave.api.reportError;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
@@ -43,7 +43,7 @@ package weave.visualization.tools
 		/**
 		 * The popup's window.name
 		 */
-		public const windowName:String = StandardLib.replace(UIDUtil.createUID(), '-', '');
+		public const windowName:String = generateWindowName();
 		
 		public function ExternalTool()
 		{
@@ -57,21 +57,31 @@ package weave.visualization.tools
 		{
 			if (toolUrl.value)
 			{
-				launch();
+				this.launch();
 			}
 		}
 		
 		public function launch():Boolean
+		{
+			return ExternalTool.launch(this, toolUrl.value, windowName, "menubar=no,status=no,toolbar=no");
+		}
+		
+		public static function generateWindowName():String
+		{
+			return StandardLib.replace(UIDUtil.createUID(), '-', '');
+		}
+		
+		public static function launch(owner:ILinkableObject, url:String, windowName:String = '', features:String = null):Boolean
 		{
 			try
 			{
 				var success:Boolean = JavaScript.exec(
 					{
 						WEAVE_EXTERNAL_TOOLS: WEAVE_EXTERNAL_TOOLS,
-						"url": toolUrl.value,
+						"path": WeaveAPI.getPath(owner),
+						"url": url,
 						"windowName": windowName,
-						"features": "menubar=no,status=no,toolbar=no",
-						"path": WeaveAPI.getPath(this)
+						"features": features
 					},
 					'if (!window[WEAVE_EXTERNAL_TOOLS]) {',
 					'    window[WEAVE_EXTERNAL_TOOLS] = {};',
