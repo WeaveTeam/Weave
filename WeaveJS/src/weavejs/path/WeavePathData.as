@@ -6,6 +6,14 @@
 */
 package weavejs.path
 {
+	import weavejs.WeaveAPI;
+	import weavejs.api.core.ILinkableObject;
+	import weavejs.api.data.IAttributeColumn;
+	import weavejs.api.data.IDataSource;
+	import weavejs.data.column.DynamicColumn;
+	import weavejs.data.column.ExtendedDynamicColumn;
+	import weavejs.data.column.ReferencedColumn;
+	import weavejs.util.ColumnUtils;
 	import weavejs.util.JS;
 
 	public class WeavePathData extends WeavePath
@@ -353,7 +361,7 @@ package weavejs.path
 		    var obj:Object = listChainsAndPaths(pathMapping);
 		    
 		    /* Perform the actual retrieval of records */
-		    var results:Array = this.shared.joinColumns(obj.paths, dataType, true, keySet);
+		    var results:Array = ColumnUtils.joinColumns(obj.paths, dataType, true, keySet);
 		    return results[0]
 		        .map(this.qkeyToString)
 		        .map(function(key:String, iRow:int, a:Array):Object {
@@ -419,7 +427,7 @@ package weavejs.path
 		        var item:Object = obj[key];
 		        if (item is WeavePath)
 		        {
-		            if (shared.isColumn(item))
+		            if (item.getObject() is IAttributeColumn)
 		            {
 		                output.chains.push(prefix.concat(key));
 		                output.paths.push(item);
@@ -446,7 +454,7 @@ package weavejs.path
 		    if (_assertParams('setLabel', args))
 		    {
 		        var label:String = args.pop();
-		        shared.setLabel(this.push(args), label);
+		        WeaveAPI.EditorManager.setLabel(this.getObject(args), label);
 		    }
 		    return this;
 		}
@@ -460,36 +468,36 @@ package weavejs.path
 		public function getLabel(...relativePath):String
 		{
 		    var args:Array = _A(relativePath, 1);
-		    return shared.getLabel(this.push(args));
+		    return WeaveAPI.EditorManager.getLabel(this.getObject(args));
 		}
 		
 		/**
 		 * Sets the metadata for a column at the current path.
 		 * @param {object} metadata The metadata identifying the column. The format depends on the data source.
-		 * @param {string} [dataSourceName] (Optional) The name of the data source in the session state.
+		 * @param {string} dataSourceName (Optional) The name of the data source in the session state.
 		 *                       If ommitted, the first data source in the session state will be used.
 		 * @return {weave.WeavePath} The current WeavePath object.
 		 */
 		public function setColumn(metadata:Object, dataSourceName:String):WeavePath
 		{
-			var type:String = this.getType();
-			if (!type)
-				this.request(type = WeavePathDataShared.RC);
+			var object:ILinkableObject = this.getObject();
+			if (!object)
+				object = this.request(ReferencedColumn).getObject();
+			
+			if (object is ExtendedDynamicColumn)
+				object = (object as ExtendedDynamicColumn).internalDynamicColumn.requestLocalObject(ReferencedColumn, false);
+			else if (object is DynamicColumn)
+				object = (object as DynamicColumn).requestLocalObject(ReferencedColumn, false);
+			
+			if (object is ReferencedColumn)
+			{
+				if (arguments.length < 2)
+					dataSourceName = weave.root.getNames(IDataSource)[0];
+				var dataSource:IDataSource = weave.root.getObject(dataSourceName) as IDataSource;
+				(object as ReferencedColumn).setColumnReference(dataSource, metadata);
+			}
 			else
-				type = shared.getColumnType(this);
-			
-			if (!type)
 				_failMessage('setColumn', 'Not a compatible column object', this._path);
-			
-			var path:WeavePath = this;
-			if (type == WeavePathDataShared.EDC)
-				path = path.push('internalDynamicColumn', null).request(WeavePathDataShared.RC);
-			else if (type == WeavePathDataShared.DC)
-				path = path.push(null).request(WeavePathDataShared.RC);
-			path.state({
-				"metadata": metadata,
-				"dataSourceName": arguments.length > 1 ? dataSourceName : shared.getFirstDataSourceName()
-			});
 			
 			return this;
 		}

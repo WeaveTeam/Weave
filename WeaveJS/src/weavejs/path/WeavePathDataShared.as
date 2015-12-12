@@ -13,13 +13,9 @@ package weavejs.path
 		public static const DEFAULT_PROBE_KEY_SET:String = 'defaultProbeKeySet';
 		public static const DEFAULT_SELECTION_KEY_SET:String = 'defaultSelectionKeySet';
 		public static const DEFAULT_SUBSET_KEY_FILTER:String = 'defaultSubsetKeyFilter';
-		public static const EDC:String = 'weave.data.AttributeColumns.ExtendedDynamicColumn';
-		public static const DC:String = 'weave.data.AttributeColumns.DynamicColumn';
-		public static const RC:String = 'weave.data.AttributeColumns.ReferencedColumn';
 		
 		public function WeavePathDataShared()
 		{
-			//JS.bindAll(this);
 		}
 		
 		public function init(weave:Weave):void
@@ -29,16 +25,6 @@ package weavejs.path
 			this.probe_keyset = weave.path(DEFAULT_PROBE_KEY_SET);
 			this.selection_keyset = weave.path(DEFAULT_SELECTION_KEY_SET);
 			this.subset_filter = weave.path(DEFAULT_SUBSET_KEY_FILTER);
-			
-//			this.isColumn = function(o:*):Boolean { return o is IAttributeColumn; }
-//			this.joinColumns = ColumnUtils.joinColumns;
-//			this.getLabel = WeaveAPI.EditorManager.getLabel;
-//			this.setLabel = WeaveAPI.EditorManager.setLabel;
-//			this.getColumnType = function(o:*):String {
-//				for each (var t:String in [EDC, DC, RC])
-//					if (o is Weave.getDefinition(t))
-//						return t;
-//			}
 		}
 		
 		public var weave:Weave;
@@ -200,30 +186,6 @@ package weavejs.path
 			});
 			
 			this._flushKeysLater(pathArray);
-		}
-		
-		////////////////////////////////
-		
-		/**
-		 * @private
-		 * A function that tests if a WeavePath references an IAttributeColumn
-		 */
-		public var isColumn:Function;
-		
-		/**
-		 * @private
-		 * A pointer to ColumnUtils.joinColumns.
-		 */
-		public var joinColumns:Function;
-		
-		public var getLabel:Function;
-		public var setLabel:Function;
-		public var getColumnType:Function;
-		
-		public function getFirstDataSourceName():String
-		{
-			return null;
-			//return weave.root.getNames(IDataSource)[0];
 		}
 	}
 }
