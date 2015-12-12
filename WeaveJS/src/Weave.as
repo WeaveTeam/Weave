@@ -15,8 +15,11 @@ package
 	import weavejs.api.core.IScheduler;
 	import weavejs.api.core.ISessionManager;
 	import weavejs.api.data.IAttributeColumnCache;
+	import weavejs.api.data.ICSVParser;
 	import weavejs.api.data.IQualifiedKeyManager;
 	import weavejs.api.data.IStatisticsCache;
+	import weavejs.api.ui.IEditorManager;
+	import weavejs.core.EditorManager;
 	import weavejs.core.LinkableHashMap;
 	import weavejs.core.LinkableVariable;
 	import weavejs.core.ProgressIndicator;
@@ -24,6 +27,7 @@ package
 	import weavejs.core.SessionManager;
 	import weavejs.core.SessionStateLog;
 	import weavejs.data.AttributeColumnCache;
+	import weavejs.data.CSVParser;
 	import weavejs.data.StatisticsCache;
 	import weavejs.data.key.QKeyManager;
 	import weavejs.path.WeavePath;
@@ -44,7 +48,9 @@ package
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IScheduler, Scheduler);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IProgressIndicator, ProgressIndicator);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IStatisticsCache, StatisticsCache);
-			registerClass("weave.ui::FlexibleLayout", LinkableVariable);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IEditorManager, EditorManager);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
+			registerClass("FlexibleLayout", LinkableVariable);
 			
 			// set this property for backwards compatibility
 			this['WeavePath'] = WeavePathUI;
