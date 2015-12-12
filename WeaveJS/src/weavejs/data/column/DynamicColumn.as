@@ -103,6 +103,8 @@ package weavejs.data.column
 		 */
 		public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
+			if (!dataType)
+				dataType = Array;
 			if (!cache)
 			{
 				var col:IAttributeColumn = internalObject as IAttributeColumn;

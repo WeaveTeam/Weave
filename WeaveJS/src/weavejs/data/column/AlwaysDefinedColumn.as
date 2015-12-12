@@ -69,6 +69,8 @@ package weavejs.data.column
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
+			if (!dataType)
+				dataType = Array;
 			if (!DynamicColumn.cache)
 			{
 				var value:* = internalDynamicColumn.getValueFromKey(key, dataType);
