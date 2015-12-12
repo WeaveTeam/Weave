@@ -21,20 +21,22 @@ package
 		public function start():void
 		{
 			var window:Object = JS.global;
-			var weave:Weave = new Weave();
-			window.weave = weave;
 			
 			if (window.opener && window.opener[WEAVE_EXTERNAL_TOOLS] && window.opener[WEAVE_EXTERNAL_TOOLS][window.name])
 			{
+				JS.log('using WeaveJS');
+				var weave:Weave = new Weave();
 				// ownerPath is a WeavePath from ActionScript Weave
 				var ownerPath:* = window.opener.WeaveExternalTools[window.name].path;
 				WeavePath.migrate(ownerPath, weave);
+				
+				window.weave = weave;
 			}
 			else
 			{
 				// TEMPORARY until we read a session state using url params
-				WeaveTest.test(weave);
-				return;
+				//WeaveTest.test(weave);
+				WeaveTest;
 			}
 		}
 	}
