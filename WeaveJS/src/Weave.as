@@ -380,7 +380,7 @@ package
 		 */
 		public static function isLinkable(objectOrClass:Object):Boolean
 		{
-			if (objectOrClass is ILinkableObject)
+			if (objectOrClass is ILinkableObject || objectOrClass === ILinkableObject)
 				return true;
 			// test class definition
 			return objectOrClass && objectOrClass.prototype is ILinkableObject;
