@@ -322,10 +322,11 @@ package weave.core
 		private function getTypedStateFromTreeNode(node:WeaveTreeItem, i:int = 0, a:Array = null):Object
 		{
 			var state:Object;
-			if (node.children)
-				state = (node.children as Array).map(getTypedStateFromTreeNode);
-			else
+			var children:Array = node.children;
+			if (node.data is ILinkableVariable || !children)
 				state = getSessionState(node.data as ILinkableObject);
+			else
+				state = children.map(getTypedStateFromTreeNode);
 			return DynamicState.create(node.label, getQualifiedClassName(node.data), state);
 		}
 		
