@@ -40,7 +40,7 @@ package weavejs.data.source
 		{
 			var cc:ICallbackCollection = Weave.getCallbacks(this);
 			cc.addImmediateCallback(this, uninitialize);
-			cc.addGroupedCallback(this, initialize, true);
+			cc.addGroupedCallback(this, initialize, true, false);
 		}
 
 		/**
