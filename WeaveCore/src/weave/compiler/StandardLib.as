@@ -454,7 +454,7 @@ package weave.compiler
 			// find the min and max colors we want to interpolate between
 			
 			var maxIndex:int = colors.length - 1;
-			var leftIndex:int = maxIndex * normValue;
+			var leftIndex:int = int(maxIndex * normValue);
 			var rightIndex:int = leftIndex + 1;
 			
 			// handle boundary condition
