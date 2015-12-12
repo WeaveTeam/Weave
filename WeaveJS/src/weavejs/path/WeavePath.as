@@ -688,16 +688,16 @@ package weavejs.path
 			{
 				for each (typedState in state)
 				{
-					var name:String = typedState[DynamicState.OBJECT_NAME];
-					if (name)
-						_setTypedState(path.push(name), typedState, delayedCallbacks);
+					type = typedState[DynamicState.CLASS_NAME];
+					if (type === "Array")
+						path.state(typedState[DynamicState.SESSION_STATE]);
 					else
-						path.state(typedState);
+						_setTypedState(path.push(typedState[DynamicState.OBJECT_NAME]), typedState, delayedCallbacks);
 				}
 			}
 			else
 			{
-				path.state(typedState);
+				path.state(state);
 			}
 		}
 	}
