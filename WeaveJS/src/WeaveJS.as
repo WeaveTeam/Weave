@@ -6,6 +6,7 @@
 */
 package
 {
+	import weavejs.data.ColumnUtils;
 	import weavejs.path.WeavePath;
 	import weavejs.util.JS;
 	
@@ -21,6 +22,12 @@ package
 		public function start():void
 		{
 			var window:Object = JS.global;
+			
+			// TEMPORARY HACK - omit keySet filter
+			var joinColumns:Function = ColumnUtils['joinColumns'];
+			ColumnUtils['joinColumns'] = function(columns:Array, dataType:Object = null, allowMissingData:Boolean = false):Array {
+				return joinColumns.call(ColumnUtils, columns, dataType, allowMissingData);
+			};
 			
 			if (window.opener && window.opener[WEAVE_EXTERNAL_TOOLS] && window.opener[WEAVE_EXTERNAL_TOOLS][window.name])
 			{
