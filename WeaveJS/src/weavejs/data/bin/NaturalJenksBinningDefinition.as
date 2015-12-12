@@ -19,10 +19,10 @@ package weavejs.data.bin
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.core.LinkableNumber;
 	import weavejs.core.Scheduler;
+	import weavejs.data.ColumnUtils;
 	import weavejs.data.column.SecondaryKeyNumColumn;
 	import weavejs.util.ArrayUtils;
 	import weavejs.util.AsyncSort;
-	import weavejs.util.ColumnUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	

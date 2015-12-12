@@ -22,7 +22,7 @@ package weavejs.data.bin
 	import weavejs.api.data.IBinClassifier;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableNumber;
-	import weavejs.util.ColumnUtils;
+	import weavejs.data.ColumnUtils;
 	import weavejs.util.StandardLib;
 	
 	/**

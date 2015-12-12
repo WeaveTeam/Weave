@@ -21,10 +21,10 @@ package weavejs.data.column
 	import weavejs.api.data.IBinClassifier;
 	import weavejs.api.data.IPrimitiveColumn;
 	import weavejs.api.data.IQualifiedKey;
+	import weavejs.data.ColumnUtils;
 	import weavejs.data.bin.DynamicBinningDefinition;
 	import weavejs.data.bin.NumberClassifier;
 	import weavejs.data.bin.SimpleBinningDefinition;
-	import weavejs.util.ColumnUtils;
 	import weavejs.util.DebugUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;

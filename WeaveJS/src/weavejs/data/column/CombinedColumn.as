@@ -22,8 +22,8 @@ package weavejs.data.column
 	import weavejs.core.CallbackCollection;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableHashMap;
+	import weavejs.data.ColumnUtils;
 	import weavejs.data.key.KeySetUnion;
-	import weavejs.util.ColumnUtils;
 	
 	/**
 	 * This provides a wrapper for a dynamic column, and allows new properties to be added.

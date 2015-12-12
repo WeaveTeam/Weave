@@ -22,8 +22,8 @@ package weavejs.data.key
 	import weavejs.api.ui.IObjectWithDescription;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableVariable;
+	import weavejs.data.ColumnUtils;
 	import weavejs.data.column.DynamicColumn;
-	import weavejs.util.ColumnUtils;
 	import weavejs.util.JS;
 
 	public class ColumnDataFilter implements IKeyFilter, ILinkableObjectWithNewProperties, IObjectWithDescription

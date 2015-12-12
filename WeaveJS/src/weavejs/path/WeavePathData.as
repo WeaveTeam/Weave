@@ -10,10 +10,10 @@ package weavejs.path
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IDataSource;
+	import weavejs.data.ColumnUtils;
 	import weavejs.data.column.DynamicColumn;
 	import weavejs.data.column.ExtendedDynamicColumn;
 	import weavejs.data.column.ReferencedColumn;
-	import weavejs.util.ColumnUtils;
 	import weavejs.util.JS;
 
 	public class WeavePathData extends WeavePath

@@ -21,8 +21,7 @@ package weavejs.data.bin
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IColumnStatistics;
 	import weavejs.core.LinkableNumber;
-	import weavejs.data.bin.NumberClassifier;
-	import weavejs.util.ColumnUtils;
+	import weavejs.data.ColumnUtils;
 	import weavejs.util.StandardLib;
 	
 	/**

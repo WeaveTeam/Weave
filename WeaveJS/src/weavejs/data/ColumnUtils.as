@@ -13,7 +13,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weavejs.util
+package weavejs.data
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableHashMap;
@@ -35,6 +35,9 @@ package weavejs.util
 	import weavejs.geom.GeneralizedGeometry;
 	import weavejs.geom.GeoJSON;
 	import weavejs.geom.Point;
+	import weavejs.util.ArrayUtils;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 	
 	/**
 	 * This class contains static functions that access values from IAttributeColumn objects.
