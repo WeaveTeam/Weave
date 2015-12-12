@@ -83,7 +83,7 @@ package weavejs.util
 			for each (var node:ColorNode in _colorNodes)
 				node.position = StandardLib.normalize(node.position, minPos, maxPos);
 			
-			_colorNodes.sortOn("position");
+			StandardLib.sortOn(_colorNodes, "position");
 		}
 		
 		public function reverse():void
