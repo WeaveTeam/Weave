@@ -545,6 +545,12 @@ package weavejs.path
 			return null;
 		}
 		
+		public function getTypedState(...relativePath):Object
+		{
+			relativePath = _A(relativePath, 1);
+			return (WeaveAPI.SessionManager as SessionManager).getTypedStateTree(getObject(relativePath));
+		}
+		
 		public function getUntypedState(...relativePath):Object
 		{
 			relativePath = _A(relativePath, 1);
