@@ -358,7 +358,7 @@ package weavejs.path
 		    }
 		    
 		    // pathMapping is a nested object mapping property chains to WeavePath objects
-		    var obj:Object = listChainsAndPaths(pathMapping);
+		    var obj:Object = listChainsAndNodes(pathMapping);
 		    
 		    /* Perform the actual retrieval of records */
 		    var results:Array = ColumnUtils.joinColumns(obj.paths, dataType, true, keySet);
@@ -415,7 +415,7 @@ package weavejs.path
 		 * @param output Output object with "chains" and "paths" properties (optional)
 		 * @return An object like {"chains": [], "paths": []}, where "chains" contains property name chains and "paths" contains WeavePath objects
 		 */
-		protected function listChainsAndPaths(obj:Object, prefix:Array = null, output:Object = null):Object
+		protected function listChainsAndNodes(obj:Object, prefix:Array = null, output:Object = null):Object
 		{
 		    if (!prefix)
 		        prefix = [];
@@ -427,15 +427,16 @@ package weavejs.path
 		        var item:Object = obj[key];
 		        if (item is WeavePath)
 		        {
-		            if (item.getObject() is IAttributeColumn)
+					var column:ILinkableObject = item.getObject();
+		            if (column is IAttributeColumn)
 		            {
 		                output.chains.push(prefix.concat(key));
-		                output.paths.push(item);
+		                output.paths.push(column);
 		            }
 		        }
 		        else
 		        {
-		            listChainsAndPaths(item, prefix.concat(key), output);
+		            listChainsAndNodes(item, prefix.concat(key), output);
 		        }
 		    }
 		    return output;
