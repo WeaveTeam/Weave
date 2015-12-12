@@ -127,7 +127,7 @@ package weavejs.util
 		public function beginSort(arrayToSort:*, compareFunction:Function = null):void
 		{
 			// initialize
-			compare = compareFunction;
+			compare = compareFunction || primitiveCompare;
 			original = arrayToSort || [];
 			source = original;
 			length = original.length;
