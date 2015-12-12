@@ -334,15 +334,15 @@ package weavejs.path
 		public function retrieveRecords(pathMapping:Object, options:Object):Array
 		{
 			var dataType:String = options ? options['dataType'] : null;
-			var keySet:WeavePath = options ? options['keySet'] : null;
+			var keySetPath:WeavePath = options ? options['keySet'] : null;
 			
-			if (!keySet && options is WeavePath)
-				keySet = options as WeavePath;
+			if (!keySetPath && options is WeavePath)
+				keySetPath = options as WeavePath;
 			
 			// if only one argument given and it's a WeavePath object, assume it's supposed to be keySetPath.
 			if (arguments.length == 1 && pathMapping is WeavePath)
 			{
-				keySet = pathMapping as WeavePath;
+				keySetPath = pathMapping as WeavePath;
 				pathMapping = null;
 			}
 			
@@ -358,10 +358,10 @@ package weavejs.path
 		    }
 		    
 		    // pathMapping is a nested object mapping property chains to WeavePath objects
-		    var obj:Object = listChainsAndNodes(pathMapping);
+		    var obj:Object = listChainsAndColumns(pathMapping);
 		    
 		    /* Perform the actual retrieval of records */
-		    var results:Array = ColumnUtils.joinColumns(obj.paths, dataType, true, keySet);
+		    var results:Array = ColumnUtils.joinColumns(obj.columns, dataType, true, keySetPath ? keySetPath.getObject() : null);
 		    return results[0]
 		        .map(this.qkeyToString)
 		        .map(function(key:String, iRow:int, a:Array):Object {
@@ -412,15 +412,15 @@ package weavejs.path
 		 * Recursively builds a mapping of property chains to WeavePath objects from a path specification as used in retrieveRecords
 		 * @param obj A path spec object
 		 * @param prefix A property chain prefix (optional)
-		 * @param output Output object with "chains" and "paths" properties (optional)
-		 * @return An object like {"chains": [], "paths": []}, where "chains" contains property name chains and "paths" contains WeavePath objects
+		 * @param output Output object with "chains" and "columns" properties (optional)
+		 * @return An object like {"chains": [], "columns": []}, where "chains" contains property name chains and "columns" contains IAttributeColumn objects
 		 */
-		protected function listChainsAndNodes(obj:Object, prefix:Array = null, output:Object = null):Object
+		protected function listChainsAndColumns(obj:Object, prefix:Array = null, output:Object = null):Object
 		{
 		    if (!prefix)
 		        prefix = [];
 		    if (!output)
-		        output = {chains: [], paths: []};
+		        output = {chains: [], columns: []};
 		    
 		    for (var key:String in obj)
 		    {
@@ -431,12 +431,12 @@ package weavejs.path
 		            if (column is IAttributeColumn)
 		            {
 		                output.chains.push(prefix.concat(key));
-		                output.paths.push(column);
+		                output.columns.push(column);
 		            }
 		        }
 		        else
 		        {
-		            listChainsAndNodes(item, prefix.concat(key), output);
+		            listChainsAndColumns(item, prefix.concat(key), output);
 		        }
 		    }
 		    return output;
