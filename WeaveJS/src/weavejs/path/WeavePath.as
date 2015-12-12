@@ -545,6 +545,29 @@ package weavejs.path
 			return null;
 		}
 		
+		public function getUntypedState(...relativePath):Object
+		{
+			relativePath = _A(relativePath, 1);
+			var state:Object = JS.copyObject(this.getState(relativePath));
+			return _removeTypeFromState(state);
+		}
+		
+		private function _removeTypeFromState(state:Object):Object
+		{
+			if (DynamicState.isDynamicStateArray(state))
+			{
+				var newState:Object = {};
+				for each (var typedState:Object in state)
+					newState[typedState[DynamicState.OBJECT_NAME] || ''] = _removeTypeFromState(typedState[DynamicState.SESSION_STATE]);
+				return newState;
+			}
+			
+			if (typeof state === 'object')
+				for (var key:String in state)
+					state[key] = _removeTypeFromState(state[key]);
+			return state;
+		}
+		
 		/**
 		 * Gets the changes that have occurred since previousState for the object at the current path or relative to the current path.
 		 * @param relativePath An optional Array (or multiple parameters) specifying descendant names relative to the current path.
