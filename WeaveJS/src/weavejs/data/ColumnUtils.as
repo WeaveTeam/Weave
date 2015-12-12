@@ -389,13 +389,16 @@ package weavejs.data
 				// count the number of appearances of each key in each column
 				var map_key_count:Object = new JS.Map();
 				for each (column in columns)
-					for each (key in column ? column.keys : null)
+				{
+					var columnKeys:Array = column ? column.keys : null;
+					for each (key in columnKeys)
 						map_key_count.set(key, (map_key_count.get(key)|0) + 1);
+				}
 				// get a list of keys
 				keys = [];
 				var filter:IKeyFilter = keyFilter as IKeyFilter;
 				var mapKeys:Array = JS.mapKeys(map_key_count);
-				for (var qkey:* in mapKeys)
+				for each (var qkey:* in mapKeys)
 					if (allowMissingData || map_key_count.get(qkey) == columns.length)
 						if (!filter || filter.containsKey(qkey))
 							keys.push(qkey);
