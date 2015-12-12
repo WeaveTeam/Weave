@@ -161,7 +161,7 @@ package weavejs.core
 		 */
 		public static function verifyImplementation(theInterface:Class, theImplementation:Class):void
 		{
-			if (!theImplementation.prototype is theInterface)
+			if (!(theImplementation.prototype is theInterface))
 				throw new Error(Weave.className(theImplementation) + ' does not implement ' + Weave.className(theInterface));
 		}
 	}
