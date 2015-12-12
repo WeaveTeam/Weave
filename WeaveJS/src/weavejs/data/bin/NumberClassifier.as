@@ -80,8 +80,10 @@ package weavejs.data.bin
 				_triggerCount = _callbacks.triggerCounter;
 			}
 			// use private variables for speed
-			return (_minInclusive ? value >= _min : value > _min)
-				&& (_maxInclusive ? value <= _max : value < _max);
+			if (_minInclusive ? value >= _min : value > _min)
+				if (_maxInclusive ? value <= _max : value < _max)
+					return true;
+			return false;
 		}
 		
 		/**
