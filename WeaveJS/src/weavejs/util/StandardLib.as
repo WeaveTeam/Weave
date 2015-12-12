@@ -618,9 +618,9 @@ package weavejs.util
 		public static function sortOn(array:*, params:*, sortDirections:* = undefined, inPlace:Boolean = true, returnSortedIndexArray:Boolean = false):*
 		{
 			//TODO
-			if (returnSortedIndexArray || !inPlace)
-				return array.concat();
-			return array;
+			if (returnSortedIndexArray)
+				return array.map(function(o:*, i:*, a:*):* { return i; });
+			return inPlace ? array : array.concat();
 		}
 		
 		/**
