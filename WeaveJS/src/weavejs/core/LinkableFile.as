@@ -17,6 +17,7 @@ package weavejs.core
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableVariable;
+	import weavejs.net.URLRequestUtils;
 	
 	/**
 	 * A Promise for file content, given a URL.
@@ -24,13 +25,13 @@ package weavejs.core
 	 */
 	public class LinkableFile implements ILinkableVariable
 	{
-		private var contentPromise:LinkablePromise;
+		private var linkablePromise:LinkablePromise;
 		private var url:LinkableString;
 
 		public function LinkableFile(defaultValue:String = null, taskDescription:* = null)
 		{
-			contentPromise = Weave.linkableChild(this, new LinkablePromise(requestContent, taskDescription));
-			url = Weave.linkableChild(contentPromise, new LinkableString(defaultValue));
+			linkablePromise = Weave.linkableChild(this, new LinkablePromise(requestContent, taskDescription));
+			url = Weave.linkableChild(linkablePromise, new LinkableString(defaultValue));
 		}
 
 		/**
@@ -40,17 +41,17 @@ package weavejs.core
 		{
 			if (!url.value)
 				return null;
-			return WeaveAPI.URLRequestUtils.getURL(contentPromise, url.value, 'binary', true);
+			return WeaveAPI.URLRequestUtils.request(linkablePromise, URLRequestUtils.GET, url.value, null, null);
 		}
 
 		public function get result():Object
 		{
-			return contentPromise.result as Object;
+			return linkablePromise.result as Object;
 		}
 
 		public function get error():Object
 		{
-			return contentPromise.error;
+			return linkablePromise.error;
 		}
 
 		public function setSessionState(value:Object):void

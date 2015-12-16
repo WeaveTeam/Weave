@@ -18,6 +18,7 @@ package
 	import weavejs.api.data.ICSVParser;
 	import weavejs.api.data.IQualifiedKeyManager;
 	import weavejs.api.data.IStatisticsCache;
+	import weavejs.api.net.IURLRequestUtils;
 	import weavejs.api.ui.IEditorManager;
 	import weavejs.core.EditorManager;
 	import weavejs.core.LinkableHashMap;
@@ -30,6 +31,7 @@ package
 	import weavejs.data.CSVParser;
 	import weavejs.data.StatisticsCache;
 	import weavejs.data.key.QKeyManager;
+	import weavejs.net.URLRequestUtils;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathUI;
 	import weavejs.util.Dictionary2D;
@@ -42,6 +44,7 @@ package
 		
 		public function Weave()
 		{
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IURLRequestUtils, URLRequestUtils);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IQualifiedKeyManager, QKeyManager);
