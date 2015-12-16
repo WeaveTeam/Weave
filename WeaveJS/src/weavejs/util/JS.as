@@ -290,6 +290,8 @@ package weavejs.util
 				return true;
 			
 			// (adufilie) simplified String check and added check for boolean
+			if (rightOperand === Object)
+				return true; // every value except null and undefined is an Object in ActionScript
 			if (typeof leftOperand === 'string')
 				return rightOperand === String;
 			if (typeof leftOperand === 'number')
