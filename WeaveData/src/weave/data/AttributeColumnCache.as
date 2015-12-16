@@ -15,10 +15,9 @@
 
 package weave.data
 {
-	import flash.utils.Dictionary;
-	
 	import avmplus.getQualifiedClassName;
 	
+	import weave.api.getCallbackCollection;
 	import weave.api.getLinkableDescendants;
 	import weave.api.getSessionState;
 	import weave.api.objectWasDisposed;
@@ -38,7 +37,6 @@ package weave.data
 	import weave.data.DataSources.CachedDataSource;
 	import weave.primitives.Dictionary2D;
 	import weave.primitives.GeneralizedGeometry;
-	import weave.utils.WeakReference;
 	import weave.utils.WeavePromise;
 	
 	/**
@@ -57,24 +55,24 @@ package weave.data
 
 			// Get the column pointer associated with the hash value.
 			var hashCode:String = Compiler.stringify(metadata);
-			var weakRef:WeakReference = d2d_dataSource_metadataHash_weakRef.get(dataSource, hashCode) as WeakReference;
-			if (weakRef != null && weakRef.value != null)
+			var column:IAttributeColumn = d2d_dataSource_metadataHash_column.get(dataSource, hashCode);
+			if (!column)
 			{
-				if (WeaveAPI.SessionManager.objectWasDisposed(weakRef.value))
-					d2d_dataSource_metadataHash_weakRef.remove(dataSource, hashCode);
-				else
-					return weakRef.value as IAttributeColumn;
+				// if this is the first time we've seen this data source, add dispose callback
+				if (!d2d_dataSource_metadataHash_column.dictionary[dataSource])
+					getCallbackCollection(dataSource).addDisposeCallback(this, function():void {
+						delete this.d2d_dataSource_metadataHash_column.dictionary[dataSource];
+					});
+				
+				// If no column is associated with this hash value, request the
+				// column from its data source and save the column pointer.
+				column = dataSource.getAttributeColumn(metadata);
+				d2d_dataSource_metadataHash_column.set(dataSource, hashCode, column);
 			}
-			
-			// If no column is associated with this hash value, request the
-			// column from its data source and save the column pointer.
-			var column:IAttributeColumn = dataSource.getAttributeColumn(metadata);
-			d2d_dataSource_metadataHash_weakRef.set(dataSource, hashCode, new WeakReference(column));
-
 			return column;
 		}
 		
-		private const d2d_dataSource_metadataHash_weakRef:Dictionary2D = new Dictionary2D(true, true);
+		private const d2d_dataSource_metadataHash_column:Dictionary2D = new Dictionary2D();
 		
 		// TEMPORARY SOLUTION for WeaveArchive to access this cache data
 		public var saveCache:Object = null;
@@ -92,7 +90,8 @@ package weave.data
 				.then(function(_:*):* {
 					// request data from every column
 					var column:IAttributeColumn;
-					for each (column in getLinkableDescendants(WeaveAPI.globalHashMap, IAttributeColumn))
+					var columns:Array = getLinkableDescendants(WeaveAPI.globalHashMap, IAttributeColumn);
+					for each (column in columns)
 					{
 						// simply requesting the keys will cause the data to be requested
 						if (column.keys.length)
@@ -109,9 +108,9 @@ package weave.data
 		{
 			//cache data from AttributeColumnCache
 			var output:Array = [];
-			var cache:Dictionary = d2d_dataSource_metadataHash_weakRef.dictionary;
 			var dataSource:*;
-			for (dataSource in cache)
+			var dataSources:Array = d2d_dataSource_metadataHash_column.primaryKeys();
+			for each (dataSource in dataSources)
 			{
 				var dataSourceName:String = WeaveAPI.globalHashMap.getName(dataSource);
 				
@@ -119,9 +118,10 @@ package weave.data
 				if (!dataSourceName)
 					continue;
 				
-				for (var metadataHash:String in cache[dataSource])
+				var metadataHashes:Array = d2d_dataSource_metadataHash_column.secondaryKeys(dataSource);
+				for each (var metadataHash:String in metadataHashes)
 				{
-					var column:IAttributeColumn = (cache[dataSource][metadataHash] as WeakReference).value as IAttributeColumn;
+					var column:IAttributeColumn = d2d_dataSource_metadataHash_column.get(dataSource, metadataHash);
 					if (!column || objectWasDisposed(column))
 						continue;
 					var metadata:Object = ColumnMetadata.getAllMetadata(column);
@@ -155,7 +155,8 @@ package weave.data
 			}
 			
 			// stub out data sources
-			for each (dataSource in WeaveAPI.globalHashMap.getObjects(IDataSource))
+			dataSources = WeaveAPI.globalHashMap.getObjects(IDataSource);
+			for each (dataSource in dataSources)
 			{
 				if (dataSource.hasOwnProperty('NO_CACHE_HACK'))
 					continue;
@@ -218,7 +219,8 @@ package weave.data
 						var geoms:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
 						for (var i:int = 0; i < data.length; i++)
 						{
-							for each (var geom:GeneralizedGeometry in GeneralizedGeometry.fromGeoJson(data[i]))
+							var geomsFromGeoJson:Array = GeneralizedGeometry.fromGeoJson(data[i]);
+							for each (var geom:GeneralizedGeometry in geomsFromGeoJson)
 							{
 								geomKeys.push(keys[i]);
 								geoms.push(geom);
@@ -247,19 +249,7 @@ package weave.data
 			}
 			
 			// insert into cache
-			d2d_dataSource_metadataHash_weakRef.set(dataSource, metadataHash, new WeakReference(column));
-		}
-		
-		/**
-		 * Restores a session state to what it was before calling convertToCachedDataSources().
-		 */
-		public function restoreFromCachedDataSources():void
-		{
-			for each (var cds:CachedDataSource in WeaveAPI.globalHashMap.getObjects(CachedDataSource))
-			{
-				d2d_dataSource_metadataHash_weakRef.removeAllPrimary(cds);
-				cds.hierarchyRefresh.triggerCallbacks();
-			}
+			d2d_dataSource_metadataHash_column.set(dataSource, metadataHash, column);
 		}
 	}
 }

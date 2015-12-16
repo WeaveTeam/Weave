@@ -69,7 +69,7 @@ package weave.data.KeySets
 		{
 			var state:Array = values.getSessionState() as Array;
 			var value:*;
-			var range:Range;
+			var range:ColumnDataFilterRange;
 			var regexp:RegExp;
 			
 			_keyType = column.getMetadata(ColumnMetadata.KEY_TYPE);
@@ -93,11 +93,11 @@ package weave.data.KeySets
 						_stringLookup = {};
 					_stringLookup[value] = true;
 				}
-				else if (Range.isRange(value))
+				else if (ColumnDataFilterRange.isRange(value))
 				{
 					try
 					{
-						range = new Range(value);
+						range = new ColumnDataFilterRange(value);
 						if (!_ranges)
 							_ranges = [];
 						_ranges.push(range);
@@ -167,7 +167,7 @@ package weave.data.KeySets
 				
 				if (!result && _ranges)
 				{
-					for each (var range:Range in _ranges)
+					for each (var range:ColumnDataFilterRange in _ranges)
 					{
 						if (range.minInclusive ? number < range.min : number <= range.min)
 							continue;
@@ -211,9 +211,9 @@ package weave.data.KeySets
 			{
 				return ColumnUtils.deriveStringFromNumber(column, value);
 			}
-			else if (Range.isRange(value))
+			else if (ColumnDataFilterRange.isRange(value))
 			{
-				var range:Range = new Range(value);
+				var range:ColumnDataFilterRange = new ColumnDataFilterRange(value);
 				var leftBracket:String = range.minInclusive ? "[" : "(";
 				var rightBracket:String = range.maxInclusive ? "]" : ")";
 				return leftBracket + stringifyValue(range.min) + ", " + stringifyValue(range.max) + rightBracket;
@@ -255,62 +255,5 @@ package weave.data.KeySets
 				values.setSessionState([_deprecatedRangeState]);
 			}
 		}
-	}
-}
-
-internal class Range
-{
-	public static function isRange(obj:Object):Boolean
-	{
-		var count:int = 0;
-		var prop:String;
-		
-		for each (prop in [MIN, MIN_INCLUSIVE, MIN_EXCLUSIVE])
-			if (obj.hasOwnProperty(prop))
-				count++;
-		if (!count)
-			return false;
-		
-		count = 0;
-		for each (prop in [MAX, MAX_INCLUSIVE, MAX_EXCLUSIVE])
-			if (obj.hasOwnProperty(prop))
-				count++;
-		
-		return count > 0;
-	}
-	
-	public static const MIN:String = 'min';
-	public static const MIN_INCLUSIVE:String = 'minInclusive';
-	public static const MIN_EXCLUSIVE:String = 'minExclusive';
-	public static const MAX:String = 'max';
-	public static const MAX_INCLUSIVE:String = 'maxInclusive';
-	public static const MAX_EXCLUSIVE:String = 'maxExclusive';
-	
-	public function Range(obj:Object)
-	{
-		var prop:String;
-		for each (prop in [MIN, MIN_INCLUSIVE, MIN_EXCLUSIVE])
-			if (obj.hasOwnProperty(prop))
-				min = Math.max(min, obj[prop]);
-		for each (prop in [MAX, MAX_INCLUSIVE, MAX_EXCLUSIVE])
-			if (obj.hasOwnProperty(prop))
-				max = Math.min(max, obj[prop]);
-		if (obj.hasOwnProperty(MIN_EXCLUSIVE))
-			minInclusive = false;
-		if (obj.hasOwnProperty(MAX_EXCLUSIVE))
-			maxInclusive = false;
-	}
-	
-	public var min:* = -Infinity;
-	public var max:* = Infinity;
-	public var minInclusive:Boolean = true;
-	public var maxInclusive:Boolean = true;
-	
-	public function getState():Object
-	{
-		var state:Object = {};
-		state[minInclusive ? MIN : MIN_EXCLUSIVE] = min;
-		state[maxInclusive ? MAX : MAX_EXCLUSIVE] = max;
-		return state;
 	}
 }

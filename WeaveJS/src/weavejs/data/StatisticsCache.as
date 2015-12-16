@@ -18,7 +18,7 @@ package weavejs.data
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IColumnStatistics;
 	import weavejs.api.data.IStatisticsCache;
-	import weavejs.utils.JS;
+	import weavejs.util.JS;
 	
 	/**
 	 * This is an all-static class containing numerical statistics on columns and functions to access the statistics.

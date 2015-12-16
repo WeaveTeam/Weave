@@ -231,8 +231,8 @@ package weave.data.DataSources
 						if (getTimer() > stopTime)
 							return i / jsonData.qkeys.length;
 						
-						var geoms:Array = GeneralizedGeometry.fromGeoJson(jsonData.geometries[i]);
-						for each (var geom:GeneralizedGeometry in geoms)
+						var geomsFromJson:Array = GeneralizedGeometry.fromGeoJson(jsonData.geometries[i]);
+						for each (var geom:GeneralizedGeometry in geomsFromJson)
 						{
 							keys.push(jsonData.qkeys[i]);
 							geoms.push(geom);

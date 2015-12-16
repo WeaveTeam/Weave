@@ -19,8 +19,8 @@ package weavejs.core
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.utils.JS;
-	import weavejs.utils.WeavePromise;
+	import weavejs.util.JS;
+	import weavejs.util.WeavePromise;
 	
 	/**
 	 * Use this class to build dependency trees involving asynchronous calls.

@@ -20,7 +20,7 @@ package weavejs.core
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.utils.JS;
+	import weavejs.util.JS;
 
 	/**
 	 * This object links to an internal ILinkableObject.

@@ -14,50 +14,31 @@ package
 	import weavejs.api.core.IProgressIndicator;
 	import weavejs.api.core.IScheduler;
 	import weavejs.api.core.ISessionManager;
-	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IAttributeColumnCache;
-	import weavejs.api.data.IQualifiedKey;
+	import weavejs.api.data.ICSVParser;
 	import weavejs.api.data.IQualifiedKeyManager;
-	import weavejs.core.LinkableBoolean;
-	import weavejs.core.LinkableCallbackScript;
-	import weavejs.core.LinkableDynamicObject;
-	import weavejs.core.LinkableFunction;
+	import weavejs.api.data.IStatisticsCache;
+	import weavejs.api.ui.IEditorManager;
+	import weavejs.core.EditorManager;
 	import weavejs.core.LinkableHashMap;
-	import weavejs.core.LinkableNumber;
-	import weavejs.core.LinkableString;
-	import weavejs.core.LinkableSynchronizer;
 	import weavejs.core.LinkableVariable;
-	import weavejs.core.LinkableWatcher;
 	import weavejs.core.ProgressIndicator;
 	import weavejs.core.Scheduler;
 	import weavejs.core.SessionManager;
 	import weavejs.core.SessionStateLog;
 	import weavejs.data.AttributeColumnCache;
-	import weavejs.data.keys.QKeyManager;
-	import weavejs.data.sources.CSVDataSource;
+	import weavejs.data.CSVParser;
+	import weavejs.data.StatisticsCache;
+	import weavejs.data.key.QKeyManager;
 	import weavejs.path.WeavePath;
-	import weavejs.path.WeavePathData;
-	import weavejs.utils.Dictionary2D;
-	import weavejs.utils.JS;
-	import weavejs.utils.StandardLib;
+	import weavejs.path.WeavePathUI;
+	import weavejs.util.Dictionary2D;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 	
 	public class Weave implements IDisposableObject
 	{
-		private static const dependencies:Array = [
-			LinkableNumber,LinkableString,LinkableBoolean,LinkableVariable,
-			LinkableHashMap,LinkableDynamicObject,LinkableWatcher,
-			LinkableCallbackScript,LinkableSynchronizer,LinkableFunction,
-			null
-		];
-		
 		private static const HISTORY_SYNC_DELAY:int = 100;
-		
-		public var date:Date = new Date();
-		
-		public function testme():void
-		{
-			JS.log(date);
-		}
 		
 		public function Weave()
 		{
@@ -66,9 +47,13 @@ package
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IQualifiedKeyManager, QKeyManager);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IScheduler, Scheduler);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IProgressIndicator, ProgressIndicator);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IStatisticsCache, StatisticsCache);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IEditorManager, EditorManager);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
+			registerClass("FlexibleLayout", LinkableVariable);
 			
 			// set this property for backwards compatibility
-			this['WeavePath'] = WeavePath;
+			this['WeavePath'] = WeavePathUI;
 			
 			root = disposableChild(this, LinkableHashMap);
 			history = disposableChild(this, new SessionStateLog(root, HISTORY_SYNC_DELAY));
@@ -84,52 +69,6 @@ package
 			map_root_weave['delete'](root);
 			root = null;
 			history = null;
-		}
-		
-		public function test():void
-		{
-			SessionStateLog.debug = true;
-			
-			var lv:LinkableString = root.requestObject('ls', LinkableString, false);
-			lv.addImmediateCallback(this, function():void { JS.log('immediate', lv.state); }, true);
-			lv.addGroupedCallback(this, function():void { JS.log('grouped', lv.state); }, true);
-			lv.state = 'hello';
-			lv.state = 'hello';
-			path('ls').state('hi').addCallback(null, function():void { JS.log(this+'', this.getState()); });
-			lv.state = 'world';
-			path('script')
-				.request('LinkableCallbackScript')
-				.state('script', 'console.log(Weave.className(this), this.get("ldo").target.value, Weave.getState(this));')
-				.push('variables', 'ldo')
-					.request('LinkableDynamicObject')
-					.state(['ls']);
-			lv.state = '2';
-			lv.state = 2;
-			lv.state = '3';
-			path('ls2').request('LinkableString');
-			path('sync')
-				.request('LinkableSynchronizer')
-				.state('primaryPath', ['ls'])
-				.state('primaryTransform', 'state + "_transformed"')
-				.state('secondaryPath', ['ls2'])
-				.call(function():void { JS.log(this.weave.path('ls2').getState()) });
-			var print:Function = function():void {
-				JS.log("column", this.getMetadata("title"));
-				for each (var key:IQualifiedKey in this.keys)
-					JS.log(key, this.getValueFromKey(key), this.getValueFromKey(key, Number), this.getValueFromKey(key, String));
-			};
-			path('csv').request(CSVDataSource)
-				.state('csvData', [['a', 'b'], [1, "one"], [2, "two"]])
-				.addCallback(null, function():void {
-					JS.log(this+"");
-					var csv:CSVDataSource = this.getObject() as CSVDataSource;
-					var ids:Array = csv.getColumnIds();
-					for each (var id:* in ids)
-					{
-						var col:IAttributeColumn = csv.getColumnById(id);
-						col.addGroupedCallback(col, print, true);
-					}
-				});
 		}
 		
 		/**
@@ -157,7 +96,7 @@ package
 			// handle path(linkableObject)
 			if (basePath.length == 1 && isLinkable(basePath[0]))
 				basePath = findPath(root, basePath[0]);
-			return new WeavePathData(this, basePath);
+			return new WeavePathUI(this, basePath);
 		}
 
 		
@@ -441,7 +380,7 @@ package
 		 */
 		public static function isLinkable(objectOrClass:Object):Boolean
 		{
-			if (objectOrClass is ILinkableObject)
+			if (objectOrClass is ILinkableObject || objectOrClass === ILinkableObject)
 				return true;
 			// test class definition
 			return objectOrClass && objectOrClass.prototype is ILinkableObject;
@@ -462,6 +401,41 @@ package
 		// static general helper functions
 		//////////////////////////////////////////////////////////////////////////////////
 		
+		private static const map_name_class:Object = new JS.Map();
+		private static const map_class_name:Object = new JS.Map();
+		
+		public static const defaultPackages:Array = [
+			'weavejs',
+			'weavejs.api',
+			'weavejs.api.core',
+			'weavejs.api.data',
+			'weavejs.api.service',
+			'weavejs.api.ui',
+			'weavejs.core',
+			'weavejs.data',
+			'weavejs.data.bin',
+			'weavejs.data.column',
+			'weavejs.data.hierarchy',
+			'weavejs.data.key',
+			'weavejs.data.source',
+			'weavejs.geom',
+			'weavejs.path',
+			'weavejs.util'
+		];
+		
+		/**
+		 * Registers a class for use with Weave.className() and Weave.getDefinition().
+		 */
+		public static function registerClass(name:String, definition:Class):void
+		{
+			map_name_class.set(name, definition);
+			map_class_name.set(definition, name);
+			
+			var shortName:String = name.split('.').pop().split(':').pop();
+			if (shortName != name)
+				registerClass(shortName, definition);
+		}
+		
 		/**
 		 * Gets the qualified class name from a class definition or an object instance.
 		 */
@@ -476,15 +450,17 @@ package
 			if (def.prototype && def.prototype.FLEXJS_CLASS_INFO)
 				return def.prototype.FLEXJS_CLASS_INFO.names[0].qName;
 			
+			if (map_class_name.has(def))
+				return map_class_name.get(def);
+			
 			return def.name;
 		}
 		
-		public static const defaultPackages:Array = [
-			'weavejs.core'
-		];
-		
 		public static function getDefinition(name:String):*
 		{
+			if (!name)
+				return undefined;
+			
 			var def:* = JS.global;
 			var names:Array = name.split('.');
 			for each (var key:String in names)
@@ -494,8 +470,10 @@ package
 				else
 					break;
 			}
+			if (def)
+				return def;
 			
-			if (!def && names.length == 1)
+			if (names.length == 1)
 			{
 				for each (var pkg:String in defaultPackages)
 				{
@@ -505,7 +483,12 @@ package
 				}
 			}
 			
-			return def;
+			def = map_name_class.get(name);
+			if (def)
+				return def;
+			
+			if (name.indexOf("::") > 0)
+				return getDefinition(name.split('::').pop());
 		}
 		
 		/**

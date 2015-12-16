@@ -23,7 +23,6 @@ package weave.primitives
 	
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.utils.VectorUtils;
 	

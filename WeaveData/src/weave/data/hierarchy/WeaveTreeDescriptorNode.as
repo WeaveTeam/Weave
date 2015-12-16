@@ -37,14 +37,18 @@ package weave.data.hierarchy
 		 */
 		public function WeaveTreeDescriptorNode(params:Object)
 		{
+			super();
 			childItemClass = WeaveTreeDescriptorNode;
 			
-			for (var key:String in params)
+			if (typeof params === 'object')
 			{
-				if (this[key] is Function && this.hasOwnProperty('_' + key))
-					this['_' + key] = params[key];
-				else
-					this[key] = params[key];
+				for (var key:String in params)
+				{
+					if (this[key] is Function && this.hasOwnProperty('_' + key))
+						this['_' + key] = params[key];
+					else
+						this[key] = params[key];
+				}
 			}
 		}
 		

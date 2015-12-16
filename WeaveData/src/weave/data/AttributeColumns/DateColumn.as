@@ -242,7 +242,7 @@ package weave.data.AttributeColumns
 					var oneDay:Number = 24 * 60 * 60 * 1000;
 					var fakeTime:Number = StandardLib.asNumber(string) * oneDay;
 					var d:Date = new Date();
-					d.time = d.time - d.time % oneDay + fakeTime;
+					d.setTime(d.getTime() - d.getTime() % oneDay + fakeTime);
 					value = d;
 				}
 				else if (_stringToNumberFunction != null)
@@ -269,7 +269,7 @@ package weave.data.AttributeColumns
 						if (!string)
 							continue;
 						value = parseDate(string);
-						if (value is Date && isNaN((value as Date).time))
+						if (value is Date && isNaN((value as Date).getTime()))
 							value = StandardLib.asNumber(string);
 					}
 					catch (e:Error)

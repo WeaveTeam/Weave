@@ -7,12 +7,17 @@
 package weavejs.path
 {
 	import weavejs.WeaveAPI;
+	import weavejs.api.core.DynamicState;
+	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
+	import weavejs.core.LinkableHashMap;
+	import weavejs.core.LinkableString;
+	import weavejs.core.LinkableVariable;
 	import weavejs.core.SessionManager;
-	import weavejs.utils.JS;
-	import weavejs.utils.StandardLib;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 
 	public class WeavePath
 	{
@@ -511,6 +516,19 @@ package weavejs.path
 		}
 		
 		/**
+		 * Gets the simple type (unqualified class name) of the object at the current path or relative to the current path.
+		 * @param relativePath An optional Array (or multiple parameters) specifying descendant names relative to the current path.
+		 *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+		 * @return The unqualified class name of the object at the current or descendant path, or null if there is no object.
+		 */
+		public function getSimpleType(...relativePath):String
+		{
+			relativePath = _A(relativePath, 1);
+			var type:String = Weave.className(this.getObject(relativePath));
+			return type && type.split('.').pop().split(':').pop();
+		}
+		
+		/**
 		 * Gets the session state of an object at the current path or relative to the current path.
 		 * @param relativePath An optional Array (or multiple parameters) specifying descendant names relative to the current path.
 		 *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
@@ -525,6 +543,35 @@ package weavejs.path
 			else
 				JS.error("No ILinkableObject from which to get session state at " + this.push(relativePath));
 			return null;
+		}
+		
+		public function getTypedState(...relativePath):Object
+		{
+			relativePath = _A(relativePath, 1);
+			return (WeaveAPI.SessionManager as SessionManager).getTypedStateTree(getObject(relativePath));
+		}
+		
+		public function getUntypedState(...relativePath):Object
+		{
+			relativePath = _A(relativePath, 1);
+			var state:Object = JS.copyObject(this.getState(relativePath));
+			return _removeTypeFromState(state);
+		}
+		
+		private function _removeTypeFromState(state:Object):Object
+		{
+			if (DynamicState.isDynamicStateArray(state))
+			{
+				var newState:Object = {};
+				for each (var typedState:Object in state)
+					newState[typedState[DynamicState.OBJECT_NAME] || ''] = _removeTypeFromState(typedState[DynamicState.SESSION_STATE]);
+				return newState;
+			}
+			
+			if (typeof state === 'object')
+				for (var key:String in state)
+					state[key] = _removeTypeFromState(state[key]);
+			return state;
 		}
 		
 		/**
@@ -584,7 +631,7 @@ package weavejs.path
 			if (script_or_function is String)
 				script_or_function = JS.compile(script_or_function);
 			
-			return script_or_function.apply(this, args);
+			return script_or_function.apply(getObject(), args);
 		}
 		
 		public function getObject(...relativePath):ILinkableObject
@@ -633,6 +680,54 @@ package weavejs.path
 			if (path)
 				str += ' (path: ' + JSON.stringify(path) + ')';
 			throw new Error(str);
+		}
+		
+		public static function migrate(source:WeavePath, destination:Weave):void
+		{
+			var typedState:Object = source.getValue("WeaveAPI.SessionManager.getTypedStateTree(this)");
+			var delayed:Array = [];
+			_setTypedState(destination.path(), typedState, delayed);
+			// resume in reverse order
+			for (var i:int = delayed.length - 1; i >= 0; i--)
+			{
+				var cc:ICallbackCollection = delayed[i];
+				cc.resumeCallbacks();
+			}
+		}
+		
+		private static function _setTypedState(path:WeavePath, typedState:Object, delayedCallbacks:Array):void
+		{
+			var type:String = typedState[DynamicState.CLASS_NAME];
+			var state:Object = typedState[DynamicState.SESSION_STATE];
+			var hasChildren:Boolean = DynamicState.isDynamicStateArray(state);
+			var def:Class = Weave.getDefinition(type);
+			if (def)
+				path.request(def);
+			else if (hasChildren)
+				path.request(LinkableHashMap).push('class').request(LinkableString).state(type);
+			else
+				path.request(LinkableVariable);
+			
+			// delay callbacks before setting state
+			var cc:ICallbackCollection = Weave.getCallbacks(path.getObject());
+			cc.delayCallbacks();
+			delayedCallbacks.push(cc);
+			
+			if (hasChildren)
+			{
+				for each (typedState in state)
+				{
+					type = typedState[DynamicState.CLASS_NAME];
+					if (type === "Array")
+						path.state(typedState[DynamicState.SESSION_STATE]);
+					else
+						_setTypedState(path.push(typedState[DynamicState.OBJECT_NAME]), typedState, delayedCallbacks);
+				}
+			}
+			else
+			{
+				path.state(state);
+			}
 		}
 	}
 }

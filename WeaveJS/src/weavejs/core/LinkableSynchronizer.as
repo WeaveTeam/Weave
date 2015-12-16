@@ -17,7 +17,7 @@ package weavejs.core
 {
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.utils.JS;
+	import weavejs.util.JS;
 	
 	public class LinkableSynchronizer implements ILinkableObject
 	{

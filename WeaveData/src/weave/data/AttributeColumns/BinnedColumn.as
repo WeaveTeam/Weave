@@ -39,6 +39,7 @@ package weave.data.AttributeColumns
 	{
 		public function BinnedColumn()
 		{
+			super();
 			binningDefinition.requestLocalObject(SimpleBinningDefinition, false);
 			binningDefinition.generateBinClassifiersForColumn(internalDynamicColumn);
 			registerLinkableChild(this, binningDefinition.asyncResultCallbacks);

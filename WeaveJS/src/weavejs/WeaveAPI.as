@@ -25,7 +25,8 @@ package weavejs
 	import weavejs.api.data.IProjectionManager;
 	import weavejs.api.data.IQualifiedKeyManager;
 	import weavejs.api.data.IStatisticsCache;
-	import weavejs.api.services.IURLRequestUtils;
+	import weavejs.api.service.IURLRequestUtils;
+	import weavejs.api.ui.IEditorManager;
 	import weavejs.core.ClassRegistryImpl;
 	
 	/**
@@ -166,13 +167,13 @@ package weavejs
 			return (_classRegistry || ClassRegistry).singletonInstances[ILocaleManager]
 				|| _classRegistry.getSingletonInstance(ILocaleManager);
 		}
-//		/**
-//		 * This is the singleton instance of the registered IEditorManager implementation.
-//		 */
-//		public static function get EditorManager():IEditorManager
-//		{
-//			return (_classRegistry || ClassRegistry).singletonInstances[IEditorManager]
-//				|| _classRegistry.getSingletonInstance(IEditorManager);
-//		}
+		/**
+		 * This is the singleton instance of the registered IEditorManager implementation.
+		 */
+		public static function get EditorManager():IEditorManager
+		{
+			return (_classRegistry || ClassRegistry).singletonInstances[IEditorManager]
+				|| _classRegistry.getSingletonInstance(IEditorManager);
+		}
 	}
 }

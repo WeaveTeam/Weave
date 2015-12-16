@@ -1,27 +1,37 @@
-/* ***** BEGIN LICENSE BLOCK *****
- *
- * This file is part of Weave.
- *
- * The Initial Developer of Weave is the Institute for Visualization
- * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2015
- * the Initial Developer. All Rights Reserved.
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/.
- * 
- * ***** END LICENSE BLOCK ***** */
+/*
+	Weave (Web-based Analysis and Visualization Environment)
+	Copyright (C) 2008-2011 University of Massachusetts Lowell
+	
+	This file is a part of Weave.
+	
+	Weave is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License, Version 3,
+	as published by the Free Software Foundation.
+	
+	Weave is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 package weavejs.data
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.data.ICSVParser;
-	import weavejs.utils.JS;
-
+	import weavejs.util.AsyncSort;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
+	
 	/**
-	 * Parses and generates CSV-encoded data.
+	 * This is an all-static class containing functions to parse and generate valid CSV files.
+	 * Ported from AutoIt Script to Flex. Original author: adufilie
+	 * 
+	 * @author skolman
+	 * @author adufilie
 	 */	
 	public class CSVParser implements ICSVParser, ILinkableObject
 	{
@@ -29,17 +39,11 @@ package weavejs.data
 		private static const LF:String = '\n';
 		private static const CRLF:String = '\r\n';
 		
-		private static const flascc:Object = null;
-		
 		/**
-		 * Creates a CSVParser.
-		 * @param asyncMode If this is set to true, parseCSV() will work asynchronously
-		 *                  and trigger callbacks when it finishes.
-		 *                  If this is set to false, no callback collection will be generated
-		 *                  for this instance of CSVParser as a result of calling its methods.
-		 *                  Note that if asyncMode is enabled, you can only parse one CSV string at a time.
-		 * @param delimiter A single character for the delimiter
-		 * @param quote A single character for the quote
+		 * @param delimiter
+		 * @param quote
+		 * @param asyncMode If this is set to true, parseCSV() will work asynchronously and trigger callbacks when it finishes.
+		 *                  Note that if asyncMode is enabled, you can only parse one CSV string at a time. 
 		 */		
 		public function CSVParser(asyncMode:Boolean = false, delimiter:String = ',', quote:String = '"')
 		{
@@ -54,15 +58,18 @@ package weavejs.data
 		private var asyncMode:Boolean;
 		private var delimiter:String = ',';
 		private var quote:String = '"';
-		private var removeBlankLines:Boolean = true;
 		private var parseTokens:Boolean = true;
 		
 		// async state
 		private var csvData:String;
 		private var csvDataArray:Array;
+		private var i:int;
+		private var row:int;
+		private var col:int;
+		private var escaped:Boolean;
 		
 		/**
-		 * @return The resulting two-dimensional Array from the last call to parseCSV().
+		 * @return  The resulting two-dimensional Array from the last call to parseCSV().
 		 */
 		public function get parseResult():Array
 		{
@@ -74,16 +81,23 @@ package weavejs.data
 		 */
 		public function parseCSV(csvData:String):Array
 		{
+			// initialization
+			this.csvData = csvData;
+			this.csvDataArray = [];
+			this.i = 0;
+			this.row = 0;
+			this.col = 0;
+			this.escaped = false;
+			
 			if (asyncMode)
 			{
-				this.csvData = csvData;
-				this.csvDataArray = [];
 				// high priority because preparing data is often the first thing we need to do
 				WeaveAPI.Scheduler.startTask(this, parseIterate, WeaveAPI.TASK_PRIORITY_HIGH, parseDone);
 			}
 			else
 			{
-				csvDataArray = flascc.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
+				parseIterate(Number.MAX_VALUE);
+				parseDone();
 			}
 			
 			return csvDataArray;
@@ -91,18 +105,124 @@ package weavejs.data
 		
 		private function parseIterate(stopTime:int):Number
 		{
-			// This isn't actually asynchronous at the moment, but moving the code to
-			// FlasCC made it so much faster that it won't matter most of the time.
-			// The async code structure is kept in case we want to make it asynchronous again in the future.
-			flascc.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens, csvDataArray);
-			csvData = null;
-			return 1;
+			// run initialization code on first iteration
+			if (i == 0)
+			{
+				if (!csvData) // null or empty string?
+					return 1; // done
+				
+				// start off first row with an empty string token
+				csvDataArray[row] = [''];
+			}
+			
+			while (JS.now() < stopTime)
+			{
+				if (i >= csvData.length)
+					return 1; // done
+				
+				var currentChar:String = csvData.charAt(i);
+				var twoChar:String = currentChar + csvData.charAt(i+1);
+				if (escaped)
+				{
+					if (twoChar == quote+quote) //escaped quote
+					{
+						csvDataArray[row][col] += (parseTokens?currentChar:twoChar);//append quote(s) to current token
+						i += 1; //skip second quote mark
+					}
+					else if (currentChar == quote)	//end of escaped text
+					{
+						escaped = false;
+						if (!parseTokens)
+						{
+							csvDataArray[row][col] += currentChar;//append quote to current token
+						}
+					}
+					else
+					{
+						csvDataArray[row][col] += currentChar;//append quotes to current token
+					}
+				}
+				else
+				{
+					
+					if (twoChar == delimiter+quote)
+					{
+						escaped = true;
+						col += 1;
+						csvDataArray[row][col] = (parseTokens?'':quote);
+						i += 1; //skip quote mark
+					}
+					else if (currentChar == quote && csvDataArray[row][col] == '')		//start new token
+					{
+						escaped = true;
+						if (!parseTokens) 
+							csvDataArray[row][col] += currentChar;
+					}
+					else if (currentChar == delimiter)		//start new token
+					{
+						col += 1;
+						csvDataArray[row][col] = '';
+					}
+					else if (twoChar == CRLF)	//then start new row
+					{
+						i += 1; //skip line feed
+						row += 1;
+						col = 0;
+						csvDataArray[row] = [''];
+					}
+					else if (currentChar == CR)	//then start new row
+					{
+						row += 1;
+						col = 0;
+						csvDataArray[row] = [''];
+					}
+					else if (currentChar == LF)	//then start new row
+					{ 
+						row += 1;
+						col = 0;
+						csvDataArray[row] = [''];
+					}
+					else //append single character to current token
+						csvDataArray[row][col] += currentChar;	
+				}
+				i++;
+			}
+			
+			return i / csvData.length;
 		}
 		
 		private function parseDone():void
 		{
+			// if there is more than one row and last row is empty,
+			// remove last row assuming it is there because of a newline at the end of the file.
+			for (var iRow:int = csvDataArray.length; iRow--;)
+			{
+				var dataLine:Array = csvDataArray[iRow];
+				
+				if (dataLine.length == 1 && dataLine[0] == '')
+					csvDataArray.splice(iRow, 1);
+			}
+			
 			if (asyncMode)
 				Weave.getCallbacks(this).triggerCallbacks();
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function createCSV(rows:Array):String
+		{
+			var lines:Array = new Array(rows.length);
+			for (var i:int = rows.length; i--;)
+			{
+				var tokens:Array = new Array(rows[i].length);
+				for (var j:int = tokens.length; j--;)
+					tokens[j] = createCSVToken(rows[i][j]);
+				
+				lines[i] = tokens.join(delimiter);
+			}
+			var csvData:String = lines.join(LF);
+			return csvData;
 		}
 		
 		/**
@@ -113,7 +233,7 @@ package weavejs.data
 			if (csvData == null)
 				return null;
 			
-			var rows:Array = flascc.parseCSV(csvData, delimiter, quote, removeBlankLines, parseTokens);
+			var rows:Array = parseCSV(csvData);
 			if (rows.length == 0)
 				return rows;
 			if (rows.length == 1)
@@ -125,17 +245,79 @@ package weavejs.data
 		/**
 		 * @inheritDoc
 		 */
-		public function createCSV(rows:Array):String
+		public function createCSVRow(row:Array):String
 		{
-			return flascc.createCSV(rows, delimiter, quote);
+			return createCSV([row]);
 		}
 		
 		/**
 		 * @inheritDoc
 		 */
-		public function createCSVRow(row:Array):String
+		public function parseCSVToken(token:String):String
 		{
-			return row ? flascc.createCSV([row], delimiter, quote) : null;
+			var parsedToken:String = '';
+			
+			var tokenLength:int = token.length;
+			
+			if (token.charAt(0) == quote)
+			{
+				var escaped:Boolean = true;
+				for (var i:int = 1; i <= tokenLength; i++)
+				{
+					var currentChar:String = token.charAt(i);
+					var twoChar:String = currentChar + token.charAt(i+1);
+					
+					if (twoChar == quote+quote) //append escaped quote
+					{
+						i += 1;
+						parsedToken += quote;
+					}
+					else if (currentChar == quote && escaped)
+					{
+						escaped = false;
+					}
+					else
+					{
+						parsedToken += currentChar;
+					}
+				}
+			}
+			else
+			{
+				parsedToken = token;
+			}
+			return parsedToken;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function createCSVToken(str:String):String
+		{
+			if (str == null)
+				str = '';
+			
+			// determine if quotes are necessary
+			if ( str.length > 0
+				&& str.indexOf(quote) < 0
+				&& str.indexOf(delimiter) < 0
+				&& str.indexOf(LF) < 0
+				&& str.indexOf(CR) < 0
+				&& str == StandardLib.trim(str) )
+			{
+				return str;
+			}
+			
+			var token:String = quote;
+			for (var i:int = 0; i <= str.length; i++)
+			{
+				var currentChar:String = str.charAt(i);
+				if (currentChar == quote)
+					token += quote + quote;
+				else
+					token += currentChar; 
+			}
+			return token + quote;
 		}
 		
 		/**
@@ -183,11 +365,11 @@ package weavejs.data
 			
 			var nestedFieldNames:Object = {};
 			for each (var record:Object in records)
-				_outputNestedFieldNames(record, includeNullFields, nestedFieldNames, headerDepth);
+			_outputNestedFieldNames(record, includeNullFields, nestedFieldNames, headerDepth);
 			
 			var fields:Array = [];
 			_collapseNestedFieldNames(nestedFieldNames, fields);
-			return fields.sort();
+			return fields;
 		}
 		private function _outputNestedFieldNames(record:Object, includeNullFields:Boolean, output:Object, depth:int):void
 		{
@@ -235,7 +417,10 @@ package weavejs.data
 			
 			var fields:Array = columnOrder;
 			if (fields == null)
+			{
 				fields = getRecordFieldNames(records, allowBlankColumns, headerDepth);
+				AsyncSort.sortImmediately(fields);
+			}
 			
 			var r:int;
 			var c:int;
@@ -273,8 +458,8 @@ package weavejs.data
 						// fields is an Array of Arrays
 						cell = record;
 						for each (var field:String in fields[c])
-							if (cell)
-								cell = cell[field];
+						if (cell)
+							cell = cell[field];
 					}
 					row[c] = cell != null ? String(cell) : '';
 				}
@@ -302,8 +487,8 @@ package weavejs.data
 			_.csv=[
 				'internal,internal,public,public,public,private,private,test',
 				'id,type,title,keyType,dataType,connection,sqlQuery,empty',
-				'2,1,state name,fips,string,resd,"select fips,name from myschema.state_data",',
-				'3,1,population,fips,number,resd,"select fips,pop from myschema.state_data",',
+				'2,1,state name,fips,string,resd,'+'"'+'select fips,name from myschema.state_data'+'"'+',',
+				'3,1,population,fips,number,resd,'+'"'+'select fips,pop from myschema.state_data'+'"'+',',
 				'1,0,state data table'
 			].join('\n');
 			_.table = _.parser.parseCSV(_.csv);

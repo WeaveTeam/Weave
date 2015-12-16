@@ -15,9 +15,6 @@
 
 package weavejs.api.data
 {
-	/**
-	 * 
-	 */
 	public class DateFormat
 	{
 		public static function getSuggestions():Array

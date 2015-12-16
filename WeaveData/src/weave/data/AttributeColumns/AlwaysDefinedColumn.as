@@ -71,6 +71,8 @@ package weave.data.AttributeColumns
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
+			if (!dataType)
+				dataType = Array;
 			if (!DynamicColumn.cache)
 			{
 				var value:* = internalDynamicColumn.getValueFromKey(key, dataType);

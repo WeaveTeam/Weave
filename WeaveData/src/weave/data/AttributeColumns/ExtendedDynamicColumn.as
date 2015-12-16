@@ -15,8 +15,6 @@
 
 package weave.data.AttributeColumns
 {
-	import mx.utils.NameUtil;
-	
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
@@ -35,6 +33,7 @@ package weave.data.AttributeColumns
 	{
 		public function ExtendedDynamicColumn()
 		{
+			super();
 			registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(internalDynamicColumn));
 		}
 		
@@ -54,8 +53,6 @@ package weave.data.AttributeColumns
 			return _internalDynamicColumn;
 		}
 		private const _internalDynamicColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		
-		private var name:String = NameUtil.createUniqueName(this);
 		
 		/************************************
 		 * Begin IAttributeColumn interface

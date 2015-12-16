@@ -36,6 +36,7 @@ package weave.data.AttributeColumns
 	{
 		public function ReprojectedGeometryColumn()
 		{
+			super();
 			// force the internal column to always be a ReferencedColumn
 			addImmediateCallback(this, updateReprojectedColumn);
 		}

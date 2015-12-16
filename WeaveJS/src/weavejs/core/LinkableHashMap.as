@@ -20,7 +20,7 @@ package weavejs.core
 	import weavejs.api.core.IChildListCallbackInterface;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.utils.JS;
+	import weavejs.util.JS;
 	
 	/**
 	 * Allows dynamically creating instances of objects implementing ILinkableObject at runtime.
@@ -37,6 +37,7 @@ package weavejs.core
 		 */
 		public function LinkableHashMap(typeRestriction:Class = null)
 		{
+			super();
 			_typeRestriction = typeRestriction;
 		}
 		

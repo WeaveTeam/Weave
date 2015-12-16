@@ -15,11 +15,12 @@
 
 package weave.data.BinningDefinitions
 {
+	import weave.api.newDisposableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
-	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.data.BinClassifiers.NumberClassifier;
@@ -137,6 +138,6 @@ package weave.data.BinningDefinitions
 		}
 		
 		// reusable temporary object
-		private static const tempNumberClassifier:NumberClassifier = new NumberClassifier();
+		private const tempNumberClassifier:NumberClassifier = newDisposableChild(this, NumberClassifier);
 	}
 }

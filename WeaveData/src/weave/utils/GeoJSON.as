@@ -223,7 +223,7 @@ package weave.utils
 		private static function geometryAsFeature(obj:Object, id:* = undefined, _:* = undefined):Object
 		{
 			var feature:Object = {};
-			feature[T_FEATURE]
+			feature[P_TYPE] = feature[T_FEATURE];
 			if (id !== undefined)
 				feature[F_P_ID] = id;
 			feature[F_P_GEOMETRY] = obj;

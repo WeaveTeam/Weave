@@ -21,10 +21,10 @@ package weavejs.data.hierarchy
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IWeaveTreeNode;
-	import weavejs.data.columns.CSVColumn;
-	import weavejs.data.columns.EquationColumn;
+	import weavejs.data.column.CSVColumn;
+	import weavejs.data.column.EquationColumn;
 	import weavejs.data.hierarchy.ColumnTreeNode;
-	import weavejs.utils.JS;
+	import weavejs.util.JS;
 	
 	public class GlobalColumnDataSource implements IDataSource
 	{

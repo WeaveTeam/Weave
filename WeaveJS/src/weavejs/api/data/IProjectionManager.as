@@ -15,8 +15,8 @@
 
 package weavejs.api.data
 {
-	import weavejs.utils.Bounds2D;
-	import weavejs.utils.Point;
+	import weavejs.geom.Bounds2D;
+	import weavejs.geom.Point;
 	
 	/**
 	 * An interface for reprojecting columns of geometries and individual coordinates.

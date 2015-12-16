@@ -15,6 +15,8 @@
 
 package weavejs.core
 {
+	import avmplus.getQualifiedClassName;
+	
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
@@ -27,10 +29,10 @@ package weavejs.core
 	import weavejs.api.core.ILinkableObjectWithNewProperties;
 	import weavejs.api.core.ILinkableVariable;
 	import weavejs.api.core.ISessionManager;
-	import weavejs.utils.Dictionary2D;
-	import weavejs.utils.JS;
-	import weavejs.utils.StandardLib;
-	import weavejs.utils.WeaveTreeItem;
+	import weavejs.util.Dictionary2D;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
+	import weavejs.util.WeaveTreeItem;
 
 	/**
 	 * This is a collection of core functions in the Weave session framework.
@@ -293,6 +295,24 @@ package weavejs.core
 		}
 		
 		/**
+		 * Gets a session state tree where each node is a DynamicState object.
+		 */
+		public function getTypedStateTree(root:ILinkableObject):Object
+		{
+			return getTypedStateFromTreeNode(getSessionStateTree(root, null));
+		}
+		private function getTypedStateFromTreeNode(node:WeaveTreeItem, i:int = 0, a:Array = null):Object
+		{
+			var state:Object;
+			var children:Array = node.children;
+			if (node.data is ILinkableVariable || !children)
+				state = getSessionState(node.data as ILinkableObject);
+			else
+				state = children.map(getTypedStateFromTreeNode);
+			return DynamicState.create(node.label, getQualifiedClassName(node.data), state);
+		}
+		
+		/**
 		 * Adds a grouped callback that will be triggered when the session state tree changes.
 		 * USE WITH CARE. The groupedCallback should not run computationally-expensive code.
 		 */
@@ -317,7 +337,7 @@ package weavejs.core
 		
 		private function applyDiffForLinkableVariable(base:Object, diff:Object):Object
 		{
-			if (base === null || diff === null || typeof(base) != 'object' || typeof(diff) != 'object' || diff is Array)
+			if (base === null || diff === null || typeof(base) !== 'object' || typeof(diff) !== 'object' || diff is Array)
 				return diff; // don't need to make a copy because LinkableVariable makes copies anyway
 			
 			for (var key:String in diff)
@@ -349,7 +369,7 @@ package weavejs.core
 			{
 				if (removeMissingDynamicObjects == false && newState && Weave.className(newState) == 'Object')
 				{
-					lv.setSessionState(applyDiffForLinkableVariable(copyObject(lv.getSessionState()), newState));
+					lv.setSessionState(applyDiffForLinkableVariable(JS.copyObject(lv.getSessionState()), newState));
 				}
 				else
 				{
@@ -464,7 +484,7 @@ package weavejs.core
 				// implicit session state
 				// first pass: get property names
 				
-				var propertyNames:Array = Object['getOwnPropertyNames'](linkableObject);
+				var propertyNames:Array = JS.getPropertyNames(linkableObject, true);
 				var resultNames:Array = [];
 				var resultProperties:Array = [];
 				var property:ILinkableObject = null;
@@ -540,7 +560,7 @@ package weavejs.core
 			var name:String;
 			// get the names from the object itself because each instance must have different
 			// linkable children, so we don't want to grab them from the prototype
-			var propertyNames:Array = Object['getOwnPropertyNames'](linkableObject);
+			var propertyNames:Array = JS.getPropertyNames(linkableObject, true);
 			
 			var linkableNames:Array = [];
 			for each (name in propertyNames)
@@ -1128,14 +1148,6 @@ package weavejs.core
 		
 		public static const DIFF_DELETE:String = 'delete';
 		
-		private function copyObject(object:Object):Object
-		{
-			if (object === null || typeof object != 'object') // primitive value
-				return object;
-			else
-				return JS.copyObject(object); // make copies of non-primitives
-		}
-		
 		/**
 		 * @inheritDoc
 		 */
@@ -1146,7 +1158,7 @@ package weavejs.core
 
 			// special case if types differ
 			if (typeof(newState) != type)
-				return copyObject(newState); // make copies of non-primitives
+				return JS.copyObject(newState); // make copies of non-primitives
 			
 			if (type == 'xml')
 			{
@@ -1165,7 +1177,7 @@ package weavejs.core
 			else if (oldState === null || newState === null || type != 'object') // other primitive value
 			{
 				if (oldState !== newState) // no type-casting
-					return copyObject(newState);
+					return JS.copyObject(newState);
 				
 				return undefined; // no diff
 			}
@@ -1238,7 +1250,7 @@ package weavejs.core
 					}
 					else
 					{
-						sessionState = copyObject(sessionState);
+						sessionState = JS.copyObject(sessionState);
 					}
 					
 					// save in new array and remove from lookup
@@ -1285,7 +1297,7 @@ package weavejs.core
 					{
 						if (!diff)
 							diff = {};
-						diff[newName] = copyObject(newState[newName]);
+						diff[newName] = JS.copyObject(newState[newName]);
 					}
 				}
 
@@ -1304,7 +1316,7 @@ package weavejs.core
 			// special cases
 			if (baseDiff == null || diffToAdd == null || baseType != diffType || baseType != 'object')
 			{
-				baseDiff = copyObject(diffToAdd);
+				baseDiff = JS.copyObject(diffToAdd);
 			}
 			else if (baseDiff is Array && diffToAdd is Array)
 			{
@@ -1357,7 +1369,7 @@ package weavejs.core
 						var oldTypedState:Object = baseLookup[objectName];
 						if (oldTypedState is String || oldTypedState == null)
 						{
-							baseLookup[objectName] = copyObject(typedState);
+							baseLookup[objectName] = JS.copyObject(typedState);
 						}
 						else if (!(typedState is String || typedState == null)) // update dynamic state
 						{
