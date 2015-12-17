@@ -68,6 +68,5 @@ package weavejs.api.data
 		 */
 		function transformBounds(sourceSRS:String, destinationSRS:String, inputAndOutput:Bounds2D,
 			xGridSize:int = 32, yGridSize:int = 32):Bounds2D
-
 	}
 }

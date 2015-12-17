@@ -512,7 +512,10 @@ package weavejs.path
 		public function getType(...relativePath):String
 		{
 			relativePath = _A(relativePath, 1);
-			return Weave.className(this.getObject(relativePath));
+			var object:ILinkableObject = this.getObject(relativePath);
+			if (object is ILinkableHashMap && this.getType('class'))
+				return this.getState('class') as String;
+			return Weave.className(object);
 		}
 		
 		/**

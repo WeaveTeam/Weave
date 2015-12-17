@@ -65,6 +65,8 @@ package
 	import weavejs.data.key.KeySetUnion;
 	import weavejs.data.key.SortedKeySet;
 	import weavejs.data.source.CSVDataSource;
+	import weavejs.data.source.GeoJSONDataSource;
+	import weavejs.geom.ZoomBounds;
 	import weavejs.util.DebugUtils;
 	import weavejs.util.JS;
 	
@@ -122,6 +124,10 @@ package
 			SortedIndexColumn,
 			StringColumn,
 			StringLookup,
+			GeoJSONDataSource,
+			
+			ZoomBounds,
+			
 			null
 		];
 		
