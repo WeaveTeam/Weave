@@ -101,6 +101,23 @@ package
 				basePath = findPath(root, basePath[0]);
 			return new WeavePathUI(this, basePath);
 		}
+		
+		/**
+		 * Gets the ILinkableObject at a specified path.
+		 * @param path An Array (or multiple parameters) specifying the path to an object in the session state.
+		 *             A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+		 */
+		public function getObject(...path):ILinkableObject
+		{
+			if (path.length == 1)
+			{
+				if (path[0] is WeavePath)
+					return (path[0] as WeavePath).getObject();
+				if (path[0] is Array)
+					path = path[0];
+			}
+			return Weave.followPath(root, path);
+		}
 
 		
 		
