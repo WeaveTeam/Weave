@@ -202,7 +202,7 @@ package weavejs.data.source
 				var qkeys:Array = [];
 				var geoms:Array = [];
 				var i:int = 0;
-				function initGeoms(stopTime:int):Number
+				var initGeoms:Function = function(stopTime:int):Number
 				{
 					if (!jsonData)
 					{
@@ -223,7 +223,7 @@ package weavejs.data.source
 					}
 					return 1;
 				}
-				function setGeoms():void
+				var setGeoms:Function = function():void
 				{
 					var gc:GeometryColumn = new GeometryColumn(metadata);
 					gc.setGeometries(qkeys, geoms);
