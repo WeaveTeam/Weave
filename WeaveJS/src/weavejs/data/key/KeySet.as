@@ -17,6 +17,7 @@ package weavejs.data.key
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.data.IKeySet;
+	import weavejs.api.data.IKeySetCallbackInterface;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.core.LinkableVariable;
 	import weavejs.util.JS;
@@ -38,7 +39,7 @@ package weavejs.data.key
 		/**
 		 * An interface for keys added and removed
 		 */
-		public var keyCallbacks:KeySetCallbackInterface = Weave.linkableChild(this, KeySetCallbackInterface);
+		public var keyCallbacks:IKeySetCallbackInterface = Weave.linkableChild(this, KeySetCallbackInterface);
 		
 		/**
 		 * Verifies that the value is a two-dimensional array or null.
@@ -178,7 +179,8 @@ package weavejs.data.key
 			}
 			_keys.length = outputIndex; // trim to actual length
 			// loop through old keys and see if any were removed
-			for (key in prevKeyIndex)
+			var oldKeys:Array = JS.mapKeys(prevKeyIndex);
+			for each (key in oldKeys)
 			{
 				if (!map_key_index.has(key)) // if this previous key is gone now, change detected
 				{

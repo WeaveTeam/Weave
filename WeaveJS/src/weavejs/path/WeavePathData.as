@@ -10,6 +10,8 @@ package weavejs.path
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IDataSource;
+	import weavejs.api.data.IKeySet;
+	import weavejs.api.data.IKeySetCallbackInterface;
 	import weavejs.data.ColumnUtils;
 	import weavejs.data.column.DynamicColumn;
 	import weavejs.data.column.ExtendedDynamicColumn;
@@ -169,7 +171,8 @@ package weavejs.path
 		public function getKeys(...relativePath):Array
 		{
 		    var args:Array = _A(relativePath, 1);
-		    var raw_keys:Array = this.getObject(args)['keys'];
+			var keySet:IKeySet = this.getObject(args) as IKeySet;
+		    var raw_keys:Array = keySet.keys;
 		    return raw_keys.map(this.qkeyToString);
 		}
 		
@@ -242,29 +245,20 @@ package weavejs.path
 		 */
 		public function addKeySetCallback(callback:Function, triggerCallbackNow:Boolean = false):WeavePath
 		{
-		    var wrapper:Function = function():void
-		    {
-		        var key_event:Object = this.weave.directAPI.evaluateExpression(this._path, '{added: this.keysAdded, removed: this.keysRemoved}');
-		        
-		        key_event.added = key_event.added.map(this.qkeyToString);
-		        key_event.removed = key_event.removed.map(this.qkeyToString);
-		
-		        callback.call(this, key_event);
-		    };
-		
-			// wrapper function 'this' context becomes the WeavePath
-			var p:WeavePath = this.push('keyCallbacks');
-			p.addCallback(p, wrapper, false, true);
+			var self:WeavePath = this;
+			var keyCallbacks:IKeySetCallbackInterface = this.getObject('keyCallbacks') as IKeySetCallbackInterface;
+			keyCallbacks.addImmediateCallback(keyCallbacks, function():void {
+				callback.call(self, {
+					added: keyCallbacks.keysAdded.map(qkeyToString),
+					removed: keyCallbacks.keysRemoved.map(qkeyToString)
+				});
+			});
 		
 		    if (triggerCallbackNow)
-		    {
-		        var key_event:Object = {
-		            added: this.getKeys(),
-		            removed: []
-		        };
-		
-		        callback.call(this, key_event);
-		    }
+		        callback.call(this, {
+					added: this.getKeys(),
+					removed: []
+				});
 		
 		    return this;
 		}
@@ -299,16 +293,16 @@ package weavejs.path
 		
 		public function filterKeys(...relativePath_keyStringArray):Array
 		{
-//		    var args:Array = _A(relativePath_keyStringArray, 2);
-//		    if (_assertParams('filterKeys', args))
-//		    {
-//		        var keyStringArray:Array = args.pop();
-//		        var keyObjects:Array = keyStringArray.map(this.stringToQKey);
-//				var obj:Object = this.getObject(args);
-//				return WeaveAPI.QKeyManager.convertToQKeys(keyObjects)
-//					.filter(function(key:*):Boolean { return obj.containsKey(key); })
-//		        	.map(this.qkeyToString, this);
-//		    }
+		    var args:Array = _A(relativePath_keyStringArray, 2);
+		    if (_assertParams('filterKeys', args))
+		    {
+		        var keyStringArray:Array = args.pop();
+		        var keyObjects:Array = keyStringArray.map(this.stringToQKey);
+				var obj:Object = this.getObject(args);
+				return WeaveAPI.QKeyManager.convertToQKeys(keyObjects)
+					.filter(function(key:*):Boolean { return obj.containsKey(key); })
+		        	.map(this.qkeyToString, this);
+		    }
 			return null;
 		}
 		

@@ -19,6 +19,7 @@ package weave.data.KeySets
 	
 	import weave.api.newLinkableChild;
 	import weave.api.data.IKeySet;
+	import weave.api.data.IKeySetCallbackInterface;
 	import weave.api.data.IQualifiedKey;
 	import weave.compiler.Compiler;
 	import weave.core.LinkableVariable;
@@ -40,7 +41,7 @@ package weave.data.KeySets
 		/**
 		 * An interface for keys added and removed
 		 */
-		public const keyCallbacks:KeySetCallbackInterface = newLinkableChild(this, KeySetCallbackInterface);
+		public const keyCallbacks:IKeySetCallbackInterface = newLinkableChild(this, KeySetCallbackInterface);
 		
 		/**
 		 * Verifies that the value is a two-dimensional array or null.
