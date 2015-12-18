@@ -17,6 +17,7 @@ package weavejs.core
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.IScheduler;
 	import weavejs.util.DebugTimer;
@@ -32,19 +33,8 @@ package weavejs.core
 	 * 
 	 * @author adufilie
 	 */
-	public class Scheduler implements IScheduler
+	public class Scheduler implements IScheduler, IDisposableObject
 	{
-		public function Scheduler()
-		{
-			_nextAnimationFrame = JS.requestAnimationFrame(handleCallLater);
-			initVisibilityHandler();
-		}
-		
-		public function dispose():void
-		{
-			JS.cancelAnimationFrame(_nextAnimationFrame);
-		}
-		
 		public static var debug_fps:Boolean = false;
 		public static var debug_async_time:Boolean = false;
 		public static var debug_async_stack:Boolean = false;
@@ -52,6 +42,27 @@ package weavejs.core
 		public static var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
 		public static var debug_callLater:Boolean = false; // set this to true to delay async tasks
 		public static var debug_visibility:Boolean = false; // set this to true to delay async tasks
+		
+		public function Scheduler()
+		{
+			frameCallbacks.addImmediateCallback(this, _handleCallLater);
+			frameCallbacks.addImmediateCallback(this, _requestNextFrame, true, true);
+			initVisibilityHandler();
+		}
+		
+		public var frameCallbacks:ICallbackCollection = Weave.disposableChild(this, CallbackCollection);
+		private var _nextAnimationFrame:int;
+		
+		private function _requestNextFrame():void
+		{
+			_nextAnimationFrame = JS.requestAnimationFrame(frameCallbacks.triggerCallbacks);
+		}
+		
+		public function dispose():void
+		{
+			JS.cancelAnimationFrame(_nextAnimationFrame);
+		}
+		
 		public var averageFrameTime:int = 0;
 		private var _currentFrameStartTime:int = JS.now(); // this is the result of JS.now() on the last ENTER_FRAME event.
 		private var _previousFrameElapsedTime:int = 0; // this is the amount of time it took to process the previous frame.
@@ -73,10 +84,7 @@ package weavejs.core
 		private var _priorityAllocatedTimes:Array = [Number.MAX_VALUE, 300, 200, 100]; // An Array of allocated times corresponding to callLater queues.
 		private var _deactivatedMaxComputationTimePerFrame:uint = 1000;
 		private var _nextCallLaterPriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE; // private variable to control the priority of the next callLater() internally
-		private var _nextAnimationFrame:int;
 		
-		public var frameCallbacks:ICallbackCollection = Weave.disposableChild(this, CallbackCollection);
-
 		/**
 		 * This gets the maximum milliseconds spent per frame performing asynchronous tasks.
 		 */
@@ -211,10 +219,8 @@ package weavejs.core
 		/**
 		 * This function gets called during ENTER_FRAME and RENDER events.
 		 */
-		private function handleCallLater():void
+		private function _handleCallLater():void
 		{
-			_nextAnimationFrame = JS.requestAnimationFrame(handleCallLater);
-
 			// detect deactivated framerate (when app is hidden)
 			if (deactivated)
 			{
@@ -402,8 +408,6 @@ package weavejs.core
 				if (debug_callLater)
 					DebugTimer.end(stackTrace);
 			}
-			
-			frameCallbacks.triggerCallbacks();
 		}
 		
 		/**
