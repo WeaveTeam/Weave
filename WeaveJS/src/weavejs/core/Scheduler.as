@@ -35,7 +35,7 @@ package weavejs.core
 	{
 		public function Scheduler()
 		{
-			JS.setInterval(handleCallLater, 0);
+			JS.setInterval(handleCallLater, 1000 / 30);
 			initVisibilityHandler();
 		}
 		
