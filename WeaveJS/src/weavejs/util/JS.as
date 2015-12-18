@@ -222,22 +222,26 @@ package weavejs.util
 			return isClass(classDef) ? classDef : null;
 		}
 		
-		/**
-		 * setTimeout
-		 */
 		public static function setTimeout(func:Function, delay:int, ...params):int
 		{
 			params.unshift(func, delay);
 			return global['setTimeout'].apply(global, params);
 		}
 		
-		/**
-		 * setInterval
-		 */
 		public static function setInterval(func:Function, delay:int, ...params):int
 		{
 			params.unshift(func, delay);
 			return global['setInterval'].apply(global, params);
+		}
+		
+		public static function requestAnimationFrame(func:Function):int
+		{
+			return global['requestAnimationFrame'].call(global, func);
+		}
+		
+		public static function cancelAnimationFrame(func:Function):int
+		{
+			return global['cancelAnimationFrame'].call(global, func);
 		}
 		
 		/**

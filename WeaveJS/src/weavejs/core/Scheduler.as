@@ -16,6 +16,7 @@
 package weavejs.core
 {
 	import weavejs.WeaveAPI;
+	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.IScheduler;
 	import weavejs.util.DebugTimer;
@@ -35,7 +36,7 @@ package weavejs.core
 	{
 		public function Scheduler()
 		{
-			JS.setInterval(handleCallLater, 1000 / 30);
+			JS.setInterval(handleCallLater, Weave.FRAME_INTERVAL);
 			initVisibilityHandler();
 		}
 		
@@ -67,6 +68,8 @@ package weavejs.core
 		private var _priorityAllocatedTimes:Array = [Number.MAX_VALUE, 300, 200, 100]; // An Array of allocated times corresponding to callLater queues.
 		private var _deactivatedMaxComputationTimePerFrame:uint = 1000;
 		private var _nextCallLaterPriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE; // private variable to control the priority of the next callLater() internally
+		
+		public var frameCallbacks:ICallbackCollection = Weave.disposableChild(this, CallbackCollection);
 
 		/**
 		 * This gets the maximum milliseconds spent per frame performing asynchronous tasks.
@@ -391,6 +394,8 @@ package weavejs.core
 				if (debug_callLater)
 					DebugTimer.end(stackTrace);
 			}
+			
+			frameCallbacks.triggerCallbacks();
 		}
 		
 		/**

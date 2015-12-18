@@ -40,7 +40,8 @@ package
 	
 	public class Weave implements IDisposableObject
 	{
-		private static const HISTORY_SYNC_DELAY:int = 100;
+		public static const HISTORY_SYNC_DELAY:int = 100;
+		public static const FRAME_INTERVAL:Number = 1000/30;
 		
 		public function Weave()
 		{

@@ -6,9 +6,9 @@
 */
 package weavejs.core
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.util.Dictionary2D;
-	import weavejs.util.JS;
 
 	/**
 	 * @private
@@ -146,7 +146,7 @@ package weavejs.core
 			super(context, groupedCallback);
 			
 			if (!_initialized)
-				_initialized = JS.setInterval(_handleGroupedCallbacks, 0);
+				_initialized = (WeaveAPI.Scheduler as Scheduler).frameCallbacks.addImmediateCallback(null, _handleGroupedCallbacks);
 		}
 		
 		/**
