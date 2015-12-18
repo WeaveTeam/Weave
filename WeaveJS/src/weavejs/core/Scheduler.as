@@ -36,8 +36,13 @@ package weavejs.core
 	{
 		public function Scheduler()
 		{
-			JS.setInterval(handleCallLater, Weave.FRAME_INTERVAL);
+			_nextAnimationFrame = JS.requestAnimationFrame(handleCallLater);
 			initVisibilityHandler();
+		}
+		
+		public function dispose():void
+		{
+			JS.cancelAnimationFrame(_nextAnimationFrame);
 		}
 		
 		public static var debug_fps:Boolean = false;
@@ -68,6 +73,7 @@ package weavejs.core
 		private var _priorityAllocatedTimes:Array = [Number.MAX_VALUE, 300, 200, 100]; // An Array of allocated times corresponding to callLater queues.
 		private var _deactivatedMaxComputationTimePerFrame:uint = 1000;
 		private var _nextCallLaterPriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE; // private variable to control the priority of the next callLater() internally
+		private var _nextAnimationFrame:int;
 		
 		public var frameCallbacks:ICallbackCollection = Weave.disposableChild(this, CallbackCollection);
 
@@ -207,6 +213,8 @@ package weavejs.core
 		 */
 		private function handleCallLater():void
 		{
+			_nextAnimationFrame = JS.requestAnimationFrame(handleCallLater);
+
 			// detect deactivated framerate (when app is hidden)
 			if (deactivated)
 			{

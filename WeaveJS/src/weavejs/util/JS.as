@@ -239,9 +239,9 @@ package weavejs.util
 			return global['requestAnimationFrame'].call(global, func);
 		}
 		
-		public static function cancelAnimationFrame(func:Function):int
+		public static function cancelAnimationFrame(id:int):void
 		{
-			return global['cancelAnimationFrame'].call(global, func);
+			global['cancelAnimationFrame'].call(global, id);
 		}
 		
 		/**
