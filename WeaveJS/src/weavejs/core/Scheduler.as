@@ -45,8 +45,8 @@ package weavejs.core
 		
 		public function Scheduler()
 		{
+			frameCallbacks.addImmediateCallback(this, _requestNextFrame, true);
 			frameCallbacks.addImmediateCallback(this, _handleCallLater);
-			frameCallbacks.addImmediateCallback(this, _requestNextFrame, true, true);
 			initVisibilityHandler();
 		}
 		
