@@ -255,6 +255,7 @@ package weavejs.data
 		 */
 		public function parseCSVToken(token:String):String
 		{
+			token = String(token);
 			var parsedToken:String = '';
 			
 			var tokenLength:int = token.length;
@@ -294,6 +295,7 @@ package weavejs.data
 		 */
 		public function createCSVToken(str:String):String
 		{
+			str = String(str);
 			if (str == null)
 				str = '';
 			
