@@ -83,7 +83,6 @@ package weavejs.core
 		private var _activePriorityElapsedTime:uint = 0; // elapsed time for active task priority
 		private var _priorityAllocatedTimes:Array = [Number.MAX_VALUE, 300, 200, 100]; // An Array of allocated times corresponding to callLater queues.
 		private var _deactivatedMaxComputationTimePerFrame:uint = 1000;
-		private var _nextCallLaterPriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE; // private variable to control the priority of the next callLater() internally
 		
 		/**
 		 * This gets the maximum milliseconds spent per frame performing asynchronous tasks.
@@ -292,7 +291,7 @@ package weavejs.core
 					return;
 				}
 				
-				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint)
+				// args: (relevantContext:Object, method:Function, parameters:Array)
 				args = queue.shift();
 				stackTrace = map_task_stackTrace.get(args);
 				
@@ -386,7 +385,7 @@ package weavejs.core
 				_currentTaskStopTime = pStop; // make sure _iterateTask knows when to stop
 				
 				// call the next function in the queue
-				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint)
+				// args: (relevantContext:Object, method:Function, parameters:Array)
 				args = queue.shift() as Array;
 				stackTrace = map_task_stackTrace.get(args); // check this for debugging where the call came from
 				
@@ -415,6 +414,11 @@ package weavejs.core
 		 */
 		public function callLater(relevantContext:Object, method:Function, parameters:Array = null):void
 		{
+			_callLaterPriority(WeaveAPI.TASK_PRIORITY_IMMEDIATE, relevantContext, method, parameters);
+		}
+		
+		private function _callLaterPriority(priority:uint, relevantContext:Object, method:Function, parameters:Array = null):void
+		{
 			if (method == null)
 			{
 				JS.error('StageUtils.callLater(): received null "method" parameter');
@@ -424,11 +428,11 @@ package weavejs.core
 //			WeaveAPI.SessionManager.assignBusyTask(arguments, relevantContext as ILinkableObject);
 			
 			//JS.log("call later @",currentFrameElapsedTime);
-			_priorityCallLaterQueues[_nextCallLaterPriority].push(JS.toArray(arguments));
-			_nextCallLaterPriority = WeaveAPI.TASK_PRIORITY_IMMEDIATE;
+			var args:Array = [relevantContext, method, parameters];
+			_priorityCallLaterQueues[priority].push(args);
 			
 			if (debug_async_stack)
-				map_task_stackTrace.set(JS.toArray(arguments), new Error("This is the stack trace from when callLater() was called."));
+				map_task_stackTrace.set(args, new Error("This is the stack trace from when callLater() was called."));
 		}
 		
 		/**
@@ -514,8 +518,7 @@ package weavejs.core
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed.
-			_nextCallLaterPriority = priority;
-			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback, useTimeParameter]);
+			_callLaterPriority(priority, null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback, useTimeParameter]);
 			//_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
 		}
 		
@@ -611,8 +614,7 @@ package weavejs.core
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed.
-			_nextCallLaterPriority = priority;
-			callLater(null, _iterateTask, JS.toArray(arguments));
+			_callLaterPriority(priority, null, _iterateTask, JS.toArray(arguments));
 		}
 	}
 }
