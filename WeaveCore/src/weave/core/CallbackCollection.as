@@ -107,7 +107,7 @@ package weave.core
 			{
 				// increase the recursion count while the function is running
 				entry.recursionCount++;
-				callback.apply();
+				callback.apply(relevantContext || callback['this']);
 				entry.recursionCount--;
 			}
 		}
@@ -186,9 +186,9 @@ package weave.core
 						entry.recursionCount++; // increase count to signal that we are currently running this callback.
 						
 						if (_preCallback != null)
-							_preCallback.apply(null, preCallbackParams);
+							_preCallback.apply(this, preCallbackParams);
 						
-						entry.callback.apply();
+						entry.callback.apply(entry.context || entry.callback['this']);
 						
 						entry.recursionCount--; // decrease count because the callback finished.
 					}
@@ -294,7 +294,7 @@ package weave.core
 			{
 				var entry:CallbackEntry = _disposeCallbackEntries.shift() as CallbackEntry;
 				if (entry.callback != null && !WeaveAPI.SessionManager.objectWasDisposed(entry.context))
-					entry.callback.apply();
+					entry.callback.apply(entry.context || entry.callback['this']);
 			}
 		}
 		
