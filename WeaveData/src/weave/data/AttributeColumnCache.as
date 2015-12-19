@@ -59,9 +59,10 @@ package weave.data
 			if (!column)
 			{
 				// if this is the first time we've seen this data source, add dispose callback
+				var self:AttributeColumnCache = this;
 				if (!d2d_dataSource_metadataHash_column.dictionary[dataSource])
 					getCallbackCollection(dataSource).addDisposeCallback(this, function():void {
-						delete this.d2d_dataSource_metadataHash_column.dictionary[dataSource];
+						delete self.d2d_dataSource_metadataHash_column.dictionary[dataSource];
 					});
 				
 				// If no column is associated with this hash value, request the
