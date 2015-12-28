@@ -20,6 +20,7 @@ package
 	import weavejs.core.LinkableVariable;
 	import weavejs.core.LinkableWatcher;
 	import weavejs.core.SessionStateLog;
+	import weavejs.core.WeaveArchive;
 	import weavejs.data.bin.AbstractBinningDefinition;
 	import weavejs.data.bin.CategoryBinningDefinition;
 	import weavejs.data.bin.CustomSplitBinningDefinition;
@@ -127,6 +128,7 @@ package
 			GeoJSONDataSource,
 			
 			ZoomBounds,
+			WeaveArchive,
 			
 			null
 		];
