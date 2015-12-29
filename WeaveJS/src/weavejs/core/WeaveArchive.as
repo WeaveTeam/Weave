@@ -68,8 +68,8 @@ package weavejs.core
 				}
 				else if (filePath.indexOf(FOLDER_AMF + '/') == 0)
 				{
-					var bytes:Object = new JSByteArray(file.asBinary());
-					objects[fileName] = bytes.readObject();
+					var byteArray:Object = new JSByteArray(file.asBinary());
+					objects[fileName] = byteArray.readObject();
 				}
 				else
 				{

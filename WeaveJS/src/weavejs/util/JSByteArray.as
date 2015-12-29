@@ -88,7 +88,7 @@ package weavejs.util
 		 * I used some code from http://fhtr.blogspot.com/2009/12/3d-models-and-parsing-binary-data-with.html
 		 * to kick-start it, but I added optimizations and support both big and little endian.
 		 */
-		public function JSByteArray(data:* = undefined, endian:int = ENDIAN_BIG)
+		public function JSByteArray(data:* = undefined, endian:* = undefined)
 		{
 			if (typeof data == "string") {
 				data = data.split("").map(function(c:String):int {
@@ -97,7 +97,7 @@ package weavejs.util
 			}
 	
 			this.data = (data !== undefined) ? data : [];
-			this.endian = endian;
+			if (endian !== undefined) this.endian = endian;
 			this.length = data.length;
 	
 			this.stringTable = [];
