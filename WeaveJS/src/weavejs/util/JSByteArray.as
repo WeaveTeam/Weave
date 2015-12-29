@@ -136,11 +136,7 @@ package weavejs.util
 			return ch4 | (ch3 << 8) | (ch2 << 16) | (ch1 << 24);
 		}
 	
-		public function readUnsignedInt():int
-		{
-			return readUInt32();
-		}
-		private function readUInt32():int
+		public function readUnsignedInt/*readUInt32*/():int
 		{
 			if (endian == ENDIAN_LITTLE)
 				return readUInt32LE();
@@ -150,7 +146,7 @@ package weavejs.util
 					((data[++pos] & 0xFF) << 8) |
 					(data[++pos] & 0xFF);
 		}
-		private function readInt/*readInt32*/():int
+		public function readInt/*readInt32*/():int
 		{
 			if (endian == ENDIAN_LITTLE)
 				return readInt32LE();
@@ -162,7 +158,7 @@ package weavejs.util
 			return (x >= 2147483648) ? x - 4294967296 : x;
 		}
 	
-		private function readUnsignedShort/*readUInt16*/():int
+		public function readUnsignedShort/*readUInt16*/():int
 		{
 			if (endian == ENDIAN_LITTLE)
 				return readUInt16LE();
@@ -170,7 +166,7 @@ package weavejs.util
 			return  ((data[pos] & 0xFF) << 8) |
 							(data[++pos] & 0xFF);
 		}
-		private function readShort/*readInt16*/():int
+		public function readShort/*readInt16*/():int
 		{
 			if (endian == ENDIAN_LITTLE)
 				return readInt16LE();
@@ -197,7 +193,7 @@ package weavejs.util
 			return sign * (1 + TWOeN23 * sig) * Math.pow(2, exp);
 		}
 	
-		private function readDouble/*readFloat64*/():Number
+		public function readDouble/*readFloat64*/():Number
 		{
 			if (endian == ENDIAN_LITTLE)
 				return readFloat64LE();
@@ -386,12 +382,12 @@ package weavejs.util
 			return str;
 		}
 	
-		private function readUTF():String
+		public function readUTF():String
 		{
 			return this.readString(this.readUnsignedShort());
 		}
 	
-		private function readLongUTF():String
+		public function readLongUTF():String
 		{
 			return this.readString(this.readUInt30());
 		}
