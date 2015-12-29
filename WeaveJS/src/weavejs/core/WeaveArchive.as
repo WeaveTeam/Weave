@@ -17,6 +17,7 @@ package weavejs.core
 {
 	import weavejs.WeaveAPI;
 	import weavejs.util.JS;
+	import weavejs.util.JSByteArray;
 	
 	/**
 	 * This is an interface for reading and writing data in the Weave file format.
@@ -67,8 +68,7 @@ package weavejs.core
 				}
 				else if (filePath.indexOf(FOLDER_AMF + '/') == 0)
 				{
-					var ByteArray:Class = JS.global.a3d.ByteArray;
-					var bytes:Object = new ByteArray(file.asBinary());
+					var bytes:Object = new JSByteArray(file.asBinary());
 					objects[fileName] = bytes.readObject();
 				}
 				else
