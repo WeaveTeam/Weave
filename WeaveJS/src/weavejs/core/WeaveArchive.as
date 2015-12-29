@@ -16,8 +16,11 @@
 package weavejs.core
 {
 	import weavejs.WeaveAPI;
+	import weavejs.data.AttributeColumnCache;
+	import weavejs.net.URLRequestUtils;
 	import weavejs.util.JS;
 	import weavejs.util.JSByteArray;
+	import weavejs.util.WeavePromise;
 	
 	/**
 	 * This is an interface for reading and writing data in the Weave file format.
@@ -101,46 +104,76 @@ package weavejs.core
 			return zip.generate({type: 'blob'});
 		}
 		
-		public static const HISTORY_SYNC_DELAY:int = 100;
-		public static const THUMBNAIL_SIZE:int = 200;
-		public static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
-		public static const ARCHIVE_SCREENSHOT_PNG:String = "screenshot.png";
-		public static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
+//		public static const HISTORY_SYNC_DELAY:int = 100;
+//		public static const THUMBNAIL_SIZE:int = 200;
+//		public static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
+//		public static const ARCHIVE_SCREENSHOT_PNG:String = "screenshot.png";
+//		public static const ARCHIVE_URL_CACHE_AMF:String = "url-cache.amf";
 		public static const ARCHIVE_HISTORY_AMF:String = "history.amf";
-		public static const ARCHIVE_URL_CACHE_AMF:String = "url-cache.amf";
+		public static const ARCHIVE_HISTORY_JSON:String = "history.amf";
 		public static const ARCHIVE_COLUMN_CACHE_AMF:String = "column-cache.amf";
+		public static const ARCHIVE_COLUMN_CACHE_JSON:String = "column-cache.json";
+		
+		/**
+		 * Loads a WeaveArchive from file content.
+		 */
+		public static function loadUrl(weave:Weave, fileUrl:String):WeavePromise
+		{
+			return new WeavePromise(weave.root, function(resolve:Function, reject:Function):void {
+				WeaveAPI.URLRequestUtils.request(weave.root, URLRequestUtils.GET, fileUrl, null, null)
+					.then(loadFileContent.bind(WeaveArchive, weave));
+			});
+		}
+		
+		/**
+		 * Loads a WeaveArchive from file content.
+		 */
+		public static function loadFileContent(weave:Weave, fileContent:*):void
+		{
+			var archive:WeaveArchive = new WeaveArchive(fileContent);
+			
+			var history:Object = archive.objects[ARCHIVE_HISTORY_AMF] || archive.objects[ARCHIVE_HISTORY_JSON];
+			if (history)
+			{
+				weave.history.setSessionState(history);
+			}
+			else
+			{
+				throw new Error("No session history found");
+			}
+			
+			var columnCache:Object = archive.objects[ARCHIVE_COLUMN_CACHE_AMF] || archive.objects[ARCHIVE_COLUMN_CACHE_JSON];
+			if (columnCache)
+				(WeaveAPI.AttributeColumnCache as AttributeColumnCache).restoreCache(weave.root, columnCache);
+		}
 		
 		/**
 		 * This function will create an object that can be saved to a file and recalled later with loadWeaveFileContent().
 		 */
-		public static function createWeaveFileContent(weave:Weave, saveScreenshot:Boolean=false, pluginList:Array = null):*
+		public static function createArchive(weave:Weave/*, saveScreenshot:Boolean=false*/):WeaveArchive
 		{
-			var output:WeaveArchive = new WeaveArchive();
+			var archive:WeaveArchive = new WeaveArchive();
 			
 			// thumbnail should go first in the stream because we will often just want to extract the thumbnail and nothing else.
 //			updateLocalThumbnailAndScreenshot(saveScreenshot);
 			
 			// embedded files
 //			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames())
-//				output.files[fileName] = WeaveAPI.URLRequestUtils.getLocalFile(fileName);
-			
-			// for forwards compatibility, don't include plugin list unless it has items
-//			if (pluginList && pluginList.length)
-//				output.objects[ARCHIVE_PLUGINS_AMF] = pluginList;
+//				archive.files[fileName] = WeaveAPI.URLRequestUtils.getLocalFile(fileName);
 			
 			// session history
 			var _history:Object = weave.history.getSessionState();
-			output.objects[ARCHIVE_HISTORY_AMF] = _history;
+			archive.objects[ARCHIVE_HISTORY_AMF] = _history;
 			
 			// TEMPORARY SOLUTION - url cache
 //			if (WeaveAPI.URLRequestUtils['saveCache'])
-//				output.objects[ARCHIVE_URL_CACHE_AMF] = WeaveAPI.URLRequestUtils.getCache();
+//				archive.objects[ARCHIVE_URL_CACHE_AMF] = WeaveAPI.URLRequestUtils.getCache();
 			
 			// TEMPORARY SOLUTION - column cache
 			if (WeaveAPI.AttributeColumnCache['saveCache'])
-				output.objects[ARCHIVE_COLUMN_CACHE_AMF] = WeaveAPI.AttributeColumnCache['saveCache'];
+				archive.objects[ARCHIVE_COLUMN_CACHE_AMF] = WeaveAPI.AttributeColumnCache['saveCache'];
 			
-			return output.serialize();
+			return archive;
 		}
 	}
 }
