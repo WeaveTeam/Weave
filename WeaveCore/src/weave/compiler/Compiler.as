@@ -2544,36 +2544,19 @@ package weave.compiler
 				return function(...args):* { return value; };
 			}
 			
-			// create the variables that will be used inside the wrapper function
-
-			const builtInSymbolTable:Object = {};
-			builtInSymbolTable['eval'] = this._eval as Function || undefined;
-			builtInSymbolTable['this'] = bindThis;
+			const EVAL:* = this._eval as Function || undefined;
 			
 			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
-			const allSymbolTables:Array = [builtInSymbolTable]; // buit-in first
-			const LOCAL_SYMBOL_TABLE_INDEX:int = allSymbolTables.push(null) - 1; // placeholder
-			
-			// add custom symbol table(s)
+			const BUILT_IN_SYMBOL_TABLE_INDEX:int = 0;
+			const LOCAL_SYMBOL_TABLE_INDEX:int = 1;
+			var THIS_SYMBOL_TABLE_INDEX:int = LOCAL_SYMBOL_TABLE_INDEX + 1;
 			if (symbolTable is Array)
 			{
-				for each (var _symbolTable:Object in symbolTable)
-					allSymbolTables.push(_symbolTable);
+				symbolTable = (symbolTable as Array).concat();
+				THIS_SYMBOL_TABLE_INDEX += symbolTable.length;
 			}
 			else
-			{
-				allSymbolTables.push(symbolTable);
-			}
-			
-			// push placeholder for 'this' symbol table
-			const THIS_SYMBOL_TABLE_INDEX:int = allSymbolTables.push(null) - 1;
-			
-			// add libraries in reverse order so the last one will be checked first
-			var i:int = libraries.length;
-			while (i--)
-				allSymbolTables.push(libraries[i]);
-			// check globals last
-			allSymbolTables.push(globals);
+				THIS_SYMBOL_TABLE_INDEX += 1;
 			
 			// this flag is set to useThisScope when the compiledObject is a function definition
 			var cascadeThisScope:Boolean = false;
@@ -2581,14 +2564,17 @@ package weave.compiler
 			// Each recursive call must use a clone of the CompiledFunctionCall,
 			// so we keep track of recursion depth and re-use copies of the CompiledFunctionCall.
 			var recursion:int = 0;
-			var recursiveCalls:Array = [compiledObject];
+			var recursiveCalls:Array = [];
+			var recursiveCallSymbolTables:Array = [];
 			
 			// this function avoids unnecessary function call overhead by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function():*
 			{
 				const stack:Array = []; // used as a queue of function calls
-				const localSymbolTable:Object = {};
+				const localSymbolTable:Object = {}; // new local symbol table for each invocation
 				var call:CompiledFunctionCall;
+				var allSymbolTables:Array;
+				var builtInSymbolTable:Object;
 				var subCall:CompiledFunctionCall;
 				var compiledParams:Array;
 				var method:Object;
@@ -2598,10 +2584,54 @@ package weave.compiler
 				var propertyHost:Object;
 				var propertyName:String;
 				
-				if (bindThis === null)
-					builtInSymbolTable['this'] = this;
+				// initialize top-level function and push it onto the stack
+				call = recursiveCalls[recursion] as CompiledFunctionCall;
+				allSymbolTables = recursiveCallSymbolTables[recursion] as Array;
+				
+				// if recursion has not been this deep before, initialize a copy of the top-level function call structures
+				if (!call)
+				{
+					call = compiledObject as CompiledFunctionCall;
+					if (recursion)
+						call = call.clone();
+					allSymbolTables = [];
+					
+					recursiveCalls[recursion] = call;
+					recursiveCallSymbolTables[recursion] = allSymbolTables;
+					
+					// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
+					allSymbolTables[BUILT_IN_SYMBOL_TABLE_INDEX] = {};
+					allSymbolTables[LOCAL_SYMBOL_TABLE_INDEX] = null; // placeholder
+					
+					// add custom symbol table(s)
+					if (symbolTable is Array)
+					{
+						for each (var _symbolTable:Object in symbolTable)
+							allSymbolTables.push(_symbolTable);
+					}
+					else
+					{
+						allSymbolTables.push(symbolTable);
+					}
+					
+					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = null; // placeholder
+					
+					// add libraries in reverse order so the last one will be checked first
+					i = libraries.length;
+					while (i--)
+						allSymbolTables.push(libraries[i]);
+					// check globals last
+					allSymbolTables.push(globals);
+				}
+				recursion++;
+
+				// initialize built-in symbol table
+				builtInSymbolTable = allSymbolTables[BUILT_IN_SYMBOL_TABLE_INDEX];
+				builtInSymbolTable['eval'] = EVAL;
+				builtInSymbolTable['this'] = bindThis !== null ? bindThis : this;
 				builtInSymbolTable['arguments'] = arguments;
 				
+				// initialize local symbol table
 				allSymbolTables[LOCAL_SYMBOL_TABLE_INDEX] = localSymbolTable;
 				if (useThisScope)
 					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = builtInSymbolTable['this'];
@@ -2610,12 +2640,6 @@ package weave.compiler
 				if (paramNames)
 					for (i = 0; i < paramNames.length; i++)
 						localSymbolTable[paramNames[i] as String] = i < arguments.length ? arguments[i] : paramDefaults[i];
-				
-				// initialize top-level function and push it onto the stack
-				call = recursiveCalls[recursion] as CompiledFunctionCall;
-				if (!call)
-					recursiveCalls[recursion] = call = (compiledObject as CompiledFunctionCall).clone();
-				recursion++;
 				
 				call.evalIndex = INDEX_METHOD;
 				stack.length = 1;
@@ -2895,7 +2919,10 @@ package weave.compiler
 							throw e;
 						
 						if (errorHandler(e))
+						{
 							result = undefined; // ignore and continue
+							recursion++;
+						}
 						else
 							return undefined; // halt
 					}
