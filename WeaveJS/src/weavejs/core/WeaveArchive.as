@@ -59,8 +59,7 @@ package weavejs.core
 		 */		
 		private function _readArchive(bytes:*):void
 		{
-			var JSZip:Class = JS.global.JSZip;
-			var zip:Object = new JSZip(bytes);
+			var zip:Object = new JS.JSZip(bytes);
 			for (var filePath:String in zip.files)
 			{
 				var fileName:String = filePath.substr(filePath.indexOf('/') + 1);
@@ -88,8 +87,7 @@ package weavejs.core
 		 */
 		public function serialize():*
 		{
-			var JSZip:Class = JS.global.JSZip;
-			var zip:Object = new JSZip();
+			var zip:Object = new JS.JSZip();
 			var name:String;
 			var folder:Object;
 			

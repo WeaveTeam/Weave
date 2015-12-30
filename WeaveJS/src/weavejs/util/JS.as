@@ -14,6 +14,11 @@ package weavejs.util
 		 */
 		public static const global:Object = getGlobal("window");
 		
+		/**
+		 * This must be set externally.
+		 */
+		public static var JSZip:Class;
+		
 		private static const console:Object = getGlobal("console");
 		private static const Symbol:Object = getGlobal("Symbol");
 		
