@@ -107,8 +107,9 @@ package weavejs.core
 //		public static const ARCHIVE_THUMBNAIL_PNG:String = "thumbnail.png";
 //		public static const ARCHIVE_SCREENSHOT_PNG:String = "screenshot.png";
 //		public static const ARCHIVE_URL_CACHE_AMF:String = "url-cache.amf";
+//		public static const ARCHIVE_URL_CACHE_JSON:String = "url-cache.json";
 		public static const ARCHIVE_HISTORY_AMF:String = "history.amf";
-		public static const ARCHIVE_HISTORY_JSON:String = "history.amf";
+		public static const ARCHIVE_HISTORY_JSON:String = "history.json";
 		public static const ARCHIVE_COLUMN_CACHE_AMF:String = "column-cache.amf";
 		public static const ARCHIVE_COLUMN_CACHE_JSON:String = "column-cache.json";
 		
