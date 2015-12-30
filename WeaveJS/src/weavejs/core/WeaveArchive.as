@@ -18,6 +18,7 @@ package weavejs.core
 	import weavejs.WeaveAPI;
 	import weavejs.data.AttributeColumnCache;
 	import weavejs.net.URLRequestUtils;
+	import weavejs.util.BackwardsCompatibility;
 	import weavejs.util.JS;
 	import weavejs.util.JSByteArray;
 	import weavejs.util.WeavePromise;
@@ -136,7 +137,7 @@ package weavejs.core
 			var history:Object = archive.objects[ARCHIVE_HISTORY_AMF] || archive.objects[ARCHIVE_HISTORY_JSON];
 			if (history)
 			{
-				weave.history.setSessionState(history);
+				weave.history.setSessionState(BackwardsCompatibility.updateSessionState(history));
 			}
 			else
 			{
