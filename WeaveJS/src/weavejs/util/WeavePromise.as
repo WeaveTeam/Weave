@@ -89,7 +89,7 @@ package weavejs.util
 			}
 			else
 			{
-				this.result = result;
+				this.result = result as Object;
 				callHandlers();
 			}
 		}
