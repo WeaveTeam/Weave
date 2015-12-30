@@ -18,30 +18,30 @@ package weavejs.core
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableVariable;
 	import weavejs.net.URLRequestUtils;
+	import weavejs.util.WeavePromise;
 	
 	/**
-	 * A Promise for file content, given a URL.
+	 * A promise for file content, given a URL.
 	 * @author pkovac
 	 */
 	public class LinkableFile implements ILinkableVariable
 	{
 		private var linkablePromise:LinkablePromise;
 		private var url:LinkableString;
+		private var responseType:String;
 
-		public function LinkableFile(defaultValue:String = null, taskDescription:* = null)
+		public function LinkableFile(defaultValue:String = null, taskDescription:* = null, responseType:String = "arraybuffer")
 		{
+			this.responseType = responseType;
 			linkablePromise = Weave.linkableChild(this, new LinkablePromise(requestContent, taskDescription));
 			url = Weave.linkableChild(linkablePromise, new LinkableString(defaultValue));
 		}
 
-		/**
-		 * @return A Promise object.
-		 */
-		private function requestContent():Object
+		private function requestContent():WeavePromise
 		{
 			if (!url.value)
 				return null;
-			return WeaveAPI.URLRequestUtils.request(linkablePromise, URLRequestUtils.GET, url.value, null, null);
+			return WeaveAPI.URLRequestUtils.request(linkablePromise, URLRequestUtils.METHOD_GET, url.value, null, null, responseType);
 		}
 
 		public function get result():Object

@@ -24,6 +24,15 @@ package weavejs.api.net
 	 */
 	public interface IURLRequestUtils
 	{
-		function request(relevantContext:Object, method:String, url:String, requestHeaders:Object, data:String):WeavePromise;
+		/**
+		 * Makes a URL request.
+		 * @param method Either "get" or "post"
+		 * @param url The URL
+		 * @param requestHeaders Maps request header names to values
+		 * @param data Specified if method is "post"
+		 * @param responseType Can be "text", "arraybuffer", "blob", "json", or "document"
+		 * @return A WeavePromise
+		 */
+		function request(relevantContext:Object, method:String, url:String, requestHeaders:Object, data:String, responseType:String):WeavePromise;
 	}
 }

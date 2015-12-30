@@ -26,19 +26,19 @@ package weavejs.net
 	 */
 	public class URLRequestUtils implements IURLRequestUtils
 	{
-		public static const GET:String = 'get';
-		public static const POST:String = 'get';
+		public static const METHOD_GET:String = 'get';
+		public static const METHOD_POST:String = 'post';
+		
+		public static const RESPONSE_TEXT:String = 'text';
+		public static const RESPONSE_ARRAYBUFFER:String = 'arraybuffer';
+		public static const RESPONSE_JSON:String = 'json';
+		public static const RESPONSE_BLOB:String = 'blob';
+		public static const RESPONSE_DOCUMENT:String = 'document';
 		
 		/**
-		 * Makes a URL request and calls weave.ExternalDownloader_callback() when done.
-		 * @private
-		 * @param {string} method Either "GET" or "POST"
-		 * @param {string} url The URL
-		 * @param {Object.<String,String>} Maps request header names to values
-		 * @param {string} base64data Base64-encoded data, specified if method is "POST"
-		 * @return A WeavePromise
+		 * @inheritDoc
 		 */
-		public function request(relevantContext:Object, method:String, url:String, requestHeaders:Object, data:String):WeavePromise
+		public function request(relevantContext:Object, method:String, url:String, requestHeaders:Object, data:String, responseType:String):WeavePromise
 		{
 			return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):void {
 				var done:Boolean = false;
@@ -48,8 +48,7 @@ package weavejs.net
 				request.open(method, url, true);
 				for (var name:String in requestHeaders)
 					request.setRequestHeader(name, requestHeaders[name], false);
-				//request.responseType = "arraybuffer";
-				request.responseType = "text";
+				request.responseType = responseType;
 				request.onload = function(event):void {
 					resolve(ie9_XHR ? request.responseText : request.response);
 					done = true;

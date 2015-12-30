@@ -50,7 +50,7 @@ package weavejs.core
 		 */
 		public const objects:Object = {};
 		
-		private static const FOLDER_AMF:String = "weave-amf"; // folder used for amf-encoded objects
+		private static const FOLDER_AMF:String = "weave-amf"; // folder used for AMF3-encoded objects
 		private static const FOLDER_JSON:String = "weave-json"; // folder used for JSON-encoded objects
 		private static const FOLDER_FILES:String = "weave-files"; // folder used for raw files
 		
@@ -120,7 +120,7 @@ package weavejs.core
 		public static function loadUrl(weave:Weave, fileUrl:String):WeavePromise
 		{
 			return new WeavePromise(weave.root, function(resolve:Function, reject:Function):void {
-				WeaveAPI.URLRequestUtils.request(weave.root, URLRequestUtils.GET, fileUrl, null, null)
+				WeaveAPI.URLRequestUtils.request(weave.root, URLRequestUtils.METHOD_GET, fileUrl, null, null, URLRequestUtils.RESPONSE_ARRAYBUFFER)
 					.then(loadFileContent.bind(WeaveArchive, weave));
 			});
 		}
