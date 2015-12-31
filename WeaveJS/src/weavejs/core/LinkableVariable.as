@@ -136,11 +136,7 @@ package weavejs.core
 
 			// cast value now in case it is not the appropriate type
 			if (_sessionStateType != null)
-			{
-				// using a local variable is necessary in order to avoid an 'as' compiler bug
-				var sst:Class = _sessionStateType;
-				value = value as sst;
-			}
+				value = value as _sessionStateType;
 			
 			// stop if verifier says it's not an accepted value
 			if (_verifier != null && !_verifier(value))

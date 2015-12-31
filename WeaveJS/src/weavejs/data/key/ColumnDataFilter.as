@@ -36,9 +36,9 @@ package weavejs.data.key
 		public static const REGEXP:String = 'regexp';
 		private static const ALTERNATE_REGEX_PROPERTY:String = 'regex';
 		
-		public var enabled:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true), _cacheVars);
-		public var includeMissingKeyTypes:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true), _cacheVars);
-		public var column:DynamicColumn = Weave.linkableChild(this, DynamicColumn, _resetKeyLookup);
+		public const enabled:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true), _cacheVars);
+		public const includeMissingKeyTypes:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true), _cacheVars);
+		public const column:DynamicColumn = Weave.linkableChild(this, DynamicColumn, _resetKeyLookup);
 		
 		/**
 		 * An Array of Numbers, Strings and/or Range objects specifying numeric ranges.
@@ -46,7 +46,7 @@ package weavejs.data.key
 		 * Alternatively, you can specify "minInclusive" or "minExclusive" in place of "min"
 		 * and "minInclusive" or "maxExclusive" in place of "max".
 		 */
-		public var values:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array), _resetKeyLookup);
+		public const values:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array), _resetKeyLookup);
 		
 		private var _enabled:Boolean;
 		private var _includeMissingKeyTypes:Boolean;

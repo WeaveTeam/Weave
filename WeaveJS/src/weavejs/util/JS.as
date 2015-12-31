@@ -12,7 +12,7 @@ package weavejs.util
 		/**
 		 * AS->JS Language helper to get the global scope
 		 */
-		public static const global:Object = getGlobal("window");
+		public static const global:Object = getGlobal("this");
 		
 		/**
 		 * This must be set externally.
@@ -257,101 +257,6 @@ package weavejs.util
 			return Date['now']();
 		}
 		
-		private static var Language:Class;
-		
-		/**
-		 * Fixes bugs with the "is" operator.
-		 */
-		public static function fix_is():*
-		{
-			if (!Language)
-				Language = getGlobal("org.apache.flex.utils.Language");
-			Language['is'] = IS;
-			if (!(true is Boolean))
-				throw new Error('"is" operator is broken')
-		}
-		
-		/**
-		 * Safe version of 'as' operator
-		 * Using this will avoid the bug where "obj as this.classDef" compiles incorrectly as "...Language.as(obj, classDef)"
-		 */
-		public static function AS(leftOperand:Object, rightOperand:Class):*
-		{
-			if (!Language)
-				Language = getGlobal("org.apache.flex.utils.Language");
-			return Language['as'](leftOperand, rightOperand);
-		}
-		
-		/**
-		 * Bug fixes for 'is' operator, modified from org.apache.flex.utils.Language.is
-		 * - "this is Boolean" works
-		 * - won't compile "obj is this.classDef" incorrectly as "...Language.is(obj, classDef)"
-		 */
-		public static function IS(leftOperand:Object, rightOperand:Class):Boolean
-		{
-			var superClass:Object;
-			
-			if (leftOperand == null || rightOperand == null)
-				return false;
-			
-			// (adufilie) separated instanceof check to catch more cases.
-			if (leftOperand instanceof rightOperand)
-				return true;
-			
-			// (adufilie) simplified String check and added check for boolean
-			if (rightOperand === Object)
-				return true; // every value except null and undefined is an Object in ActionScript
-			if (typeof leftOperand === 'string')
-				return rightOperand === String;
-			if (typeof leftOperand === 'number')
-				return rightOperand === Number;
-			if (typeof leftOperand === 'boolean')
-				return rightOperand === Boolean;
-			if (rightOperand === Array)
-				return Array['isArray'](leftOperand);
-			
-			if (leftOperand.FLEXJS_CLASS_INFO === undefined)
-				return false; // could be a function but not an instance
-			if (leftOperand.FLEXJS_CLASS_INFO.interfaces) {
-				if (_IS_checkInterfaces(leftOperand, rightOperand)) {
-					return true;
-				}
-			}
-			
-			superClass = leftOperand.constructor.superClass_;
-			if (superClass) {
-				while (superClass && superClass.FLEXJS_CLASS_INFO) {
-					if (superClass.FLEXJS_CLASS_INFO.interfaces) {
-						if (_IS_checkInterfaces(superClass, rightOperand)) {
-							return true;
-						}
-					}
-					superClass = superClass.constructor.superClass_;
-				}
-			}
-			
-			return false;
-		}
-		private static function _IS_checkInterfaces(leftOperand:Object, rightOperand:Object):Boolean
-		{
-			var i:int, interfaces:Array;
-			
-			interfaces = leftOperand.FLEXJS_CLASS_INFO.interfaces;
-			for (i = interfaces.length - 1; i > -1; i--) {
-				if (interfaces[i] === rightOperand) {
-					return true;
-				}
-				
-				if (interfaces[i].prototype.FLEXJS_CLASS_INFO.interfaces) {
-					// (adufilie) avoid creating new instance of interface by checking prototype
-					if (_IS_checkInterfaces(interfaces[i].prototype, rightOperand))
-						return true;
-				}
-			}
-			
-			return false;
-		}
-		
 		/**
 		 * Similar to Object.hasOwnProperty(), except it also checks prototypes.
 		 */
@@ -369,6 +274,12 @@ package weavejs.util
 		{
 			if (object == null || object === Object.prototype)
 				return [];
+			
+			if (!map_obj_names)
+			{
+				map_obj_names = new JS.WeakMap();
+				map_prop_skip = new JS.Map();
+			}
 			
 			if (useCache && map_obj_names.has(object))
 				return map_obj_names.get(object);
@@ -401,8 +312,8 @@ package weavejs.util
 			return names;
 		}
 		
-		private static const map_obj_names:Object = new JS['WeakMap']();
-		private static const map_prop_skip:Object = new JS['Map']();
+		private static var map_obj_names:Object;
+		private static var map_prop_skip:Object;
 		private static var skip_id:int = 0;
 	}
 }

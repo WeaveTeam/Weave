@@ -40,7 +40,7 @@ package weavejs.api.core
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
 		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed.
 		 * 
-		 * Example usage:   public var foo:LinkableNumber = newLinkableChild(this, LinkableNumber, handleFooChange);
+		 * Example usage:   public const foo:LinkableNumber = newLinkableChild(this, LinkableNumber, handleFooChange);
 		 * 
 		 * @param linkableParent A parent ILinkableObject to create a new child for.
 		 * @param linkableChildType The class definition that implements ILinkableObject used to create the new child.
@@ -62,7 +62,7 @@ package weavejs.api.core
 		 * 
 		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed.
 		 * 
-		 * Example usage:   public var foo:LinkableNumber = registerLinkableChild(this, someLinkableNumber, handleFooChange);
+		 * Example usage:   public const foo:LinkableNumber = registerLinkableChild(this, someLinkableNumber, handleFooChange);
 		 * 
 		 * @param linkableParent A parent ILinkableObject that the child will be registered with.
 		 * @param linkableChild The child ILinkableObject to register as a child.
@@ -78,7 +78,7 @@ package weavejs.api.core
 		 * Use this function when a child object can be disposed but you do not want to link the callbacks.
 		 * The child will be disposed when the parent is disposed.
 		 * 
-		 * Example usage:   public var foo:LinkableNumber = newDisposableChild(this, LinkableNumber);
+		 * Example usage:   public const foo:LinkableNumber = newDisposableChild(this, LinkableNumber);
 		 * 
 		 * @param disposableParent A parent ILinkableObject to create a new child for.
 		 * @param disposableChildType The class definition that implements ILinkableObject used to create the new child.
@@ -92,7 +92,7 @@ package weavejs.api.core
 		 * Use this function when a child object can be disposed but you do not want to link the callbacks.
 		 * The child will be disposed when the parent is disposed.
 		 * 
-		 * Example usage:   public var foo:LinkableNumber = registerDisposableChild(this, someLinkableNumber);
+		 * Example usage:   public const foo:LinkableNumber = registerDisposableChild(this, someLinkableNumber);
 		 * 
 		 * @param disposableParent A parent disposable object that the child will be registered with.
 		 * @param disposableChild The disposable object to register as a child of the parent.

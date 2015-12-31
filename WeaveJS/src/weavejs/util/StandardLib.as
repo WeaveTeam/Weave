@@ -146,6 +146,8 @@ package weavejs.util
 		 */
 		public static function substitute(format:String, ...args):String
 		{
+			if (format == null)
+				return '';
 			if (args.length == 1 && args[0] is Array)
 				args = args[0] as Array;
 			var split:Array = format.split('{')
@@ -263,7 +265,6 @@ package weavejs.util
 				case "\r":
 				case "\n":
 				case "\f":
-				/*
 					// non breaking space
 				case "\u00A0":
 					// line seperator
@@ -273,7 +274,6 @@ package weavejs.util
 					// ideographic space
 				case "\u3000":
 					return true;
-				*/
 				default:
 					return false;
 			}

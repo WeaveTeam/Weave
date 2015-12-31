@@ -412,18 +412,8 @@ package weavejs.geom
 			else
 				y1 = yMin, y0 = yMax;
 			
-//			return (x < x0 ? 0x0001/*X_LO*/ : (x > x1 ? 0x0010/*X_HI*/ : 0))
-//				| (y < y0 ? 0x0100/*Y_LO*/ : (y > y1 ? 0x1000/*Y_HI*/ : 0));
-			// TEMPORARY WORKAROUND for compiler bug
-			if (x < x0)
-				x = 0x0001/*X_LO*/;
-			else
-				x = x > x1 ? 0x0010/*X_HI*/ : 0;
-			if (y < y0)
-				y = 0x0100/*Y_LO*/;
-			else
-				y = y > y1 ? 0x1000/*Y_HI*/ : 0;
-			return x|y;
+			return (x < x0 ? 0x0001/*X_LO*/ : (x > x1 ? 0x0010/*X_HI*/ : 0))
+				| (y < y0 ? 0x0100/*Y_LO*/ : (y > y1 ? 0x1000/*Y_HI*/ : 0));
 		}
 		
 		/**

@@ -38,8 +38,8 @@ package weavejs.data.column
 
 		private var _stats:IColumnStatistics;
 		
-		public var min:LinkableNumber = Weave.linkableChild(this, LinkableNumber);
-		public var max:LinkableNumber = Weave.linkableChild(this, LinkableNumber);
+		public const min:LinkableNumber = Weave.linkableChild(this, LinkableNumber);
+		public const max:LinkableNumber = Weave.linkableChild(this, LinkableNumber);
 		
 		/**
 		 * getValueFromKey

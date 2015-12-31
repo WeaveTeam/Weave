@@ -37,13 +37,13 @@ package weavejs.data.key
 		}
 		
 		// option to include missing keys or not
-		public var includeMissingKeys:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean, cacheValues);
-		public var includeMissingKeyTypes:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean, cacheValues);
+		public const includeMissingKeys:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean, cacheValues);
+		public const includeMissingKeyTypes:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean, cacheValues);
 		
-		public var included:KeySet = Weave.linkableChild(this, KeySet, handleIncludeChange);
-		public var excluded:KeySet = Weave.linkableChild(this, KeySet, handleExcludeChange);
+		public const included:KeySet = Weave.linkableChild(this, KeySet, handleIncludeChange);
+		public const excluded:KeySet = Weave.linkableChild(this, KeySet, handleExcludeChange);
 		
-		public var filters:ILinkableHashMap = Weave.linkableChild(this, new LinkableHashMap(IKeyFilter));
+		public const filters:ILinkableHashMap = Weave.linkableChild(this, new LinkableHashMap(IKeyFilter));
 		
 		private var _includeMissingKeys:Boolean;
 		private var _includeMissingKeyTypes:Boolean;

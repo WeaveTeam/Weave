@@ -20,7 +20,6 @@ package weavejs.core
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.util.JS;
 
 	/**
 	 * This object links to an internal ILinkableObject.
@@ -199,7 +198,7 @@ package weavejs.core
 			
 			targetPath = null;
 			
-			if ( Weave.isLinkable(classDef) && (_typeRestriction == null || JS.IS(classDef.prototype, _typeRestriction)) )
+			if ( Weave.isLinkable(classDef) && (_typeRestriction == null || classDef.prototype is _typeRestriction) )
 			{
 				var obj:Object = target;
 				if (!obj || obj.constructor != classDef)

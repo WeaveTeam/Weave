@@ -50,7 +50,7 @@ package weavejs.core
 			initVisibilityHandler();
 		}
 		
-		public var frameCallbacks:ICallbackCollection = Weave.disposableChild(this, CallbackCollection);
+		public const frameCallbacks:ICallbackCollection = Weave.disposableChild(this, CallbackCollection);
 		private var _nextAnimationFrame:int;
 		
 		private function _requestNextFrame():void

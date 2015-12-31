@@ -228,7 +228,7 @@ package weavejs.core
 					name = generateUniqueName(className.split("::").pop());
 				var classDef:Class = Weave.getDefinition(className);
 				if (Weave.isLinkable(classDef)
-					&& (_typeRestriction == null || JS.IS(classDef.prototype, _typeRestriction)) )
+					&& (_typeRestriction == null || classDef.prototype is _typeRestriction) )
 				{
 //					try
 //					{

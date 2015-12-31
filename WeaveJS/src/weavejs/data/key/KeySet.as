@@ -39,7 +39,7 @@ package weavejs.data.key
 		/**
 		 * An interface for keys added and removed
 		 */
-		public var keyCallbacks:IKeySetCallbackInterface = Weave.linkableChild(this, KeySetCallbackInterface);
+		public const keyCallbacks:IKeySetCallbackInterface = Weave.linkableChild(this, KeySetCallbackInterface);
 		
 		/**
 		 * Verifies that the value is a two-dimensional array or null.

@@ -23,7 +23,6 @@ package weavejs.core
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.util.Dictionary2D;
-	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	
 	/**
@@ -84,7 +83,7 @@ package weavejs.core
 		protected function internalSetTarget(newTarget:ILinkableObject):void
 		{
 			if (_foundTarget && _typeRestriction)
-				newTarget = JS.AS(newTarget, _typeRestriction) as ILinkableObject;
+				newTarget = (newTarget as _typeRestriction) as ILinkableObject;
 			
 			// do nothing if the targets are the same.
 			if (_target == newTarget)
@@ -226,7 +225,7 @@ package weavejs.core
 			}
 			
 			// we found a desired target if there is no type restriction or the object fits the restriction
-			_foundTarget = !_typeRestriction || JS.IS(node, _typeRestriction);
+			_foundTarget = !_typeRestriction || node is _typeRestriction;
 			internalSetTarget(node);
 		}
 		

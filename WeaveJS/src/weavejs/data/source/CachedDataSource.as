@@ -22,8 +22,8 @@ package weavejs.data.source
 
 	public class CachedDataSource extends AbstractDataSource
 	{
-		public var type:LinkableString = Weave.linkableChild(this, LinkableString);
-		public var state:LinkableVariable = Weave.linkableChild(this, LinkableVariable);
+		public const type:LinkableString = Weave.linkableChild(this, LinkableString);
+		public const state:LinkableVariable = Weave.linkableChild(this, LinkableVariable);
 		
 		override protected function refreshHierarchy():void
 		{

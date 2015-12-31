@@ -78,7 +78,7 @@ package weavejs.core
 		/**
 		 * When this is set to true, changes in the session state of the subject will be automatically logged.
 		 */
-		public var enableLogging:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true), synchronizeNow);
+		public const enableLogging:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true), synchronizeNow);
 		
 		/**
 		 * This will squash a sequence of undos or redos into a single undo or redo.

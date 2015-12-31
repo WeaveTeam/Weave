@@ -70,7 +70,7 @@ package weavejs.data.column
 		 * This defines how to generate the bins for this BinnedColumn.
 		 * This is used to generate the derivedBins.
 		 */
-		public var binningDefinition:DynamicBinningDefinition = Weave.linkableChild(this, new DynamicBinningDefinition(true));
+		public const binningDefinition:DynamicBinningDefinition = Weave.linkableChild(this, new DynamicBinningDefinition(true));
 		
 		private var _binNames:Array = []; // maps a bin index to a bin name
 		private var _binClassifiers:Array = []; // maps a bin index to an IBinClassifier

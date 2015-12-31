@@ -40,14 +40,14 @@ package weavejs.data.source
 		{
 		}
 
-		public var url:LinkableFile = Weave.linkableChild(this, LinkableFile, handleFile);
-		public var keyType:LinkableString = Weave.linkableChild(this, LinkableString);
-		public var keyProperty:LinkableString = Weave.linkableChild(this, LinkableString);
+		public const url:LinkableFile = Weave.linkableChild(this, LinkableFile, handleFile);
+		public const keyType:LinkableString = Weave.linkableChild(this, LinkableString);
+		public const keyProperty:LinkableString = Weave.linkableChild(this, LinkableString);
 		
 		/**
 		 * Overrides the projection specified in the GeoJSON object.
 		 */
-		public var projection:LinkableString = Weave.linkableChild(this, LinkableString);
+		public const projection:LinkableString = Weave.linkableChild(this, LinkableString);
 		
 		/**
 		 * The GeoJSON data.

@@ -12,8 +12,6 @@ package
 	
 	public class WeaveJS
 	{
-		public static const _init:* = JS.fix_is();
-		
 		public function WeaveJS()
 		{
 		}

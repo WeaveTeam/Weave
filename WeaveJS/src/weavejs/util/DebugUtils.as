@@ -215,8 +215,9 @@ package weavejs.util
 		{
 			try
 			{
-				outerLoop: for each (var property:* in path)
+				outerLoop: for (var i:* in path)
 				{
+					var property:* = path[i];
 					if (DynamicState.isDynamicStateArray(state))
 					{
 						if (property is Number)
