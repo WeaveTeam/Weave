@@ -455,6 +455,12 @@ package
 			var shortName:String = name.split('.').pop().split(':').pop();
 			if (shortName != name)
 				registerClass(shortName, definition);
+			
+			if (!definition.prototype.FLEXJS_CLASS_INFO)
+				definition.prototype.FLEXJS_CLASS_INFO = {
+					names: [{ name: shortName, qName: name}],
+					interfaces: [weavejs.api.core.ILinkableObject]
+				};
 		}
 		
 		/**
