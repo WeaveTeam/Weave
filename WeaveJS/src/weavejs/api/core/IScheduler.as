@@ -18,6 +18,11 @@ package weavejs.api.core
 	public interface IScheduler
 	{
 		/**
+		 * These callbacks get triggered once per frame.
+		 */
+		function get frameCallbacks():ICallbackCollection;
+		
+		/**
 		 * This calls a function later using setTimeout(method, 0).
 		 * @param relevantContext The 'this' argument for the function.  If the relevantContext object is disposed, the function will not be called.
 		 * @param method The function to call later.

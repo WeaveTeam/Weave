@@ -45,17 +45,22 @@ package weavejs.core
 		
 		public function Scheduler()
 		{
-			frameCallbacks.addImmediateCallback(this, _requestNextFrame, true);
-			frameCallbacks.addImmediateCallback(this, _handleCallLater);
+			_frameCallbacks.addImmediateCallback(this, _requestNextFrame, true);
+			_frameCallbacks.addImmediateCallback(this, _handleCallLater);
 			initVisibilityHandler();
 		}
 		
-		public const frameCallbacks:ICallbackCollection = Weave.disposableChild(this, CallbackCollection);
+		public function get frameCallbacks():ICallbackCollection
+		{
+			return _frameCallbacks;
+		}
+		
+		private const _frameCallbacks:ICallbackCollection = Weave.disposableChild(this, CallbackCollection);
 		private var _nextAnimationFrame:int;
 		
 		private function _requestNextFrame():void
 		{
-			_nextAnimationFrame = JS.requestAnimationFrame(frameCallbacks.triggerCallbacks);
+			_nextAnimationFrame = JS.requestAnimationFrame(_frameCallbacks.triggerCallbacks);
 		}
 		
 		public function dispose():void
