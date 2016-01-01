@@ -675,7 +675,7 @@ package weavejs.util
 			if (value is Number)
 			{
 				var date:Date = new Date();
-				date.time = value as Number;
+				date.setTime(value as Number);
 				value = date;
 			}
 			return String(value);

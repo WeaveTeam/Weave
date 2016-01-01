@@ -22,7 +22,7 @@ package weavejs.core
 		 */
 		public static var debug:Boolean = false;
 		internal var _linkableObject:ILinkableObject; // for debugging only... will be set when debug==true
-		private var _lastTriggerStackTrace:String; // for debugging only... will be set when debug==true
+		private var _lastTriggerStackTrace:Error; // for debugging only... will be set when debug==true
 		private var _oldEntries:Array;
 
 		/**
@@ -106,7 +106,7 @@ package weavejs.core
 		public final function triggerCallbacks():void
 		{
 			if (debug)
-				_lastTriggerStackTrace = new Error(STACK_TRACE_TRIGGER).getStackTrace();
+				_lastTriggerStackTrace = new Error(STACK_TRACE_TRIGGER);
 			if (_delayCount > 0)
 			{
 				// we still want to increase the counter even if callbacks are delayed

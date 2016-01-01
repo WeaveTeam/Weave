@@ -353,7 +353,10 @@ package weavejs.util
 				var array3:Array = _array.concat();
 				var array4:Array = _array.concat();
 				
-				var start:int = JS.now();
+				var start:int;
+				
+				/*
+				start = JS.now();
 				_debugCompareCount = 0;
 				if (compare === null)
 					array1.sortOn('value', 0);
@@ -362,6 +365,7 @@ package weavejs.util
 				else
 					array1.sortOn('value', compare);
 				trace('Array.sortOn', array1.length, 'numbers;', (JS.now() - start) / 1000, 'seconds;', _debugCompareCount ? (_debugCompareCount+' comparisons') : '');
+				*/
 				
 				start = JS.now();
 				_debugCompareCount = 0;
