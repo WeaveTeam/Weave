@@ -745,8 +745,8 @@ package weavejs.core
 		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
 		{
 			// get the ILinkableObject associated with the the ICallbackCollection
-			if (linkableObject is ICallbackCollection)
-				linkableObject = getLinkableObjectFromCallbackCollection(linkableObject as ICallbackCollection);
+//			if (linkableObject is ICallbackCollection)
+//				linkableObject = getLinkableObjectFromCallbackCollection(linkableObject as ICallbackCollection);
 			
 			if (!linkableObject)
 				return false;
@@ -758,11 +758,12 @@ package weavejs.core
 			
 			outerLoop: for (var i:int = 0; i < array_busyTraversal.length; i++)
 			{
-				linkableObject = array_busyTraversal[i] as ILinkableObject;
+				linkableObject = array_busyTraversal[i];
 				
-				if (linkableObject is ILinkableObjectWithBusyStatus)
+				var ilowbs:ILinkableObjectWithBusyStatus = linkableObject as ILinkableObjectWithBusyStatus;
+				if (ilowbs)
 				{
-					if ((linkableObject as ILinkableObjectWithBusyStatus).isBusy())
+					if (ilowbs.isBusy())
 					{
 						busy = true;
 						break;
