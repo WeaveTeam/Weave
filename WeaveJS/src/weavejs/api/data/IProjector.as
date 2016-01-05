@@ -15,8 +15,8 @@
 
 package weavejs.api.data
 {
-	import flash.geom.Point;
-	
+	import weavejs.geom.Point;
+
 	/**
 	 * An interface for an object that reprojects points from one specific coordinate system to another.
 	 * 

@@ -15,8 +15,6 @@
 
 package weavejs.core
 {
-	import avmplus.getQualifiedClassName;
-	
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
@@ -309,7 +307,7 @@ package weavejs.core
 				state = getSessionState(node.data as ILinkableObject);
 			else
 				state = children.map(getTypedStateFromTreeNode);
-			return DynamicState.create(node.label, getQualifiedClassName(node.data), state);
+			return DynamicState.create(node.label, Weave.className(node.data), state);
 		}
 		
 		/**
