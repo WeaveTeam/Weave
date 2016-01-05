@@ -64,9 +64,6 @@ package
 			map_root_weave.set(root, this);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function dispose():void
 		{
 			Weave.dispose(this);

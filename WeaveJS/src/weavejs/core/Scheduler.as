@@ -132,17 +132,11 @@ package weavejs.core
 		public var maxComputationTimePerFrame:uint = 100;
 		private var maxComputationTimePerFrame_noActivity:uint = 250;
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get previousFrameElapsedTime():int
 		{
 			return _previousFrameElapsedTime;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get currentFrameElapsedTime():int
 		{
 			return JS.now() - _currentFrameStartTime;
@@ -414,9 +408,6 @@ package weavejs.core
 			}
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function callLater(relevantContext:Object, method:Function, parameters:Array = null):void
 		{
 			_callLaterPriority(WeaveAPI.TASK_PRIORITY_IMMEDIATE, relevantContext, method, parameters);
@@ -485,9 +476,6 @@ package weavejs.core
 		
 		private var map_task_time:Object = new JS.WeakMap();
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null, description:String = null):void
 		{
 			// do nothing if task already active

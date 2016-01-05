@@ -63,9 +63,6 @@ package weavejs.data.key
 		private var _sortCopyFunction:Function = QKeyManager.keySortCopy;
 		private var _sortedKeys:Array = [];
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
 			return _keySet.containsKey(key);

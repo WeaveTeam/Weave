@@ -428,9 +428,6 @@ package weavejs.data.source
 		public static const METADATA_COLUMN_INDEX:String = 'csvColumnIndex';
 		public static const METADATA_COLUMN_NAME:String = 'csvColumn';
 
-		/**
-		 * @inheritDoc
-		 */
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
 			var metadata:Object = proxyColumn.getProxyMetadata();

@@ -33,9 +33,6 @@ package weavejs.data
 			column.addImmediateCallback(this, Weave.getCallbacks(this).triggerCallbacks, false, true);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getNorm(key:IQualifiedKey):Number
 		{
 			var min:Number = validateCache(getMin);
@@ -45,89 +42,56 @@ package weavejs.data
 			return (value - min) / (max - min);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getMin():Number
 		{
 			return validateCache(getMin);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getMax():Number
 		{
 			return validateCache(getMax);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getCount():Number
 		{
 			return validateCache(getCount);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getSum():Number
 		{
 			return validateCache(getSum);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getSquareSum():Number
 		{
 			return validateCache(getSquareSum);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getMean():Number
 		{
 			return validateCache(getMean);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getVariance():Number
 		{
 			return validateCache(getVariance);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getStandardDeviation():Number
 		{
 			return validateCache(getStandardDeviation);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getMedian():Number
 		{
 			return validateCache(getMedian);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getSortIndex():Object
 		{
 			return validateCache(getSortIndex);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function hack_getNumericData():Object
 		{
 			return validateCache(hack_getNumericData);

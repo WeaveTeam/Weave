@@ -34,14 +34,8 @@ package weavejs.data
 	import weavejs.util.JS;
 	import weavejs.util.WeavePromise;
 	
-	/**
-	 * @inheritDoc
-	 */
 	public class AttributeColumnCache implements IAttributeColumnCache
 	{
-		/**
-		 * @inheritDoc
-		 */
 		public function getColumn(dataSource:IDataSource, metadata:Object):IAttributeColumn
 		{
 			// null means no column

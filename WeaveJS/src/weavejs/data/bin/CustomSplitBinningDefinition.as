@@ -39,9 +39,6 @@ package weavejs.data.bin
 		 */
 		public const splitValues:LinkableString = Weave.linkableChild(this, LinkableString);
 		
-		/**
-		 * @inheritDoc
-		 */
 		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			// make sure callbacks only run once.

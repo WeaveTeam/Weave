@@ -35,9 +35,6 @@ package weavejs.net
 		public static const RESPONSE_BLOB:String = 'blob';
 		public static const RESPONSE_DOCUMENT:String = 'document';
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function request(relevantContext:Object, method:String, url:String, requestHeaders:Object, data:String, responseType:String):WeavePromise
 		{
 			return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):void {

@@ -96,25 +96,16 @@ package weavejs.data.column
 		 */
 		protected var dataCache:Dictionary2D;
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get keys():Array
 		{
 			return dataTask.uniqueKeys;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
 			return dataTask.map_key_arrayData.has(key);
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			var array:Array = dataTask.map_key_arrayData.get(key);

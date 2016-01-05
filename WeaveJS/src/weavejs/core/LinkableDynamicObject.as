@@ -45,17 +45,11 @@ package weavejs.core
 		
 		private static const ARRAY_CLASS_NAME:String = 'Array';
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get internalObject():ILinkableObject
 		{
 			return target;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getSessionState():Array
 		{
 			var obj:Object = targetPath || target;
@@ -67,9 +61,6 @@ package weavejs.core
 			return [DynamicState.create(null, className, sessionState)];
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function setSessionState(newState:Array, removeMissingDynamicObjects:Boolean):void
 		{
 			//trace(debugId(this), removeMissingDynamicObjects ? 'diff' : 'state', Compiler.stringify(newState, null, '\t'));
@@ -212,9 +203,6 @@ package weavejs.core
 			cc.resumeCallbacks();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function requestLocalObject(objectType:Class, lockObject:Boolean):*
 		{
 			cc.delayCallbacks();
@@ -234,9 +222,6 @@ package weavejs.core
 			return target;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean):*
 		{
 			if (!name)
@@ -259,9 +244,6 @@ package weavejs.core
 			return target;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function requestLocalObjectCopy(objectToCopy:ILinkableObject):void
 		{
 			cc.delayCallbacks(); // make sure callbacks only trigger once
@@ -361,25 +343,16 @@ package weavejs.core
 				target = null;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function lock():void
 		{
 			_locked = true;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get locked():Boolean
 		{
 			return _locked;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function removeObject():void
 		{
 			if (!_locked)

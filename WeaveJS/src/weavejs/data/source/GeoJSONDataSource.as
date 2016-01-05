@@ -181,9 +181,6 @@ package weavejs.data.source
 			return null;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
 			var propertyName:String = proxyColumn.getMetadata(GEOJSON_PROPERTY_NAME);

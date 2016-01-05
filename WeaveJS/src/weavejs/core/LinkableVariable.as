@@ -118,17 +118,11 @@ package weavejs.core
 			return _sessionStateType;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function getSessionState():Object
 		{
 			return _sessionStateExternal;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function setSessionState(value:Object):void
 		{
 			if (_locked)
@@ -247,9 +241,6 @@ package weavejs.core
 			setSessionState(value);
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		override public function dispose():void
 		{
 			super.dispose();

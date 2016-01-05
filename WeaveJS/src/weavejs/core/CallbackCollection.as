@@ -74,9 +74,6 @@ package weavejs.core
 		 */
 		private var _triggerCounter:uint = DEFAULT_TRIGGER_COUNT;
 		
-		/**
-		 * @inheritDoc
-		 */
 		public final function addImmediateCallback(relevantContext:Object, callback:Function, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void
 		{
 			if (callback == null)
@@ -100,9 +97,6 @@ package weavejs.core
 			}
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public final function triggerCallbacks():void
 		{
 			if (debug)
@@ -187,9 +181,6 @@ package weavejs.core
 			_runCallbacksCompleted = true;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public final function removeCallback(relevantContext:Object, callback:Function):void
 		{
 			// if the callback was added as a grouped callback, we need to remove the trigger function
@@ -212,33 +203,21 @@ package weavejs.core
 			}
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public final function get triggerCounter():uint
 		{
 			return _triggerCounter;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public final function get callbacksAreDelayed():Boolean
 		{
 			return _delayCount > 0
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public final function delayCallbacks():void
 		{
 			_delayCount++;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public final function resumeCallbacks():void
 		{
 			if (_delayCount > 0)
@@ -248,9 +227,6 @@ package weavejs.core
 				triggerCallbacks();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function addDisposeCallback(relevantContext:Object, callback:Function):void
 		{
 			// don't do anything if the dispose callback was already added
@@ -266,9 +242,6 @@ package weavejs.core
 		 */		
 		private var _disposeCallbackEntries:Array = [];
 
-		/**
-		 * @inheritDoc
-		 */
 		public function dispose():void
 		{
 			// remove all callbacks
@@ -303,9 +276,6 @@ package weavejs.core
 			return _wasDisposed;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false, delayWhileBusy:Boolean = true):void
 		{
 			GroupedCallbackEntry.addGroupedCallback(this, relevantContext, groupedCallback, triggerCallbackNow, delayWhileBusy);

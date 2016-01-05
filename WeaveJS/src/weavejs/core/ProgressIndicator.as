@@ -51,17 +51,11 @@ package weavejs.core
 			return result.sort();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getTaskCount():int
 		{
 			return _taskCount;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function addTask(taskToken:Object, busyObject:ILinkableObject = null, description:String = null):void
 		{
 			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
@@ -84,17 +78,11 @@ package weavejs.core
 			cc.resumeCallbacks();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function hasTask(taskToken:Object):Boolean
 		{
 			return map_task_progress.get(taskToken) !== undefined;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function updateTask(taskToken:Object, progress:Number):void
 		{
 			// if this token isn't in the Dictionary yet, increase count
@@ -118,9 +106,6 @@ package weavejs.core
 			}
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function removeTask(taskToken:Object):void
 		{
 			// if the token isn't in the dictionary, do nothing
@@ -142,9 +127,6 @@ package weavejs.core
 			WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getNormalizedProgress():Number
 		{
 			// add up the percentages

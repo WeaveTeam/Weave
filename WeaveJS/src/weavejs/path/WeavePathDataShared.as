@@ -41,7 +41,6 @@ package weavejs.path
 		
 		/** 
 		 * Retrieves or allocates the index for the given QualifiedKey object based on its localName and keyType properties
-		 * @public 
 		 * @param  {object} key A QualifiedKey object (containing keyType and localName properties) to be converted.
 		 * @return {number}     The existing or newly-allocated index for the qualified key.
 		 */

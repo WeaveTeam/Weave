@@ -41,9 +41,6 @@ package weavejs.core
 	{
 		public var debugBusyTasks:Boolean = false;
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function newLinkableChild(linkableParent:Object, linkableChildType:Class, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
 			if (!Weave.isLinkable(linkableParent))
@@ -65,9 +62,6 @@ package weavejs.core
 			return registerLinkableChild(linkableParent, linkableChild, callback, useGroupedCallback);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function registerLinkableChild(linkableParent:Object, linkableChild:ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
 			if (!Weave.isLinkable(linkableParent))
@@ -111,17 +105,11 @@ package weavejs.core
 			return linkableChild;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function newDisposableChild(disposableParent:Object, disposableChildType:Class):*
 		{
 			return registerDisposableChild(disposableParent, new disposableChildType());
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function registerDisposableChild(disposableParent:Object, disposableChild:Object):*
 		{
 			if (!disposableParent)
@@ -192,9 +180,6 @@ package weavejs.core
 			return d2d_parent_child.secondaryKeys(parent);
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function getLinkableOwner(child:ILinkableObject):ILinkableObject
 		{
 			return map_child_owner.get(child) as ILinkableObject;
@@ -324,9 +309,6 @@ package weavejs.core
 		}
 		private var _treeCallbacks:CallbackCollection = new CallbackCollection();
 
-		/**
-		 * @inheritDoc
-		 */
 		public function copySessionState(source:ILinkableObject, destination:ILinkableObject):void
 		{
 			var sessionState:Object = getSessionState(source);
@@ -350,9 +332,6 @@ package weavejs.core
 			return base;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean = true):void
 		{
 			if (linkableObject == null)
@@ -455,9 +434,6 @@ package weavejs.core
 		 */
 		private var map_obj_getSessionStateIgnore:Object = new JS.WeakMap();
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getSessionState(linkableObject:ILinkableObject):Object
 		{
 			if (linkableObject == null)
@@ -592,9 +568,6 @@ package weavejs.core
 		 */
 		private var d2d_parent_child:Dictionary2D = new Dictionary2D(true, false);
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array
 		{
 			var result:Array = [];
@@ -634,9 +607,6 @@ package weavejs.core
 			d2d_task_owner.removeAllSecondary(disposedObject);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
 			if (debugBusyTasks)
@@ -656,9 +626,6 @@ package weavejs.core
 			d2d_task_owner.set(taskToken, busyObject, true);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function unassignBusyTask(taskToken:Object):void
 		{
 			if (WeaveAPI.ProgressIndicator.hasTask(taskToken))
@@ -739,9 +706,6 @@ package weavejs.core
 			return 1;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
 		{
 			// get the ILinkableObject associated with the the ICallbackCollection
@@ -819,9 +783,6 @@ package weavejs.core
 		 */
 		private var map_ICallbackCollection_ILinkableObject:Object = new JS.WeakMap();
 
-		/**
-		 * @inheritDoc
-		 */
 		public function getCallbackCollection(linkableObject:ILinkableObject):ICallbackCollection
 		{
 			if (linkableObject == null)
@@ -842,17 +803,11 @@ package weavejs.core
 			return objectCC;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getLinkableObjectFromCallbackCollection(callbackCollection:ICallbackCollection):ILinkableObject
 		{
 			return map_ICallbackCollection_ILinkableObject.get(callbackCollection) || callbackCollection;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function objectWasDisposed(object:Object):Boolean
 		{
 			if (object == null)
@@ -870,9 +825,6 @@ package weavejs.core
 		
 		private static const DISPOSE:String = "dispose"; // this is the name of the dispose() function.
 
-		/**
-		 * @inheritDoc
-		 */
 		public function disposeObject(object:Object):void
 		{
 			if (object != null && !map_disposed.get(object))
@@ -1008,9 +960,6 @@ package weavejs.core
 			return null;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getPath(root:ILinkableObject, descendant:ILinkableObject):Array
 		{
 			if (!descendant)
@@ -1036,9 +985,6 @@ package weavejs.core
 			return null;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getObject(root:ILinkableObject, path:Array):ILinkableObject
 		{
 			var object:ILinkableObject = root;
@@ -1086,9 +1032,6 @@ package weavejs.core
 		 *     function():void { setSessionState(destination, getSessionState(source), true); }
 		 */
 		private var d2d_lhs_rhs_setState:Dictionary2D = new Dictionary2D(true, true);
-		/**
-		 * @inheritDoc
-		 */
 		public function linkSessionState(primary:ILinkableObject, secondary:ILinkableObject):void
 		{
 			if (primary == null || secondary == null)
@@ -1118,9 +1061,6 @@ package weavejs.core
 			// when primary changes, copy from primary to secondary
 			getCallbackCollection(primary).addImmediateCallback(secondary, setSecondary, true); // copy from primary now
 		}
-		/**
-		 * @inheritDoc
-		 */
 		public function unlinkSessionState(first:ILinkableObject, second:ILinkableObject):void
 		{
 			if (first == null || second == null)
@@ -1147,9 +1087,6 @@ package weavejs.core
 		
 		public static const DIFF_DELETE:String = 'delete';
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function computeDiff(oldState:Object, newState:Object):*
 		{
 			var type:String = typeof(oldState); // the type of null is 'object'
@@ -1304,9 +1241,6 @@ package weavejs.core
 			}
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function combineDiff(baseDiff:Object, diffToAdd:Object):Object
 		{
 			var baseType:String = typeof(baseDiff); // the type of null is 'object'

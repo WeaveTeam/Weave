@@ -54,9 +54,6 @@ package weavejs.data.column
 		private var _durationMode:Boolean = false;
 		private var _fakeData:Boolean = false;
 		
-		/**
-		 * @inheritDoc
-		 */
 		override public function getMetadata(propertyName:String):String
 		{
 			if (propertyName == ColumnMetadata.DATA_TYPE)
@@ -66,17 +63,11 @@ package weavejs.data.column
 			return super.getMetadata(propertyName);
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		override public function get keys():Array
 		{
 			return _uniqueKeys;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
 			return map_key_data.has(key);
@@ -302,9 +293,6 @@ package weavejs.data.column
 			return 1;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function deriveStringFromNumber(number:Number):String
 		{
 			if (_numberToStringFunction != null)
@@ -316,9 +304,6 @@ package weavejs.data.column
 			return new Date(number).toString();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			var number:Number;

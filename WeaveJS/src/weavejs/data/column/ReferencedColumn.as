@@ -75,9 +75,6 @@ package weavejs.data.column
 		 */
 		public const metadata:LinkableVariable = Weave.linkableChild(this, LinkableVariable);
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getDataSource():IDataSource
 		{
 			return _dataSource;
@@ -105,9 +102,6 @@ package weavejs.data.column
 		
 		private var _columnWatcher:LinkableWatcher = Weave.linkableChild(this, LinkableWatcher);
 		
-		/**
-		 * @inheritDoc 
-		 */		
 		public function getInternalColumn():IAttributeColumn
 		{
 			if (_prevTriggerCounter != triggerCounter)

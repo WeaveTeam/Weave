@@ -48,9 +48,6 @@ package weavejs.core
 			cc.addGroupedCallback(this, groupedCallback);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */		
 		public function dispose():void
 		{
 			if (_undoHistory == null)

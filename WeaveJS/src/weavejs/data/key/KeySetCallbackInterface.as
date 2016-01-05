@@ -39,9 +39,6 @@ package weavejs.data.key
 			_keysRemoved = keysRemoved;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */	
 		public function flushKeys():void
 		{
 			if (_keysAdded.length || _keysRemoved.length)
@@ -49,9 +46,6 @@ package weavejs.data.key
 			setCallbackVariables([], []); // reset the variables to new arrays
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get keysAdded():Array
 		{
 			return _keysAdded;
@@ -61,9 +55,6 @@ package weavejs.data.key
 			_keysAdded = qkeys;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get keysRemoved():Array
 		{
 			return _keysRemoved;

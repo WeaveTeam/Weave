@@ -49,25 +49,16 @@ package weavejs.core
 		private var _previousNameMap:Object = {}; // maps a previously used name to a value of true.  used when generating unique names.
 		private var _typeRestriction:Class; // restricts the type of object that can be stored
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get typeRestriction():Class
 		{
 			return _typeRestriction;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get childListCallbacks():IChildListCallbackInterface
 		{
 			return _childListCallbacks;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function getNames(filter:Class = null):Array
 		{
 			var result:Array = [];
@@ -79,9 +70,6 @@ package weavejs.core
 			}
 			return result;
 		}
-		/**
-		 * @inheritDoc
-		 */
 		public function getObjects(filter:Class = null):Array
 		{
 			var result:Array = [];
@@ -94,23 +82,14 @@ package weavejs.core
 			}
 			return result;
 		}
-		/**
-		 * @inheritDoc
-		 */
 		public function getObject(name:String):ILinkableObject
 		{
 			return _nameToObjectMap[name];
 		}
-		/**
-		 * @inheritDoc
-		 */
 		public function getName(object:ILinkableObject):String
 		{
 			return _map_objectToNameMap.get(object);
 		}
-		/**
-		 * @inheritDoc
-		 */
 		public function setNameOrder(newOrder:Array):void
 		{
 			var changeDetected:Boolean = false;
@@ -151,9 +130,6 @@ package weavejs.core
 				_childListCallbacks.runCallbacks(null, null, null);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function requestObject(name:String, classDef:Class, lockObject:Boolean):*
 		{
 			var className:String = classDef ? Weave.className(classDef) : null;
@@ -161,9 +137,6 @@ package weavejs.core
 			return classDef ? result as classDef : null;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function requestObjectCopy(name:String, objectToCopy:ILinkableObject):ILinkableObject
 		{
 			if (objectToCopy == null)
@@ -187,9 +160,6 @@ package weavejs.core
 			return object;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function renameObject(oldName:String, newName:String):ILinkableObject
 		{
 			if (oldName != newName)
@@ -300,17 +270,11 @@ package weavejs.core
 		    	_nameIsLocked[name] = true;
 	    }
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function objectIsLocked(name:String):Boolean
 		{
 			return _nameIsLocked[name] ? true : false;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function removeObject(name:String):void
 		{
 			if (!name || _nameIsLocked[name])
@@ -334,9 +298,6 @@ package weavejs.core
 			Weave.dispose(object);
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function removeAllObjects():void
 		{
 			delayCallbacks();
@@ -348,7 +309,6 @@ package weavejs.core
 		
 		/**
 		 * This function removes all objects from this LinkableHashMap.
-		 * @inheritDoc
 		 */
 		override public function dispose():void
 		{
@@ -366,9 +326,6 @@ package weavejs.core
 			}
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function generateUniqueName(baseName:String):String
 		{
 			var count:int = 1;
@@ -378,9 +335,6 @@ package weavejs.core
 			return name;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function getSessionState():Array
 		{
 			var result:Array = new Array(_orderedNames.length);
@@ -398,9 +352,6 @@ package weavejs.core
 			return result;
 		}
 		
-		/**
-		 * @inheritDoc
- 		 */
 		public function setSessionState(newStateArray:Array, removeMissingDynamicObjects:Boolean):void
 		{
 			// special case - no change

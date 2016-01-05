@@ -284,9 +284,6 @@ package weavejs.core
 			getDependencyCallbacks(parent).removeCallback(this, handlePathDependencies);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function dispose():void
 		{
 			_targetPath = null;
