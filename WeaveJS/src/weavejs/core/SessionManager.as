@@ -745,8 +745,8 @@ package weavejs.core
 		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
 		{
 			// get the ILinkableObject associated with the the ICallbackCollection
-//			if (linkableObject is ICallbackCollection)
-//				linkableObject = getLinkableObjectFromCallbackCollection(linkableObject as ICallbackCollection);
+			if (linkableObject is ICallbackCollection)
+				linkableObject = getLinkableObjectFromCallbackCollection(linkableObject as ICallbackCollection);
 			
 			if (!linkableObject)
 				return false;
