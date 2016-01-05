@@ -873,8 +873,5 @@ package weavejs.util
 			}
 			return output + String.fromCharCode(value);
 		}
-		
-		[Deprecated(replacement="compare")] public static function arrayCompare(a:Object, b:Object):int { return compare(a,b); }
-		[Deprecated(replacement="compare")] public static function compareDynamicObjects(a:Object, b:Object):int { return compare(a,b); }
 	}
 }
