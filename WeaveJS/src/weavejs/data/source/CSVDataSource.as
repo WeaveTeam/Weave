@@ -37,6 +37,7 @@ package weavejs.data.source
 	import weavejs.data.column.StringColumn;
 	import weavejs.data.hierarchy.ColumnTreeNode;
 	import weavejs.data.key.QKeyManager;
+	import weavejs.net.URLRequestUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	
@@ -70,7 +71,7 @@ package weavejs.data.source
 			return typeof value == 'object';
 		}
 		
-		public const url:LinkableFile = Weave.linkableChild(this, LinkableFile, parseRawData);
+		public const url:LinkableFile = Weave.linkableChild(this, new LinkableFile(null, null, URLRequestUtils.RESPONSE_TEXT), parseRawData);
 		
 		public const delimiter:LinkableString = Weave.linkableChild(this, new LinkableString(',', verifyDelimiter), parseRawData);
 		private function verifyDelimiter(value:String):Boolean { return value && value.length == 1 && value != '"'; }

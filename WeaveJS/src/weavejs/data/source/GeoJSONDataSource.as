@@ -29,6 +29,7 @@ package weavejs.data.source
 	import weavejs.data.column.StringColumn;
 	import weavejs.geom.GeneralizedGeometry;
 	import weavejs.geom.GeoJSON;
+	import weavejs.net.URLRequestUtils;
 	import weavejs.util.ArrayUtils;
 	import weavejs.util.JS;
 	
@@ -40,7 +41,7 @@ package weavejs.data.source
 		{
 		}
 
-		public const url:LinkableFile = Weave.linkableChild(this, LinkableFile, handleFile);
+		public const url:LinkableFile = Weave.linkableChild(this, new LinkableFile(null, null, URLRequestUtils.RESPONSE_JSON), handleFile);
 		public const keyType:LinkableString = Weave.linkableChild(this, LinkableString);
 		public const keyProperty:LinkableString = Weave.linkableChild(this, LinkableString);
 		
@@ -119,9 +120,7 @@ package weavejs.data.source
 			
 			try
 			{
-				// parse the json
-				var str:String = String(url.result);
-				var obj:Object = JSON.parse(str);
+				var obj:Object = url.result;
 				
 				// make sure it's valid GeoJSON
 				if (!GeoJSON.isGeoJSONObject(obj))
