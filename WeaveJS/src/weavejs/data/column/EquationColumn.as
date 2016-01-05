@@ -228,7 +228,7 @@ package weavejs.data.column
 				if (filterByKeyType.value && (_allKeys.length > 0))
 				{
 					var keyType:String = this.getMetadata(ColumnMetadata.KEY_TYPE);
-					_allKeys = _allKeys.filter(function filter(key:IQualifiedKey, i:int, a:Array):Boolean {
+					_allKeys = _allKeys.filter(function(key:IQualifiedKey, i:int, a:Array):Boolean {
 						return key.keyType == keyType;
 					});
 				}
