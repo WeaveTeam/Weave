@@ -148,10 +148,14 @@ package weavejs.core
 			if (columnCache)
 				(WeaveAPI.AttributeColumnCache as AttributeColumnCache).restoreCache(weave.root, columnCache);
 			
-			//TODO - update existing local files, remove old local files not present in new archive
-			
-			for (var fileName:String in archive.files)
+			var fileName:String;
+			for (fileName in archive.files)
 				WeaveAPI.URLRequestUtils.saveLocalFile(weave.root, fileName, archive.files[fileName]);
+			
+			// remove files not appearing in archive
+			for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames(weave.root))
+				if (!archive.files[fileName])
+					WeaveAPI.URLRequestUtils.removeLocalFile(weave.root, fileName);
 		}
 		
 		/**
