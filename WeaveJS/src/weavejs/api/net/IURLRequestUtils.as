@@ -15,6 +15,7 @@
 
 package weavejs.api.net
 {
+	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.util.WeavePromise;
 
 	/**
@@ -34,5 +35,32 @@ package weavejs.api.net
 		 * @return A WeavePromise
 		 */
 		function request(relevantContext:Object, method:String, url:String, requestHeaders:Object, data:String, responseType:String):WeavePromise;
+		
+		/**
+		 * This will save a file in memory so that it can be accessed later via getURL().
+		 * @param name The file name.
+		 * @param content The file content.
+		 * @return The URL at which the file can be accessed later via getURL(). This will be the string "local://" followed by the filename.
+		 */
+		function saveLocalFile(weaveRoot:ILinkableHashMap, name:String, content:Object):String;
+		
+		/**
+		 * Retrieves file content previously saved via saveLocalFile().
+		 * @param The file name that was passed to saveLocalFile().
+		 * @return The file content.
+		 */
+		function getLocalFile(weaveRoot:ILinkableHashMap, name:String):Object;
+		
+		/**
+		 * Removes a local file that was previously added via saveLocalFile().
+		 * @param name The file name which was passed to saveLocalFile().
+		 */
+		function removeLocalFile(weaveRoot:ILinkableHashMap, name:String):void;
+		
+		/**
+		 * Gets a list of names of files saved via saveLocalFile().
+		 * @return An Array of file names.
+		 */
+		function getLocalFileNames(weaveRoot:ILinkableHashMap):Array;
 	}
 }

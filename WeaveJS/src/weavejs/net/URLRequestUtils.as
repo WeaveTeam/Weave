@@ -15,7 +15,10 @@
 
 package weavejs.net
 {
+	import weavejs.api.core.ILinkableHashMap;
+	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.net.IURLRequestUtils;
+	import weavejs.util.Dictionary2D;
 	import weavejs.util.JS;
 	import weavejs.util.WeavePromise;
 
@@ -35,8 +38,42 @@ package weavejs.net
 		public static const RESPONSE_BLOB:String = 'blob';
 		public static const RESPONSE_DOCUMENT:String = 'document';
 		
+		private function stringToArrayBuffer(str:String):Object {
+			var buf:Object = new JS.global.ArrayBuffer(str.length);
+			var bufView:Object = new JS.global.Uint8Array(buf);
+			for (var i:int = 0, strLen:int = str.length; i < strLen; i++) {
+				bufView[i] = str.charCodeAt(i);
+			}
+			return buf;
+		}
+		
 		public function request(relevantContext:Object, method:String, url:String, requestHeaders:Object, data:String, responseType:String):WeavePromise
 		{
+			if (url.indexOf(LOCAL_FILE_URL_SCHEME) == 0)
+			{
+				var weaveRoot:ILinkableHashMap = Weave.getRoot(relevantContext as ILinkableObject);
+				var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, url);
+				if (!promise.getResult() && !promise.getError())
+					promise.setError(Weave.lang("Local file missing: {0}", url.substr(LOCAL_FILE_URL_SCHEME.length)));
+				return promise.then(function(binary:String):Object {
+					return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):* {
+						switch (responseType) {
+							case RESPONSE_TEXT:
+								return resolve(binary);
+							case RESPONSE_JSON:
+								return resolve(JSON.parse(binary));
+							case RESPONSE_BLOB:
+								//TODO
+							case RESPONSE_DOCUMENT:
+								//TODO
+							default:
+							case RESPONSE_ARRAYBUFFER:
+								return resolve(stringToArrayBuffer(binary));
+						}
+					});
+				});
+			}
+			
 			return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):void {
 				var done:Boolean = false;
 				var ie9_XHR:Class = JS.global.XDomainRequest;
@@ -70,6 +107,48 @@ package weavejs.net
 				};
 				request.send(data);
 			});
+		}
+		
+		public static const LOCAL_FILE_URL_SCHEME:String = 'local://';
+		
+		private const d2d_context_url_promise:Dictionary2D = new Dictionary2D();
+		private function get_d2d_context_url_promise(weaveRoot:ILinkableHashMap, url:String):WeavePromise
+		{
+			var promise:WeavePromise = d2d_context_url_promise.get(weaveRoot, url);
+			if (!promise)
+			{
+				promise = new WeavePromise(weaveRoot);
+				promise.setResult(null);
+				d2d_context_url_promise.set(weaveRoot, url, promise);
+			}
+			return promise;
+		}
+		
+		public function saveLocalFile(weaveRoot:ILinkableHashMap, name:String, content:Object):String
+		{
+			var url:String = LOCAL_FILE_URL_SCHEME + name;
+			var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, url);
+			promise.setResult(content);
+			return url;
+		}
+		
+		public function getLocalFile(weaveRoot:ILinkableHashMap, name:String):Object
+		{
+			var url:String = LOCAL_FILE_URL_SCHEME + name;
+			var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, url);
+			return promise.getResult();
+		}
+		
+		public function removeLocalFile(weaveRoot:ILinkableHashMap, name:String):void
+		{
+			var url:String = LOCAL_FILE_URL_SCHEME + name;
+			var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, url);
+			promise.setError(Weave.lang('File removed: {0}', url));
+		}
+		
+		public function getLocalFileNames(weaveRoot:ILinkableHashMap):Array
+		{
+			return JS.mapKeys(d2d_context_url_promise.map.get(weaveRoot)).sort();
 		}
 	}
 }
