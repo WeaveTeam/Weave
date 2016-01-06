@@ -197,6 +197,7 @@ package weavejs.util
 		{
 			if (endian == ENDIAN_LITTLE)
 				return readFloat64LE();
+			
 			var b1:int = this.readByte();
 			var b2:int = this.readByte();
 			var b3:int = this.readByte();
@@ -205,22 +206,22 @@ package weavejs.util
 			var b6:int = this.readByte();
 			var b7:int = this.readByte();
 			var b8:int = this.readByte();
-	
 			var sign:int = 1 - ((b1 >> 7) << 1);									// sign = bit 0
 			var exp:int = (((b1 << 4) & 0x7FF) | (b2 >> 4)) - 1023;					// exponent = bits 1..11
 	
 			// This crazy toString() stuff works around the fact that js ints are
 			// only 32 bits and signed, giving us 31 bits to work with
-			var sig:* = (((b2 & 0xF) << 16) | (b3 << 8) | b4).toString(2) +
-						((b5 >> 7) ? '1' : '0') +
-						(((b5 & 0x7F) << 24) | (b6 << 16) | (b7 << 8) | b8).toString(2);	// significand = bits 12..63
-	
-			sig = parseInt(sig, 2);
-	
+			var sig1:String = (((b2 & 0xF) << 16) | (b3 << 8) | b4).toString(2);
+			var sig2:String = ((b5 >> 7) ? '1' : '0');
+			var sig3:String = (((b5 & 0x7F) << 24) | (b6 << 16) | (b7 << 8) | b8).toString(2);	// significand = bits 12..63
+			while (sig3.length < 31)
+				sig3 = '0' + sig3;
+			
+			var sig:int = parseInt(sig1 + sig2 + sig3, 2);
 			if (sig == 0 && exp == -1023)
 				return 0.0;
 	
-			return sign*(1.0 + TWOeN52*sig)*Math.pow(2, exp);
+			return sign * (1.0 + TWOeN52 * sig) * Math.pow(2, exp);
 			/*
 			var sig = (((b2 & 0xF) << 16) | (b3 << 8) | b4).toString(2) +
 					(((b5 & 0xF) << 16) | (b6 << 8) | b7).toString(2) +
@@ -353,13 +354,16 @@ package weavejs.util
 	
 			// This crazy toString() stuff works around the fact that js ints are
 			// only 32 bits and signed, giving us 31 bits to work with
-			var sig:* = (((b2 & 0xF) << 16) | (b3 << 8) | b4).toString(2) +
-							((b5 >> 7) ? '1' : '0') +
-							(((b5 & 0x7F) << 24) | (b6 << 16) | (b7 << 8) | b8).toString(2);	// significand = bits 12..63
-	
-			sig = parseInt(sig, 2);
+			var sig1:String = (((b2 & 0xF) << 16) | (b3 << 8) | b4).toString(2);
+			var sig2:String = ((b5 >> 7) ? '1' : '0');
+			var sig3:String = (((b5 & 0x7F) << 24) | (b6 << 16) | (b7 << 8) | b8).toString(2);	// significand = bits 12..63
+			while (sig3.length < 31)
+				sig3 = '0' + sig3;
+			
+			var sig:int = parseInt(sig1 + sig2 + sig3, 2);
 			if (sig == 0 && exp == -1023)
 				return 0.0;
+			
 			return sign * (1.0 + TWOeN52 * sig) * Math.pow(2, exp);
 		}
 	
@@ -372,6 +376,8 @@ package weavejs.util
 	
 		public function readString(len:int):String
 		{
+			//TODO - This is wrong. Use StringView.
+			
 			var str:String = "";
 	
 			while (len > 0)
