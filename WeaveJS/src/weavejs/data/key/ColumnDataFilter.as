@@ -235,21 +235,28 @@ package weavejs.data.key
 		}
 		
 		private var _deprecatedRangeState:Object;
-		public function handleMissingSessionStateProperty(newState:Object, property:String):void
+		public function handleMissingSessionStateProperties(newState:Object):void
 		{
 			// handle deprecated StringDataFilter single-string value
-			if (property == 'stringValue')
-				values.setSessionState([newState[property]]);
+			const STRING_VALUE:String = 'stringValue';
+			if (newState.hasOwnProperty(STRING_VALUE))
+				values.setSessionState([newState[STRING_VALUE]]);
+			
 			// handle deprecated StringDataFilter array of strings
-			if (property == 'stringValues')
-				values.setSessionState(newState[property]);
+			const STRING_VALUES:String = 'stringValues';
+			if (newState.hasOwnProperty(STRING_VALUES))
+				values.setSessionState(newState[STRING_VALUES]);
+			
 			// handle deprecated NumberDataFilter state
-			if (property == 'min' || property == 'max')
+			for each (var property:String in ['min', 'max'])
 			{
-				if (!_deprecatedRangeState)
-					_deprecatedRangeState = {};
-				_deprecatedRangeState[property] = newState[property];
-				values.setSessionState([_deprecatedRangeState]);
+				if (newState.hasOwnProperty(property))
+				{
+					if (!_deprecatedRangeState)
+						_deprecatedRangeState = {};
+					_deprecatedRangeState[property] = newState[property];
+					values.setSessionState([_deprecatedRangeState]);
+				}
 			}
 		}
 	}

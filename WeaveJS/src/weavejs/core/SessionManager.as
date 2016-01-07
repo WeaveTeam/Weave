@@ -414,16 +414,41 @@ package weavejs.core
 				setSessionState(property, newState[name], removeMissingDynamicObjects);
 			}
 			
-			// handle properties appearing in session state that do not appear in the linkableObject 
 			if (linkableObject is ILinkableObjectWithNewProperties)
-				for (name in newState)
-					(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperty(newState, name);
-			
-			// handle properties missing from absolute session state
-			if (foundMissingProperty)
-				for each (name in propertyNames)
-					if (!newState.hasOwnProperty(name))
-						(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperty(newState, name);
+			{
+				if (foundMissingProperty)
+				{
+					// handle properties missing from absolute session state
+					for each (name in propertyNames)
+					{
+						if (!newState.hasOwnProperty(name))
+						{
+							(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperties(newState);
+							break;
+						}
+					}
+				}
+				else
+				{
+					// handle properties appearing in session state that do not appear in the linkableObject 
+					for (name in newState)
+					{
+						try
+						{
+							property = linkableObject[name] as ILinkableObject;
+						}
+						catch (e:Error)
+						{
+							JS.error('SessionManager.setSessionState(): Unable to get property "'+name+'" of class "'+Weave.className(linkableObject)+'"',e);
+						}
+						if (!property || !Weave.isLinkable(property) || !d2d_child_parent.get(property, linkableObject))
+						{
+							(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperties(newState);
+							break;
+						}
+					}
+				}
+			}
 			
 			// resume callbacks after setting session state
 			objectCC.resumeCallbacks();
