@@ -20,7 +20,7 @@ package weavejs.api.data
 	/**
 	 * This class manages a global list of IQualifiedKey objects.
 	 * 
-	 * The getQKey() function must be used to get IQualifiedKey objects.  Each QKey returned by
+	 * The getQKey() function must be used to get IQualifiedKey objects.  Each IQualifiedKey returned by
 	 * getQKey() with the same parameters will be the same object, so IQualifiedKeys can be compared
 	 * with the == operator or used as keys in a Dictionary.
 	 * 
@@ -29,16 +29,18 @@ package weavejs.api.data
 	public interface IQualifiedKeyManager
 	{
 		/**
-		 * Get the QKey object for a given key type and key.
+		 * Get the IQualifiedKey object for a given key type and key.
 		 *
-		 * @return The QKey object for this type and key.
+		 * @return The IQualifiedKey object for this type and key.
 		 */
 		function getQKey(keyType:String, localName:String):IQualifiedKey;
 		
 		/**
-		 * Get a list of QKey objects, all with the same key type.
+		 * Get a list of IQualifiedKey objects, all with the same key type.
 		 * 
-		 * @return An array of QKeys.
+		 * @param keyType The key type/namespace.
+		 * @param keyStrings An Array of localNames.
+		 * @return An array of IQualifiedKeys.
 		 */
 		function getQKeys(keyType:String, keyStrings:Array):Array;
 
@@ -53,26 +55,27 @@ package weavejs.api.data
 		/**
 		 * Get a list of all previoused key types.
 		 *
-		 * @return An array of QKeys.
+		 * @return An array of IQualifiedKeys.
 		 */
 		function getAllKeyTypes():Array;
 
 		/**
-		 * Get a list of all referenced QKeys for a given key type
-		 * @return An array of QKeys
+		 * Get a list of all referenced IQualifiedKeys for a given key type
+		 * @param keyType The key type.
+		 * @return An array of IQualifiedKeys
 		 */
 		function getAllQKeys(keyType:String):Array;
 		
 		/**
 		 * Get a QualifiedKey from its string representation.
-		 * param qkeyString A string formatted like the output of IQualifiedKey.toString().
+		 * @param qkeyString A string formatted like the output of IQualifiedKey.toString().
 		 * @return The QualifiedKey corresponding to the string representation.
 		 */
 		function stringToQKey(qkeyString:String):IQualifiedKey;
 		
 		/**
 		 * Get a QualifiedKey from its numeric representation.
-		 * param qkeyNumber A Number.
+		 * @param qkeyNumber A Number.
 		 * @return The QualifiedKey corresponding to the numeric representation.
 		 */
 		function numberToQKey(qkeyNumber:Number):IQualifiedKey;
