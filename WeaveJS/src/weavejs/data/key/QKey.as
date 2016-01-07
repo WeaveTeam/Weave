@@ -15,9 +15,7 @@
 
 package weavejs.data.key
 {
-	import weavejs.api.data.ICSVParser;
 	import weavejs.api.data.IQualifiedKey;
-	import weavejs.data.CSVParser;
 
 	/**
 	 * This class is internal to QKeyManager because instances
@@ -25,19 +23,18 @@ package weavejs.data.key
 	 */
 	internal class QKey implements IQualifiedKey
 	{
-		private static const DELIMITER:String = '#';
-		private static var csvParser:ICSVParser;
 		private static var serial:uint = 0;
 		
-		public function QKey(keyType:String, localName:*)
+		public function QKey(keyType:String, localName:String, toString:String)
 		{
 			kt = keyType;
 			ln = localName;
 			_toNumber = serial++;
+			_toString = toString;
 		}
 		
 		private var kt:String;
-		private var ln:*;
+		private var ln:String;
 		private var _toNumber:Number;
 		private var _toString:String;
 		
@@ -62,18 +59,8 @@ package weavejs.data.key
 			return _toNumber;
 		}
 		
-		// This is a String containing both the namespace and the local name of the QKey
 		public function toString():String
 		{
-			// The # sign is used in anticipation that a key type will be a URI.
-			if (!_toString)
-			{
-				if (!csvParser)
-					csvParser = new CSVParser(false, DELIMITER);
-				_toString = csvParser.createCSVRow([kt, ln]);
-				if (!(ln is String))
-					_toString += DELIMITER + typeof ln;
-			}
 			return _toString;
 		}
 	}
