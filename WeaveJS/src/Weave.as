@@ -444,7 +444,7 @@ package
 		/**
 		 * Registers a class for use with Weave.className() and Weave.getDefinition().
 		 */
-		public static function registerClass(name:String, definition:Class):void
+		public static function registerClass(name:String, definition:Class, additionalInterfaces:Array = null):void
 		{
 			map_name_class.set(name, definition);
 			map_class_name.set(definition, name);
@@ -458,6 +458,9 @@ package
 					names: [{ name: shortName, qName: name}],
 					interfaces: [weavejs.api.core.ILinkableObject]
 				};
+			
+			for each (var item:Class in additionalInterfaces)
+				definition.prototype.FLEXJS_CLASS_INFO.interfaces.push(item);
 		}
 		
 		/**
