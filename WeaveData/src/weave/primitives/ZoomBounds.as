@@ -237,7 +237,7 @@ package weave.primitives
 		
 		private function _fixAspectRatio(zoomOutIfNecessary:Boolean = false):void
 		{
-			if (_useFixedAspectRatio)
+			if (_useFixedAspectRatio && !_screenBounds.isEmpty())
 			{
 				var xInvScale:Number = _dataBounds.getXCoverage() / _screenBounds.getXCoverage();
 				var yInvScale:Number = _dataBounds.getYCoverage() / _screenBounds.getYCoverage();

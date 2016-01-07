@@ -233,7 +233,7 @@ package weavejs.geom
 		
 		private function _fixAspectRatio(zoomOutIfNecessary:Boolean = false):void
 		{
-			if (_useFixedAspectRatio  && !_screenBounds.isEmpty())
+			if (_useFixedAspectRatio && !_screenBounds.isEmpty())
 			{
 				var xInvScale:Number = _dataBounds.getXCoverage() / _screenBounds.getXCoverage();
 				var yInvScale:Number = _dataBounds.getYCoverage() / _screenBounds.getYCoverage();
