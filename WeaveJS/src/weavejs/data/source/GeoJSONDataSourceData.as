@@ -17,7 +17,6 @@ package weavejs.data.source
 {
 	import weavejs.WeaveAPI;
 	import weavejs.geom.GeoJSON;
-	import weavejs.geom.ProjectionManager;
 	import weavejs.util.ArrayUtils;
 	import weavejs.util.AsyncSort;
 
@@ -28,7 +27,7 @@ package weavejs.data.source
 			// get projection
 			var crs:Object = obj[GeoJSON.P_CRS];
 			if (crs && crs[GeoJSON.P_TYPE] == GeoJSON.CRS_T_NAME)
-				projection = ProjectionManager.getProjectionFromURN(crs[GeoJSON.CRS_P_PROPERTIES][GeoJSON.CRS_N_P_NAME]);
+				projection = GeoJSON.getProjectionFromURN(crs[GeoJSON.CRS_P_PROPERTIES][GeoJSON.CRS_N_P_NAME]);
 			
 			// get features
 			var featureCollection:Object = GeoJSON.asFeatureCollection(obj);

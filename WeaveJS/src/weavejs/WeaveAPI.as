@@ -22,7 +22,6 @@ package weavejs
 	import weavejs.api.core.ISessionManager;
 	import weavejs.api.data.IAttributeColumnCache;
 	import weavejs.api.data.ICSVParser;
-	import weavejs.api.data.IProjectionManager;
 	import weavejs.api.data.IQualifiedKeyManager;
 	import weavejs.api.data.IStatisticsCache;
 	import weavejs.api.net.IURLRequestUtils;
@@ -121,15 +120,6 @@ package weavejs
 		{
 			return (_classRegistry || ClassRegistry).singletonInstances[IStatisticsCache]
 				|| _classRegistry.getSingletonInstance(IStatisticsCache);
-		}
-		
-		/**
-		 * This is the singleton instance of the registered IProjectionManager implementation.
-		 */
-		public static function get ProjectionManager():IProjectionManager
-		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IProjectionManager]
-				|| _classRegistry.getSingletonInstance(IProjectionManager);
 		}
 		
 		/**

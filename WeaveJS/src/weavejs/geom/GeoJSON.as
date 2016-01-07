@@ -273,5 +273,13 @@ package weavejs.geom
 				return T_MULTI_POLYGON;
 			return null;
 		}
+		
+		public static function getProjectionFromURN(ogc_crs_urn:String):String
+		{
+			var array:Array = ogc_crs_urn.split(':');
+			if (array.length > 2)
+				return array[array.length - 3] + ':' + array[array.length - 1];
+			return ogc_crs_urn;
+		}
 	}
 }
