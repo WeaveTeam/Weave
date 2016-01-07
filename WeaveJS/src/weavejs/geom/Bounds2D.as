@@ -484,8 +484,8 @@ package weavejs.geom
 
 		// reusable temporary objects
 		private static const tempPoint:Point = new Point();
-		private static const staticRange_A:Range = new Range();
-		private static const staticRange_B:Range = new Range();
+		private static const staticRange_A:NumericRange = new NumericRange();
+		private static const staticRange_B:NumericRange = new NumericRange();
 		
 		/**
 		 * This constrains the center point of another Bounds2D to be overlapping the center of this Bounds2D.
