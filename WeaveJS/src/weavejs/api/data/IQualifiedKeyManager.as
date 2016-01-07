@@ -62,5 +62,19 @@ package weavejs.api.data
 		 * @return An array of QKeys
 		 */
 		function getAllQKeys(keyType:String):Array;
+		
+		/**
+		 * Get a QualifiedKey from its string representation.
+		 * param qkeyString A string formatted like the output of IQualifiedKey.toString().
+		 * @return The QualifiedKey corresponding to the string representation.
+		 */
+		function stringToQKey(qkeyString:String):IQualifiedKey;
+		
+		/**
+		 * Get a QualifiedKey from its numeric representation.
+		 * param qkeyNumber A Number.
+		 * @return The QualifiedKey corresponding to the numeric representation.
+		 */
+		function numberToQKey(qkeyNumber:Number):IQualifiedKey;
 	}
 }

@@ -6,6 +6,9 @@
 */
 package weavejs.path
 {
+	import weavejs.WeaveAPI;
+	import weavejs.api.data.IQualifiedKey;
+	import weavejs.api.data.IQualifiedKeyManager;
 	import weavejs.util.JS;
 
 	public class WeavePathDataShared
@@ -21,11 +24,13 @@ package weavejs.path
 		public function init(weave:Weave):void
 		{
 			this.weave = weave;
-			
+			this.qkm = WeaveAPI.QKeyManager;
 			this.probe_keyset = weave.path(DEFAULT_PROBE_KEY_SET);
 			this.selection_keyset = weave.path(DEFAULT_SELECTION_KEY_SET);
 			this.subset_filter = weave.path(DEFAULT_SUBSET_KEY_FILTER);
 		}
+		
+		private var qkm:IQualifiedKeyManager;
 		
 		public var weave:Weave;
 		
@@ -33,10 +38,6 @@ package weavejs.path
 		public var selection_keyset:WeavePath;
 		public var subset_filter:WeavePath;
 
-		public var _qkeys_to_numeric:Object = {};
-		public var _numeric_to_qkeys:Object = {};
-		public var _numeric_key_idx:int = 0;
-		public var _keyIdPrefix:String = "WeaveQKey";
 		public var _key_buffers:Object = {};
 		
 		/** 
@@ -46,28 +47,19 @@ package weavejs.path
 		 */
 		public function qkeyToIndex(key:Object):int
 		{
-			var local_map:Object = this._qkeys_to_numeric[key.keyType] || (this._qkeys_to_numeric[key.keyType] = {});
-			
-			if (local_map[key.localName] === undefined)
-			{
-				var idx:int = this._numeric_key_idx++;
-				
-				local_map[key.localName] = idx;
-				this._numeric_to_qkeys[idx] = key;
-			}
-			
-			return local_map[key.localName];
+			return this.qkm.getQKey(key.keyType, key.localName).toNumber();
 		}
 		
 		/**
 		 * Retrieves the corresponding qualified key object from its numeric index.
 		 * @private
 		 * @param  {number} index The numeric index, as received from qkeyToIndex
-		 * @return {object}       The corresponding QualifiedKey object.
+		 * @return {object}       The corresponding untyped QualifiedKey object.
 		 */
 		public function indexToQKey(index:int):Object
 		{
-			return this._numeric_to_qkeys[index];
+			var qkey:IQualifiedKey = this.qkm.numberToQKey(index);
+			return {keyType: qkey.keyType, localName: qkey.localName};
 		}
 		
 		/**
@@ -78,19 +70,19 @@ package weavejs.path
 		 */
 		public function qkeyToString(key:Object):String
 		{
-			return this._keyIdPrefix + this.qkeyToIndex(key);
+			return this.qkm.getQKey(key.keyType, key.localName).toString();
 		}
 		
 		/**
 		 * Retrieves the QualifiedKey object corresponding to a given alphanumeric string.
 		 * This is also available as an alias on the WeavePath object.
 		 * @param  {string} s The keystring to convert.
-		 * @return {object}   The corresponding QualifiedKey
+		 * @return {object}   The corresponding untyped QualifiedKey
 		 */
 		public function stringToQKey(s:String):Object
 		{
-			var idx:int = int(s.substr(this._keyIdPrefix.length));
-			return this.indexToQKey(idx);
+			var qkey:IQualifiedKey = this.qkm.stringToQKey(s);
+			return {keyType: qkey.keyType, localName: qkey.localName};
 		}
 		
 		/**
