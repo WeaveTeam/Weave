@@ -82,6 +82,16 @@ package weavejs.util
 		}
 		
 		/**
+		 * AS->JS Language helper for ArrayBuffer
+		 */
+		public static const ArrayBuffer:Class = getGlobal('ArrayBuffer');
+		
+		/**
+		 * AS->JS Language helper for Uint8Array
+		 */
+		public static const Uint8Array:Class = getGlobal('Uint8Array');
+		
+		/**
 		 * AS->JS Language helper for Promise
 		 */
 		public static const Promise:Class = getGlobal('Promise');

@@ -32,20 +32,11 @@ package weavejs.net
 		public static const METHOD_GET:String = 'get';
 		public static const METHOD_POST:String = 'post';
 		
-		public static const RESPONSE_TEXT:String = 'text';
 		public static const RESPONSE_ARRAYBUFFER:String = 'arraybuffer';
-		public static const RESPONSE_JSON:String = 'json';
 		public static const RESPONSE_BLOB:String = 'blob';
 		public static const RESPONSE_DOCUMENT:String = 'document';
-		
-		private function stringToArrayBuffer(str:String):Object {
-			var buf:Object = new JS.global.ArrayBuffer(str.length);
-			var bufView:Object = new JS.global.Uint8Array(buf);
-			for (var i:int = 0, strLen:int = str.length; i < strLen; i++) {
-				bufView[i] = str.charCodeAt(i);
-			}
-			return buf;
-		}
+		public static const RESPONSE_JSON:String = 'json';
+		public static const RESPONSE_TEXT:String = 'text';
 		
 		public function request(relevantContext:Object, method:String, url:String, requestHeaders:Object, data:String, responseType:String):WeavePromise
 		{
@@ -55,20 +46,20 @@ package weavejs.net
 				var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, url);
 				if (!promise.getResult() && !promise.getError())
 					promise.setError(Weave.lang("Local file missing: {0}", url.substr(LOCAL_FILE_URL_SCHEME.length)));
-				return promise.then(function(binary:String):Object {
+				return promise.then(function(byteArray:/*Uint8*/Array):Object {
 					return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):* {
 						switch (responseType) {
-							case RESPONSE_TEXT:
-								return resolve(binary);
-							case RESPONSE_JSON:
-								return resolve(JSON.parse(binary));
-							case RESPONSE_BLOB:
-								//TODO
-							case RESPONSE_DOCUMENT:
-								//TODO
 							default:
+							case RESPONSE_TEXT:
+								return resolve(String.fromCharCode.apply(null, byteArray));
+							case RESPONSE_JSON:
+								return resolve(JSON.parse(String.fromCharCode.apply(null, byteArray)));
+							case RESPONSE_BLOB:
+								return resolve(new JS.global.Blob([byteArray.buffer]));
 							case RESPONSE_ARRAYBUFFER:
-								return resolve(stringToArrayBuffer(binary));
+								return resolve(byteArray.buffer);
+							case RESPONSE_DOCUMENT:
+								return reject(new Error("responseType " + RESPONSE_DOCUMENT + " not supported for local files"));
 						}
 					});
 				});
@@ -124,19 +115,20 @@ package weavejs.net
 			return promise;
 		}
 		
-		public function saveLocalFile(weaveRoot:ILinkableHashMap, name:String, content:Object):String
+		public function saveLocalFile(weaveRoot:ILinkableHashMap, name:String, byteArray:/*Uint8*/Array):String
 		{
 			var url:String = LOCAL_FILE_URL_SCHEME + name;
 			var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, url);
-			promise.setResult(content);
+			promise.setResult(byteArray);
 			return url;
 		}
 		
-		public function getLocalFile(weaveRoot:ILinkableHashMap, name:String):Object
+		public function getLocalFile(weaveRoot:ILinkableHashMap, name:String):/*Uint8*/Array
 		{
 			var url:String = LOCAL_FILE_URL_SCHEME + name;
 			var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, url);
-			return promise.getResult();
+			var result:* = promise.getResult();
+			return result;
 		}
 		
 		public function removeLocalFile(weaveRoot:ILinkableHashMap, name:String):void

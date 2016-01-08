@@ -33,10 +33,10 @@ package weavejs.core
 		/**
 		 * @param input A Weave file to decode.
 		 */
-		public function WeaveArchive(bytes:* = null)
+		public function WeaveArchive(byteArray:/*Uint8*/Array = null)
 		{
-			if (bytes)
-				_readArchive(bytes);
+			if (byteArray)
+				_readArchive(byteArray);
 		}
 		
 		/**
@@ -58,9 +58,9 @@ package weavejs.core
 		/**
 		 * @private
 		 */		
-		private function _readArchive(bytes:*):void
+		private function _readArchive(byteArray:/*Uint8*/Array):void
 		{
-			var zip:Object = new JS.JSZip(bytes);
+			var zip:Object = new JS.JSZip(byteArray);
 			for (var filePath:String in zip.files)
 			{
 				var fileName:String = filePath.substr(filePath.indexOf('/') + 1);
@@ -71,12 +71,12 @@ package weavejs.core
 				}
 				else if (filePath.indexOf(FOLDER_AMF + '/') == 0)
 				{
-					var byteArray:Object = new JSByteArray(file.asBinary());
-					objects[fileName] = byteArray.readObject();
+					var amf:Object = new JSByteArray(file.asUint8Array());
+					objects[fileName] = amf.readObject();
 				}
 				else
 				{
-					files[fileName] = file.asBinary();
+					files[fileName] = file.asUint8Array();
 				}
 			}
 		}
@@ -84,9 +84,9 @@ package weavejs.core
 		/**
 		 * This function will create a ByteArray containing the objects that have been specified with setObject().
 		 * @param contentType A String describing the type of content contained in the objects.
-		 * @return A ByteArray in the Weave file format.
+		 * @return A Uint8Array in the Weave file format.
 		 */
-		public function serialize():*
+		public function serialize():/*Uint8*/Array
 		{
 			var zip:Object = new JS.JSZip();
 			var name:String;
@@ -100,7 +100,7 @@ package weavejs.core
 			for (name in objects)
 				folder.file(name, JSON.stringify(objects[name]));
 			
-			return zip.generate({type: 'blob'});
+			return zip.generate({type: 'uint8array'});
 		}
 		
 //		public static const HISTORY_SYNC_DELAY:int = 100;
@@ -130,7 +130,7 @@ package weavejs.core
 		/**
 		 * Loads a WeaveArchive from file content.
 		 */
-		public static function loadFileContent(weave:Weave, fileContent:*):void
+		public static function loadFileContent(weave:Weave, fileContent:/*Uint8*/Array):void
 		{
 			var archive:WeaveArchive = new WeaveArchive(fileContent);
 			
@@ -169,8 +169,8 @@ package weavejs.core
 //			updateLocalThumbnailAndScreenshot(saveScreenshot);
 			
 			// embedded files
-//			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames())
-//				archive.files[fileName] = WeaveAPI.URLRequestUtils.getLocalFile(fileName);
+			for each (var fileName:String in WeaveAPI.URLRequestUtils.getLocalFileNames(weave.root))
+				archive.files[fileName] = WeaveAPI.URLRequestUtils.getLocalFile(weave.root, fileName);
 			
 			// session history
 			var _history:Object = weave.history.getSessionState();
