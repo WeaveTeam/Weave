@@ -114,7 +114,7 @@ package weavejs.data.key
 		 */
 		public function getQKeys_range(keyType:String, keyStrings:Array, iStart:uint, iEnd:uint, output:*):void
 		{
-			keyType = String(keyType);
+			keyType = keyType == null ? null : String(keyType);
 			
 			// get mapping of key strings to QKey weak references
 			var map_localName_qkey:Object = map_keyType_localName_qkey.map.get(keyType);
