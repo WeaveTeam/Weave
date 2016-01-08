@@ -7,7 +7,7 @@ package weavejs.util
 		private static const Uint16Array:Class = JS.global.Uint16Array;
 		private static const Uint8Array:Class = JS.global.Uint8Array;
 		
-		public var buffer, bufferView, rawData;
+		public var buffer:*, bufferView:Array, rawData:Array;
 		
 		/*\
 		|*|
@@ -36,7 +36,7 @@ package weavejs.util
 		
 		public function StringView (vInput, sEncoding = undefined/* optional (default: UTF-8) */, nOffset = undefined/* optional */, nLength = undefined/* optional */) {
 			
-			var fTAView, aWhole, aRaw, fPutOutptCode, fGetOutptChrSize, nInptLen, nStartIdx = isFinite(nOffset) ? nOffset : 0, nTranscrType = 15;
+			var fTAView:Class, aWhole:Array, aRaw:Array, fPutOutptCode:Function, fGetOutptChrSize:Function, nInptLen:int, nStartIdx:int = isFinite(nOffset) ? nOffset : 0, nTranscrType:int = 15;
 			
 			if (sEncoding) { this.encoding = sEncoding.toString(); }
 			
@@ -126,7 +126,7 @@ package weavejs.util
 			
 			if (nTranscrType < 8) {
 				
-				var vSource, nOutptLen, nCharStart, nCharEnd, nEndIdx, fGetInptChrSize, fGetInptChrCode;
+				var vSource:*, nOutptLen:int, nCharStart:int, nCharEnd:int, nEndIdx:int, fGetInptChrSize:Function, fGetInptChrCode:Function;
 				
 				if (nTranscrType & 4) { /* input is string */
 					
@@ -172,7 +172,7 @@ package weavejs.util
 						/* both the source and the new StringView have a fixed-length encoding... */
 						
 						aWhole = new fTAView(nOutptLen);
-						for (var nOutptIdx = 0; nOutptIdx < nOutptLen; aWhole[nOutptIdx] = vSource[nStartIdx + nOutptIdx++]);
+						for (var nOutptIdx:int = 0; nOutptIdx < nOutptLen; aWhole[nOutptIdx] = vSource[nStartIdx + nOutptIdx++]);
 						break conversionSwitch;
 					
 					case 1:
@@ -183,7 +183,7 @@ package weavejs.util
 						
 						nOutptLen = 0;
 						
-						for (var nInptIdx = nStartIdx; nInptIdx < nEndIdx; nInptIdx++) {
+						for (var nInptIdx:int = nStartIdx; nInptIdx < nEndIdx; nInptIdx++) {
 							nOutptLen += fGetOutptChrSize(vSource[nInptIdx]);
 						}
 						
@@ -191,7 +191,7 @@ package weavejs.util
 						
 						/* transcription of the source... */
 						
-						for (var nInptIdx = nStartIdx, nOutptIdx = 0; nOutptIdx < nOutptLen; nInptIdx++) {
+						for (nInptIdx = nStartIdx, nOutptIdx = 0; nOutptIdx < nOutptLen; nInptIdx++) {
 							nOutptIdx = fPutOutptCode(aWhole, vSource[nInptIdx], nOutptIdx);
 						}
 						
@@ -205,7 +205,7 @@ package weavejs.util
 						
 						nStartIdx = 0;
 						
-						var nChrCode;
+						var nChrCode:int;
 						
 						for (nChrIdx = 0; nChrIdx < nCharStart; nChrIdx++) {
 							nChrCode = fGetInptChrCode(vSource, nStartIdx);
@@ -216,7 +216,7 @@ package weavejs.util
 						
 						/* transcription of the source... */
 						
-						for (var nInptIdx = nStartIdx, nOutptIdx = 0; nOutptIdx < nOutptLen; nInptIdx += fGetInptChrSize(nChrCode), nOutptIdx++) {
+						for (nInptIdx = nStartIdx, nOutptIdx = 0; nOutptIdx < nOutptLen; nInptIdx += fGetInptChrSize(nChrCode), nOutptIdx++) {
 							nChrCode = fGetInptChrCode(vSource, nInptIdx);
 							aWhole[nOutptIdx] = nChrCode;
 						}
@@ -231,9 +231,9 @@ package weavejs.util
 						
 						nOutptLen = 0;
 						
-						var nChrCode;
+						var nChrIdx:int;
 						
-						for (var nChrIdx = 0, nInptIdx = 0; nChrIdx < nCharEnd; nInptIdx += fGetInptChrSize(nChrCode)) {
+						for (nChrIdx = 0, nInptIdx = 0; nChrIdx < nCharEnd; nInptIdx += fGetInptChrSize(nChrCode)) {
 							nChrCode = fGetInptChrCode(vSource, nInptIdx);
 							if (nChrIdx === nCharStart) { nStartIdx = nInptIdx; }
 							if (++nChrIdx > nCharStart) { nOutptLen += fGetOutptChrSize(nChrCode); }
@@ -243,7 +243,7 @@ package weavejs.util
 						
 						/* transcription... */
 						
-						for (var nInptIdx = nStartIdx, nOutptIdx = 0; nOutptIdx < nOutptLen; nInptIdx += fGetInptChrSize(nChrCode)) {
+						for (nInptIdx = nStartIdx, nOutptIdx = 0; nOutptIdx < nOutptLen; nInptIdx += fGetInptChrSize(nChrCode)) {
 							nChrCode = fGetInptChrCode(vSource, nInptIdx);
 							nOutptIdx = fPutOutptCode(aWhole, nChrCode, nOutptIdx);
 						}
@@ -258,7 +258,7 @@ package weavejs.util
 						
 						/* transcription... */
 						
-						for (var nIdx = 0; nIdx < nOutptLen; nIdx++) {
+						for (var nIdx:int = 0; nIdx < nOutptLen; nIdx++) {
 							aWhole[nIdx] = vSource.charCodeAt(nIdx) & 0xff;
 						}
 						
@@ -272,7 +272,7 @@ package weavejs.util
 						
 						nOutptLen = 0;
 						
-						for (var nMapIdx = 0; nMapIdx < nInptLen; nMapIdx++) {
+						for (var nMapIdx:int = 0; nMapIdx < nInptLen; nMapIdx++) {
 							if (nMapIdx === nCharStart) { nStartIdx = nOutptLen; }
 							nOutptLen += fGetOutptChrSize(vSource.charCodeAt(nMapIdx));
 							if (nMapIdx === nCharEnd) { nEndIdx = nOutptLen; }
@@ -282,7 +282,7 @@ package weavejs.util
 						
 						/* transcription... */
 						
-						for (var nOutptIdx = 0, nChrIdx = 0; nOutptIdx < nOutptLen; nChrIdx++) {
+						for (nOutptIdx = 0, nChrIdx = 0; nOutptIdx < nOutptLen; nChrIdx++) {
 							nOutptIdx = fPutOutptCode(aWhole, vSource.charCodeAt(nChrIdx), nOutptIdx);
 						}
 						
@@ -296,7 +296,7 @@ package weavejs.util
 						
 						/* transcription... */
 						
-						for (var nIdx = 0; nIdx < nOutptLen; nIdx++) {
+						for (nIdx = 0; nIdx < nOutptLen; nIdx++) {
 							aWhole[nIdx] = vSource.charCodeAt(nIdx);
 						}
 						
@@ -320,9 +320,9 @@ package weavejs.util
 		
 		/* CONSTRUCTOR'S METHODS */
 		
-		public static function loadUTF8CharCode(aChars, nIdx) {
+		public static function loadUTF8CharCode(aChars, nIdx):int {
 			
-			var nLen = aChars.length, nPart = aChars[nIdx];
+			var nLen:int = aChars.length, nPart:int = aChars[nIdx];
 			
 			return nPart > 251 && nPart < 254 && nIdx + 5 < nLen ?
 				/* (nPart - 252 << 30) may be not safe in ECMAScript! So...: */
@@ -340,9 +340,9 @@ package weavejs.util
 			
 		};
 		
-		public static function putUTF8CharCode(aTarget, nChar, nPutAt) {
+		public static function putUTF8CharCode(aTarget, nChar, nPutAt):int {
 			
-			var nIdx = nPutAt;
+			var nIdx:int = nPutAt;
 			
 			if (nChar < 0x80 /* 128 */) {
 				/* one byte */
@@ -383,14 +383,14 @@ package weavejs.util
 			
 		};
 		
-		public static function getUTF8CharLength(nChar) {
+		public static function getUTF8CharLength(nChar):int {
 			return nChar < 0x80 ? 1 : nChar < 0x800 ? 2 : nChar < 0x10000 ? 3 : nChar < 0x200000 ? 4 : nChar < 0x4000000 ? 5 : 6;
 		};
 		
-		public static function loadUTF16CharCode(aChars, nIdx) {
+		public static function loadUTF16CharCode(aChars, nIdx):int {
 			
 			/* UTF-16 to DOMString decoding algorithm */
-			var nFrstChr = aChars[nIdx];
+			var nFrstChr:int = aChars[nIdx];
 			
 			return nFrstChr > 0xD7BF /* 55231 */ && nIdx + 1 < aChars.length ?
 				(nFrstChr - 0xD800 /* 55296 */ << 10) + aChars[nIdx + 1] + 0x2400 /* 9216 */
@@ -398,9 +398,9 @@ package weavejs.util
 			
 		};
 		
-		public static function putUTF16CharCode(aTarget, nChar, nPutAt) {
+		public static function putUTF16CharCode(aTarget, nChar, nPutAt):int {
 			
-			var nIdx = nPutAt;
+			var nIdx:int = nPutAt;
 			
 			if (nChar < 0x10000 /* 65536 */) {
 				/* one element */
@@ -415,13 +415,13 @@ package weavejs.util
 			
 		};
 		
-		public static function getUTF16CharLength(nChar) {
+		public static function getUTF16CharLength(nChar):int {
 			return nChar < 0x10000 ? 1 : 2;
 		};
 		
 		/* Array of bytes to base64 string decoding */
 		
-		public static function b64ToUint6(nChr) {
+		public static function b64ToUint6(nChr):int {
 			
 			return nChr > 64 && nChr < 91 ?
 				nChr - 65
@@ -438,7 +438,7 @@ package weavejs.util
 			
 		};
 		
-		public static function uint6ToB64(nUint6) {
+		public static function uint6ToB64(nUint6):int {
 			
 			return nUint6 < 26 ?
 				nUint6 + 65
@@ -457,11 +457,11 @@ package weavejs.util
 		
 		/* Base64 string to array encoding */
 		
-		public static function bytesToBase64(aBytes) {
+		public static function bytesToBase64(aBytes):String {
 			
-			var sB64Enc = "";
+			var sB64Enc:String = "";
 			
-			for (var nMod3, nLen = aBytes.length, nUint24 = 0, nIdx = 0; nIdx < nLen; nIdx++) {
+			for (var nMod3:int, nLen:int = aBytes.length, nUint24:int = 0, nIdx:int = 0; nIdx < nLen; nIdx++) {
 				nMod3 = nIdx % 3;
 				if (nIdx > 0 && (nIdx * 4 / 3) % 76 === 0) { sB64Enc += "\r\n"; }
 				nUint24 |= aBytes[nIdx] << (16 >>> nMod3 & 24);
@@ -476,13 +476,14 @@ package weavejs.util
 		};
 		
 		
-		public static function base64ToBytes(sBase64, nBlockBytes = undefined) {
+		public static function base64ToBytes(sBase64, nBlockBytes = undefined):Array {
 			
 			var
-			sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, ""), nInLen = sB64Enc.length,
-				nOutLen = nBlockBytes ? Math.ceil((nInLen * 3 + 1 >>> 2) / nBlockBytes) * nBlockBytes : nInLen * 3 + 1 >>> 2, aBytes = new Uint8Array(nOutLen);
+			sB64Enc:String = sBase64.replace(/[^A-Za-z0-9\+\/]/g, ""), nInLen:int = sB64Enc.length,
+				nOutLen:int = nBlockBytes ? Math.ceil((nInLen * 3 + 1 >>> 2) / nBlockBytes) * nBlockBytes : nInLen * 3 + 1 >>> 2,
+				aBytes:Array = new Uint8Array(nOutLen);
 			
-			for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+			for (var nMod3:int, nMod4:int, nUint24:int = 0, nOutIdx:int = 0, nInIdx:int = 0; nInIdx < nInLen; nInIdx++) {
 				nMod4 = nInIdx & 3;
 				nUint24 |= StringView.b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
 				if (nMod4 === 3 || nInLen - nInIdx === 1) {
@@ -497,7 +498,7 @@ package weavejs.util
 			
 		};
 		
-		public static function makeFromBase64(sB64Inpt, sEncoding, nByteOffset, nLength) {
+		public static function makeFromBase64(sB64Inpt, sEncoding, nByteOffset, nLength):StringView {
 			
 			return new StringView(sEncoding === "UTF-16" || sEncoding === "UTF-32" ? StringView.base64ToBytes(sB64Inpt, sEncoding === "UTF-16" ? 2 : 4).buffer : StringView.base64ToBytes(sB64Inpt), sEncoding, nByteOffset, nLength);
 			
@@ -505,16 +506,16 @@ package weavejs.util
 		
 		/* DEFAULT VALUES */
 		
-		public var encoding = "UTF-8"; /* Default encoding... */
+		public var encoding:String = "UTF-8"; /* Default encoding... */
 		
 		/* INSTANCES' METHODS */
 		
-		public function makeIndex(nChrLength = undefined, nStartFrom = undefined) {
+		public function makeIndex(nChrLength = undefined, nStartFrom = undefined):int {
 			
 			var
 			
-			aTarget = this.rawData, nChrEnd, nRawLength = aTarget.length,
-				nStartIdx = nStartFrom || 0, nIdxEnd = nStartIdx, nStopAtChr = isNaN(nChrLength) ? Infinity : nChrLength;
+			aTarget:Array = this.rawData, nChrEnd:int, nRawLength:int = aTarget.length,
+				nStartIdx:int = nStartFrom || 0, nIdxEnd:int = nStartIdx, nStopAtChr:int = isNaN(nChrLength) ? Infinity : nChrLength;
 			
 			if (nChrLength + 1 > aTarget.length) { throw new RangeError("public function makeIndex - The offset can\'t be major than the length of the array - 1."); }
 			
@@ -522,7 +523,7 @@ package weavejs.util
 				
 				case "UTF-8":
 					
-					var nPart;
+					var nPart:int;
 					
 					for (nChrEnd = 0; nIdxEnd < nRawLength && nChrEnd < nStopAtChr; nChrEnd++) {
 						nPart = aTarget[nIdxEnd];
@@ -556,7 +557,7 @@ package weavejs.util
 			
 		};
 		
-		public function toBase64(bWholeBuffer) {
+		public function toBase64(bWholeBuffer):String {
 			
 			return StringView.bytesToBase64(
 				bWholeBuffer ?
@@ -574,12 +575,12 @@ package weavejs.util
 			
 		};
 		
-		public function subview(nCharOffset /* optional */, nCharLength /* optional */) {
+		public function subview(nCharOffset /* optional */, nCharLength /* optional */):StringView {
 			
 			var
 			
-			nChrLen, nCharStart, nStrLen, bVariableLen = this.encoding === "UTF-8" || this.encoding === "UTF-16",
-				nStartOffset = nCharOffset, nStringLength, nRawLen = this.rawData.length;
+			nChrLen:int, nCharStart:int, nStrLen:int, bVariableLen:Boolean = this.encoding === "UTF-8" || this.encoding === "UTF-16",
+				nStartOffset:int = nCharOffset, nStringLength:int, nRawLen:int = this.rawData.length;
 			
 			if (nRawLen === 0) {
 				return new StringView(this.buffer, this.encoding);
@@ -607,15 +608,15 @@ package weavejs.util
 			
 			return new StringView(this.buffer, this.encoding, nStartOffset, nChrLen);
 			
-		};
+		}
 		
-		public function forEachChar(fCallback, oThat, nChrOffset, nChrLen) {
+		public function forEachChar(fCallback, oThat, nChrOffset, nChrLen):void {
 			
-			var aSource = this.rawData, nRawEnd, nRawIdx;
+			var aSource:Array = this.rawData, nRawEnd:int, nRawIdx:int;
 			
 			if (this.encoding === "UTF-8" || this.encoding === "UTF-16") {
 				
-				var fGetInptChrSize, fGetInptChrCode;
+				var fGetInptChrSize:Function, fGetInptChrCode:Function;
 				
 				if (this.encoding === "UTF-8") {
 					fGetInptChrSize = StringView.getUTF8CharLength;
@@ -628,7 +629,7 @@ package weavejs.util
 				nRawIdx = isFinite(nChrOffset) ? this.makeIndex(nChrOffset) : 0;
 				nRawEnd = isFinite(nChrLen) ? this.makeIndex(nChrLen, nRawIdx) : aSource.length;
 				
-				for (var nChrCode, nChrIdx = 0; nRawIdx < nRawEnd; nChrIdx++) {
+				for (var nChrCode:int, nChrIdx:int = 0; nRawIdx < nRawEnd; nChrIdx++) {
 					nChrCode = fGetInptChrCode(aSource, nRawIdx);
 					fCallback.call(oThat || null, nChrCode, nChrIdx, nRawIdx, aSource);
 					nRawIdx += fGetInptChrSize(nChrCode);
@@ -654,7 +655,7 @@ package weavejs.util
 				return String.fromCharCode.apply(null, this.rawData);
 			}
 			
-			var fGetCode, fGetIncr, sView = "";
+			var fGetCode:Function, fGetIncr:Function, sView:String = "";
 			
 			if (this.encoding === "UTF-8") {
 				fGetIncr = StringView.getUTF8CharLength;
@@ -664,7 +665,7 @@ package weavejs.util
 				fGetCode = StringView.loadUTF16CharCode;
 			}
 			
-			for (var nChr, nLen = this.rawData.length, nIdx = 0; nIdx < nLen; nIdx += fGetIncr(nChr)) {
+			for (var nChr:int, nLen:int = this.rawData.length, nIdx:int = 0; nIdx < nLen; nIdx += fGetIncr(nChr)) {
 				nChr = fGetCode(this.rawData, nIdx);
 				sView += String.fromCharCode(nChr);
 			}
