@@ -376,15 +376,8 @@ package weavejs.util
 	
 		public function readString(len:int):String
 		{
-			//TODO - This is wrong. Use StringView.
-			
-			var str:String = "";
-	
-			while (len > 0)
-			{
-				str += String.fromCharCode(this.readByte());
-				len--;
-			}
+			var str:String = new StringView(data, "UTF-8", this.pos, len).toString();
+			this.pos += len;
 			return str;
 		}
 	
