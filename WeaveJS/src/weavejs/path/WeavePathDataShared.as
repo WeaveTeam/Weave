@@ -7,8 +7,11 @@
 package weavejs.path
 {
 	import weavejs.WeaveAPI;
+	import weavejs.api.core.ILinkableObject;
+	import weavejs.api.data.IKeySet;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.api.data.IQualifiedKeyManager;
+	import weavejs.util.Dictionary2D;
 	import weavejs.util.JS;
 
 	public class WeavePathDataShared
@@ -38,16 +41,18 @@ package weavejs.path
 		public var selection_keyset:WeavePath;
 		public var subset_filter:WeavePath;
 
-		public var _key_buffers:Object = {};
+		public var d2d_keySet_addedKeys:Dictionary2D = new Dictionary2D(true);
+		public var d2d_keySet_removedKeys:Dictionary2D = new Dictionary2D(true);
+		public var map_keySet_timeoutId:Object = new JS.WeakMap();
 		
 		/** 
 		 * Retrieves or allocates the index for the given QualifiedKey object based on its localName and keyType properties
 		 * @param  {object} key A QualifiedKey object (containing keyType and localName properties) to be converted.
 		 * @return {number}     The existing or newly-allocated index for the qualified key.
 		 */
-		public function qkeyToIndex(key:Object):int
+		public function qkeyToIndex(qkey:IQualifiedKey):int
 		{
-			return this.qkm.getQKey(key.keyType, key.localName).toNumber();
+			return qkey.toNumber();
 		}
 		
 		/**
@@ -58,19 +63,18 @@ package weavejs.path
 		 */
 		public function indexToQKey(index:int):Object
 		{
-			var qkey:IQualifiedKey = this.qkm.numberToQKey(index);
-			return {keyType: qkey.keyType, localName: qkey.localName};
+			return this.qkm.numberToQKey(index);
 		}
 		
 		/**
 		 * Retrieves an alphanumeric string unique to a QualifiedKey
 		 * This is also available as an alias on the WeavePath object.
-		 * @param  {object} key The QualifiedKey object to convert.
+		 * @param  {object} qkey The QualifiedKey object to convert.
 		 * @return {string}     The corresponding alphanumeric key.
 		 */
-		public function qkeyToString(key:Object):String
+		public function qkeyToString(qkey:Object):String
 		{
-			return this.qkm.getQKey(key.keyType, key.localName).toString();
+			return qkey.toString();
 		}
 		
 		/**
@@ -81,28 +85,7 @@ package weavejs.path
 		 */
 		public function stringToQKey(s:String):Object
 		{
-			var qkey:IQualifiedKey = this.qkm.stringToQKey(s);
-			return {keyType: qkey.keyType, localName: qkey.localName};
-		}
-		
-		/**
-		 * Gets the key add/remove buffers for a specific session state path.
-		 * @private
-		 * @param  {Array} pathArray A raw session state path.
-		 * @return {object}           An object containing the key add/remove queues for the given path.
-		 */
-		public function _getKeyBuffers(pathArray:Array):Object
-		{
-			var path_key:String = JSON.stringify(pathArray);
-			
-			var key_buffers_dict:Object = this._key_buffers;
-			var key_buffers:Object = key_buffers_dict[path_key] || (key_buffers_dict[path_key] = {});
-			
-			if (key_buffers.add === undefined) key_buffers.add = {};
-			if (key_buffers.remove === undefined) key_buffers.remove = {};
-			if (key_buffers.timeout_id === undefined) key_buffers.timeout_id = null;
-			
-			return key_buffers;
+			return s as IQualifiedKey || this.qkm.stringToQKey(s);
 		}
 		
 		/**
@@ -110,23 +93,18 @@ package weavejs.path
 		 * @private
 		 * @param  {Array} pathArray The session state path to flush.         
 		 */
-		public function _flushKeys(pathArray:Array):void
+		public function _flushKeys(keySet:ILinkableObject):void
 		{
-			var key_buffers:Object = this._getKeyBuffers(pathArray);
-			var add_keys:Array = JS.objectKeys(key_buffers.add);
-			var remove_keys:Array = JS.objectKeys(key_buffers.remove);
+			var add_keys:Array = d2d_keySet_addedKeys.secondaryKeys(keySet);
+			var remove_keys:Array = d2d_keySet_removedKeys.secondaryKeys(keySet);
 			
-			add_keys = add_keys.map(this.stringToQKey, this);
-			remove_keys = remove_keys.map(this.stringToQKey, this);
+			d2d_keySet_addedKeys.removeAllPrimary(keySet);
+			d2d_keySet_removedKeys.removeAllPrimary(keySet);
 			
-			key_buffers.add = {};
-			key_buffers.remove = {};
+			keySet['addKeys'](add_keys);
+			keySet['removeKeys'](remove_keys);
 			
-			var obj:Object = weave.path(pathArray).getObject();
-			obj.addKeys(add_keys);
-			obj.removeKeys(remove_keys);
-			
-			key_buffers.timeout_id = null;
+			map_keySet_timeoutId['delete'](keySet);
 		}
 		
 		/**
@@ -134,11 +112,10 @@ package weavejs.path
 		 * @private
 		 * @param  {Array} pathArray The session state path referencing a KeySet to flush.
 		 */
-		public function _flushKeysLater(pathArray:Array):void
+		public function _flushKeysLater(keySet:ILinkableObject):void
 		{
-			var key_buffers:Object = this._getKeyBuffers(pathArray);
-			if (key_buffers.timeout_id === null)
-				key_buffers.timeout_id = JS.setTimeout(_flushKeys, 25, pathArray);
+			if (!map_keySet_timeoutId.has(keySet))
+				map_keySet_timeoutId.set(keySet, JS.setTimeout(_flushKeys, 25, keySet));
 		}
 		
 		/**
@@ -147,17 +124,15 @@ package weavejs.path
 		 * @param {Array} pathArray      The session state path referencing a KeySet
 		 * @param {Array} keyStringArray The set of keys to add.
 		 */
-		public function _addKeys(pathArray:Array, keyStringArray:Array):void
+		public function _addKeys(keySet:ILinkableObject, qkeyStrings:Array):void
 		{
-			var key_buffers:Object = this._getKeyBuffers(pathArray);
+			this.qkm.getQKeys(null, qkeyStrings)
+				.forEach(function(qkey:IQualifiedKey):void {
+					d2d_keySet_addedKeys.set(keySet, qkey, true);
+					d2d_keySet_removedKeys.remove(keySet, qkey);
+				});
 			
-			keyStringArray.forEach(function(str:String):void
-			{
-				key_buffers.add[str] = true;
-				delete key_buffers.remove[str];
-			});
-			
-			this._flushKeysLater(pathArray);
+			this._flushKeysLater(keySet);
 		}
 		
 		/**
@@ -166,17 +141,15 @@ package weavejs.path
 		 * @param {Array} pathArray      The session state path referencing a KeySet
 		 * @param {Array} keyStringArray The set of keys to remove.
 		 */
-		public function _removeKeys(pathArray:Array, keyStringArray:Array):void
+		public function _removeKeys(keySet:ILinkableObject, qkeyStrings:Array):void
 		{
-			var key_buffers:Object = this._getKeyBuffers(pathArray);
+			this.qkm.getQKeys(null, qkeyStrings)
+				.forEach(function(qkey:IQualifiedKey):void {
+					d2d_keySet_removedKeys.set(keySet, qkey, true);
+					d2d_keySet_addedKeys.remove(keySet, qkey);
+				});
 			
-			keyStringArray.forEach(function(str:String):void
-			{
-				key_buffers.remove[str] = true;
-				delete key_buffers.add[str];
-			});
-			
-			this._flushKeysLater(pathArray);
+			this._flushKeysLater(keySet);
 		}
 	}
 }
