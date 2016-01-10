@@ -460,8 +460,8 @@ package weavejs.util
 		public static function bytesToBase64(aBytes):String {
 			
 			var sB64Enc:String = "";
-			
-			for (var nMod3:int, nLen:int = aBytes.length, nUint24:int = 0, nIdx:int = 0; nIdx < nLen; nIdx++) {
+			var nMod3:int, nLen:int = aBytes.length, nUint24:int = 0, nIdx:int = 0
+			for (; nIdx < nLen; nIdx++) {
 				nMod3 = nIdx % 3;
 				if (nIdx > 0 && (nIdx * 4 / 3) % 76 === 0) { sB64Enc += "\r\n"; }
 				nUint24 |= aBytes[nIdx] << (16 >>> nMod3 & 24);
@@ -482,8 +482,8 @@ package weavejs.util
 			sB64Enc:String = sBase64.replace(/[^A-Za-z0-9\+\/]/g, ""), nInLen:int = sB64Enc.length,
 				nOutLen:int = nBlockBytes ? Math.ceil((nInLen * 3 + 1 >>> 2) / nBlockBytes) * nBlockBytes : nInLen * 3 + 1 >>> 2,
 				aBytes:Array = new Uint8Array(nOutLen);
-			
-			for (var nMod3:int, nMod4:int, nUint24:int = 0, nOutIdx:int = 0, nInIdx:int = 0; nInIdx < nInLen; nInIdx++) {
+			var nMod3:int, nMod4:int, nUint24:int = 0, nOutIdx:int = 0, nInIdx:int = 0
+			for (; nInIdx < nInLen; nInIdx++) {
 				nMod4 = nInIdx & 3;
 				nUint24 |= StringView.b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
 				if (nMod4 === 3 || nInLen - nInIdx === 1) {
@@ -628,8 +628,8 @@ package weavejs.util
 				
 				nRawIdx = isFinite(nChrOffset) ? this.makeIndex(nChrOffset) : 0;
 				nRawEnd = isFinite(nChrLen) ? this.makeIndex(nChrLen, nRawIdx) : aSource.length;
-				
-				for (var nChrCode:int, nChrIdx:int = 0; nRawIdx < nRawEnd; nChrIdx++) {
+				var nChrCode:int, nChrIdx:int = 0
+				for (; nRawIdx < nRawEnd; nChrIdx++) {
 					nChrCode = fGetInptChrCode(aSource, nRawIdx);
 					fCallback.call(oThat || null, nChrCode, nChrIdx, nRawIdx, aSource);
 					nRawIdx += fGetInptChrSize(nChrCode);
@@ -664,8 +664,8 @@ package weavejs.util
 				fGetIncr = StringView.getUTF16CharLength;
 				fGetCode = StringView.loadUTF16CharCode;
 			}
-			
-			for (var nChr:int, nLen:int = this.rawData.length, nIdx:int = 0; nIdx < nLen; nIdx += fGetIncr(nChr)) {
+			var nChr:int, nLen:int = this.rawData.length, nIdx:int = 0
+			for (; nIdx < nLen; nIdx += fGetIncr(nChr)) {
 				nChr = fGetCode(this.rawData, nIdx);
 				sView += String.fromCharCode(nChr);
 			}
