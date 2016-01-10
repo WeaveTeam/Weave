@@ -38,6 +38,18 @@ package weavejs.net
 		public static const RESPONSE_JSON:String = 'json';
 		public static const RESPONSE_TEXT:String = 'text';
 		
+		private function byteArrayToString(byteArray:Array):String
+		{
+			var MAX_ARGUMENTS_LENGTH:int = 4096;
+			var n:int = byteArray.length;
+			if (n <= MAX_ARGUMENTS_LENGTH)
+				return String.fromCharCode.apply(String, byteArray);
+			var str:String = "";
+			for (var i:int = 0; i < n;)
+				str += String.fromCharCode.apply(String, byteArray.slice(i, i += MAX_ARGUMENTS_LENGTH));
+			return str;
+		}
+		
 		public function request(relevantContext:Object, method:String, url:String, requestHeaders:Object, data:String, responseType:String):WeavePromise
 		{
 			if (url.indexOf(LOCAL_FILE_URL_SCHEME) == 0)
@@ -53,7 +65,7 @@ package weavejs.net
 							case RESPONSE_TEXT:
 								return resolve(String.fromCharCode.apply(null, byteArray));
 							case RESPONSE_JSON:
-								return resolve(JSON.parse(String.fromCharCode.apply(null, byteArray)));
+								return resolve(JSON.parse(byteArrayToString(byteArray)));
 							case RESPONSE_BLOB:
 								return resolve(new JS.global.Blob([byteArray.buffer]));
 							case RESPONSE_ARRAYBUFFER:
