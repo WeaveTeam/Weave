@@ -16,7 +16,6 @@
 package weave.data
 {
 	import flash.utils.Dictionary;
-	import flash.utils.getTimer;
 	
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.DataType;
@@ -127,7 +126,9 @@ package weave.data
 			var qkg:QKeyGetter = _qkeyGetterLookup[relevantContext] as QKeyGetter;
 			if (!qkg)
 				_qkeyGetterLookup[relevantContext] = qkg = new QKeyGetter(this, relevantContext);
-			qkg.asyncStart(keyType, keyStrings, outputKeys).then(function(..._):* { asyncCallback(); });
+			var promise:WeavePromise = qkg.asyncStart(keyType, keyStrings, outputKeys);
+			if (asyncCallback != null)
+				promise.then(function(..._):* { asyncCallback(); });
 		}
 		
 		/**

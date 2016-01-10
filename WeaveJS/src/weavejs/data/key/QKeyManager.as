@@ -194,7 +194,9 @@ package weavejs.data.key
 			var qkg:QKeyGetter = map_context_qkeyGetter.get(relevantContext);
 			if (!qkg)
 				map_context_qkeyGetter.set(relevantContext, qkg = new QKeyGetter(this, relevantContext));
-			qkg.asyncStart(keyType, keyStrings, outputKeys).then(function(..._):* { asyncCallback(); });
+			var promise:WeavePromise = qkg.asyncStart(keyType, keyStrings, outputKeys);
+			if (asyncCallback != null)
+				promise.then(asyncCallback);
 		}
 		
 		/**
