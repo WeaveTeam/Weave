@@ -40,14 +40,14 @@ package weavejs.net
 		
 		private function byteArrayToString(byteArray:Array):String
 		{
-			var MAX_ARGUMENTS_LENGTH:int = 4096;
+			var CHUNK_SIZE:int = 8192;
 			var n:int = byteArray.length;
-			if (n <= MAX_ARGUMENTS_LENGTH)
+			if (n <= CHUNK_SIZE)
 				return String.fromCharCode.apply(String, byteArray);
-			var str:String = "";
-			for (var i:int = 0; i < n;)
-				str += String.fromCharCode.apply(String, byteArray.slice(i, i += MAX_ARGUMENTS_LENGTH));
-			return str;
+			var strings:Array = [];
+			for (var i:int = 0; i < byteArray.length;)
+				strings.push(String.fromCharCode.apply(null, byteArray.slice(i, i += CHUNK_SIZE)));
+			return strings.join('');
 		}
 		
 		public function request(relevantContext:Object, method:String, url:String, requestHeaders:Object, data:String, responseType:String):WeavePromise
@@ -63,7 +63,7 @@ package weavejs.net
 						switch (responseType) {
 							default:
 							case RESPONSE_TEXT:
-								return resolve(String.fromCharCode.apply(null, byteArray));
+								return resolve(byteArrayToString(byteArray));
 							case RESPONSE_JSON:
 								return resolve(JSON.parse(byteArrayToString(byteArray)));
 							case RESPONSE_BLOB:
