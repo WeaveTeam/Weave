@@ -65,6 +65,11 @@ package weavejs.data.key
 			return 1;
 		}
 		
+		override public function setResult(result:Object):void
+		{
+			super.setResult(result);
+		}
+		
 		private function asyncComplete():void
 		{
 			setResult(this.outputKeys);
