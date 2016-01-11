@@ -55,6 +55,7 @@ package
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IEditorManager, EditorManager);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
 			registerClass("FlexibleLayout", LinkableVariable);
+			registerClass("ExternalTool", LinkableHashMap);
 			
 			// set this property for backwards compatibility
 			this['WeavePath'] = WeavePathUI;
