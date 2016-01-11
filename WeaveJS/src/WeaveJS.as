@@ -31,7 +31,7 @@ package
 			{
 				JS.log('using WeaveJS');
 				var weave:Weave = new Weave();
-				// ownerPath is a WeavePath from ActionScript Weave
+				// ownerPath is a WeavePath from Flash
 				var ownerPath:* = window.opener.WeaveExternalTools[window.name].path;
 				WeavePath.migrate(ownerPath, weave);
 				

@@ -22,6 +22,7 @@ package weavejs.data.column
 	import weavejs.api.data.IBaseColumn;
 	import weavejs.api.data.IPrimitiveColumn;
 	import weavejs.api.data.IQualifiedKey;
+	import weavejs.util.DateUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	
@@ -30,8 +31,6 @@ package weavejs.data.column
 	 */
 	public class DateColumn extends AbstractAttributeColumn implements IPrimitiveColumn, IBaseColumn
 	{
-		public static const flascc:Object = null;
-		
 		public function DateColumn(metadata:Object = null)
 		{
 			super(metadata);
@@ -169,7 +168,7 @@ package weavejs.data.column
 		private function parseDate(string:String):Object
 		{
 			if (_dateFormat)
-				return flascc.date_parse(string, _dateFormat);
+				return DateUtils.date_parse(string, _dateFormat);
 			return new Date(string);
 		}
 		
@@ -201,12 +200,12 @@ package weavejs.data.column
 						minutes: minutes,
 						hours: hours
 					};
-					return flascc.date_format(obj, _dateDisplayFormat);
+					return DateUtils.date_format(obj, _dateDisplayFormat);
 				}
 				else
 				{
 					var date:Date = value as Date || new Date(value);
-					return flascc.date_format(date, _dateDisplayFormat);
+					return DateUtils.date_format(date, _dateDisplayFormat);
 				}
 			}
 			return StandardLib.formatDate(value, _dateDisplayFormat);
@@ -381,9 +380,7 @@ package weavejs.data.column
 		
 		public static function detectDateFormats(dates:*):Array
 		{
-			//TODO
-			return [];
-			//return flascc.dates_detect(dates, DateFormat.FOR_AUTO_DETECT);
+			return DateUtils.dates_detect(dates, DateFormat.FOR_AUTO_DETECT);
 		}
 	}
 }
