@@ -56,6 +56,7 @@ package
 	import weavejs.data.column.SortedIndexColumn;
 	import weavejs.data.column.StringColumn;
 	import weavejs.data.column.StringLookup;
+	import weavejs.data.hierarchy.WeaveRootDataTreeNode;
 	import weavejs.data.key.ColumnDataFilter;
 	import weavejs.data.key.DynamicKeyFilter;
 	import weavejs.data.key.DynamicKeySet;
@@ -129,6 +130,7 @@ package
 			
 			ZoomBounds,
 			WeaveArchive,
+			WeaveRootDataTreeNode,
 			
 			null
 		];
