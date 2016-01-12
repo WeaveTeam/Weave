@@ -37,6 +37,7 @@ package weavejs.util
 		public function StringView (vInput, sEncoding = undefined/* optional (default: UTF-8) */, nOffset = undefined/* optional */, nLength = undefined/* optional */) {
 			
 			var fTAView:Class, aWhole:Array, aRaw:Array, fPutOutptCode:Function, fGetOutptChrSize:Function, nInptLen:int, nStartIdx:int = isFinite(nOffset) ? nOffset : 0, nTranscrType:int = 15;
+			var nChrCode:int, nChrIdx:int;
 			
 			if (sEncoding) { this.encoding = sEncoding.toString(); }
 			
@@ -205,8 +206,6 @@ package weavejs.util
 						
 						nStartIdx = 0;
 						
-						var nChrCode:int;
-						
 						for (nChrIdx = 0; nChrIdx < nCharStart; nChrIdx++) {
 							nChrCode = fGetInptChrCode(vSource, nStartIdx);
 							nStartIdx += fGetInptChrSize(nChrCode);
@@ -230,8 +229,6 @@ package weavejs.util
 						/* mapping... */
 						
 						nOutptLen = 0;
-						
-						var nChrIdx:int;
 						
 						for (nChrIdx = 0, nInptIdx = 0; nChrIdx < nCharEnd; nInptIdx += fGetInptChrSize(nChrCode)) {
 							nChrCode = fGetInptChrCode(vSource, nInptIdx);
@@ -640,7 +637,7 @@ package weavejs.util
 				nRawIdx = isFinite(nChrOffset) ? nChrOffset : 0;
 				nRawEnd = isFinite(nChrLen) ? nChrLen + nRawIdx : aSource.length;
 				
-				for (nRawIdx; nRawIdx < nRawEnd; nRawIdx++) {
+				for (; nRawIdx < nRawEnd; nRawIdx++) {
 					fCallback.call(oThat || null, aSource[nRawIdx], nRawIdx, nRawIdx, aSource);
 				}
 				
