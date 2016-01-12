@@ -16,6 +16,7 @@
 package weavejs.data.key
 {
 	import weavejs.WeaveAPI;
+	import weavejs.api.core.ILinkableObject;
 	import weavejs.util.JS;
 	import weavejs.util.WeavePromise;
 
@@ -40,7 +41,7 @@ package weavejs.data.key
 			
 			this.outputKeys.length = keyStrings.length;
 			// high priority because all visualizations depend on key sets
-			WeaveAPI.Scheduler.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, Weave.lang("Initializing {0} record identifiers", keyStrings.length));
+			WeaveAPI.Scheduler.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, Weave.lang("Initializing {0} record identifiers", keyStrings.length));
 			
 			return this;
 		}

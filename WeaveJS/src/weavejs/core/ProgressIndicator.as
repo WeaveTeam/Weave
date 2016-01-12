@@ -22,6 +22,7 @@ package weavejs.core
 	import weavejs.util.DebugUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
+	import weavejs.util.WeavePromise;
 
 	public class ProgressIndicator implements IProgressIndicator
 	{
@@ -61,7 +62,7 @@ package weavejs.core
 			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
 			cc.delayCallbacks();
 			
-			if (taskToken is JS.Promise && map_task_progress.get(taskToken) === undefined)
+			if ((taskToken is WeavePromise || taskToken is JS.Promise) && map_task_progress.get(taskToken) === undefined)
 			{
 				var remove:Function = removeTask.bind(this, taskToken);
 				taskToken.then(remove, remove);

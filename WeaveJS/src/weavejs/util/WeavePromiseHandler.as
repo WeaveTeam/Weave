@@ -31,27 +31,27 @@ package weavejs.util
 		public function onResult(result:Object):void
 		{
 			wasCalled = true;
-			try
-			{
+//			try
+//			{
 				next.setResult(onFulfilled(result));
-			}
-			catch (e:Error)
-			{
-				onError(e);
-			}
+//			}
+//			catch (e:Error)
+//			{
+//				onError(e);
+//			}
 		}
 		
 		public function onError(error:Object):void
 		{
 			wasCalled = true;
-			try
-			{
+//			try
+//			{
 				next.setError(onRejected(error));
-			}
-			catch (e:Error)
-			{
-				next.setError(e);
-			}
+//			}
+//			catch (e:Error)
+//			{
+//				next.setError(e);
+//			}
 		}
 		
 		/**

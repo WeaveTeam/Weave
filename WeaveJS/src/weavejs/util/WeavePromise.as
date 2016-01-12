@@ -132,6 +132,7 @@ package weavejs.util
 		
 		private function callHandlers(newHandlersOnly:Boolean = false):void
 		{
+			var depBusy:Array = dependencies.map(Weave.isBusy);
 			if (dependencies.some(Weave.isBusy))
 			{
 				if (handlers.length)
