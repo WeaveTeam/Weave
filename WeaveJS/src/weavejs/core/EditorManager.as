@@ -30,7 +30,7 @@ package weavejs.core
 		public function setLabel(object:ILinkableObject, label:String):void
 		{
 			labels.set(object, label);
-			WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+			Weave.getCallbacks(this).triggerCallbacks();
 		}
 		
 		public function getLabel(object:ILinkableObject):String
