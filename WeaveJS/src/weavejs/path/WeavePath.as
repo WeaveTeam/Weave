@@ -12,10 +12,8 @@ package weavejs.path
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.core.LinkableHashMap;
 	import weavejs.core.LinkableString;
 	import weavejs.core.LinkableVariable;
-	import weavejs.core.SessionManager;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 
@@ -472,7 +470,7 @@ package weavejs.path
 					return (object as ILinkableHashMap).getNames();
 				if (object is ILinkableDynamicObject)
 					return [null];
-				return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object, true);
+				return WeaveAPI.SessionManager['getLinkablePropertyNames'](object, true);
 			}
 			
 			throw new Error("No ILinkableObject for which to get child names at " + this);
@@ -551,7 +549,7 @@ package weavejs.path
 		public function getTypedState(...relativePath):Object
 		{
 			relativePath = _A(relativePath, 1);
-			return (WeaveAPI.SessionManager as SessionManager).getTypedStateTree(getObject(relativePath));
+			return WeaveAPI.SessionManager['getTypedStateTree'](getObject(relativePath));
 		}
 		
 		public function getUntypedState(...relativePath):Object
@@ -707,7 +705,7 @@ package weavejs.path
 			if (def)
 				path.request(def);
 			else if (hasChildren)
-				path.request(LinkableHashMap).push('class').request(LinkableString).state(type);
+				path.request(WeaveAPI.ClassRegistry.getImplementations(ILinkableHashMap)[0]).push('class').request(LinkableString).state(type);
 			else
 				path.request(LinkableVariable);
 			

@@ -15,6 +15,7 @@
 
 package weavejs.data.key
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.data.IKeyFilter;
@@ -163,7 +164,7 @@ package weavejs.data.key
 			if (_deprecatedState == null)
 			{
 				_deprecatedState = {};
-				Weave.callLater(this, _applyDeprecatedSessionState);
+				WeaveAPI.Scheduler.callLater(this, _applyDeprecatedSessionState);
 			}
 			_deprecatedState[propertyName] = value;
 		}

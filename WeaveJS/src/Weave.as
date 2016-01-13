@@ -11,27 +11,8 @@ package
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.api.core.IProgressIndicator;
-	import weavejs.api.core.IScheduler;
 	import weavejs.api.core.ISessionManager;
-	import weavejs.api.data.IAttributeColumnCache;
-	import weavejs.api.data.ICSVParser;
-	import weavejs.api.data.IQualifiedKeyManager;
-	import weavejs.api.data.IStatisticsCache;
-	import weavejs.api.net.IURLRequestUtils;
-	import weavejs.api.ui.IEditorManager;
-	import weavejs.core.EditorManager;
-	import weavejs.core.LinkableHashMap;
-	import weavejs.core.LinkableVariable;
-	import weavejs.core.ProgressIndicator;
-	import weavejs.core.Scheduler;
-	import weavejs.core.SessionManager;
 	import weavejs.core.SessionStateLog;
-	import weavejs.data.AttributeColumnCache;
-	import weavejs.data.CSVParser;
-	import weavejs.data.StatisticsCache;
-	import weavejs.data.key.QKeyManager;
-	import weavejs.net.URLRequestUtils;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathUI;
 	import weavejs.util.Dictionary2D;
@@ -45,22 +26,10 @@ package
 		
 		public function Weave()
 		{
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IURLRequestUtils, URLRequestUtils);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IQualifiedKeyManager, QKeyManager);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IScheduler, Scheduler);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IProgressIndicator, ProgressIndicator);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IStatisticsCache, StatisticsCache);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IEditorManager, EditorManager);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
-			registerClass("FlexibleLayout", LinkableVariable);
-			registerClass("ExternalTool", LinkableHashMap);
-			
 			// set this property for backwards compatibility
 			this['WeavePath'] = WeavePathUI;
 			
-			root = disposableChild(this, LinkableHashMap);
+			root = disposableChild(this, WeaveAPI.ClassRegistry.getImplementations(ILinkableHashMap)[0]);
 			history = disposableChild(this, new SessionStateLog(root, HISTORY_SYNC_DELAY));
 			map_root_weave.set(root, this);
 		}
@@ -405,63 +374,20 @@ package
 			return objectOrClass && objectOrClass.prototype is ILinkableObject;
 		}
 		
-		public static function callLater(context:Object, func:Function, args:Array = null):void
-		{
-			// temporary solution?
-			JS.setTimeout(function():void {
-				if (!wasDisposed(context))
-					func.apply(context, args);
-			}, 0);
-		}
-		
 		
 		
 		//////////////////////////////////////////////////////////////////////////////////
 		// static general helper functions
 		//////////////////////////////////////////////////////////////////////////////////
 		
-		private static const map_name_class:Object = new JS.Map();
-		private static const map_class_name:Object = new JS.Map();
-		
-		public static const defaultPackages:Array = [
-			'weavejs',
-			'weavejs.api',
-			'weavejs.api.core',
-			'weavejs.api.data',
-			'weavejs.api.service',
-			'weavejs.api.ui',
-			'weavejs.core',
-			'weavejs.data',
-			'weavejs.data.bin',
-			'weavejs.data.column',
-			'weavejs.data.hierarchy',
-			'weavejs.data.key',
-			'weavejs.data.source',
-			'weavejs.geom',
-			'weavejs.path',
-			'weavejs.util'
-		];
-		
 		/**
-		 * Registers a class for use with Weave.className() and Weave.getDefinition().
+		 * Registers an ILinkableObject class for use with Weave.className() and Weave.getDefinition().
 		 */
-		public static function registerClass(name:String, definition:Class, additionalInterfaces:Array = null):void
+		public static function registerClass(qualifiedName:String, definition:Class, additionalInterfaces:Array = null):void
 		{
-			map_name_class.set(name, definition);
-			map_class_name.set(definition, name);
-			
-			var shortName:String = name.split('.').pop().split(':').pop();
-			if (shortName != name)
-				registerClass(shortName, definition);
-			
-			if (!definition.prototype.FLEXJS_CLASS_INFO)
-				definition.prototype.FLEXJS_CLASS_INFO = {
-					names: [{ name: shortName, qName: name}],
-					interfaces: [weavejs.api.core.ILinkableObject]
-				};
-			
-			for each (var item:Class in additionalInterfaces)
-				definition.prototype.FLEXJS_CLASS_INFO.interfaces.push(item);
+			if (!additionalInterfaces)
+				additionalInterfaces = [];
+			WeaveAPI.ClassRegistry.registerClass(qualifiedName, definition, [ILinkableObject].concat(additionalInterfaces));
 		}
 		
 		/**
@@ -469,54 +395,15 @@ package
 		 */
 		public static function className(def:Object):String
 		{
-			if (!def)
-				return null;
-			
-			if (!def.prototype)
-				def = def.constructor;
-			
-			if (def.prototype && def.prototype.FLEXJS_CLASS_INFO)
-				return def.prototype.FLEXJS_CLASS_INFO.names[0].qName;
-			
-			if (map_class_name.has(def))
-				return map_class_name.get(def);
-			
-			return def.name;
+			return WeaveAPI.ClassRegistry.getClassName(def);
 		}
 		
+		/**
+		 * Looks up a static definition by name.
+		 */
 		public static function getDefinition(name:String):*
 		{
-			if (!name)
-				return undefined;
-			
-			var def:* = JS.global;
-			var names:Array = name.split('.');
-			for each (var key:String in names)
-			{
-				if (def !== undefined)
-					def = def[key];
-				else
-					break;
-			}
-			if (def)
-				return def;
-			
-			if (names.length == 1)
-			{
-				for each (var pkg:String in defaultPackages)
-				{
-					def = getDefinition(pkg + '.' + name);
-					if (def)
-						return def;
-				}
-			}
-			
-			def = map_name_class.get(name);
-			if (def)
-				return def;
-			
-			if (name.indexOf("::") > 0)
-				return getDefinition(name.split('::').pop());
+			return WeaveAPI.ClassRegistry.getDefinition(name);
 		}
 		
 		/**

@@ -35,6 +35,8 @@ package weavejs
 	 */
 	public class WeaveAPI
 	{
+		public static var _debugAsyncStack:Boolean = false;
+		
 		/**
 		 * For use with StageUtils.startTask(); this priority is used for things that MUST be done before anything else.
 		 * Tasks having this priority will take over the scheduler and prevent any other asynchronous task from running until it is completed.

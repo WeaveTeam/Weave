@@ -6,6 +6,7 @@
 */
 package weavejs.core
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.IDisposableObject;
 
 	/**
@@ -23,9 +24,9 @@ package weavejs.core
 			this.callback = callback;
 			
 			if (context)
-				Weave.disposableChild(context, this);
+				WeaveAPI.SessionManager.registerDisposableChild(context, this);
 			
-			if (CallbackCollection.debug)
+			if (WeaveAPI._debugAsyncStack)
 				addCallback_stackTrace = new Error(STACK_TRACE_ADD);
 		}
 		
@@ -71,7 +72,7 @@ package weavejs.core
 		 */
 		public function dispose():void
 		{
-			if (CallbackCollection.debug && callback != null)
+			if (WeaveAPI._debugAsyncStack && callback != null)
 				removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE);
 			
 			context = null;

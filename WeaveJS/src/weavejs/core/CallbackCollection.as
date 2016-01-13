@@ -6,6 +6,7 @@
 */
 package weavejs.core
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableObject;
@@ -152,7 +153,7 @@ package weavejs.core
 					else if (entry.context is CallbackCollection) // special case
 						shouldRemoveEntry = (entry.context as CallbackCollection)._wasDisposed;
 					else
-						shouldRemoveEntry = Weave.wasDisposed(entry.context);
+						shouldRemoveEntry = WeaveAPI.SessionManager.objectWasDisposed(entry.context);
 					if (shouldRemoveEntry)
 					{
 						entry.dispose();
@@ -258,7 +259,7 @@ package weavejs.core
 			{
 				entry = _disposeCallbackEntries.shift();
 				
-				if (entry.callback != null && !Weave.wasDisposed(entry.context))
+				if (entry.callback != null && !WeaveAPI.SessionManager.objectWasDisposed(entry.context))
 					entry.callback.apply(entry.context || entry.callback['this']);
 			}
 		}

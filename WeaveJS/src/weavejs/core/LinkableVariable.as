@@ -6,6 +6,7 @@
 */
 package weavejs.core
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
@@ -86,7 +87,7 @@ package weavejs.core
 				// If callbacks were triggered, make sure callbacks are triggered again one frame later when
 				// it is possible for other classes to have a pointer to this object and retrieve the value.
 				if (defaultValueTriggersCallbacks && triggerCounter > DEFAULT_TRIGGER_COUNT)
-					Weave.callLater(this, _defaultValueTrigger);
+					WeaveAPI.Scheduler.callLater(this, _defaultValueTrigger);
 			}
 		}
 		

@@ -18,6 +18,21 @@ package weavejs.api.core
 	public interface IClassRegistry
 	{
 		/**
+		 * Registers a class under a given qualified name and adds metadata about implementing interfaces.
+		 */
+		function registerClass(qualifiedName:String, definition:Class, additionalInterfaces:Array = null):void;
+		
+		/**
+		 * Gets the qualified class name from a class definition or an object instance.
+		 */
+		function getClassName(definition:Object):String;
+		
+		/**
+		 * Looks up a static definition by name.
+		 */
+		function getDefinition(name:String):*;
+		
+		/**
 		 * Registers an implementation of an interface to be used as a singleton.
 		 */
 		function registerSingletonImplementation(theInterface:Class, theImplementation:Class):Boolean;

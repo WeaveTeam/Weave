@@ -30,22 +30,116 @@ package weavejs.core
 		/**
 		 * interface Class -&gt; singleton implementation instance.
 		 */
-		public var map_interface_singletonInstance:Object = new JS.Map();
+		public const map_interface_singletonInstance:Object = new JS.Map();
 		
 		/**
 		 * interface Class -&gt; implementation Class
 		 */
-		public var map_interface_singletonImplementation:Object = new JS.Map();
+		public const map_interface_singletonImplementation:Object = new JS.Map();
 		
 		/**
 		 * interface Class -&gt; Array&lt;implementation Class&gt;
 		 */
-		public var map_interface_implementations:Object = new JS.Map();
+		public const map_interface_implementations:Object = new JS.Map();
 		
 		/**
 		 * implementation Class -&gt; String
 		 */
-		public var map_class_displayName:Object = new JS.Map();
+		public const map_class_displayName:Object = new JS.Map();
+		
+		/**
+		 * qualifiedName:String -> definition:Class
+		 */
+		public const map_name_class:Object = new JS.Map();
+		
+		/**
+		 * definition:Class -> qualifiedName:String
+		 */
+		public const map_class_name:Object = new JS.Map();
+		
+		/**
+		 * An Array of default packages to check when looking up a class by name.
+		 */
+		public const defaultPackages:Array = [];
+		
+		private static const FLEXJS_CLASS_INFO:String = "FLEXJS_CLASS_INFO";
+		
+		/**
+		 * Registers a class for use with Weave.className() and Weave.getDefinition().
+		 */
+		public function registerClass(qualifiedName:String, definition:Class, interfaces:Array = null):void
+		{
+			map_name_class.set(qualifiedName, definition);
+			map_class_name.set(definition, qualifiedName);
+			
+			var shortName:String = qualifiedName.split('.').pop().split(':').pop();
+			if (shortName != qualifiedName)
+				registerClass(shortName, definition);
+			
+			if (!definition.prototype[FLEXJS_CLASS_INFO])
+				definition.prototype[FLEXJS_CLASS_INFO] = {
+					names: [{ name: shortName, qName: qualifiedName}],
+					interfaces: interfaces || []
+				};
+		}
+		
+		/**
+		 * Gets the qualified class name from a class definition or an object instance.
+		 */
+		public function getClassName(definition:Object):String
+		{
+			if (!definition)
+				return null;
+			
+			if (!definition.prototype)
+				definition = definition.constructor;
+			
+			if (definition.prototype && definition.prototype[FLEXJS_CLASS_INFO])
+				return definition.prototype[FLEXJS_CLASS_INFO].names[0].qName;
+			
+			if (map_class_name.has(definition))
+				return map_class_name.get(definition);
+			
+			return definition.name;
+		}
+		
+		/**
+		 * Looks up a static definition by name.
+		 */
+		public function getDefinition(name:String):*
+		{
+			if (!name)
+				return undefined;
+			
+			var def:* = JS.global;
+			var names:Array = name.split('.');
+			for each (var key:String in names)
+			{
+				if (def !== undefined)
+					def = def[key];
+				else
+					break;
+			}
+			if (def)
+				return def;
+			
+			if (names.length == 1)
+			{
+				for each (var pkg:String in defaultPackages)
+				{
+					def = getDefinition(pkg + '.' + name);
+					if (def)
+						return def;
+				}
+			}
+			
+			def = map_name_class.get(name);
+			if (def)
+				return def;
+			
+			if (name.indexOf("::") > 0)
+				return getDefinition(name.split('::').pop());
+		}
 		
 		/**
 		 * This registers an implementation for a singleton interface.
@@ -109,7 +203,7 @@ package weavejs.core
 			
 			// overwrite existing displayName if specified
 			if (displayName || !map_class_displayName.get(theImplementation))
-				map_class_displayName.set(theImplementation, displayName || Weave.className(theImplementation).split(':').pop());
+				map_class_displayName.set(theImplementation, displayName || getClassName(theImplementation).split(':').pop());
 			
 			if (array.indexOf(theImplementation) < 0)
 			{
@@ -159,10 +253,10 @@ package weavejs.core
 		/**
 		 * Verifies that a Class implements an interface.
 		 */
-		public static function verifyImplementation(theInterface:Class, theImplementation:Class):void
+		public function verifyImplementation(theInterface:Class, theImplementation:Class):void
 		{
 			if (!(theImplementation.prototype is theInterface))
-				throw new Error(Weave.className(theImplementation) + ' does not implement ' + Weave.className(theInterface));
+				throw new Error(getClassName(theImplementation) + ' does not implement ' + getClassName(theInterface));
 		}
 	}
 }
