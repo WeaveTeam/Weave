@@ -22,6 +22,7 @@ package weavejs.core
 	import weavejs.util.DebugUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
+	import weavejs.util.WeavePromise;
 
 	public class ProgressIndicator implements IProgressIndicator
 	{
@@ -58,19 +59,21 @@ package weavejs.core
 
 		public function addTask(taskToken:Object, busyObject:ILinkableObject = null, description:String = null):void
 		{
-			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+			var cc:ICallbackCollection = Weave.getCallbacks(this);
 			cc.delayCallbacks();
 			
-			if (taskToken is JS.Promise && map_task_progress.get(taskToken) === undefined)
-			{
-				var remove:Function = removeTask.bind(this, taskToken);
-				taskToken.then(remove, remove);
-			}
+			var isNewTask:Boolean = !map_task_progress.has(taskToken);
 			
 			map_task_description.set(taskToken, description);
 			
 			// add task before WeaveAPI.SessionManager.assignBusyTask()
 			updateTask(taskToken, NaN); // NaN is used as a special case when adding the task
+			
+			if (isNewTask && (taskToken is WeavePromise || taskToken is JS.Promise))
+			{
+				var remove:Function = removeTask.bind(this, taskToken);
+				taskToken.then(remove, remove);
+			}
 			
 			if (busyObject)
 				WeaveAPI.SessionManager.assignBusyTask(taskToken, busyObject);
@@ -80,13 +83,13 @@ package weavejs.core
 		
 		public function hasTask(taskToken:Object):Boolean
 		{
-			return map_task_progress.get(taskToken) !== undefined;
+			return map_task_progress.has(taskToken);
 		}
 		
 		public function updateTask(taskToken:Object, progress:Number):void
 		{
 			// if this token isn't in the Dictionary yet, increase count
-			if (map_task_progress.get(taskToken) === undefined)
+			if (!map_task_progress.has(taskToken))
 			{
 				// expecting NaN from addTask()
 				if (!isNaN(progress))
@@ -102,17 +105,17 @@ package weavejs.core
 			if (map_task_progress.get(taskToken) !== progress)
 			{
 				map_task_progress.set(taskToken, progress);
-				WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+				Weave.getCallbacks(this).triggerCallbacks();
 			}
 		}
 		
 		public function removeTask(taskToken:Object):void
 		{
 			// if the token isn't in the dictionary, do nothing
-			if (map_task_progress['delete'](taskToken) === undefined)
+			if (!map_task_progress.has(taskToken))
 				return;
 
-			var stackTrace:String = map_task_stackTrace['delete'](taskToken); // check this when debugging
+			var stackTrace:String = map_task_stackTrace.get(taskToken); // check this when debugging
 			
 			map_task_progress['delete'](taskToken);
 			map_task_description['delete'](taskToken);
@@ -124,7 +127,7 @@ package weavejs.core
 			
 			WeaveAPI.SessionManager.unassignBusyTask(taskToken);
 
-			WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+			Weave.getCallbacks(this).triggerCallbacks();
 		}
 		
 		public function getNormalizedProgress():Number
