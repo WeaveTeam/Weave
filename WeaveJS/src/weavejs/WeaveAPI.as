@@ -73,7 +73,7 @@ package weavejs
 		 */
 		public static function get SessionManager():ISessionManager
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[ISessionManager]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(ISessionManager)
 				|| _classRegistry.getSingletonInstance(ISessionManager);
 		}
 		
@@ -82,7 +82,7 @@ package weavejs
 		 */
 		public static function get Scheduler():IScheduler
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IScheduler]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IScheduler)
 				|| _classRegistry.getSingletonInstance(IScheduler);
 		}
 		
@@ -91,7 +91,7 @@ package weavejs
 //		 */
 //		public static function get StageUtils():IStageUtils
 //		{
-//			return (_classRegistry || ClassRegistry).singletonInstances[IStageUtils]
+//			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IStageUtils)
 //				|| _classRegistry.getSingletonInstance(IStageUtils);
 //		}
 
@@ -100,7 +100,7 @@ package weavejs
 		 */
 		public static function get ProgressIndicator():IProgressIndicator
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IProgressIndicator]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IProgressIndicator)
 				|| _classRegistry.getSingletonInstance(IProgressIndicator);
 		}
 		
@@ -109,7 +109,7 @@ package weavejs
 		 */
 		public static function get AttributeColumnCache():IAttributeColumnCache
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IAttributeColumnCache]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IAttributeColumnCache)
 				|| _classRegistry.getSingletonInstance(IAttributeColumnCache);
 		}
 		
@@ -118,7 +118,7 @@ package weavejs
 		 */
 		public static function get StatisticsCache():IStatisticsCache
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IStatisticsCache]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IStatisticsCache)
 				|| _classRegistry.getSingletonInstance(IStatisticsCache);
 		}
 		
@@ -127,7 +127,7 @@ package weavejs
 		 */
 		public static function get QKeyManager():IQualifiedKeyManager
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IQualifiedKeyManager]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IQualifiedKeyManager)
 				|| _classRegistry.getSingletonInstance(IQualifiedKeyManager);
 		}
 		
@@ -136,7 +136,7 @@ package weavejs
 		 */
 		public static function get CSVParser():ICSVParser
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[ICSVParser]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(ICSVParser)
 				|| _classRegistry.getSingletonInstance(ICSVParser);
 		}
 		
@@ -145,7 +145,7 @@ package weavejs
 		 */
 		public static function get URLRequestUtils():IURLRequestUtils
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IURLRequestUtils]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IURLRequestUtils)
 				|| _classRegistry.getSingletonInstance(IURLRequestUtils);
 		}
 		
@@ -154,7 +154,7 @@ package weavejs
 		 */
 		public static function get LocaleManager():ILocaleManager
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[ILocaleManager]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(ILocaleManager)
 				|| _classRegistry.getSingletonInstance(ILocaleManager);
 		}
 		/**
@@ -162,7 +162,7 @@ package weavejs
 		 */
 		public static function get EditorManager():IEditorManager
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IEditorManager]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IEditorManager)
 				|| _classRegistry.getSingletonInstance(IEditorManager);
 		}
 	}

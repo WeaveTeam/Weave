@@ -30,22 +30,22 @@ package weavejs.core
 		/**
 		 * interface Class -&gt; singleton implementation instance.
 		 */
-		public var singletonInstances:Object = new JS.Map();
+		public var map_interface_singletonInstance:Object = new JS.Map();
 		
 		/**
 		 * interface Class -&gt; implementation Class
 		 */
-		public var singletonImplementations:Object = new JS.Map();
+		public var map_interface_singletonImplementation:Object = new JS.Map();
 		
 		/**
 		 * interface Class -&gt; Array&lt;implementation Class&gt;
 		 */
-		public var implementations:Object = new JS.Map();
+		public var map_interface_implementations:Object = new JS.Map();
 		
 		/**
 		 * implementation Class -&gt; String
 		 */
-		public var displayNames:Object = new JS.Map();
+		public var map_class_displayName:Object = new JS.Map();
 		
 		/**
 		 * This registers an implementation for a singleton interface.
@@ -55,12 +55,12 @@ package weavejs.core
 		 */
 		public function registerSingletonImplementation(theInterface:Class, theImplementation:Class):Boolean
 		{
-			if (!singletonImplementations.get(theInterface))
+			if (!map_interface_singletonImplementation.get(theInterface))
 			{
 				verifyImplementation(theInterface, theImplementation);
-				singletonImplementations.set(theInterface, theImplementation);
+				map_interface_singletonImplementation.set(theInterface, theImplementation);
 			}
-			return singletonImplementations.get(theInterface) == theImplementation;
+			return map_interface_singletonImplementation.get(theInterface) == theImplementation;
 		}
 		
 		/**
@@ -69,7 +69,7 @@ package weavejs.core
 		 */
 		public function getSingletonImplementation(theInterface:Class):Class
 		{
-			return singletonImplementations.get(theInterface);
+			return map_interface_singletonImplementation.get(theInterface);
 		}
 		
 		/**
@@ -83,14 +83,14 @@ package weavejs.core
 		 */
 		public function getSingletonInstance(theInterface:Class):*
 		{
-			if (!singletonInstances.get(theInterface))
+			if (!map_interface_singletonInstance.get(theInterface))
 			{
 				var classDef:Class = getSingletonImplementation(theInterface);
 				if (classDef)
-					singletonInstances.set(theInterface, new classDef());
+					map_interface_singletonInstance.set(theInterface, new classDef());
 			}
 			
-			return singletonInstances.get(theInterface);
+			return map_interface_singletonInstance.get(theInterface);
 		}
 		
 		/**
@@ -103,30 +103,30 @@ package weavejs.core
 		{
 			verifyImplementation(theInterface, theImplementation);
 			
-			var array:Array = implementations.get(theInterface);
+			var array:Array = map_interface_implementations.get(theInterface);
 			if (!array)
-				implementations.set(theInterface, array = []);
+				map_interface_implementations.set(theInterface, array = []);
 			
 			// overwrite existing displayName if specified
-			if (displayName || !displayNames.get(theImplementation))
-				displayNames.set(theImplementation, displayName || Weave.className(theImplementation).split(':').pop());
+			if (displayName || !map_class_displayName.get(theImplementation))
+				map_class_displayName.set(theImplementation, displayName || Weave.className(theImplementation).split(':').pop());
 			
 			if (array.indexOf(theImplementation) < 0)
 			{
 				array.push(theImplementation);
 				// sort by displayName
-				array.sort(_sortImplementations);
+				array.sort(compareDisplayNames);
 			}
 		}
 		
 		/**
-		 * This will get an Array of class definitions that were previously registered as implementations of the specified interface.
+		 * This will get an Array of class definitions that were previously registered as map_interface_implementations of the specified interface.
 		 * @param theInterface The interface class.
-		 * @return An Array of class definitions that were previously registered as implementations of the specified interface.
+		 * @return An Array of class definitions that were previously registered as map_interface_implementations of the specified interface.
 		 */
 		public function getImplementations(theInterface:Class):Array
 		{
-			var array:Array = implementations.get(theInterface);
+			var array:Array = map_interface_implementations.get(theInterface);
 			return array ? array.concat() : [];
 		}
 		
@@ -137,7 +137,7 @@ package weavejs.core
 		 */
 		public function getDisplayName(theImplementation:Class):String
 		{
-			var str:String = displayNames.get(theImplementation);
+			var str:String = map_class_displayName.get(theImplementation);
 			return str;// && lang(str);
 		}
 		
@@ -145,10 +145,10 @@ package weavejs.core
 		 * @private
 		 * sort by displayName
 		 */
-		private function _sortImplementations(impl1:Class, impl2:Class):int
+		private function compareDisplayNames(impl1:Class, impl2:Class):int
 		{
-			var name1:String = displayNames.get(impl1);
-			var name2:String = displayNames.get(impl2);
+			var name1:String = map_class_displayName.get(impl1);
+			var name2:String = map_class_displayName.get(impl2);
 			if (name1 < name2)
 				return -1;
 			if (name1 > name2)
