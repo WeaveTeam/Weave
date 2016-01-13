@@ -60,7 +60,7 @@ package
 				'weavejs.util'
 			);
 			
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(ILinkableHashMap, LinkableHashMap);
+			WeaveAPI.ClassRegistry.registerImplementation(ILinkableHashMap, LinkableHashMap);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IURLRequestUtils, URLRequestUtils);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
