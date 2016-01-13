@@ -119,12 +119,10 @@ package weavejs.core
 		 */
 		public static function loadUrl(weave:Weave, fileUrl:String):WeavePromise
 		{
-			var promise:WeavePromise = new WeavePromise(weave.root);
-			promise.setResult(
+			return new WeavePromise(weave.root).setResult(
 				WeaveAPI.URLRequestUtils.request(weave.root, URLRequestUtils.METHOD_GET, fileUrl, null, null, URLRequestUtils.RESPONSE_ARRAYBUFFER)
 					.then(loadFileContent.bind(WeaveArchive, weave), JS.error)
 			);
-			return promise;
 		}
 		
 		/**

@@ -28,7 +28,8 @@ package weavejs.util
 	{
 		/**
 		 * @param relevantContext This parameter may be null.  If the relevantContext object is disposed, the promise will be disabled.
-		 * @param resolver A function like function(resolve:Function, reject:Function):void which carries out the promise
+		 * @param resolver A function like function(resolve:Function, reject:Function):void which carries out the promise.
+		 *                 If no resolver is given, setResult() or setError() should be called externally.
 		 */
 		public function WeavePromise(relevantContext:Object, resolver:Function = null)
 		{
@@ -43,10 +44,6 @@ package weavejs.util
 				// this is a new root promise
 				this.rootPromise = this;
 				this.relevantContext = relevantContext;
-				
-				// if resolver is not specified, immediately set the result of the root promise equal to the relevantContext
-				if (resolver == null)
-					this.setResult(this.relevantContext);
 			}
 			
 			if (relevantContext)
@@ -68,12 +65,15 @@ package weavejs.util
 		private var handlers:Array = []; // array of Handler objects
 		private var dependencies:Array = [];
 		
-		public function setResult(result:Object):void
+		/**
+		 * @return This WeavePromise
+		 */
+		public function setResult(result:Object):WeavePromise
 		{
 			if (Weave.wasDisposed(relevantContext))
 			{
 				setBusy(false);
-				return;
+				return this;
 			}
 			
 			this.result = undefined;
@@ -92,6 +92,8 @@ package weavejs.util
 				this.result = result as Object;
 				callHandlers();
 			}
+			
+			return this;
 		}
 		
 		public function getResult():Object
@@ -99,18 +101,23 @@ package weavejs.util
 			return result;
 		}
 		
-		public function setError(error:Object):void
+		/**
+		 * @return This WeavePromise
+		 */
+		public function setError(error:Object):WeavePromise
 		{
 			if (Weave.wasDisposed(relevantContext))
 			{
 				setBusy(false);
-				return;
+				return this;
 			}
 			
 			this.result = undefined;
 			this.error = error;
 			
 			callHandlers();
+			
+			return this;
 		}
 		
 		public function getError():Object

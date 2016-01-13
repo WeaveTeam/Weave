@@ -120,8 +120,7 @@ package weavejs.net
 			var promise:WeavePromise = d2d_context_url_promise.get(weaveRoot, url);
 			if (!promise)
 			{
-				promise = new WeavePromise(weaveRoot);
-				promise.setResult(null);
+				promise = new WeavePromise(weaveRoot).setResult(null);
 				d2d_context_url_promise.set(weaveRoot, url, promise);
 			}
 			return promise;

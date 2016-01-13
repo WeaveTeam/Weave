@@ -72,8 +72,7 @@ package weavejs.data
 		 */
 		public function convertToCachedDataSources(root:ILinkableHashMap):WeavePromise
 		{
-			var promise:WeavePromise = new WeavePromise(root);
-			promise.setResult(root);
+			var promise:WeavePromise = new WeavePromise(root).setResult(root);
 			var dispose:Function = function(_:*):void { promise.dispose(); };
 			return promise
 				.then(function(root:ILinkableHashMap):ILinkableHashMap {
@@ -187,24 +186,29 @@ package weavejs.data
 					JS.error("Data source not found: " + dataSourceName);
 				return;
 			}
+			
 			var column:IAttributeColumn;
 			var keyType:String = metadata[ColumnMetadata.KEY_TYPE];
 			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
-			if (dataType == DataType.NUMBER)
-			{
-				var nc:NumberColumn = Weave.disposableChild(dataSource, column = new NumberColumn(metadata));
-				(WeaveAPI.QKeyManager as QKeyManager)
-					.getQKeysPromise(column, keyType, keyStrings)
-					.then(function(keys:Array):void {
-						nc.setRecords(keys, data);
-					});
-			}
-			else if (dataType == DataType.GEOMETRY)
-			{
-				var gc:GeometryColumn = Weave.disposableChild(dataSource, column = new GeometryColumn(metadata));
-				(WeaveAPI.QKeyManager as QKeyManager)
-					.getQKeysPromise(column, keyType, keyStrings)
-					.then(function(keys:Array):void {
+			
+			if (dataType == DataType.GEOMETRY)
+				column = Weave.disposableChild(dataSource, column = new GeometryColumn(metadata));
+			else if (dataType == DataType.DATE)
+				column = Weave.disposableChild(dataSource, column = new DateColumn(metadata));
+			else if (dataType == DataType.NUMBER)
+				column = Weave.disposableChild(dataSource, column = new NumberColumn(metadata));
+			else // string
+				column = Weave.disposableChild(dataSource, column = new StringColumn(metadata));
+			
+			(WeaveAPI.QKeyManager as QKeyManager)
+				.getQKeysPromise(column, keyType, keyStrings)
+				.then(function(keys:Array):void {
+					var gc:GeometryColumn = column as GeometryColumn;
+					var dc:DateColumn = column as DateColumn;
+					var nc:NumberColumn = column as NumberColumn;
+					var sc:StringColumn = column as StringColumn;
+					if (gc)
+					{
 						var geomKeys:Array = [];
 						var geoms:Array = [];
 						for (var i:int = 0; i < data.length; i++)
@@ -217,26 +221,20 @@ package weavejs.data
 							}
 						}
 						gc.setGeometries(geomKeys, geoms);
-					});
-			}
-			else if (dataType == DataType.DATE)
-			{
-				var dc:DateColumn = Weave.disposableChild(dataSource, column = new DateColumn(metadata));
-				(WeaveAPI.QKeyManager as QKeyManager)
-					.getQKeysPromise(column, keyType, keyStrings)
-					.then(function(keys:Array):void {
+					}
+					else if (dc)
+					{
 						dc.setRecords(keys, data);
-					});
-			}
-			else // string
-			{
-				var sc:StringColumn = Weave.disposableChild(dataSource, column = new StringColumn(metadata));
-				(WeaveAPI.QKeyManager as QKeyManager)
-					.getQKeysPromise(column, keyType, keyStrings)
-					.then(function(keys:Array):void {
+					}
+					else if (nc)
+					{
+						nc.setRecords(keys, data);
+					}
+					else if (sc)
+					{
 						sc.setRecords(keys, data);
-					});
-			}
+					}
+				});
 			
 			// insert into cache
 			d2d_dataSource_metadataHash_column.set(dataSource, metadataHash, column);
