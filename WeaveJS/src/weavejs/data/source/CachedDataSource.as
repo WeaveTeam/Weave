@@ -1,4 +1,4 @@
-/* ***** BEGIN LICENSE BLOCK *****
+\/* ***** BEGIN LICENSE BLOCK *****
  *
  * This file is part of Weave.
  *
@@ -30,7 +30,7 @@ package weavejs.data.source
 			var root:ILinkableHashMap = Weave.getRoot(this);
 			var name:String = root.getName(this);
 			var classDef:Class = Weave.getDefinition(type.value);
-			var state:Object = state.state;
+			var state:Object = this.state.state;
 			var dataSource:IDataSource = root.requestObject(name, classDef, false);
 			Weave.setState(dataSource, state);
 		}
