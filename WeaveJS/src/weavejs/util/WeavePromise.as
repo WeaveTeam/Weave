@@ -113,7 +113,7 @@ package weavejs.util
 			}
 			
 			this.result = undefined;
-			this.error = error;
+			this.error = error as Object;
 			
 			callHandlers();
 			
