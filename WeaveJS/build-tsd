@@ -1,0 +1,13 @@
+#!/bin/bash
+PROJECT=`dirname "$0"`
+BIN_DEBUG_PATH=bin/js-debug/
+ROOT_PATH="$PROJECT/$BIN_DEBUG_PATH"
+DTS_OUTPUT="$PROJECT/definitions/Weave/"
+PARAMS=""
+for js_source in $(find "$ROOT_PATH" -name "*.js"); do
+    if ! [[ $js_source =~ .*/library/closure/.* ]]
+    then
+        PARAMS="$PARAMS ${js_source} ${js_source%.*}.d.ts"
+    fi
+done
+closure2ts --input_root $ROOT_PATH --output_root $ROOT_PATH $PARAMS
