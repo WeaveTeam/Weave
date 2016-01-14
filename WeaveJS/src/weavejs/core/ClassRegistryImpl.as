@@ -70,17 +70,18 @@ package weavejs.core
 		public function registerClass(qualifiedName:String, definition:Class, interfaces:Array = null):void
 		{
 			map_name_class.set(qualifiedName, definition);
-			map_class_name.set(definition, qualifiedName);
-			
-			var shortName:String = qualifiedName.split('.').pop().split(':').pop();
-			if (shortName != qualifiedName)
-				registerClass(shortName, definition);
+			if (!map_class_name.has(definition))
+				map_class_name.set(definition, qualifiedName);
 			
 			if (!definition.prototype[FLEXJS_CLASS_INFO])
 				definition.prototype[FLEXJS_CLASS_INFO] = {
 					names: [{ name: shortName, qName: qualifiedName}],
 					interfaces: interfaces || []
 				};
+			
+			var shortName:String = qualifiedName.split('.').pop().split(':').pop();
+			if (shortName != qualifiedName)
+				registerClass(shortName, definition);
 		}
 		
 		/**
