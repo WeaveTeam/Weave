@@ -39,6 +39,8 @@ package weavejs.core
 	 */
 	public class SessionManager implements ISessionManager
 	{
+		public static var debugUnbusy:Boolean = false;
+		
 		public function newLinkableChild(linkableParent:Object, linkableChildType:Class, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
 			if (!Weave.isLinkable(linkableParent))
@@ -714,7 +716,7 @@ package weavejs.core
 					if (linkableObjectIsBusy(owner))
 						continue; // busy again
 					
-					if (WeaveAPI.debugAsyncStack)
+					if (WeaveAPI.debugAsyncStack && debugUnbusy)
 					{
 						var stackTraces:Object = map_unbusyStackTraces.get(owner);
 						JS.log('Triggering callbacks because they have not triggered since owner has becoming unbusy:', owner);
@@ -1070,9 +1072,6 @@ package weavejs.core
 			if (d2d_lhs_rhs_setState.get(primary, secondary) is Function)
 				return; // already linked
 			
-			if (WeaveAPI.debugAsyncStack)
-				var stackTrace:Error = new Error();
-				
 			var setPrimary:Function = function():void { setSessionState(primary, getSessionState(secondary), true); };
 			var setSecondary:Function = function():void { setSessionState(secondary, getSessionState(primary), true); };
 			
