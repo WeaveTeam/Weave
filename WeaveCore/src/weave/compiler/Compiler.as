@@ -232,6 +232,11 @@ package weave.compiler
 		 */
 		private var assignmentOperators:Object = null;
 		/**
+		 * This object maps a block operator like "if" to its corresponding function.
+		 * This object is used as a quick lookup to see if an operator is a block operator.
+		 */
+		private var blockOperators:Object = null;
+		/**
 		 * This is a two-dimensional Array of operator symbols arranged in the order they should be evaluated.
 		 * Each nested Array is a group of operators that should be evaluated in the same pass.
 		 */
@@ -494,6 +499,7 @@ package weave.compiler
 			operators = {};
 			pureOperators = {};
 			assignmentOperators = {};
+			blockOperators = {};
 			
 			// constant, built-in symbols
 			for each (var _const:* in [null, true, false, undefined, NaN, Infinity])
@@ -581,13 +587,14 @@ package weave.compiler
 			};
 			operators[ST_VAR] = function(..._):*{};
 			operators[ST_IMPORT] = function(..._):*{};
-			// loop statements
-			operators[ST_DO] = function(x:*, y:*):* { return x && y; };
-			operators[ST_WHILE] = function(x:*, y:*):* { return x && y; };
-			operators[ST_FOR] = function(x:*, y:*):* { return x && y; };
-			operators[ST_FOR_DO] = function(x:*, y:*):* { return x && y; };
-			operators[ST_FOR_IN] = function(..._):*{};
-			operators[ST_FOR_EACH] = function(..._):*{};
+			// conditional block statements
+			blockOperators[ST_IF] = function(c:*, t:*, f:*):* { return c ? t : f; };
+			blockOperators[ST_DO] = function(x:*, y:*):* { return x && y; };
+			blockOperators[ST_WHILE] = function(x:*, y:*):* { return x && y; };
+			blockOperators[ST_FOR] = function(x:*, y:*):* { return x && y; };
+			blockOperators[ST_FOR_DO] = function(x:*, y:*):* { return x && y; };
+			blockOperators[ST_FOR_IN] = function(..._):*{};
+			blockOperators[ST_FOR_EACH] = function(..._):*{};
 			// jump statements
 			operators[ST_BREAK] = function(..._):*{};
 			operators[ST_CONTINUE] = function(..._):*{};
@@ -595,7 +602,7 @@ package weave.compiler
 			operators[ST_THROW] = function(e:*):* { throw e; };
 			
 			// 'if' statement can be considered a pure operator
-			pureOperators[ST_IF] = function(c:*, t:*, f:*):* { return c ? t : f; };
+			pureOperators[ST_IF] = blockOperators[ST_IF];
 			// math
 			pureOperators["**"] = Math.pow;
 			pureOperators["*"] = function(x:*, y:*):Number { return x * y; };
@@ -698,11 +705,13 @@ package weave.compiler
 
 			var op:String;
 			
-			// copy over pure and assignment operators
+			// copy over special operators
 			for (op in pureOperators)
 				operators[op] = pureOperators[op];
 			for (op in assignmentOperators)
 				operators[op] = assignmentOperators[op];
+			for (op in blockOperators)
+				operators[op] = blockOperators[op];
 			
 			// create a corresponding function name for each operator
 			for (op in operators)
@@ -1070,7 +1079,7 @@ package weave.compiler
 				{
 					if (isFunctionHeader(tokens[i]))
 						tokens.splice(i, 2, compileFunctionDefinition(tokens[i], tokens[i + 1]));
-					else if (assignmentOperators.hasOwnProperty(tokens[i]))
+					else if (assignmentOperators.hasOwnProperty(tokens[i]) && unaryOperatorSymbols.indexOf(tokens[i]) < 0)
 						break;
 				}
 				if (i < 0)
@@ -1706,7 +1715,7 @@ package weave.compiler
 					throw new Error("Misplaced unary operator '" + token + "'");
 				
 				// skip infix operator
-				if (index > 0 && compiledTokens[index - 1] is ICompiledObject)
+				if (index > 0 && compiledTokens[index - 1] is ICompiledObject && (index < 2 || !blockOperators.hasOwnProperty(compiledTokens[index - 2])))
 				{
 					call = compiledTokens[index - 1] as CompiledFunctionCall;
 					if (!call || call.evaluatedMethod != operators[';'])
