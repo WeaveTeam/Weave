@@ -39,8 +39,6 @@ package weavejs.core
 	 */
 	public class SessionManager implements ISessionManager
 	{
-		public var debugBusyTasks:Boolean = false;
-		
 		public function newLinkableChild(linkableParent:Object, linkableChildType:Class, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
 			if (!Weave.isLinkable(linkableParent))
@@ -634,7 +632,7 @@ package weavejs.core
 		
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
-			if (debugBusyTasks)
+			if (WeaveAPI.debugAsyncStack)
 				map_task_stackTrace.set(taskToken, new Error("Stack trace when task was last assigned"));
 			
 			// stop if already assigned
@@ -675,7 +673,7 @@ package weavejs.core
 				// immediate priority because we want to trigger as soon as possible
 				WeaveAPI.Scheduler.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 				
-				if (debugBusyTasks)
+				if (WeaveAPI.debugAsyncStack)
 				{
 					var stackTrace:Error = new Error("Stack trace when last task was unassigned");
 					map_unbusyStackTraces.set(owner, {
@@ -716,7 +714,7 @@ package weavejs.core
 					if (linkableObjectIsBusy(owner))
 						continue; // busy again
 					
-					if (debugBusyTasks)
+					if (WeaveAPI.debugAsyncStack)
 					{
 						var stackTraces:Object = map_unbusyStackTraces.get(owner);
 						JS.log('Triggering callbacks because they have not triggered since owner has becoming unbusy:', owner);
@@ -765,7 +763,7 @@ package weavejs.core
 				var tasks:Array = d2d_owner_task.secondaryKeys(linkableObject);
 				for each (var task:Object in tasks)
 				{
-					if (debugBusyTasks)
+					if (WeaveAPI.debugAsyncStack)
 					{
 						var stackTrace:String = map_task_stackTrace.get(task);
 						//JS.log(stackTrace);
