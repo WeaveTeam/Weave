@@ -26,7 +26,7 @@ package weavejs.core
 			if (context)
 				WeaveAPI.SessionManager.registerDisposableChild(context, this);
 			
-			if (WeaveAPI._debugAsyncStack)
+			if (WeaveAPI.debugAsyncStack)
 				addCallback_stackTrace = new Error(STACK_TRACE_ADD);
 		}
 		
@@ -72,7 +72,7 @@ package weavejs.core
 		 */
 		public function dispose():void
 		{
-			if (WeaveAPI._debugAsyncStack && callback != null)
+			if (WeaveAPI.debugAsyncStack && callback != null)
 				removeCallback_stackTrace = new Error(STACK_TRACE_REMOVE);
 			
 			context = null;

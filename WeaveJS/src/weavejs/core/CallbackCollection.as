@@ -18,10 +18,6 @@ package weavejs.core
 	 */
 	public class CallbackCollection implements ICallbackCollection, IDisposableObject
 	{
-		/**
-		 * Set this to true to enable stack traces for debugging.
-		 */
-		public static var debug:Boolean = false;
 		internal var _linkableObject:ILinkableObject; // for debugging only... will be set when debug==true
 		private var _lastTriggerStackTrace:Error; // for debugging only... will be set when debug==true
 		private var _oldEntries:Array;
@@ -100,7 +96,7 @@ package weavejs.core
 
 		public final function triggerCallbacks():void
 		{
-			if (debug)
+			if (WeaveAPI.debugAsyncStack)
 				_lastTriggerStackTrace = new Error(STACK_TRACE_TRIGGER);
 			if (_delayCount > 0)
 			{
@@ -159,7 +155,7 @@ package weavejs.core
 						entry.dispose();
 						// remove the empty callback reference from the list
 						var removed:Array = _callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
-						if (debug)
+						if (WeaveAPI.debugAsyncStack)
 							_oldEntries = _oldEntries ? _oldEntries.concat(removed) : removed;
 						continue;
 					}
@@ -247,7 +243,7 @@ package weavejs.core
 		{
 			// remove all callbacks
 			var entry:CallbackEntry;
-			if (debug)
+			if (WeaveAPI.debugAsyncStack)
 				_oldEntries = _oldEntries ? _oldEntries.concat(_callbackEntries) : _callbackEntries.concat();
 			for each (entry in _callbackEntries)
 				entry.dispose();

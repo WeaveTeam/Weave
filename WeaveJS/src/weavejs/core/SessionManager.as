@@ -820,7 +820,7 @@ package weavejs.core
 			if (objectCC == null)
 			{
 				objectCC = registerDisposableChild(linkableObject, new CallbackCollection());
-				if (WeaveAPI._debugAsyncStack)
+				if (WeaveAPI.debugAsyncStack)
 					(objectCC as CallbackCollection)._linkableObject = linkableObject;
 				map_ILinkableObject_ICallbackCollection.set(linkableObject, objectCC);
 				map_ICallbackCollection_ILinkableObject.set(objectCC, linkableObject);
@@ -909,7 +909,7 @@ package weavejs.core
 					disposeObject(child);
 				
 				// FOR DEBUGGING PURPOSES
-				if (WeaveAPI._debugAsyncStack && linkableObject)
+				if (WeaveAPI.debugAsyncStack && linkableObject)
 				{
 					var error:Error = new Error("This is the stack trace from when the object was previously disposed.");
 					objectCC.addImmediateCallback(null, function():void { debugDisposedObject(linkableObject, error); } );
@@ -1072,7 +1072,7 @@ package weavejs.core
 			if (d2d_lhs_rhs_setState.get(primary, secondary) is Function)
 				return; // already linked
 			
-			if (WeaveAPI._debugAsyncStack)
+			if (WeaveAPI.debugAsyncStack)
 				var stackTrace:Error = new Error();
 				
 			var setPrimary:Function = function():void { setSessionState(primary, getSessionState(secondary), true); };

@@ -25,8 +25,6 @@ package weavejs.core
 
 	public class ProgressIndicator implements IProgressIndicator
 	{
-		public static var debug:Boolean = false;
-		
 		/**
 		 * For debugging, returns debugIds for active tasks.
 		 */
@@ -93,7 +91,7 @@ package weavejs.core
 				// expecting NaN from addTask()
 				if (!isNaN(progress))
 					throw new Error("updateTask() called, but task was not previously added with addTask()");
-				if (debug)
+				if (WeaveAPI.debugAsyncStack)
 					map_task_stackTrace.set(taskToken, new Error("Stack trace"));
 				
 				// increase count when new task is added

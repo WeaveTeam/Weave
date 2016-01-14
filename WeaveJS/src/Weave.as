@@ -415,7 +415,7 @@ package
 		 */
 		public static function stringify(value:*, replacer:Function = null, indent:* = null, json_values_only:Boolean = false):String
 		{
-			indent = typeof indent === 'number' ? StandardLib.lpad('', indent, ' ') : indent as String || ''
+			indent = typeof indent === 'number' ? StandardLib.lpad('', indent, ' ') : indent as String || '';
 			return _stringify("", value, replacer, indent ? '\n' : '', indent, json_values_only);
 		}
 		private static function _stringify(key:String, value:*, replacer:Function, lineBreak:String, indent:String, json_values_only:Boolean):String

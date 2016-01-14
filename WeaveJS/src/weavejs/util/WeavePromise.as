@@ -33,6 +33,9 @@ package weavejs.util
 		 */
 		public function WeavePromise(relevantContext:Object, resolver:Function = null)
 		{
+			if (WeaveAPI.debugAsyncStack)
+				stackTrace_created = new Error("WeavePromise created");
+			
 			if (relevantContext is WeavePromise)
 			{
 				// this is a child promise
@@ -58,6 +61,9 @@ package weavejs.util
 		
 		private static function noop(value:Object):Object { return value; }
 		
+		private var stackTrace_created:Error;
+		private var stackTrace_resolved:Error;
+		
 		private var rootPromise:WeavePromise;
 		protected var relevantContext:Object;
 		private var result:* = undefined;
@@ -70,6 +76,9 @@ package weavejs.util
 		 */
 		public function setResult(result:Object):WeavePromise
 		{
+			if (WeaveAPI.debugAsyncStack)
+				stackTrace_resolved = new Error("WeavePromise resolved");
+			
 			if (Weave.wasDisposed(relevantContext))
 			{
 				setBusy(false);
@@ -106,6 +115,9 @@ package weavejs.util
 		 */
 		public function setError(error:Object):WeavePromise
 		{
+			if (WeaveAPI.debugAsyncStack)
+				stackTrace_resolved = new Error("WeavePromise resolved");
+			
 			if (Weave.wasDisposed(relevantContext))
 			{
 				setBusy(false);
@@ -209,6 +221,7 @@ package weavejs.util
 				var_resolve = resolve;
 				var_reject = reject;
 			});
+			promise._WeavePromise = this;
 			then(var_resolve, var_reject);
 			return promise;
 		}

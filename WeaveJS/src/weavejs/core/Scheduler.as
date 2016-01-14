@@ -37,7 +37,6 @@ package weavejs.core
 	{
 		public static var debug_fps:Boolean = false;
 		public static var debug_async_time:Boolean = false;
-		public static var debug_async_stack:Boolean = false;
 		public static var debug_async_stack_elapsed:Boolean = false;
 		public static var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
 		public static var debug_callLater:Boolean = false; // set this to true to delay async tasks
@@ -427,7 +426,7 @@ package weavejs.core
 			var args:Array = [relevantContext, method, parameters];
 			_priorityCallLaterQueues[priority].push(args);
 			
-			if (debug_async_stack)
+			if (WeaveAPI.debugAsyncStack)
 				map_task_stackTrace.set(args, new Error("This is the stack trace from when callLater() was called."));
 		}
 		
@@ -499,9 +498,10 @@ package weavejs.core
 				priority = WeaveAPI.TASK_PRIORITY_NORMAL;
 			}
 			
-			if (debug_async_stack)
-			{
+			if (WeaveAPI.debugAsyncStack)
 				map_task_stackTrace.set(iterativeTask, [DebugUtils.debugId(iterativeTask), new Error("Stack trace")]);
+			if (debug_async_stack_elapsed)
+			{
 				map_task_startTime.set(iterativeTask, JS.now());
 				map_task_elapsedTime.set(iterativeTask, 0);
 			}
@@ -533,8 +533,8 @@ package weavejs.core
 				return;
 			}
 
-			var debug_time:int = debug_async_stack ? JS.now() : -1;
-			var stackTrace:String = debug_async_stack ? map_task_stackTrace.get(task) : null;
+			var debug_time:int = WeaveAPI.debugAsyncStack ? JS.now() : -1;
+			var stackTrace:String = WeaveAPI.debugAsyncStack ? map_task_stackTrace.get(task) : null;
 			
 			var progress:* = undefined;
 			// iterate on the task until _currentTaskStopTime is reached
@@ -550,7 +550,7 @@ package weavejs.core
 				if (progress === null || isNaN(progress) || progress < 0 || progress > 1)
 				{
 					JS.error("Received unexpected result from iterative task (" + progress + ").  Expecting a number between 0 and 1.  Task cancelled.");
-					if (debug_async_stack)
+					if (WeaveAPI.debugAsyncStack)
 					{
 						JS.log(stackTrace);
 						// this is incorrect behavior, but we can put a breakpoint here
@@ -561,7 +561,7 @@ package weavejs.core
 					}
 					progress = 1;
 				}
-				if (debug_async_stack && currentFrameElapsedTime > 3000)
+				if (WeaveAPI.debugAsyncStack && currentFrameElapsedTime > 3000)
 				{
 					JS.log(JS.now() - time, stackTrace);
 					// this is incorrect behavior, but we can put a breakpoint here
@@ -593,7 +593,7 @@ package weavejs.core
 				if (debug_delayTasks)
 					break;
 			}
-			if (debug_async_stack && debug_async_stack_elapsed)
+			if (debug_async_stack_elapsed)
 			{
 				var start:int = int(map_task_startTime.get(task));
 				var elapsed:int = int(map_task_elapsedTime.get(task)) + (time - debug_time);

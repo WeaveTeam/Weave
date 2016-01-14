@@ -35,7 +35,10 @@ package weavejs
 	 */
 	public class WeaveAPI
 	{
-		public static var _debugAsyncStack:Boolean = false;
+		/**
+		 * Set this to true to enable stack traces for debugging.
+		 */
+		public static var debugAsyncStack:Boolean = false;
 		
 		/**
 		 * For use with StageUtils.startTask(); this priority is used for things that MUST be done before anything else.
