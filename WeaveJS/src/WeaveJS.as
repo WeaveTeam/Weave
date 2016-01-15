@@ -76,10 +76,10 @@ package
 			var window:Object = JS.global;
 			
 			// TEMPORARY HACK - omit keySet filter
-			var joinColumns:Function = ColumnUtils.joinColumns;
-			ColumnUtils['joinColumns'] = function(columns:Array, dataType:Object = null, allowMissingData:Boolean = false):Array {
-				return joinColumns.call(ColumnUtils, columns, dataType, allowMissingData);
-			};
+//			var joinColumns:Function = ColumnUtils.joinColumns;
+//			ColumnUtils['joinColumns'] = function(columns:Array, dataType:Object = null, allowMissingData:Boolean = false):Array {
+//				return joinColumns.call(ColumnUtils, columns, dataType, allowMissingData);
+//			};
 			
 			if (window.opener && window.opener[WEAVE_EXTERNAL_TOOLS] && window.opener[WEAVE_EXTERNAL_TOOLS][window.name])
 			{
