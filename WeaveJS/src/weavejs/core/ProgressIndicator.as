@@ -22,6 +22,7 @@ package weavejs.core
 	import weavejs.util.DebugUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
+	import weavejs.util.WeavePromise;
 
 	public class ProgressIndicator implements IProgressIndicator
 	{
@@ -66,7 +67,7 @@ package weavejs.core
 			// add task before WeaveAPI.SessionManager.assignBusyTask()
 			updateTask(taskToken, NaN); // NaN is used as a special case when adding the task
 			
-			if (isNewTask && taskToken is JS.Promise)
+			if (isNewTask && (taskToken is WeavePromise || taskToken is JS.Promise))
 			{
 				var remove:Function = removeTask.bind(this, taskToken);
 				taskToken.then(remove, remove);
