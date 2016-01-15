@@ -49,6 +49,7 @@ package weave.core
 	import weave.primitives.Map;
 	import weave.primitives.WeakMap;
 	import weave.primitives.WeaveTreeItem;
+	import weave.utils.WeavePromise;
 	
 	/**
 	 * This is a collection of core functions in the Weave session framework.
@@ -800,8 +801,15 @@ package weave.core
 				return;
 			
 			if (taskToken is AsyncToken && !WeaveAPI.ProgressIndicator.hasTask(taskToken))
+			{
 				(taskToken as AsyncToken).addResponder(new AsyncResponder(unassignAsyncToken, unassignAsyncToken, taskToken));
-			
+			}
+			if (taskToken is WeavePromise)
+			{
+				var remove:Function = function(_:*):* { unassignBusyTask(taskToken); };
+				(taskToken as WeavePromise).then(remove, remove);
+			}
+
 			d2d_owner_task.set(busyObject, taskToken, true);
 			d2d_task_owner.set(taskToken, busyObject, true);
 		}
