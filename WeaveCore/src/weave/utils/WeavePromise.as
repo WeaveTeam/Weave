@@ -37,7 +37,8 @@ package weave.utils
 	{
 		/**
 		 * @param relevantContext This parameter may be null.  If the relevantContext object is disposed, the promise will be disabled.
-		 * @param resolver A function like function(resolve:Function, reject:Function):void which carries out the promise
+		 * @param resolver A function like function(resolve:Function, reject:Function):void which carries out the promise.
+		 *                 If no resolver is given, setResult() or setError() should be called externally.
 		 */
 		public function WeavePromise(relevantContext:Object, resolver:Function = null)
 		{
@@ -51,21 +52,15 @@ package weave.utils
 			{
 				// this is a new root promise
 				this.rootPromise = this;
-				this.relevantContext = relevantContext;
-				
-				// if resolver is not specified, immediately set the result of the root promise equal to the relevantContext
-				if (resolver == null)
-					this.setResult(this.relevantContext);
+				// if no context is specified, make sure this promise stops functioning when it is disposed
+				this.relevantContext = relevantContext || this;
 			}
 			
 			if (relevantContext)
 				registerDisposableChild(relevantContext, this);
 			
 			if (resolver != null)
-			{
-				setBusy(true);
 				resolver(this.setResult, this.setError);
-			}
 		}
 		
 		private static function noop(value:Object):Object { return value; }
@@ -77,13 +72,13 @@ package weave.utils
 		private const handlers:Array = []; // array of Handler objects
 		private const dependencies:Array = [];
 		
-		public function setResult(result:Object):void
+		/**
+		 * @return This WeavePromise
+		 */
+		public function setResult(result:Object):WeavePromise
 		{
 			if (objectWasDisposed(relevantContext))
-			{
-				setBusy(false);
-				return;
-			}
+				return this;
 			
 			this.result = undefined;
 			this.error = undefined;
@@ -105,9 +100,11 @@ package weave.utils
 			}
 			else
 			{
-				this.result = result;
+				this.result = result as Object;
 				callHandlers();
 			}
+			
+			return this;
 		}
 		
 		public function getResult():Object
@@ -115,18 +112,20 @@ package weave.utils
 			return result;
 		}
 		
-		public function setError(error:Object):void
+		/**
+		 * @return This WeavePromise
+		 */
+		public function setError(error:Object):WeavePromise
 		{
 			if (objectWasDisposed(relevantContext))
-			{
-				setBusy(false);
-				return;
-			}
+				return this;
 			
 			this.result = undefined;
-			this.error = error;
+			this.error = error as Object;
 			
 			callHandlers();
+			
+			return this;
 		}
 		
 		public function getError():Object
@@ -134,36 +133,15 @@ package weave.utils
 			return error;
 		}
 		
-		private function setBusy(busy:Boolean):void
-		{
-			if (busy)
-			{
-				WeaveAPI.ProgressIndicator.addTask(rootPromise, relevantContext as ILinkableObject);
-			}
-			else
-			{
-				WeaveAPI.ProgressIndicator.removeTask(rootPromise);
-			}
-		}
-		
 		private function callHandlers(newHandlersOnly:Boolean = false):void
 		{
+			// stop if depenencies are busy because we will call handlers when they become unbusy
 			if (dependencies.some(dependencyIsBusy))
-			{
-				if (handlers.length)
-					setBusy(true);
 				return;
-			}
 			
-			// if there are no more handlers, remove the task
-			if (handlers.length == 0)
-				setBusy(false);
-			
-			if (objectWasDisposed(relevantContext))
-			{
-				setBusy(false);
+			// stop if the promise has not been resolved yet
+			if (result === undefined && error === undefined)
 				return;
-			}
 			
 			for (var i:int = 0; i < handlers.length; i++)
 			{
@@ -179,20 +157,22 @@ package weave.utils
 		
 		public function then(onFulfilled:Function = null, onRejected:Function = null):WeavePromise
 		{
+			if (objectWasDisposed(relevantContext))
+				return this;
+			
 			if (onFulfilled == null)
 				onFulfilled = noop;
 			if (onRejected == null)
 				onRejected = noop;
 			
 			var next:WeavePromise = new WeavePromise(this);
-			next.result = undefined;
 			handlers.push(new Handler(onFulfilled, onRejected, next));
 			
+			// call new handler(s) if promise has already been resolved
 			if (result !== undefined || error !== undefined)
 			{
 				// callLater will not call the function if the context was disposed
 				WeaveAPI.StageUtils.callLater(relevantContext, callHandlers, [true]);
-				setBusy(true);
 			}
 			
 			return next;
@@ -200,12 +180,10 @@ package weave.utils
 		
 		public function depend(...linkableObjects):WeavePromise
 		{
-			if (linkableObjects.length)
-			{
-				setBusy(true);
-			}
 			for each (var dependency:ILinkableObject in linkableObjects)
 			{
+				if (dependencies.indexOf(dependency) < 0)
+					dependencies.push(dependency);
 				getCallbackCollection(dependency).addGroupedCallback(relevantContext, callHandlers, true);
 			}
 			return this;
@@ -236,8 +214,8 @@ package weave.utils
 		
 		public function dispose():void
 		{
+			dependencies.length = 0;
 			handlers.length = 0;
-			setBusy(false);
 		}
 	}
 }

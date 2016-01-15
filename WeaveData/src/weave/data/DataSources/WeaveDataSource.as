@@ -85,7 +85,6 @@ package weave.data.DataSources
 		
 		private var _service:WeaveDataServlet = null;
 		private var _tablePromiseCache:Object;
-		private var _proxyPromiseCache:Dictionary;
 		private var _entityCache:EntityCache = null;
 		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
@@ -279,7 +278,6 @@ package weave.data.DataSources
 			_service = registerLinkableChild(this, new WeaveDataServlet(url.value), setIdFields);
 			_entityCache = registerLinkableChild(_service, new EntityCache(_service));
 			_tablePromiseCache = {};
-			_proxyPromiseCache = new Dictionary(true);
 			
 			url.resumeCallbacks();
 		}
@@ -726,12 +724,10 @@ package weave.data.DataSources
 					var promise:WeavePromise = _tablePromiseCache[hash];
 					if (!promise)
 					{
+						if (debug)
+							weaveTrace('invoking getTable()', hash);
 						var getTablePromise:WeavePromise = new WeavePromise(_service)
-							.then(function(..._):AsyncToken {
-								if (debug)
-									weaveTrace('invoking getTable()', hash);
-								return _service.getTable(result.tableId, sqlParams);
-							});
+							.setResult(_service.getTable(result.tableId, sqlParams));
 						
 						var keyStrings:Array;
 						promise = getTablePromise
@@ -816,9 +812,8 @@ package weave.data.DataSources
 					});
 					
 					// make proxyColumn busy while table promise is busy
-					var proxyPromise:WeavePromise = _proxyPromiseCache[proxyColumn];
-					if (!proxyPromise)
-						_proxyPromiseCache[proxyColumn] = proxyPromise = new WeavePromise(proxyColumn).then(function(_:*):* { return promise; });
+					if (!promise.getResult())
+						WeaveAPI.SessionManager.assignBusyTask(promise, proxyColumn);
 				}
 			}
 			catch (e:Error)

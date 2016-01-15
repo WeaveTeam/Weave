@@ -84,8 +84,7 @@ package weave.data
 		 */
 		public function convertToCachedDataSources():WeavePromise
 		{
-			var promise:WeavePromise = new WeavePromise(WeaveAPI.globalHashMap);
-			promise.setResult(null);
+			var promise:WeavePromise = new WeavePromise(WeaveAPI.globalHashMap).setResult(null);
 			var dispose:Function = function(_:*):void { promise.dispose(); };
 			return promise
 				.then(function(_:*):* {
