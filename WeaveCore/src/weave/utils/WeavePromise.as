@@ -22,11 +22,12 @@ package weave.utils
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerDisposableChild;
+	import weave.api.reportError;
+	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObject;
 	
 	/**
 	 * Use this when you need a Promise chain to depend on ILinkableObjects and resolve multiple times.
@@ -143,6 +144,10 @@ package weave.utils
 			if (result === undefined && error === undefined)
 				return;
 			
+			// make sure thrown errors are seen
+			if (handlers.length == 0 && error !== undefined)
+				reportError(error);
+			
 			for (var i:int = 0; i < handlers.length; i++)
 			{
 				var handler:Handler = handlers[i];
@@ -244,7 +249,7 @@ internal class Handler
 		}
 		catch (e:Error)
 		{
-			onError(e);
+			next.setError(e);
 		}
 	}
 	

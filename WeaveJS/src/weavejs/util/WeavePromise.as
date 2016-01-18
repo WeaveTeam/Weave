@@ -139,6 +139,10 @@ package weavejs.util
 			if (result === undefined && error === undefined)
 				return;
 			
+			// make sure thrown errors are seen
+			if (handlers.length == 0 && error !== undefined)
+				JS.error(error);
+			
 			for (var i:int = 0; i < handlers.length; i++)
 			{
 				var handler:WeavePromiseHandler = handlers[i];

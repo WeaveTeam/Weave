@@ -121,7 +121,7 @@ package weavejs.core
 		{
 			return new WeavePromise(weave.root).setResult(
 				WeaveAPI.URLRequestUtils.request(weave.root, URLRequestUtils.METHOD_GET, fileUrl, null, null, URLRequestUtils.RESPONSE_ARRAYBUFFER)
-					.then(loadFileContent.bind(WeaveArchive, weave), JS.error)
+					.then(loadFileContent.bind(WeaveArchive, weave))
 			);
 		}
 		

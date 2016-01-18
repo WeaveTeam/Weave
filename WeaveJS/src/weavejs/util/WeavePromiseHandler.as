@@ -37,7 +37,7 @@ package weavejs.util
 			}
 			catch (e:Error)
 			{
-				onError(e);
+				next.setError(e);
 			}
 		}
 		
