@@ -212,7 +212,7 @@ package weave.menus
 					},
 					{
 						shown: function():Boolean {
-							return Capabilities.isDebugger && Weave.properties.version.value == 'Custom';
+							return Weave.properties.version.value == 'Custom';
 						},
 						label: lang("Export to HTML5"),
 						click: function():void {
