@@ -146,7 +146,8 @@ package weavejs.net
 		{
 			var url:String = LOCAL_FILE_URL_SCHEME + name;
 			var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, url);
-			promise.setError(Weave.lang('File removed: {0}', url));
+			promise.setResult(null);
+			//promise.setError(Weave.lang('File removed: {0}', url));
 		}
 		
 		public function getLocalFileNames(weaveRoot:ILinkableHashMap):Array
