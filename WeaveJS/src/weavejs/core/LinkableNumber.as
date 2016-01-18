@@ -22,7 +22,7 @@ package weavejs.core
 
 		public function get value():Number
 		{
-			return _sessionStateExternal;
+			return Number(_sessionStateExternal);
 		}
 		public function set value(value:Number):void
 		{

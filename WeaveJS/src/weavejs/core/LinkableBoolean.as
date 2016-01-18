@@ -20,13 +20,18 @@ package weavejs.core
 
 		public function get value():Boolean
 		{
-			return _sessionStateExternal;
+			return Boolean(_sessionStateExternal);
 		}
 		public function set value(value:Boolean):void
 		{
 			setSessionState(value);
 		}
 
+		override public function getSessionState():Object
+		{
+			return Boolean(_sessionStateExternal);
+		}
+		
 		override public function setSessionState(value:Object):void
 		{
 			if (value is String)
