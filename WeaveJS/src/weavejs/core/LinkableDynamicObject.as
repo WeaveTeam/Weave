@@ -189,7 +189,7 @@ package weavejs.core
 			
 			targetPath = null;
 			
-			if ( Weave.isLinkable(classDef) && (_typeRestriction == null || classDef.prototype is _typeRestriction) )
+			if ( Weave.isLinkable(classDef) && (_typeRestriction == null || classDef === _typeRestriction || classDef.prototype is _typeRestriction) )
 			{
 				var obj:Object = target;
 				if (!obj || obj.constructor != classDef)
