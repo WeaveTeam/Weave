@@ -66,7 +66,7 @@ package weavejs.data.key
 		 * When this is set to true, the inverse of the filter will be used to filter the keys.
 		 * This means any keys appearing in the filter will be excluded from this key set.
 		 */
-		private var inverseFilter:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean);
+		private const inverseFilter:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean);
 		
 		/**
 		 * This sets up the FilteredKeySet to get its base set of keys from a list of columns and provide them in sorted order.

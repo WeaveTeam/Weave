@@ -22,6 +22,7 @@ package weavejs.data.key
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableHashMap;
+	import weavejs.core.LinkableString;
 	
 	/**
 	 * This class is used to include and exclude IQualifiedKeys from a set.
@@ -37,6 +38,9 @@ package weavejs.data.key
 			filters.childListCallbacks.addImmediateCallback(this, cacheValues);
 		}
 		
+		public static const UNION:String = 'union';
+		public static const INTERSECTION:String = 'intersection';
+		
 		// option to include missing keys or not
 		public const includeMissingKeys:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean, cacheValues);
 		public const includeMissingKeyTypes:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean, cacheValues);
@@ -45,15 +49,19 @@ package weavejs.data.key
 		public const excluded:KeySet = Weave.linkableChild(this, KeySet, handleExcludeChange);
 		
 		public const filters:ILinkableHashMap = Weave.linkableChild(this, new LinkableHashMap(IKeyFilter));
+		public const filterSetOp:LinkableString = Weave.linkableChild(this, new LinkableString(INTERSECTION, verifyFilterSetOp), cacheValues);
+		private function verifyFilterSetOp(value:String):Boolean { return value === UNION || value === INTERSECTION; }
 		
 		private var _includeMissingKeys:Boolean;
 		private var _includeMissingKeyTypes:Boolean;
 		private var _filters:Array;
+		private var _filterSetOp:String;
 		private function cacheValues():void
 		{
 			_includeMissingKeys = includeMissingKeys.value;
 			_includeMissingKeyTypes = includeMissingKeyTypes.value;
 			_filters = filters.getObjects();
+			_filterSetOp = filterSetOp.value;
 		}
 
 		/**
@@ -122,9 +130,27 @@ package weavejs.data.key
 		 */
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			for each (var filter:IKeyFilter in _filters)
-				if (!filter.containsKey(key))
+			var filter:IKeyFilter;
+			if (_filterSetOp === INTERSECTION)
+			{
+				for each (filter in _filters)
+					if (!filter.containsKey(key))
+						return false;
+			}
+			else if (_filterSetOp === UNION)
+			{
+				var found:Boolean = false;
+				for each (filter in _filters)
+				{
+					if (filter.containsKey(key))
+					{
+						found = true;
+						break;
+					}
+				}
+				if (!found)
 					return false;
+			}
 			
 			if (_includeMissingKeys || (_includeMissingKeyTypes && !_includedKeyTypeMap[key.keyType]))
 			{
