@@ -1,4 +1,4 @@
 #!/bin/sh
 PROJECT=`dirname "$0"`
 export FLEX_HOME="" # Let FlexJS use whatever Flex version it was bundled with.
-${FLEXJS_HOME}/js/bin/mxmlc -js-compiler-option="--compilation_level WHITESPACE_ONLY --output_wrapper_file umdWrapper.js" -fb "${PROJECT}"
+${FLEXJS_HOME}/js/bin/mxmlc -remove-circulars -js-compiler-option="--compilation_level WHITESPACE_ONLY --output_wrapper_file umdWrapper.js" -fb "${PROJECT}"
