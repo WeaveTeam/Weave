@@ -67,7 +67,7 @@ package weave.core
 		public static var debug_async_time:Boolean = false;
 		public static var debug_async_stack:Boolean = false;
 		public static var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
-		public static var debug_callLater:Boolean = false; // set this to true to delay async tasks
+		public static var debug_callLater:Boolean = false;
 		public var averageFrameTime:int = 0;
 		
 		private var pauseForGCIfCollectionImminent:Function = null;
