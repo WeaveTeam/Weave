@@ -97,7 +97,7 @@ package weave.utils
 			}
 			else if (result is WeavePromise)
 			{
-				(result as WeavePromise).then(setResult, setError);
+				(result as WeavePromise)._notify(this);
 			}
 			else
 			{
@@ -181,6 +181,25 @@ package weave.utils
 			}
 			
 			return next;
+		}
+		
+		private function _notify(next:WeavePromise):void
+		{
+			if (objectWasDisposed(this))
+				return;
+			
+			// avoid adding duplicate handlers
+			for each (var handler:Handler in handlers)
+				if (handler.next === next)
+					return;
+			
+			handlers.push(new Handler(noop, noop, next));
+			
+			// resolve next immediately if this promise has been resolved
+			if (result !== undefined)
+				next.setResult(result);
+			else if (error !== undefined)
+				next.setError(error);
 		}
 		
 		public function depend(...linkableObjects):WeavePromise

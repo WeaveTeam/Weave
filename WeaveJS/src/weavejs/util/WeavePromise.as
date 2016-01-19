@@ -89,7 +89,7 @@ package weavejs.util
 			}
 			else if (result is WeavePromise)
 			{
-				(result as WeavePromise).then(setResult, setError);
+				(result as WeavePromise)._notify(this);
 			}
 			else
 			{
@@ -173,6 +173,25 @@ package weavejs.util
 				WeaveAPI.Scheduler.callLater(relevantContext, callHandlers, [true]);
 			
 			return next;
+		}
+		
+		private function _notify(next:WeavePromise):void
+		{
+			if (Weave.wasDisposed(this))
+				return;
+			
+			// avoid adding duplicate handlers
+			for each (var handler:WeavePromiseHandler in handlers)
+				if (handler.next === next)
+					return;
+			
+			handlers.push(new WeavePromiseHandler(noop, noop, next));
+			
+			// resolve next immediately if this promise has been resolved
+			if (result !== undefined)
+				next.setResult(result);
+			else if (error !== undefined)
+				next.setError(error);
 		}
 		
 		public function depend(...linkableObjects):WeavePromise
