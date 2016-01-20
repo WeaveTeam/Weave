@@ -21,56 +21,15 @@ package weavejs.api.core
 	public interface ILocaleManager
 	{
 		/**
-		 * This returns a list of all supported locales.
+		 * A mapping from original text to translated text.
 		 */
-		function getAllLocales():Array;
-		
-		/**
-		 * This will return the two-dimensional lookup table of string localizations: (original_text -> (locale -> localized_text))
-		 */
-		function getAllLocalizations():Object;
-		
-		/**
-		 * This will import a new set of localizations and merge with/replace existing localizations.
-		 * @param localizationTable A 2-dimensional lookup table: (original_text -> (locale -> localized_text))
-		 */		
-		function importLocalizations(newData:Object):void;
-		
-		/**
-		 * This will register a single translation for a piece of text.
-		 * @param originalText
-		 * @param locale
-		 * @param localizedText
-		 */
-		function registerTranslation(originalText:String, locale:String, localizedText:String):void;
-		
-		function clearAllLocalizations():void;
-		
-		function removeEntry(originalText:String):void;
-		
-		/**
-		 * This will get the active locale used by the localize() function.
-		 */
-		function getLocale():String;
-		
-		/**
-		 * This will set the default locale used by the localize() function.
-		 * @param locale Specifies the locale.
-		 */
-		function setLocale(locale:String):void;
-		
-		/**
-		 * This will set the default locale used by the localize() function.
-		 * @param locale Specifies the locale.
-		 */
-		function initializeLocale(locale:String):void;
+		function set data(value:Object):void;
 		
 		/**
 		 * This will look up the localized version of a piece of text.
 		 * @param text The original text as specified by the developer.
-		 * @param language The desired language.
-		 * @return The text in the desired language, or the original text if no localization exists.
+		 * @return The text in the current locale, or the original text if no localization exists.
 		 */
-		function localize(text:String, locale:String = null):String;
+		function localize(text:String):String;
 	}
 }

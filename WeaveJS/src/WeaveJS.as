@@ -8,6 +8,7 @@ package
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableHashMap;
+	import weavejs.api.core.ILocaleManager;
 	import weavejs.api.core.IProgressIndicator;
 	import weavejs.api.core.IScheduler;
 	import weavejs.api.core.ISessionManager;
@@ -20,6 +21,7 @@ package
 	import weavejs.core.EditorManager;
 	import weavejs.core.LinkableHashMap;
 	import weavejs.core.LinkableVariable;
+	import weavejs.core.LocaleManager;
 	import weavejs.core.ProgressIndicator;
 	import weavejs.core.Scheduler;
 	import weavejs.core.SessionManager;
@@ -69,6 +71,7 @@ package
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IStatisticsCache, StatisticsCache);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IEditorManager, EditorManager);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(ILocaleManager, LocaleManager);
 			Weave.registerClass("FlexibleLayout", LinkableVariable);
 			Weave.registerClass("ExternalTool", LinkableHashMap);
 			
