@@ -504,9 +504,9 @@ package
 			try
 			{
 				// call localize() either way to let the LocaleManager know that we are interested in translations of this text.
-				newText = WeaveAPI.LocaleManager.localize(text);
+				newText = WeaveAPI.Locale.getText(text);
 				
-				if (WeaveAPI.LocaleManager['locale'] == 'developer')
+				if (WeaveAPI.Locale['locale'] == 'developer')
 				{
 					parameters.unshift(text);
 					return 'lang("' + parameters.join('", "') + '")';

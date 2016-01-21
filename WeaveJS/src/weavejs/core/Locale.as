@@ -16,19 +16,18 @@
 package weavejs.core
 {
 	import weavejs.WeaveAPI;
-	import weavejs.api.core.ILocaleManager;
+	import weavejs.api.core.ILocale;
 	import weavejs.net.URLRequestUtils;
 	import weavejs.util.WeavePromise;
 
-	/**
-	 * @author adufilie
-	 */
-	public class LocaleManager implements ILocaleManager
+	public class Locale implements ILocale
 	{
+		public var locale:String = null;
+		
 		public function loadFromUrl(jsonUrl:String):WeavePromise
 		{
 			return WeaveAPI.URLRequestUtils
-				.request(null, 'get', jsonUrl, null, null, URLRequestUtils.RESPONSE_JSON)
+				.request(null, URLRequestUtils.METHOD_GET, jsonUrl, null, null, URLRequestUtils.RESPONSE_JSON)
 				.then(setData);
 		}
 		
@@ -43,9 +42,7 @@ package weavejs.core
 			_data = value;
 		}
 		
-		public var locale:String = null;
-		
-		public function localize(text:String):String
+		public function getText(text:String):String
 		{
 			var result:String;
 			

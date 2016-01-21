@@ -16,7 +16,7 @@
 package weavejs
 {
 	import weavejs.api.core.IClassRegistry;
-	import weavejs.api.core.ILocaleManager;
+	import weavejs.api.core.ILocale;
 	import weavejs.api.core.IProgressIndicator;
 	import weavejs.api.core.IScheduler;
 	import weavejs.api.core.ISessionManager;
@@ -91,15 +91,6 @@ package weavejs
 				|| _classRegistry.getSingletonInstance(IScheduler);
 		}
 		
-//		/**
-//		 * This is the singleton instance of the registered IStageUtils implementation.
-//		 */
-//		public static function get StageUtils():IStageUtils
-//		{
-//			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IStageUtils)
-//				|| _classRegistry.getSingletonInstance(IStageUtils);
-//		}
-
 		/**
 		 * This is the singleton instance of the registered IProgressIndicator implementation.
 		 */
@@ -157,10 +148,10 @@ package weavejs
 		/**
 		 * This is the singleton instance of the registered ILocaleManager implementation.
 		 */
-		public static function get LocaleManager():ILocaleManager
+		public static function get Locale():ILocale
 		{
-			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(ILocaleManager)
-				|| _classRegistry.getSingletonInstance(ILocaleManager);
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(ILocale)
+				|| _classRegistry.getSingletonInstance(ILocale);
 		}
 		/**
 		 * This is the singleton instance of the registered IEditorManager implementation.

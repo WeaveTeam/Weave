@@ -18,7 +18,7 @@ package weavejs.api.core
 	/**
 	 * @author adufilie
 	 */
-	public interface ILocaleManager
+	public interface ILocale
 	{
 		/**
 		 * A mapping from original text to translated text.
@@ -30,6 +30,6 @@ package weavejs.api.core
 		 * @param text The original text as specified by the developer.
 		 * @return The text in the current locale, or the original text if no localization exists.
 		 */
-		function localize(text:String):String;
+		function getText(text:String):String;
 	}
 }
