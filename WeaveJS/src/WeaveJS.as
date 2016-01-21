@@ -27,6 +27,7 @@ package
 	import weavejs.core.SessionManager;
 	import weavejs.data.AttributeColumnCache;
 	import weavejs.data.CSVParser;
+	import weavejs.data.ColumnUtils;
 	import weavejs.data.StatisticsCache;
 	import weavejs.data.key.QKeyManager;
 	import weavejs.net.URLRequestUtils;
@@ -71,6 +72,12 @@ package
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ILocale, Locale);
 			Weave.registerClass("FlexibleLayout", LinkableVariable);
 			Weave.registerClass("ExternalTool", LinkableHashMap);
+			
+			// TEMPORARY HACK - omit keySet filter
+//			var joinColumns:Function = ColumnUtils.joinColumns;
+//			ColumnUtils['joinColumns'] = function(columns:Array, dataType:Object = null, allowMissingData:Boolean = false):Array {
+//				return joinColumns.call(ColumnUtils, columns, dataType, allowMissingData);
+//			};
 			
 			// TEMPORARY
 			//WeaveTest.test(weave);
