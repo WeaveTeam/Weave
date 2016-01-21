@@ -51,12 +51,10 @@ package weavejs.core
 			else // make the original text appear in the lookup table even though there is no translation yet.
 				_data[text] = null;
 			
-			// if we couldn't find an alternate translation, just return the original text
-			if (result == null && locale == 'piglatin')
+			if (!result && locale == 'piglatin')
 				return makePigLatins(text);
 			
-			//trace('localize(',arguments,') = ',result);
-			return result;
+			return result || text;
 		}
 		
 		//-------------------------------------------------------------
