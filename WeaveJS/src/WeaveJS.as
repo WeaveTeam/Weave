@@ -75,24 +75,9 @@ package
 			Weave.registerClass("FlexibleLayout", LinkableVariable);
 			Weave.registerClass("ExternalTool", LinkableHashMap);
 			
-			var window:Object = JS.global;
-			
-			if (window.opener && window.opener[WEAVE_EXTERNAL_TOOLS] && window.opener[WEAVE_EXTERNAL_TOOLS][window.name])
-			{
-				JS.log('using WeaveJS');
-				var weave:Weave = new Weave();
-				// ownerPath is a WeavePath from Flash
-				var ownerPath:* = window.opener.WeaveExternalTools[window.name].path;
-				WeavePath.migrate(ownerPath, weave);
-				
-				window.weave = weave;
-			}
-			else
-			{
-				// TEMPORARY until we read a session state using url params
-				//WeaveTest.test(weave);
-				WeaveTest;
-			}
+			// TEMPORARY
+			//WeaveTest.test(weave);
+			WeaveTest;
 		}
 	}
 }
