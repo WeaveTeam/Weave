@@ -158,7 +158,7 @@ package weave.data
 			dataSources = WeaveAPI.globalHashMap.getObjects(IDataSource);
 			for each (dataSource in dataSources)
 			{
-				if (dataSource.hasOwnProperty('NO_CACHE_HACK'))
+				if (dataSource.hasOwnProperty('NO_CACHE_HACK') || dataSource is CachedDataSource)
 					continue;
 				var type:String = getQualifiedClassName(dataSource);
 				var state:Object = getSessionState(dataSource);
