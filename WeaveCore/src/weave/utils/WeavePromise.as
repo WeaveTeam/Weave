@@ -148,16 +148,24 @@ package weave.utils
 			if (handlers.length == 0 && error !== undefined)
 				reportError(error);
 			
+			var shouldCallLater:Boolean = false;
+			
 			for (var i:int = 0; i < handlers.length; i++)
 			{
 				var handler:Handler = handlers[i];
-				if (newHandlersOnly && handler.wasCalled)
+				if (newHandlersOnly != handler.isNew)
+				{
+					shouldCallLater = handler.isNew;
 					continue;
+				}
 				if (result !== undefined)
 					handler.onResult(result);
 				else if (error !== undefined)
 					handler.onError(error);
 			}
+			
+			if (shouldCallLater)
+				WeaveAPI.StageUtils.callLater(relevantContext, callHandlers, [true]);
 		}
 		
 		public function then(onFulfilled:Function = null, onRejected:Function = null):WeavePromise
@@ -175,10 +183,7 @@ package weave.utils
 			
 			// call new handler(s) if promise has already been resolved
 			if (result !== undefined || error !== undefined)
-			{
-				// callLater will not call the function if the context was disposed
 				WeaveAPI.StageUtils.callLater(relevantContext, callHandlers, [true]);
-			}
 			
 			return next;
 		}
@@ -261,7 +266,7 @@ internal class Handler
 	
 	public function onResult(result:Object):void
 	{
-		wasCalled = true;
+		isNew = true;
 		try
 		{
 			next.setResult(onFulfilled(result));
@@ -274,10 +279,10 @@ internal class Handler
 	
 	public function onError(error:Object):void
 	{
-		wasCalled = true;
+		isNew = true;
 		try
 		{
-			next.setError(onRejected(error));
+			next.setResult(onRejected(error));
 		}
 		catch (e:Error)
 		{
@@ -286,7 +291,7 @@ internal class Handler
 	}
 	
 	/**
-	 * Used as a flag to indicate whether or not this handler has been called 
+	 * Used as a flag to indicate that this handler has not been called yet
 	 */
-	public var wasCalled:Boolean = false;
+	public var isNew:Boolean = true;
 }
