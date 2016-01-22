@@ -147,7 +147,7 @@ package weavejs.data
 			dataSources = root.getObjects(IDataSource);
 			for each (dataSource in dataSources)
 			{
-				if (dataSource.hasOwnProperty('NO_CACHE_HACK'))
+				if (dataSource.hasOwnProperty('NO_CACHE_HACK') || dataSource is CachedDataSource)
 					continue;
 				var type:String = Weave.className(dataSource);
 				var state:Object = Weave.getState(dataSource);
