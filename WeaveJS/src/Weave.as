@@ -499,13 +499,11 @@ package
 		 */
 		public static function lang(text:String, ...parameters):String
 		{
-			var newText:String = text;
+			// call localize() either way to let the LocaleManager know that we are interested in translations of this text.
+			var newText:String = WeaveAPI.Locale.getText(text);
 			
 			try
 			{
-				// call localize() either way to let the LocaleManager know that we are interested in translations of this text.
-				newText = WeaveAPI.Locale.getText(text);
-				
 				if (WeaveAPI.Locale['locale'] == 'developer')
 				{
 					parameters.unshift(text);
