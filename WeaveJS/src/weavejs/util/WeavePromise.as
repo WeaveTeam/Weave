@@ -143,16 +143,24 @@ package weavejs.util
 			if (handlers.length == 0 && error !== undefined)
 				JS.error(error);
 			
+			var shouldCallLater:Boolean = false;
+			
 			for (var i:int = 0; i < handlers.length; i++)
 			{
 				var handler:WeavePromiseHandler = handlers[i];
-				if (newHandlersOnly && handler.wasCalled)
+				if (newHandlersOnly != handler.isNew)
+				{
+					shouldCallLater = handler.isNew;
 					continue;
+				}
 				if (result !== undefined)
 					handler.onResult(result);
 				else if (error !== undefined)
 					handler.onError(error);
 			}
+			
+			if (shouldCallLater)
+				WeaveAPI.Scheduler.callLater(relevantContext, callHandlers, [true]);
 		}
 		
 		public function then(onFulfilled:Function = null, onRejected:Function = null):WeavePromise

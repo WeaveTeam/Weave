@@ -30,7 +30,7 @@ package weavejs.util
 		
 		public function onResult(result:Object):void
 		{
-			wasCalled = true;
+			isNew = false;
 			try
 			{
 				next.setResult(onFulfilled(result));
@@ -43,10 +43,10 @@ package weavejs.util
 		
 		public function onError(error:Object):void
 		{
-			wasCalled = true;
+			isNew = false;
 			try
 			{
-				next.setError(onRejected(error));
+				next.setResult(onRejected(error));
 			}
 			catch (e:Error)
 			{
@@ -55,8 +55,8 @@ package weavejs.util
 		}
 		
 		/**
-		 * Used as a flag to indicate whether or not this handler has been called 
+		 * Used as a flag to indicate that this handler has not been called yet
 		 */
-		public var wasCalled:Boolean = false;
+		public var isNew:Boolean = true;
 	}
 }
