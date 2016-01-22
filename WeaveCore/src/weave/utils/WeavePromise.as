@@ -22,6 +22,7 @@ package weave.utils
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerDisposableChild;
@@ -190,7 +191,7 @@ package weave.utils
 		
 		private function _notify(next:WeavePromise):void
 		{
-			if (objectWasDisposed(this))
+			if (objectWasDisposed(relevantContext))
 				return;
 			
 			// avoid adding duplicate handlers
@@ -243,6 +244,7 @@ package weave.utils
 		
 		public function dispose():void
 		{
+			disposeObject(this);
 			dependencies.length = 0;
 			handlers.length = 0;
 		}

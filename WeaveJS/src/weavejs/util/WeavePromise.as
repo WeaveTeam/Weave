@@ -185,7 +185,7 @@ package weavejs.util
 		
 		private function _notify(next:WeavePromise):void
 		{
-			if (Weave.wasDisposed(this))
+			if (Weave.wasDisposed(relevantContext))
 				return;
 			
 			// avoid adding duplicate handlers
@@ -227,6 +227,7 @@ package weavejs.util
 		
 		public function dispose():void
 		{
+			Weave.dispose(this);
 			dependencies.length = 0;
 			handlers.length = 0;
 		}
