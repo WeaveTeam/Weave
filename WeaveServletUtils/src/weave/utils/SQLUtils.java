@@ -63,26 +63,6 @@ public class SQLUtils
 	
 	public static boolean debug = false;
 	
-	/**
-	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
-	 * @return A driver name that can be used in the getConnection() function.
-	 */
-	public static String getDriver(String dbms) throws RemoteException
-	{
-		if (dbms.equalsIgnoreCase(MYSQL))
-			return "com.mysql.jdbc.Driver";
-		if(dbms.equalsIgnoreCase(SQLITE))
-			return "org.sqlite.JDBC";
-		if (dbms.equalsIgnoreCase(POSTGRESQL))
-			return "org.postgis.DriverWrapper";
-		if (dbms.equalsIgnoreCase(SQLSERVER))
-			return "net.sourceforge.jtds.jdbc.Driver";
-		if (dbms.equalsIgnoreCase(ORACLE))
-			return "oracle.jdbc.OracleDriver";
-		
-		throw new RemoteException("Unknown DBMS");
-	}
-	
 	public static String getDbmsFromConnection(Connection conn)
 	{
 		try
@@ -101,7 +81,7 @@ public class SQLUtils
 	
 	public static String getDbmsFromConnectString(String connectString) throws RemoteException
 	{
-		if (connectString.startsWith("jdbc:jtds"))
+		if (connectString.startsWith("jdbc:jtds") || connectString.startsWith("jdbc:sqlserver"))
 			return SQLSERVER;
 		if (connectString.startsWith("jdbc:oracle"))
 			return ORACLE;
@@ -111,6 +91,29 @@ public class SQLUtils
 			return SQLITE;
 		if (connectString.startsWith("jdbc:postgresql"))
 			return POSTGRESQL;
+		
+		throw new RemoteException("Unknown DBMS");
+	}
+	
+	/**
+	 * @return A driver name that can be used in the getConnection() function.
+	 */
+	public static String getDriverFromConnectString(String connectString) throws RemoteException
+	{
+		if (connectString.startsWith("jdbc:sqlserver"))
+			return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+		
+		String dbms = getDbmsFromConnectString(connectString);
+		if (dbms.equalsIgnoreCase(MYSQL))
+			return "com.mysql.jdbc.Driver";
+		if(dbms.equalsIgnoreCase(SQLITE))
+			return "org.sqlite.JDBC";
+		if (dbms.equalsIgnoreCase(POSTGRESQL))
+			return "org.postgis.DriverWrapper";
+		if (dbms.equalsIgnoreCase(SQLSERVER))
+			return "net.sourceforge.jtds.jdbc.Driver";
+		if (dbms.equalsIgnoreCase(ORACLE))
+			return "oracle.jdbc.OracleDriver";
 		
 		throw new RemoteException("Unknown DBMS");
 	}
@@ -355,10 +358,7 @@ public class SQLUtils
 	 */
 	public static Connection getConnection(String connectString, String user, String pass) throws RemoteException
 	{
-		String dbms = getDbmsFromConnectString(connectString);
-		
-		String driver = getDriver(dbms);
-		
+		String driver = getDriverFromConnectString(connectString);
 		Connection conn = null;
 		try
 		{
