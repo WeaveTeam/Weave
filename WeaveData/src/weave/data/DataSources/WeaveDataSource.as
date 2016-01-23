@@ -16,7 +16,6 @@
 package weave.data.DataSources
 {
 	import flash.net.URLRequest;
-	import flash.utils.Dictionary;
 	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -660,6 +659,9 @@ package weave.data.DataSources
 						return;
 					}
 					
+					if (!dataType) // determine dataType from data
+						dataType = DataType.getDataTypeFromData(result.data);
+					
 					if (isGeom) // result.data is an array of PGGeom objects.
 					{
 						var geometriesVector:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
@@ -699,7 +701,7 @@ package weave.data.DataSources
 						var newStringColumn:StringColumn = new StringColumn(metadata);
 						newStringColumn.setRecords(keysVector, Vector.<String>(result.data));
 						proxyColumn.setInternalColumn(newStringColumn);
-					} 
+					}
 					//trace("column downloaded: ",proxyColumn);
 					// run hierarchy callbacks because we just modified the hierarchy.
 					_attributeHierarchy.detectChanges();
