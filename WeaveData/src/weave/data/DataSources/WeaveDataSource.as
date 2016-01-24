@@ -796,8 +796,7 @@ package weave.data.DataSources
 									tableData.derived_qkeys = qkeys;
 									return tableData;
 								});
-							})
-							.then(null, reportError);
+							});
 						_tablePromiseCache[hash] = promise;
 					}
 					

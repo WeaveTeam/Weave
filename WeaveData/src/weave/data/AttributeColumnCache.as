@@ -100,7 +100,7 @@ package weave.data
 						promise.depend(column);
 					}
 				})
-				.then(_convertToCachedDataSources, reportError)
+				.then(_convertToCachedDataSources)
 				.then(dispose, dispose);
 		}
 		
