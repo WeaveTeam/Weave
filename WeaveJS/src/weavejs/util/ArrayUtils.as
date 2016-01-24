@@ -257,10 +257,10 @@ package weavejs.util
 			var right:int = (lastIndex >= 0) ? (lastIndex) : (list.length - 1);
 			if (left >= right)
 				return left;
-			var medianIndex:int = (left + right) / 2;
+			var medianIndex:int = int((left + right) / 2);
 			while (true)
 			{
-				var pivotIndex:int = partition(list, left, right, (left + right) / 2, compareFunction);
+				var pivotIndex:int = partition(list, left, right, int((left + right) / 2), compareFunction);
 				if (medianIndex == pivotIndex)
 					break;
 				if (medianIndex < pivotIndex)
@@ -383,7 +383,7 @@ package weavejs.util
 				imax:int = sortedUniqueValues.length - 1;
 			while (imin <= imax)
 			{
-				i = (imin + imax) / 2;
+				i = int((imin + imax) / 2);
 				var a:* = sortedUniqueValues[i];
 				
 				var c:int = compare != null ? compare(item, a) : (item < a ? -1 : (item > a ? 1 : 0));
