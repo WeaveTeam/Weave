@@ -98,7 +98,7 @@ package weavejs.util
 	
 			this.data = (data !== undefined) ? data : [];
 			if (endian !== undefined) this.endian = endian;
-			this.length = data.length;
+			this.length = this.data.length;
 	
 			this.stringTable = [];
 			this.objectTable = [];
@@ -214,8 +214,8 @@ package weavejs.util
 			var sig1:String = (((b2 & 0xF) << 16) | (b3 << 8) | b4).toString(2);
 			var sig2:String = ((b5 >> 7) ? '1' : '0');
 			var sig3:String = (((b5 & 0x7F) << 24) | (b6 << 16) | (b7 << 8) | b8).toString(2);	// significand = bits 12..63
-			while (sig3.length < 31)
-				sig3 = '0' + sig3;
+			if (sig3.length < 31)
+				sig3 = '0000000000000000000000000000000'.substr(0, 31 - sig3.length) + sig3;
 			
 			var sig:int = parseInt(sig1 + sig2 + sig3, 2);
 			if (sig == 0 && exp == -1023)
@@ -357,8 +357,8 @@ package weavejs.util
 			var sig1:String = (((b2 & 0xF) << 16) | (b3 << 8) | b4).toString(2);
 			var sig2:String = ((b5 >> 7) ? '1' : '0');
 			var sig3:String = (((b5 & 0x7F) << 24) | (b6 << 16) | (b7 << 8) | b8).toString(2);	// significand = bits 12..63
-			while (sig3.length < 31)
-				sig3 = '0' + sig3;
+			if (sig3.length < 31)
+				sig3 = '0000000000000000000000000000000'.substr(0, 31 - sig3.length) + sig3;
 			
 			var sig:int = parseInt(sig1 + sig2 + sig3, 2);
 			if (sig == 0 && exp == -1023)
@@ -755,16 +755,11 @@ package weavejs.util
 					return this.objectTable[(ref >> 1)];
 	
 				len = (ref >> 1);
-	
-				var ba:JSByteArray = new JSByteArray();
-	
+				
+				var ba:JSByteArray = new JSByteArray(data.slice(this.pos, this.pos += len));
+				
 				this.objectTable.push(ba);
-	
-				for (i = 0; i < len; i++)
-				{
-					ba.writeByte(this.readByte());
-				}
-	
+				
 				return ba;
 			}
 			
