@@ -27,7 +27,6 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.reportError;
 	import weave.utils.fixErrorMessage;
 	
 	use namespace mx_internal;
