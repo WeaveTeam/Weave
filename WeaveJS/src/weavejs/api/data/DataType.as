@@ -49,5 +49,23 @@ package weavejs.api.data
 					return String;
 			}
 		}
+		
+		/**
+		 * @param data An Array of data values.
+		 * @return A dataType metadata value, or null if no data was found.
+		 */
+		public static function getDataTypeFromData(data:Array):String
+		{
+			for each (var value:* in data)
+			{
+				if (value is Number)
+					return NUMBER;
+				if (value is Date)
+					return DATE;
+				if (value != null)
+					return STRING;
+			}
+			return null;
+		}
 	}
 }

@@ -29,7 +29,7 @@ package weavejs.data.source
 	import weavejs.data.column.StringColumn;
 	import weavejs.geom.GeneralizedGeometry;
 	import weavejs.geom.GeoJSON;
-	import weavejs.net.URLRequestUtils;
+	import weavejs.net.ResponseType;
 	import weavejs.util.ArrayUtils;
 	import weavejs.util.JS;
 	
@@ -41,7 +41,7 @@ package weavejs.data.source
 		{
 		}
 
-		public const url:LinkableFile = Weave.linkableChild(this, new LinkableFile(null, null, URLRequestUtils.RESPONSE_JSON), handleFile);
+		public const url:LinkableFile = Weave.linkableChild(this, new LinkableFile(null, null, ResponseType.JSON), handleFile);
 		public const keyType:LinkableString = Weave.linkableChild(this, LinkableString);
 		public const keyProperty:LinkableString = Weave.linkableChild(this, LinkableString);
 		

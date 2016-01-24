@@ -15,6 +15,7 @@
 
 package weavejs.net
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.net.IURLRequestUtils;
@@ -22,23 +23,9 @@ package weavejs.net
 	import weavejs.util.JS;
 	import weavejs.util.WeavePromise;
 
-	/**
-	 * An all-static class containing functions for downloading URLs.
-	 * 
-	 * @author adufilie
-	 */
 	public class URLRequestUtils implements IURLRequestUtils
 	{
-		public static const METHOD_GET:String = 'get';
-		public static const METHOD_POST:String = 'post';
-		
-		public static const RESPONSE_ARRAYBUFFER:String = 'arraybuffer';
-		public static const RESPONSE_BLOB:String = 'blob';
-		public static const RESPONSE_DOCUMENT:String = 'document';
-		public static const RESPONSE_JSON:String = 'json';
-		public static const RESPONSE_TEXT:String = 'text';
-		
-		private function byteArrayToString(byteArray:Array):String
+		private function byteArrayToString(byteArray:/*Uint8*/Array):String
 		{
 			var CHUNK_SIZE:int = 8192;
 			var n:int = byteArray.length;
@@ -50,66 +37,88 @@ package weavejs.net
 			return strings.join('');
 		}
 		
-		public function request(relevantContext:Object, method:String, url:String, requestHeaders:Object, data:String, responseType:String):WeavePromise
+		public function request(relevantContext:Object, urlRequest:URLRequest):WeavePromise
 		{
-			if (url.indexOf(LOCAL_FILE_URL_SCHEME) == 0)
+			if (urlRequest.url.indexOf(LOCAL_FILE_URL_SCHEME) == 0)
 			{
 				var weaveRoot:ILinkableHashMap = Weave.getRoot(relevantContext as ILinkableObject);
-				var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, url);
+				var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, urlRequest.url);
 				if (!promise.getResult() && !promise.getError())
-					promise.setError(Weave.lang("Local file missing: {0}", url.substr(LOCAL_FILE_URL_SCHEME.length)));
-				return promise.then(function(byteArray:/*Uint8*/Array):Object {
+					promise.setError(Weave.lang("Local file missing: {0}", urlRequest.url.substr(LOCAL_FILE_URL_SCHEME.length)));
+				promise = promise.then(function(byteArray:/*Uint8*/Array):Object {
 					return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):* {
-						switch (responseType) {
+						switch (urlRequest.responseType) {
 							default:
-							case RESPONSE_TEXT:
+							case ResponseType.TEXT:
 								return resolve(byteArrayToString(byteArray));
-							case RESPONSE_JSON:
+							case ResponseType.JSON:
 								return resolve(JSON.parse(byteArrayToString(byteArray)));
-							case RESPONSE_BLOB:
+							case ResponseType.BLOB:
 								return resolve(new JS.global.Blob([byteArray.buffer]));
-							case RESPONSE_ARRAYBUFFER:
+							case ResponseType.ARRAYBUFFER:
 								return resolve(byteArray.buffer);
-							case RESPONSE_DOCUMENT:
-								return reject(new Error("responseType " + RESPONSE_DOCUMENT + " not supported for local files"));
+							case ResponseType.DOCUMENT:
+								return reject(new Error("responseType " + ResponseType.DOCUMENT + " not supported for local files"));
+							case ResponseType.UINT8ARRAY:
+								return resolve(byteArray);
 						}
 					});
 				});
 			}
+			else
+			{
+				//TODO WeavePromise needs a way to specify a dispose handler (new WeavePromise(context, resolver, cleanup))
+				// so we can cancel the request automatically when the promise is disposed
+				promise = new WeavePromise(relevantContext, function(resolve:Function, reject:Function):void {
+					var done:Boolean = false;
+					var ie9_XHR:Class = JS.global.XDomainRequest;
+					var XHR:Class = ie9_XHR || JS.global.XMLHttpRequest;
+					var xhr:Object = new XHR();
+					xhr.open(urlRequest.method, urlRequest.url, true);
+					for (var name:String in urlRequest.requestHeaders)
+						xhr.setRequestHeader(name, urlRequest.requestHeaders[name], false);
+					
+					if (urlRequest.responseType === ResponseType.UINT8ARRAY)
+						xhr.responseType = ResponseType.ARRAYBUFFER;
+					else
+						xhr.responseType = urlRequest.responseType;
+					
+					xhr.onload = function(event:*):void {
+						var result:* = ie9_XHR ? xhr.responseText : xhr.response;
+						
+						if (urlRequest.responseType === ResponseType.UINT8ARRAY)
+							result = new JS.Uint8Array(result);
+						
+						resolve(result);
+						done = true;
+					};
+					xhr.onerror = function(event:*):void {
+						if (!done)
+							reject(xhr);
+						done = true;
+					};
+					xhr.onreadystatechange = function():void {
+						if (xhr.readyState == 4 && xhr.status != 200)
+						{
+							JS.setTimeout(
+								function():void {
+									if (!done)
+										reject(xhr);
+									done = true;
+								},
+								1000
+							);
+						}
+					};
+					xhr.send(urlRequest.data);
+				});
+			}
 			
-			return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):void {
-				var done:Boolean = false;
-				var ie9_XHR:Class = JS.global.XDomainRequest;
-				var XHR:Class = ie9_XHR || JS.global.XMLHttpRequest;
-				var request:Object = new XHR();
-				request.open(method, url, true);
-				for (var name:String in requestHeaders)
-					request.setRequestHeader(name, requestHeaders[name], false);
-				request.responseType = responseType;
-				request.onload = function(event):void {
-					resolve(ie9_XHR ? request.responseText : request.response);
-					done = true;
-				};
-				request.onerror = function(event):void {
-					if (!done)
-						reject(request);
-					done = true;
-				};
-				request.onreadystatechange = function():void {
-					if (request.readyState == 4 && request.status != 200)
-					{
-						JS.setTimeout(
-							function():void {
-								if (!done)
-									reject(request);
-								done = true;
-							},
-							1000
-						);
-					}
-				};
-				request.send(data);
-			});
+			var ilo:ILinkableObject = relevantContext as ILinkableObject;
+			if (ilo)
+				WeaveAPI.ProgressIndicator.addTask(promise, ilo, request.url);
+			
+			return promise;
 		}
 		
 		public static const LOCAL_FILE_URL_SCHEME:String = 'local://';

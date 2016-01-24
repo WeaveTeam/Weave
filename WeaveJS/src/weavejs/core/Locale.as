@@ -17,18 +17,21 @@ package weavejs.core
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILocale;
-	import weavejs.net.URLRequestUtils;
+	import weavejs.net.RequestMethod;
+	import weavejs.net.ResponseType;
+	import weavejs.net.URLRequest;
 	import weavejs.util.WeavePromise;
 
 	public class Locale implements ILocale
 	{
 		public var locale:String = null;
+		public var reverseLayout:Boolean = false;
 		
 		public function loadFromUrl(jsonUrl:String):WeavePromise
 		{
-			return WeaveAPI.URLRequestUtils
-				.request(null, URLRequestUtils.METHOD_GET, jsonUrl, null, null, URLRequestUtils.RESPONSE_JSON)
-				.then(setData);
+			var request:URLRequest = new URLRequest(jsonUrl);
+			request.responseType = ResponseType.JSON;
+			return WeaveAPI.URLRequestUtils.request(null, request).then(setData);
 		}
 		
 		private function setData(value:Object):void

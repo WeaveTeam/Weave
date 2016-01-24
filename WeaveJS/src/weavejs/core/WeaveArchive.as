@@ -17,7 +17,7 @@ package weavejs.core
 {
 	import weavejs.WeaveAPI;
 	import weavejs.data.AttributeColumnCache;
-	import weavejs.net.URLRequestUtils;
+	import weavejs.net.URLRequest;
 	import weavejs.util.BackwardsCompatibility;
 	import weavejs.util.JS;
 	import weavejs.util.JSByteArray;
@@ -120,7 +120,7 @@ package weavejs.core
 		public static function loadUrl(weave:Weave, fileUrl:String):WeavePromise
 		{
 			return new WeavePromise(weave.root).setResult(
-				WeaveAPI.URLRequestUtils.request(weave.root, URLRequestUtils.METHOD_GET, fileUrl, null, null, URLRequestUtils.RESPONSE_ARRAYBUFFER)
+				WeaveAPI.URLRequestUtils.request(weave.root, new URLRequest(fileUrl))
 					.then(loadFileContent.bind(WeaveArchive, weave))
 			);
 		}

@@ -243,6 +243,11 @@ package weavejs.util
 			return global['setTimeout'].apply(global, params);
 		}
 		
+		public static function clearTimeout(id:int):void
+		{
+			global['clearTimeout'](id);
+		}
+		
 		public static function setInterval(func:Function, delay:int, ...params):int
 		{
 			params.unshift(func, delay);
@@ -275,6 +280,14 @@ package weavejs.util
 			while (object != null && !Object['getOwnPropertyDescriptor'](object, prop))
 				object = Object['getPrototypeOf'](object);
 			return object != null;
+		}
+		
+		/**
+		 * AS->JS Language helper for Object.getOwnPropertyNames()
+		 */
+		public static function getOwnPropertyNames(object:Object):Array
+		{
+			return Object['getOwnPropertyNames'](object);
 		}
 		
 		/**

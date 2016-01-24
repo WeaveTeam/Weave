@@ -74,7 +74,7 @@ package weavejs.data
 		{
 			var promise:WeavePromise = new WeavePromise(root).setResult(root);
 			var dispose:Function = function(_:*):void { promise.dispose(); };
-			return promise
+			var promiseThen:WeavePromise = promise
 				.then(function(root:ILinkableHashMap):ILinkableHashMap {
 					// request data from every column
 					var column:IAttributeColumn;
@@ -89,8 +89,9 @@ package weavejs.data
 					}
 					return root;
 				})
-				.then(_convertToCachedDataSources, JS.error)
-				.then(dispose, dispose);
+				.then(_convertToCachedDataSources);
+			promiseThen.then(dispose, dispose);
+			return promiseThen;
 		}
 		
 		private function _convertToCachedDataSources(root:ILinkableHashMap):Array
