@@ -26,6 +26,9 @@ package weavejs.util
 	 */
 	public class WeavePromise implements IDisposableObject
 	{
+		// true to conform to Promise spec, false to make Weave work correctly w/ busy status
+		public static var _callNewHandlersSeparately:Boolean = false;
+		
 		/**
 		 * @param relevantContext This parameter may be null.  If the relevantContext object is disposed, the promise will be disabled.
 		 * @param resolver A function like function(resolve:Function, reject:Function):void which carries out the promise.
@@ -56,8 +59,6 @@ package weavejs.util
 			if (resolver != null)
 				resolver(this.setResult, this.setError);
 		}
-		
-		private static function noop(value:Object):Object { return value; }
 		
 		private var stackTrace_created:Error;
 		private var stackTrace_resolved:Error;
@@ -151,7 +152,8 @@ package weavejs.util
 				if (newHandlersOnly != handler.isNew)
 				{
 					shouldCallLater = handler.isNew;
-					continue;
+					if (_callNewHandlersSeparately && shouldCallLater)
+						continue;
 				}
 				if (result !== undefined)
 					handler.onResult(result);
@@ -167,11 +169,6 @@ package weavejs.util
 		{
 			if (Weave.wasDisposed(relevantContext))
 				return this;
-			
-			if (onFulfilled == null)
-				onFulfilled = noop;
-			if (onRejected == null)
-				onRejected = noop;
 			
 			var next:WeavePromise = new WeavePromise(this);
 			handlers.push(new WeavePromiseHandler(onFulfilled, onRejected, next));
@@ -193,7 +190,7 @@ package weavejs.util
 				if (handler.next === next)
 					return;
 			
-			handlers.push(new WeavePromiseHandler(noop, noop, next));
+			handlers.push(new WeavePromiseHandler(null, null, next));
 			
 			// resolve next immediately if this promise has been resolved
 			if (result !== undefined)

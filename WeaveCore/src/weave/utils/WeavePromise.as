@@ -37,6 +37,9 @@ package weave.utils
 	 */
 	public class WeavePromise implements IDisposableObject
 	{
+		// true to conform to Promise spec, false to make Weave work correctly w/ busy status
+		public static var _callNewHandlersSeparately:Boolean = false;
+		
 		/**
 		 * @param relevantContext This parameter may be null.  If the relevantContext object is disposed, the promise will be disabled.
 		 * @param resolver A function like function(resolve:Function, reject:Function):void which carries out the promise.
@@ -64,8 +67,6 @@ package weave.utils
 			if (resolver != null)
 				resolver(this.setResult, this.setError);
 		}
-		
-		private static function noop(value:Object):Object { return value; }
 		
 		private var rootPromise:WeavePromise;
 		protected var relevantContext:Object;
@@ -157,7 +158,8 @@ package weave.utils
 				if (newHandlersOnly != handler.isNew)
 				{
 					shouldCallLater = handler.isNew;
-					continue;
+					if (_callNewHandlersSeparately && shouldCallLater)
+						continue;
 				}
 				if (result !== undefined)
 					handler.onResult(result);
@@ -173,11 +175,6 @@ package weave.utils
 		{
 			if (objectWasDisposed(relevantContext))
 				return this;
-			
-			if (onFulfilled == null)
-				onFulfilled = noop;
-			if (onRejected == null)
-				onRejected = noop;
 			
 			var next:WeavePromise = new WeavePromise(this);
 			handlers.push(new Handler(onFulfilled, onRejected, next));
@@ -199,7 +196,7 @@ package weave.utils
 				if (handler.next === next)
 					return;
 			
-			handlers.push(new Handler(noop, noop, next));
+			handlers.push(new Handler(null, null, next));
 			
 			// resolve next immediately if this promise has been resolved
 			if (result !== undefined)
@@ -271,7 +268,10 @@ internal class Handler
 		isNew = true;
 		try
 		{
-			next.setResult(onFulfilled(result));
+			if (onFulfilled != null)
+				next.setResult(onFulfilled(result));
+			else
+				next.setResult(result);
 		}
 		catch (e:Error)
 		{
@@ -284,7 +284,10 @@ internal class Handler
 		isNew = true;
 		try
 		{
-			next.setResult(onRejected(error));
+			if (onRejected != null)
+				next.setResult(onRejected(error));
+			else
+				next.setError(error);
 		}
 		catch (e:Error)
 		{
