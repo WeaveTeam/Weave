@@ -149,12 +149,23 @@ package weavejs.util
 			for (var i:int = 0; i < handlers.length; i++)
 			{
 				var handler:WeavePromiseHandler = handlers[i];
-				if (newHandlersOnly != handler.isNew)
+				
+				if (_callNewHandlersSeparately)
 				{
-					shouldCallLater = handler.isNew;
-					if (_callNewHandlersSeparately && shouldCallLater)
+					if (newHandlersOnly != handler.isNew)
+					{
+						shouldCallLater = handler.isNew;
 						continue;
+					}
 				}
+				else
+				{
+					if (newHandlersOnly && !handler.isNew)
+					{
+						continue;
+					}
+				}
+				
 				if (result !== undefined)
 					handler.onResult(result);
 				else if (error !== undefined)
