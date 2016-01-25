@@ -17,7 +17,6 @@ package weavejs.core
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILocale;
-	import weavejs.net.RequestMethod;
 	import weavejs.net.ResponseType;
 	import weavejs.net.URLRequest;
 	import weavejs.util.WeavePromise;
