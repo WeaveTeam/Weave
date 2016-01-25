@@ -23,6 +23,7 @@ package weave.data
 	import weave.api.objectWasDisposed;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
@@ -39,14 +40,8 @@ package weave.data
 	import weave.primitives.GeneralizedGeometry;
 	import weave.utils.WeavePromise;
 	
-	/**
-	 * @inheritDoc
-	 */
 	public class AttributeColumnCache implements IAttributeColumnCache
 	{
-		/**
-		 * @inheritDoc
-		 */
 		public function getColumn(dataSource:IDataSource, metadata:Object):IAttributeColumn
 		{
 			// null means no column
@@ -84,13 +79,14 @@ package weave.data
 		 */
 		public function convertToCachedDataSources():WeavePromise
 		{
-			var promise:WeavePromise = new WeavePromise(WeaveAPI.globalHashMap).setResult(null);
+			var root:ILinkableHashMap = WeaveAPI.globalHashMap;
+			var promise:WeavePromise = new WeavePromise(root).setResult(root);
 			var dispose:Function = function(_:*):void { promise.dispose(); };
-			return promise
-				.then(function(_:*):* {
+			var promiseThen:WeavePromise = promise
+				.then(function(root:ILinkableHashMap):ILinkableHashMap {
 					// request data from every column
 					var column:IAttributeColumn;
-					var columns:Array = getLinkableDescendants(WeaveAPI.globalHashMap, IAttributeColumn);
+					var columns:Array = getLinkableDescendants(root, IAttributeColumn);
 					for each (column in columns)
 					{
 						// simply requesting the keys will cause the data to be requested
@@ -99,12 +95,14 @@ package weave.data
 						// wait for the column to finish any async tasks
 						promise.depend(column);
 					}
+					return root;
 				})
-				.then(_convertToCachedDataSources)
-				.then(dispose, dispose);
+				.then(_convertToCachedDataSources);
+			promiseThen.then(dispose, dispose);
+			return promiseThen;
 		}
 		
-		private function _convertToCachedDataSources(promiseResult:*):Array
+		private function _convertToCachedDataSources(root:ILinkableHashMap):Array
 		{
 			//cache data from AttributeColumnCache
 			var output:Array = [];
@@ -112,7 +110,7 @@ package weave.data
 			var dataSources:Array = d2d_dataSource_metadataHash_column.primaryKeys();
 			for each (dataSource in dataSources)
 			{
-				var dataSourceName:String = WeaveAPI.globalHashMap.getName(dataSource);
+				var dataSourceName:String = root.getName(dataSource);
 				
 				// skip disposed data sources and global columns (EquationColumn, CSVColumn)
 				if (!dataSourceName)
@@ -155,14 +153,14 @@ package weave.data
 			}
 			
 			// stub out data sources
-			dataSources = WeaveAPI.globalHashMap.getObjects(IDataSource);
+			dataSources = root.getObjects(IDataSource);
 			for each (dataSource in dataSources)
 			{
 				if (dataSource.hasOwnProperty('NO_CACHE_HACK') || dataSource is CachedDataSource)
 					continue;
 				var type:String = getQualifiedClassName(dataSource);
 				var state:Object = getSessionState(dataSource);
-				var cds:CachedDataSource = WeaveAPI.globalHashMap.requestObject(WeaveAPI.globalHashMap.getName(dataSource), CachedDataSource, false);
+				var cds:CachedDataSource = root.requestObject(root.getName(dataSource), CachedDataSource, false);
 				cds.type.value = type;
 				cds.state.state = state;
 			}

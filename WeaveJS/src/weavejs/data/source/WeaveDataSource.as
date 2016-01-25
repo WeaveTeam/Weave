@@ -500,11 +500,7 @@ package weavejs.data.source
 					if (!promise)
 					{
 						var getTablePromise:WeavePromise = new WeavePromise(_service)
-							.then(function(..._):WeavePromise {
-								if (debug)
-									JS.log('invoking getTable()', hash);
-								return _service.getTable(result.tableId, sqlParams);
-							});
+							.setResult(_service.getTable(result.tableId, sqlParams));
 						
 						var keyStrings:Array;
 						promise = getTablePromise
@@ -588,12 +584,8 @@ package weavejs.data.source
 					});
 					
 					// make proxyColumn busy while table promise is busy
-					var proxyPromise:WeavePromise = map_proxy_promise.get(proxyColumn);
-					if (!proxyPromise)
-					{
-						proxyPromise = new WeavePromise(proxyColumn).then(function(_:*):* { return promise; });
-						map_proxy_promise.set(proxyColumn, proxyPromise);
-					}
+					if (!promise.getResult())
+						WeaveAPI.SessionManager.assignBusyTask(promise, proxyColumn);
 				}
 			}
 			catch (e:Error)
