@@ -44,8 +44,9 @@ package weavejs.util
 		 * Compiles a script into a function with optional parameter names.
 		 * @param script A String containing JavaScript code.
 		 * @param paramNames A list of parameter names for the generated function, so that these variable names can be used in the script.
+		 * @param errorHandler A function that handles errors.
 		 */
-		public static function compile(script:String, paramNames:Array = null):Function
+		public static function compile(script:String, paramNames:Array = null, errorHandler:Function = null):Function
 		{
 			var isFunc:Boolean = unnamedFunctionRegExp.test(script);
 			if (isFunc)
@@ -72,11 +73,17 @@ package weavejs.util
 						{
 							if (e2 is SyntaxError)
 								func = Function['apply']();
-							throw e2;
+							if (errorHandler != null)
+								return errorHandler(e2);
+							else
+								throw e2;
 						}
 						return func.apply(this, arguments);
 					}
-					throw e;
+					if (errorHandler != null)
+						return errorHandler(e);
+					else
+						throw e;
 				}
 			};
 		}
