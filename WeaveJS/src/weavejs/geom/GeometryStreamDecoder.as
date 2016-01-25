@@ -353,7 +353,7 @@ package weavejs.geom
 							prev = vertexID;
 						}
 						if (prev > 0)
-							geometry.addPartMarker(prev, int.MAX_VALUE);
+							geometry.addPartMarker(prev, Number.MAX_VALUE);
 						
 						// if flag is < -1, it means the shapeType follows
 						if (vertexID < -1)
