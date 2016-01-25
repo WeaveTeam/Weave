@@ -345,7 +345,7 @@ package weave.utils
 			for (var i:int = 0; i < keys.length; i++)
 			{
 				var key:IQualifiedKey = keys[i];
-				var genGeoms:Array = geometryColumn.getValueFromKey(key, Array) as Array;
+				var genGeoms:Array = geometryColumn.getValueFromKey(key, Array) as Array || [];
 				var geoJsonGeoms:Array = genGeoms.map(function(genGeom:GeneralizedGeometry, ..._):Object {
 					return genGeom.toGeoJson(minImportance, visibleBounds);
 				});
