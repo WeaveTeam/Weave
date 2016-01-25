@@ -38,6 +38,7 @@ package weavejs.data.column
 			
 			dataTask = new ColumnDataTask(this, filterStringValue, handleDataTaskComplete);
 			dataCache = new Dictionary2D();
+			Weave.getCallbacks(_asyncSort).addImmediateCallback(this, handleSortComplete);
 		}
 		
 		override public function getMetadata(propertyName:String):String
