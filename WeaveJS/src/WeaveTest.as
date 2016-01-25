@@ -67,6 +67,7 @@ package
 	import weavejs.data.key.KeySetUnion;
 	import weavejs.data.key.SortedKeySet;
 	import weavejs.data.source.CSVDataSource;
+	import weavejs.data.source.ForeignDataMappingTransform;
 	import weavejs.data.source.GeoJSONDataSource;
 	import weavejs.data.source.WeaveDataSource;
 	import weavejs.geom.ZoomBounds;
@@ -129,6 +130,7 @@ package
 			StringLookup,
 			GeoJSONDataSource,
 			WeaveDataSource,
+			ForeignDataMappingTransform,
 			
 			ZoomBounds,
 			WeaveArchive,
