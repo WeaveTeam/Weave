@@ -43,22 +43,23 @@ package weavejs.util
 					for each (key in childStateKeys)
 					{
 						var propType:String = classLookup[className][key];
-						
-						// Hack - if the class name is an interface, remove the package and the "I" from the beginning to get the implementation.
-						if (propType.indexOf('weave.api.') == 0)
-						{
-							var name:String = propType.split('::').pop();
-							if (name.charAt(0) === 'I' && name.charAt(1) === name.charAt(1).toUpperCase())
-							{
-								name = name.substr(1);
-								var classDef:Class = Weave.getDefinition(name);
-								if (classDef)
-									propType = Weave.className(classDef);
-							}
-						}
-						
 						if (propType)
+						{
+							// Hack - if the class name is an interface, remove the package and the "I" from the beginning to get the implementation.
+							if (propType.indexOf('weave.api.') == 0)
+							{
+								var name:String = propType.split('::').pop();
+								if (name.charAt(0) === 'I' && name.charAt(1) === name.charAt(1).toUpperCase())
+								{
+									name = name.substr(1);
+									var classDef:Class = Weave.getDefinition(name);
+									if (classDef)
+										propType = Weave.className(classDef);
+								}
+							}
+							
 							typedChildState.push(DynamicState.create(key, propType, updateSessionState(childState[key])));
+						}
 					}
 					childState = typedChildState;
 				}
