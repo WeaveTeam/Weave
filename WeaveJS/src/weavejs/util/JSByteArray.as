@@ -73,7 +73,7 @@ package weavejs.util
 		private static const TWOeN23:Number = Math.pow(2, -23);
 		private static const TWOeN52:Number = Math.pow(2, -52);
 		
-		public var data:Array = [];
+		public var data:/*Uint8*/Array;
 		public var length:int = 0;
 		public var pos:int = 0;
 		public var endian:int = ENDIAN_BIG;
@@ -87,17 +87,13 @@ package weavejs.util
 		 * I aliased the functions to have shorter names, like ReadUInt32 as well as ReadUnsignedInt.
 		 * I used some code from http://fhtr.blogspot.com/2009/12/3d-models-and-parsing-binary-data-with.html
 		 * to kick-start it, but I added optimizations and support both big and little endian.
+		 * @param data A Uint8Array
 		 */
-		public function JSByteArray(data:* = undefined, endian:* = undefined)
+		public function JSByteArray(data:/*Uint8*/Array, endian:* = undefined)
 		{
-			if (typeof data == "string") {
-				data = data.split("").map(function(c:String):int {
-					return c.charCodeAt(0);
-				});
-			}
-	
-			this.data = (data !== undefined) ? data : [];
-			if (endian !== undefined) this.endian = endian;
+			this.data = data as JS.Uint8Array || new JS.Uint8Array(data);
+			if (endian !== undefined)
+				this.endian = endian;
 			this.length = this.data.length;
 	
 			this.stringTable = [];
@@ -109,11 +105,6 @@ package weavejs.util
 		{
 			var cc:int = this.data[this.pos++];
 			return (cc & 0xFF);
-		}
-	
-		public function writeByte(byte):void
-		{
-			this.data.push(byte);
 		}
 	
 		public function readBoolean():Boolean
@@ -756,7 +747,7 @@ package weavejs.util
 	
 				len = (ref >> 1);
 				
-				var ba:JSByteArray = new JSByteArray(data.slice(this.pos, this.pos += len));
+				var ba:JSByteArray = new JSByteArray(data.subarray(this.pos, this.pos += len));
 				
 				this.objectTable.push(ba);
 				

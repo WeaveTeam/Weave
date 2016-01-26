@@ -33,7 +33,7 @@ package weavejs.net
 				return String.fromCharCode.apply(String, byteArray);
 			var strings:Array = [];
 			for (var i:int = 0; i < byteArray.length;)
-				strings.push(String.fromCharCode.apply(null, byteArray.slice(i, i += CHUNK_SIZE)));
+				strings.push(String.fromCharCode.apply(null, byteArray.subarray(i, i += CHUNK_SIZE)));
 			return strings.join('');
 		}
 		
