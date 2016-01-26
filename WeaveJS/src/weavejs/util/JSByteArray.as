@@ -88,7 +88,7 @@ package weavejs.util
 		public function JSByteArray(data:/*Uint8*/Array, littleEndian:Boolean = false)
 		{
 			this.data = data as JS.Uint8Array || new JS.Uint8Array(data);
-			this.dataView = new JS.DataView(this.data.buffer);
+			this.dataView = new JS.DataView(this.data.buffer, this.data.byteOffset, this.data.length);
 			this.littleEndian = littleEndian;
 			this.length = this.data.length;
 	
@@ -124,28 +124,28 @@ package weavejs.util
 	
 		public function readUnsignedInt/*readUInt32*/():int
 		{
-			var value:Number = dataView.getUint32(pos, littleEndian);
+			var value:int = dataView.getUint32(pos, littleEndian);
 			pos += 4;
 			return value;
 		}
 		
 		public function readInt/*readInt32*/():int
 		{
-			var value:Number = dataView.getInt32(pos, littleEndian);
+			var value:int = dataView.getInt32(pos, littleEndian);
 			pos += 4;
 			return value;
 		}
 	
 		public function readUnsignedShort/*readUInt16*/():int
 		{
-			var value:Number = dataView.getUint16(pos, littleEndian);
+			var value:int = dataView.getUint16(pos, littleEndian);
 			pos += 2;
 			return value;
 		}
 		
 		public function readShort/*readInt16*/():int
 		{
-			var value:Number = dataView.getInt16(pos, littleEndian);
+			var value:int = dataView.getInt16(pos, littleEndian);
 			pos += 2;
 			return value;
 		}
