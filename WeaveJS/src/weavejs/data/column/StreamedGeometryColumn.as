@@ -39,7 +39,7 @@ package weavejs.data.column
 	 */
 	public class StreamedGeometryColumn extends AbstractAttributeColumn
 	{
-		private static var _debug:Boolean = false;
+		public static var debug:Boolean = false;
 		
 		public function StreamedGeometryColumn(metadataTileDescriptors:JSByteArray, geometryTileDescriptors:JSByteArray, tileService:IWeaveGeometryTileService, metadata:Object = null)
 		{
@@ -55,12 +55,12 @@ package weavejs.data.column
 			
 			var self:Object = this;
 			boundingBoxCallbacks.addImmediateCallback(this, function():void{
-				if (_debug)
-					DebugUtils.debugTrace(self,'boundingBoxCallbacks',boundingBoxCallbacks,'keys',keys.length);
+				if (debug)
+					DebugUtils.debugTrace(self,'boundingBoxCallbacks',boundingBoxCallbacks,keys.length,'keys');
 			});
 			addImmediateCallback(this, function():void{
-				if (_debug)
-					DebugUtils.debugTrace(self,'keys',keys.length);
+				if (debug)
+					DebugUtils.debugTrace(self,keys.length,'keys');
 			});
 		}
 		
@@ -167,7 +167,7 @@ package weavejs.data.column
 			// request geometry tiles needed for desired dataBounds and zoom level (filter by XYZ)
 			var geometryTileIDs:Array = _geometryStreamDecoder.getRequiredGeometryTileIDs(dataBounds, lowestImportance, true);
 
-			if (_debug)
+			if (debug)
 			{
 				if (metadataTileIDs.length > 0)
 					JS.log(this, "requesting metadata tiles: " + metadataTileIDs);
