@@ -90,7 +90,7 @@ package weavejs.geom
 		 * Generates a GeoJson Geometry object.
 		 * @param minImportance No points with importance less than this value will be returned.
 		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
-		 * @return A GeoJson Geometry object.
+		 * @return A GeoJson Geometry object, or null if there are no coordinates.
 		 */
 		public function toGeoJson(minImportance:Number = 0, visibleBounds:Bounds2D = null):Object
 		{
@@ -115,7 +115,8 @@ package weavejs.geom
 					{
 						lineString.push([node.x, node.y]);
 					}
-					coords.push(lineString);
+					if (lineString.length)
+						coords.push(lineString);
 				}
 			}
 			else if (type == GeoJSON.T_MULTI_POLYGON)
@@ -135,10 +136,15 @@ package weavejs.geom
 					if (first && !(first[0] == last[0] && first[1] == last[1]))
 						linearRing.push(first.concat());
 
-					polygon.push(linearRing);
+					if (linearRing.length)
+						polygon.push(linearRing);
 				}
-				coords.push(polygon);
+				if (polygon.length)
+					coords.push(polygon);
 			}
+			
+			if (!coords.length)
+				return null;
 
 			var geom:Object = {};
 			geom[GeoJSON.P_TYPE] = type;

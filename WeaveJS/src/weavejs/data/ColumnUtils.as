@@ -334,7 +334,7 @@ package weavejs.data
 		 * @param keys An Array of IQualifiedKeys
 		 * @param minImportance No points with importance less than this value will be returned.
 		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
-		 * @return An Array of GeoJson Geometry objects corresponding to the keys.
+		 * @return An Array of GeoJson Geometry objects corresponding to the keys.  The Array may be sparse if there are no coordinates for some of the keys.
 		 */
 		public static function getGeoJsonGeometries(geometryColumn:IAttributeColumn, keys:Array, minImportance:Number = 0, visibleBounds:Bounds2D = null):Array
 		{
@@ -345,10 +345,15 @@ package weavejs.data
 				var genGeoms:Array = geometryColumn.getValueFromKey(key, Array) as Array;
 				if (genGeoms)
 				{
-					var geoJsonGeoms:Array = genGeoms.map(function(genGeom:GeneralizedGeometry, ..._):Object {
-						return genGeom.toGeoJson(minImportance, visibleBounds);
-					});
-					output[i] = GeoJSON.getMultiGeomObject(geoJsonGeoms);
+					var geoJsonGeoms:Array = [];
+					for each (var genGeom:GeneralizedGeometry in genGeoms)
+					{
+						var geoJsonGeom:Object = genGeom.toGeoJson(minImportance, visibleBounds);
+						if (geoJsonGeom)
+							geoJsonGeoms.push(geoJsonGeom);
+					}
+					if (geoJsonGeoms.length)
+						output[i] = GeoJSON.getMultiGeomObject(geoJsonGeoms);
 				}
 			}
 			return output;
