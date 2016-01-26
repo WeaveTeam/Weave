@@ -99,6 +99,11 @@ package weavejs.util
 		public static const Uint8Array:Class = getGlobal('Uint8Array');
 		
 		/**
+		 * AS->JS Language helper for DataView
+		 */
+		public static const DataView:Class = getGlobal('DataView');
+		
+		/**
 		 * AS->JS Language helper for Promise
 		 */
 		public static const Promise:Class = getGlobal('Promise');

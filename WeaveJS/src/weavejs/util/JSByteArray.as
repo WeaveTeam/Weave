@@ -32,8 +32,6 @@ package weavejs.util
 {
 	public class JSByteArray
 	{
-		public static const ENDIAN_BIG:int = 0;
-		public static const ENDIAN_LITTLE:int = 1;
 		public static const ENCODING_AMF0:int = 0;
 		public static const ENCODING_AMF3:int = 3;
 		
@@ -74,9 +72,10 @@ package weavejs.util
 		private static const TWOeN52:Number = Math.pow(2, -52);
 		
 		public var data:/*Uint8*/Array;
+		public var dataView:Object; // DataView
 		public var length:int = 0;
 		public var pos:int = 0;
-		public var endian:int = ENDIAN_BIG;
+		public var littleEndian:Boolean = false;
 		public var objectEncoding:int = ENCODING_AMF3;
 		public var stringTable:Array = [];
 		public var objectTable:Array = [];
@@ -89,11 +88,11 @@ package weavejs.util
 		 * to kick-start it, but I added optimizations and support both big and little endian.
 		 * @param data A Uint8Array
 		 */
-		public function JSByteArray(data:/*Uint8*/Array, endian:* = undefined)
+		public function JSByteArray(data:/*Uint8*/Array, littleEndian:Boolean = false)
 		{
 			this.data = data as JS.Uint8Array || new JS.Uint8Array(data);
-			if (endian !== undefined)
-				this.endian = endian;
+			this.dataView = new JS.DataView(this.data.buffer);
+			this.littleEndian = littleEndian;
 			this.length = this.data.length;
 	
 			this.stringTable = [];
@@ -103,23 +102,22 @@ package weavejs.util
 		
 		public function readByte():int
 		{
-			var cc:int = this.data[this.pos++];
-			return (cc & 0xFF);
+			return data[pos++] & 0xFF;
 		}
 	
 		public function readBoolean():Boolean
 		{
-			return (this.data[this.pos++] & 0xFF) ? true : false;
+			return data[pos++] & 0xFF ? true : false;
 		}
 	
 		private function readUInt30():int
 		{
-			if (endian == ENDIAN_LITTLE)
+			if (littleEndian)
 				return readUInt30LE();
-			var ch1:int = readByte();
-			var ch2:int = readByte();
-			var ch3:int = readByte();
-			var ch4:int = readByte();
+			var ch1:int = data[pos++] & 0xFF;
+			var ch2:int = data[pos++] & 0xFF;
+			var ch3:int = data[pos++] & 0xFF;
+			var ch4:int = data[pos++] & 0xFF;
 	
 			if (ch1 >= 64)
 				return undefined;
@@ -129,116 +127,44 @@ package weavejs.util
 	
 		public function readUnsignedInt/*readUInt32*/():int
 		{
-			if (endian == ENDIAN_LITTLE)
-				return readUInt32LE();
-			var data:Array = this.data, pos:int = (this.pos += 4) - 4;
-			return  ((data[pos] & 0xFF) << 24) |
-					((data[++pos] & 0xFF) << 16) |
-					((data[++pos] & 0xFF) << 8) |
-					(data[++pos] & 0xFF);
+			var value:Number = dataView.getUint32(pos, littleEndian);
+			pos += 4;
+			return value;
 		}
+		
 		public function readInt/*readInt32*/():int
 		{
-			if (endian == ENDIAN_LITTLE)
-				return readInt32LE();
-			var data:Array = this.data, pos:int = (this.pos += 4) - 4;
-			var x:int = ((data[pos] & 0xFF) << 24) |
-						((data[++pos] & 0xFF) << 16) |
-						((data[++pos] & 0xFF) << 8) |
-						(data[++pos] & 0xFF);
-			return (x >= 2147483648) ? x - 4294967296 : x;
+			var value:Number = dataView.getInt32(pos, littleEndian);
+			pos += 4;
+			return value;
 		}
 	
 		public function readUnsignedShort/*readUInt16*/():int
 		{
-			if (endian == ENDIAN_LITTLE)
-				return readUInt16LE();
-			var data:Array = this.data, pos:int = (this.pos += 2) - 2;
-			return  ((data[pos] & 0xFF) << 8) |
-							(data[++pos] & 0xFF);
+			var value:Number = dataView.getUint16(pos, littleEndian);
+			pos += 2;
+			return value;
 		}
+		
 		public function readShort/*readInt16*/():int
 		{
-			if (endian == ENDIAN_LITTLE)
-				return readInt16LE();
-			var data:Array = this.data, pos:int = (this.pos += 2) - 2;
-			var x:int = ((data[pos] & 0xFF) << 8) |
-							(data[++pos] & 0xFF);
-			return (x >= 32768) ? x - 65536 : x;
+			var value:Number = dataView.getInt16(pos, littleEndian);
+			pos += 2;
+			return value;
 		}
 	
 		public function readFloat/*readFloat32*/():Number
 		{
-			if (endian == ENDIAN_LITTLE)
-				return readFloat32LE();
-			var data:Array = this.data, pos:int = (this.pos += 4) - 4;
-			var b1:int = data[pos] & 0xFF,
-				b2:int = data[++pos] & 0xFF,
-				b3:int = data[++pos] & 0xFF,
-				b4:int = data[++pos] & 0xFF;
-			var sign:int = 1 - ((b1 >> 7) << 1);                   // sign = bit 0
-			var exp:int = (((b1 << 1) & 0xFF) | (b2 >> 7)) - 127;  // exponent = bits 1..8
-			var sig:int = ((b2 & 0x7F) << 16) | (b3 << 8) | b4;    // significand = bits 9..31
-			if (sig == 0 && exp == -127)
-				return 0.0;
-			return sign * (1 + TWOeN23 * sig) * Math.pow(2, exp);
+			var value:Number = dataView.getFloat32(pos, littleEndian);
+			pos += 4;
+			return value;
 		}
 	
 		public function readDouble/*readFloat64*/():Number
 		{
-			if (endian == ENDIAN_LITTLE)
-				return readFloat64LE();
-			
-			var b1:int = this.readByte();
-			var b2:int = this.readByte();
-			var b3:int = this.readByte();
-			var b4:int = this.readByte();
-			var b5:int = this.readByte();
-			var b6:int = this.readByte();
-			var b7:int = this.readByte();
-			var b8:int = this.readByte();
-			var sign:int = 1 - ((b1 >> 7) << 1);									// sign = bit 0
-			var exp:int = (((b1 << 4) & 0x7FF) | (b2 >> 4)) - 1023;					// exponent = bits 1..11
-	
-			// This crazy toString() stuff works around the fact that js ints are
-			// only 32 bits and signed, giving us 31 bits to work with
-			var sig1:String = (((b2 & 0xF) << 16) | (b3 << 8) | b4).toString(2);
-			var sig2:String = ((b5 >> 7) ? '1' : '0');
-			var sig3:String = (((b5 & 0x7F) << 24) | (b6 << 16) | (b7 << 8) | b8).toString(2);	// significand = bits 12..63
-			if (sig3.length < 31)
-				sig3 = '0000000000000000000000000000000'.substr(0, 31 - sig3.length) + sig3;
-			
-			var sig:int = parseInt(sig1 + sig2 + sig3, 2);
-			if (sig == 0 && exp == -1023)
-				return 0.0;
-	
-			return sign * (1.0 + TWOeN52 * sig) * Math.pow(2, exp);
-			/*
-			var sig = (((b2 & 0xF) << 16) | (b3 << 8) | b4).toString(2) +
-					(((b5 & 0xF) << 16) | (b6 << 8) | b7).toString(2) +
-					(b8).toString(2);
-	
-			// should have 52 bits here
-			console.log(sig.length);
-	
-			// this doesn't work   sig = parseInt(sig, 2);
-			
-			var newSig = 0;
-			for (var i = 0; i < sig.length; i++)
-			{
-				var binaryPlace = this.pow(2, sig.length - i - 1);
-				var binaryValue = parseInt(sig.charAt(i));
-				newSig += binaryPlace * binaryValue;
-			}
-	
-	
-			if (newSig == 0 && exp == -1023)
-				return 0.0;
-	
-			var mantissa = this.TWOeN52 * newSig;
-	
-			return sign * (1.0 + mantissa) * this.pow(2, exp);
-			*/
+			var value:Number = dataView.getFloat64(pos, littleEndian);
+			pos += 8;
+			return value;
 		}
 	
 		private function readUInt29():int
@@ -246,116 +172,40 @@ package weavejs.util
 			var value:int;
 	
 			// Each byte must be treated as unsigned
-			var b:int = this.readByte() & 0xFF;
+			var b:int = data[pos++] & 0xFF;
 	
 			if (b < 128)
 				return b;
 	
 			value = (b & 0x7F) << 7;
-			b = this.readByte() & 0xFF;
+			b = data[pos++] & 0xFF;
 	
 			if (b < 128)
 				return (value | b);
 	
 			value = (value | (b & 0x7F)) << 7;
-			b = this.readByte() & 0xFF;
+			b = data[pos++] & 0xFF;
 	
 			if (b < 128)
 				return (value | b);
 	
 			value = (value | (b & 0x7F)) << 8;
-			b = this.readByte() & 0xFF;
+			b = data[pos++] & 0xFF;
 	
 			return (value | b);
 		}
 	
 		private function readUInt30LE():int
 		{
-			var ch1:int = readByte();
-			var ch2:int = readByte();
-			var ch3:int = readByte();
-			var ch4:int = readByte();
+			var ch1:int = data[pos++] & 0xFF;
+			var ch2:int = data[pos++] & 0xFF;
+			var ch3:int = data[pos++] & 0xFF;
+			var ch4:int = data[pos++] & 0xFF;
 	
 			if (ch4 >= 64)
 				return undefined;
 	
 			return ch1 | (ch2 << 8) | (ch3 << 16) | (ch4 << 24);
-		}
-	
-		private function readUInt32LE():int
-		{
-			var data:Array = this.data, pos:int = (this.pos += 4);
-			return  ((data[--pos] & 0xFF) << 24) |
-					((data[--pos] & 0xFF) << 16) |
-					((data[--pos] & 0xFF) << 8) |
-					(data[--pos] & 0xFF);
-		}
-		private function readInt32LE():int
-		{
-			var data:Array = this.data, pos:int = (this.pos += 4);
-			var x:int = ((data[--pos] & 0xFF) << 24) |
-						((data[--pos] & 0xFF) << 16) |
-						((data[--pos] & 0xFF) << 8) |
-						(data[--pos] & 0xFF);
-			return (x >= 2147483648) ? x - 4294967296 : x;
-		}
-	
-		private function readUInt16LE():int
-		{
-			var data:Array = this.data, pos:int = (this.pos += 2);
-			return  ((data[--pos] & 0xFF) << 8) |
-					(data[--pos] & 0xFF);
-		}
-		private function readInt16LE():int
-		{
-			var data:Array = this.data, pos:int = (this.pos += 2);
-			var x:int = ((data[--pos] & 0xFF) << 8) |
-						(data[--pos] & 0xFF);
-			return (x >= 32768) ? x - 65536 : x;
-		}
-	
-		private function readFloat32LE():Number
-		{
-			var data:Array = this.data, pos:int = (this.pos += 4);
-			var b1:int = data[--pos] & 0xFF,
-				b2:int = data[--pos] & 0xFF,
-				b3:int = data[--pos] & 0xFF,
-				b4:int = data[--pos] & 0xFF;
-			var sign:int = 1 - ((b1 >> 7) << 1);                   // sign = bit 0
-			var exp:int = (((b1 << 1) & 0xFF) | (b2 >> 7)) - 127;  // exponent = bits 1..8
-			var sig:int = ((b2 & 0x7F) << 16) | (b3 << 8) | b4;    // significand = bits 9..31
-			if (sig == 0 && exp == -127)
-				return 0.0;
-			return sign * (1 + TWOeN23 * sig) * Math.pow(2, exp);
-		}
-	
-		private function readFloat64LE():Number
-		{
-			var data:Array = this.data, pos:int = (this.pos += 8);
-			var b1:int = data[--pos] & 0xFF,
-				b2:int = data[--pos] & 0xFF,
-				b3:int = data[--pos] & 0xFF,
-				b4:int = data[--pos] & 0xFF,
-				b5:int = data[--pos] & 0xFF,
-				b6:int = data[--pos] & 0xFF,
-				b7:int = data[--pos] & 0xFF,
-				b8:int = data[--pos] & 0xFF;
-			var sign:int = 1 - ((b1 >> 7) << 1);									// sign = bit 0
-			var exp:int = (((b1 << 4) & 0x7FF) | (b2 >> 4)) - 1023;					// exponent = bits 1..11
-	
-			// This crazy toString() stuff works around the fact that js ints are
-			// only 32 bits and signed, giving us 31 bits to work with
-			var sig1:String = (((b2 & 0xF) << 16) | (b3 << 8) | b4).toString(2);
-			var sig2:String = ((b5 >> 7) ? '1' : '0');
-			var sig3:String = (((b5 & 0x7F) << 24) | (b6 << 16) | (b7 << 8) | b8).toString(2);	// significand = bits 12..63
-			if (sig3.length < 31)
-				sig3 = '0000000000000000000000000000000'.substr(0, 31 - sig3.length) + sig3;
-			
-			var sig:int = parseInt(sig1 + sig2 + sig3, 2);
-			if (sig == 0 && exp == -1023)
-				return 0.0;
-			
-			return sign * (1.0 + TWOeN52 * sig) * Math.pow(2, exp);
 		}
 	
 		private function readDate():Date
@@ -473,7 +323,7 @@ package weavejs.util
 	
 		private function readAMF0Object():Object
 		{
-			var marker:int = this.readByte();
+			var marker:int = data[pos++] & 0xFF;
 			var value:Object, o:Object;
 	
 			if (marker == Amf0Types_kNumberType)
@@ -499,10 +349,10 @@ package weavejs.util
 	
 				while (true)
 				{
-					var c1:int = this.readByte();
-					var c2:int = this.readByte();
+					var c1:int = data[pos++] & 0xFF;
+					var c2:int = data[pos++] & 0xFF;
 					var name:String = this.readString((c1 << 8) | c2);
-					var k:int = this.readByte();
+					var k:int = data[pos++] & 0xFF;
 					if (k == Amf0Types_kObjectEndType)
 						break;
 	
@@ -533,14 +383,14 @@ package weavejs.util
 				var typeName:String = this.readUTF();
 				
 				var propertyName:String = this.readUTF();
-				var type:int = this.readByte();
+				var type:int = data[pos++] & 0xFF;
 				while (type != Amf0Types_kObjectEndType)
 				{
 					value = this.readObject();
 					o[propertyName] = value;
 	
 					propertyName = this.readUTF();
-					type = this.readByte();
+					type = data[pos++] & 0xFF;
 				}
 	
 				return o;
@@ -582,7 +432,7 @@ package weavejs.util
 	
 		private function readAMF3Object():Object
 		{
-			var marker:int = this.readByte();
+			var marker:int = data[pos++] & 0xFF;
 			var ref:int, len:int, i:int, value:Object;
 	
 			if (marker == Amf3Types_kUndefinedType)
