@@ -32,44 +32,41 @@ package weavejs.util
 {
 	public class JSByteArray
 	{
-		public static const ENCODING_AMF0:int = 0;
-		public static const ENCODING_AMF3:int = 3;
+		public const ENCODING_AMF0:int = 0;
+		public const ENCODING_AMF3:int = 3;
 		
-		private static const Amf0Types_kNumberType:int        =  0;
-		private static const Amf0Types_kBooleanType:int       =  1;
-		private static const Amf0Types_kStringType:int        =  2;
-		private static const Amf0Types_kObjectType:int        =  3;
-		private static const Amf0Types_kMovieClipType:int     =  4;
-		private static const Amf0Types_kNullType:int          =  5;
-		private static const Amf0Types_kUndefinedType:int     =  6;
-		private static const Amf0Types_kReferenceType:int     =  7;
-		private static const Amf0Types_kECMAArrayType:int     =  8;
-		private static const Amf0Types_kObjectEndType:int     =  9;
-		private static const Amf0Types_kStrictArrayType:int   = 10;
-		private static const Amf0Types_kDateType:int          = 11;
-		private static const Amf0Types_kLongStringType:int    = 12;
-		private static const Amf0Types_kUnsupportedType:int   = 13;
-		private static const Amf0Types_kRecordsetType:int     = 14;
-		private static const Amf0Types_kXMLObjectType:int     = 15;
-		private static const Amf0Types_kTypedObjectType:int   = 16;
-		private static const Amf0Types_kAvmPlusObjectType:int = 17;
+		private const AMF0_Number:int        =  0;
+		private const AMF0_Boolean:int       =  1;
+		private const AMF0_String:int        =  2;
+		private const AMF0_Object:int        =  3;
+		private const AMF0_MovieClip:int     =  4;
+		private const AMF0_Null:int          =  5;
+		private const AMF0_Undefined:int     =  6;
+		private const AMF0_Reference:int     =  7;
+		private const AMF0_ECMAArray:int     =  8;
+		private const AMF0_ObjectEnd:int     =  9;
+		private const AMF0_StrictArray:int   = 10;
+		private const AMF0_Date:int          = 11;
+		private const AMF0_LongString:int    = 12;
+		private const AMF0_Unsupported:int   = 13;
+		private const AMF0_Recordset:int     = 14;
+		private const AMF0_XMLObject:int     = 15;
+		private const AMF0_TypedObject:int   = 16;
+		private const AMF0_AvmPlusObject:int = 17;
 		
-		private static const Amf3Types_kUndefinedType:int  = 0;
-		private static const Amf3Types_kNullType:int       = 1;
-		private static const Amf3Types_kFalseType:int      = 2;
-		private static const Amf3Types_kTrueType:int       = 3;
-		private static const Amf3Types_kIntegerType:int    = 4;
-		private static const Amf3Types_kDoubleType:int     = 5;
-		private static const Amf3Types_kStringType:int     = 6;
-		private static const Amf3Types_kXMLType:int        = 7;
-		private static const Amf3Types_kDateType:int       = 8;
-		private static const Amf3Types_kArrayType:int      = 9;
-		private static const Amf3Types_kObjectType:int     = 10;
-		private static const Amf3Types_kAvmPlusXmlType:int = 11;
-		private static const Amf3Types_kByteArrayType:int  = 12;
-		
-		private static const TWOeN23:Number = Math.pow(2, -23);
-		private static const TWOeN52:Number = Math.pow(2, -52);
+		private const AMF3_Undefined:int  = 0;
+		private const AMF3_Null:int       = 1;
+		private const AMF3_False:int      = 2;
+		private const AMF3_True:int       = 3;
+		private const AMF3_Integer:int    = 4;
+		private const AMF3_Double:int     = 5;
+		private const AMF3_String:int     = 6;
+		private const AMF3_XML:int        = 7;
+		private const AMF3_Date:int       = 8;
+		private const AMF3_Array:int      = 9;
+		private const AMF3_Object:int     = 10;
+		private const AMF3_AvmPlusXml:int = 11;
+		private const AMF3_ByteArray:int  = 12;
 		
 		public var data:/*Uint8*/Array;
 		public var dataView:Object; // DataView
@@ -326,23 +323,23 @@ package weavejs.util
 			var marker:int = data[pos++] & 0xFF;
 			var value:Object, o:Object;
 	
-			if (marker == Amf0Types_kNumberType)
+			if (marker == AMF0_Number)
 			{
 				return this.readDouble();
 			}
-			else if (marker == Amf0Types_kBooleanType)
+			else if (marker == AMF0_Boolean)
 			{
 				return this.readBoolean();
 			}
-			else if (marker == Amf0Types_kStringType)
+			else if (marker == AMF0_String)
 			{
 				return this.readUTF();
 			}
-			else if ((marker == Amf0Types_kObjectType) || (marker == Amf0Types_kECMAArrayType))
+			else if ((marker == AMF0_Object) || (marker == AMF0_ECMAArray))
 			{
 				o = {};
 	
-				var ismixed:Boolean = (marker == Amf0Types_kECMAArrayType);
+				var ismixed:Boolean = (marker == AMF0_ECMAArray);
 	
 				if (ismixed)
 					this.readUInt30();
@@ -353,7 +350,7 @@ package weavejs.util
 					var c2:int = data[pos++] & 0xFF;
 					var name:String = this.readString((c1 << 8) | c2);
 					var k:int = data[pos++] & 0xFF;
-					if (k == Amf0Types_kObjectEndType)
+					if (k == AMF0_ObjectEnd)
 						break;
 	
 					this.pos--;
@@ -363,7 +360,7 @@ package weavejs.util
 	
 				return o;
 			}
-			else if (marker == Amf0Types_kStrictArrayType)
+			else if (marker == AMF0_StrictArray)
 			{
 				var size:int = this.readInt();
 	
@@ -376,7 +373,7 @@ package weavejs.util
 	
 				return a;
 			}
-			else if (marker == Amf0Types_kTypedObjectType)
+			else if (marker == AMF0_TypedObject)
 			{
 				o = {};
 	
@@ -384,7 +381,7 @@ package weavejs.util
 				
 				var propertyName:String = this.readUTF();
 				var type:int = data[pos++] & 0xFF;
-				while (type != Amf0Types_kObjectEndType)
+				while (type != AMF0_ObjectEnd)
 				{
 					value = this.readObject();
 					o[propertyName] = value;
@@ -395,19 +392,19 @@ package weavejs.util
 	
 				return o;
 			}
-			else if (marker == Amf0Types_kAvmPlusObjectType)
+			else if (marker == AMF0_AvmPlusObject)
 			{
 				return this.readAMF3Object();
 			}
-			else if (marker == Amf0Types_kNullType)
+			else if (marker == AMF0_Null)
 			{
 				return null;
 			}
-			else if (marker == Amf0Types_kUndefinedType)
+			else if (marker == AMF0_Undefined)
 			{
 				return undefined;
 			}
-			else if (marker == Amf0Types_kReferenceType)
+			else if (marker == AMF0_Reference)
 			{
 				var refNum:int = this.readUnsignedShort();
 	
@@ -415,15 +412,15 @@ package weavejs.util
 	
 				return value;
 			}
-			else if (marker == Amf0Types_kDateType)
+			else if (marker == AMF0_Date)
 			{
 				return this.readDate();
 			}
-			else if (marker == Amf0Types_kLongStringType)
+			else if (marker == AMF0_LongString)
 			{
 				return this.readLongUTF();
 			}
-			else if (marker == Amf0Types_kXMLObjectType)
+			else if (marker == AMF0_XMLObject)
 			{
 				return this.readXML();
 			}
@@ -435,39 +432,39 @@ package weavejs.util
 			var marker:int = data[pos++] & 0xFF;
 			var ref:int, len:int, i:int, value:Object;
 	
-			if (marker == Amf3Types_kUndefinedType)
+			if (marker == AMF3_Undefined)
 			{
 				return undefined;
 			}
-			else if (marker == Amf3Types_kNullType)
+			else if (marker == AMF3_Null)
 			{
 				return null;
 			}
-			else if (marker == Amf3Types_kFalseType)
+			else if (marker == AMF3_False)
 			{
 				return false;
 			}
-			else if (marker == Amf3Types_kTrueType)
+			else if (marker == AMF3_True)
 			{
 				return true;
 			}
-			else if (marker == Amf3Types_kIntegerType)
+			else if (marker == AMF3_Integer)
 			{
 				return this.readUInt29();
 			}
-			else if (marker == Amf3Types_kDoubleType)
+			else if (marker == AMF3_Double)
 			{
 				return this.readDouble();
 			}
-			else if (marker == Amf3Types_kStringType)
+			else if (marker == AMF3_String)
 			{
 				return this.readStringAMF3();
 			}
-			else if (marker == Amf3Types_kXMLType)
+			else if (marker == AMF3_XML)
 			{
 				return this.readXML();
 			}
-			else if (marker == Amf3Types_kDateType)
+			else if (marker == AMF3_Date)
 			{
 				ref = this.readUInt29();
 	
@@ -480,7 +477,7 @@ package weavejs.util
 	
 				return value;
 			}
-			else if (marker == Amf3Types_kArrayType)
+			else if (marker == AMF3_Array)
 			{
 				ref = this.readUInt29();
 	
@@ -521,7 +518,7 @@ package weavejs.util
 	
 				return result;
 			}
-			else if (marker == Amf3Types_kObjectType)
+			else if (marker == AMF3_Object)
 			{
 				var o:Object = {};
 	
@@ -568,7 +565,7 @@ package weavejs.util
 	
 				return o;
 			}
-			else if (marker == Amf3Types_kAvmPlusXmlType)
+			else if (marker == AMF3_AvmPlusXml)
 			{
 				ref = this.readUInt29();
 	
@@ -589,7 +586,7 @@ package weavejs.util
 	
 				return xml;
 			}
-			else if (marker == Amf3Types_kByteArrayType)
+			else if (marker == AMF3_ByteArray)
 			{
 				ref = this.readUInt29();
 				if ((ref & 1) == 0)
