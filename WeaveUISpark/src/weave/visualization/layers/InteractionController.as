@@ -96,10 +96,10 @@ package weave.visualization.layers
 		/**
 		 * This is the default mode to use when dragging and no modifier keys are pressed.
 		 */
-		public const defaultDragMode:LinkableString = registerLinkableChild(this, new LinkableString(null, verifyDefaultMode), validate);
+		public const defaultDragMode:LinkableString = registerLinkableChild(this, new LinkableString(SELECT, verifyDefaultMode), validate);
 		private function verifyDefaultMode(value:String):Boolean
 		{
-			return !value || [PROBE, SELECT, PAN, ZOOM].indexOf(value) >= 0;
+			return [PROBE, SELECT, PAN, ZOOM].indexOf(value) >= 0;
 		}
 		
 		public const probe:LinkableString = newLinkableChild(this, LinkableString);
@@ -187,7 +187,7 @@ package weave.visualization.layers
 		
 		/**
 		 * Determine current mouse action from modifier keys and input type.
-		 * @param mouseEventType A mouse event type such as move, drag, click, or dclick.
+		 * @param inputType A mouse event type such as move, drag, click, or dclick.
 		 * @return A string representing current mouse action to execute such as pan, zoom, or select.
 		 */
 		public function determineInteraction(inputType:String = null):String

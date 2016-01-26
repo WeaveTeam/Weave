@@ -291,7 +291,7 @@
 				
 				// hack
 				Weave.defaultColorDataColumn.addGroupedCallback(this, handlePanelTitleChange);
-				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
+				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange, true);
 				
 				visualization.plotManager.hack_onUpdateZoom(updateZoom);
 				visualization.plotManager.plotters.addGroupedCallback(this,handlePlottersChange,true);
