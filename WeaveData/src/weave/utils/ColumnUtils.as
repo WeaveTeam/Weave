@@ -346,10 +346,13 @@ package weave.utils
 			{
 				var key:IQualifiedKey = keys[i];
 				var genGeoms:Array = geometryColumn.getValueFromKey(key, Array) as Array || [];
-				var geoJsonGeoms:Array = genGeoms.map(function(genGeom:GeneralizedGeometry, ..._):Object {
-					return genGeom.toGeoJson(minImportance, visibleBounds);
-				});
-				output[i] = GeoJSON.getMultiGeomObject(geoJsonGeoms);
+				if (genGeoms)
+				{
+					var geoJsonGeoms:Array = genGeoms.map(function(genGeom:GeneralizedGeometry, ..._):Object {
+						return genGeom.toGeoJson(minImportance, visibleBounds);
+					});
+					output[i] = GeoJSON.getMultiGeomObject(geoJsonGeoms);
+				}
 			}
 			return output;
 		}
