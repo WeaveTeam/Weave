@@ -525,8 +525,18 @@ package
 		 */
 		public function triggerColumns():void
 		{
-			Weave.getDescendants(root, getDefinition('ReferencedColumn'))
-				.forEach(function(column:ILinkableObject):void { getCallbacks(column).triggerCallbacks(); });
+			triggerAll('ReferencedColumn');
+		}
+		
+		/**
+		 * For testing purposes.
+		 */
+		public function triggerAll(filter:*):void
+		{
+			if (filter is String)
+				filter = getDefinition(filter);
+			Weave.getDescendants(root, JS.asClass(filter))
+				.forEach(function(obj:ILinkableObject):void { getCallbacks(obj).triggerCallbacks(); });
 		}
 	}
 }
