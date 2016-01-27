@@ -341,22 +341,35 @@ package weave.utils
 		 */
 		public static function getGeoJsonGeometries(geometryColumn:IAttributeColumn, keys:Array, minImportance:Number = 0, visibleBounds:IBounds2D = null):Array
 		{
+			var map_input_output:Dictionary = new Dictionary(true);
 			var output:Array = new Array(keys.length);
+			var outputGeoms:Array;
 			for (var i:int = 0; i < keys.length; i++)
 			{
 				var key:IQualifiedKey = keys[i];
-				var genGeoms:Array = geometryColumn.getValueFromKey(key, Array) as Array;
-				if (genGeoms)
+				var inputGeoms:Array = geometryColumn.getValueFromKey(key, Array) as Array;
+				if (inputGeoms)
 				{
-					var geoJsonGeoms:Array = [];
-					for each (var genGeom:GeneralizedGeometry in genGeoms)
+					if (map_input_output[inputGeoms] !== undefined)
 					{
-						var geoJsonGeom:Object = genGeom.toGeoJson(minImportance, visibleBounds);
-						if (geoJsonGeom)
-							geoJsonGeoms.push(geoJsonGeom);
+						outputGeoms = map_input_output[inputGeoms];
 					}
-					if (geoJsonGeoms.length)
-						output[i] = GeoJSON.getMultiGeomObject(geoJsonGeoms);
+					else
+					{
+						outputGeoms = null;
+						for each (var inputGeom:GeneralizedGeometry in inputGeoms)
+						{
+							var outputGeom:Object = inputGeom.toGeoJson(minImportance, visibleBounds);
+							if (!outputGeom)
+								continue;
+							if (!outputGeoms)
+								outputGeoms = [];
+							outputGeoms.push(outputGeom);
+						}
+						if (outputGeoms)
+							output[i] = GeoJSON.getMultiGeomObject(outputGeoms);
+						map_input_output[inputGeoms] = outputGeoms;
+					}
 				}
 			}
 			return output;
