@@ -64,7 +64,7 @@ package weavejs.data
 		private var d2d_dataSource_metadataHash_column:Dictionary2D = new Dictionary2D();
 		
 		// TEMPORARY SOLUTION for WeaveArchive to access this cache data
-		public var saveCache:Object = null;
+		public const map_root_saveCache:Object = new JS.WeakMap();
 		
 		/**
 		 * Creates a cache dump and modifies the session state so data sources are non-functional.
@@ -161,7 +161,7 @@ package weavejs.data
 			restoreCache(root, output);
 			
 			// TEMPORARY SOLUTION
-			saveCache = output;
+			map_root_saveCache.set(root, output);
 			
 			return output;
 		}
@@ -172,7 +172,7 @@ package weavejs.data
 		 */
 		public function restoreCache(root:ILinkableHashMap, cacheData:Object):void
 		{
-			saveCache = cacheData;
+			map_root_saveCache.set(root, cacheData);
 			for each (var args:Array in cacheData)
 				addToColumnCache.apply(this, [root].concat(args));
 		}

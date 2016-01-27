@@ -143,8 +143,7 @@ package weavejs.core
 			}
 			
 			var columnCache:Object = archive.objects[ARCHIVE_COLUMN_CACHE_AMF] || archive.objects[ARCHIVE_COLUMN_CACHE_JSON];
-			if (columnCache)
-				(WeaveAPI.AttributeColumnCache as AttributeColumnCache).restoreCache(weave.root, columnCache);
+			(WeaveAPI.AttributeColumnCache as AttributeColumnCache).restoreCache(weave.root, columnCache);
 			
 			var fileName:String;
 			for (fileName in archive.files)
@@ -179,8 +178,9 @@ package weavejs.core
 //				archive.objects[ARCHIVE_URL_CACHE_AMF] = WeaveAPI.URLRequestUtils.getCache();
 			
 			// TEMPORARY SOLUTION - column cache
-			if (WeaveAPI.AttributeColumnCache['saveCache'])
-				archive.objects[ARCHIVE_COLUMN_CACHE_AMF] = WeaveAPI.AttributeColumnCache['saveCache'];
+			var columnCache:Object = WeaveAPI.AttributeColumnCache['map_root_saveCache'].get(weave.root);
+			if (columnCache)
+				archive.objects[ARCHIVE_COLUMN_CACHE_AMF] = columnCache;
 			
 			return archive;
 		}

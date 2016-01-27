@@ -421,8 +421,7 @@ package weave
 				
 				// load column cache if present - must be done after loading session history because data sources must be present
 				var columnCache:Object = archive.objects[WeaveArchive.ARCHIVE_COLUMN_CACHE_AMF];
-				if (columnCache)
-					(WeaveAPI.AttributeColumnCache as AttributeColumnCache).restoreCache(columnCache);
+				(WeaveAPI.AttributeColumnCache as AttributeColumnCache).restoreCache(columnCache);
 			}
 			
 			// hack for forcing VisApplication menu to refresh
