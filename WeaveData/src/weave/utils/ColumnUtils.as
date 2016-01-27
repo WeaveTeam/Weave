@@ -366,10 +366,10 @@ package weave.utils
 								outputGeoms = [];
 							outputGeoms.push(outputGeom);
 						}
-						if (outputGeoms)
-							output[i] = GeoJSON.getMultiGeomObject(outputGeoms);
 						map_input_output[inputGeoms] = outputGeoms;
 					}
+					if (outputGeoms)
+						output[i] = GeoJSON.getMultiGeomObject(outputGeoms);
 				}
 			}
 			return output;

@@ -363,10 +363,10 @@ package weavejs.data
 								outputGeoms = [];
 							outputGeoms.push(outputGeom);
 						}
-						if (outputGeoms)
-							output[i] = GeoJSON.getMultiGeomObject(outputGeoms);
 						map_input_output.set(inputGeoms, outputGeoms);
 					}
+					if (outputGeoms)
+						output[i] = GeoJSON.getMultiGeomObject(outputGeoms);
 				}
 			}
 			return output;
