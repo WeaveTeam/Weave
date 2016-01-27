@@ -519,5 +519,14 @@ package
 			
 			return newText;
 		}
+		
+		/**
+		 * For testing purposes.
+		 */
+		public function triggerColumns():void
+		{
+			Weave.getDescendants(root, getDefinition('ReferencedColumn'))
+				.forEach(function(column:ILinkableObject):void { getCallbacks(column).triggerCallbacks(); });
+		}
 	}
 }
