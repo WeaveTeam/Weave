@@ -33,10 +33,10 @@ package weavejs.data.key
 		private var _keysAdded:Array = [];
 		private var _keysRemoved:Array = [];
 		
-		private function setCallbackVariables(keysAdded:Array, keysRemoved:Array):void
+		private function setCallbackVariables(keysAdded:Array = null, keysRemoved:Array = null):void
 		{
-			_keysAdded = keysAdded;
-			_keysRemoved = keysRemoved;
+			_keysAdded = keysAdded || [];
+			_keysRemoved = keysRemoved || [];
 		}
 		
 		public function flushKeys():void
