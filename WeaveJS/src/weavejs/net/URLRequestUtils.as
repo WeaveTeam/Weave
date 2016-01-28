@@ -49,9 +49,14 @@ package weavejs.net
 			if (urlRequest.url.indexOf(LOCAL_FILE_URL_SCHEME) == 0)
 			{
 				var weaveRoot:ILinkableHashMap = Weave.getRoot(relevantContext as ILinkableObject);
-				var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, urlRequest.url);
+				var promise:WeavePromise = get_d2d_weaveRoot_url_promise(weaveRoot, urlRequest.url);
 				if (!promise.getResult() && !promise.getError())
-					promise.setError(Weave.lang("Local file missing: {0}", urlRequest.url.substr(LOCAL_FILE_URL_SCHEME.length)));
+				{
+					if (!weaveRoot)
+						promise.setError(new Error(Weave.lang("To request a local:// URL, the relevantContext must be an ILinkableObject that is registered under an instance of Weave.")));
+					else
+						removeLocalFile(weaveRoot, urlRequest.url.substr(LOCAL_FILE_URL_SCHEME.length));
+				}
 				promise = promise.then(function(byteArray:/*Uint8*/Array):Object {
 					return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):* {
 						switch (responseType) {
@@ -134,14 +139,15 @@ package weavejs.net
 		
 		public static const LOCAL_FILE_URL_SCHEME:String = 'local://';
 		
-		private const d2d_context_url_promise:Dictionary2D = new Dictionary2D();
-		private function get_d2d_context_url_promise(weaveRoot:ILinkableHashMap, url:String):WeavePromise
+		private const d2d_weaveRoot_url_promise:Dictionary2D = new Dictionary2D(true);
+		private function get_d2d_weaveRoot_url_promise(weaveRoot:ILinkableHashMap, url:String):WeavePromise
 		{
-			var promise:WeavePromise = d2d_context_url_promise.get(weaveRoot, url);
+			var context:Object = weaveRoot || this; // use (this) instead of (null) to avoid WeakMap invalid key error
+			var promise:WeavePromise = d2d_weaveRoot_url_promise.get(context, url);
 			if (!promise)
 			{
-				promise = new WeavePromise(weaveRoot).setResult(null);
-				d2d_context_url_promise.set(weaveRoot, url, promise);
+				promise = new WeavePromise(context).setResult(null);
+				d2d_weaveRoot_url_promise.set(context, url, promise);
 			}
 			return promise;
 		}
@@ -149,7 +155,7 @@ package weavejs.net
 		public function saveLocalFile(weaveRoot:ILinkableHashMap, name:String, byteArray:/*Uint8*/Array):String
 		{
 			var url:String = LOCAL_FILE_URL_SCHEME + name;
-			var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, url);
+			var promise:WeavePromise = get_d2d_weaveRoot_url_promise(weaveRoot, url);
 			promise.setResult(byteArray);
 			return url;
 		}
@@ -157,7 +163,7 @@ package weavejs.net
 		public function getLocalFile(weaveRoot:ILinkableHashMap, name:String):/*Uint8*/Array
 		{
 			var url:String = LOCAL_FILE_URL_SCHEME + name;
-			var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, url);
+			var promise:WeavePromise = get_d2d_weaveRoot_url_promise(weaveRoot, url);
 			var result:* = promise.getResult();
 			return result;
 		}
@@ -165,14 +171,15 @@ package weavejs.net
 		public function removeLocalFile(weaveRoot:ILinkableHashMap, name:String):void
 		{
 			var url:String = LOCAL_FILE_URL_SCHEME + name;
-			var promise:WeavePromise = get_d2d_context_url_promise(weaveRoot, url);
-			promise.setResult(null);
-			//promise.setError(Weave.lang('File removed: {0}', url));
+			var promise:WeavePromise = get_d2d_weaveRoot_url_promise(weaveRoot, url);
+			promise.setError(new Error(Weave.lang("Local file missing: {0}", name)));
 		}
 		
 		public function getLocalFileNames(weaveRoot:ILinkableHashMap):Array
 		{
-			return JS.mapKeys(d2d_context_url_promise.map.get(weaveRoot)).sort();
+			return JS.mapKeys(d2d_weaveRoot_url_promise.map.get(weaveRoot)).sort().map(function(url:String):String {
+				return url.substr(LOCAL_FILE_URL_SCHEME.length);
+			});
 		}
 	}
 }

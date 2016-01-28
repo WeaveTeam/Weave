@@ -44,8 +44,8 @@ package weavejs.net
 		public var requestHeaders:Object;
 		
 		/**
-		 * Can be "arraybuffer", "blob", "document", "json", "text" or "uint8array"
-		 * @default "uint8array"
+		 * Can be one of the constants defined in the ResponseType class.
+		 * @see weavejs.net.ResponseType
 		 */
 		public var responseType:String = ResponseType.UINT8ARRAY;
 		
