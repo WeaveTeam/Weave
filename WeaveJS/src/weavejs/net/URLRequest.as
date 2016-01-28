@@ -48,5 +48,10 @@ package weavejs.net
 		 * @default "uint8array"
 		 */
 		public var responseType:String = ResponseType.UINT8ARRAY;
+		
+		/**
+		 * Specifies the mimeType for the Data URI returned when responseType === "datauri".
+		 */
+		public var mimeType:String;
 	}
 }

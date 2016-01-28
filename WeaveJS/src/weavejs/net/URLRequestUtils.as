@@ -21,6 +21,7 @@ package weavejs.net
 	import weavejs.api.net.IURLRequestUtils;
 	import weavejs.util.Dictionary2D;
 	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 	import weavejs.util.WeavePromise;
 
 	public class URLRequestUtils implements IURLRequestUtils
@@ -61,6 +62,8 @@ package weavejs.net
 								return reject(new Error("responseType " + ResponseType.DOCUMENT + " not supported for local files"));
 							case ResponseType.UINT8ARRAY:
 								return resolve(byteArray);
+							case ResponseType.DATAURI:
+								return resolve("data:" + (urlRequest.mimeType || '') + ';base64,' + JS.global.btoa(byteArray));
 						}
 					});
 				});

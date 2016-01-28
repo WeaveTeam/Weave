@@ -23,5 +23,6 @@ package weavejs.net
 		public static const DOCUMENT:String = 'document';
 		public static const JSON:String = 'json';
 		public static const TEXT:String = 'text';
+		public static const DATAURI:String = 'datauri';
 	}
 }
