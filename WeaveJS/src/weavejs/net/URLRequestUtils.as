@@ -26,6 +26,11 @@ package weavejs.net
 
 	public class URLRequestUtils implements IURLRequestUtils
 	{
+		private function byteArrayToDataUri(byteArray:/*Uint8*/Array, mimeType:String):String
+		{
+			return "data:" + (mimeType || '') + ';base64,' + JS.global.btoa(byteArray);
+		}
+		
 		private function byteArrayToString(byteArray:/*Uint8*/Array):String
 		{
 			var CHUNK_SIZE:int = 8192;
@@ -63,7 +68,7 @@ package weavejs.net
 							case ResponseType.UINT8ARRAY:
 								return resolve(byteArray);
 							case ResponseType.DATAURI:
-								return resolve("data:" + (urlRequest.mimeType || '') + ';base64,' + JS.global.btoa(byteArray));
+								return resolve(byteArrayToDataUri(byteArray, urlRequest.mimeType));
 						}
 					});
 				});
@@ -81,7 +86,7 @@ package weavejs.net
 					for (var name:String in urlRequest.requestHeaders)
 						xhr.setRequestHeader(name, urlRequest.requestHeaders[name], false);
 					
-					if (urlRequest.responseType === ResponseType.UINT8ARRAY)
+					if (urlRequest.responseType === ResponseType.UINT8ARRAY || urlRequest.responseType === ResponseType.DATAURI)
 						xhr.responseType = ResponseType.ARRAYBUFFER;
 					else
 						xhr.responseType = urlRequest.responseType;
@@ -91,6 +96,8 @@ package weavejs.net
 						
 						if (urlRequest.responseType === ResponseType.UINT8ARRAY)
 							result = new JS.Uint8Array(result);
+						if (urlRequest.responseType === ResponseType.DATAURI)
+							result = byteArrayToDataUri(new JS.Uint8Array(result), urlRequest.mimeType);
 						
 						resolve(result);
 						done = true;
