@@ -21,7 +21,6 @@ package weavejs.net
 	import weavejs.api.net.IURLRequestUtils;
 	import weavejs.util.Dictionary2D;
 	import weavejs.util.JS;
-	import weavejs.util.StandardLib;
 	import weavejs.util.WeavePromise;
 
 	public class URLRequestUtils implements IURLRequestUtils
@@ -45,6 +44,8 @@ package weavejs.net
 		
 		public function request(relevantContext:Object, urlRequest:URLRequest):WeavePromise
 		{
+			var responseType:String = urlRequest.responseType || ResponseType.UINT8ARRAY;
+			
 			if (urlRequest.url.indexOf(LOCAL_FILE_URL_SCHEME) == 0)
 			{
 				var weaveRoot:ILinkableHashMap = Weave.getRoot(relevantContext as ILinkableObject);
@@ -53,7 +54,7 @@ package weavejs.net
 					promise.setError(Weave.lang("Local file missing: {0}", urlRequest.url.substr(LOCAL_FILE_URL_SCHEME.length)));
 				promise = promise.then(function(byteArray:/*Uint8*/Array):Object {
 					return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):* {
-						switch (urlRequest.responseType) {
+						switch (responseType) {
 							default:
 							case ResponseType.TEXT:
 								return resolve(byteArrayToString(byteArray));
@@ -82,21 +83,21 @@ package weavejs.net
 					var ie9_XHR:Class = JS.global.XDomainRequest;
 					var XHR:Class = ie9_XHR || JS.global.XMLHttpRequest;
 					var xhr:Object = new XHR();
-					xhr.open(urlRequest.method, urlRequest.url, true);
+					xhr.open(urlRequest.method || RequestMethod.GET, urlRequest.url, true);
 					for (var name:String in urlRequest.requestHeaders)
 						xhr.setRequestHeader(name, urlRequest.requestHeaders[name], false);
 					
-					if (urlRequest.responseType === ResponseType.UINT8ARRAY || urlRequest.responseType === ResponseType.DATAURI)
+					if (responseType === ResponseType.UINT8ARRAY || responseType === ResponseType.DATAURI)
 						xhr.responseType = ResponseType.ARRAYBUFFER;
 					else
-						xhr.responseType = urlRequest.responseType;
+						xhr.responseType = responseType;
 					
 					xhr.onload = function(event:*):void {
 						var result:* = ie9_XHR ? xhr.responseText : xhr.response;
 						
-						if (urlRequest.responseType === ResponseType.UINT8ARRAY)
+						if (responseType === ResponseType.UINT8ARRAY)
 							result = new JS.Uint8Array(result);
-						if (urlRequest.responseType === ResponseType.DATAURI)
+						if (responseType === ResponseType.DATAURI)
 							result = byteArrayToDataUri(new JS.Uint8Array(result), urlRequest.mimeType);
 						
 						resolve(result);
