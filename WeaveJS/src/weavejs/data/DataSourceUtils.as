@@ -15,30 +15,31 @@
 
 package weavejs.data
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.data.ColumnMetadata;
 	import weavejs.api.data.DataType;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IQualifiedKey;
-	import weavejs.util.StandardLib;
 	import weavejs.data.column.DateColumn;
 	import weavejs.data.column.NumberColumn;
 	import weavejs.data.column.ProxyColumn;
 	import weavejs.data.column.StringColumn;
 	import weavejs.data.key.QKeyManager;
-
+	import weavejs.util.StandardLib;
+	
 	public class DataSourceUtils
 	{
 		private static const numberRegex:RegExp = /^(0|0?\\.[0-9]+|[1-9][0-9]*(\\.[0-9]+)?)([eE][-+]?[0-9]+)?$/;
-
+		
 		public static function guessDataType(data:Array):String
 		{
 			var dateFormats:Array = DateColumn.detectDateFormats(data);
 			if (dateFormats.length)
 				return DataType.DATE;
-
+			
 			for each (var value:* in data)
-				if (value != null && !(value is Number) && !numberRegex.test(value))
-					return DataType.STRING;
+			if (value != null && !(value is Number) && !numberRegex.test(value))
+				return DataType.STRING;
 			
 			return DataType.NUMBER;
 		}
@@ -53,7 +54,7 @@ package weavejs.data
 		{
 			var metadata:Object = proxyColumn.getProxyMetadata();
 			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
-			if (!dataType && data is Vector.<Number>)
+			if (!dataType && StandardLib.getArrayType(data) === Number)
 				dataType = DataType.NUMBER;
 			if (!dataType)
 			{
@@ -62,16 +63,16 @@ package weavejs.data
 				proxyColumn.setMetadata(metadata);
 			}
 			
-			var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
+			var qkeys:Array;
 			if (StandardLib.arrayIsType(keys, IQualifiedKey))
 			{
-				keysVector = Vector.<IQualifiedKey>(keys);
+				qkeys = keys;
 				asyncCallback();
 			}
 			else
 			{
-				keysVector = new Vector.<IQualifiedKey>();
-				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, metadata[ColumnMetadata.KEY_TYPE], keys, asyncCallback, keysVector);
+				qkeys = [];
+				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, metadata[ColumnMetadata.KEY_TYPE], keys, asyncCallback, qkeys);
 			}
 			
 			function asyncCallback():void
@@ -80,17 +81,17 @@ package weavejs.data
 				if (dataType == DataType.NUMBER)
 				{
 					newColumn = new NumberColumn(metadata);
-					(newColumn as NumberColumn).setRecords(keysVector, data);
+					(newColumn as NumberColumn).setRecords(qkeys, data);
 				}
 				else if (dataType == DataType.DATE)
 				{
 					newColumn = new DateColumn(metadata);
-					(newColumn as DateColumn).setRecords(keysVector, Vector.<String>(data));
+					(newColumn as DateColumn).setRecords(qkeys, data);
 				}
 				else
 				{
 					newColumn = new StringColumn(metadata);
-					(newColumn as StringColumn).setRecords(keysVector, Vector.<String>(data));
+					(newColumn as StringColumn).setRecords(qkeys, data);
 				}
 				proxyColumn.setInternalColumn(newColumn);
 			}

@@ -156,8 +156,9 @@ package weavejs.data.source
 			var ctn:ColumnTreeNode = new ColumnTreeNode({dataSource: this, idFields: idFields, data: metadata});
 			return ctn; 
 		}
+		
         override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
-        {   		
+        {
         	var metadata:Object = ColumnMetadata.getAllMetadata(proxyColumn);
         	
 			api.getColumn(metadata).then(
@@ -171,10 +172,6 @@ package weavejs.data.source
 					proxyColumn.setMetadata(columnInfo.metadata);
 					
 					DataSourceUtils.initColumn(proxyColumn, columnInfo.keys, columnInfo.data);
-				},
-				function (error:Fault):void
-				{
-					proxyColumn.dataUnavailable(error.faultString);
 				}
 			);
         }

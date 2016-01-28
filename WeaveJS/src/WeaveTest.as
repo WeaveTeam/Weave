@@ -67,11 +67,11 @@ package
 	import weavejs.data.key.KeySetUnion;
 	import weavejs.data.key.SortedKeySet;
 	import weavejs.data.source.CSVDataSource;
+	import weavejs.data.source.CensusDataSource;
 	import weavejs.data.source.ForeignDataMappingTransform;
 	import weavejs.data.source.GeoJSONDataSource;
 	import weavejs.data.source.WeaveDataSource;
 	import weavejs.geom.ZoomBounds;
-	import weavejs.util.DebugUtils;
 	import weavejs.util.JS;
 	
 	public class WeaveTest
@@ -131,6 +131,7 @@ package
 			GeoJSONDataSource,
 			WeaveDataSource,
 			ForeignDataMappingTransform,
+			CensusDataSource,
 			
 			ZoomBounds,
 			WeaveArchive,
