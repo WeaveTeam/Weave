@@ -27,7 +27,7 @@ package weavejs.net
 	{
 		private function byteArrayToDataUri(byteArray:/*Uint8*/Array, mimeType:String):String
 		{
-			return "data:" + (mimeType || '') + ';base64,' + JS.global.btoa(byteArray);
+			return "data:" + (mimeType || '') + ';base64,' + JS.global.btoa(byteArrayToString(byteArray));
 		}
 		
 		private function byteArrayToString(byteArray:/*Uint8*/Array):String
