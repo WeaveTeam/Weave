@@ -171,7 +171,13 @@ package weavejs.net
 		public static function readAmf3Object(bytes:/*Uint8*/Array):Object
 		{
 			// length may be zero for void result
-			return bytes && bytes.length && new JSByteArray(bytes).readObject();
+			var obj:Object = bytes && bytes.length && new JSByteArray(bytes).readObject();
+			
+			// TEMPORARY SOLUTION to detect errors
+			if (obj && (obj.faultCode && obj.faultString))
+				throw new Error(obj.faultCode + ": " + obj.faultString);
+			
+			return obj;
 		}
 		
 		public static function buildUrlWithParams(url:String, params:Object):String
