@@ -45,39 +45,41 @@ package weavejs.net
 		public function request(relevantContext:Object, urlRequest:URLRequest):WeavePromise
 		{
 			var responseType:String = urlRequest.responseType || ResponseType.UINT8ARRAY;
+			var promise:WeavePromise;
 			
 			if (urlRequest.url.indexOf(LOCAL_FILE_URL_SCHEME) == 0)
 			{
+				var fileName:String = urlRequest.url.substr(LOCAL_FILE_URL_SCHEME.length);
 				var weaveRoot:ILinkableHashMap = Weave.getRoot(relevantContext as ILinkableObject);
-				var promise:WeavePromise = get_d2d_weaveRoot_url_promise(weaveRoot, urlRequest.url);
-				if (!promise.getResult() && !promise.getError())
+				var cachedPromise:WeavePromise = get_d2d_weaveRoot_fileName_promise(weaveRoot, fileName);
+				if (cachedPromise.getResult() == null && cachedPromise.getError() == null)
 				{
-					if (!weaveRoot)
-						promise.setError(new Error(Weave.lang("To request a local:// URL, the relevantContext must be an ILinkableObject that is registered under an instance of Weave.")));
+					if (weaveRoot)
+						removeLocalFile(weaveRoot, fileName);
 					else
-						removeLocalFile(weaveRoot, urlRequest.url.substr(LOCAL_FILE_URL_SCHEME.length));
+						cachedPromise.setError(new Error(Weave.lang("To request a " + LOCAL_FILE_URL_SCHEME + " URL, the relevantContext must be an ILinkableObject registered under an instance of Weave.")));
 				}
-				promise = promise.then(function(byteArray:/*Uint8*/Array):Object {
-					return new WeavePromise(relevantContext, function(resolve:Function, reject:Function):* {
+				promise = new WeavePromise(relevantContext)
+					.setResult(cachedPromise)
+					.then(function(byteArray:/*Uint8*/Array):Object {
 						switch (responseType) {
 							default:
 							case ResponseType.TEXT:
-								return resolve(byteArrayToString(byteArray));
+								return byteArrayToString(byteArray);
 							case ResponseType.JSON:
-								return resolve(JSON.parse(byteArrayToString(byteArray)));
+								return JSON.parse(byteArrayToString(byteArray));
 							case ResponseType.BLOB:
-								return resolve(new JS.global.Blob([byteArray.buffer]));
+								return new JS.global.Blob([byteArray.buffer]);
 							case ResponseType.ARRAYBUFFER:
-								return resolve(byteArray.buffer);
+								return byteArray.buffer;
 							case ResponseType.DOCUMENT:
-								return reject(new Error("responseType " + ResponseType.DOCUMENT + " not supported for local files"));
+								throw new Error("responseType " + ResponseType.DOCUMENT + " not supported for local files");
 							case ResponseType.UINT8ARRAY:
-								return resolve(byteArray);
+								return byteArray;
 							case ResponseType.DATAURI:
-								return resolve(byteArrayToDataUri(byteArray, urlRequest.mimeType));
+								return byteArrayToDataUri(byteArray, urlRequest.mimeType);
 						}
 					});
-				});
 			}
 			else
 			{
@@ -139,47 +141,42 @@ package weavejs.net
 		
 		public static const LOCAL_FILE_URL_SCHEME:String = 'local://';
 		
-		private const d2d_weaveRoot_url_promise:Dictionary2D = new Dictionary2D(true);
-		private function get_d2d_weaveRoot_url_promise(weaveRoot:ILinkableHashMap, url:String):WeavePromise
+		private const d2d_weaveRoot_fileName_promise:Dictionary2D = new Dictionary2D(true);
+		private function get_d2d_weaveRoot_fileName_promise(weaveRoot:ILinkableHashMap, fileName:String):WeavePromise
 		{
 			var context:Object = weaveRoot || this; // use (this) instead of (null) to avoid WeakMap invalid key error
-			var promise:WeavePromise = d2d_weaveRoot_url_promise.get(context, url);
+			var promise:WeavePromise = d2d_weaveRoot_fileName_promise.get(context, fileName);
 			if (!promise)
 			{
 				promise = new WeavePromise(context).setResult(null);
-				d2d_weaveRoot_url_promise.set(context, url, promise);
+				d2d_weaveRoot_fileName_promise.set(context, fileName, promise);
 			}
 			return promise;
 		}
 		
-		public function saveLocalFile(weaveRoot:ILinkableHashMap, name:String, byteArray:/*Uint8*/Array):String
+		public function saveLocalFile(weaveRoot:ILinkableHashMap, fileName:String, byteArray:/*Uint8*/Array):String
 		{
-			var url:String = LOCAL_FILE_URL_SCHEME + name;
-			var promise:WeavePromise = get_d2d_weaveRoot_url_promise(weaveRoot, url);
+			var promise:WeavePromise = get_d2d_weaveRoot_fileName_promise(weaveRoot, fileName);
 			promise.setResult(byteArray);
-			return url;
+			return LOCAL_FILE_URL_SCHEME + fileName;
 		}
 		
-		public function getLocalFile(weaveRoot:ILinkableHashMap, name:String):/*Uint8*/Array
+		public function getLocalFile(weaveRoot:ILinkableHashMap, fileName:String):/*Uint8*/Array
 		{
-			var url:String = LOCAL_FILE_URL_SCHEME + name;
-			var promise:WeavePromise = get_d2d_weaveRoot_url_promise(weaveRoot, url);
+			var promise:WeavePromise = get_d2d_weaveRoot_fileName_promise(weaveRoot, fileName);
 			var result:* = promise.getResult();
 			return result;
 		}
 		
-		public function removeLocalFile(weaveRoot:ILinkableHashMap, name:String):void
+		public function removeLocalFile(weaveRoot:ILinkableHashMap, fileName:String):void
 		{
-			var url:String = LOCAL_FILE_URL_SCHEME + name;
-			var promise:WeavePromise = get_d2d_weaveRoot_url_promise(weaveRoot, url);
-			promise.setError(new Error(Weave.lang("Local file missing: {0}", name)));
+			var promise:WeavePromise = get_d2d_weaveRoot_fileName_promise(weaveRoot, fileName);
+			promise.setError(new Error(Weave.lang("Local file missing: {0}", fileName)));
 		}
 		
 		public function getLocalFileNames(weaveRoot:ILinkableHashMap):Array
 		{
-			return JS.mapKeys(d2d_weaveRoot_url_promise.map.get(weaveRoot)).sort().map(function(url:String):String {
-				return url.substr(LOCAL_FILE_URL_SCHEME.length);
-			});
+			return d2d_weaveRoot_fileName_promise.secondaryKeys(weaveRoot).sort();
 		}
 	}
 }
