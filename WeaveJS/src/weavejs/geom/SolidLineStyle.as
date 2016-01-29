@@ -40,7 +40,7 @@ package weavejs.geom
 		private var _triggerCounter:uint = 0; // used to detect change
 		
 		// This maps an AlwaysDefinedColumn to its preferred value type.
-		private const map_column_dataType:Object = new JS.WeakMap();
+		private const map_column_dataType:Object = new JS.Map();
 		// this maps an AlwaysDefinedColumn to the default value for that column.
 		// if there is an internal column in the AlwaysDefinedColumn, the default value is not stored
 		private const map_column_defaultValue:Object = new JS.Map();
