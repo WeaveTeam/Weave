@@ -30,6 +30,8 @@ package
 	import weavejs.data.ColumnUtils;
 	import weavejs.data.StatisticsCache;
 	import weavejs.data.key.QKeyManager;
+	import weavejs.geom.SolidFillStyle;
+	import weavejs.geom.SolidLineStyle;
 	import weavejs.net.URLRequestUtils;
 	
 	public class WeaveJS
@@ -72,6 +74,8 @@ package
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ILocale, Locale);
 			Weave.registerClass("FlexibleLayout", LinkableVariable);
 			Weave.registerClass("ExternalTool", LinkableHashMap);
+			Weave.registerClass("ExtendedFillStyle", SolidFillStyle);
+			Weave.registerClass("ExtendedLineStyle", SolidLineStyle);
 			
 			// TEMPORARY HACK - omit keySet filter
 //			var joinColumns:Function = ColumnUtils.joinColumns;

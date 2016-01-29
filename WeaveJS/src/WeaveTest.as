@@ -71,6 +71,8 @@ package
 	import weavejs.data.source.ForeignDataMappingTransform;
 	import weavejs.data.source.GeoJSONDataSource;
 	import weavejs.data.source.WeaveDataSource;
+	import weavejs.geom.SolidFillStyle;
+	import weavejs.geom.SolidLineStyle;
 	import weavejs.geom.ZoomBounds;
 	import weavejs.util.JS;
 	
@@ -136,6 +138,8 @@ package
 			ZoomBounds,
 			WeaveArchive,
 			WeaveRootDataTreeNode,
+			SolidLineStyle,
+			SolidFillStyle,
 			
 			null
 		];
