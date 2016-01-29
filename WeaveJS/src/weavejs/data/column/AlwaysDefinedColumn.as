@@ -31,7 +31,7 @@ package weavejs.data.column
 		public function AlwaysDefinedColumn(defaultValue:* = undefined, defaultValueVerifier:Function = null)
 		{
 			super();
-			_defaultValue = new LinkableVariable(defaultValue, defaultValueVerifier);
+			_defaultValue = new LinkableVariable(null, defaultValueVerifier, defaultValue);
 			Weave.linkableChild(this, _defaultValue, handleDefaultValueChange);
 		}
 
