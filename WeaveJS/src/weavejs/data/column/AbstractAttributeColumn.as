@@ -117,7 +117,12 @@ package weavejs.data.column
 			
 			var value:* = dataCache.get(dataType, key);
 			if (value === undefined)
-				dataCache.set(dataType, key, value = dataType(generateValue(key, dataType)));
+			{
+				value = generateValue(key, dataType);
+				if (!value is dataType)
+					throw new Error("generateValue() did not produce a value of the requested type. Expected " + Weave.className(dataType) + ", got " + Weave.className(value));
+				dataCache.set(dataType, key, value);
+			}
 			return value;
 		}
 		
