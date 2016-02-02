@@ -56,7 +56,7 @@ package weavejs.core
 			if (!obj)
 				return [];
 			
-			var className:String = Weave.className(obj);
+			var className:String = Weave.className(LinkablePlaceholder.getClass(obj));
 			var sessionState:Object = obj as Array || Weave.getState(obj as ILinkableObject);
 			return [DynamicState.create(null, className, sessionState)];
 		}
@@ -191,9 +191,13 @@ package weavejs.core
 			
 			if ( Weave.isLinkable(classDef) && (_typeRestriction == null || classDef === _typeRestriction || classDef.prototype is _typeRestriction) )
 			{
-				var obj:Object = target;
-				if (!obj || obj.constructor != classDef)
-					super.target = new classDef();
+				if (classDef != LinkablePlaceholder.getClass(target))
+				{
+					if (Weave.isAsyncClass(classDef))
+						super.target = new LinkablePlaceholder(classDef);
+					else
+						super.target = new classDef();
+				}
 			}
 			else
 			{
@@ -247,7 +251,7 @@ package weavejs.core
 		public function requestLocalObjectCopy(objectToCopy:ILinkableObject):void
 		{
 			cc.delayCallbacks(); // make sure callbacks only trigger once
-			var classDef:Class = objectToCopy ? Object(objectToCopy).constructor : null;
+			var classDef:Class = LinkablePlaceholder.getClass(objectToCopy);
 			var object:ILinkableObject = requestLocalObject(classDef, false);
 			if (object != null && objectToCopy != null)
 				Weave.copyState(objectToCopy, object);

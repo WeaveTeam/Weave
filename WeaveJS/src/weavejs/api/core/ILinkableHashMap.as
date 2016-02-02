@@ -67,10 +67,17 @@ package weavejs.api.core
 
 		/**
 		 * This function gets the object associated with the specified name.
-		 * @param name The identifying name to associate with an object.
+		 * @param name The name identifying an object in the hash map.
 		 * @return The object associated with the given name.
 		 */
 		function getObject(name:String):ILinkableObject;
+		
+		/**
+		 * Sets an entry in the hash map, replacing any existing object under the same name.
+		 * @param name The identifying name to associate with an object.
+		 * @return The object to be associated with the given name.
+		 */
+		function setObject(name:String, object:ILinkableObject):void;
 
 		/**
 		 * This function creates an object in the hash map if it doesn't already exist.

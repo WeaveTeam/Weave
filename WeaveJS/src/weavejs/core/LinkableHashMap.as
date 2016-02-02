@@ -70,6 +70,7 @@ package weavejs.core
 			}
 			return result;
 		}
+		
 		public function getObjects(filter:Class = null):Array
 		{
 			var result:Array = [];
@@ -82,14 +83,57 @@ package weavejs.core
 			}
 			return result;
 		}
+		
 		public function getObject(name:String):ILinkableObject
 		{
 			return _nameToObjectMap[name];
 		}
+		
+		public function setObject(name:String, object:ILinkableObject):void
+		{
+			if (_nameToObjectMap[name] === object)
+				return;
+			
+			if (Weave.getOwner(object))
+				throw new Error("LinkableHashMap cannot accept an object that is already registered with an owner.");
+			
+			delayCallbacks();
+			
+			if (object)
+			{
+				// preserve name order
+				var order:Array = _orderedNames.concat();
+				if (order.indexOf(name) < 0)
+					order.push(name);
+				
+				// remove any object currently using this name
+				removeObject(name);
+				// register the object as a child of this LinkableHashMap
+				Weave.linkableChild(this, object);
+				// save the name-object mappings
+				_nameToObjectMap[name] = object;
+				_map_objectToNameMap.set(object, name);
+				// remember that this name was used.
+				_previousNameMap[name] = true;
+				
+				// preserve name order
+				setNameOrder(order);
+				// make sure the callback variables signal that the object was added
+				_childListCallbacks.runCallbacks(name, object, null);
+			}
+			else
+			{
+				removeObject(name);
+			}
+			
+			resumeCallbacks();
+		}
+		
 		public function getName(object:ILinkableObject):String
 		{
 			return _map_objectToNameMap.get(object);
 		}
+		
 		public function setNameOrder(newOrder:Array):void
 		{
 			var changeDetected:Boolean = false;
@@ -146,8 +190,7 @@ package weavejs.core
 			}
 			
 			delayCallbacks(); // make sure callbacks only trigger once
-			//var className:String = Weave.className(objectToCopy);
-			var classDef:Class = Object(objectToCopy).constructor; //ClassUtils.getClassDefinition(className);
+			var classDef:Class = LinkablePlaceholder.getClass(objectToCopy);
 			var sessionState:Object = Weave.getState(objectToCopy);
 			//  if the name refers to the same object, remove the existing object so it can be replaced with a new one.
 			if (name == getName(objectToCopy))
@@ -205,7 +248,7 @@ package weavejs.core
 						// If this name is not associated with an object of the specified type,
 						// associate the name with a new object of the specified type.
 						var object:Object = _nameToObjectMap[name];
-						if (!object || object.constructor != classDef)
+						if (classDef != LinkablePlaceholder.getClass(object))
 							createAndSaveNewObject(name, classDef, lockObject);
 						else if (lockObject)
 							this.lockObject(name);
@@ -237,26 +280,38 @@ package weavejs.core
 	    {
 	    	if (_nameIsLocked[name])
 	    		return;
-
-			// remove any object currently using this name
-			removeObject(name);
-			// create a new object
-			var object:ILinkableObject = new classDef();
-			// register the object as a child of this LinkableHashMap
-			Weave.linkableChild(this, object);
-			// save the name-object mappings
-			_nameToObjectMap[name] = object;
-			_map_objectToNameMap.set(object, name);
-			// add the name to the end of _orderedNames
-			_orderedNames.push(name);
-			// remember that this name was used.
-			_previousNameMap[name] = true;
-			
-			if (lockObject)
-				this.lockObject(name);
-
-			// make sure the callback variables signal that the object was added
-			_childListCallbacks.runCallbacks(name, object, null);
+			try
+			{
+				delayCallbacks();
+				
+				// remove any object currently using this name
+				removeObject(name);
+				// create a new object
+				var object:ILinkableObject;
+				if (Weave.isAsyncClass(classDef))
+					object = new LinkablePlaceholder(classDef);
+				else
+					object = new classDef();
+				// register the object as a child of this LinkableHashMap
+				Weave.linkableChild(this, object);
+				// save the name-object mappings
+				_nameToObjectMap[name] = object;
+				_map_objectToNameMap.set(object, name);
+				// add the name to the end of _orderedNames
+				_orderedNames.push(name);
+				// remember that this name was used.
+				_previousNameMap[name] = true;
+				
+				if (lockObject)
+					this.lockObject(name);
+	
+				// make sure the callback variables signal that the object was added
+				_childListCallbacks.runCallbacks(name, object, null);
+			}
+			finally
+			{
+				resumeCallbacks();
+			}
 	    }
 		
 		/**
@@ -344,7 +399,7 @@ package weavejs.core
 				var object:ILinkableObject = _nameToObjectMap[name];
 				result[i] = DynamicState.create(
 						name,
-						Weave.className(object),
+						Weave.className(LinkablePlaceholder.getClass(object)),
 						Weave.getState(object)
 					);
 			}

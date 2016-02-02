@@ -28,6 +28,13 @@ package weavejs.api.core
 		function get internalObject():ILinkableObject;
 		
 		/**
+		 * This is the local or global internal object.
+		 * Setting this will unset the targetPath.
+		 */		
+		function get target():ILinkableObject;
+		function set target(newTarget:ILinkableObject):void;
+		
+		/**
 		 * This is the path that is currently being watched for linkable object targets.
 		 */
 		function get targetPath():Array;

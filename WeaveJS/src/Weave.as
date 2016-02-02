@@ -380,6 +380,50 @@ package
 		// static general helper functions
 		//////////////////////////////////////////////////////////////////////////////////
 		
+		private static const map_class_isAsync:Object = new JS.Map();
+		
+		/**
+		 * Registers a class that must be instantiated asynchronously.
+		 * Dynamic items in the session state that extend this class will be replaced with
+		 * LinkablePlaceholder objects that can be replaced with actual instances later.
+		 */
+		public static function registerAsyncClass(type:Class):void
+		{
+			map_class_isAsync.set(type, true);
+			
+			// update previously-cached types in case async status has changed
+			for each (var cachedType:Class in JS.mapKeys(map_class_isAsync))
+			{
+				if (!map_class_isAsync.get(cachedType) && type.isPrototypeOf(cachedType))
+				{
+					// new type is in the prototype chain of a non-async type
+					map_class_isAsync.set(cachedType, true);
+				}
+			}
+		}
+		
+		/**
+		 * Checks if a class is or extends one that was registered through registerAsyncClass().
+		 */
+		public static function isAsyncClass(type:Class):Boolean
+		{
+			if (map_class_isAsync.has(type))
+				return map_class_isAsync.get(type);
+			
+			for each (var cachedType:Class in JS.mapKeys(map_class_isAsync))
+			{
+				if (map_class_isAsync.get(cachedType) && cachedType.isPrototypeOf(type))
+				{
+					// new type extends registered async type
+					map_class_isAsync.set(type, true);
+					return true;
+				}
+			}
+			// new type does not extend any registered async type
+			map_class_isAsync.set(type, false);
+			return false;
+		}
+		
 		/**
 		 * Registers an ILinkableObject class for use with Weave.className() and Weave.getDefinition().
 		 */

@@ -224,8 +224,8 @@ package weavejs.core
 				}
 			}
 			
-			// we found a desired target if there is no type restriction or the object fits the restriction
-			_foundTarget = !_typeRestriction || node is _typeRestriction;
+			// we found a desired target if (there is no type restriction or the object fits the restriction) and it's not a placeholder
+			_foundTarget = (!_typeRestriction || node is _typeRestriction) && !(node is LinkablePlaceholder);
 			internalSetTarget(node);
 		}
 		
