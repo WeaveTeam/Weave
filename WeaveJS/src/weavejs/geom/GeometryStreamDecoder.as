@@ -206,7 +206,7 @@ package weavejs.geom
 			var tiles:Array = []; // array of descriptor objects containing kdKey and tileID
 			// read tile descriptors from stream
 			var tileID:int = 0;
-			while (stream.pos < stream.length)
+			while (stream.position < stream.length)
 			{
 				var kdKey:Array = new Array(KD_DIMENSIONALITY);
 				kdKey[XMIN_INDEX] = stream.readDouble();
@@ -214,7 +214,7 @@ package weavejs.geom
 				kdKey[XMAX_INDEX] = stream.readDouble();
 				kdKey[YMAX_INDEX] = stream.readDouble();
 				kdKey[IMAX_INDEX] = stream.readFloat();
-				if (stream.pos > stream.length)
+				if (stream.position > stream.length)
 					throw new Error("Unexpected EOF in stream");
 				if (debug)
 					JS.log((tileTree == metadataTiles ? "metadata tile" : "geometry tile") + " " + tileID + "[" + kdKey + "]");
@@ -282,7 +282,7 @@ package weavejs.geom
 				var geometryID:int;
 				var key:IQualifiedKey;
 				// read objects from stream
-				while (stream.pos < stream.length)
+				while (stream.position < stream.length)
 				{
 					flag = stream.readInt();
 					if (flag < 0) // flag is negativeTileID
@@ -297,10 +297,10 @@ package weavejs.geom
 							if (flag < 0)
 								streamVersion = -flag;
 							else
-								stream.pos -= 4; // version 0; rewind
+								stream.position -= 4; // version 0; rewind
 
 							if (debug)
-								JS.log("got metadata tileID=" + tileID + "; "+stream.pos+'/'+stream.length);
+								JS.log("got metadata tileID=" + tileID + "; "+stream.position+'/'+stream.length);
 						}
 						else
 						{
@@ -313,7 +313,7 @@ package weavejs.geom
 						
 						// allow resuming later after finding a tileID.
 						if (JS.now() > stopTime)
-							return stream.pos / stream.length;
+							return stream.position / stream.length;
 					}
 					else // flag is geometryID
 					{
@@ -343,7 +343,7 @@ package weavejs.geom
 						
 						// read part markers
 						var prev:int = 0;
-						while (stream.pos < stream.length)
+						while (stream.position < stream.length)
 						{
 							vertexID = stream.readInt(); // read next vertexID
 							//JS.log("vID=",vertexID);
@@ -418,17 +418,17 @@ package weavejs.geom
 		
 		private function readString(stream:JSByteArray):String
 		{
-			var start:int = stream.pos;
-			while (stream.pos < stream.length)
+			var start:int = stream.position;
+			while (stream.position < stream.length)
 			{
 				var byte:int = stream.readByte();
 				if (byte == 0) // if \0 char is found (end of string)
 					break;
 			}
-			var end:int = stream.pos - 1;
-			stream.pos = start;
-			var str:String = stream.readString(end - start);
-			stream.pos = end + 1;
+			var end:int = stream.position - 1;
+			stream.position = start;
+			var str:String = stream.readUTFBytes(end - start);
+			stream.position = end + 1;
 			return str;
 		}
 
@@ -448,7 +448,7 @@ package weavejs.geom
 				var vertexID:int;
 				var x:Number, y:Number, importance:Number = 0;
 				// read objects from stream
-				while (stream.pos < stream.length)
+				while (stream.position < stream.length)
 				{
 					flag = stream.readInt();
 					//JS.log("flag",flag);
@@ -466,7 +466,7 @@ package weavejs.geom
 							if (flag < 0)
 								streamVersion = -flag;
 							else
-								stream.pos -= 4; // version 0; rewind
+								stream.position -= 4; // version 0; rewind
 
 							if (debug)
 								JS.log("got geometry tileID=" + tileID + "; "+stream.length);
@@ -482,7 +482,7 @@ package weavejs.geom
 						
 						// allow resuming later after finding a tileID.
 						if (JS.now() > stopTime)
-							return stream.pos / stream.length;
+							return stream.position / stream.length;
 					}
 					else // flag is geometryID
 					{
@@ -493,7 +493,7 @@ package weavejs.geom
 						geometryIDArray.length = 0;
 						vertexIDArray.length = 0;
 						geometryIDArray.push(geometryID); // save first geometryID
-						while (stream.pos < stream.length)
+						while (stream.position < stream.length)
 						{
 							vertexID = stream.readInt(); // read vertexID for current geometryID
 							if (vertexID < 0)

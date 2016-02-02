@@ -71,7 +71,7 @@ package weavejs.util
 		public var data:/*Uint8*/Array;
 		public var dataView:Object; // DataView
 		public var length:int = 0;
-		public var pos:int = 0;
+		public var position:int = 0;
 		public var littleEndian:Boolean = false;
 		public var objectEncoding:int = ENCODING_AMF3;
 		public var stringTable:Array = [];
@@ -99,22 +99,27 @@ package weavejs.util
 		
 		public function readByte():int
 		{
-			return data[pos++] & 0xFF;
+			return data[position++];
+		}
+	
+		public function readUnsignedByte():int
+		{
+			return data[position++] & 0xFF;
 		}
 	
 		public function readBoolean():Boolean
 		{
-			return data[pos++] & 0xFF ? true : false;
+			return data[position++] & 0xFF ? true : false;
 		}
 	
 		private function readUInt30():int
 		{
 			if (littleEndian)
 				return readUInt30LE();
-			var ch1:int = data[pos++] & 0xFF;
-			var ch2:int = data[pos++] & 0xFF;
-			var ch3:int = data[pos++] & 0xFF;
-			var ch4:int = data[pos++] & 0xFF;
+			var ch1:int = data[position++] & 0xFF;
+			var ch2:int = data[position++] & 0xFF;
+			var ch3:int = data[position++] & 0xFF;
+			var ch4:int = data[position++] & 0xFF;
 	
 			if (ch1 >= 64)
 				return undefined;
@@ -124,43 +129,43 @@ package weavejs.util
 	
 		public function readUnsignedInt/*readUInt32*/():int
 		{
-			var value:int = dataView.getUint32(pos, littleEndian);
-			pos += 4;
+			var value:int = dataView.getUint32(position, littleEndian);
+			position += 4;
 			return value;
 		}
 		
 		public function readInt/*readInt32*/():int
 		{
-			var value:int = dataView.getInt32(pos, littleEndian);
-			pos += 4;
+			var value:int = dataView.getInt32(position, littleEndian);
+			position += 4;
 			return value;
 		}
 	
 		public function readUnsignedShort/*readUInt16*/():int
 		{
-			var value:int = dataView.getUint16(pos, littleEndian);
-			pos += 2;
+			var value:int = dataView.getUint16(position, littleEndian);
+			position += 2;
 			return value;
 		}
 		
 		public function readShort/*readInt16*/():int
 		{
-			var value:int = dataView.getInt16(pos, littleEndian);
-			pos += 2;
+			var value:int = dataView.getInt16(position, littleEndian);
+			position += 2;
 			return value;
 		}
 	
 		public function readFloat/*readFloat32*/():Number
 		{
-			var value:Number = dataView.getFloat32(pos, littleEndian);
-			pos += 4;
+			var value:Number = dataView.getFloat32(position, littleEndian);
+			position += 4;
 			return value;
 		}
 	
 		public function readDouble/*readFloat64*/():Number
 		{
-			var value:Number = dataView.getFloat64(pos, littleEndian);
-			pos += 8;
+			var value:Number = dataView.getFloat64(position, littleEndian);
+			position += 8;
 			return value;
 		}
 	
@@ -169,35 +174,35 @@ package weavejs.util
 			var value:int;
 	
 			// Each byte must be treated as unsigned
-			var b:int = data[pos++] & 0xFF;
+			var b:int = data[position++] & 0xFF;
 	
 			if (b < 128)
 				return b;
 	
 			value = (b & 0x7F) << 7;
-			b = data[pos++] & 0xFF;
+			b = data[position++] & 0xFF;
 	
 			if (b < 128)
 				return (value | b);
 	
 			value = (value | (b & 0x7F)) << 7;
-			b = data[pos++] & 0xFF;
+			b = data[position++] & 0xFF;
 	
 			if (b < 128)
 				return (value | b);
 	
 			value = (value | (b & 0x7F)) << 8;
-			b = data[pos++] & 0xFF;
+			b = data[position++] & 0xFF;
 	
 			return (value | b);
 		}
 	
 		private function readUInt30LE():int
 		{
-			var ch1:int = data[pos++] & 0xFF;
-			var ch2:int = data[pos++] & 0xFF;
-			var ch3:int = data[pos++] & 0xFF;
-			var ch4:int = data[pos++] & 0xFF;
+			var ch1:int = data[position++] & 0xFF;
+			var ch2:int = data[position++] & 0xFF;
+			var ch3:int = data[position++] & 0xFF;
+			var ch4:int = data[position++] & 0xFF;
 	
 			if (ch4 >= 64)
 				return undefined;
@@ -212,21 +217,21 @@ package weavejs.util
 			return new Date(time_ms + tz_min * 60 * 1000);
 		}
 	
-		public function readString(len:int):String
+		public function readUTFBytes(len:int):String
 		{
-			var str:String = new StringView(data, "UTF-8", this.pos, len).toString();
-			this.pos += len;
+			var str:String = new StringView(data, "UTF-8", this.position, len).toString();
+			this.position += len;
 			return str;
 		}
 	
 		public function readUTF():String
 		{
-			return this.readString(this.readUnsignedShort());
+			return this.readUTFBytes(this.readUnsignedShort());
 		}
 	
 		public function readLongUTF():String
 		{
-			return this.readString(this.readUInt30());
+			return this.readUTFBytes(this.readUInt30());
 		}
 	
 		private function stringToXML(str):Object
@@ -267,7 +272,7 @@ package weavejs.util
 			if (0 == len)
 				return "";
 	
-			var str:String = this.readString(len);
+			var str:String = this.readUTFBytes(len);
 	
 			this.stringTable.push(str);
 	
@@ -320,7 +325,7 @@ package weavejs.util
 	
 		private function readAMF0Object():Object
 		{
-			var marker:int = data[pos++] & 0xFF;
+			var marker:int = data[position++] & 0xFF;
 			var value:Object, o:Object;
 	
 			if (marker == AMF0_Number)
@@ -346,14 +351,14 @@ package weavejs.util
 	
 				while (true)
 				{
-					var c1:int = data[pos++] & 0xFF;
-					var c2:int = data[pos++] & 0xFF;
-					var name:String = this.readString((c1 << 8) | c2);
-					var k:int = data[pos++] & 0xFF;
+					var c1:int = data[position++] & 0xFF;
+					var c2:int = data[position++] & 0xFF;
+					var name:String = this.readUTFBytes((c1 << 8) | c2);
+					var k:int = data[position++] & 0xFF;
 					if (k == AMF0_ObjectEnd)
 						break;
 	
-					this.pos--;
+					this.position--;
 	
 					o[name] = this.readObject();
 				}
@@ -380,14 +385,14 @@ package weavejs.util
 				var typeName:String = this.readUTF();
 				
 				var propertyName:String = this.readUTF();
-				var type:int = data[pos++] & 0xFF;
+				var type:int = data[position++] & 0xFF;
 				while (type != AMF0_ObjectEnd)
 				{
 					value = this.readObject();
 					o[propertyName] = value;
 	
 					propertyName = this.readUTF();
-					type = data[pos++] & 0xFF;
+					type = data[position++] & 0xFF;
 				}
 	
 				return o;
@@ -429,7 +434,7 @@ package weavejs.util
 	
 		private function readAMF3Object():Object
 		{
-			var marker:int = data[pos++] & 0xFF;
+			var marker:int = data[position++] & 0xFF;
 			var ref:int, len:int, i:int, value:Object;
 	
 			if (marker == AMF3_Undefined)
@@ -578,7 +583,7 @@ package weavejs.util
 					return null;
 	
 	
-				var str:String = this.readString(len);
+				var str:String = this.readUTFBytes(len);
 	
 				var xml:Object = this.stringToXML(str);
 	
@@ -594,7 +599,7 @@ package weavejs.util
 	
 				len = (ref >> 1);
 				
-				var ba:JSByteArray = new JSByteArray(data.subarray(this.pos, this.pos += len));
+				var ba:JSByteArray = new JSByteArray(data.subarray(this.position, this.position += len));
 				
 				this.objectTable.push(ba);
 				
