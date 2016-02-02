@@ -47,16 +47,18 @@ package weavejs.api.core
 		/**
 		 * This function returns an ordered list of names in the hash map.
 		 * @param filter If specified, names of objects that are not of this type will be filtered out.
+		 * @param filterIncludesPlaceholders If true, matching LinkablePlaceholders will be included in the results.
 		 * @return A copy of the ordered list of names of objects contained in this LinkableHashMap.
 		 */
-		function getNames(filter:Class = null):Array;
+		function getNames(filter:Class = null, filterIncludesPlaceholders:Boolean = false):Array;
 		
 		/**
 		 * This function returns an ordered list of objects in the hash map. 
 		 * @param filter If specified, objects that are not of this type will be filtered out.
+		 * @param filterIncludesPlaceholders If true, matching LinkablePlaceholders will be included in the results.
 		 * @return An ordered Array of objects that correspond to the names returned by getNames(filter).
 		 */
-		function getObjects(filter:Class = null):Array;
+		function getObjects(filter:Class = null, filterIncludesPlaceholders:Boolean = false):Array;
 
 		/**
 		 * This function gets the name of the specified object in the hash map.

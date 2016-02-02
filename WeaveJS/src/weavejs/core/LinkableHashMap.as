@@ -59,27 +59,40 @@ package weavejs.core
 			return _childListCallbacks;
 		}
 
-		public function getNames(filter:Class = null):Array
+		public function getNames(filter:Class = null, filterIncludesPlaceholders:Boolean = false):Array
 		{
-			var result:Array = [];
-			for (var i:int = 0; i < _orderedNames.length; i++)
-			{
-				var name:String = _orderedNames[i];
-				if (filter == null || _nameToObjectMap[name] is filter)
-					result.push(name);
-			}
-			return result;
+			return getList(false, filter, filterIncludesPlaceholders);
 		}
 		
-		public function getObjects(filter:Class = null):Array
+		public function getObjects(filter:Class = null, filterIncludesPlaceholders:Boolean = false):Array
+		{
+			return getList(true, filter, filterIncludesPlaceholders);
+		}
+		
+		private function getList(listObjects:Boolean, filter:Class, filterIncludesPlaceholders:Boolean):Array
 		{
 			var result:Array = [];
 			for (var i:int = 0; i < _orderedNames.length; i++)
 			{
 				var name:String = _orderedNames[i];
 				var object:ILinkableObject = _nameToObjectMap[name];
-				if (filter == null || object is filter)
-					result.push(object);
+				if (!filter)
+				{
+					result.push(listObjects ? object : name)
+				}
+				else if (object is filter)
+				{
+					result.push(listObjects ? object : name);
+				}
+				else if (filterIncludesPlaceholders)
+				{
+					var placeholder:LinkablePlaceholder = object as LinkablePlaceholder;
+					if (!placeholder)
+						continue;
+					var classDef:Class = placeholder.getClass();
+					if (classDef === filter || classDef.prototype is filter)
+						result.push(listObjects ? object : name);
+				}
 			}
 			return result;
 		}
