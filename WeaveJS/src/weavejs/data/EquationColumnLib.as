@@ -194,10 +194,10 @@ package weavejs.data
 					
 					if (!map_lookup.has(value.localName))
 						map_lookup.set(value.localName, []);
-					(map_lookup.get[value.localName] as Array).push(recordKey);
+					(map_lookup.get(value.localName) as Array).push(recordKey);
 				}
 			}
-			return map_lookup[ignoreKeyType ? keyValue.localName : keyValue] as Array;
+			return map_lookup.get(ignoreKeyType ? keyValue.localName : keyValue) as Array;
 		}
 		
 		/**
