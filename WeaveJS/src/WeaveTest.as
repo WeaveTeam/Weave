@@ -9,6 +9,7 @@ package
 	import weavejs.api.core.ILinkableVariable;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IQualifiedKey;
+	import weavejs.api.ui.IVisTool;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableCallbackScript;
 	import weavejs.core.LinkableDynamicObject;
@@ -71,6 +72,7 @@ package
 	import weavejs.data.source.DBFDataSource;
 	import weavejs.data.source.ForeignDataMappingTransform;
 	import weavejs.data.source.GeoJSONDataSource;
+	import weavejs.data.source.GroupedDataTransform;
 	import weavejs.data.source.WeaveDataSource;
 	import weavejs.geom.SolidFillStyle;
 	import weavejs.geom.SolidLineStyle;
@@ -136,12 +138,14 @@ package
 			ForeignDataMappingTransform,
 			CensusDataSource,
 			DBFDataSource,
+			GroupedDataTransform,
 			
 			ZoomBounds,
 			WeaveArchive,
 			WeaveRootDataTreeNode,
 			SolidLineStyle,
 			SolidFillStyle,
+			IVisTool,
 			
 			null
 		];
