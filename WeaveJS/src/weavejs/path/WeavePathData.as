@@ -416,12 +416,14 @@ package weavejs.path
 		    {
 		        var item:Object = obj[key];
 		        if (item is WeavePath)
+					item = item.getObject();
+				
+				if (item is ILinkableObject)
 		        {
-					var column:ILinkableObject = item.getObject();
-		            if (column is IAttributeColumn)
+		            if (item is IAttributeColumn)
 		            {
 		                output.chains.push(prefix.concat(key));
-		                output.columns.push(column);
+		                output.columns.push(item);
 		            }
 		        }
 		        else
