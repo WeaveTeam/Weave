@@ -109,37 +109,41 @@ package weavejs.core
 		 */
 		public function getDefinition(name:String):*
 		{
-			if (!name)
-				return undefined;
-			
-			var def:* = JS.global;
-			var names:Array = name.split('.');
-			for each (var key:String in names)
-			{
-				if (def !== undefined)
-					def = def[key];
-				else
-					break;
-			}
-			if (def)
+			// check cache
+			var def:* = map_name_class.get(name);
+			if (def || !name)
 				return def;
 			
-			if (names.length == 1)
+			// try following names from global scope
+			var names:Array = name.split('.');
+			def = JS.global;
+			for each (var key:String in names)
+			{
+				if (!def)
+					break;
+				def = def[key];
+			}
+			
+			// check default packages
+			if (!def && names.length == 1)
 			{
 				for each (var pkg:String in defaultPackages)
 				{
 					def = getDefinition(pkg + '.' + name);
 					if (def)
-						return def;
+						break;
 				}
 			}
 			
-			def = map_name_class.get(name);
-			if (def)
-				return def;
+			// try short name
+			if (!def && name.indexOf("::") > 0)
+				def = getDefinition(name.split('::').pop());
 			
-			if (name.indexOf("::") > 0)
-				return getDefinition(name.split('::').pop());
+			// save in cache
+			if (def)
+				map_name_class.set(name, def);
+			
+			return def;
 		}
 		
 		/**
