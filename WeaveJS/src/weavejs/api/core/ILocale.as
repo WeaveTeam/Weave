@@ -20,6 +20,9 @@ package weavejs.api.core
 	 */
 	public interface ILocale
 	{
+		function get reverseLayout():Boolean;
+		function set reverseLayout(value:Boolean):void;
+		
 		/**
 		 * A mapping from original text to translated text.
 		 */

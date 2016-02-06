@@ -24,7 +24,10 @@ package weavejs.core
 	public class Locale implements ILocale
 	{
 		public var locale:String = null;
-		public var reverseLayout:Boolean = false;
+		
+		private var _reverseLayout:Boolean = false;
+		public function get reverseLayout():Boolean { return _reverseLayout; }
+		public function set reverseLayout(value:Boolean):void { _reverseLayout = value; }
 		
 		public function loadFromUrl(jsonUrl:String):WeavePromise
 		{

@@ -49,9 +49,9 @@ package weavejs.path
 		
 		private var shared:WeavePathDataShared;
 		
-		public var probe_keyset:WeavePath;
-		public var selection_keyset:WeavePath;
-		public var subset_filter:WeavePath;
+		public var probe_keyset:WeavePathData;
+		public var selection_keyset:WeavePathData;
+		public var subset_filter:WeavePathData;
 		
 		public var qkeyToString:Function;
 		public var stringToQKey:Function;
@@ -322,7 +322,7 @@ package weavejs.path
 		 *                                    "dataType": A String specifying dataType: string/number/date/geometry
 		 * @return {Array} An array of record objects.
 		 */
-		public function retrieveRecords(pathMapping:Object, options:Object):Array
+		public function retrieveRecords(pathMapping:Object, options:Object = null):Array
 		{
 			var dataType:String = options ? options['dataType'] : null;
 			var keySetPath:WeavePath = options ? options['keySet'] : null;

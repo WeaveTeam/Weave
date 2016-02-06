@@ -28,18 +28,18 @@ package weavejs.path
 		{
 			this.weave = weave;
 			this.qkm = WeaveAPI.QKeyManager;
-			this.probe_keyset = weave.path(DEFAULT_PROBE_KEY_SET);
-			this.selection_keyset = weave.path(DEFAULT_SELECTION_KEY_SET);
-			this.subset_filter = weave.path(DEFAULT_SUBSET_KEY_FILTER);
+			this.probe_keyset = weave.path(DEFAULT_PROBE_KEY_SET) as WeavePathData;
+			this.selection_keyset = weave.path(DEFAULT_SELECTION_KEY_SET) as WeavePathData;
+			this.subset_filter = weave.path(DEFAULT_SUBSET_KEY_FILTER) as WeavePathData;
 		}
 		
 		private var qkm:IQualifiedKeyManager;
 		
 		public var weave:Weave;
 		
-		public var probe_keyset:WeavePath;
-		public var selection_keyset:WeavePath;
-		public var subset_filter:WeavePath;
+		public var probe_keyset:WeavePathData;
+		public var selection_keyset:WeavePathData;
+		public var subset_filter:WeavePathData;
 
 		public var d2d_keySet_addedKeys:Dictionary2D = new Dictionary2D(true);
 		public var d2d_keySet_removedKeys:Dictionary2D = new Dictionary2D(true);
