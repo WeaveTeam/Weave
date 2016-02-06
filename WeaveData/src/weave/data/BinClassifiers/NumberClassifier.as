@@ -15,18 +15,16 @@
 
 package weave.data.BinClassifiers
 {
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IBinClassifier;
-	import weave.api.data.IPrimitiveColumn;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
-	import weave.data.AttributeColumns.StringColumn;
 	import weave.utils.ColumnUtils;
 	
 	/**
@@ -38,7 +36,6 @@ package weave.data.BinClassifiers
 	{
 		public function NumberClassifier(min:* = NaN, max:* = NaN, minInclusive:Boolean = true, maxInclusive:Boolean = true)
 		{
-			super();
 			_callbacks = getCallbackCollection(this);
 			this.min.value = min;
 			this.max.value = max;

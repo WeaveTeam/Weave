@@ -66,7 +66,7 @@ package weavejs.path
 		 * @private
 		 * @return The current WeavePath object.
 		 */
-		private function _initProperty(manifest, callback_pass, property_descriptor):WeavePath
+		private function _initProperty(manifest:Object, callback_pass:Boolean, property_descriptor:Object):WeavePath
 		{
 		    var name:String = property_descriptor["name"]
 		    	|| _failMessage('initProperty', 'A "name" is required');
@@ -499,11 +499,11 @@ package weavejs.path
 		 * Sets the metadata for multiple columns that are children of the current path.
 		 * @param metadataMapping An object mapping child names (or indices) to column metadata.
 		 *                        An Array of column metadata objects may be given for a LinkableHashMap.
-		 * @param {string} [dataSourceName] The name of the data source in the session state.
+		 * @param dataSourceName The name of the data source in the session state.
 		 *                       If ommitted, the first data source in the session state will be used.
-		 * @return {weave.WeavePath} The current WeavePath object.
+		 * @return The current WeavePath object.
 		 */
-		public function setColumns(metadataMapping, dataSourceName):WeavePathData
+		public function setColumns(metadataMapping:Object, dataSourceName:String):WeavePathData
 		{
 			var useDataSource:Boolean = arguments.length > 1;
 			this.forEach(metadataMapping, function(value:Object, key:String, a:Array):void {

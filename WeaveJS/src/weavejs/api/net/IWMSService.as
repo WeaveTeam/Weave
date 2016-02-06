@@ -16,7 +16,7 @@
 package weavejs.api.net
 {
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.api.primitives.IBounds2D;
+	import weavejs.geom.Bounds2D;
 
 	/**
 	 * This is the interface for WMS services. We require each WMS service to provide
@@ -49,13 +49,13 @@ package weavejs.api.net
 		 * @return An array of downloaded images. The array is filled with lower quality images followed by
 		 * the requested quality. These images may overlap.
 		 */
-		function requestImages(dataBounds:IBounds2D, screenBounds:IBounds2D, preferLowerQuality:Boolean = false, layerLowerQuality:Boolean = false):Array;
+		function requestImages(dataBounds:Bounds2D, screenBounds:Bounds2D, preferLowerQuality:Boolean = false, layerLowerQuality:Boolean = false):Array;
 		
 		/**
 		 * Outputs the bounds which contains all valid tile requests. If a tile request is
 		 * not contained inside this bounds, the request is invalid.
 		 */ 
-		function getAllowedBounds(output:IBounds2D):void;
+		function getAllowedBounds(output:Bounds2D):void;
 		
 		/**
 		 * This function will return the SRS code of the tile requests.

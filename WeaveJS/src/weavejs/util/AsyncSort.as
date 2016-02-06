@@ -89,10 +89,6 @@ package weavejs.util
 			return 1; // not equal
 		}
 		
-		public function AsyncSort():void
-		{
-		}
-		
 		/**
 		 * This is the sorted Array (or Vector), or null if the sort operation has not completed yet.
 		 */

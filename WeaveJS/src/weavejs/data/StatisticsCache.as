@@ -27,10 +27,6 @@ package weavejs.data
 	 */
 	public class StatisticsCache implements IStatisticsCache
 	{
-		public function StatisticsCache():void
-		{
-		}
-		
 		/**
 		 * @param column A column to get statistics for.
 		 * @return A Map that maps a IQualifiedKey to a running total numeric value, based on the order of the keys in the column.

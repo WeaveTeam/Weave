@@ -304,7 +304,7 @@ package weavejs.core
 		{
 			_treeCallbacks.addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow);
 		}
-		public function removeTreeCallback(relevantContext, groupedCallback:Function):void
+		public function removeTreeCallback(relevantContext:Object, groupedCallback:Function):void
 		{
 			_treeCallbacks.removeCallback(relevantContext, groupedCallback);
 		}

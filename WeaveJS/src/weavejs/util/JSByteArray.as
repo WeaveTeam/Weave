@@ -234,7 +234,7 @@ package weavejs.util
 			return this.readUTFBytes(this.readUInt30());
 		}
 	
-		private function stringToXML(str):Object
+		private function stringToXML(str:String):Object
 		{
 			var xmlDoc:Object;
 	
@@ -279,7 +279,7 @@ package weavejs.util
 			return str;
 		}
 	
-		private function readTraits(ref):Object
+		private function readTraits(ref:int):Object
 		{
 			var traitInfo:Object = {};
 			traitInfo.properties = [];
@@ -305,7 +305,7 @@ package weavejs.util
 			return traitInfo;
 		}
 	
-		private function readExternalizable(className):Object
+		private function readExternalizable(className:String):Object
 		{
 			return this.readObject();
 		}

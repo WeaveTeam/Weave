@@ -17,7 +17,6 @@ package weave.data
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerDisposableChild;
 	import weave.api.data.IAttributeColumn;
@@ -32,10 +31,6 @@ package weave.data
 	 */
 	public class StatisticsCache implements IStatisticsCache
 	{
-		public function StatisticsCache():void
-		{
-		}
-		
 		/**
 		 * @param column A column to get statistics for.
 		 * @return A Dictionary that maps a IQualifiedKey to a running total numeric value, based on the order of the keys in the column.

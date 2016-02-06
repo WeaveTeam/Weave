@@ -34,7 +34,6 @@ package weavejs.data.bin
 	{
 		public function NumberClassifier(min:* = NaN, max:* = NaN, minInclusive:Boolean = true, maxInclusive:Boolean = true)
 		{
-			super();
 			_callbacks = Weave.getCallbacks(this);
 			this.min.value = min;
 			this.max.value = max;

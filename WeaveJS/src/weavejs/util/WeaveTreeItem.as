@@ -51,7 +51,7 @@ package weavejs.util
 		 * @param WeaveTreeItem_implementation The implementation of WeaveTreeItem to use.
 		 * @param items Item descriptors.
 		 */
-		protected static function _mapItem(WeaveTreeItem_implementation, item:Object):Object
+		protected static function _mapItem(WeaveTreeItem_implementation:Class, item:Object):Object
 		{
 			// If the item is a Class definition, create an instance of that Class.
 			if (JS.isClass(item))
