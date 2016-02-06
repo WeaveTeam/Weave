@@ -429,9 +429,17 @@ package
 		 */
 		public static function registerClass(qualifiedName:String, definition:Class, additionalInterfaces:Array = null):void
 		{
-			if (!additionalInterfaces)
-				additionalInterfaces = [];
-			WeaveAPI.ClassRegistry.registerClass(qualifiedName, definition, [ILinkableObject].concat(additionalInterfaces));
+			var interfaces:Array = [ILinkableObject];
+			for each (var item:* in additionalInterfaces)
+			{
+				var classDef:Class = item as Class;
+				if (item is String)
+					classDef = getDefinition(item);
+				if (!classDef)
+					throw new Error("Interface not found: " + item);
+				interfaces.push(classDef);
+			}
+			WeaveAPI.ClassRegistry.registerClass(qualifiedName, definition, interfaces);
 		}
 		
 		/**
