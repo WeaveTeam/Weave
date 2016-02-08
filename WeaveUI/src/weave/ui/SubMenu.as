@@ -1,21 +1,17 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.ui
 {
@@ -27,7 +23,9 @@ package weave.ui
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.UIComponent;
+	import mx.core.mx_internal;
 	import mx.events.MenuEvent;
+	import mx.managers.PopUpManager;
 	
 	import weave.compiler.StandardLib;
 	import weave.menus.WeaveMenuItem;
@@ -163,6 +161,21 @@ package weave.ui
 		
 		public var matchParentWidth:Boolean = false;
 		public var alignRight:Boolean = false;
+		
+		override public function show(xShow:Object=null, yShow:Object=null):void
+		{
+			if ((collection && collection.length == 0) || (parentMenu && !parentMenu.visible) || visible)
+				return;
+			
+			// fixes a bug where super.show() may put SystemManager in an unusable state
+			if (mx_internal::parentDisplayObject)
+			{
+				PopUpManager.addPopUp(this, mx_internal::parentDisplayObject, false);
+				this.parent.setChildIndex(this, this.parent.numChildren - 1);
+			}
+				
+			super.show(xShow, yShow);
+		}
 		
 		public function showSubMenu():void
 		{

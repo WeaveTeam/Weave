@@ -1,21 +1,17 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.Transforms
 {
@@ -29,6 +25,7 @@ package weave.data.Transforms
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
+	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.ISelectableAttributes;
@@ -47,7 +44,7 @@ package weave.data.Transforms
 
 	public class GroupedDataTransform extends AbstractDataSource implements ISelectableAttributes
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GroupedDataTransform, "Grouped Data Transform");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GroupedDataTransform, "Grouped data transform");
 
 		public static const DATA_COLUMNNAME_META:String = "__GroupedDataColumnName__";
 
@@ -63,12 +60,17 @@ package weave.data.Transforms
 		{
 			return [groupByColumn, dataColumns];
 		}
-
-		override protected function initialize():void
+		
+		override protected function get initializationComplete():Boolean
 		{
-			refreshAllProxyColumns();
+			return super.initializationComplete
+				&& !linkableObjectIsBusy(groupByColumn)
+				&& !linkableObjectIsBusy(dataColumns);
+		}
 
-			super.initialize();
+		override protected function initialize(forceRefresh:Boolean = false):void
+		{
+			super.initialize(true);
 		}
 
 		public const groupByColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
@@ -87,14 +89,11 @@ package weave.data.Transforms
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!_rootNode)
-			{
-				var source:GroupedDataTransform = this;
-
 				_rootNode = new ColumnTreeNode({
-					source: source,
-					data: source,
+					dataSource: this,
+					dependency: dataColumns.childListCallbacks,
+					data: this,
 					label: WeaveAPI.globalHashMap.getName(this),
-					isBranch: true,
 					hasChildBranches: false,
 					children: function():Array {
 						return dataColumns.getNames().map(
@@ -106,7 +105,6 @@ package weave.data.Transforms
 						);
 					}
 				});
-			}
 			return _rootNode;
 		}
 
@@ -121,9 +119,9 @@ package weave.data.Transforms
 				return null;
 
 			return new ColumnTreeNode({
-				source: this,
+				dataSource: this,
 				idFields: [DATA_COLUMNNAME_META],
-				columnMetadata: metadata
+				data: metadata
 			});
 		}
 		
@@ -176,7 +174,13 @@ package weave.data.Transforms
 				var keyType:String = groupKeyType.value || groupByColumn.getMetadata(ColumnMetadata.DATA_TYPE);
 				for each (var key:IQualifiedKey in groupByColumn.keys)
 				{
-					var localName:String = groupByColumn.getValueFromKey(key, String);
+					var localName:String;
+					// if the foreign key column is numeric, avoid using the formatted strings as keys
+					if (groupByColumn.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.NUMBER)
+						localName = groupByColumn.getValueFromKey(key, Number);
+					else
+						localName = groupByColumn.getValueFromKey(key, String);
+					
 					if (!stringLookup[localName])
 					{
 						stringLookup[localName] = true;
@@ -229,7 +233,7 @@ internal class AggregateColumn extends AbstractAttributeColumn implements IPrimi
 			(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _dataColumn);
 		
 		_metadata = copyValues(metadata);
-		_dataColumn = registerLinkableChild(this, dataColumn);
+		_dataColumn = dataColumn && registerLinkableChild(this, dataColumn);
 		_keys = keys;
 		_cacheTriggerCounter = 0;
 		triggerCallbacks();
@@ -238,7 +242,7 @@ internal class AggregateColumn extends AbstractAttributeColumn implements IPrimi
 	override public function getMetadata(propertyName:String):String
 	{
 		return super.getMetadata(propertyName)
-			|| _dataColumn.getMetadata(propertyName);
+			|| (_dataColumn && _dataColumn.getMetadata(propertyName));
 	}
 	
 	override public function getMetadataPropertyNames():Array
@@ -261,7 +265,7 @@ internal class AggregateColumn extends AbstractAttributeColumn implements IPrimi
 	 */
 	override public function containsKey(key:IQualifiedKey):Boolean
 	{
-		return _dataColumn.containsKey(key);
+		return _dataColumn && _dataColumn.containsKey(key);
 	}
 	
 	public function deriveStringFromNumber(value:Number):String
@@ -314,7 +318,7 @@ internal class AggregateColumn extends AbstractAttributeColumn implements IPrimi
 		
 		// get input keys from groupKey
 		var keys:Array = EquationColumnLib.getAssociatedKeys(_groupByColumn, groupKey, true);
-		var meta_dataType:String = _dataColumn.getMetadata(ColumnMetadata.DATA_TYPE);
+		var meta_dataType:String = _dataColumn ? _dataColumn.getMetadata(ColumnMetadata.DATA_TYPE) : null;
 		var inputType:Class = DataType.getClass(meta_dataType);
 
 		if (dataType === Array)
@@ -380,6 +384,8 @@ internal class AggregateColumn extends AbstractAttributeColumn implements IPrimi
 	private static function getValues(column:IAttributeColumn, keys:Array, dataType:Class):Array
 	{
 		var values:Array = [];
+		if (!column)
+			return values;
 		for each (var key:IQualifiedKey in keys)
 		{
 			if (!column.containsKey(key))

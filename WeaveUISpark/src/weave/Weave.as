@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave
 {
@@ -31,11 +27,11 @@ package weave
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.UIDUtil;
 	
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
 	import weave.core.LibraryUtils;
@@ -44,11 +40,13 @@ package weave
 	import weave.core.WeaveArchive;
 	import weave.core.WeaveXMLDecoder;
 	import weave.core.WeaveXMLEncoder;
+	import weave.data.AttributeColumnCache;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.KeySets.KeyFilter;
 	import weave.data.KeySets.KeySet;
+	import weave.services.URLRequestUtils;
 	
 	/**
 	 * Weave contains objects created dynamically from a session state.
@@ -56,6 +54,9 @@ package weave
 	public class Weave
 	{
 		SparkClasses; // Referencing this allows all Flex classes to be dynamically created at runtime.
+		
+		[Embed(source="/weave/resources/images/weave-icon-large.png", mimeType="image/png")]
+		public static const WeaveBackgroundImage:Class;
 		
 		public static var debug:Boolean = false;
 		
@@ -158,7 +159,7 @@ package weave
 			var cc:ColorColumn = target.requestObject(DEFAULT_COLOR_COLUMN, ColorColumn, true);
 			var bc:BinnedColumn = cc.internalDynamicColumn.requestGlobalObject(DEFAULT_COLOR_BIN_COLUMN, BinnedColumn, true);
 			var fc:FilteredColumn = bc.internalDynamicColumn.requestGlobalObject(DEFAULT_COLOR_DATA_COLUMN, FilteredColumn, true);
-			fc.filter.requestGlobalObject(DEFAULT_SUBSET_KEYFILTER, KeyFilter, true);
+			fc.filter.requestGlobalObject(DEFAULT_SUBSET_KEYFILTER, KeyFilter, false); // false to allow disabling filtering
 			
 			// default key sets
 			var subset:KeyFilter = target.requestObject(DEFAULT_SUBSET_KEYFILTER, KeyFilter, true);
@@ -399,17 +400,28 @@ package weave
 				if (!_history)
 					throw new Error("Weave session history not found.");
 				
+				var urlCache:Object = archive.objects[WeaveArchive.ARCHIVE_URL_CACHE_AMF];
+				if (urlCache)
+					WeaveAPI.URLRequestUtils.setCache(urlCache);
+				else if ((WeaveAPI.URLRequestUtils as URLRequestUtils).saveCache) // temporary hack
+					WeaveAPI.URLRequestUtils.setCache(null);
+				
 				// remove all local files and replace with list from archive
 				for each (fileName in WeaveAPI.URLRequestUtils.getLocalFileNames())
 					WeaveAPI.URLRequestUtils.removeLocalFile(fileName);
 				for (fileName in archive.files)
 					WeaveAPI.URLRequestUtils.saveLocalFile(fileName, archive.files[fileName]);
 				
+				// load session history
 				plugins = archive.objects[WeaveArchive.ARCHIVE_PLUGINS_AMF] as Array || [];
 				if (setPluginList(plugins, content))
 				{
 					history.setSessionState(_history);
 				}
+				
+				// load column cache if present - must be done after loading session history because data sources must be present
+				var columnCache:Object = archive.objects[WeaveArchive.ARCHIVE_COLUMN_CACHE_AMF];
+				(WeaveAPI.AttributeColumnCache as AttributeColumnCache).restoreCache(columnCache);
 			}
 			
 			// hack for forcing VisApplication menu to refresh
@@ -486,9 +498,9 @@ package weave
 				// reload the application
 				if (ExternalInterface.objectID)
 					JavaScript.exec(
-						{reloadID: uid},
-						"this.parentNode.weaveReloadID = reloadID;",
-						"this.outerHTML = this.outerHTML;"
+						{reloadID: uid, "this": "weave"},
+						"weave.parentNode.weaveReloadID = reloadID;",
+						"setTimeout(function() { weave.outerHTML = weave.outerHTML; }, 0);"
 					);
 				else
 					JavaScript.exec("location.reload(false);");

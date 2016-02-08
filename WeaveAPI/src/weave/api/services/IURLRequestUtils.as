@@ -1,10 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  *
- * This file is part of the Weave API.
+ * This file is part of Weave.
  *
- * The Initial Developer of the Weave API is the Institute for Visualization
+ * The Initial Developer of Weave is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
  * the Initial Developer. All Rights Reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -15,9 +15,10 @@
 
 package weave.api.services
 {
-	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
+	
+	import mx.rpc.AsyncToken;
 
 	/**
 	 * An interface for GET and POST URL requests.
@@ -36,14 +37,12 @@ package weave.api.services
 		 * Also calls WeaveAPI.ProgressIndicator.addTask(asyncToken, relevantContext) using the generated AsyncToken so that if relevantContext is an ILinkableObject this will affect busy status.
 		 * @param relevantContext Specifies an object that the async handlers are relevant to.  If the object is disposed via WeaveAPI.SessionManager.dispose() before the download finishes, the async handler functions will not be called.  This parameter may be null.
 		 * @param request The URL to get.
-		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
-		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
-		 * @param token An object that gets passed to the handler functions.
 		 * @param dataFormat The value to set as the dataFormat property of a URLLoader object.
-		 * @return The URLLoader used to perform the HTTP GET request.
+		 * @param allowMultipleEvents If true, gives the AsyncToken permission to dispatch additional result or fault events when the file is reloaded at a later time.
+		 * @return An AsyncToken with a <code>loader</code> property which points to the URLLoader used to perform the HTTP GET request.
 		 * @see weave.api.core.IProgressIndicator#addTask()
 		 */
-		function getURL(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader;
+		function getURL(relevantContext:Object, request:URLRequest, dataFormat:String = "binary", allowMultipleEvents:Boolean = false):AsyncToken;
 
 		/**
 		 * This function will download content from a URL and call the given handler functions when it completes or a fault occurrs.
@@ -53,7 +52,7 @@ package weave.api.services
 		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
 		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
 		 * @param token An object that gets passed to the handler functions.
-		 * @param useCache A boolean indicating whether to use the cached images. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
+		 * @param useCache A boolean indicating whether to use cached images. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
 		 * @return An IURLRequestToken that can be used to cancel the request and cancel the async handlers.
 		 * @see weave.api.core.IProgressIndicator#addTask()
 		 */
@@ -85,5 +84,17 @@ package weave.api.services
 		 * @return An Array of file names.
 		 */
 		function getLocalFileNames():Array;
+		
+		/**
+		 * Gets the URL cache.
+		 * @return An Object mapping a URL to the corresponding cached file content.
+		 */
+		function getCache():Object;
+		
+		/**
+		 * Sets the URL cache.
+		 * @param cache An Object mapping a URL to the corresponding cached file content.
+		 */
+		function setCache(cache:Object):void;
 	}
 }

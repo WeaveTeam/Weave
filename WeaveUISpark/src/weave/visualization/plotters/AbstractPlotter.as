@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
@@ -60,9 +56,9 @@ package weave.visualization.plotters
 		 * This function creates a new registered linkable child of the plotter whose callbacks will also trigger the spatial callbacks.
 		 * @return A new instance of the specified class that is registered as a spatial property.
 		 */
-		protected function newSpatialProperty(linkableChildClass:Class, callback:Function = null):*
+		protected function newSpatialProperty(linkableChildClass:Class, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
-			var child:ILinkableObject = newLinkableChild(this, linkableChildClass, callback);
+			var child:ILinkableObject = newLinkableChild(this, linkableChildClass, callback, useGroupedCallback);
 			
 			var thisCC:ICallbackCollection = getCallbackCollection(this);
 			var childCC:ICallbackCollection = getCallbackCollection(child);
@@ -78,9 +74,9 @@ package weave.visualization.plotters
 		 * @param child An object to register as a spatial property.
 		 * @return The child object.
 		 */
-		protected function registerSpatialProperty(child:ILinkableObject, callback:Function = null):*
+		protected function registerSpatialProperty(child:ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
-			registerLinkableChild(this, child, callback);
+			registerLinkableChild(this, child, callback, useGroupedCallback);
 
 			var thisCC:ICallbackCollection = getCallbackCollection(this);
 			var childCC:ICallbackCollection = getCallbackCollection(child);

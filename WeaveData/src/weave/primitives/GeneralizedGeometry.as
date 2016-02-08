@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.primitives
 {
@@ -24,8 +20,9 @@ package weave.primitives
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
 	import weave.utils.BLGTreeUtils;
+	import weave.utils.GeoJSON;
 	import weave.utils.VectorUtils;
-	
+
 	/**
 	 * GeneralizedGeometry
 	 * A generalized geometry is one that lends itself to be displayed at different quality levels.
@@ -33,19 +30,127 @@ package weave.primitives
 	 * or they can all be processed at once through the setCoordinates() function.
 	 * The bounds object is separate from the coordinates, so if coordinates are inserted individually,
 	 * the bounds object should be updated accordingly if you want it to be accurate.
-	 * 
+	 *
 	 * @author adufilie
 	 */
-	public class GeneralizedGeometry 
+	public class GeneralizedGeometry
 	{
 		/**
 		 * Create an empty geometry.
 		 * @param geomType The type of the geometry (GeometryType.LINE, GeometryType.POINT, or GeometryType.POLYGON).
 		 */
-		public function GeneralizedGeometry(geomType:String = GeometryType.POLYGON)
+		public function GeneralizedGeometry(geomType:String = "Polygon")
 		{
 			this.geomType = geomType;
 			this.parts[0] = new BLGTree();
+		}
+
+		/**
+		 * Derives GeneralizedGeometry objects from a GeoJSON geometry object.
+		 * @param geoJsonGeom A GeoJSON geometry object.
+		 * @return An array of GeneralizedGeometry objects
+		 */
+		public static function fromGeoJson(geoJsonGeom:Object):Array
+		{
+			var type:String = geoJsonGeom[GeoJSON.P_TYPE];
+			var coords:Array = geoJsonGeom[GeoJSON.G_P_COORDINATES];
+
+			// convert coords to MultiPolygon format: multi[ poly[ line[ point[] ] ] ]
+			if (type == GeoJSON.T_POINT)
+				type = GeometryType.POINT, coords = /*multi*/[/*poly*/[/*line*/[/*point*/coords]]];
+			else if (type == GeoJSON.T_MULTI_POINT)
+				type = GeometryType.POINT, coords = /*multi*/[/*poly*/[/*line*/coords]];
+			else if (type == GeoJSON.T_LINE_STRING)
+				type = GeometryType.LINE, coords = /*multi*/[/*poly*/[/*line*/coords]];
+			else if (type == GeoJSON.T_MULTI_LINE_STRING)
+				type = GeometryType.LINE, coords = /*multi*/[/*poly line*/coords];
+			else if (type == GeoJSON.T_POLYGON)
+				type = GeometryType.POLYGON, coords = /*multi*/[/*poly*/coords];
+			else if (type == GeoJSON.T_MULTI_POLYGON)
+				type = GeometryType.POLYGON;
+
+			var result:Array = [];
+			for each (var poly:Array in coords)
+			{
+				var geom:GeneralizedGeometry = new GeneralizedGeometry(type);
+				var xyCoords:Array = [];
+				for each (var part:Array in poly)
+				{
+					// add part marker if this is not the first part
+					if (xyCoords.length > 0)
+						xyCoords.push(NaN, NaN);
+					// push x,y coords
+					for each (var point:Array in part)
+					xyCoords.push(point[0], point[1]);
+				}
+				geom.setCoordinates(xyCoords, BLGTreeUtils.METHOD_SAMPLE);
+				result.push(geom);
+			}
+
+			return result;
+		}
+
+		/**
+		 * Generates a GeoJson Geometry object.
+		 * @param minImportance No points with importance less than this value will be returned.
+		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
+		 * @return A GeoJson Geometry object, or null if there are no coordinates.
+		 */
+		public function toGeoJson(minImportance:Number = 0, visibleBounds:IBounds2D = null):Object
+		{
+			var type:String = GeometryType.toGeoJsonType(geomType, true); // Multi- geoms can represent non-Multi geoms
+			var coords:Array = [];
+			var parts:Vector.<Vector.<BLGNode>> = getSimplifiedGeometry(minImportance, visibleBounds);
+			var part:Vector.<BLGNode>;
+			var node:BLGNode;
+
+			if (type == GeoJSON.T_MULTI_POINT)
+			{
+				for each (part in parts)
+					for each (node in part)
+						coords.push([node.x, node.y]);
+			}
+			else if (type == GeoJSON.T_MULTI_LINE_STRING)
+			{
+				for each (part in parts)
+				{
+					var lineString:Array = [];
+					for each (node in part)
+					{
+						lineString.push([node.x, node.y]);
+					}
+					if (lineString.length)
+						coords.push(lineString);
+				}
+			}
+			else if (type == GeoJSON.T_MULTI_POLYGON)
+			{
+				var polygon:Array = [];
+				for each (part in parts)
+				{
+					var linearRing:Array = [];
+					for each (node in part)
+					{
+						linearRing.push([node.x, node.y]);
+					}
+
+					// make sure it's a linear ring
+					var first:Array = linearRing[0];
+					var last:Array = linearRing[linearRing.length - 1];
+					if (first && !(first[0] == last[0] && first[1] == last[1]))
+						linearRing.push(first.concat());
+					
+					if (linearRing.length)
+						polygon.push(linearRing);
+				}
+				if (polygon.length)
+					coords.push(polygon);
+			}
+
+			var geom:Object = {};
+			geom[GeoJSON.P_TYPE] = type;
+			geom[GeoJSON.G_P_COORDINATES] = coords;
+			return geom;
 		}
 
 		/**
@@ -70,7 +175,7 @@ package weave.primitives
 		 * It is useful for spatial indexing when not all the points are available yet.
 		 */
 		public const bounds:IBounds2D = new Bounds2D();
-		
+
 		/**
 		 * This is the type of the geometry.  Value should be one of the static geometry types listed in this class.
 		 */
@@ -92,13 +197,13 @@ package weave.primitives
 				return false;
 			return (parts[0] as BLGTree).isEmpty;
 		}
-		
+
 		/**
 		 * @param minImportance No points with importance less than this value will be returned.
 		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
-		 * @return An Array of ISimpleGeometry objects 
+		 * @return An Array of ISimpleGeometry objects
 		 * @see weave.api.data.ISimpleGeometry
-		 */		
+		 */
 		public function getSimpleGeometries(minImportance:Number = 0, visibleBounds:IBounds2D = null, output:Array = null):Array
 		{
 			var result:Array = output || [];
@@ -128,13 +233,13 @@ package weave.primitives
 			for (var i:int = 0; i < parts.length; i++)
 			{
 				part = parts[i] as BLGTree;
-				
+
 				// skip this part if we're not sure it's actually a single part
 				if (parts.length > 1 && !receivedPartMarkers[part])
 					continue;
-				
+
 				var simplifiedPart:Vector.<BLGNode> = part.getPointVector(minImportance, visibleBounds);
-				
+
 				// skip parts without enough vertices
 				if (simplifiedPart.length == 0)
 					continue;
@@ -142,7 +247,7 @@ package weave.primitives
 					continue;
 				if (simplifiedPart.length == 2 && geomType == GeometryType.POLYGON)
 					continue;
-				
+
 				_simplifiedParts.push(simplifiedPart);
 			}
 			return _simplifiedParts;
@@ -156,11 +261,11 @@ package weave.primitives
 		public function addPoint(vertexID:int, importance:Number, x:Number, y:Number):void
 		{
 			var partID:int = VectorUtils.binarySearch(partMarkers, vertexID, false);
-			
+
 			// special case - if this vertex is exactly at a part marker, it should go to the next part
 			if (partID < partMarkers.length && partMarkers[partID] == vertexID)
 				partID++;
-			
+
 			var part:BLGTree = parts[partID] as BLGTree;
 			part.insert(vertexID, importance, x, y);
 		}
@@ -175,13 +280,13 @@ package weave.primitives
 			// split BLG trees appropriately.
 			splitAtIndex(beginIndex);
 			splitAtIndex(endIndex);
-			
+
 			// find the corresponding part and mark it as received.
 			var partID:int = VectorUtils.binarySearch(partMarkers, endIndex, false);
 			var part:BLGTree = parts[partID] as BLGTree;
 			receivedPartMarkers[part] = true;
 		}
-		
+
 		/**
 		 * If necessary, this will split a BLGTree for a particular part into two and update the partMarkers.
 		 */
@@ -189,23 +294,23 @@ package weave.primitives
 		{
 			if (vertexID <= 0 || vertexID >= int.MAX_VALUE || VectorUtils.binarySearch(partMarkers, vertexID, true) >= 0)
 				return;
-			
+
 			// partMarkers[i] marks the end of parts[i]
 			for (var i:int = partMarkers.length; i > 0; i--)
 			{
 				if (vertexID > partMarkers[i - 1])
 					break;
-				
+
 				partMarkers[i] = partMarkers[i - 1];
 				parts[i + 1] = parts[i];
 			}
-			
+
 			partMarkers[i] = vertexID;
 			parts[i + 1] = (parts[i] as BLGTree).splitAtIndex(vertexID);
 			// We don't have to worry about receivedPartMarkers here because if we need
 			// to split an existing part it means we haven't received its partMarker yet.
 		}
-		
+
 		/**
 		 * This function assigns importance values to a list of coordinates and replaces the contents of the BLGTree.
 		 * @param xyCoordinates An array of Numbers, even index values being x coordinates and odd index values being y coordinates.
@@ -217,11 +322,11 @@ package weave.primitives
 			bounds.reset();
 			partMarkers.length = 0;
 			parts.length = 1;
-			
+
 			var coordinates:BLGTree = parts[0] as BLGTree;
 			coordinates.clear();
 			receivedPartMarkers[coordinates] = true;
-			
+
 			var firstVertex:VertexChainLink = null;
 			var newVertex:VertexChainLink;
 			var x:Number, y:Number;
@@ -238,7 +343,7 @@ package weave.primitives
 					bounds.includeCoords(x, y);
 				}
 				return;
-			}			
+			}
 			// process each part of the geometry (additional parts may be islands or lakes)
 			while (ix + 1 < xyCoordinates.length) // while there is an x,y pair
 			{
@@ -248,7 +353,7 @@ package weave.primitives
 				{
 					x = xyCoordinates[ix];
 					y = xyCoordinates[ix + 1];
-					
+
 					// check for part marker
 					if (isNaN(x) && isNaN(y))
 					{
@@ -259,11 +364,11 @@ package weave.primitives
 						}
 						continue; // haven't seen beginning of part yet
 					}
-					
+
 					// skip invalid points
 					if (!isFinite(x) || !isFinite(y))
 						continue;
-					
+
 					// create chain link for this coordinate
 					newVertex = VertexChainLink.getUnusedInstance(firstVertexID + numPoints, x, y);
 					if (numPoints == 0)
@@ -292,7 +397,7 @@ package weave.primitives
 					bounds.includeCoords(x, y);
 					numPoints++;
 				}
-				
+
 				// end of part
 				if (numPoints > 0)
 				{
@@ -302,7 +407,7 @@ package weave.primitives
 						firstVertex.importance = Infinity;
 						firstVertex.prev.importance = Infinity;
 					}
-					
+
 					if (firstVertexID > 0)
 					{
 						// create new part and add part marker
@@ -311,11 +416,11 @@ package weave.primitives
 						parts.push(coordinates);
 						partMarkers.push(firstVertexID);
 					}
-					
+
 					// assign importance values to points and save them
 					BLGTreeUtils.buildBLGTree(firstVertex, coordinates, method);
 				}
-				
+
 				// done copying points for this part, advance firstVertexID to after the current part
 				firstVertexID += numPoints;
 			}

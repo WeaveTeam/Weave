@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.config;
 
@@ -44,6 +40,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import weave.utils.CSVParser;
 import weave.utils.FileUtils;
 import weave.utils.MapUtils;
 import weave.utils.ProgressManager;
@@ -52,12 +49,21 @@ import weave.utils.Strings;
 import weave.utils.XMLUtils;
 
 /**
- * ISQLConfig An interface to retrieve strings from a configuration file.
+ * An interface to retrieve strings from a configuration file.
  * 
  * @author Andy Dufilie
  */
 public class ConnectionConfig
 {
+	@SuppressWarnings("serial")
+	public static class WeaveAuthenticationException extends RemoteException
+	{
+		public WeaveAuthenticationException(String explanation)
+		{
+			super(explanation);
+		}
+	}
+	
 	public static final String XML_FILENAME = "sqlconfig.xml";
 	public static final String DTD_FILENAME = "sqlconfig.dtd";
 	public static final String SQLITE_DB_FILENAME = "weave.db";
@@ -174,7 +180,15 @@ public class ConnectionConfig
 		if (connInfo == null)
 			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", dbInfo.connection));
 		
-		return _adminConnection = connInfo.getConnection();
+		try
+		{
+			return _adminConnection = connInfo.getConnection();
+		}
+		catch (WeaveAuthenticationException e)
+		{
+			// should not happen
+			throw new RemoteException("Unexpected error. Admin connection should not require pass-through authentication.", e);
+		}
 	}
 	
 	private void resetAdminConnection()
@@ -322,12 +336,45 @@ public class ConnectionConfig
 	
 	public ConnectionInfo getConnectionInfo(String name) throws RemoteException
 	{
+		try
+		{
+			return getConnectionInfo(name, null, null);
+		}
+		catch (WeaveAuthenticationException e)
+		{
+			// should not happen
+			throw new RemoteException("Unexpected error. WeaveAuthenticationException should only occur when using pass-through authentication.", e);
+		}
+	}
+	public ConnectionInfo getConnectionInfo(String name, String dsUser, String dsPass) throws RemoteException, WeaveAuthenticationException
+	{
 		_load();
 		ConnectionInfo original = _connectionInfoMap.get(name);
 		if (original == null)
 			return null;
-		ConnectionInfo copy = new ConnectionInfo();
+		
+		ConnectionInfo copy = new ConnectionInfo(dsUser, dsPass);
 		copy.copyFrom(original);
+		
+		// test connection
+		if (dsUser != null || dsPass != null)
+		{
+			Connection conn = null;
+			try
+			{
+				conn = copy.getConnection();
+			}
+			catch (RemoteException e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+			finally
+			{
+				SQLUtils.cleanup(conn);
+			}
+		}
+				
 		return copy;
 	}
 	public void saveConnectionInfo(ConnectionInfo connectionInfo) throws RemoteException
@@ -405,6 +452,13 @@ public class ConnectionConfig
 			this.connection = other.get("connection");
 			this.schema = other.get("schema");
 			validateSchema();
+			
+			String idFieldsStr = other.get("idFields");
+			if (!Strings.isEmpty(idFieldsStr))
+				this.idFields = CSVParser.defaultParser.parseCSVRow(idFieldsStr, true);
+			else
+				this.idFields = null;
+			
 			geometryConfigTable = other.get("geometryConfigTable");
 			dataConfigTable = other.get("dataConfigTable");
 		}
@@ -413,15 +467,19 @@ public class ConnectionConfig
 			this.connection = other.connection;
 			this.schema = other.schema;
 			validateSchema();
+			this.idFields = other.idFields;
 			this.geometryConfigTable = other.geometryConfigTable;
 			this.dataConfigTable = other.dataConfigTable;
 		}
 		public Map<String,String> getPropertyMap()
 		{
-			return MapUtils.fromPairs(
+			Map<String,String> result = MapUtils.fromPairs(
 				"connection", connection,
 				"schema", schema
 			);
+			if (idFields != null && idFields.length > 0)
+				result.put("idFields", CSVParser.defaultParser.createCSVRow(idFields, false));
+			return result;
 		}
 		
 		/**
@@ -431,6 +489,7 @@ public class ConnectionConfig
 		 */
 		public String connection;
 		public String schema;
+		public String[] idFields;
 		
 		@Deprecated public String geometryConfigTable;
 		@Deprecated public String dataConfigTable;
@@ -442,8 +501,21 @@ public class ConnectionConfig
 	 */
 	static public class ConnectionInfo
 	{
+		public static final String DIRECTORY_SERVICE = "Directory Service";
+		
 		public ConnectionInfo()
 		{
+		}
+		
+		/**
+		 * Constructs a ConnectionInfo object that overrides user/pass info and appends dsUser as a subfolder after folderName.
+		 * @param dsUser
+		 * @param dsPass
+		 */
+		public ConnectionInfo(String dsUser, String dsPass)
+		{
+			this.dsUser = dsUser;
+			this.dsPass = dsPass;
 		}
 		
 		public void validate() throws RemoteException
@@ -451,7 +523,7 @@ public class ConnectionConfig
 			String missingField = null;
 			if (Strings.isEmpty(name))
 				missingField = "name";
-			else if (Strings.isEmpty(pass))
+			else if (Strings.isEmpty(pass) && !Strings.equal(name, DIRECTORY_SERVICE))
 				missingField = "password";
 			else if (Strings.isEmpty(connectString))
 				missingField = "connectString";
@@ -467,6 +539,8 @@ public class ConnectionConfig
 			this.connectString = other.get("connectString");
 			this.is_superuser = other.get("is_superuser").equalsIgnoreCase("true");
 			
+			validateDSInfo();
+			
 			// backwards compatibility
 			if (connectString == null || connectString.length() == 0)
 			{
@@ -478,6 +552,7 @@ public class ConnectionConfig
 				this.connectString = SQLUtils.getConnectString(dbms, ip, port, database, user, pass);
 			}
 		}
+		
 		public void copyFrom(ConnectionInfo other)
 		{
 			this.name = other.name;
@@ -485,7 +560,21 @@ public class ConnectionConfig
 			this.folderName = other.folderName;
 			this.connectString = other.connectString;
 			this.is_superuser = other.is_superuser;
+			
+			validateDSInfo();
 		}
+		
+		private void validateDSInfo()
+		{
+			if (this.dsUser == null && this.dsPass == null)
+				return;
+			
+			this.name = dsUser;
+			this.pass = dsPass;
+			this.folderName += "/" + dsUser;
+			this.is_superuser = false;
+		}
+
 		public Map<String,String> getPropertyMap()
 		{
 			return MapUtils.fromPairs(
@@ -497,20 +586,38 @@ public class ConnectionConfig
 			);
 		}
 		
+		private String dsUser = null;
+		private String dsPass = null;
 		public String name = "";
 		public String pass = "";
 		public String folderName = "";
 		public String connectString = "";
 		public boolean is_superuser = false;
 		
-		public Connection getStaticReadOnlyConnection() throws RemoteException
+		public Connection getStaticReadOnlyConnection() throws RemoteException, WeaveAuthenticationException
 		{
-			return SQLUtils.getStaticReadOnlyConnection(connectString);
+			if (requiresAuthentication())
+				throw new WeaveAuthenticationException("Authentication required");
+			
+			return SQLUtils.getStaticReadOnlyConnection(connectString, dsUser, dsPass);
 		}
 
-		public Connection getConnection() throws RemoteException
+		public Connection getConnection() throws RemoteException, WeaveAuthenticationException
 		{
-			return SQLUtils.getConnection(connectString);
+			if (requiresAuthentication())
+				throw new WeaveAuthenticationException("Authentication required");
+			
+			return SQLUtils.getConnection(connectString, dsUser, dsPass);
+		}
+		
+		public boolean requiresAuthentication()
+		{
+			return Strings.equal(name, DIRECTORY_SERVICE);
+		}
+		
+		public boolean usingDirectoryService()
+		{
+			return requiresAuthentication() || dsUser != null || dsPass != null;
 		}
 	}
 }

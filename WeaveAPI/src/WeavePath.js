@@ -1,10 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  *
- * This file is part of the Weave API.
+ * This file is part of Weave.
  *
- * The Initial Developer of the Weave API is the Institute for Visualization
+ * The Initial Developer of Weave is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
  * the Initial Developer. All Rights Reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -34,10 +34,16 @@ function asFunction(callback, thisArg)
 	return callback;
 }
 var _addCallback = weave.addCallback;
-weave.addCallback = function(target, callback, triggerNow, immediateMode)
+weave.addCallback = function(target, callback, triggerNow, immediateMode, delayWhileBusy)
 {
 	callback = asFunction(callback, Array.isArray(target) ? weave.path(target) : weave.path());
-	return _addCallback.call(this, target, callback, triggerNow, immediateMode);
+	if (!immediateMode)
+	{
+		var thisArg = callback['this'];
+		callback = weave._debounce(callback);
+		callback['this'] = thisArg;
+	}
+	return _addCallback.apply(this, Array.prototype.slice.call(arguments));
 };
 var _removeCallback = weave.removeCallback;
 weave.removeCallback = function(target, callback, everywhere)
@@ -114,7 +120,7 @@ weave.WeavePath.prototype._deleteTempVars = function()
 /**
  * Private function for internal use.
  * 
- * Converts an arguments object to an Array, and then reconstructs the Array using JSON if natualize() was previously called.
+ * Converts an arguments object to an Array.
  * @param args An arguments object.
  * @param option An integer flag for special behavior.
  *   - If set to 1, it handles arguments like (...LIST) where LIST can be either an Array or multiple arguments.
@@ -268,13 +274,16 @@ weave.WeavePath.prototype.diff = function(/*...relativePath, diff*/)
  * @param callback The callback function.
  * @param triggerCallbackNow Optional parameter, when set to true will trigger the callback now.
  * @param immediateMode Optional parameter, when set to true will use an immediate callback instead of a grouped callback.
+ * @param delayWhileBusy Optional parameter, specifies whether to delay the callback while the object is busy. Default is true.
  * @return The current WeavePath object.
  */
-weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, immediateMode)
+weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, immediateMode, delayWhileBusy)
 {
 	if (this._assertParams('addCallback', arguments))
 	{
-		this.weave.addCallback(this._path, callback, triggerCallbackNow, immediateMode)
+		var args = Array.prototype.slice.call(arguments);
+		args.unshift(this._path);
+		this.weave.addCallback.apply(this.weave, args)
 			|| this._failObject('addCallback', this._path);
 	}
 	return this;
@@ -283,7 +292,7 @@ weave.WeavePath.prototype.addCallback = function(callback, triggerCallbackNow, i
 /**
  * Removes a callback from the object at the current path or from everywhere.
  * @param callback The callback function.
- * @param everywhere Optional paramter, if set to true will remove the callback from every object to which it was added.
+ * @param everywhere Optional parameter, if set to true will remove the callback from every object to which it was added.
  * @return The current WeavePath object.
  */
 weave.WeavePath.prototype.removeCallback = function(callback, everywhere)
@@ -492,6 +501,18 @@ weave.WeavePath.prototype.getChildren = function(/*...relativePath*/)
 weave.WeavePath.prototype.getType = function(/*...relativePath*/)
 {
 	return this.weave.getObjectType(this._path.concat(this._A(arguments, 1)));
+};
+
+/**
+ * Gets the simple type (unqualified class name) of the object at the current path or relative to the current path.
+ * @param relativePath An optional Array (or multiple parameters) specifying descendant names relative to the current path.
+ *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+ * @return The unqualified class name of the object at the current or descendant path, or null if there is no object.
+ */
+weave.WeavePath.prototype.getSimpleType = function(/*...relativePath*/)
+{
+	var type = this.weave.getObjectType(this._path.concat(this._A(arguments, 1)));
+	return type && type.split('.').pop().split(':').pop();
 };
 
 /**

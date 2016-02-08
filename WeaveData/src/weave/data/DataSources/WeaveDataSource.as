@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.DataSources
 {
@@ -26,15 +22,6 @@ package weave.data.DataSources
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataType;
-	import weave.api.data.EntityType;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IDataRowSource;
-	import weave.api.data.IDataSource;
-	import weave.api.data.IDataSource_Service;
-	import weave.api.data.IQualifiedKey;
-	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
@@ -42,12 +29,23 @@ package weave.data.DataSources
 	import weave.api.objectWasDisposed;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataType;
+	import weave.api.data.EntityType;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IDataRowSource;
+	import weave.api.data.IDataSource;
+	import weave.api.data.IDataSourceWithAuthentication;
+	import weave.api.data.IDataSource_Service;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.data.IWeaveTreeNode;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.api.services.beans.Entity;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
+	import weave.data.QKeyManager;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
@@ -55,24 +53,29 @@ package weave.data.DataSources
 	import weave.data.AttributeColumns.SecondaryKeyNumColumn;
 	import weave.data.AttributeColumns.StreamedGeometryColumn;
 	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.QKeyManager;
 	import weave.data.hierarchy.EntityNode;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.services.EntityCache;
 	import weave.services.WeaveDataServlet;
 	import weave.services.addAsyncResponder;
 	import weave.services.beans.AttributeColumnData;
+	import weave.services.beans.TableData;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
+	import weave.utils.WeavePromise;
 	
 	/**
 	 * WeaveDataSource is an interface for retrieving columns from Weave data servlets.
 	 * 
 	 * @author adufilie
 	 */
-	public class WeaveDataSource extends AbstractDataSource_old implements IDataSource_Service, IDataRowSource
+	public class WeaveDataSource extends AbstractDataSource_old implements IDataSource_Service, IDataRowSource, IDataSourceWithAuthentication
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
+
+		private static const SQLPARAMS:String = 'sqlParams';
+		
+		public static var debug:Boolean = false;
 		
 		public function WeaveDataSource()
 		{
@@ -80,6 +83,7 @@ package weave.data.DataSources
 		}
 		
 		private var _service:WeaveDataServlet = null;
+		private var _tablePromiseCache:Object;
 		private var _entityCache:EntityCache = null;
 		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
@@ -87,8 +91,60 @@ package weave.data.DataSources
 		
 		/**
 		 * This is an Array of public metadata field names that should be used to uniquely identify columns when querying the server.
-		 */		
-		public const idFields:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray));
+		 */
+		private const _idFields:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, verifyStringArray));
+		
+		// for backwards compatibility to override server idFields setting
+		private var _overrideIdFields:LinkableVariable;
+		
+		/**
+		 * Provided for backwards compatibility - setting this will override the server setting.
+		 */
+		[Deprecated] public function get idFields():LinkableVariable
+		{
+			if (!_overrideIdFields)
+				_overrideIdFields = registerLinkableChild(_idFields, new LinkableVariable(Array, verifyStringArray), handleDeprecatedIdFields);
+			return _overrideIdFields;
+		}
+		private function handleDeprecatedIdFields():void
+		{
+			// if session state is set to some array, use it as an override for the server setting. otherwise, ignore it.
+			var state:Array = _overrideIdFields.getSessionState() as Array;
+			if (state)
+				_idFields.setSessionState(state);
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get authenticationSupported():Boolean
+		{
+			return  _service.authenticationSupported;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get authenticationRequired():Boolean
+		{
+			return _service.authenticationRequired;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get authenticatedUser():String
+		{
+			return _service.authenticatedUser;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function authenticate(user:String, pass:String):void
+		{
+			_service.authenticate(user, pass);
+		}
 		
 		public function get entityCache():EntityCache
 		{
@@ -97,10 +153,10 @@ package weave.data.DataSources
 		
 		private function verifyStringArray(array:Array):Boolean
 		{
-			return StandardLib.getArrayType(array) == String;
+			return !array || StandardLib.getArrayType(array) == String;
 		}
 		
-		override public function refreshHierarchy():void
+		override protected function refreshHierarchy():void
 		{
 			super.refreshHierarchy();
 			entityCache.invalidateAll();
@@ -217,18 +273,40 @@ package weave.data.DataSources
 			
 			// replace old service
 			disposeObject(_service);
-			_service = registerLinkableChild(this, new WeaveDataServlet(url.value));
+			disposeObject(_entityCache);
+			_service = registerLinkableChild(this, new WeaveDataServlet(url.value), setIdFields);
 			_entityCache = registerLinkableChild(_service, new EntityCache(_service));
+			_tablePromiseCache = {};
 			
 			url.resumeCallbacks();
+		}
+		
+		public function get serverVersion():String
+		{
+			var info:Object = _service.getServerInfo();
+			return info ? info['version'] : null;
+		}
+		
+		private function setIdFields():void
+		{
+			// if deprecated idFields state has been set to an array, ignore server setting
+			if (_overrideIdFields && _overrideIdFields.getSessionState())
+				return;
+			var info:Object = _service.getServerInfo();
+			_idFields.setSessionState(info ? info['idFields'] as Array : null);
 		}
 		
 		/**
 		 * This gets called as a grouped callback when the session state changes.
 		 */
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
-			super.initialize();
+			super.initialize(forceRefresh);
+		}
+		
+		override protected function get initializationComplete():Boolean
+		{
+			return super.initializationComplete && _service.entityServiceInitialized;
 		}
 		
 		override protected function handleHierarchyChange():void
@@ -243,10 +321,10 @@ package weave.data.DataSources
 			if (!root)
 				return;
 			
-			convertOldHierarchyFormat(root, "category", {
+			HierarchyUtils.convertOldHierarchyFormat(root, "category", {
 				dataTableName: "name"
 			});
-			convertOldHierarchyFormat(root, "attribute", {
+			HierarchyUtils.convertOldHierarchyFormat(root, "attribute", {
 				attributeColumnName: "name",
 				dataTableName: "dataTable",
 				dataType: _convertOldDataType,
@@ -308,7 +386,12 @@ package weave.data.DataSources
 			{
 				if (hierarchyURL.value)
 				{
-					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(hierarchyURL.value), handleHierarchyURLDownload, handleHierarchyURLDownloadError, hierarchyURL.value);
+					addAsyncResponder(
+						WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(hierarchyURL.value)),
+						handleHierarchyURLDownload,
+						handleHierarchyURLDownloadError,
+						hierarchyURL.value
+					);
 					trace("hierarchy url "+hierarchyURL.value);
 				}
 				return;
@@ -449,20 +532,19 @@ package weave.data.DataSources
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
 			// get metadata properties from XML attributes
-			const SQLPARAMS:String = 'sqlParams';
 			var params:Object = getMetadata(proxyColumn, [ENTITY_ID, ColumnMetadata.MIN, ColumnMetadata.MAX, SQLPARAMS], false);
 			var query:AsyncToken;
-			var _idFields:Array = idFields.getSessionState() as Array;
+			var idFieldsArray:Array = _idFields.getSessionState() as Array;
 			
-			if (_idFields || params[ENTITY_ID])
+			if (idFieldsArray || params[ENTITY_ID])
 			{
-				var id:Object = _idFields ? getMetadata(proxyColumn, _idFields, true) : StandardLib.asNumber(params[ENTITY_ID]);
-				var sqlParams:Array = WeaveAPI.CSVParser.parseCSVRow(params[SQLPARAMS]);
+				var id:Object = idFieldsArray ? getMetadata(proxyColumn, idFieldsArray, true) : StandardLib.asNumber(params[ENTITY_ID]);
+				var sqlParams:Array = parseSqlParams(params[SQLPARAMS]);
 				query = _service.getColumn(id, params[ColumnMetadata.MIN], params[ColumnMetadata.MAX], sqlParams);
 			}
 			else // backwards compatibility - search using metadata
 			{
-				getMetadata(proxyColumn, [ColumnMetadata.DATA_TYPE, 'dataTable', 'name', 'year'], false, params);
+				getMetadata(proxyColumn, [ColumnMetadata.DATA_TYPE, 'dataTable', 'name', 'year', 'sqlParams'], false, params);
 				// dataType is only used for backwards compatibility with geometry collections
 				if (params[ColumnMetadata.DATA_TYPE] != DataType.GEOMETRY)
 					delete params[ColumnMetadata.DATA_TYPE];
@@ -470,7 +552,7 @@ package weave.data.DataSources
 				query = _service.getColumnFromMetadata(params);
 			}
 			addAsyncResponder(query, handleGetAttributeColumn, handleGetAttributeColumnFault, proxyColumn);
-			WeaveAPI.ProgressIndicator.addTask(query, proxyColumn);
+			WeaveAPI.ProgressIndicator.addTask(query, proxyColumn, "Requesting column from server: " + Compiler.stringify(params));
 		}
 		
 		/**
@@ -516,6 +598,22 @@ package weave.data.DataSources
 //		{
 //			DebugUtils.callLater(5000, handleGetAttributeColumn2, arguments);
 //		}
+		
+		private function parseSqlParams(sqlParams:String):Array
+		{
+			var result:Array;
+			try {
+				result = Compiler.parseConstant(sqlParams) as Array;
+			} catch (e:Error) { }
+			if (!(result is Array))
+			{
+				result = WeaveAPI.CSVParser.parseCSVRow(sqlParams);
+				if (result && result.length == 0)
+					result = null;
+			}
+			return result;
+		}
+		
 		private function handleGetAttributeColumn(event:ResultEvent, proxyColumn:ProxyColumn):void
 		{
 			if (proxyColumn.wasDisposed)
@@ -552,18 +650,18 @@ package weave.data.DataSources
 					proxyColumn.setInternalColumn(new StreamedGeometryColumn(result.metadataTileDescriptors, result.geometryTileDescriptors, tileService, metadata));
 					return;
 				}
-	
-				// stop if no data
-				if (result.data == null)
-				{
-					proxyColumn.dataUnavailable();
-					return;
-				}
 				
-				var keyType:String = ColumnUtils.getKeyType(proxyColumn);
-				var keysVector:Vector.<IQualifiedKey> = new Vector.<IQualifiedKey>();
-				var setRecords:Function = function():void
+				var setRecords:Function = function(keysVector:Vector.<IQualifiedKey>):void
 				{
+					if (result.data == null)
+					{
+						proxyColumn.dataUnavailable();
+						return;
+					}
+					
+					if (!dataType) // determine dataType from data
+						dataType = DataType.getDataTypeFromData(result.data);
+					
 					if (isGeom) // result.data is an array of PGGeom objects.
 					{
 						var geometriesVector:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
@@ -582,8 +680,7 @@ package weave.data.DataSources
 						// hack for dimension slider
 						var newColumn:SecondaryKeyNumColumn = new SecondaryKeyNumColumn(metadata);
 						newColumn.baseTitle = metadata['baseTitle'];
-						var secKeyVector:Vector.<String> = Vector.<String>(result.thirdColumn);
-						newColumn.updateRecords(keysVector, secKeyVector, result.data);
+						newColumn.updateRecords(keysVector, result.thirdColumn, result.data);
 						proxyColumn.setInternalColumn(newColumn);
 						proxyColumn.setMetadata(null); // this will allow SecondaryKeyNumColumn to use its getMetadata() code
 					}
@@ -604,13 +701,121 @@ package weave.data.DataSources
 						var newStringColumn:StringColumn = new StringColumn(metadata);
 						newStringColumn.setRecords(keysVector, Vector.<String>(result.data));
 						proxyColumn.setInternalColumn(newStringColumn);
-					} 
+					}
 					//trace("column downloaded: ",proxyColumn);
 					// run hierarchy callbacks because we just modified the hierarchy.
 					_attributeHierarchy.detectChanges();
 				};
-				
-				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(proxyColumn, keyType, result.keys, setRecords, keysVector);
+	
+				var keyType:String = ColumnUtils.getKeyType(proxyColumn);
+				if (result.data != null)
+				{
+					(WeaveAPI.QKeyManager as QKeyManager).getQKeysPromise(proxyColumn, keyType, result.keys).then(setRecords);
+				}
+				else // no data in result
+				{
+					if (!result.tableField || result.tableId == AttributeColumnData.NO_TABLE_ID)
+					{
+						proxyColumn.dataUnavailable();
+						return;
+					}
+					
+					// if table not cached, request table, store in cache, and await data
+					var sqlParams:Array = parseSqlParams(proxyColumn.getMetadata(SQLPARAMS));
+					var hash:String = Compiler.stringify([result.tableId, sqlParams]);
+					var promise:WeavePromise = _tablePromiseCache[hash];
+					if (!promise)
+					{
+						if (debug)
+							weaveTrace('invoking getTable()', hash);
+						var getTablePromise:WeavePromise = new WeavePromise(_service)
+							.setResult(_service.getTable(result.tableId, sqlParams));
+						
+						var keyStrings:Array;
+						promise = getTablePromise
+							.then(function(tableData:TableData):TableData {
+								if (debug)
+									weaveTrace('received', debugId(tableData), hash);
+								
+								if (!tableData.keyColumns)
+									tableData.keyColumns = [];
+								if (!tableData.columns)
+									tableData.columns = {};
+								
+								var name:String;
+								for each (name in tableData.keyColumns)
+									if (!tableData.columns.hasOwnProperty(name))
+										throw new Error(lang('Table {0} is missing key column "{1}"', tableData.id, name));
+								
+								if (tableData.keyColumns.length == 1)
+								{
+									keyStrings = tableData.columns[tableData.keyColumns[0]];
+									return tableData;
+								}
+								
+								// generate compound keys
+								var nCol:int = tableData.keyColumns.length;
+								var iCol:int, iRow:int, nRow:int = 0;
+								for (iCol = 0; iCol < nCol; iCol++)
+								{
+									var keyCol:Array = tableData.columns[tableData.keyColumns[iCol]];
+									if (iCol == 0)
+										keyStrings = new Array(keyCol.length);
+									nRow = keyStrings.length;
+									for (iRow = 0; iRow < nRow; iRow++)
+									{
+										if (iCol == 0)
+											keyStrings[iRow] = new Array(nCol);
+										keyStrings[iRow][iCol] = keyCol[iRow];
+									}
+								}
+								for (iRow = 0; iRow < nRow; iRow++)
+									keyStrings[iRow] = WeaveAPI.CSVParser.createCSVRow(keyStrings[iRow]);
+								
+								// if no key columns were specified, generate keys
+								if (!keyStrings)
+								{
+									var col:Array;
+									for each (col in tableData.columns)
+										break;
+									keyStrings = col.map(function(v:*, i:int, a:Array):String { return 'row' + i; });
+								}
+								
+								return tableData;
+							})
+							.then(function(tableData:TableData):WeavePromise {
+								if (debug)
+									weaveTrace('promising QKeys', debugId(tableData), hash);
+								return (WeaveAPI.QKeyManager as QKeyManager).getQKeysPromise(
+									getTablePromise,
+									keyType,
+									keyStrings
+								).then(function(qkeys:Vector.<IQualifiedKey>):TableData {
+									if (debug)
+										weaveTrace('got QKeys', debugId(tableData), hash);
+									tableData.derived_qkeys = qkeys;
+									return tableData;
+								});
+							});
+						_tablePromiseCache[hash] = promise;
+					}
+					
+					// when the promise returns, set column data
+					promise.then(function(tableData:TableData):void {
+						result.data = tableData.columns[result.tableField];
+						if (result.data == null)
+						{
+							proxyColumn.dataUnavailable(lang('(Missing column: {0})', result.tableField));
+							return;
+						}
+						
+						setRecords(tableData.derived_qkeys);
+					});
+					
+					// make proxyColumn busy while table promise is busy
+					if (!promise.getResult())
+						WeaveAPI.SessionManager.assignBusyTask(promise, proxyColumn);
+				}
 			}
 			catch (e:Error)
 			{

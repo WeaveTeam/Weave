@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.services
 {
@@ -34,14 +30,17 @@ package weave.services
 	{
 		public static var debug:Boolean = false;
 		
+		private var _invokeImmediately:Boolean = true;
+		
 		/**
 		 * @param servletURL The URL of the servlet (everything before the question mark in a URL request).
-		 * @param methodParamName This is the name of the URL parameter that specifies the method to be called on the servlet.
+		 * @param invokeImmediately Set this to false if you don't want the ProxyAsyncTokens created by invokeAsyncMethod() to be invoked automatically.
 		 */
-		public function AMF3Servlet(servletURL:String)
+		public function AMF3Servlet(servletURL:String, invokeImmediately:Boolean = true)
 		{
 			// params get sent as an AMF3-serialized object
 			super(servletURL, "method", REQUEST_FORMAT_BINARY);
+			this._invokeImmediately = invokeImmediately;
 		}
 		
 		/**
@@ -51,7 +50,9 @@ package weave.services
 		 * be treated as a stream in Java.
 		 * @param methodName The name of the method to call.
 		 * @param methodParameters The parameters to use when calling the method.
-		 * @return An AsyncToken that you can add responders to.
+		 * @return A ProxyAsyncToken that you can add responders to.
+		 *         If the constructor parameter <code>invokeImmediately</code> was set to false,
+		 *         you will have to manually call invoke() on the returned token.
 		 */
 		override public function invokeAsyncMethod(methodName:String, methodParameters:Object = null):AsyncToken
 		{
@@ -59,7 +60,8 @@ package weave.services
 				trace('RPC', methodName, Compiler.stringify(methodParameters));
 			
 			var pt:ProxyAsyncToken = new ProxyAsyncToken(super.invokeAsyncMethod, arguments, readCompressedObject);
-			pt.invoke();
+			if (_invokeImmediately)
+				pt.invoke();
 			return pt;
 		}
 		

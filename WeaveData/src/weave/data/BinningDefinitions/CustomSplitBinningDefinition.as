@@ -1,27 +1,24 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.BinningDefinitions
 {
-	import weave.api.data.IAttributeColumn;
 	import weave.api.getCallbackCollection;
+	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
+	import weave.api.data.IAttributeColumn;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
 	import weave.data.BinClassifiers.NumberClassifier;
@@ -37,6 +34,7 @@ package weave.data.BinningDefinitions
 	{
 		public function CustomSplitBinningDefinition()
 		{
+			super(true, false);
 		}
 		
 		/**
@@ -93,7 +91,7 @@ package weave.data.BinningDefinitions
 		}
 		
 		// reusable temporary object
-		private static const tempNumberClassifier:NumberClassifier = new NumberClassifier();
+		private var tempNumberClassifier:NumberClassifier = newDisposableChild(this, NumberClassifier);
 
 		// backwards compatibility
 		[Deprecated(replacement="splitValues")] public function set binRange(value:String):void { splitValues.value = value; }

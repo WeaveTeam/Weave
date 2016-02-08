@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 -->
 <!---
 	This is a GUI for SessionStateLog undo and redo.
@@ -26,11 +22,13 @@
 -->
 <mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 xmlns="weave.editors.*"
+		 mouseDown="handleMouseDown();"
 		 click="handleAnyClick();"
+		 backgroundColor="0xCCCCCC"
 		 width="100%" horizontalGap="{padding}" paddingLeft="{padding}" paddingRight="{padding}" paddingTop="{padding}" paddingBottom="{padding}"
 		 implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject" xmlns:ui="weave.ui.*">
-	<mx:Button width="24" toolTip="{lang('Load session history from a file')}" icon="@Embed(source='/weave/resources/images/eject-inset.png')" click="load()"/> 
-	<mx:Button width="24" toolTip="{lang('Save session history to a file')}" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
+	<mx:Button width="24" toolTip="{lang('Load a file...')}" icon="@Embed(source='/weave/resources/images/eject-inset.png')" click="load()"/> 
+	<mx:Button width="24" toolTip="{lang('Save as...')}" icon="@Embed(source='/weave/resources/images/floppy.png')" click="save()"/>
 	<mx:Button id="playButton" label="{ getPlayLabel(_playSpeed, playButton.selected) }" toggle="true" toolTip="{lang('Replay session history')}" click="if (playButton.selected) play();"/>
 	<mx:Button width="24" id="undoButton" click="_stateLog.undo();" toolTip="{lang('Undo')}" icon="@Embed(source='/weave/resources/images/history-undo.png')"/>
 	<mx:Button width="24" id="redoButton" click="_stateLog.redo();" toolTip="{lang('Redo')}" icon="@Embed(source='/weave/resources/images/history-redo.png')"/>
@@ -52,6 +50,7 @@
 			import weave.core.LinkableBoolean;
 			import weave.core.LinkableWatcher;
 			import weave.core.SessionStateLog;
+			import weave.menus.FileMenu;
 			import weave.ui.ExportSessionStateOptions;
 			import weave.ui.SubMenu;
 			
@@ -224,11 +223,16 @@
 			public function hasPendingChanges():Boolean { return false; }
 			public function applyChanges():void { }
 			
+			private var _enabledOnMouseDown:Boolean;
+			private function handleMouseDown():void
+			{
+				_enabledOnMouseDown = Weave.properties.enableSessionHistoryControls.value;
+			}
 			// called when anything is clicked
 			private function handleAnyClick():void
 			{
 				// hack so slider doesn't disappear
-				Weave.properties.enableSessionHistoryControls.value = true;
+				Weave.properties.enableSessionHistoryControls.value = _enabledOnMouseDown;
 			}
 			
 			// called when slider value changes
@@ -270,35 +274,29 @@
 				_lastReplayTime = getTimer();
 			}
 			
-			private var _weaveFileRef:FileReference = null;
 			private function load():void
 			{
 				try
 				{
-					if (!_weaveFileRef)
-					{
-						_weaveFileRef = new FileReference();
-						_weaveFileRef.addEventListener(IOErrorEvent.IO_ERROR, reportError);
-						_weaveFileRef.addEventListener(
-							Event.SELECT,
-							function (e:Event):void
-							{
-								_weaveFileRef.load();
-							}
-						);
-						_weaveFileRef.addEventListener(
-							Event.COMPLETE,
-							function (e:Event):void
-							{
-								// TEMPORARY SOLUTION
-								WeaveAPI.topLevelApplication.visApp.loadSessionState(e.target.data, _weaveFileRef.name);
-							}
-						);
-					}
-					_weaveFileRef.browse([
-						new FileFilter("Weave file", "*.weave"),
-						new FileFilter("All files", "*")
-					]);
+					var fileRef:FileReference = new FileReference();
+					fileRef.addEventListener(IOErrorEvent.IO_ERROR, reportError);
+					fileRef.addEventListener(
+						Event.SELECT,
+						function (e:Event):void
+						{
+							fileRef.load();
+						}
+					);
+					fileRef.addEventListener(
+						Event.COMPLETE,
+						function (e:Event):void
+						{
+							FileMenu.loadFile(fileRef.name, fileRef.data);
+						}
+					);
+					
+					// TEMPORARY SOLUTION until we can register file type handlers in WeaveAPI
+					fileRef.browse(FileMenu.getSupportedFileTypes());
 				}
 				catch (e:Error)
 				{

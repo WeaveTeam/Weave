@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data
 {
@@ -62,6 +58,9 @@ package weave.data
 		{
 			// http://mathworld.wolfram.com/AlbersEqual-AreaConicProjection.html
 			ProjProjection.defs['EPSG:9822'] = '+title=Albers Equal-Area Conic +proj=aea +lat_1=0 +lat_2=60 +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs';
+			
+			// http://geeohspatial.blogspot.com/2013/03/custom-srss-in-postgis-and-qgis.html
+			ProjProjection.defs['SR-ORG:6703'] = '+title=USA_Contiguous_Albers_Equal_Area_Conic_USGS_version +proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs';
 
 			//ProjProjection.defs['aeac-us'] = '+title=Albers Equal-Area Conic +proj=aea +lat_1=37.25 +lat_2=40.25 +lat_0=36 +lon_0=-72 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs';
 			
@@ -92,7 +91,7 @@ package weave.data
 				return null;
 				
 			// if there is no projection specified, return the original column
-			if (destinationProjectionSRS == null || destinationProjectionSRS == '')
+			if (!destinationProjectionSRS)
 				return geometryColumn;
 			
 			// check the cache
@@ -324,6 +323,7 @@ import weave.api.data.IAttributeColumn;
 import weave.api.data.IColumnWrapper;
 import weave.api.data.IProjector;
 import weave.api.data.IQualifiedKey;
+import weave.api.getLinkableDescendants;
 import weave.api.newDisposableChild;
 import weave.api.registerDisposableChild;
 import weave.data.AttributeColumns.GeometryColumn;
@@ -406,30 +406,27 @@ internal class WorkerThread implements IDisposableObject
 		}
 		
 		// set metadata on proxy column
-		//TODO: this metadata may not be sufficient... IAttributeColumn may need a way to list available metadata property names
-		// or provide another column to get metadata from
-		var metadata:XML = <attribute
-				title={ ColumnUtils.getTitle(unprojectedColumn) }
-		keyType={ ColumnUtils.getKeyType(unprojectedColumn) }
-		dataType={ DataType.GEOMETRY }
-		projection={ destinationProjSRS }
-		/>;
+		var metadata:Object = ColumnMetadata.getAllMetadata(unprojectedColumn);
+		metadata[ColumnMetadata.DATA_TYPE] = DataType.GEOMETRY;
+		metadata[ColumnMetadata.PROJECTION] = destinationProjSRS;
 		reprojectedColumn.setMetadata(metadata);
 		
-		// try to find an internal StreamedGeometryColumn
-		var internalColumn:IAttributeColumn = unprojectedColumn;
-		while (!(internalColumn is StreamedGeometryColumn) && internalColumn is IColumnWrapper)
-			internalColumn = (internalColumn as IColumnWrapper).getInternalColumn();
-		var streamedGeomColumn:StreamedGeometryColumn = internalColumn as StreamedGeometryColumn;
-		if (streamedGeomColumn)
-		{
-			// Request the full unprojected detail because we don't know how much unprojected
-			// detail we need to display the appropriate amount of reprojected detail. 
-			streamedGeomColumn.requestGeometryDetail(streamedGeomColumn.collectiveBounds, 0);
-			// if still downloading the tiles, do not reproject
-			if (streamedGeomColumn.isStillDownloading())
+		// wake up any columns such as ReferencedColumn that wait before registering child columns
+		var streamedColumn:StreamedGeometryColumn = ColumnUtils.hack_findNonWrapperColumn(unprojectedColumn) as StreamedGeometryColumn;
+		// try to find other internal StreamedGeometryColumn(s)
+		var streamedColumns:Array = getLinkableDescendants(unprojectedColumn, StreamedGeometryColumn);
+		if (streamedColumn)
+			streamedColumns.unshift(streamedColumn);
+		
+		// Request the full unprojected detail because we don't know how much unprojected
+		// detail we need to display the appropriate amount of reprojected detail.
+		for each (streamedColumn in streamedColumns)
+			streamedColumn.requestGeometryDetail(streamedColumn.collectiveBounds, 0);
+		
+		// if still downloading the tiles, do not reproject
+		for each (streamedColumn in streamedColumns)
+			if (streamedColumn.isStillDownloading())
 				return; // done
-		}
 		
 		// initialize variables before calling processGeometries()
 		keys = unprojectedColumn.keys; // all keys
@@ -456,7 +453,7 @@ internal class WorkerThread implements IDisposableObject
 		else
 		{
 			// TODO - assess priority assignment
-			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_NORMAL, asyncComplete);
+			WeaveAPI.StageUtils.startTask(reprojectedColumn, asyncIterate, WeaveAPI.TASK_PRIORITY_NORMAL, asyncComplete, lang("Reprojecting {0} geometries in {1}", keys.length, debugId(unprojectedColumn)));
 		}
 	}
 	
@@ -477,6 +474,9 @@ internal class WorkerThread implements IDisposableObject
 				for (var geometryIndex:int = 0; geomArray && geometryIndex < geomArray.length; ++geometryIndex)
 				{
 					var oldGeometry:GeneralizedGeometry = geomArray[geometryIndex] as GeneralizedGeometry;
+					if (!oldGeometry)
+						continue;
+					
 					var geomParts:Vector.<Vector.<BLGNode>> = oldGeometry.getSimplifiedGeometry(); // no parameters = full list of vertices
 					var geomIsPolygon:Boolean = oldGeometry.geomType == GeometryType.POLYGON;
 	
@@ -534,7 +534,7 @@ internal class WorkerThread implements IDisposableObject
 			}
 			else
 			{
-				break;
+				return 1;
 			}
 		}
 		

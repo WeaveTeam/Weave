@@ -1,21 +1,17 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.Transforms
 {
@@ -25,7 +21,6 @@ package weave.data.Transforms
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
-	import weave.api.detectLinkableObjectChange;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.ui.ISelectableAttributes;
@@ -34,7 +29,7 @@ package weave.data.Transforms
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.DataSources.AbstractDataSource;
-	import weave.data.KeySets.StringDataFilter;
+	import weave.data.KeySets.ColumnDataFilter;
 	import weave.data.hierarchy.ColumnTreeNode;
 	import weave.utils.VectorUtils;
 
@@ -61,42 +56,34 @@ package weave.data.Transforms
 			return ["Partition by", "Columns to partition"];
 		}
 		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			// recalculate all columns previously requested
-			refreshAllProxyColumns();
-			
-			super.initialize();
+			super.initialize(true);
 		}
 		
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!_rootNode)
-			{
-				var source:PartitionDataTransform = this;
-				var partitionValues:Array = [];
-				
 				_rootNode = new ColumnTreeNode({
-					source: source,
-					data: source,
+					dataSource: this,
+					dependency: partitionColumn,
 					label: WeaveAPI.globalHashMap.getName(this),
-					isBranch: true,
 					hasChildBranches: true,
-					children: function():Array {
-						if (detectLinkableObjectChange(_rootNode, partitionColumn))
-							partitionValues = VectorUtils.union(
-								partitionColumn.keys.map(
-									function(key:IQualifiedKey, ..._):String {
-										return partitionColumn.getValueFromKey(key, String);
-									}
-								)
-							);
+					children: function(parentNode:ColumnTreeNode):Array {
+						var partitionValues:Array = VectorUtils.union(
+							partitionColumn.keys.map(
+								function(key:IQualifiedKey, ..._):String {
+									return partitionColumn.getValueFromKey(key, String);
+								}
+							)
+						);
 						return partitionValues.map(
 							function(partitionValue:String, ..._):* {
 								return {
-									source: source,
+									dataSource: parentNode.dataSource,
+									dependency: inputColumns,
 									data: partitionValue,
-									isBranch: true,
 									hasChildBranches: false,
 									children: function():Array {
 										return inputColumns.getNames().map(
@@ -119,16 +106,15 @@ package weave.data.Transforms
 						);
 					}
 				});
-			}
 			return _rootNode;
 		}
 
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
 			return new ColumnTreeNode({
-				source: this,
+				dataSource: this,
 				idFields: [PARTITION_VALUE_META, PARTITION_COLUMNNAME_META],
-				columnMetadata: metadata
+				data: metadata
 			});
 		}
 		
@@ -144,10 +130,10 @@ package weave.data.Transforms
 			}
 
 			var filteredColumn:FilteredColumn = proxyColumn.getInternalColumn() as FilteredColumn || new FilteredColumn();
-			var filter:StringDataFilter = filteredColumn.filter.requestLocalObject(StringDataFilter, false);
+			var filter:ColumnDataFilter = filteredColumn.filter.requestLocalObject(ColumnDataFilter, false);
 
 			filter.column.requestLocalObjectCopy(partitionColumn);
-			filter.stringValue.value = filterValue;
+			filter.values.setSessionState([filterValue]);
 			filteredColumn.internalDynamicColumn.requestLocalObjectCopy(inputColumn);
 			
 			proxyColumn.setInternalColumn(filteredColumn);

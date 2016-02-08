@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 xmlns="weave.editors.*"
 		 xmlns:ui="weave.ui.*"
@@ -92,6 +108,7 @@
 				if (!_plotter.providerName || !wmsLayerService)
 					return;
 				wmsLayerService.selectedItem = _plotter.providerName;
+				handleWMSProviderChange();
 
 			}
 			
@@ -100,25 +117,28 @@
 			{
 				_plotter.setProvider(wmsLayerService.selectedItem as String);
 				
-				if (_plotter.service.internalObject is CustomWMS)
+				// don't relink if service didn't change
+				if (_customWMS == _plotter.service.internalObject)
+					return;
+				
+				if (_customWMS != null)
 				{
-					if (_customWMS != null)
-					{
-						unlinkBindableProperty(_customWMS.wmsURL,wmsURLText,"text");
-						unlinkBindableProperty(_customWMS.tileProjectionSRS,projSRSText,"text");
-						unlinkBindableProperty(_customWMS.maxZoom,maxZoomText,"text");
-						unlinkBindableProperty(_customWMS.creditInfo,creditInfoText,"text");
-					}
+					unlinkBindableProperty(_customWMS.wmsURL,wmsURLText,"text");
+					unlinkBindableProperty(_customWMS.tileProjectionSRS,projSRSText,"text");
+					unlinkBindableProperty(_customWMS.maxZoom,maxZoomText,"text");
+					unlinkBindableProperty(_customWMS.creditInfo,creditInfoText,"text");
+				}
+				
+				_customWMS = _plotter.service.internalObject as CustomWMS;
+				
+				if (_customWMS)
+				{
 					customWMSSettings.includeInLayout = true;								
 					customWMSSettings.visible = true;
-					
-					_customWMS = _plotter.service.internalObject as CustomWMS;
-					
 					linkBindableProperty(_customWMS.wmsURL,wmsURLText,"text", 500);
 					linkBindableProperty(_customWMS.tileProjectionSRS,projSRSText,"text");
 					linkBindableProperty(_customWMS.maxZoom,maxZoomText,"text");
 					linkBindableProperty(_customWMS.creditInfo,creditInfoText,"text");
-
 				}
 				else
 				{
@@ -126,9 +146,7 @@
 					customWMSSettings.visible = false;
 				}
 				
-				monthSetting.visible =
-					monthSetting.includeInLayout =
-						(_plotter.service.internalObject is OnEarthProvider)
+				monthSetting.visible = monthSetting.includeInLayout = (_plotter.service.internalObject is OnEarthProvider)
 			}
 		]]>
 	</mx:Script>

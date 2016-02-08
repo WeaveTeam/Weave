@@ -1,42 +1,37 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Shape;
-	import flash.geom.Point;
-	
+
 	import weave.Weave;
-	import weave.api.core.DynamicState;
-	import weave.api.data.IColumnStatistics;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
 	import weave.api.ui.IAltText;
 	import weave.api.ui.IPlotTask;
+	import weave.api.core.DynamicState;
+	import weave.api.data.IColumnStatistics;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
@@ -49,21 +44,21 @@ package weave.visualization.plotters
 	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
-	
+
 	/**
 	 * @author adufilie
 	 */
 	public class ScatterPlotPlotter extends AbstractGlyphPlotter implements ISelectableAttributes
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, ScatterPlotPlotter, "Scatterplot");
-		
+
 		public function ScatterPlotPlotter()
 		{
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			fill.color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
 			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
 		}
-		
+
 		public function getSelectableAttributeNames():Array
 		{
 			return ["X", "Y", "Color", "Size"];
@@ -72,35 +67,36 @@ package weave.visualization.plotters
 		{
 			return [dataX, dataY, fill.color, sizeBy];
 		}
-		
+
 		public const sizeBy:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const minScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(3, isFinite));
 		public const maxScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(25, isFinite));
 		public const defaultScreenRadius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5, isFinite));
-		
+		public const showSquaresForMissingSize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		public const colorBySize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const colorNegative:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x800000));
 		public const colorPositive:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x008000));
-		
+
 		// delare dependency on statistics (for norm values)
 		private const _sizeByStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(sizeBy));
 		public var hack_horizontalBackgroundLineStyle:Array;
 		public var hack_verticalBackgroundLineStyle:Array;
-		
+
 		private const colorDataWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
-		
+
 		private var _extraKeyDependencies:Array;
 		private var _keyInclusionLogic:Function;
-		
+
 		public function hack_setKeyInclusionLogic(keyInclusionLogic:Function, extraColumnDependencies:Array):void
 		{
 			_extraKeyDependencies = extraColumnDependencies;
 			_keyInclusionLogic = keyInclusionLogic;
 			updateKeySources();
 		}
-		
+
 		private function handleColor():void
 		{
 			var cc:ColorColumn = fill.color.getInternalColumn() as ColorColumn;
@@ -109,7 +105,7 @@ package weave.visualization.plotters
 			var dc:DynamicColumn = fc ? fc.internalDynamicColumn : null;
 			colorDataWatcher.target = dc || fc || bc || cc;
 		}
-		
+
 		private function updateKeySources():void
 		{
 			var columns:Array = [sizeBy];
@@ -118,13 +114,13 @@ package weave.visualization.plotters
 			columns.push(dataX, dataY);
 			if (_extraKeyDependencies)
 				columns = columns.concat(_extraKeyDependencies);
-			
+
 			// sort size descending, all others ascending
 			var sortDirections:Array = columns.map(function(c:*, i:int, a:*):int { return i == 0 ? -1 : 1; });
-			
+
 			_filteredKeySet.setColumnKeySources(columns, sortDirections, null, _keyInclusionLogic);
 		}
-		
+
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			if (!filteredKeySet.keys.length)
@@ -146,7 +142,7 @@ package weave.visualization.plotters
 				destination.draw(tempShape);
 			}
 		}
-		
+
 		/**
 		 * This function may be defined by a class that extends AbstractPlotter to use the basic template code in AbstractPlotter.drawPlot().
 		 */
@@ -154,15 +150,15 @@ package weave.visualization.plotters
 		{
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();
-			
+
 			// project data coordinates to screen coordinates and draw graphics
 			getCoordsFromRecordKey(recordKey, tempPoint);
-			
+
 			dataBounds.projectPointTo(tempPoint, screenBounds);
-			
+
 			line.beginLineStyle(recordKey, graphics);
 			fill.beginFillStyle(recordKey, graphics);
-			
+
 			var radius:Number;
 			if (colorBySize.value)
 			{
@@ -186,10 +182,11 @@ package weave.visualization.plotters
 			{
 				radius = defaultScreenRadius.value;
 			}
-			
+
 			if (!isFinite(radius))
 			{
 				// handle undefined radius
+				radius = defaultScreenRadius.value;
 				if (colorBySize.value)
 				{
 					// draw nothing
@@ -197,13 +194,13 @@ package weave.visualization.plotters
 				else if (sizeBy.internalObject)
 				{
 					// draw square
-					radius = defaultScreenRadius.value;
-					graphics.drawRect(tempPoint.x - radius, tempPoint.y - radius, radius * 2, radius * 2);
+					if (showSquaresForMissingSize.value)
+						graphics.drawRect(tempPoint.x - radius, tempPoint.y - radius, radius * 2, radius * 2);
 				}
 				else
 				{
 					// draw default circle
-					graphics.drawCircle(tempPoint.x, tempPoint.y, defaultScreenRadius.value );
+					graphics.drawCircle(tempPoint.x, tempPoint.y, radius);
 				}
 			}
 			else
@@ -220,7 +217,7 @@ package weave.visualization.plotters
 			}
 			graphics.endFill();
 		}
-		
+
 		// backwards compatibility
 		[Deprecated] public function set absoluteValueColorEnabled(value:Boolean):void { colorBySize.value = value; }
 		[Deprecated] public function set absoluteValueColorMin(value:Number):void { colorNegative.value = value; }

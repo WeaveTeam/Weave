@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.primitives
 {
@@ -28,10 +24,11 @@ package weave.primitives
 	 */
 	public class Dictionary2D
 	{
-		public function Dictionary2D(weakPrimaryKeys:Boolean = false, weakSecondaryKeys:Boolean = false)
+		public function Dictionary2D(weakPrimaryKeys:Boolean = false, weakSecondaryKeys:Boolean = false, defaultType:Class = null)
 		{
 			dictionary = new Dictionary(weakPrimaryKeys);
 			weak2 = weakSecondaryKeys;
+			this.defaultType = defaultType;
 		}
 		
 		/**
@@ -40,6 +37,7 @@ package weave.primitives
 		public var dictionary:Dictionary;
 		
 		private var weak2:Boolean; // used as a constructor parameter for nested Dictionaries
+		private var defaultType:Class; // used for creating objects automatically via get()
 		
 		/**
 		 * 
@@ -49,8 +47,16 @@ package weave.primitives
 		 */
 		public function get(key1:Object, key2:Object):*
 		{
+			var value:* = undefined;
 			var d2:* = dictionary[key1];
-			return d2 ? d2[key2] : undefined;
+			if (d2)
+				value = d2[key2];
+			if (value === undefined && defaultType)
+			{
+				value = new defaultType();
+				set(key1, key2, value);
+			}
+			return value;
 		}
 		
 		/**
@@ -67,6 +73,22 @@ package weave.primitives
 			d2[key2] = value;
 		}
 		
+		public function primaryKeys():Array
+		{
+			var keys:Array = [];
+			for (var key:* in dictionary)
+				keys.push(key);
+			return keys;
+		}
+		
+		public function secondaryKeys(key1:Object):Array
+		{
+			var keys:Array = [];
+			for (var key:* in dictionary[key1])
+				keys.push(key);
+			return keys;
+		}
+
 		/**
 		 * This removes all values associated with the given primary key.
 		 * @param key1 The first dictionary key.

@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 -->
 <!---	
 A text editor to change the Session State on the fly.
@@ -48,9 +44,6 @@ A text editor to change the Session State on the fly.
 	 				<ui:SessionNavigator id="sessionNav" height="100%" horizontalScrollPolicy="auto" width="100%"/>
 					<mx:HBox width="100%" id="linkControls" horizontalScrollPolicy="off" backgroundAlpha="0">
 	 					<mx:TextInput id="linkNameInput" width="100%"/>
-	 					<mx:Button label="{lang('Link')}" click="linkSelectedObject();"/>
-	 					<mx:Button label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
-	 					<mx:Button id="nestedUnlinkButton" label="{lang('Nested unlink')}" click="unlinkNestedColumns()"/>
 						<ui:HelpComponent>
 							Type the name of a global object, then click the "Link" button to link the selected dynamic object to it.
 							Multiple dynamic objects can be linked to the same global object this way.
@@ -60,6 +53,9 @@ A text editor to change the Session State on the fly.
 							Once that is done, you can link the new color mapping to a new global name so that multiple tools can be linked to the new color mapping.
 							To link multiple tools, you will have to locate the color mapping in each tool and repeat the process.
 						</ui:HelpComponent>
+	 					<mx:Button label="{lang('Link')}" click="linkSelectedObject();"/>
+	 					<mx:Button label="{lang('Unlink')}" click="linkNameInput.text = ''; linkSelectedObject();"/>
+	 					<mx:Button id="nestedUnlinkButton" label="{lang('Nested unlink')}" click="unlinkNestedColumns()"/>
 	 				</mx:HBox>
 				</mx:VBox>
 				<mx:VBox width="100%" height="100%" horizontalScrollPolicy="off">
@@ -113,7 +109,6 @@ A text editor to change the Session State on the fly.
 			
 			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
-			import mx.containers.VBox;
 			import mx.controls.Alert;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.INavigatorContent;
@@ -122,12 +117,6 @@ A text editor to change the Session State on the fly.
 			import mx.utils.ObjectUtil;
 			
 			import weave.Weave;
-			import weave.api.core.DynamicState;
-			import weave.api.core.ILinkableDynamicObject;
-			import weave.api.core.ILinkableHashMap;
-			import weave.api.core.ILinkableObject;
-			import weave.api.core.ILinkableVariable;
-			import weave.api.data.IColumnWrapper;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
 			import weave.api.getLinkableOwner;
@@ -135,17 +124,25 @@ A text editor to change the Session State on the fly.
 			import weave.api.objectWasDisposed;
 			import weave.api.reportError;
 			import weave.api.setSessionState;
+			import weave.api.core.DynamicState;
+			import weave.api.core.ILinkableCompositeObject;
+			import weave.api.core.ILinkableDynamicObject;
+			import weave.api.core.ILinkableHashMap;
+			import weave.api.core.ILinkableObject;
+			import weave.api.core.ILinkableVariable;
+			import weave.api.data.IColumnWrapper;
 			import weave.compiler.Compiler;
 			import weave.core.ClassUtils;
 			import weave.core.LinkableDynamicObject;
 			import weave.core.LinkableString;
+			import weave.core.LinkableSynchronizer;
 			import weave.core.StageUtils;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
-			import weave.data.AttributeColumns.DynamicColumn;
-			import weave.data.AttributeColumns.ExtendedDynamicColumn;
 			import weave.menus.WeaveContextMenu;
+			import weave.menus.WeaveMenuItem;
 			import weave.primitives.WeaveTreeItem;
+			import weave.utils.ColumnUtils;
 			import weave.utils.DebugUtils;
 			import weave.utils.EventUtils;
 			import weave.utils.PopUpUtils;
@@ -214,15 +211,117 @@ A text editor to change the Session State on the fly.
 						click: copyPathToClipboard
 					}, {
 						shown: isObjectSelected,
-						label: lang('Watch selected object'),
-						click: function():void { console.consoleWatch(sessionNav.getSelectedLinkableObject()); }
+						label: lang('Link session state with another object'),
+						click: linkStatePath
+					},
+					WeaveMenuItem.TYPE_SEPARATOR,
+					{
+						shown: isObjectSelected,
+						enabled: function():Boolean {
+							return sessionNav.getSelectedLinkableObject() is ILinkableCompositeObject;
+						},
+						label: lang('New object...'),
+						click: function():void {
+							var parent:ILinkableObject = sessionNav.getSelectedLinkableObject();
+							AlertTextBox.show(
+								lang("Create new object"),
+								lang("Enter the object type"),
+								"",
+								function(className:String):Boolean {
+									try {
+										return Compiler.getDefinition(className) != null;
+									} catch (e:Error) { }
+									return false;
+								},
+								function(className:String):void {
+									callLater(newObject, [parent, Compiler.getDefinition(className)]);
+								}
+							);
+						}
+					}, {
+						shown: isObjectSelected,
+						label: lang('Rename object...'),
+						enabled: function():Boolean {
+							return getLinkableOwner(sessionNav.getSelectedLinkableObject()) is ILinkableHashMap;
+						},
+						click: function():void {
+							var object:ILinkableObject = sessionNav.getSelectedLinkableObject();
+							var parent:ILinkableHashMap = getLinkableOwner(object) as ILinkableHashMap;
+							AlertTextBox.show(
+								lang("Rename object"),
+								lang("Enter a new name"),
+								parent.getName(object),
+								function(name:String):Boolean {
+									return !parent.getObject(name);
+								},
+								function(name:String):void {
+									parent.renameObject(parent.getName(object), name);
+								}
+							);
+						}
 					}, {
 						shown: isObjectSelected,
 						label: lang('Delete selected object'),
 						click: deleteSelectedItem
+					},
+					WeaveMenuItem.TYPE_SEPARATOR,
+					{
+						shown: isObjectSelected,
+						enabled: function():Boolean {
+							return sessionNav.getSelectedLinkableObject() is ILinkableHashMap;
+						},
+						label: lang('Open attribute selector'),
+						click: function():void {
+							AttributeSelectorPanel.open(sessionNav.getSelectedLinkableObject());
+						}
+					},
+					WeaveMenuItem.TYPE_SEPARATOR,
+					{
+						shown: isObjectSelected,
+						label: lang('Watch selected object'),
+						click: function():void { DebugUtils.watch(sessionNav.getSelectedLinkableObject()); }
 					}
 				]);
 		    }
+			
+			private function newObject(parent:ILinkableObject, classDef:Class):void
+			{
+				var className:String = getQualifiedClassName(classDef).split('::').pop();
+				
+				if (parent is ILinkableDynamicObject)
+				{
+					var newObject:ILinkableObject = (parent as ILinkableDynamicObject).requestLocalObject(classDef, false);
+					if (newObject)
+						sessionNav.setSelectedLinkableObject(newObject);
+					else
+						reportError("Unable to create new " + className);
+					return;
+				}
+				
+				var ilh:ILinkableHashMap = parent as ILinkableHashMap;
+				if (!ilh)
+				{
+					reportError("Cannot create object under parent of type " + getQualifiedClassName(parent));
+					return;
+				}
+				AlertTextBox.show(
+					lang("Create new object"),
+					lang("Enter the name of the new {0}", className),
+					ilh.generateUniqueName(className),
+					null,
+					function(name:String):void
+					{
+						var newObject:ILinkableObject = ilh.requestObject(name, classDef, false);
+						if (newObject)
+						{
+							sessionNav.setSelectedLinkableObject(newObject);
+							sessionNav.scrollToAndSelectMatchingItem(sessionNav.selectedItem);
+						}
+						else
+							reportError("Unable to create new " + className);
+					}
+				);
+			}
 			
 			private function isObjectSelected():Boolean
 			{
@@ -349,7 +448,7 @@ A text editor to change the Session State on the fly.
 				if (object != null)
 					_currentSelectedObject = object;
 				else
-					_currentSelectedObject = sessionNav.selectedTreeItem.source;
+					_currentSelectedObject = sessionNav.selectedTreeItem.data as ILinkableObject;
 
 				loadSessionStateInView();
 				_textModified = false;
@@ -407,7 +506,7 @@ A text editor to change the Session State on the fly.
 					
 					for each (var node:WeaveTreeItem in sessionNav.selectedTreeItem.children)
 					{
-						childObject = node.source as ILinkableObject;
+						childObject = node.data as ILinkableObject;
 						if (childObject is ILinkableVariable)
 						{
 							tempValue = getSessionState(childObject);
@@ -437,43 +536,12 @@ A text editor to change the Session State on the fly.
 			private function unlinkNestedColumns():void
 			{
 				var selected:IColumnWrapper = sessionNav.getSelectedLinkableObject() as IColumnWrapper;
-		    	if (!selected)
+				if (!selected)
 				{
 					reportError('Please select a DynamicColumn.');
 					return;
 				}
-				
-				var col:IColumnWrapper = selected;
-				while (col)
-				{
-					var dc:DynamicColumn = col as DynamicColumn;
-					var edc:ExtendedDynamicColumn = col as ExtendedDynamicColumn;
-					if (dc && dc.globalName) // if linked
-					{
-						// unlink
-						dc.globalName = null;
-						// prevent infinite loop
-						if (dc.globalName)
-							break;
-						// restart from selected
-						col = selected;
-					}
-					else if (edc && edc.internalDynamicColumn.globalName) // if linked
-					{
-						// unlink
-						edc.internalDynamicColumn.globalName = null;
-						// prevent infinite loop
-						if (edc.internalDynamicColumn.globalName)
-							break;
-						// restart from selected
-						col = selected;
-					}
-					else
-					{
-						// get nested column
-						col = col.getInternalColumn() as IColumnWrapper;
-					}
-				}
+				ColumnUtils.unlinkNestedColumns(selected);
 				refresh();
 			}
 
@@ -492,9 +560,9 @@ A text editor to change the Session State on the fly.
 				var vsp:Number = gridEditor.verticalScrollPosition;
 				if (selectedTreeItem)
 				{
-					if (console.context == selectedTreeItem.source)
+					if (console.context == selectedTreeItem.data)
 						return; // no change
-					console.context = selectedTreeItem.source;
+					console.context = selectedTreeItem.data;
 				}
 				else
 					console.context = null;
@@ -544,7 +612,7 @@ A text editor to change the Session State on the fly.
 						//end of file reached. start search again.
 					}
 				}
-				else if (_editor == DATA_GRID)
+				else if (_editor == DATA_GRID && _currentSessionStateDataProvider !== null)
 				{
 					// this loop is to make sure we wrap around to find it
 					for (var j:int = 0; j < 2; ++j)
@@ -597,7 +665,7 @@ A text editor to change the Session State on the fly.
 					var item:WeaveTreeItem = sessionNav.selectedTreeItem;
 					if (!item)
 						return;
-					var parent:ILinkableObject = getLinkableOwner(item.source);
+					var parent:ILinkableObject = getLinkableOwner(item.data as ILinkableObject);
 					if (!parent)
 						return;
 					var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
@@ -612,13 +680,13 @@ A text editor to change the Session State on the fly.
 				var item:WeaveTreeItem = sessionNav.selectedTreeItem;
 				if (!item)
 					return;
-				var parent:ILinkableObject = getLinkableOwner(item.source);
+				var parent:ILinkableObject = getLinkableOwner(item.data as ILinkableObject);
 				if (!parent)
 					return;
 				var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 				var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
 				
-				var oldObject:ILinkableObject = item.source;
+				var oldObject:ILinkableObject = item.data as ILinkableObject;
 				if (hashMap)
 					hashMap.removeObject(hashMap.getName(oldObject));
 				else if (dynamicObject)
@@ -687,7 +755,7 @@ A text editor to change the Session State on the fly.
 								if (json)
 									fromJson = json.parse(textEditor.text);
 								else
-									throw new Error("JSON encoding is not supported by your version of Flash Player.");
+									fromJson = Compiler.parseConstant(textEditor.text);
 								setSessionState(_currentSelectedObject, fromJson);
 							}
 							else
@@ -799,6 +867,40 @@ A text editor to change the Session State on the fly.
 				}
 			}
 			
+			private function linkStatePath():void
+			{
+				var json:Object = ClassUtils.getClassDefinition('JSON');
+				if (!json)
+					json = {"parse": Compiler.parseConstant};
+				
+				var primaryPath:Array = sessionNav.getSelectedPath();
+				var atb:AlertTextBox = AlertTextBox.show(
+					"Link session state",
+					"Enter the path to the other object",
+					_lastCopiedPathStr,
+					validateInput,
+					handleInput
+				);
+				atb.getExpandButton().expanded = true;
+				
+				function validateInput(input:String):Boolean
+				{
+					try {
+						return json.parse(input) is Array;
+					} catch (e:Error) { }
+					return false;
+				}
+				function handleInput(input:String):void
+				{
+					var otherPath:Array = json.parse(input) as Array;
+					var ls:LinkableSynchronizer = WeaveAPI.globalHashMap.requestObject(null, LinkableSynchronizer, false);
+					ls.primaryPath.setSessionState(primaryPath);
+					ls.secondaryPath.setSessionState(otherPath);
+				}
+			}
+			
+			private var _lastCopiedPathStr:String;
+			
 			private function copyPathToClipboard():void
 			{
 				var path:Array = sessionNav.getSelectedPath();
@@ -813,6 +915,7 @@ A text editor to change the Session State on the fly.
 					);
 					str = "[" + path.join(", ") + "]";
 				}
+				_lastCopiedPathStr = str;
 				Clipboard.generalClipboard.setData(ClipboardFormats.TEXT_FORMAT, str);
 			}
 			private function copyToClipboard():void

@@ -1,3 +1,18 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+
 /* Methods and properties added to facilitate creation of external linked tools.
  * This assumes that WeavePath.js has already been loaded. */
 /* "use strict"; */
@@ -72,7 +87,7 @@ weave.WeavePath.Keys.qkeyToString = function(key)
  */
 weave.WeavePath.Keys.stringToQKey = function(s) 
 {
-    idx = s.substr(this._keyIdPrefix.length);
+    var idx = s.substr(this._keyIdPrefix.length);
     return this.indexToQKey(idx);
 };
 
@@ -89,6 +104,7 @@ weave.WeavePath.Keys._getKeyBuffers = function (pathArray)
     var key_buffers_dict = this._key_buffers || (this._key_buffers = {});
     var key_buffers = key_buffers_dict[path_key] || (key_buffers_dict[path_key] = {});
 
+    if (key_buffers.set === undefined) key_buffers.set = null;
     if (key_buffers.add === undefined) key_buffers.add = {};
     if (key_buffers.remove === undefined) key_buffers.remove = {};
     if (key_buffers.timeout_id === undefined) key_buffers.timeout_id = null;
@@ -105,12 +121,20 @@ weave.WeavePath.Keys._flushKeys = function (pathArray)
     var key_buffers = this._getKeyBuffers(pathArray);
     var add_keys = Object.keys(key_buffers.add);
     var remove_keys = Object.keys(key_buffers.remove);
+    var set_keys = key_buffers.set;
 
     add_keys = add_keys.map(this.stringToQKey, this);
     remove_keys = remove_keys.map(this.stringToQKey, this);
+    set_keys = set_keys && set_keys.map(this.stringToQKey, this);
 
     key_buffers.add = {};
     key_buffers.remove = {};
+    key_buffers.set = null;
+
+    if (set_keys)
+    {
+        weave.evaluateExpression(pathArray, 'this.replaceKeys(keys)', {keys: set_keys}, null, "");
+    }
 
     weave.evaluateExpression(pathArray, 'this.addKeys(keys)', {keys: add_keys}, null, "");
     weave.evaluateExpression(pathArray, 'this.removeKeys(keys)', {keys: remove_keys}, null, "");
@@ -147,6 +171,17 @@ weave.WeavePath.Keys._addKeys = function(pathArray, keyStringArray)
 
     this._flushKeysLater(pathArray);
 };
+
+weave.WeavePath.Keys._setKeys = function(pathArray, keyStringArray)
+{
+    var key_buffers = this._getKeyBuffers(pathArray);
+
+    key_buffers.set = [].concat(keyStringArray);
+    key_buffers.add = {};
+    key_buffers.remove = {};
+
+    this._flushKeysLater(pathArray);
+}
 
 /**
  * Queue keys to be removed from a specified path.
@@ -383,7 +418,7 @@ weave.WeavePath.prototype.addKeySetCallback = function (callback, triggerCallbac
     return this;
 };
 /**
- * Replaces the contents of the KeySet at this path with the specified keys.
+ * Replaces the contents of the KeySet at this path with the specified keys. These will not be set immediately, but are queued with a flush timeout of approx. 25 ms.
  * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
  *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
  * @param {Array} keyStringArray An array of alphanumeric keystrings that correspond to QualifiedKeys.
@@ -395,9 +430,9 @@ weave.WeavePath.prototype.setKeys = function(/*...relativePath, keyStringArray*/
     if (this._assertParams('setKeys', args))
     {
         var keyStringArray = args.pop();
-        var keyObjectArray = keyStringArray.map(this.stringToQKey);
         var path = this._path.concat(args);
-        this.weave.evaluateExpression(path, 'this.replaceKeys(keys)', {keys: keyObjectArray}, null, "");
+        
+        this.weave.WeavePath.Keys._setKeys(path, keyStringArray);
 
         return this;
     };
@@ -432,21 +467,34 @@ weave.WeavePath.prototype.filterKeys = function (/*...relativePath, keyStringArr
  * Retrieves a list of records defined by a mapping of property names to column paths or by an array of column names.
  * @param {object} pathMapping An object containing a mapping of desired property names to column paths or an array of child names.
  * pathMapping can be one of three different forms:
- * An array of column names corresponding to children of the WeavePath this method is called from, e.g., path.retrieveRecords(["x", "y"]);
+ * 
+ * 1. An array of column names corresponding to children of the WeavePath this method is called from, e.g., path.retrieveRecords(["x", "y"]);
  * the column names will also be used as the corresponding property names in the resultant records.
- * An object, for which each property=>value is the target record property => source column WeavePath. This can be defined to include recursive structures, e.g.,
+ * 
+ * 2. An object, for which each property=>value is the target record property => source column WeavePath. This can be defined to include recursive structures, e.g.,
  * path.retrieveRecords({point: {x: x_column, y: y_column}, color: color_column}), which would result in records with the same form.
- * If it is null, all children of the WeavePath will be retrieved. This is equivalent to: path.retrieveRecords(path.getNames());
- * The alphanumeric QualifiedKey for each record will be stored in the 'id' field, which means it is to be considered a reserved name.
- * @param {weave.WeavePath} [keySetPath] A WeavePath object pointing to an IKeySet (columns are also IKeySets.)
+ * 
+ * 3. If it is null, all children of the WeavePath will be retrieved. This is equivalent to: path.retrieveRecords(path.getNames());
+ * 
+ * The alphanumeric key for each record will be stored in the 'id' field, which means it is to be considered a reserved name.
+ * 
+ * @param {weave.WeavePath} [options] An object containing optional parameters:
+ *                                    "keySet": A WeavePath object pointing to an IKeySet (columns are also IKeySets.)
+ *                                    "dataType": A String specifying dataType: string/number/date/geometry
  * @return {Array} An array of record objects.
  */
-weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
+weave.WeavePath.prototype.retrieveRecords = function(pathMapping, options)
 {
+	var dataType = options && options['dataType'];
+	var keySet = options && options['keySet'];
+
+	if (!keySet && options instanceof weave.WeavePath)
+		keySet = options;
+	
 	// if only one argument given and it's a WeavePath object, assume it's supposed to be keySetPath.
 	if (arguments.length == 1 && pathMapping instanceof weave.WeavePath)
 	{
-		keySetPath = pathMapping;
+		keySet = pathMapping;
 		pathMapping = null;
 	}
 	
@@ -464,7 +512,7 @@ weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
     var obj = listChainsAndPaths(pathMapping);
     
     /* Perform the actual retrieval of records */
-    var results = joinColumns(obj.paths, null, true, keySetPath);
+    var results = joinColumns(obj.paths, dataType, true, keySet);
     return results[0]
         .map(this.qkeyToString)
         .map(function(key, iRow) {
@@ -480,13 +528,13 @@ weave.WeavePath.prototype.retrieveRecords = function(pathMapping, keySetPath)
  * @private
  * A function that tests if a WeavePath references an IAttributeColumn
  */
-var isColumn = weave.evaluateExpression(null, "o => o is IAttributeColumn", null, ['weave.api.data.IAttributeColumn']);
+var isColumn = weave.evaluateExpression(null, "o => o is IAttributeColumn");
 
 /**
  * @private
  * A pointer to ColumnUtils.joinColumns.
  */
-var joinColumns = weave.evaluateExpression(null, "ColumnUtils.joinColumns", null, ['weave.utils.ColumnUtils']);
+var joinColumns = weave.evaluateExpression(null, "ColumnUtils.joinColumns");
 
 /**
  * @private
@@ -593,7 +641,7 @@ var EDC = 'weave.data.AttributeColumns::ExtendedDynamicColumn';
 var DC = 'weave.data.AttributeColumns::DynamicColumn';
 var RC = 'weave.data.AttributeColumns::ReferencedColumn';
 var getColumnType = weave.evaluateExpression(null, 'o => { for each (var t in types) if (o is t) return t; }', {types: [EDC, DC, RC]});
-var getFirstDataSourceName = weave.evaluateExpression([], '() => this.getNames(IDataSource)[0]', null, ['weave.api.data.IDataSource']);
+var getFirstDataSourceName = weave.evaluateExpression([], '() => this.getNames(IDataSource)[0]');
 
 /**
  * Sets the metadata for a column at the current path.
@@ -646,4 +694,63 @@ weave.WeavePath.prototype.setColumns = function(metadataMapping, dataSourceName)
 		while (this.getType(metadataMapping.length))
 			this.remove(metadataMapping.length);
 	return this;
+};
+
+////////////////////////////////////
+
+var weaveTreeNodeSerial = 'WEAVE_TREE_NODE_SERIAL';
+var weaveTreeNodeLookup = 'WEAVE_TREE_NODE_LOOKUP';
+// initialize ActionScript variables
+weave.evaluateExpression(null, '0', null, null, weaveTreeNodeSerial);
+weave.evaluateExpression(null, 'new Dictionary()', null, null, weaveTreeNodeLookup);
+var _createNodeFunction = function(script, vars) {
+	var fn = weave.evaluateExpression(null, '(serial,arg1,arg2) => { var node = ' + weaveTreeNodeLookup + '[serial]; ' + script + ' }', vars);
+	return function(arg1, arg2) { return fn(this.serial, arg1, arg2); };
+};
+var _mapNodesToSerials = weave.evaluateExpression(null, 'nodes => {\
+	var lookup = ' + weaveTreeNodeLookup + ';\
+	return nodes && nodes.map(child => {\
+		if (lookup[child] === undefined)\
+			lookup[ (lookup[child] = ++' + weaveTreeNodeSerial + ') ] = child;\
+		return lookup[child];\
+	});\
+}');
+
+/**
+ * WeaveTreeNode implements the following interfaces: IWeaveTreeNode, IColumnReference
+ */
+weave.WeaveTreeNode = function(serial, parent) {
+	this.serial = serial | 0; // default - root node
+	this.parent = parent;
+	weave.WeaveTreeNode.cache[this.serial] = this;
+	if (this.serial == 0)
+		weave.evaluateExpression(null, 'var lookup = ' + weaveTreeNodeLookup + '; if (lookup[0] === undefined) lookup[lookup[0] = new WeaveRootDataTreeNode(WeaveAPI.globalHashMap)] = 0; return null;');
+};
+weave.WeaveTreeNode.cache = {}; // serial -> WeaveTreeNode
+weave.WeaveTreeNode.prototype.getLabel = _createNodeFunction('node.getLabel()');
+weave.WeaveTreeNode.prototype.isBranch = _createNodeFunction('node.isBranch()');
+weave.WeaveTreeNode.prototype.hasChildBranches = _createNodeFunction('node.hasChildBranches()');
+weave.WeaveTreeNode.prototype._getChildrenSerials = _createNodeFunction('getSerials(node.getChildren())', {getSerials: _mapNodesToSerials});
+weave.WeaveTreeNode.prototype.getChildren = function() {
+	var serials = this._getChildrenSerials();
+	return serials && serials.map(function(serial) {
+		return weave.WeaveTreeNode.cache[serial] || new weave.WeaveTreeNode(serial, this);
+	}, this);
+};
+weave.WeaveTreeNode.prototype.getDataSource = _createNodeFunction('node is IColumnReference ? node.getDataSource() : null');
+weave.WeaveTreeNode.prototype.getDataSourceName = _createNodeFunction('node is IColumnReference ? WeaveAPI.globalHashMap.getName(node.getDataSource()) : null');
+weave.WeaveTreeNode.prototype.getColumnMetadata = _createNodeFunction('node is IColumnReference ? node.getColumnMetadata() : null');
+weave.WeaveTreeNode.prototype._findPathSerials = _createNodeFunction('\
+	var dataSourceName = arg1, columnMetadata = arg2;\
+	var ds = WeaveAPI.globalHashMap.getObject(dataSourceName) as IDataSource;\
+	var target = ds && ds.findHierarchyNode(columnMetadata);\
+	var path = ds && target && HierarchyUtils.findPathToNode(node, target);\
+	return getSerials(path);\
+', {getSerials: _mapNodesToSerials});
+weave.WeaveTreeNode.prototype.findPath = function(dataSourceName, columnMetadata) {
+	var serials = this._findPathSerials(dataSourceName, columnMetadata);
+	return serials && serials.map(function(serial, index, array) {
+		var parent = weave.WeaveTreeNode.cache[array[index - 1]];
+		return weave.WeaveTreeNode.cache[serial] || new weave.WeaveTreeNode(serial, parent);
+	}, this);
 };

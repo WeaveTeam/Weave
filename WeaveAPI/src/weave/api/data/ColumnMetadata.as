@@ -1,10 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  *
- * This file is part of the Weave API.
+ * This file is part of Weave.
  *
- * The Initial Developer of the Weave API is the Institute for Visualization
+ * The Initial Developer of Weave is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
  * the Initial Developer. All Rights Reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -31,6 +31,8 @@ package weave.api.data
 		public static const PROJECTION:String = "projection";
 		public static const AGGREGATION:String = "aggregation";
 		public static const DATE_FORMAT:String = "dateFormat";
+		public static const DATE_DISPLAY_FORMAT:String = "dateDisplayFormat";
+		public static const OVERRIDE_BINS:String = "overrideBins";
 		public static const MIN:String = "min";
 		public static const MAX:String = "max";
 		
@@ -51,16 +53,17 @@ package weave.api.data
 			switch (propertyName)
 			{
 				case ColumnMetadata.ENTITY_TYPE:
-					return [EntityType.TABLE, EntityType.COLUMN, EntityType.HIERARCHY, EntityType.CATEGORY];
+					return EntityType.ALL_TYPES;
 				
 				case ColumnMetadata.DATA_TYPE:
-					return [DataType.NUMBER, DataType.STRING, DataType.DATE, DataType.GEOMETRY];
+					return DataType.ALL_TYPES;
 				
+				case ColumnMetadata.DATE_DISPLAY_FORMAT:
 				case ColumnMetadata.DATE_FORMAT:
-					return ['YYYY', 'YYYY-MM-DD', 'HH:NN:SS'];
+					return DateFormat.getSuggestions();
 				
 				case ColumnMetadata.AGGREGATION:
-					return [Aggregation.SAME, Aggregation.FIRST, Aggregation.LAST, Aggregation.MEAN, Aggregation.SUM, Aggregation.MIN, Aggregation.MAX, Aggregation.COUNT];
+					return Aggregation.ALL_TYPES;
 				
 				default:
 					return [];

@@ -1,3 +1,18 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+
 package weave.data.DataSources
 {
 	import weave.api.data.ColumnMetadata;
@@ -123,9 +138,9 @@ package weave.data.DataSources
 		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
 			return new ColumnTreeNode({
-				source: this,
+				dataSource: this,
 				idFields: [ANNOTATION_KEY_TYPE],
-				columnMetadata: metadata
+				data: metadata
 			});
 		}
 
@@ -180,16 +195,14 @@ package weave.data.DataSources
 		override public function getHierarchyRoot():IWeaveTreeNode
 		{
 			if (!_rootNode)
-			{
-				var source:AnnotationDataSource = this;
 				_rootNode = new ColumnTreeNode({
-					source: source,
-					data: source,
+					dataSource: this,
+					dependency: annotations,
 					label: WeaveAPI.globalHashMap.getName(this),
-					isBranch: true,
 					hasChildBranches: false,
 					children: function():Array {
-						if (!keyTypes) updateKeyTypes();
+						if (!keyTypes)
+							updateKeyTypes();
 						return keyTypes.map(function (keyType:String, ..._):IWeaveTreeNode
 						{
 							var meta:Object = {};
@@ -207,7 +220,6 @@ package weave.data.DataSources
 						})
 					}
 				});
-			}
 			return _rootNode;
 		}
 	}

@@ -1,3 +1,18 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+
 // This code assumes the weave variable has already been set.
 
 if (!weave.addEventListener)
@@ -52,9 +67,8 @@ function handleFile(file) {
 	};
 	reader.onloadend = function(evt) {
 		var data = evt.target.result.split('base64,')[1];
-		var libs = ['weave.compiler.StandardLib', 'weave.Weave'];
-		var script = "WeaveAPI.topLevelApplication['visApp'].handleDraggedFile(name, StandardLib.atob(data))";
-		weave.evaluateExpression([], script, {"name": file.name, "data": data}, libs);
+		var script = "FileMenu.loadFile(name, StandardLib.atob(data))";
+		weave.evaluateExpression([], script, {"name": file.name, "data": data});
 	};
 
 	// begin the read operation

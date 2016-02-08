@@ -1,0 +1,161 @@
+<html>
+<head>
+<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.js"></script>
+<script src="https://public.tableau.com/javascripts/api/tableau-2.0.0.js"></script>
+</head>
+<body>
+<div id="tableau_div">
+</div>
+<script>
+
+const VIZ_URL = "vizUrl";
+const DATA_SOURCE_NAME = "dataSourceName";
+const KEY_COLUMN = "keyColumn";
+const KEY_TYPE = "keyType";
+const SHEET = "sheet";
+
+var currentDataSourceName = null;
+var tableau = {};
+var tool = {};
+var toolPath;
+
+var dataSources = {};
+var selectedKeys = [];
+
+function onTableauSelection(marksEvent)
+{
+	marksEvent.getMarksAsync().then(
+	function (marks) {
+		var keyColumn = tool[KEY_COLUMN].getState();
+		var keyColumn = "Key";
+		var keyType = "Key";
+		var keyType = tool[KEY_TYPE].getState();
+		var keys = [];
+		for (var idx = 0; idx < marks.length; idx++)
+		{
+			var mark = marks[idx];
+
+			var pair = mark.getPairs().get(keyColumn);
+			
+			if (pair)
+			{
+				keys.push(toolPath.qkeyToString({localName: pair.value, keyType: keyType}));
+			}
+		}
+		toolPath.selection_keyset.setKeys(keys);
+	});
+}
+
+function getAllFromMarks(marks)
+{
+	var records = [];
+	for (var mark_idx = 0; mark_idx < marks.length; mark_idx++)
+	{
+		var mark = marks[mark_idx];
+		var record = {};
+		var pairs = mark.getPairs();
+		
+		for (var pair_idx in pairs)
+		{
+			var pair = pairs[pair_idx];
+			record[pair.fieldName] = pair.value;
+		}
+		records.push(record);
+	}
+	dataSources['test'] = records; /* Figure this out later */
+}
+
+function onTableauSheetChange()
+{
+	
+	if (tableau.book)
+	{
+		tableau.sheet = tableau.book.getActiveSheet();
+		tool[SHEET].state(tableau.sheet.getName());
+	}
+	
+}
+
+function onWeaveVizUrlChange() 
+{
+	var tableau_div = $('#tableau_div');
+	var url = tool[VIZ_URL].getState();
+	if (!url) return;
+	
+	var options = {
+			width: "100vw",
+			height: "100vh",
+			onFirstInteractive: function() {
+				tableau.book = tableau.viz.getWorkbook();
+				tableau.sheet = tableau.book.getActiveSheet();
+				tableau.sheet.getSelectedMarksAsync().then(getAllFromMarks).then(
+						function() {
+							onWeaveDataSourceNameChange();
+							onWeaveKeyColumnChange();
+							onWeaveKeyTypeChange();
+							onWeaveSheetChange();
+							onWeaveSelectionChange();
+						});
+			}
+	};
+	
+	if (tableau.viz) tableau.viz.dispose();
+	tableau.viz = new tableauSoftware.Viz($('#tableau_div'), url, options);	
+	tableau.viz.addEventListener(tableauSoftware.TableauEventName.MARKS_SELECTION, onTableauSelection);
+	tableau.viz.addEventListener(tableauSoftware.TableauEventName.TAB_SWITCH, onTableauSheetChange);
+}
+
+/* Manage a CSVDataSource derived from the primary data source in the workbook. */
+function onWeaveDataSourceNameChange()
+{
+	
+}
+
+function onWeaveKeyColumnChange()
+{
+	
+}
+
+function onWeaveKeyTypeChange()
+{
+	
+}
+
+function onWeaveSheetChange()
+{
+	if (tableau.book)
+	{
+		tableau.book.activateSheetAsync(tool[SHEET].getState());
+	}
+}
+
+function onWeaveSelectionChange()
+{	
+	if (tableau.sheet)
+	{
+		var keyColumn = tool[KEY_COLUMN].getState();
+		var keyType = tool[KEY_TYPE].getState();
+		
+		var keys = _(toolPath.selection_keyset.getKeys()).map(toolPath.stringToQKey).filter({keyType: keyType}).pluck("localName").value();
+		
+		tableau.sheet.selectMarksAsync(keyColumn, keys, tableauSoftware.SelectionUpdateType.REPLACE);
+	}
+}
+
+$(function () {
+	toolPath = opener.WeaveExternalTools[window.name].path;
+	
+	toolPath.initProperties([
+		{name: VIZ_URL, callback: onWeaveVizUrlChange, type: 'LinkableString'},
+		{name: DATA_SOURCE_NAME, callback: onWeaveDataSourceNameChange, type: 'LinkableString'},
+		{name: KEY_COLUMN, callback: onWeaveKeyColumnChange, type: 'LinkableString'},
+		{name: KEY_TYPE, callback: onWeaveKeyTypeChange, type: 'LinkableString'},
+		{name: SHEET, callback: onWeaveSheetChange, type: 'LinkableString'}
+	], tool);
+	toolPath.selection_keyset.addCallback(onWeaveSelectionChange);
+	onWeaveVizUrlChange();
+})
+</script>
+</body>
+</html>

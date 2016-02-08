@@ -1,43 +1,47 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.geom.ColorTransform;
 	import flash.geom.Matrix;
 	import flash.net.URLRequest;
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.data.IQualifiedKey;
+	import weave.Weave;
+	import weave.api.getCallbackCollection;
+	import weave.api.newDisposableChild;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
+	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
+	import weave.data.AttributeColumns.BinnedColumn;
+	import weave.data.AttributeColumns.ColorColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
+	import weave.data.AttributeColumns.FilteredColumn;
 	
 	/**
 	 * ImagePlotter
@@ -54,7 +58,17 @@ package weave.visualization.plotters
 		
 		public function ImageGlyphPlotter()
 		{
+			super();
+			
+			color.internalDynamicColumn.target = Weave.defaultColorColumn;
+			alpha.defaultValue.value = 1;
+			
+			color.internalDynamicColumn.addImmediateCallback(this, handleColor, true);
+			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateKeySources, true);
 		}
+		
+		public const color:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
+		public const alpha:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 		
 		public const imageURL:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 		public const imageSize:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
@@ -71,6 +85,34 @@ package weave.visualization.plotters
 		private static var _missingImageClass:Class;
 		private static const _missingImage:BitmapData = Bitmap(new _missingImageClass()).bitmapData;
 
+		private const colorDataWatcher:LinkableWatcher = newDisposableChild(this, LinkableWatcher);
+		
+		private function handleColor():void
+		{
+			var cc:ColorColumn = color.getInternalColumn() as ColorColumn;
+			var bc:BinnedColumn = cc ? cc.getInternalColumn() as BinnedColumn : null;
+			var fc:FilteredColumn = bc ? bc.getInternalColumn() as FilteredColumn : null;
+			var dc:DynamicColumn = fc ? fc.internalDynamicColumn : null;
+			colorDataWatcher.target = dc || fc || bc || cc;
+		}
+		
+		private function updateKeySources():void
+		{
+			var columns:Array = [imageSize];
+			var sortDirections:Array = [-1];
+			
+			if (colorDataWatcher.target)
+			{
+				columns.push(colorDataWatcher.target);
+				sortDirections.push(1);
+			}
+			
+			columns.push(dataX, dataY);
+			sortDirections.push(1, 1);
+			
+			setColumnKeySources(columns, sortDirections);
+		}
+		
 		/**
 		 * Draws the graphics onto BitmapData.
 		 */
@@ -133,13 +175,37 @@ package weave.visualization.plotters
 				var dy:Number = Math.round(tempPoint.y) + (_rotation == 0 && image.height % 2 ? 0.5 : 0);
 				tempMatrix.translate(dx, dy);
 				
+				var ct:ColorTransform = tempColorTransform;
+				var color:Number = this.color.getValueFromKey(recordKey, Number);
+				if (isFinite(color))
+				{
+					const R:int = 0xFF0000;
+					const G:int = 0x00FF00;
+					const B:int = 0x0000FF;
+
+					ct.redMultiplier = ((color & R) >> 16) / 255;
+					ct.greenMultiplier = ((color & G) >> 8) / 255;
+					ct.blueMultiplier = (color & B) / 255;
+				}
+				else
+				{
+					ct.redMultiplier = 1;
+					ct.greenMultiplier = 1;
+					ct.blueMultiplier = 1;
+				}
+				ct.alphaMultiplier = alpha.getValueFromKey(recordKey, Number);
+				if (isNaN(ct.alphaMultiplier))
+					ct.alphaMultiplier = 1;
+				
 				// draw image
-				task.buffer.draw(image, tempMatrix);
+				task.buffer.draw(image, tempMatrix, ct, null, null, true);
 				
 				return task.iteration / task.recordKeys.length;
 			}
 			return 1;
 		}
+		
+		private const tempColorTransform:ColorTransform = new ColorTransform();
 		
 		/**
 		 * This function will save a downloaded image into the image cache.

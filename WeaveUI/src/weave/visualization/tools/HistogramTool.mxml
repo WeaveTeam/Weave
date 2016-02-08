@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
@@ -164,14 +160,14 @@
 	<editorFactory><mx:Component><ui:ControlPanel>
 		<mx:VBox label="{lang('Basic')}">
 			<ui:DynamicColumnComponent id="dataColumnComponent"/>
-			<ui:BinningDefinitionEditor id="binEditor" showNoneOption="false"/>
-		</mx:VBox>
-		<mx:VBox label="{lang('Advanced')}">
 			<ui:DynamicColumnComponent id="columnToAggregateComponent"/>
 			<ui:Indent label="{lang('Height aggregation method')}">
 				<ui:CustomComboBox id="agMethodCombo" dataProvider="{HistogramPlotter.ENUM_AGGREGATION_METHODS}" labelFunction="lang"
 								   creationComplete="linkBindableProperty(outerDocument.plotter.aggregationMethod, event.target, 'selectedItem');"/>
 			</ui:Indent>
+			<ui:BinningDefinitionEditor id="binEditor" showNoneOption="false"/>
+		</mx:VBox>
+		<mx:VBox label="{lang('Advanced')}">
 			<ui:CustomCheckBox label="{lang('Draw horizontal bars')}" creationComplete="linkBindableProperty(outerDocument.plotter.horizontalMode, event.target, 'selected');"/>
 			<mx:CheckBox id="drawPartialCheckBox"
 						 label="{lang('Draw partial histogram bars for selection and probe')}"
@@ -182,17 +178,27 @@
 		<mx:Script>
 			<![CDATA[
 				import weave.api.linkBindableProperty;
+				import weave.api.ui.IPlotter;
 				import weave.visualization.plotters.HistogramPlotter;
 				
 				override protected function childrenCreated():void
 				{
 					super.childrenCreated();
-					columnToAggregateComponent.dynamicObject = outerDocument.plotter.columnToAggregate;
-					outerDocument.plotter.columnToAggregate.addGroupedCallback(this, function():void {
-						agMethodCombo.enabled = outerDocument.plotter.columnToAggregate.getInternalColumn() != null;
+					var plotter:HistogramPlotter = outerDocument.plotter;
+					columnToAggregateComponent.dynamicObject = plotter.columnToAggregate;
+					plotter.columnToAggregate.addGroupedCallback(this, function():void {
+						agMethodCombo.enabled = plotter.columnToAggregate.getInternalColumn() != null;
 					}, true);
 					
-					outerDocument.plotter.fillStyle.color.internalDynamicColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
+					plotter.fillStyle.color.internalDynamicColumn.addGroupedCallback(this, handleDynamicColorColumnChange, true);
+					
+					//TODO
+					plotter.showValueLabels;
+					plotter.valueLabelHorizontalAlign;
+					plotter.valueLabelVerticalAlign;
+					plotter.valueLabelRelativeAngle;		
+					plotter.valueLabelColor;
+					plotter.valueLabelMaxWidth;
 				}
 				
 				private function handleDynamicColorColumnChange():void

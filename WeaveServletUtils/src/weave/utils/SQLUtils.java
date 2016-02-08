@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.utils;
 
@@ -65,25 +61,7 @@ public class SQLUtils
 	
 	public static String DEFAULT_SQLITE_DATABASE = "sqlite_master";
 	
-	/**
-	 * @param dbms The name of a DBMS (MySQL, PostgreSQL, ...)
-	 * @return A driver name that can be used in the getConnection() function.
-	 */
-	public static String getDriver(String dbms) throws RemoteException
-	{
-		if (dbms.equalsIgnoreCase(MYSQL))
-			return "com.mysql.jdbc.Driver";
-		if(dbms.equalsIgnoreCase(SQLITE))
-			return "org.sqlite.JDBC";
-		if (dbms.equalsIgnoreCase(POSTGRESQL))
-			return "org.postgis.DriverWrapper";
-		if (dbms.equalsIgnoreCase(SQLSERVER))
-			return "net.sourceforge.jtds.jdbc.Driver";
-		if (dbms.equalsIgnoreCase(ORACLE))
-			return "oracle.jdbc.OracleDriver";
-		
-		throw new RemoteException("Unknown DBMS");
-	}
+	public static boolean debug = false;
 	
 	public static String getDbmsFromConnection(Connection conn)
 	{
@@ -103,7 +81,7 @@ public class SQLUtils
 	
 	public static String getDbmsFromConnectString(String connectString) throws RemoteException
 	{
-		if (connectString.startsWith("jdbc:jtds"))
+		if (connectString.startsWith("jdbc:jtds") || connectString.startsWith("jdbc:sqlserver"))
 			return SQLSERVER;
 		if (connectString.startsWith("jdbc:oracle"))
 			return ORACLE;
@@ -113,6 +91,29 @@ public class SQLUtils
 			return SQLITE;
 		if (connectString.startsWith("jdbc:postgresql"))
 			return POSTGRESQL;
+		
+		throw new RemoteException("Unknown DBMS");
+	}
+	
+	/**
+	 * @return A driver name that can be used in the getConnection() function.
+	 */
+	public static String getDriverFromConnectString(String connectString) throws RemoteException
+	{
+		if (connectString.startsWith("jdbc:sqlserver"))
+			return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+		
+		String dbms = getDbmsFromConnectString(connectString);
+		if (dbms.equalsIgnoreCase(MYSQL))
+			return "com.mysql.jdbc.Driver";
+		if(dbms.equalsIgnoreCase(SQLITE))
+			return "org.sqlite.JDBC";
+		if (dbms.equalsIgnoreCase(POSTGRESQL))
+			return "org.postgis.DriverWrapper";
+		if (dbms.equalsIgnoreCase(SQLSERVER))
+			return "net.sourceforge.jtds.jdbc.Driver";
+		if (dbms.equalsIgnoreCase(ORACLE))
+			return "oracle.jdbc.OracleDriver";
 		
 		throw new RemoteException("Unknown DBMS");
 	}
@@ -298,22 +299,28 @@ public class SQLUtils
 	 * @param connectString The connect string used to create the Connection.
 	 * @return A static read-only Connection.
 	 */
-	public static Connection getStaticReadOnlyConnection(String connectString) throws RemoteException
+	public static Connection getStaticReadOnlyConnection(String connectString, String user, String pass) throws RemoteException
 	{
+		String key = CSVParser.defaultParser.createCSVRow(new String[]{connectString, user != null ? user : "", pass != null ? pass : ""}, false);
 		synchronized (_staticReadOnlyConnections)
 		{
 			Connection conn = null;
-			if (_staticReadOnlyConnections.containsKey(connectString))
+			if (_staticReadOnlyConnections.containsKey(key))
 			{
-				conn = _staticReadOnlyConnections.get(connectString);
+				conn = _staticReadOnlyConnections.get(key);
 				if (connectionIsValid(conn))
+				{
+					if (debug)
+						System.out.println("DEBUG: cleaned up invalid connection\n\t" + connectString);
+
 					return conn;
+				}
 				// if connection is not valid, remove this entry from the Map
-				_staticReadOnlyConnections.remove(connectString);
+				_staticReadOnlyConnections.remove(key);
 			}
 			
 			// get a new connection, throwing an exception if this fails
-			conn = getConnection(connectString);
+			conn = getConnection(connectString, user, pass);
 			
 			// try to set readOnly.. if this fails, continue anyway.
 			try
@@ -322,12 +329,13 @@ public class SQLUtils
 			}
 			catch (SQLException e)
 			{
-				e.printStackTrace();
+				if (!isSQLite(conn))
+					e.printStackTrace();
 			}
 			
 			// remember this static, read-only connection.
 			if (conn != null)
-				_staticReadOnlyConnections.put(connectString, conn);
+				_staticReadOnlyConnections.put(key, conn);
 
 			return conn;
 		}
@@ -339,10 +347,18 @@ public class SQLUtils
 	 */
 	public static Connection getConnection(String connectString) throws RemoteException
 	{
-		String dbms = getDbmsFromConnectString(connectString);
-		
-		String driver = getDriver(dbms);
-		
+		return getConnection(connectString, null, null);
+	}
+	
+	/**
+	 * @param connectString The connect string to use.
+	 * @param user The user name
+	 * @param pass The password
+	 * @return A new SQL connection using the specified driver & connect string 
+	 */
+	public static Connection getConnection(String connectString, String user, String pass) throws RemoteException
+	{
+		String driver = getDriverFromConnectString(connectString);
 		Connection conn = null;
 		try
 		{
@@ -350,7 +366,10 @@ public class SQLUtils
 			if (!_driverMap.containsKey(driver))
 				_driverMap.put(driver, (Driver)Class.forName(driver).newInstance());
 
-			conn = DriverManager.getConnection(connectString);
+			if (user == null && pass == null)
+				conn = DriverManager.getConnection(connectString);
+			else
+				conn = DriverManager.getConnection(connectString, user, pass);
 		}
 		catch (SQLException ex)
 		{
@@ -646,6 +665,11 @@ public class SQLUtils
 		SQLResult result = null;
 		try
 		{
+			if (debug)
+				System.out.println(String.format("DEBUG: executing query\n\t%s\n\t%s", query, params == null ? "" : Arrays.deepToString(params)));
+			
+			long time1 = System.currentTimeMillis();
+			
 			if (params == null || params.length == 0)
 			{
 				stmt = connection.createStatement();
@@ -657,8 +681,21 @@ public class SQLUtils
 				rs = ((PreparedStatement)stmt).executeQuery();
 			}
 			
+			long time2 = System.currentTimeMillis();
+			
 			// make a copy of the query result
 			result = new SQLResult(rs, convertToStrings);
+			
+			long time3 = System.currentTimeMillis();
+			
+			long queryTime = time2 - time1;
+			long readTime = time3 - time2;
+			long totalTime = time3 - time1;
+			if (totalTime > 1000)
+			{
+				System.out.println(String.format("[%sms query, %sms read] %s", queryTime, readTime, query));
+			}
+
 		}
 		catch (SQLException e)
 		{
@@ -1956,6 +1993,12 @@ public class SQLUtils
 		if (isOracleServer(conn))
 			return "DATE";
 		return "DATETIME";
+	}
+	public static String getLongBlobTypeString(Connection conn)
+	{
+		if (isOracleServer(conn))
+			return "BLOB";
+		return "LONGBLOB";
 	}
 	
 	protected static String getCSVNullValue(Connection conn)

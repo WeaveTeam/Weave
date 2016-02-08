@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
+<ui:CustomViewStack xmlns="weave.editors.*" 
+				xmlns:mx="http://www.adobe.com/2006/mxml"
+				xmlns:ui="weave.ui.*"
+				horizontalScrollPolicy="off"
+				verticalScrollPolicy="off"
+				creationPolicy="all"
+				change="handleViewIndexChange(event)"
+				width="100%" height="100%">
+	<mx:Canvas label="{lang('List')}">
+		<mx:List id="choiceList" width="100%" height="100%"
+				 allowMultipleSelection="{allowMultipleSelection}"
+				 change="if (!viewChanging) if (layoutMode == LAYOUT_LIST) chosenItems = choiceList.selectedItems;"
+				 backgroundAlpha="0" borderStyle="none"
+				 mouseDown="choiceList.setFocus()"
+				 />
+	</mx:Canvas>
+	<mx:Canvas label="{lang('Combo Box')}">
+		<ui:CustomComboBox id="choiceCombo"
+						width="100%" height="100%" minHeight="0"
+						cornerRadius="0" highlightAlphas="{[0, 0]}" fillAlphas="{[0, 0]}"
+						prompt="{prompt}">
+			<ui:valueCommit>
+				<![CDATA[
+					if (!_settingComboSelection && !viewChanging && layoutMode == LAYOUT_COMBO && UIUtils.hasFocus(choiceCombo) && choiceCombo.selectedItem)
+					{
+						_settingComboSelection = true;
+						chosenItem = choiceCombo.selectedItem;
+						if (alwaysShowPrompt)
+							choiceCombo.selectedIndex = -1;
+						_settingComboSelection = false;
+					}
+				]]>
+			</ui:valueCommit>
+		</ui:CustomComboBox>
+	</mx:Canvas>
+	<mx:Canvas label="{lang('Vertical Slider')}">
+		<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1" fillAlphas="{[1, 1]}"
+					width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
+					change="if (!viewChanging) if (layoutMode == LAYOUT_VSLIDER) if (UIUtils.hasFocus(choiceVSlider)) chosenItem = _choices[choiceVSlider.maximum - choiceVSlider.value];"
+					mouseDown="choiceVSlider.setFocus()"
+					/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
+	</mx:Canvas>
+	<mx:Canvas label="{lang('Horizontal Slider')}">
+		<mx:HBox verticalAlign="middle" width="100%" height="100%">
+			<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1" fillAlphas="{[1, 1]}"
+						width="100%" height="100%" snapInterval="1" minimum="0" minWidth="0" showDataTip="false"
+						change="if (!viewChanging) if (layoutMode == LAYOUT_HSLIDER) if (UIUtils.hasFocus(choiceHSlider)) chosenItem = _choices[choiceHSlider.value];"
+						mouseDown="choiceHSlider.setFocus()"
+						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
+		</mx:HBox>
+	</mx:Canvas>
+	<mx:Canvas label="{lang('Checklist')}">
+		<ui:CheckBoxList id="choiceCheckBoxList"
+						 paddingLeft="4" height="100%"
+						 allowMultipleSelection="{allowMultipleSelection}"
+						 valueCommit="if (!viewChanging) if (layoutMode == LAYOUT_CHECKBOXLIST) chosenItems = choiceCheckBoxList.selectedItems;"
+						 />
+	</mx:Canvas>
+	<mx:Script>
+		<![CDATA[
+			import mx.events.IndexChangedEvent;
+			
+			import weave.compiler.StandardLib;
+			import weave.core.UIUtils;
+			
+			public static const LAYOUT_LIST:String = "List";
+			public static const LAYOUT_COMBO:String = "ComboBox";
+			public static const LAYOUT_VSLIDER:String = "VSlider";
+			public static const LAYOUT_HSLIDER:String = "HSlider";
+			public static const LAYOUT_CHECKBOXLIST:String = "CheckBoxList";
+			
+			public static const LAYOUTS:Array = [LAYOUT_LIST, LAYOUT_COMBO, LAYOUT_VSLIDER, LAYOUT_HSLIDER, LAYOUT_CHECKBOXLIST];
+			private static const layoutLabels:Array = [lang('List'), lang('Combo Box'), lang('Vertical Slider'), lang('Horizontal Slider'), lang('Checklist')];
+			public static function layoutLabelFunction(layoutMode:String):String
+			{
+				return layoutLabels[LAYOUTS.indexOf(layoutMode)];
+			}
+			
+			[Bindable] public var allowMultipleSelection:Boolean = false;
+			[Bindable] public var prompt:String;
+			private var _settingComboSelection:Boolean = false;
+			private var _alwaysShowPrompt:Boolean = false;
+			
+			[Bindable]
+			public function get alwaysShowPrompt():Boolean
+			{
+				return _alwaysShowPrompt;
+			}
+			public function set alwaysShowPrompt(value:Boolean):void
+			{
+				_alwaysShowPrompt = value;
+				updateViews();
+			}
+			
+			private var _choices:Array = [];
+			private var _labelFunction:Function;
+			private var _chosenItems:Array = [];
+			private var _derived_chosenIndex:int = -1;
+			
+			public function get layoutMode():String
+			{
+				return LAYOUTS[this.selectedIndex];
+			}
+			public function set layoutMode(name:String):void
+			{
+				this.selectedIndex = LAYOUTS.indexOf(name);
+			}
+			
+			public function get choices():Array
+			{
+				return _choices;
+			}
+			
+			public function set choices(items:Array):void
+			{
+				_choices = items || [];
+				handleChoicesChange();
+			}
+			
+			public function set choiceLabelFunction(func:Function):void
+			{
+				_labelFunction = func;
+				handleChoicesChange();
+			}
+			
+			private var viewChanging:Boolean = false;
+			
+			private function handleViewIndexChange(event:IndexChangedEvent):void
+			{
+				var oldLayout:String = LAYOUTS[event.oldIndex];
+				if (oldLayout == LAYOUT_LIST)
+					choiceList.dataProvider = [];
+				if (oldLayout == LAYOUT_COMBO)
+					choiceCombo.dataProvider = [];
+				if (oldLayout == LAYOUT_VSLIDER)
+					choiceVSlider.labels = [];
+				if (oldLayout == LAYOUT_HSLIDER)
+					choiceHSlider.labels = [];
+				if (oldLayout == LAYOUT_CHECKBOXLIST)
+					choiceCheckBoxList.dataProvider = [];
+				viewChanging = true;
+				handleChoicesChange();
+				viewChanging = false;
+			}
+			
+			private function handleChoicesChange():void
+			{
+				if (!parent)
+				{
+					callLater(handleChoicesChange);
+					return;
+				}
+				
+				var layout:String = layoutMode;
+				
+				if (layout == LAYOUT_COMBO)
+				{
+					choiceCombo.dataProvider = _choices;
+					choiceCombo.labelFunction = _labelFunction;
+				}
+				if (layout == LAYOUT_LIST)
+				{
+					choiceList.dataProvider = _choices;
+					choiceList.labelFunction = _labelFunction;
+				}
+				if (layout == LAYOUT_CHECKBOXLIST)
+				{
+					choiceCheckBoxList.dataProvider = _choices;
+					choiceCheckBoxList.labelFunction = _labelFunction;
+				}
+				
+				var labels:Array;
+				if (layout == LAYOUT_VSLIDER || layout == LAYOUT_HSLIDER)
+				{
+					// get a list of labels
+					if (_labelFunction is Function)
+					{
+						labels = [];
+						for each (var choice:Object in _choices)
+							labels.push(_labelFunction(choice));
+					}
+					else
+						labels = _choices;
+				}
+				if (layout == LAYOUT_VSLIDER)
+				{
+					// special case for VSlider -- reverse order
+					choiceVSlider.labels = labels.concat().reverse();
+					choiceVSlider.maximum = labels.length - 1;
+				}
+				if (layout == LAYOUT_HSLIDER)
+				{
+					choiceHSlider.labels = labels;
+					choiceHSlider.maximum = labels.length - 1;
+				}
+				
+				updateViews();
+			}
+			
+			private function updateViews():void
+			{
+				if (!parent)
+				{
+					callLater(updateViews)
+					return;
+				}
+				
+				var layout:String = layoutMode;
+				
+				// need to check each item for equality because indexOf() won't work comparing String vs Number
+				var chosenIndices:Array = [];
+				var chosenIndex:int = -1;
+				var actualChosenItems:Array = [];
+				for each (var item:Object in _chosenItems)
+				{
+					chosenIndex = _choices.length;
+					while (chosenIndex--)
+						if (_choices[chosenIndex] == item)
+							break;
+					if (chosenIndex >= 0)
+					{
+						chosenIndices.push(chosenIndex);
+						actualChosenItems.push(_choices[chosenIndex]);
+					}
+				}
+				if (chosenIndices.length)
+					chosenIndex = chosenIndices[0];
+				_derived_chosenIndex = chosenIndex;
+				
+				if (layout == LAYOUT_LIST && StandardLib.compare(choiceList.selectedIndices, chosenIndices) != 0)
+					choiceList.selectedIndices = chosenIndices;
+				
+				if (layout == LAYOUT_CHECKBOXLIST && StandardLib.compare(choiceCheckBoxList.selectedItems, actualChosenItems) != 0)
+					choiceCheckBoxList.selectedItems = actualChosenItems;
+				
+				if (layout == LAYOUT_COMBO)
+				{
+					_settingComboSelection = true;
+					if (alwaysShowPrompt)
+						choiceCombo.selectedIndex = -1;
+					else if (choiceCombo.selectedIndex != chosenIndex)
+						choiceCombo.selectedIndex = chosenIndex;
+					_settingComboSelection = false;
+				}
+				
+				if (layout == LAYOUT_HSLIDER && choiceHSlider.value != chosenIndex)
+					choiceHSlider.value = chosenIndex;
+				
+				var vIndex:int = _choices.length - 1 - chosenIndex;
+				if (layout == LAYOUT_VSLIDER && choiceVSlider.value != vIndex)
+					choiceVSlider.value = vIndex;
+			}
+			
+			[Bindable(event="choiceChange")]
+			public function get chosenIndex():int
+			{
+				return _derived_chosenIndex;
+			}
+			
+			public function set chosenIndex(value:int):void
+			{
+				chosenItem = _choices[value];
+			}
+			
+			[Bindable(event="choiceChange")]
+			public function get chosenItem():Object
+			{
+				return _chosenItems[0];
+			}
+			
+			public function set chosenItem(item:Object):void
+			{
+				chosenItems = [item];
+			}
+			
+			[Bindable(event="choiceChange")]
+			public function get chosenItems():Array
+			{
+				return _chosenItems;
+			}
+			
+			public function set chosenItems(items:Array):void
+			{
+				if (!items)
+					items = [];
+				if (StandardLib.compare(_chosenItems, items) == 0)
+					return;
+				
+				_chosenItems = items.concat();
+				updateViews();
+				dispatchEvent(new Event("choiceChange"));
+			}
+		]]>
+	</mx:Script>
+</ui:CustomViewStack>

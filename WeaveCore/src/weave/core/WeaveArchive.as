@@ -1,10 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  *
- * This file is part of the Weave API.
+ * This file is part of Weave.
  *
- * The Initial Developer of the Weave API is the Institute for Visualization
+ * The Initial Developer of Weave is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
  * the Initial Developer. All Rights Reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -21,7 +21,8 @@ package weave.core
 	import mx.core.IFlexDisplayObject;
 	import mx.graphics.codec.PNGEncoder;
 	
-	import weave.flascc.FlasCC;
+	import weave.flascc.readZip;
+	import weave.flascc.writeZip;
 	import weave.primitives.OrderedHashMap;
 	import weave.utils.BitmapUtils;
 
@@ -61,7 +62,7 @@ package weave.core
 		 */		
 		private function _readArchive(fileData:ByteArray):void
 		{
-			var zip:Object = FlasCC.call(weave.flascc.readZip, fileData, filterFilePathsToReadAsObject);
+			var zip:Object = weave.flascc.readZip(fileData, filterFilePathsToReadAsObject);
 			for (var path:String in zip)
 			{
 				var fileName:String = path.substr(path.indexOf('/') + 1);
@@ -91,7 +92,7 @@ package weave.core
 				zip[FOLDER_FILES + '/' + name] = files[name];
 			for (name in objects)
 				zip[FOLDER_AMF + '/' + name] = objects[name];
-			return FlasCC.call(weave.flascc.writeZip, zip);
+			return weave.flascc.writeZip(zip);
 		}
 		
 		public static const HISTORY_SYNC_DELAY:int = 100;
@@ -100,6 +101,8 @@ package weave.core
 		public static const ARCHIVE_SCREENSHOT_PNG:String = "screenshot.png";
 		public static const ARCHIVE_PLUGINS_AMF:String = "plugins.amf";
 		public static const ARCHIVE_HISTORY_AMF:String = "history.amf";
+		public static const ARCHIVE_URL_CACHE_AMF:String = "url-cache.amf";
+		public static const ARCHIVE_COLUMN_CACHE_AMF:String = "column-cache.amf";
 		private static const _pngEncoder:PNGEncoder = new PNGEncoder();
 		
 		private static var _history:SessionStateLog;
@@ -120,8 +123,8 @@ package weave.core
 		public static function createScreenshot(thumbnailSize:int = 0):ByteArray
 		{
 			var application:Object = WeaveAPI.topLevelApplication;
-			
-			// HACK
+		
+			// HACK to support fixed workspace size
 			var component:IFlexDisplayObject = application.hasOwnProperty('visApp') ? application['visApp'] : application as IFlexDisplayObject;
 			
 			var bitmapData:BitmapData = BitmapUtils.getBitmapDataFromComponent(component, thumbnailSize, thumbnailSize);
@@ -142,11 +145,14 @@ package weave.core
 				else
 					WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_SCREENSHOT_PNG);
 			}
-			catch (e:SecurityError)
+			catch (e:Error)
 			{
 				WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_THUMBNAIL_PNG);
 				WeaveAPI.URLRequestUtils.removeLocalFile(ARCHIVE_SCREENSHOT_PNG);
-				WeaveAPI.ErrorManager.reportError(e, "Unable to create screenshot due to lack of permissive policy file for embedded image. " + e.message);
+				var msg:String = "Unable to create screenshot";
+				if (e is SecurityError)
+					msg += " due to lack of permissive policy file for embedded image";
+				WeaveAPI.ErrorManager.reportError(e, msg + ". " + e.message);
 			}
 		}
 		
@@ -171,6 +177,14 @@ package weave.core
 			// session history
 			var _history:Object = history.getSessionState();
 			output.objects[ARCHIVE_HISTORY_AMF] = _history;
+			
+			// TEMPORARY SOLUTION - url cache
+			if (WeaveAPI.URLRequestUtils['saveCache'])
+				output.objects[ARCHIVE_URL_CACHE_AMF] = WeaveAPI.URLRequestUtils.getCache();
+			
+			// TEMPORARY SOLUTION - column cache
+			if (WeaveAPI.AttributeColumnCache['saveCache'])
+				output.objects[ARCHIVE_COLUMN_CACHE_AMF] = WeaveAPI.AttributeColumnCache['saveCache'];
 			
 			return output.serialize();
 		}

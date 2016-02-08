@@ -1,21 +1,18 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+
 package weave.ui
 {
 	import mx.collections.ArrayCollection;
@@ -36,6 +33,7 @@ package weave.ui
 	import weave.api.data.IColumnReference;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.ui.IObjectWithDescription;
 	import weave.core.LinkableWatcher;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	
@@ -113,7 +111,7 @@ package weave.ui
 					_nameColumn.labelFunction = getObjectName;
 					_nameColumn.showDataTips = true;
 					_nameColumn.dataTipFunction = nameColumnDataTip;
-					setNameColumnHeader();
+					updateNameColumnHeader();
 					
 					_valueColumn = new DataGridColumn();
 					_valueColumn.sortable = false;
@@ -134,14 +132,21 @@ package weave.ui
 			updateDataProvider();
 		}
 		
-		private function setNameColumnHeader():void
+		public function setNameColumnHeader(headerForNonEmptyList:String, headerForEmptyList:String):void
+		{
+			_nameHeaderNonEmpty = headerForNonEmptyList;
+			_nameHeaderEmpty = headerForEmptyList;
+			updateNameColumnHeader();
+		}
+		
+		private function updateNameColumnHeader():void
 		{
 			if (!_nameColumn)
 				return;
 			if (hashMap && hashMap.getNames().length)
-				_nameColumn.headerText = lang("Name (Click below to edit)")
+				_nameColumn.headerText = _nameHeaderNonEmpty
 			else
-				_nameColumn.headerText = lang("Name");
+				_nameColumn.headerText = _nameHeaderEmpty;
 		}
 		
 		private function nameColumnDataTip(item:Object, ..._):String
@@ -161,12 +166,15 @@ package weave.ui
 		private var _editor:ListBase;
 		private var _nameColumn:DataGridColumn;
 		private var _valueColumn:DataGridColumn;
+		private var _nameHeaderNonEmpty:String = lang("Name (Click below to edit)");
+		private var _nameHeaderEmpty:String = lang("Name");
 		private const _hashMapWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, refreshLabels, true);
 		private const _dynamicObjectWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider, true);
 		private const _childListWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, updateDataProvider);
 		private var _labelFunction:Function = null;
 		private var _filterFunction:Function = null;
 		private var _reverse:Boolean = false;
+		private var _renameHandlers:Array = [];
 		
 		public function get hashMap():ILinkableHashMap
 		{
@@ -217,7 +225,7 @@ package weave.ui
 			}
 			else if (hashMap)
 			{
-				setNameColumnHeader();
+				updateNameColumnHeader();
 				var objects:Array = hashMap.getObjects();
 				if (_filterFunction != null)
 					objects = objects.filter(_filterFunction);
@@ -287,24 +295,27 @@ package weave.ui
 					dg.editedItemPosition = { columnIndex: 0, rowIndex: rowIndex };
 			}
 		}
-
-		/**
-		 * @param item
-		 * @return The name of the item in the ILinkableHashMap or the ILinkableDynamicObject internal object's global name
-		 */		
-		public function getItemName(item:Object):String
+		
+		public function stopEditVariableName():void
 		{
-			if (hashMap)
-				return hashMap.getName(item as ILinkableObject);
-			return null;
+			var dg:DataGrid = _editor as DataGrid;
+			if (dg)
+				dg.editedItemPosition = null;
 		}
 		
 		private function getItemLabel(item:Object, ..._):String
 		{
 			if (_labelFunction != null)
 				return _labelFunction(item);
+			else if (item is IObjectWithDescription)
+				return (item as IObjectWithDescription).getDescription();
 			else
 				return getObjectName(item) || String(item);
+		}
+		
+		public function get labelFunction():Function
+		{
+			return _labelFunction;
 		}
 		
 		public function set labelFunction(value:Function):void
@@ -521,8 +532,20 @@ package weave.ui
 				var newValue:String = grid.itemEditorInstance[field];
 				
 				if (hashMap && newValue && hashMap.getNames().indexOf(newValue) < 0)
+				{
 					hashMap.renameObject(oldName, newValue);
+					for each (var handler:Function in _renameHandlers)
+						handler(oldName, newValue);
+				}
 			}
+		}
+		
+		/**
+		 * @param handler A function that takes two parameters: oldName, newName
+		 */
+		public function addRenameHandler(handler:Function):void
+		{
+			_renameHandlers.push(handler);
 		}
 	}
 }

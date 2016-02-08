@@ -1,44 +1,34 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.compiler
 {
 	import flash.utils.ByteArray;
 	import flash.utils.getQualifiedClassName;
-	import flash.utils.getTimer;
 	
 	import mx.formatters.DateFormatter;
 	import mx.formatters.NumberFormatter;
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
-	import weave.flascc.FlasCC;
+	import weave.flascc.atob;
+	import weave.flascc.btoa;
 	import weave.utils.AsyncSort;
 	import weave.utils.CustomDateFormatter;
 	import weave.utils.DebugTimer;
 
-	/**
-	 * This provides a set of useful static functions.
-	 * All the functions defined in this class are pure functions, meaning they always return the same result with the same arguments, and they have no side-effects.
-	 * 
-	 * @author adufilie
-	 */
 	public class StandardLib
 	{
 		/**
@@ -418,6 +408,26 @@ package weave.compiler
 					trace('roundSignificant(',n,',',d,') =',roundSignificant(n, d));
 			}
 		}
+		
+		/**
+		 * Rounds a number to the nearest multiple of a precision value.
+		 * @param number A number to round.
+		 * @param precision A precision to use.
+		 * @return The number rounded to the nearest multiple of the precision value.
+		 */
+		public static function roundPrecision(number:Number, precision:Number):Number
+		{
+			return Math.round(number / precision) * precision;
+		}
+		
+		/**
+		 * @param n The number to round.
+		 * @param d The total number of non-zero digits we care about for small numbers.
+		 */
+		public static function suggestPrecision(n:Number, d:int):Number
+		{
+			return Math.pow(10, Math.min(0, Math.ceil(Math.log(n) / Math.LN10) - d));
+		}
 
 		/**
 		 * Calculates an interpolated color for a normalized value.
@@ -438,7 +448,7 @@ package weave.compiler
 			// find the min and max colors we want to interpolate between
 			
 			var maxIndex:int = colors.length - 1;
-			var leftIndex:int = maxIndex * normValue;
+			var leftIndex:int = int(maxIndex * normValue);
 			var rightIndex:int = leftIndex + 1;
 			
 			// handle boundary condition
@@ -460,6 +470,14 @@ package weave.compiler
 				((percentLeft * (minColor & G) + percentRight * (maxColor & G)) & G) |
 				((percentLeft * (minColor & B) + percentRight * (maxColor & B)) & B)
 			);
+		}
+		
+		/**
+		 * ITU-R 601
+		 */
+		public static function getColorLuma(color:Number):Number
+		{
+			return 0.3 * ((color & 0xFF0000) >> 16) + 0.59 * ((color & 0x00FF00) >> 8) + 0.11 * (color & 0x0000FF);
 		}
 		
 		/**
@@ -642,7 +660,7 @@ package weave.compiler
 						_sortBuffer[i][p] = array[i][param];
 				
 				fields[p] = p;
-				fieldOptions[p] = Array.RETURNINDEXEDARRAY | guessSortMode(_sortBuffer[0][p]) | sortDirection;
+				fieldOptions[p] = Array.RETURNINDEXEDARRAY | guessSortMode(_sortBuffer, p) | sortDirection;
 			}
 			
 			values = _sortBuffer.slice(0, array.length);
@@ -666,12 +684,18 @@ package weave.compiler
 		}
 		
 		/**
-		 * Guesses the appropriate Array.sort() mode based on a sample item from an Array.
+		 * Guesses the appropriate Array.sort() mode based on the first non-undefined item property from an Array.
 		 * @return Either Array.NUMERIC or 0.
 		 */
-		private static function guessSortMode(sampleItem:Object):int
+		private static function guessSortMode(array:Object, itemProp:*):int
 		{
-			return sampleItem is Number || sampleItem is Date ? Array.NUMERIC : 0;
+			for each (var item:* in array)
+			{
+				var value:* = item[itemProp];
+				if (value !== undefined)
+					return value is Number || value is Date ? Array.NUMERIC : 0;
+			}
+			return 0;
 		}
 		
 		/**
@@ -688,6 +712,20 @@ package weave.compiler
 				if (item == null || item.constructor != type)
 					return null;
 			return type;
+		}
+		
+		/**
+		 * Checks if all items in an Array are instances of a given type.
+		 * @param a An Array of items to test
+		 * @param type A type to check for
+		 * @return true if each item in the Array is an object of the given type.
+		 */
+		public static function arrayIsType(a:Array, type:Class):Boolean
+		{
+			for each (var item:Object in a)
+				if (!(item is type))
+					return false;
+			return true;
 		}
 		
 		/**
@@ -765,9 +803,11 @@ package weave.compiler
 		 * Does not check for circular refrences.
 		 * @param a First dynamic object or primitive value.
 		 * @param b Second dynamic object or primitive value.
+		 * @param objectCompare An optional compare function to replace the default compare behavior for non-primitive Objects.
+		 *                      The function should return -1, 0, or 1 to override the comparison result, or NaN to use the default recursive comparison result.
 		 * @return A value of zero if the two objects are equal, nonzero if not equal.
 		 */
-		public static function compare(a:Object, b:Object):int
+		public static function compare(a:Object, b:Object, objectCompare:Function = null):int
 		{
 			var c:int;
 			if (a === b)
@@ -805,6 +845,13 @@ package weave.compiler
 						return c;
 				}
 				return 0;
+			}
+			
+			if (objectCompare != null)
+			{
+				var result:Number = objectCompare(a, b);
+				if (isFinite(result))
+					return result;
 			}
 			
 			var qna:String = getQualifiedClassName(a);
@@ -886,7 +933,7 @@ package weave.compiler
 		 */
 		public static function btoa(input:ByteArray):String
 		{
-			return FlasCC.call(weave.flascc.btoa, input);
+			return weave.flascc.btoa(input);
 		}
 		
 		/**
@@ -896,7 +943,7 @@ package weave.compiler
 		 */
 		public static function atob(input:String):ByteArray
 		{
-			return FlasCC.call(weave.flascc.atob, input);
+			return weave.flascc.atob(input);
 		}
 		
 		/**

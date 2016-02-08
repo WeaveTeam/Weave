@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
@@ -28,10 +24,10 @@ package weave.visualization.plotters
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.text.TextField;
 	
 	import org.openscales.proj4as.ProjConstants;
 	
+	import weave.Weave;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.data.IProjectionManager;
@@ -40,6 +36,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.services.IWMSService;
+	import weave.api.ui.IObjectWithDescription;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableDynamicObject;
@@ -54,6 +51,7 @@ package weave.visualization.plotters
 	import weave.services.wms.WMSProviders;
 	import weave.services.wms.WMSTile;
 	import weave.utils.BitmapText;
+	import weave.utils.DrawUtils;
 	import weave.utils.ZoomUtils;
 
 	/**
@@ -63,7 +61,7 @@ package weave.visualization.plotters
 	 * @author kmonico
 	 * @author skolman
 	 */
-	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus, IDisposableObject
+	public class WMSPlotter extends AbstractPlotter implements ILinkableObjectWithBusyStatus, IDisposableObject, IObjectWithDescription
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, WMSPlotter, "WMS images");
 		
@@ -73,15 +71,17 @@ package weave.visualization.plotters
 		
 		public function WMSPlotter()
 		{
-			_textField.autoSize = "left";			
-			_textField.textColor = 0xFFFFFF;
-			_textField.thickness = 2;
-			_textField.background = true;
-			_textField.backgroundColor = 0x000000;
-			_textField.alpha = 0.2;
-			
 			//setting default WMS Map to Blue Marble
 			setProvider(WMSProviders.OPEN_STREET_MAP);
+		}
+		
+		public function getDescription():String
+		{
+			var src:String = sourceSRS;
+			var dest:String = getDestinationSRS();
+			if (dest && src != dest)
+				return lang('{0} ({1} -> {2})', providerName, src || '?', dest);
+			return lang('{0} ({1})', providerName, src);
 		}
 		
 		public function get sourceSRS():String
@@ -231,11 +231,20 @@ package weave.visualization.plotters
 			
 			// draw the triangles and end the fill
 			var newShape:Shape = new Shape();
+			
+			////////////////////////////////////
+			// NOTE: if we don't call lineStyle() with thickness=1 prior to calling beginBitmapFill() and drawTriangles(), it does not always render correctly.
+			// LineScaleMode.NONE is important for performance.
+			//newShape.graphics.lineStyle(1, 0, 0, false, LineScaleMode.NONE); // thickness=1, alpha=0
+			DrawUtils.clearLineStyle(newShape.graphics);
+			////////////////////////////////////
+			
 			if (debug)
 			{
 				newShape.graphics.lineStyle(1, Math.random() * 0xFFFFFF, 0.5, false, LineScaleMode.NONE);
 				//newShape.graphics.lineStyle(1, 0, 1, true, LineScaleMode.NONE);
 			}
+			
 			newShape.graphics.beginBitmapFill(tile.bitmapData, null, false, true); // it's important to disable the repeat option
 			newShape.graphics.drawTriangles(vertices, indices, uvtData, TriangleCulling.NEGATIVE);
 			newShape.graphics.endFill();
@@ -382,7 +391,9 @@ package weave.visualization.plotters
 		}
 		
 		private const bt:BitmapText = new BitmapText();
+		private const ct:ColorTransform = new ColorTransform();
 		private const rect:Rectangle = new Rectangle();
+		private const tempBounds:Bounds2D = new Bounds2D();
 		private function debugTileBounds(tileBounds:IBounds2D, dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData, url:String, drawRect:Boolean):void
 		{
 			_tempScreenBounds.copyFrom(tileBounds);
@@ -403,16 +414,42 @@ package weave.visualization.plotters
 			bt.draw(destination);
 		}
 		
-		private const _textField:TextField = new TextField(); // reusable object
+		public const creditInfoTextColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x000000));
+		public const creditInfoBackgroundColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xFFFFFF));
+		public const creditInfoAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0.5, isFinite));
+		
 		private function drawCreditText(destination:BitmapData):void
 		{
 			var _providerCredit:String = _service.getCreditInfo();
 			if (_providerCredit)
 			{
-				_textField.text = _providerCredit;
-				_tempMatrix.identity();
-				_tempMatrix.translate(0, destination.height - _textField.height);
-				destination.draw(_textField, _tempMatrix);
+				var textColor:Number = creditInfoTextColor.value;
+				if (!isFinite(textColor))
+					return;
+				
+				bt.textFormat.color = textColor;
+				bt.textFormat.font = Weave.properties.visTextFormat.font.value;
+				bt.horizontalAlign = BitmapText.HORIZONTAL_ALIGN_LEFT;
+				bt.verticalAlign = BitmapText.VERTICAL_ALIGN_BOTTOM;
+				bt.x = 0;
+				bt.y = destination.height;
+				bt.text = _providerCredit;
+				
+				var backgroundColor:Number = creditInfoBackgroundColor.value;
+				if (isFinite(backgroundColor))
+				{
+					bt.getUnrotatedBounds(tempBounds);
+					tempBounds.getRectangle(rect);
+					tempShape.graphics.clear();
+					DrawUtils.clearLineStyle(tempShape.graphics);
+					tempShape.graphics.beginFill(backgroundColor, creditInfoAlpha.value);
+					tempShape.graphics.drawRect(rect.x, rect.y, rect.width, rect.height);
+					tempShape.graphics.endFill();
+					destination.draw(tempShape);
+				}
+				
+				ct.alphaMultiplier = creditInfoAlpha.value;
+				bt.draw(destination, null, ct);
 			}
 		}
 

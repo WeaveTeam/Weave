@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
@@ -29,6 +25,7 @@ package weave.visualization.plotters
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
+	import weave.api.core.ILinkableObjectWithNewProperties;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
@@ -36,10 +33,12 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
 	import weave.api.ui.IPlotter;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
+	import weave.utils.BitmapUtils;
 
 	/**
 	 * A plotter for drawing a single image onto a tool.
@@ -47,7 +46,7 @@ package weave.visualization.plotters
 	 * @author skolman
 	 * @author kmonico
 	 */	
-	public class SingleImagePlotter extends AbstractPlotter
+	public class SingleImagePlotter extends AbstractPlotter implements ILinkableObjectWithNewProperties
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IPlotter, SingleImagePlotter, "Single image");
 		
@@ -55,26 +54,33 @@ package weave.visualization.plotters
 		{
 		}
 		
+		public function set defaultImage(value:BitmapData):void
+		{
+			if (_bitmapData == BitmapUtils.MISSING_IMAGE || _bitmapData == _defaultImage)
+				_bitmapData = value;
+			_defaultImage = value;
+		}
+		
+		private var _defaultImage:BitmapData;
+		
 		// these vars store info on the image
-		private var _bitmapData:BitmapData = null;
+		private var _bitmapData:BitmapData = BitmapUtils.MISSING_IMAGE;
 		private var _imgScreenBounds:Bounds2D = new Bounds2D();
 		private var _imgDataBounds:Bounds2D = new Bounds2D();
 		
 		private var _tempMatrix:Matrix = new Matrix();
 		private var _tempPoint:Point = new Point();
 		
-		[Embed(source='/weave/resources/images/red-circle.png')]
-		private static var defaultImageSource:Class;
-		
 		/**
 		 * The URL of the image to download.
-		 */		
+		 */
 		public const imageURL:LinkableString = newLinkableChild(this, LinkableString);
 		
 		public const dataX:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const dataY:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const dataWidth:LinkableNumber = newSpatialProperty(LinkableNumber);
 		public const dataHeight:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const useImageSize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 
 		public const horizontalAlign:LinkableString = registerSpatialProperty(new LinkableString(BitmapText.HORIZONTAL_ALIGN_CENTER, verifyHAlign));
 		public const verticalAlign:LinkableString = registerSpatialProperty(new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE, verifyVAlign));
@@ -92,12 +98,26 @@ package weave.visualization.plotters
 				|| value == BitmapText.VERTICAL_ALIGN_BOTTOM;
 		}
 		
+		private function getImageDataWidth():Number
+		{
+			if (useImageSize.value)
+				return _bitmapData ? _bitmapData.width : 0;
+			return dataWidth.value || 0
+		}
+		
+		private function getImageDataHeight():Number
+		{
+			if (useImageSize.value)
+				return _bitmapData ? _bitmapData.height : 0;
+			return dataHeight.value || 0
+		}
+		
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
 			var x:Number = dataX.value;
 			var y:Number = dataY.value;
-			var w:Number = dataWidth.value || 0;
-			var h:Number = dataHeight.value || 0;
+			var w:Number = getImageDataWidth();
+			var h:Number = getImageDataHeight();
 			
 			if (horizontalAlign.value == BitmapText.HORIZONTAL_ALIGN_LEFT)
 				output.setXRange(x, x + w);
@@ -125,8 +145,7 @@ package weave.visualization.plotters
 				}
 				else
 				{
-					var image:BitmapAsset = new defaultImageSource() as BitmapAsset;
-					_bitmapData = image.bitmapData;
+					_bitmapData = _defaultImage || BitmapUtils.MISSING_IMAGE;
 				}
 			}
 			
@@ -169,16 +188,18 @@ package weave.visualization.plotters
 			}
 			_tempMatrix.translate(xOffset, yOffset);
 			
-			var scaleWidth:Number = dataWidth.value * screenBounds.getXCoverage() / dataBounds.getXCoverage() / _bitmapData.width;
-			var scaleHeight:Number = dataHeight.value * screenBounds.getYCoverage() / dataBounds.getYCoverage() / _bitmapData.height;
+			var w:Number = getImageDataWidth();
+			var h:Number = getImageDataHeight();
+			var scaleWidth:Number = w * screenBounds.getXCoverage() / dataBounds.getXCoverage() / _bitmapData.width;
+			var scaleHeight:Number = h * screenBounds.getYCoverage() / dataBounds.getYCoverage() / _bitmapData.height;
 			
-			if (!isFinite(dataWidth.value))
+			if (!isFinite(w))
 			{
 				scaleWidth = 1;
 				tempPoint.x = Math.round(tempPoint.x);
 			}
 			
-			if (!isFinite(dataHeight.value))
+			if (!isFinite(h))
 			{
 				scaleHeight = 1;
 				tempPoint.y = Math.round(tempPoint.y);
@@ -211,7 +232,32 @@ package weave.visualization.plotters
 			if (objectWasDisposed(this) || url != imageURL.value)
 				return;
 			
+			_bitmapData = BitmapUtils.MISSING_IMAGE;
 			reportError(event);
+		}
+		
+		public function handleMissingSessionStateProperty(newState:Object, missingProperty:String):void
+		{
+			if (missingProperty == 'useImageSize')
+			{
+				if (!imageURL.value)
+					imageURL.value = RED_CIRCLE_IMAGE_URL;
+			}
+		}
+		
+		
+		
+		
+		
+		[Embed(source='/weave/resources/images/red-circle.png')]
+		private static var _redCircle:Class;
+		private static var _redCircleUrl:String;
+		public static function get RED_CIRCLE_IMAGE_URL():String
+		{
+			var name:String = 'red-circle.png';
+			if (!WeaveAPI.URLRequestUtils.getLocalFile(name))
+				_redCircleUrl = WeaveAPI.URLRequestUtils.saveLocalFile(name, new _redCircle())
+			return _redCircleUrl;
 		}
 	}
 }

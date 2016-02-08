@@ -1,21 +1,18 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
 package weave.services
 {
 	import flash.utils.Dictionary;
@@ -25,11 +22,9 @@ package weave.services
 	import mx.utils.UIDUtil;
 	import mx.utils.URLUtil;
 	
-	import weave.api.data.Aggregation;
-	import weave.api.data.ColumnMetadata;
-	import weave.api.data.DataType;
-	import weave.api.data.EntityType;
 	import weave.api.linkBindableProperty;
+	import weave.api.linkableObjectIsBusy;
+	import weave.api.data.ColumnMetadata;
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.compiler.StandardLib;
@@ -74,7 +69,7 @@ package weave.services
 		public function getFocusEntityId():int
 		{
 			// if the entity does not exist on the server, don't attempt to focus on it
-			if (!entityCache.entityIsCached(focusEntityId))
+			if (!linkableObjectIsBusy(entityCache) && !entityCache.entityIsCached(focusEntityId))
 				focusEntityId = -1;
 			return focusEntityId;
 		}
@@ -101,7 +96,27 @@ package weave.services
 		
 		[Bindable] public var databaseConfigExists:Boolean = true;
 		[Bindable] public var currentUserIsSuperuser:Boolean = false;
-		[Bindable] public var userHasAuthenticated:Boolean = false;
+
+		private var _userHasAuthenticated:Boolean = false;
+		[Bindable] public function get userHasAuthenticated():Boolean
+		{
+			return _userHasAuthenticated;
+		}
+		public function set userHasAuthenticated(value:Boolean):void
+		{
+			_userHasAuthenticated = value;
+			if (!_userHasAuthenticated)
+			{
+				// prevent the user from seeing anything while logged out.
+				entityCache.invalidateAll(true);
+				currentUserIsSuperuser = false;
+				connectionNames = [];
+				weaveFileNames = [];
+				privateWeaveFileNames = [];
+				keyTypes = [];
+				databaseConfigInfo = new DatabaseConfigInfo();
+			}
+		}
 		
 		// values returned by the server
 		[Bindable] public var connectionNames:Array = [];
@@ -127,7 +142,7 @@ package weave.services
 			service.addHook(
 				service.checkDatabaseConfigExists,
 				null,
-				function handleCheck(event:ResultEvent, token:Object):void
+				function handleCheck(event:ResultEvent, _:*):void
 				{
 					// save info
 					databaseConfigExists = event.result as Boolean;
@@ -146,7 +161,7 @@ package weave.services
 					activeConnectionName = connectionName;
 					activePassword = password;
 				},
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save info
 					userHasAuthenticated = true;
@@ -165,7 +180,7 @@ package weave.services
 			service.addHook(
 				service.saveWeaveFile,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					WeaveAdminService.messageDisplay(null, event.result as String, false);
 					
@@ -187,9 +202,9 @@ package weave.services
 			service.addHook(
 				service.getWeaveFileNames,
 				null,
-				function(event:ResultEvent, user_pass_showAllFiles:Array):void
+				function(event:ResultEvent, args:Array):void
 				{
-					var showAllFiles:Boolean = user_pass_showAllFiles[2];
+					var showAllFiles:Boolean = args[0];
 					if (showAllFiles)
 						weaveFileNames = event.result as Array || [];
 					else
@@ -201,7 +216,7 @@ package weave.services
 			service.addHook(
 				service.getConnectionNames,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save list
 					connectionNames = event.result as Array || [];
@@ -213,34 +228,33 @@ package weave.services
 				function(event:ResultEvent, args:Array):void
 				{
 					// when connection save succeeds and we just changed our password, change our login credentials
-					// 0=activeName, 1=activePass, 2=saveName, 3=savePass, 4=folderName, 5=is_superuser, 6=connectString, 7=overwrite
-					var activeName:String = args[0];
-					var saveName:String = args[2];
-					var savePass:String = args[3];
+					// 0=user, 1=pass, 2=folderName, 3=is_superuser, 4=connectString, 5=overwrite
+					var saveName:String = args[0];
+					var savePass:String = args[1];
 					if (!userHasAuthenticated)
 					{
 						activeConnectionName = saveName;
 						activePassword = savePass;
 					}
-					else if (activeName == saveName && activeConnectionName == saveName)
+					else if (activeConnectionName == saveName)
 					{
 						activePassword = savePass;
 					}
 					
-					// refresh list
+					// refresh lists that may have changed
 					service.getConnectionNames();
 					service.getDatabaseConfigInfo();
+					service.getWeaveFileNames(false);
 				}
 			);
 			service.addHook(
 				service.removeConnectionInfo,
 				null,
-				function(event:ResultEvent, user_pass_connectionNameToRemove:Array):void
+				function(event:ResultEvent, args:Array):void
 				{
-					var activeUser:String = user_pass_connectionNameToRemove[0];
-					var removedUser:String = user_pass_connectionNameToRemove[2];
+					var removedUser:String = args[0];
 					// if user removed self, log out
-					if (activeUser == removedUser)
+					if (activeConnectionName == removedUser)
 					{
 						activeConnectionName = '';
 						activePassword = '';
@@ -258,7 +272,7 @@ package weave.services
 			service.addHook(
 				service.getDatabaseConfigInfo,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save info
 					databaseConfigInfo = DatabaseConfigInfo(event.result) || new DatabaseConfigInfo();
@@ -267,7 +281,7 @@ package weave.services
 			service.addHook(
 				service.setDatabaseConfigInfo,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save info
 					databaseConfigExists = Boolean(event.result);
@@ -288,7 +302,7 @@ package weave.services
 			service.addHook(
 				service.getUploadedCSVFiles,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save info
 					uploadedCSVFiles = event.result as Array || [];
@@ -297,7 +311,7 @@ package weave.services
 			service.addHook(
 				service.getUploadedSHPFiles,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save info
 					uploadedShapeFiles = event.result as Array || [];
@@ -313,7 +327,7 @@ package weave.services
 			service.addHook(
 				service.getKeyTypes,
 				null,
-				function(event:ResultEvent, token:Object):void
+				function(event:ResultEvent, _:*):void
 				{
 					// save list
 					if (userHasAuthenticated)
@@ -323,12 +337,12 @@ package weave.services
 			service.addHook(
 				service.newEntity,
 				null,
-				function(event:ResultEvent, user0_pass1_meta2_parent3_index4:Array):void
+				function(event:ResultEvent, meta0_parent1_index2:Array):void
 				{
 					var id:int = int(event.result);
 					focusEntityId = id;
 					entityCache.invalidate(id);
-					var parentId:int = user0_pass1_meta2_parent3_index4[3];
+					var parentId:int = meta0_parent1_index2[1];
 					entityCache.invalidate(parentId);
 				}
 			);
@@ -336,7 +350,7 @@ package weave.services
 			service.checkDatabaseConfigExists();
 		}
 		
-		private function handleTableImportResult(event:ResultEvent, token:Object):void
+		private function handleTableImportResult(event:ResultEvent, _:*):void
 		{
 			var tableId:int = int(event.result);
 			var exists:Boolean = false;
@@ -378,14 +392,8 @@ package weave.services
 				return;
 			service.user = value;
 			
-			// log out and prevent the user from seeing anything while logged out.
+			// log out
 			userHasAuthenticated = false;
-			currentUserIsSuperuser = false;
-			connectionNames = [];
-			weaveFileNames = [];
-			privateWeaveFileNames = [];
-			keyTypes = [];
-			databaseConfigInfo = new DatabaseConfigInfo();
 		}
 		[Bindable] public function get activePassword():String
 		{
@@ -400,21 +408,27 @@ package weave.services
 		// LocalConnection Code
 		
 		private static const ADMIN_SESSION_WINDOW_NAME_PREFIX:String = "WeaveAdminSession";
-
-		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
+		
+		public function getWeaveURL(fileName:String, recover:Boolean = false):String
 		{
+			var flashVars:Object = WeaveAPI.topLevelApplication.root.loaderInfo.parameters || {};
+			var weaveUrl:String = flashVars['weaveUrl'] || 'weave.html';
 			var params:Object = {};
 			if (fileName)
 				params['file'] = fileName;
 			if (recover)
 				params['recover'] = true;
+			return URLUtil.getFullURL(WeaveAPI.topLevelApplication.url, weaveUrl + '?' + StandardLib.replace(URLUtil.objectToString(params, '&'), '%2F', '/'));
+		}
+
+		public function openWeavePopup(fileName:String = null, recover:Boolean = false):void
+		{
 			var success:Boolean = JavaScript.exec(
 				{
-					url: 'weave.html?' + StandardLib.replace(URLUtil.objectToString(params, '&'), '%2F', '/'),
-					target: ADMIN_SESSION_WINDOW_NAME_PREFIX + createWeaveSession(),
-					windowParams: 'width=1000,height=740,location=0,toolbar=0,menubar=0,resizable=1'
+					url: getWeaveURL(fileName),
+					target: ADMIN_SESSION_WINDOW_NAME_PREFIX + createWeaveSession()
 				},
-				'return !!window.open(url, target, windowParams);'
+				'return !!window.open(url, target);'
 			);
 			if (!success)
 				Alert.show("Please enable popups in your web browser.", "Popup blocked")

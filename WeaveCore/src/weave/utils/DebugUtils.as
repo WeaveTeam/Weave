@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.utils
 {
@@ -29,6 +25,13 @@ package weave.utils
 	import flash.utils.Timer;
 	import flash.utils.getQualifiedClassName;
 	
+	import avmplus.DescribeType;
+	
+	import weave.api.getCallbackCollection;
+	import weave.api.getSessionState;
+	import weave.api.core.DynamicState;
+	import weave.api.core.ILinkableObject;
+	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	
 	/**
@@ -147,7 +150,7 @@ package weave.utils
 		 */
 		public static function debugLookup(debugId:* = undefined):Object
 		{
-			if (debugId == undefined)
+			if (debugId === undefined)
 				return getAllDebugIds();
 			for (var object:Object in _idToObjRef[debugId])
 				return object;
@@ -182,6 +185,64 @@ package weave.utils
 			_objToId = new Dictionary(!enable);
 			for (var key:Object in old)
 				_objToId[key] = old[key];
+		}
+		
+		/**************
+		 ** Watching **
+		 **************/
+		
+		public static function getObject(target:Object):ILinkableObject
+		{
+			if (target == null || target is ILinkableObject)
+				return target as ILinkableObject;
+			if (!(target is Array))
+				target = WeaveAPI.CSVParser.parseCSVRow(String(target));
+			return WeaveAPI.getObject(target as Array);
+		}
+		
+		private static const watchLookup:Dictionary = new Dictionary(true);
+		
+		public static function watch(target:Object = null, callbackReturnsString:Function = null):void
+		{
+			if (!target)
+			{
+				weaveTrace('Usage: watch(target, optional_callbackReturnsString)');
+				return;
+			}
+			
+			keepDebugIds();
+			
+			var linkableTarget:ILinkableObject = getObject(target);
+			unwatch(linkableTarget);
+			var callback:Function = function():void {
+				var str:String = '';
+				var path:Array = WeaveAPI.getPath(linkableTarget) || []
+				if (path.length)
+					str += " " + Compiler.stringify(path.pop());
+				if (callbackReturnsString != null)
+					str += ': ' + callbackReturnsString.call(linkableTarget, linkableTarget);
+				debugTrace(linkableTarget, str);
+			};
+			watchLookup[linkableTarget] = callback;
+			getCallbackCollection(linkableTarget).addImmediateCallback(null, callback);
+		}
+		
+		public static function watchState(target:Object = null, indent:* = null):void
+		{
+			if (!target)
+			{
+				weaveTrace('Usage: watchState(target, optional_indent)');
+				return;
+			}
+			watch(target, function(object:ILinkableObject):String { return Compiler.stringify(getSessionState(object), null, indent); });
+		}
+		
+		public static function unwatch(target:Object):void
+		{
+			var linkableTarget:ILinkableObject = getObject(target);
+			var callback:Function = watchLookup[linkableTarget];
+			delete watchLookup[linkableTarget];
+			getCallbackCollection(linkableTarget).removeCallback(callback);
 		}
 		
 		/*****************
@@ -239,9 +300,9 @@ package weave.utils
 		 **  Miscellaneous  **
 		 *********************/
 		
-		public static function debugDisplayList(root:DisplayObject, maxDepth:int = -1, labelPropertyOrFunction:* = 'name'):String
+		public static function debugDisplayList(root:DisplayObject = null, maxDepth:int = -1, labelPropertyOrFunction:* = 'name'):String
 		{
-			return _debugDisplayList(root, maxDepth, labelPropertyOrFunction, 0, '', '');
+			return _debugDisplayList(root || WeaveAPI.StageUtils.stage, maxDepth, labelPropertyOrFunction, 0, '', '');
 		}
 		private static function _debugDisplayList(root:DisplayObject, maxDepth:int, labelPropertyOrFunction:*, currentDepth:int, indent:String, childIndent:String):String
 		{
@@ -343,7 +404,7 @@ package weave.utils
 		/**
 		 * @param func The function to call.
 		 * @param params An array of parameters to pass to the function.
-		 * @param delay The delay before the function is called.
+		 * @param delay The number of milliseconds to delay before the function is called.
 		 */
 		public static function callLater(delay:int, func:Function, params:Array = null):void
 		{
@@ -351,5 +412,140 @@ package weave.utils
 			t.addEventListener(TimerEvent.TIMER, function(..._):*{ func.apply(null, params); });
 			t.start();
 		}
+		
+		/**
+		 * @param state A session state.
+		 * @return An Array of Arrays, each like [path, value].
+		 */
+		public static function flattenSessionState(state:Object, pathPrefix:Array = null, output:Array = null):Array
+		{
+			if (!pathPrefix)
+				pathPrefix = [];
+			if (!output)
+				output = [];
+			if (DynamicState.isDynamicStateArray(state))
+			{
+				var names:Array = [];
+				for each (var obj:Object in state)
+				{
+					if (DynamicState.isDynamicState(obj))
+					{
+						var objectName:String = obj[DynamicState.OBJECT_NAME];
+						var className:String = obj[DynamicState.CLASS_NAME];
+						var sessionState:Object = obj[DynamicState.SESSION_STATE];
+						pathPrefix.push(objectName);
+						if (className)
+							output.push([pathPrefix.concat('class'), className]);
+						flattenSessionState(sessionState, pathPrefix, output);
+						pathPrefix.pop();
+						
+						if (objectName)
+							names.push(objectName);
+					}
+					else
+						names.push(obj);
+				}
+				if (names.length)
+					output.push([pathPrefix.concat(), names]);
+			}
+			else if (state is Array)
+			{
+				output.push([pathPrefix.concat(), state]);
+			}
+			else if (typeof state === 'object' && state !== null)
+			{
+				for (var key:String in state)
+				{
+					pathPrefix.push(key);
+					flattenSessionState(state[key], pathPrefix, output);
+					pathPrefix.pop();
+				}
+			}
+			else
+			{
+				output.push([pathPrefix.concat(), state]);
+			}
+			
+			return output;
+		}
+		
+		/**
+		 * Traverses a path in a session state using the logic used by SessionManager.
+		 * @param state A full session state.
+		 * @param path A path.
+		 * @return The session state at the specified path.
+		 */
+		public static function traverseStatePath(state:Object, path:Array):*
+		{
+			try
+			{
+				outerLoop: for each (var property:* in path)
+				{
+					if (DynamicState.isDynamicStateArray(state))
+					{
+						if (property is Number)
+						{
+							state = state[property][DynamicState.SESSION_STATE];
+						}
+						else
+						{
+							for each (var obj:Object in state)
+							{
+								if (obj[DynamicState.OBJECT_NAME] == property)
+								{
+									state = obj[DynamicState.SESSION_STATE];
+									continue outerLoop;
+								}
+							}
+							return undefined;
+						}
+					}
+					else
+						state = state[property];
+				}
+				return state;
+			}
+			catch (e:Error)
+			{
+				return undefined;
+			}
+		}
+		
+		public static function copyProperties(object:Object):Object
+		{
+			var result:Object = {};
+			for each (var list:Array in DescribeType.getInfo(object, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
+			for each (var item:Object in list)
+			if (item.access != 'writeonly')
+			{
+				try
+				{
+					var name:* = item.uri ? new QName(item.uri, item.name) : item.name;
+					result[String(name)] = object[name];
+				}
+				catch (e:Error)
+				{
+				}
+			}
+			return result;
+		}
+		
+		public static function stringifyProperties(object:Object):String
+		{
+			var keys:Array = [];
+			for (var key:String in object)
+				keys.push(key);
+			StandardLib.sortOn(keys, function(key:String):String { return key.split('::').pop(); });
+			return keys.map(function(key:String, i:int, a:Array):String { return '\t' + key + ': ' + debugId(object[key]); }).join('\n');
+		}
+		
+		public static const HISTORY_TO_CSV:String = StandardLib.unIndent(<![CDATA[
+			var data = [['t','path','value']].concat.apply(null, Weave.history.undoHistory.map((e,t)=>flattenSessionState(e.forward).map((a,i)=>[t,'Weave'+a[0].map(n=>EquationColumn.compiler.isValidSymbolName(n)?'.'+n:Compiler.stringify([n])).join(''),Compiler.stringify(a[1])])));
+			var name = WeaveAPI.globalHashMap.generateUniqueName("Session History");
+			var csv = WeaveAPI.globalHashMap.requestObject(name, CSVDataSource, false);
+			csv.csvData.setSessionState(data);
+			var table = WeaveAPI.globalHashMap.requestObject(null, TableTool, false);
+			data[0].forEach(n=>csv.putColumnInHashMap(n, table.columns));
+		]]>);
 	}
 }

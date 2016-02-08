@@ -1,21 +1,18 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
 package weave.config;
 
 import java.io.File;
@@ -70,14 +67,17 @@ public class WeaveContextParams
 			docrootPath = null;
 		}
 		if (docrootPath == null)
-			throw new ServletException("ERROR: Docroot unable to be determined from servlet context path: " + context.getRealPath(""));
+			throw new ServletException("ERROR: Docroot unable to be determined from servlet context path: " + contextPath);
 		System.out.println("Docroot set to "+docrootPath);
 		
-		String configPathParam = context.getInitParameter("configPath");
-		String configPathJettyParam = context.getInitParameter("configPathJetty");
-		configPath = context.getRealPath(configPathParam);
-		if (configPath == null)
-			configPath = (new File(contextPath, configPathJettyParam)).getAbsolutePath();
+		boolean isJetty = context.getServerInfo().startsWith("jetty");
+		String configPathParam;
+		if (isJetty)
+			configPathParam = context.getInitParameter("configPathJetty");
+		else
+			configPathParam = context.getInitParameter("configPath");
+		
+		configPath = new File(contextPath, configPathParam).getAbsolutePath();
 		configPath = configPath.replace('\\', '/');
 		System.out.println("configPath set to " + configPath);
 		
@@ -86,7 +86,7 @@ public class WeaveContextParams
 		
 		// if RServePath is not specified, keep it empty
 		if (!Strings.isEmpty(rServePath))
-			rServePath = context.getRealPath(rServePath).replace('\\', '/');
+			rServePath = new File(contextPath, rServePath).getAbsolutePath().replace('\\', '/');
 		
 		// make sure folders exist
 		new File(configPath).mkdirs();

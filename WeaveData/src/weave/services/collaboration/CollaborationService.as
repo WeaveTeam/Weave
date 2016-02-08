@@ -1,21 +1,17 @@
-/*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.services.collaboration
 {	
@@ -35,27 +31,25 @@ package weave.services.collaboration
 	import mx.utils.ObjectUtil;
 	import mx.utils.StringUtil;
 	
-	import org.igniterealtime.xiff.auth.*;
-	import org.igniterealtime.xiff.bookmark.*;
-	import org.igniterealtime.xiff.conference.*;
-	import org.igniterealtime.xiff.core.*;
-	import org.igniterealtime.xiff.data.*;
-	import org.igniterealtime.xiff.events.*;
-	import org.igniterealtime.xiff.exception.*;
-	import org.igniterealtime.xiff.filter.*;
-	import org.igniterealtime.xiff.im.*;
-	import org.igniterealtime.xiff.privatedata.*;
-	import org.igniterealtime.xiff.util.*;
-	import org.igniterealtime.xiff.vcard.*;
+	import org.igniterealtime.xiff.conference.Room;
+	import org.igniterealtime.xiff.core.EscapedJID;
+	import org.igniterealtime.xiff.core.UnescapedJID;
+	import org.igniterealtime.xiff.core.XMPPConnection;
+	import org.igniterealtime.xiff.data.Message;
+	import org.igniterealtime.xiff.events.DisconnectionEvent;
+	import org.igniterealtime.xiff.events.LoginEvent;
+	import org.igniterealtime.xiff.events.MessageEvent;
+	import org.igniterealtime.xiff.events.RoomEvent;
+	import org.igniterealtime.xiff.events.XIFFErrorEvent;
 	
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.getSessionState;
 	import weave.api.registerDisposableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObject;
 	import weave.core.SessionStateLog;
 	
 	public class CollaborationService extends EventDispatcher implements IDisposableObject
@@ -96,9 +90,10 @@ package weave.services.collaboration
 		{
 			this.root = root;
 			// register these classes so they will not lose their type when they get serialized and then deserialized.
-			// all of these classes are internal
+			// all of these classes are internal so they need fake packages to work across different builds of Weave
+			var pkg:String = getQualifiedClassName(this).split('::')[0];
 			for each (var c:Class in [FullSessionState, SessionStateMessage, TextMessage, MouseMessage, RequestMouseMessage, Ping, AddonsMessage, AddonStatus])
-			registerClassAlias(getQualifiedClassName(c), c);
+				registerClassAlias(pkg + '::' + getQualifiedClassName(c).split('::').pop(), c);
 			
 			CollaborationWeaveExtension.enable();
 			

@@ -1,21 +1,18 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
 package weave.application
 {
 	import flash.display.DisplayObject;
@@ -67,45 +64,36 @@ package weave.application
 			
 			destinationContextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, handleContextMenuOpened);
 						
-			addSearchQueryContextMenuItem(<recordQuery queryServiceName=" "	rootURL=""/>, destination);
+			addSearchQueryContextMenuItem(destination);
 			
 			return true;	
 		}
 		
 		private static var _searchQueryContextMenuItems:Array = [];
 		// Add a context menu item for searching for a given probed record in a search engine.
-		public static function addSearchQueryContextMenuItem(description:XML, destination:DisplayObject):void
+		public static function addSearchQueryContextMenuItem(destination:DisplayObject):void
 		{	
 			if(!destination.hasOwnProperty("contextMenu") )
 				return;
 				
 			var destinationContextMenu:ContextMenu = destination["contextMenu"] as ContextMenu;
-			
 						
-			// When set, includeData will put the data descriptors shown in probing into the search criteria
-			var includeData:Boolean     = description.@includeData != undefined;
-			// Service name is what is shown to the user in the context menu so they know what engine they are seaching with
-			var serviceName:String      = description.@queryServiceName;
-			// Separator before allows a separator to be added to cre
-			var separatorBefore:Boolean = description.@separatorBefore != undefined;
-
-			
-			var sq:ContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(
-					"Search for record" + (includeData ? " and data" : "") + " online" + serviceName, 
+			var cmi:ContextMenuItem = CustomContextMenuManager.createAndAddMenuItemToDestination(
+					"Search for record online",
 					destination, 
 					handleSearchQueryContextMenuItemSelect,
 					"2 searchMenuItems"
 				);
-			_searchQueryContextMenuItems.push( {contextMenu:sq, description:description} );
+			_searchQueryContextMenuItems.push(cmi);
 		}
 		
 		private static function handleContextMenuOpened(event:ContextMenuEvent):void
 		{
 			copySessionState(_globalProbeKeySet, _localProbeKeySet);
 			
-			for each (var c:Object in _searchQueryContextMenuItems)
+			for each (var cmi:ContextMenuItem in _searchQueryContextMenuItems)
 			{
-				(c.contextMenu as ContextMenuItem).enabled = _localProbeKeySet.keys.length > 0;
+				cmi.enabled = _localProbeKeySet.keys.length > 0;
 			}
 		}
 		
@@ -116,12 +104,11 @@ package weave.application
 				return;
 			// get first line of text only
 			var query:String = probeText.split('\n')[0];
-			for each(var c:Object in _searchQueryContextMenuItems)
+			for each(var cmi:ContextMenuItem in _searchQueryContextMenuItems)
 			{
-				var currentContextMenuItem:ContextMenuItem = (c.contextMenu as ContextMenuItem);
-				if(currentContextMenuItem  == event.currentTarget)
+				if(cmi == event.currentTarget)
 				{
-					if(currentContextMenuItem.enabled)
+					if(cmi.enabled)
 					{
 						var combobox:CustomComboBox = new CustomComboBox(); //ComboBox to hold the service names
 						var urlAlert:AlertTextBox = AlertTextBox.show("Custom URL",null);

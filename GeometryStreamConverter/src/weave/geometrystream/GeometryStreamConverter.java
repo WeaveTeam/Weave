@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.geometrystream;
 
@@ -108,10 +104,13 @@ public class GeometryStreamConverter
 					totalVertices++;
 					x = vertexStream.getX();
 					y = vertexStream.getY();
+					
 					// don't add invalid points
 					if (x <= -Double.MAX_VALUE || x >= Double.MAX_VALUE ||
 						y <= -Double.MAX_VALUE || y >= Double.MAX_VALUE)
 					{
+						if (vertexStream.isEndOfPart())
+							break;
 						continue;
 					}
 					// If this is the first vertex in the chain, save the coordinates.  Otherwise, perform additional checks.
@@ -124,29 +123,36 @@ public class GeometryStreamConverter
 					{
 						// don't add consecutive duplicate points
 						if (x == prevX && y == prevY)
+						{
+							if (vertexStream.isEndOfPart())
+								break;
 							continue;
-						// stop adding points when the current coord is equal to the first coord
-						if (x == firstX && y == firstY)
+						}
+						// stop adding points when the current coord is equal to the first coord and we're at the end of a part
+						if (x == firstX && y == firstY && vertexStream.isEndOfPart())
 							break;
 					}
 					
-					// add new point if we are at the end of outputPoints
-					if (reusableVertexChainLinks.size() == chainLength)
-						reusableVertexChainLinks.add(new VertexChainLink());
-					
-					// save coord in next vertex object
-					vertex = reusableVertexChainLinks.get(chainLength);
+					// get next vertex object
+					if (chainLength < reusableVertexChainLinks.size())
+						vertex = reusableVertexChainLinks.get(chainLength);
+					else
+						reusableVertexChainLinks.add(vertex = new VertexChainLink());
+					// save coord
 					vertex.initialize(x, y, firstVertexID + chainLength);
 					// insert vertex in chain
 					reusableVertexChainLinks.get(0).insert(vertex);
-					
 					chainLength++;
 					prevX = x;
 					prevY = y;
+					
+					// stop at end of part
+					if (vertexStream.isEndOfPart())
+						break;
 				}
 				
 				if (chainLength == 0)
-					break;
+					continue;
 				
 				// ARC: end points of a part are required points
 				if (geometryMetadata.isLineType())

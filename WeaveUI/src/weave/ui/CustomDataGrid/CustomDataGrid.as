@@ -1,21 +1,17 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.ui.CustomDataGrid
 {
@@ -29,6 +25,7 @@ package weave.ui.CustomDataGrid
 	import mx.controls.listClasses.IListItemRenderer;
 	import mx.controls.listClasses.ListBaseContentHolder;
 	import mx.core.EventPriority;
+	import mx.core.IFactory;
 	import mx.core.ILayoutDirectionElement;
 	import mx.core.SpriteAsset;
 	import mx.core.mx_internal;
@@ -57,9 +54,20 @@ package weave.ui.CustomDataGrid
 			headerClass = CustomDataGridHeader;
 			// add this event listener before the one in super()
 			addEventListener(DataGridEvent.HEADER_RELEASE, headerReleaseHandler, false, EventPriority.DEFAULT_HANDLER);
-			setStyle('defaultDataGridItemRenderer', CustomDataGridItemRenderer);
 			super();
 		}
+		
+		private var firstTimeAccessItemRenderer:Boolean = true;
+		override public function get itemRenderer():IFactory
+		{
+			if (firstTimeAccessItemRenderer && !getStyle("defaultDataGridItemRenderer"))
+			{
+				setStyle("defaultDataGridItemRenderer", CustomDataGridItemRenderer);
+				firstTimeAccessItemRenderer = false;
+			}
+			return super.itemRenderer;
+		}
+		
 		private var in_destroyItemEditor:Boolean = false;
 		override public function destroyItemEditor():void
 		{
@@ -127,7 +135,7 @@ package weave.ui.CustomDataGrid
 			_drawingItems = 0;
 			for each (var item:Object in items)
 			{
-				drawItemForced(item, selected(item), true);
+				drawItemForced(item, selected != null ? selected(item) : false, true);
 				_drawingItems++;
 			}
 			_drawingItems = 0;

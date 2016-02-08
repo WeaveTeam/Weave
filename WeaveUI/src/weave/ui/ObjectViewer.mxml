@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
+<mx:Canvas
+		xmlns="weave.ui.*"
+		xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:mx="library://ns.adobe.com/flex/mx"
+		implements="weave.api.core.ILinkableObject"
+		creationPolicy="all"
+		width="100%" height="100%">
+	<WeaveTree id="treeView" width="100%" height="100%"
+			   showDataTips="true" dataTipFunction="{getDataTip}"
+			   showRoot="true" borderStyle="none"
+			   rootNode="{newTreeNode(data)}">
+		<itemRenderer>
+			<fx:Component>
+				<ObjectViewerItemRenderer
+					secondLabelFunction="{outerDocument.getSecondLabel}"
+					secondLabelX="{outerDocument.rightDiv.x}"/>
+			</fx:Component>
+		</itemRenderer>
+	</WeaveTree>
+	<mx:HDividedBox width="100%" height="100%">
+		<s:Spacer id="leftDiv" width="100%"/>
+		<s:Spacer id="rightDiv" width="100%"/>
+	</mx:HDividedBox>
+	<fx:Script>
+		<![CDATA[
+			import avmplus.DescribeType;
+			import avmplus.getQualifiedClassName;
+			
+			import weave.api.core.DynamicState;
+			import weave.data.hierarchy.WeaveTreeDescriptorNode;
+			import weave.menus.WeaveContextMenu;
+			import weave.utils.VectorUtils;
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				treeView.contextMenu = WeaveContextMenu.create([
+					{
+						label: function():String {
+							var node:WeaveTreeDescriptorNode = treeView.selectedItem as WeaveTreeDescriptorNode;
+							return debugId(node.data[0]);
+						},
+						enabled: false
+					}
+				]);
+				treeView.enableClickToExpand();
+			}
+			
+			private const MAX_LABEL_LENGTH:int = 128;
+			private function truncate(str:String, maxLength:int):String
+			{
+				if (!str)
+					return str;
+				
+				var ellipsis:String = '\u2026';
+				var i_r:int = str.indexOf('\r');
+				var i_n:int = str.indexOf('\n');
+				var i:int = i_r >= 0 ? (i_n >= 0 ? Math.min(i_r, i_n) : i_r) : i_n;
+				if (i >= 0 && i < maxLength - ellipsis.length)
+					return str.substr(0, i) + ellipsis;
+				else if (str.length > maxLength)
+					return String(str).substr(0, maxLength - ellipsis.length) + ellipsis;
+				return str;
+			}
+			private function getLabel(node:WeaveTreeDescriptorNode):String
+			{
+				var value:* = node.data[0];
+				var key:* = node.data[1];
+				
+				var label:String = truncate(key, MAX_LABEL_LENGTH);
+				var className:String = getQualifiedClassName(value);
+				
+				if (label != null && className)
+					return label + " : " + className;
+				
+				return className || label;
+			}
+			public function getSecondLabel(node:WeaveTreeDescriptorNode):String
+			{
+				var value:* = node.data[0];
+				var key:* = node.data[1];
+				
+				var detail:String = '';
+				if (isPrimitive(value))
+				{
+					detail = value;
+				}
+				else if (DynamicState.isDynamicState(value, true))
+				{
+					var className:String = String(value[DynamicState.CLASS_NAME]); // null -> "null"
+					var objectName:String = value[DynamicState.OBJECT_NAME];
+					detail = className.split('::').pop();
+					if (objectName)
+						detail += lang(' "{0}"', objectName);
+				}
+				else if (value is Array)
+				{
+					detail = "length = " + (value as Array).length;
+				}
+				
+				return truncate(detail, MAX_LABEL_LENGTH);
+			}
+			
+			private function getDataTip(node:WeaveTreeDescriptorNode):String
+			{
+				var value:* = node.data[0];
+				var key:* = node.data[1];
+				if (value is String)
+					return getLabel(node) + '\n\n' + value as String;
+				return null;
+			}
+			
+			private function newTreeNode(value:*, key:String = null, _:* = null):WeaveTreeDescriptorNode
+			{
+				var hasChildren:Boolean;
+				if (value is Array && (value as Array).length == 0)
+					hasChildren = false;
+				else
+					hasChildren = !isPrimitive(value);
+				
+				return new WeaveTreeDescriptorNode({
+					label: getLabel,
+					data: [value, key],
+					children: hasChildren ? getChildNodes : null,
+					dependency: this
+				});
+			}
+			private function isPrimitive(value:*):Boolean
+			{
+				return !value || typeof value != 'object';
+			}
+			private function getChildNodes(node:WeaveTreeDescriptorNode):Array
+			{
+				var value:* = node.data[0];
+				var key:* = node.data[1];
+				
+				if (value is Array)
+					return (value as Array).map(newTreeNode);
+				
+				var keys:Array = VectorUtils.getKeys(value);
+				if (!keys.length && getQualifiedClassName(value) != 'Object')
+				{
+					for each (var list:Array in DescribeType.getInfo(value, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
+						for each (var item:Object in list)
+							if (item.access != 'writeonly')
+								keys.push(item.uri ? new QName(item.uri, item.name) : item.name);
+				}
+				keys.sort();
+				
+				var children:Array = [];
+				for each (var childKey:* in keys)
+				{
+					var childValue:*;
+					try {
+						childValue = value[childKey];
+					} catch (e:Error) {
+						childValue = e;
+					}
+					
+					children.push(newTreeNode(childValue, childKey));
+				}
+				return children;
+			}
+		]]>
+	</fx:Script>
+</mx:Canvas>

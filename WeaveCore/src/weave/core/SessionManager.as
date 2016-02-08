@@ -1,32 +1,25 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.core
 {
-	import avmplus.DescribeType;
-	
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.events.Event;
 	import flash.events.EventPhase;
 	import flash.system.Capabilities;
-	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.getTimer;
 	
@@ -36,6 +29,10 @@ package weave.core
 	import mx.rpc.AsyncToken;
 	import mx.utils.ObjectUtil;
 	
+	import avmplus.DescribeType;
+	import avmplus.getQualifiedClassName;
+	
+	import weave.api.reportError;
 	import weave.api.core.DynamicState;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.IDisposableObject;
@@ -47,11 +44,13 @@ package weave.core
 	import weave.api.core.ILinkableObjectWithNewProperties;
 	import weave.api.core.ILinkableVariable;
 	import weave.api.core.ISessionManager;
-	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.primitives.Dictionary2D;
+	import weave.primitives.Map;
+	import weave.primitives.WeakMap;
 	import weave.primitives.WeaveTreeItem;
-
+	import weave.utils.WeavePromise;
+	
 	/**
 	 * This is a collection of core functions in the Weave session framework.
 	 * 
@@ -69,9 +68,17 @@ package weave.core
 			if (!(linkableParent is ILinkableObject))
 				throw new Error("newLinkableChild(): Parent does not implement ILinkableObject.");
 			
+			if (!linkableChildType)
+				throw new Error("newLinkableChild(): Child type parameter cannot be null.");
+			
 			var childQName:String = getQualifiedClassName(linkableChildType);
-			if (!ClassUtils.classImplements(childQName, ILinkableObjectQualifiedClassName))
-				throw new Error("newLinkableChild(): Child class does not implement ILinkableObject.");
+			if (!ClassUtils.classImplements(childQName, ILinkableObject_QName))
+			{
+				if (ClassUtils.hasClassDefinition(childQName))
+					throw new Error("newLinkableChild(): Child class does not implement ILinkableObject.");
+				else
+					throw new Error("newLinkableChild(): Child class inaccessible via qualified class name: " + childQName);
+			}
 			
 			var linkableChild:ILinkableObject = new linkableChildType() as ILinkableObject;
 			return registerLinkableChild(linkableParent, linkableChild, callback, useGroupedCallback);
@@ -106,11 +113,11 @@ package weave.core
 			registerDisposableChild(linkableParent, linkableChild);
 			
 			// only continue if the child is not already registered with the parent
-			if (childToParentDictionaryMap[linkableChild][linkableParent] === undefined)
+			if (d2d_child_parent.get(linkableChild, linkableParent) === undefined)
 			{
 				// remember this child-parent relationship
-				childToParentDictionaryMap[linkableChild][linkableParent] = true;
-				parentToChildDictionaryMap[linkableParent][linkableChild] = true;
+				d2d_child_parent.set(linkableChild, linkableParent, true);
+				d2d_parent_child.set(linkableParent, linkableChild, true);
 				
 				// make child changes trigger parent callbacks
 				var parentCC:ICallbackCollection = getCallbackCollection(linkableParent as ILinkableObject);
@@ -136,20 +143,17 @@ package weave.core
 		 */
 		public function registerDisposableChild(disposableParent:Object, disposableChild:Object):*
 		{
-			// if this parent has no owner-to-child mapping, initialize it now with parent-to-child mapping
-			if (ownerToChildDictionaryMap[disposableParent] === undefined)
-			{
-				ownerToChildDictionaryMap[disposableParent] = new Dictionary(true); // weak links to be GC-friendly
-				parentToChildDictionaryMap[disposableParent] = new Dictionary(true); // weak links to be GC-friendly
-			}
+			if (!disposableParent)
+				throw new Error("registerDisposableChild(): Parent parameter cannot be null.");
+			if (!disposableChild)
+				throw new Error("registerDisposableChild(): Child parameter cannot be null.");
+			
 			// if this child has no owner yet...
-			if (childToOwnerMap[disposableChild] === undefined)
+			if (!map_child_owner.has(disposableChild))
 			{
 				// make this first parent the owner
-				childToOwnerMap[disposableChild] = disposableParent;
-				ownerToChildDictionaryMap[disposableParent][disposableChild] = true;
-				// initialize the parent dictionary for this child
-				childToParentDictionaryMap[disposableChild] = new Dictionary(true); // weak links to be GC-friendly
+				map_child_owner.set(disposableChild, disposableParent);
+				d2d_owner_child.set(disposableParent, disposableChild, true);
 			}
 			return disposableChild;
 		}
@@ -162,10 +166,13 @@ package weave.core
 		 */
 		public function unregisterLinkableChild(parent:ILinkableObject, child:ILinkableObject):void
 		{
-			if (childToParentDictionaryMap[child])
-				delete childToParentDictionaryMap[child][parent];
-			if (parentToChildDictionaryMap[parent])
-				delete parentToChildDictionaryMap[parent][child];
+			if (!parent)
+				throw new Error("unregisterLinkableChild(): Parent parameter cannot be null.");
+			if (!child)
+				throw new Error("unregisterLinkableChild(): Child parameter cannot be null.");
+			
+			d2d_child_parent.remove(child, parent);
+			d2d_parent_child.remove(parent, child);
 			getCallbackCollection(child).removeCallback(getCallbackCollection(parent).triggerCallbacks);
 			
 			_treeCallbacks.triggerCallbacks();
@@ -186,10 +193,10 @@ package weave.core
 				reportError("SessionManager.excludeLinkableChildFromSessionState(): Parameters to this function cannot be null.");
 				return;
 			}
-			if (childToParentDictionaryMap[child] !== undefined && childToParentDictionaryMap[child][parent])
-				childToParentDictionaryMap[child][parent] = false;
-			if (parentToChildDictionaryMap[parent] !== undefined && parentToChildDictionaryMap[parent][child])
-				parentToChildDictionaryMap[parent][child] = false;
+			if (d2d_child_parent.get(child, parent))
+				d2d_child_parent.set(child, parent, false);
+			if (d2d_parent_child.get(parent, child))
+				d2d_parent_child.set(parent, child, false);
 		}
 		
 		/**
@@ -201,11 +208,7 @@ package weave.core
 		 */
 		private function _getRegisteredChildren(parent:ILinkableObject):Array
 		{
-			var result:Array = [];
-			if (parentToChildDictionaryMap[parent] !== undefined)
-				for (var key:* in parentToChildDictionaryMap[parent])
-					result.push(key);
-			return result;
+			return d2d_parent_child.secondaryKeys(parent);
 		}
 
 		/**
@@ -213,61 +216,71 @@ package weave.core
 		 */
 		public function getLinkableOwner(child:ILinkableObject):ILinkableObject
 		{
-			return childToOwnerMap[child] as ILinkableObject;
+			return map_child_owner.get(child) as ILinkableObject;
 		}
 		
 		/**
-		 * @param root The linkable object to be placed at the root node of the tree.
-		 * @return A tree of nodes with the properties "label", "object", and "children"
+		 * Cached WeaveTreeItems that are auto-generated when they are accessed
 		 */
-		public function getSessionStateTree(root:ILinkableObject, objectName:String, objectTypeFilter:*=null):WeaveTreeItem
+		private const d2d_object_name_tree:Dictionary2D = new Dictionary2D(true, false, WeaveTreeItem);
+		
+		/**
+		 * @param root The linkable object to be placed at the root node of the tree.
+		 * @param objectName The label for the root node.
+		 * @return A tree of nodes with the properties "data", "label", "children"
+		 */
+		public function getSessionStateTree(root:ILinkableObject, objectName:String):WeaveTreeItem
 		{
-			var treeItem:WeaveTreeItem = new WeaveTreeItem();
-			treeItem.label = objectName;
-			treeItem.source = root;
-			treeItem.children = getTreeItemChildren;
-			treeItem.data = objectTypeFilter;
+			var treeItem:WeaveTreeItem = d2d_object_name_tree.get(root, objectName);
+			if (!treeItem.data)
+			{
+				treeItem.data = root;
+				treeItem.children = getTreeItemChildren;
+				// dependency is used to determine when to recalculate children array
+				var lhm:ILinkableHashMap = root as ILinkableHashMap;
+				treeItem.dependency = lhm ? lhm.childListCallbacks : root;
+			}
+			if (objectName)
+				treeItem.label = objectName;
 			return treeItem;
 		}
 		
 		private function getTreeItemChildren(treeItem:WeaveTreeItem):Array
 		{
-			var object:ILinkableObject = treeItem.source;
-			var objectTypeFilter:* = treeItem.data;
+			var object:ILinkableObject = treeItem.data as ILinkableObject;
 			var children:Array = [];
-			var names:Array = [];
+			var names:Array;
 			var childObject:ILinkableObject;
-			var subtree:WeaveTreeItem;
-			var ignoreList:Dictionary = new Dictionary(true);
-			if (object is ILinkableHashMap)
+			var ignoreList:WeakMap = new WeakMap();
+			var lhm:ILinkableHashMap = object as ILinkableHashMap;
+			if (lhm)
 			{
-				names = (object as ILinkableHashMap).getNames();
+				names = lhm.getNames();
 				
-				var childObjects:Array = (object as ILinkableHashMap).getObjects();
+				var childObjects:Array = lhm.getObjects();
 				
 				for (var i:int = 0; i < names.length; i++)
 				{
 					childObject = childObjects[i];
-					if (childToParentDictionaryMap[childObject] && childToParentDictionaryMap[childObject][object])
+					if (d2d_child_parent.get(childObject, lhm))
 					{
 						// don't include duplicate siblings
-						if (ignoreList[childObject] != undefined)
+						if (ignoreList.has(childObject))
 							continue;
-						ignoreList[childObject] = true;
+						ignoreList.set(childObject, true);
 						
-						subtree = getSessionStateTree(childObject, names[i], objectTypeFilter);
-						if (subtree != null)
-							children.push(subtree);
+						children.push(getSessionStateTree(childObject, names[i]));
 					}
 				}
 			}
 			else
 			{
 				var deprecatedLookup:Object = null;
-				if (object is ILinkableDynamicObject)
+				var ldo:ILinkableDynamicObject = object as ILinkableDynamicObject;
+				if (ldo)
 				{
-					// do not show static object in tree
-					names = (object as ILinkableDynamicObject).targetPath ? null : [null];
+					// do not include externally referenced objects
+					names = ldo.targetPath ? null : [null];
 				}
 				else if (object)
 				{
@@ -277,37 +290,50 @@ package weave.core
 				}
 				for each (var name:String in names)
 				{
-					if (object is ILinkableDynamicObject)
-						childObject = (object as ILinkableDynamicObject).internalObject;
+					if (ldo)
+						childObject = ldo.internalObject;
 					else if (!deprecatedLookup[name])
 						childObject = object[name];
 					if (!childObject)
 						continue;
-					if (childToParentDictionaryMap[childObject] && childToParentDictionaryMap[childObject][object])
+					if (d2d_child_parent.get(childObject, object))
 					{
 						// don't include duplicate siblings
-						if (ignoreList[childObject] != undefined)
+						if (ignoreList.has(childObject))
 							continue;
-						ignoreList[childObject] = true;
+						ignoreList.set(childObject, true);
 						
-						subtree = getSessionStateTree(childObject, name, objectTypeFilter);
-						if (subtree != null)
-							children.push(subtree);
+						children.push(getSessionStateTree(childObject, name));
 					}
 				}
 			}
 			
 			if (children.length == 0)
 				children = null;
-			if (objectTypeFilter == null)
-				return children;
-			if (children == null && !(object is objectTypeFilter))
-				return null;
 			return children;
 		}
 		
 		/**
+		 * Gets a session state tree containing type information at each node.
+		 */
+		public function getTypedStateTree(root:ILinkableObject):Object
+		{
+			return getTypedStateFromTreeNode(getSessionStateTree(root, null));
+		}
+		private function getTypedStateFromTreeNode(node:WeaveTreeItem, i:int = 0, a:Array = null):Object
+		{
+			var state:Object;
+			var children:Array = node.children;
+			if (node.data is ILinkableVariable || !children)
+				state = getSessionState(node.data as ILinkableObject);
+			else
+				state = children.map(getTypedStateFromTreeNode);
+			return DynamicState.create(node.label, getQualifiedClassName(node.data), state);
+		}
+		
+		/**
 		 * Adds a grouped callback that will be triggered when the session state tree changes.
+		 * USE WITH CARE. The groupedCallback should not run computationally-expensive code.
 		 */
 		public function addTreeCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false):void
 		{
@@ -328,13 +354,19 @@ package weave.core
 			setSessionState(destination, sessionState, true);
 		}
 		
-		private function applyDiff(base:Object, diff:Object):Object
+		private function applyDiffForLinkableVariable(base:Object, diff:Object):Object
 		{
-			if (base == null || typeof(base) != 'object')
-				return diff;
+			if (base === null || diff === null || typeof(base) != 'object' || typeof(diff) != 'object' || diff is Array)
+				return diff; // don't need to make a copy because LinkableVariable makes copies anyway
 			
 			for (var key:String in diff)
-				base[key] = applyDiff(base[key], diff[key]);
+			{
+				var value:* = diff[key];
+				if (value === undefined)
+					delete base[key];
+				else
+					base[key] = applyDiffForLinkableVariable(base[key], value);
+			}
 			
 			return base;
 		}
@@ -351,12 +383,12 @@ package weave.core
 			}
 
 			// special cases:
-			if (linkableObject is ILinkableVariable)
+			var lv:ILinkableVariable = linkableObject as ILinkableVariable;
+			if (lv)
 			{
-				var lv:ILinkableVariable = linkableObject as ILinkableVariable;
 				if (removeMissingDynamicObjects == false && newState && getQualifiedClassName(newState) == 'Object')
 				{
-					lv.setSessionState(applyDiff(ObjectUtil.copy(lv.getSessionState()), newState));
+					lv.setSessionState(applyDiffForLinkableVariable(copyObject(lv.getSessionState()), newState));
 				}
 				else
 				{
@@ -364,7 +396,8 @@ package weave.core
 				}
 				return;
 			}
-			if (linkableObject is ILinkableCompositeObject)
+			var lco:ILinkableCompositeObject = linkableObject as ILinkableCompositeObject;
+			if (lco)
 			{
 				if (newState is String)
 					newState = [newState];
@@ -377,7 +410,7 @@ package weave.core
 					newState = array;
 				}
 				
-				(linkableObject as ILinkableCompositeObject).setSessionState(newState as Array, removeMissingDynamicObjects);
+				lco.setSessionState(newState as Array, removeMissingDynamicObjects);
 				return;
 			}
 
@@ -395,10 +428,11 @@ package weave.core
 			if (!classNameToSessionedPropertyNames[classQName])
 				cacheClassInfo(linkableObject, classQName);
 			var deprecatedLookup:Object = classNameToDeprecatedGetterLookup[classQName];
+			var propertyNames:Array = classNameToSessionedPropertyNames[classQName];
 			
 			// set session state
 			var foundMissingProperty:Boolean = false;
-			for each (name in classNameToSessionedPropertyNames[classQName])
+			for each (name in propertyNames)
 			{
 				if (!newState.hasOwnProperty(name))
 				{
@@ -421,16 +455,22 @@ package weave.core
 					continue;
 
 				// unless it's a deprecated property (for backwards compatibility), skip this property if it should not appear in the session state
-				if (!deprecatedLookup[name])
-					if (childToParentDictionaryMap[property] === undefined || !childToParentDictionaryMap[property][linkableObject])
-						continue;
+				if (!deprecatedLookup[name] && !d2d_child_parent.get(property, linkableObject))
+					continue;
 					
 				setSessionState(property, newState[name], removeMissingDynamicObjects);
 			}
 			
+			// handle properties appearing in session state that do not appear in the linkableObject
+			var ilownp:ILinkableObjectWithNewProperties = linkableObject as ILinkableObjectWithNewProperties;
+			if (ilownp)
+				for (name in newState)
+					if (!deprecatedLookup.hasOwnProperty(name))
+						ilownp.handleMissingSessionStateProperty(newState, name);
+			
 			// handle properties missing from absolute session state
 			if (foundMissingProperty)
-				for each (name in classNameToSessionedPropertyNames[classQName])
+				for each (name in propertyNames)
 					if (!newState.hasOwnProperty(name))
 						(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperty(newState, name);
 			
@@ -459,7 +499,10 @@ package weave.core
 			return _deprecatedSetterShouldRemoveMissingDynamicObjects;
 		}
 		
-		private const _getSessionStateIgnoreList:Dictionary = new Dictionary(true); // keeps track of which objects are currently being traversed
+		/**
+		 * keeps track of which objects are currently being traversed
+		 */
+		private const map_obj_getSessionStateIgnore:Object = new WeakMap();
 		
 		/**
 		 * @inheritDoc
@@ -500,9 +543,8 @@ package weave.core
 				var property:ILinkableObject = null;
 				var i:int;
 				//trace("getting session state for "+getQualifiedClassName(sessionedObject),"propertyNames="+propertyNames);
-				for (i = 0; i < propertyNames.length; i++)
+				for each (var name:String in propertyNames)
 				{
-					var name:String = propertyNames[i];
 					// exclude deprecated properties from session state
 					if (deprecatedLookup[name])
 						continue;
@@ -516,13 +558,13 @@ package weave.core
 						reportError('Unable to get property "'+name+'" of class "'+getQualifiedClassName(linkableObject)+'"');
 					}
 					// first pass: set result[name] to the ILinkableObject
-					if (property != null && !_getSessionStateIgnoreList[property])
+					if (property != null && !map_obj_getSessionStateIgnore.get(property))
 					{
 						// skip this property if it should not appear in the session state under the parent.
-						if (childToParentDictionaryMap[property] === undefined || !childToParentDictionaryMap[property][linkableObject])
+						if (!d2d_child_parent.get(property, linkableObject))
 							continue;
 						// avoid infinite recursion in implicit session states
-						_getSessionStateIgnoreList[property] = true;
+						map_obj_getSessionStateIgnore.set(property, true);
 						resultNames.push(name);
 						resultProperties.push(property);
 					}
@@ -552,7 +594,7 @@ package weave.core
 				}
 			}
 			
-			_getSessionStateIgnoreList[linkableObject] = undefined;
+			map_obj_getSessionStateIgnore.set(linkableObject, undefined);
 			
 			return result;
 		}
@@ -566,7 +608,7 @@ package weave.core
 		 */
 		private const classNameToDeprecatedSetterNames:Object = new Object();
 		/**
-		 * This maps a qualified class name to an Object mapping deprecated sessioned property names to true.
+		 * This maps a qualified class name to an Object mapping sessioned property names to booleans indicating if they are implemented as deprecated getters.
 		 */
 		private const classNameToDeprecatedGetterLookup:Object = new Object();
 		
@@ -599,10 +641,9 @@ package weave.core
 						if (deprecated)
 							deprecatedSetters.push(variable.name);
 					}
-					else if (ClassUtils.classImplements(variable.type, ILinkableObjectQualifiedClassName))
+					else if (ClassUtils.classImplements(variable.type, ILinkableObject_QName))
 					{
-						if (deprecated)
-							deprecatedGetterLookup[variable.name] = true;
+						deprecatedGetterLookup[variable.name] = deprecated;
 						propertyNames.push(variable.name);
 					}
 				}
@@ -619,9 +660,10 @@ package weave.core
 		/**
 		 * This function gets a list of sessioned property names so accessor functions for non-sessioned properties do not have to be called.
 		 * @param linkableObject An object containing sessioned properties.
+		 * @param filtered If set to true, filters out deprecated, null, and excluded properties.
 		 * @return An Array containing the names of the sessioned properties of that object class.
 		 */
-		public function getLinkablePropertyNames(linkableObject:ILinkableObject):Array
+		public function getLinkablePropertyNames(linkableObject:ILinkableObject, filtered:Boolean = false):Array
 		{
 			if (linkableObject == null)
 			{
@@ -636,29 +678,56 @@ package weave.core
 				cacheClassInfo(linkableObject, className);
 				propertyNames = classNameToSessionedPropertyNames[className] as Array;
 			}
+			
+			if (filtered)
+			{
+				var filteredNames:Array = [];
+				var deprecatedLookup:Object = classNameToDeprecatedGetterLookup[className];
+				for each (var name:String in propertyNames)
+				{
+					try
+					{
+						if (deprecatedLookup[name])
+							continue;
+						
+						var property:ILinkableObject = linkableObject[name];
+						if (property == null || !d2d_child_parent.get(property, linkableObject))
+							continue;
+
+						filteredNames.push(name);
+					}
+					catch (e:Error)
+					{
+						reportError('Unable to get property "'+name+'" of class "'+getQualifiedClassName(linkableObject)+'"');
+					}
+				}
+				return filteredNames;
+			}
+			
 			return propertyNames;
 		}
 		
-		internal static const ILinkableObjectQualifiedClassName:String = getQualifiedClassName(ILinkableObject);
+		internal static const ILinkableObject_QName:String = getQualifiedClassName(ILinkableObject);
 		
-		/**
-		 * This maps a parent ILinkableObject to a Dictionary, which maps each child ILinkableObject it owns to a value of true.
-		 */
-		private const ownerToChildDictionaryMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
 		/**
 		 * This maps a child ILinkableObject to its registered owner.
 		 */
-		private const childToOwnerMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
+		private const map_child_owner:WeakMap = new WeakMap();
+		/**
+		 * This maps a parent ILinkableObject to a Dictionary, which maps each child ILinkableObject it owns to a value of true.
+		 * Example: d2d_owner_child.get(owner, child) == true
+		 */
+		private const d2d_owner_child:Dictionary2D = new Dictionary2D(true, false);
 		/**
 		 * This maps a child ILinkableObject to a Dictionary, which maps each of its registered parent ILinkableObjects to a value of true if the child should appear in the session state automatically or false if not.
-		 * Example: childToParentDictionaryMap[child][parent] == true
+		 * Example: d2d_child_parent.get(child, parent) == true
 		 */
-		private const childToParentDictionaryMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
+		private const d2d_child_parent:Dictionary2D = new Dictionary2D(true, false);
 		/**
 		 * This maps a parent ILinkableObject to a Dictionary, which maps each of its registered child ILinkableObjects to a value of true if the child should appear in the session state automatically or false if not.
-		 * Example: parentToChildDictionaryMap[parent][child] == true
+		 * Example: d2d_parent_child.get(parent, child) == true
 		 */
-		private const parentToChildDictionaryMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
+		private const d2d_parent_child:Dictionary2D = new Dictionary2D(true, false);
 		
 		/**
 		 * @inheritDoc
@@ -667,40 +736,39 @@ package weave.core
 		{
 			var result:Array = [];
 			if (root)
-				internalGetDescendants(result, root, filter, new Dictionary(true), int.MAX_VALUE);
+				internalGetDescendants(result, root, filter, new WeakMap(), int.MAX_VALUE);
 			// don't include root object
 			if (result.length > 0 && result[0] == root)
 				result.shift();
 			return result;
 		}
-		private function internalGetDescendants(output:Array, root:ILinkableObject, filter:Class, ignoreList:Dictionary, depth:int):void
+		private function internalGetDescendants(output:Array, root:ILinkableObject, filter:Class, ignoreList:WeakMap, depth:int):void
 		{
-			if (root == null || ignoreList[root] !== undefined)
+			if (root == null || ignoreList.has(root))
 				return;
-			ignoreList[root] = true;
+			ignoreList.set(root, true);
 			if (filter == null || root is filter)
 				output.push(root);
 			if (--depth <= 0)
 				return;
 			
-			for (var object:Object in parentToChildDictionaryMap[root])
-			{
-				internalGetDescendants(output, object as ILinkableObject, filter, ignoreList, depth);
-			}
+			var children:Array = d2d_parent_child.secondaryKeys(root);
+			for each (var child:ILinkableObject in children)
+				internalGetDescendants(output, child, filter, ignoreList, depth);
 		}
 		
-		private const _dTaskStackTrace:Dictionary = new Dictionary(false);
-		private const _d2dOwnerTask:Dictionary2D = new Dictionary2D(true, false); // task cannot use weak pointer because it may be a function
-		private const _d2dTaskOwner:Dictionary2D = new Dictionary2D(false, true); // task cannot use weak pointer because it may be a function
-		private const _dBusyTraversal:Dictionary = new Dictionary(true); // ILinkableObject -> Boolean
-		private const _aBusyTraversal:Array = [];
-		private const _dUnbusyTriggerCounts:Dictionary = new Dictionary(true); // ILinkableObject -> int
-		private const _dUnbusyStackTraces:Dictionary = new Dictionary(true); // ILinkableObject -> String
+		private const map_task_stackTrace:Map = new Map();
+		private const d2d_owner_task:Dictionary2D = new Dictionary2D(false, false);
+		private const d2d_task_owner:Dictionary2D = new Dictionary2D(false, false);
+		private const map_busyTraversal:WeakMap = new WeakMap(); // ILinkableObject -> Boolean
+		private const array_busyTraversal:Array = [];
+		private const map_unbusyTriggerCounts:Map = new Map(); // ILinkableObject -> int
+		private const map_unbusyStackTraces:WeakMap = new WeakMap(); // ILinkableObject -> String
 		
 		private function disposeBusyTaskPointers(disposedObject:ILinkableObject):void
 		{
-			_d2dOwnerTask.removeAllPrimary(disposedObject);
-			_d2dTaskOwner.removeAllSecondary(disposedObject);
+			d2d_owner_task.removeAllPrimary(disposedObject);
+			d2d_task_owner.removeAllSecondary(disposedObject);
 		}
 		
 		/**
@@ -709,10 +777,10 @@ package weave.core
 		public function debugBusyObjects():Object
 		{
 			var result:Object = {};
-			for (var owner:* in _d2dOwnerTask.dictionary)
+			for (var owner:* in d2d_owner_task.dictionary)
 			{
 				var tasks:Array = [];
-				for (var task:* in _d2dOwnerTask.dictionary[owner])
+				for (var task:* in d2d_owner_task.dictionary[owner])
 					tasks.push(debugId(task));
 				
 				result[debugId(owner)] = tasks;
@@ -726,18 +794,24 @@ package weave.core
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
 			if (debugBusyTasks)
-				_dTaskStackTrace[taskToken] = new Error("Stack trace when task was last assigned").getStackTrace();
+				map_task_stackTrace.set(taskToken, new Error("Stack trace when task was last assigned").getStackTrace());
 			
 			// stop if already assigned
-			var test:* = _d2dTaskOwner.dictionary[taskToken];
-			if (test && test[busyObject])
+			if (d2d_task_owner.get(taskToken, busyObject))
 				return;
 			
 			if (taskToken is AsyncToken && !WeaveAPI.ProgressIndicator.hasTask(taskToken))
+			{
 				(taskToken as AsyncToken).addResponder(new AsyncResponder(unassignAsyncToken, unassignAsyncToken, taskToken));
-			
-			_d2dOwnerTask.set(busyObject, taskToken, true);
-			_d2dTaskOwner.set(taskToken, busyObject, true);
+			}
+			if (taskToken is WeavePromise)
+			{
+				var remove:Function = function(_:*):* { unassignBusyTask(taskToken); };
+				(taskToken as WeavePromise).then(remove, remove);
+			}
+
+			d2d_owner_task.set(busyObject, taskToken, true);
+			d2d_task_owner.set(taskToken, busyObject, true);
 		}
 		
 		private function unassignAsyncToken(event:Event, token:AsyncToken):void
@@ -756,29 +830,29 @@ package weave.core
 				return;
 			}
 			
-			var dOwner:Dictionary = _d2dTaskOwner.dictionary[taskToken];
-			if (!dOwner)
-				return;
-			
-			delete _d2dTaskOwner.dictionary[taskToken];
-			nextOwner: for (var owner:* in dOwner)
+			var owners:Array = d2d_task_owner.secondaryKeys(taskToken);
+			d2d_task_owner.removeAllPrimary(taskToken);
+			nextOwner: for each (var owner:ILinkableObject in owners)
 			{
-				var dTask:Dictionary = _d2dOwnerTask.dictionary[owner];
-				delete dTask[taskToken];
+				d2d_owner_task.remove(owner, taskToken);
 				
-				// if there are other tasks, continue to next owner
-				for (var task:* in dTask)
+				// if there are other tasks for this owner, continue to next owner
+				for (var task:* in d2d_owner_task.dictionary[owner])
 					continue nextOwner;
 				
-				// when there are no more tasks, check later to see if callbacks trigger
-				_dUnbusyTriggerCounts[owner] = getCallbackCollection(owner).triggerCounter;
+				// when there are no more tasks for this owner, check later to see if callbacks trigger
+				map_unbusyTriggerCounts.set(owner, getCallbackCollection(owner).triggerCounter);
 				// immediate priority because we want to trigger as soon as possible
 				WeaveAPI.StageUtils.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 				
 				if (debugBusyTasks)
 				{
 					var stackTrace:String = new Error("Stack trace when last task was unassigned").getStackTrace();
-					_dUnbusyStackTraces[owner] = {assigned: _dTaskStackTrace[taskToken], unassigned: stackTrace, token: taskToken};
+					map_unbusyStackTraces.set(owner, {
+						assigned: map_task_stackTrace.get(taskToken),
+						unassigned: stackTrace,
+						token: taskToken
+					});
 				}
 			}
 		}
@@ -795,10 +869,11 @@ package weave.core
 					return 0;
 				
 				owner = null;
-				for (owner in _dUnbusyTriggerCounts)
+				var owners:Array = Map.keys(map_unbusyTriggerCounts);
+				for each (owner in owners)
 				{
-					var triggerCount:int = _dUnbusyTriggerCounts[owner];
-					delete _dUnbusyTriggerCounts[owner]; // affects next for loop iteration - mitigated by outer loop
+					var triggerCount:int = map_unbusyTriggerCounts.get(owner);
+					map_unbusyTriggerCounts.remove(owner);
 					
 					var cc:ICallbackCollection = getCallbackCollection(owner);
 					if (cc is CallbackCollection ? (cc as CallbackCollection).wasDisposed : objectWasDisposed(owner))
@@ -812,7 +887,7 @@ package weave.core
 					
 					if (debugBusyTasks)
 					{
-						var stackTraces:Object = _dUnbusyStackTraces[owner];
+						var stackTraces:Object = map_unbusyStackTraces.get(owner);
 						trace('Triggering callbacks because they have not triggered since owner has becoming unbusy:', debugId(owner));
 						trace(stackTraces.assigned);
 						trace(stackTraces.unassigned);
@@ -830,14 +905,21 @@ package weave.core
 		 */
 		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
 		{
+			// get the ILinkableObject associated with the the ICallbackCollection
+			if (linkableObject is ICallbackCollection)
+				linkableObject = getLinkableObjectFromCallbackCollection(linkableObject as ICallbackCollection);
+			
+			if (!linkableObject)
+				return false;
+			
 			var busy:Boolean = false;
 			
-			_aBusyTraversal.push(linkableObject);
-			_dBusyTraversal[linkableObject] = true;
+			array_busyTraversal[array_busyTraversal.length] = linkableObject; // push
+			map_busyTraversal.set(linkableObject, true);
 			
-			outerLoop: for (var i:int = 0; i < _aBusyTraversal.length; i++)
+			outerLoop: for (var i:int = 0; i < array_busyTraversal.length; i++)
 			{
-				linkableObject = _aBusyTraversal[i] as ILinkableObject;
+				linkableObject = array_busyTraversal[i] as ILinkableObject;
 				
 				if (linkableObject is ILinkableObjectWithBusyStatus)
 				{
@@ -851,11 +933,12 @@ package weave.core
 				}
 				
 				// if the object is assigned a task, it's busy
-				for (var task:Object in _d2dOwnerTask.dictionary[linkableObject])
+				var tasks:Array = d2d_owner_task.secondaryKeys(linkableObject);
+				for each (var task:Object in tasks)
 				{
 					if (debugBusyTasks)
 					{
-						var stackTrace:String = _dTaskStackTrace[task];
+						var stackTrace:String = map_task_stackTrace.get(task);
 						//trace(stackTrace);
 					}
 					busy = true;
@@ -863,33 +946,38 @@ package weave.core
 				}
 				
 				// see if children are busy
-				var dChild:Dictionary = parentToChildDictionaryMap[linkableObject];
-				for (var child:Object in dChild)
+				var children:Array = d2d_parent_child.secondaryKeys(linkableObject);
+				for each (var child:Object in children)
 				{
 					// queue all the children that haven't been queued yet
-					if (!_dBusyTraversal[child])
+					if (!map_busyTraversal.get(child))
 					{
-						_aBusyTraversal.push(child);
-						_dBusyTraversal[child] = true;
+						array_busyTraversal[array_busyTraversal.length] = child; // push
+						map_busyTraversal.set(child, true);
 					}
 				}
 			}
 			
 			// reset traversal dictionary for next time
-			for each (linkableObject in _aBusyTraversal)
-				_dBusyTraversal[linkableObject] = false;
+			for each (linkableObject in array_busyTraversal)
+				map_busyTraversal.set(linkableObject, false);
 			
 			// reset traversal queue for next time
-			_aBusyTraversal.length = 0;
+			array_busyTraversal.length = 0;
 			
 			return busy;
 		}
 		
 		
 		/**
-		 * This maps an ILinkableObject to a ICallbackCollection associated with it.
+		 * This maps an ILinkableObject to the ICallbackCollection associated with it.
 		 */
-		private const linkableObjectToCallbackCollectionMap:Dictionary = new Dictionary(true); // use weak links to be GC-friendly
+		private const map_ILinkableObject_ICallbackCollection:WeakMap = new WeakMap();
+		
+		/**
+		 * This maps an ICallbackCollection to the ILinkableObject associated with it.
+		 */
+		private const map_ICallbackCollection_ILinkableObject:WeakMap = new WeakMap();
 
 		/**
 		 * @inheritDoc
@@ -902,16 +990,17 @@ package weave.core
 			if (linkableObject is ICallbackCollection)
 				return linkableObject as ICallbackCollection;
 			
-			var objectCC:ICallbackCollection = linkableObjectToCallbackCollectionMap[linkableObject] as ICallbackCollection;
+			var objectCC:ICallbackCollection = map_ILinkableObject_ICallbackCollection.get(linkableObject);
 			if (objectCC == null)
 			{
 				objectCC = registerDisposableChild(linkableObject, new CallbackCollection());
 				if (CallbackCollection.debug)
 					(objectCC as CallbackCollection)._linkableObject = linkableObject;
-				linkableObjectToCallbackCollectionMap[linkableObject] = objectCC;
+				map_ILinkableObject_ICallbackCollection.set(linkableObject, objectCC);
+				map_ICallbackCollection_ILinkableObject.set(objectCC, linkableObject);
 				
 				// Make sure UIComponents get registered with linkable owners because MXML developers
-				// may forget to do so, since it's not simple or intuitive in MXML.
+				// may forget to do so, since it's not simple to do in MXML.
 				if (linkableObject is UIComponent)
 				{
 					var component:UIComponent = linkableObject as UIComponent;
@@ -920,6 +1009,14 @@ package weave.core
 				}
 			}
 			return objectCC;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getLinkableObjectFromCallbackCollection(callbackCollection:ICallbackCollection):ILinkableObject
+		{
+			return map_ICallbackCollection_ILinkableObject.get(callbackCollection) || callbackCollection;
 		}
 		
 		/**
@@ -948,7 +1045,7 @@ package weave.core
 			if (objectWasDisposed(linkableComponent))
 				return true; // so the event listener will be removed
 			
-			var owner:ILinkableObject = childToOwnerMap[linkableComponent] as ILinkableObject;
+			var owner:ILinkableObject = map_child_owner.get(linkableComponent) as ILinkableObject;
 			if (owner == null)
 			{
 				var parent:DisplayObjectContainer = linkableComponent.parent;
@@ -979,10 +1076,10 @@ package weave.core
 				if (cc)
 					return cc.wasDisposed;
 			}
-			return _disposedObjectsMap[object] !== undefined;
+			return map_disposed.has(object);
 		}
 		
-		private const _disposedObjectsMap:Dictionary = new Dictionary(true); // weak keys to be gc-friendly
+		private const map_disposed:WeakMap = new WeakMap();
 		
 		private static const DISPOSE:String = "dispose"; // this is the name of the dispose() function.
 
@@ -991,9 +1088,9 @@ package weave.core
 		 */
 		public function disposeObject(object:Object):void
 		{
-			if (object != null && !_disposedObjectsMap[object])
+			if (object != null && !map_disposed.get(object))
 			{
-				_disposedObjectsMap[object] = true;
+				map_disposed.set(object, true);
 				
 				// clean up pointers to busy tasks
 				disposeBusyTaskPointers(object as ILinkableObject);
@@ -1027,50 +1124,41 @@ package weave.core
 				}
 				
 				// unregister from parents
-				if (childToParentDictionaryMap[object] !== undefined)
-				{
-					// remove the parent-to-child mappings
-					for (var parent:Object in childToParentDictionaryMap[object])
-						if (parentToChildDictionaryMap[parent] !== undefined)
-							delete parentToChildDictionaryMap[parent][object];
-					// remove child-to-parent mapping
-					delete childToParentDictionaryMap[object];
-				}
+				var parents:Array = d2d_child_parent.secondaryKeys(object);
+				for each (var parent:Object in parents)
+					d2d_parent_child.remove(parent, object);
+				d2d_child_parent.removeAllPrimary(object);
 				
 				// unregister from owner
-				var owner:Object = childToOwnerMap[object];
+				var owner:Object = map_child_owner.get(object);
 				if (owner != null)
 				{
-					if (ownerToChildDictionaryMap[owner] !== undefined)
-						delete ownerToChildDictionaryMap[owner][object];
-					delete childToOwnerMap[object];
+					d2d_owner_child.remove(owner, object);
+					map_child_owner.remove(object);
 				}
 				
 				// if the object is an ILinkableVariable, unlink it from all bindable properties that were previously linked
 				if (linkableObject is ILinkableVariable)
 				{
 					// this technically should not be necessary...
-					for (var bindableParent:* in _synchronizers.dictionary[linkableObject])
+					var bindableParents:Array = _synchronizers.secondaryKeys(linkableObject);
+					for each (var bindableParent:* in bindableParents)
 						for each (var synchronizer:Synchronizer in _synchronizers.get(linkableObject, bindableParent))
 							disposeObject(synchronizer);
-					delete _synchronizers.dictionary[linkableObject];
+					_synchronizers.removeAllPrimary(linkableObject);
 				}
 				
 				// unlink this object from all other linkable objects
-				for (var otherObject:Object in linkFunctionCache.dictionary[linkableObject])
+				var otherObjects:Array = d2d_lhs_rhs_setState.secondaryKeys(linkableObject);
+				for each (var otherObject:Object in otherObjects)
 					unlinkSessionState(linkableObject, otherObject as ILinkableObject);
 				
 				// dispose all registered children that this object owns
-				var children:Dictionary = ownerToChildDictionaryMap[object] as Dictionary;
-				if (children != null)
-				{
-					// clear the pointers to the child dictionaries for this object
-					delete ownerToChildDictionaryMap[object];
-					delete parentToChildDictionaryMap[object];
-					// dispose the children this object owned
-					for (var child:Object in children)
-						disposeObject(child);
-				}
+				var children:Array = d2d_owner_child.secondaryKeys(object);
+				d2d_owner_child.removeAllPrimary(object);
+				d2d_parent_child.removeAllPrimary(object);
+				for each (var child:Object in children)
+					disposeObject(child);
 				
 				// FOR DEBUGGING PURPOSES
 				if (Capabilities.isDebugger && linkableObject)
@@ -1119,9 +1207,14 @@ package weave.core
 		{
 			// set some variables to aid in debugging - only useful if you add a breakpoint here.
 			var obj:*;
-			var ownerPath:Array = []; while (obj = getLinkableOwner(obj)) { ownerPath.unshift(obj); }
-			var parents:Array = []; for (obj in childToParentDictionaryMap[disposedObject]) { parents.push(obj); }
-			var children:Array = []; for (obj in parentToChildDictionaryMap[disposedObject]) { children.push(obj); }
+			var ownerPath:Array = [];
+			do {
+				obj = getLinkableOwner(obj);
+				if (obj)
+					ownerPath.unshift(obj);
+			} while (obj);
+			var parents:Array = d2d_child_parent.secondaryKeys(disposedObject);
+			var children:Array = d2d_parent_child.secondaryKeys(disposedObject);
 			var sessionState:Object = getSessionState(disposedObject);
 
 			// ADD A BREAKPOINT HERE TO DIAGNOSE THE PROBLEM
@@ -1153,7 +1246,8 @@ package weave.core
 		public function _getPaths(root:ILinkableObject, descendant:ILinkableObject):Array
 		{
 			var results:Array = [];
-			for (var parent:Object in childToParentDictionaryMap[descendant])
+			var parents:Array = d2d_child_parent.secondaryKeys(descendant);
+			for each (var parent:Object in parents)
 			{
 				var name:String = _getChildPropertyName(parent as ILinkableObject, descendant);
 				if (name != null)
@@ -1181,7 +1275,8 @@ package weave.core
 				return (parent as ILinkableHashMap).getName(child);
 
 			// find the property name that returns the child
-			for each (var name:String in getLinkablePropertyNames(parent))
+			var names:Array = getLinkablePropertyNames(parent);
+			for each (var name:String in names)
 				if (parent[name] == child)
 					return name;
 			return null;
@@ -1200,9 +1295,10 @@ package weave.core
 		}
 		private function _getPath(tree:WeaveTreeItem, descendant:ILinkableObject):Array
 		{
-			if (tree.source == descendant)
+			if (tree.data == descendant)
 				return [];
-			for each (var child:WeaveTreeItem in tree.children)
+			var children:Array = tree.children;
+			for each (var child:WeaveTreeItem in children)
 			{
 				var path:Array = _getPath(child, descendant);
 				if (path)
@@ -1222,7 +1318,7 @@ package weave.core
 			var object:ILinkableObject = root;
 			for each (var propertyName:Object in path)
 			{
-				if (object == null || _disposedObjectsMap[object])
+				if (object == null || map_disposed.get(object))
 					return null;
 				if (object is ILinkableHashMap)
 				{
@@ -1243,7 +1339,7 @@ package weave.core
 					object = object[propertyName] as ILinkableObject;
 				}
 			}
-			return _disposedObjectsMap[object] ? null : object;
+			return map_disposed.get(object) ? null : object;
 		}
 		
 		
@@ -1263,7 +1359,7 @@ package weave.core
 		 * This maps destination and source ILinkableObjects to a function like:
 		 *     function():void { setSessionState(destination, getSessionState(source), true); }
 		 */
-		private const linkFunctionCache:Dictionary2D = new Dictionary2D(true, true);
+		private const d2d_lhs_rhs_setState:Dictionary2D = new Dictionary2D(true, true);
 		/**
 		 * @inheritDoc
 		 */
@@ -1279,17 +1375,14 @@ package weave.core
 				reportError("Warning! Attempt to link session state of an object with itself");
 				return;
 			}
-			if (linkFunctionCache.get(primary, secondary) is Function)
+			if (d2d_lhs_rhs_setState.get(primary, secondary) is Function)
 				return; // already linked
 			
-			if (CallbackCollection.debug)
-				var stackTrace:String = new Error().getStackTrace();
-				
 			var setPrimary:Function = function():void { setSessionState(primary, getSessionState(secondary), true); };
 			var setSecondary:Function = function():void { setSessionState(secondary, getSessionState(primary), true); };
 			
-			linkFunctionCache.set(primary, secondary, setPrimary);
-			linkFunctionCache.set(secondary, primary, setSecondary);
+			d2d_lhs_rhs_setState.set(primary, secondary, setPrimary);
+			d2d_lhs_rhs_setState.set(secondary, primary, setSecondary);
 			
 			// when secondary changes, copy from secondary to primary
 			getCallbackCollection(secondary).addImmediateCallback(primary, setPrimary);
@@ -1307,8 +1400,8 @@ package weave.core
 				return;
 			}
 			
-			var setFirst:Function = linkFunctionCache.remove(first, second) as Function;
-			var setSecond:Function = linkFunctionCache.remove(second, first) as Function;
+			var setFirst:Function = d2d_lhs_rhs_setState.remove(first, second) as Function;
+			var setSecond:Function = d2d_lhs_rhs_setState.remove(second, first) as Function;
 			
 			getCallbackCollection(second).removeCallback(setFirst);
 			getCallbackCollection(first).removeCallback(setSecond);
@@ -1325,7 +1418,7 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void
+		public function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false, delayWhenFocused:Boolean = true):void
 		{
 			if (linkableVariable == null || bindableParent == null || bindablePropertyName == null)
 			{
@@ -1348,8 +1441,19 @@ package weave.core
 			var lookup:Object = _synchronizers.get(linkableVariable, bindableParent);
 			if (!lookup)
 				_synchronizers.set(linkableVariable, bindableParent, lookup = {});
-			lookup[bindablePropertyName] = new Synchronizer(linkableVariable, bindableParent, bindablePropertyName, delay, onlyWhenFocused);
+			lookup[bindablePropertyName] = new Synchronizer(linkableVariable, bindableParent, bindablePropertyName, delay, onlyWhenFocused, delayWhenFocused);
+			
+			// for debugging
+			_lastSynchronizer = lookup[bindablePropertyName];
 		}
+		
+		// for debugging
+		private static var _lastSynchronizer:Synchronizer;
+		public static function debugSynchronizer():void
+		{
+			_lastSynchronizer.debug = true;
+		}
+		
 		/**
 		 * @inheritDoc
 		 */
@@ -1386,6 +1490,14 @@ package weave.core
 		
 		public static const DIFF_DELETE:String = 'delete';
 		
+		private function copyObject(object:Object):Object
+		{
+			if (object === null || typeof object != 'object') // primitive value
+				return object;
+			else
+				return ObjectUtil.copy(object); // make copies of non-primitives
+		}
+		
 		/**
 		 * @inheritDoc
 		 */
@@ -1396,7 +1508,7 @@ package weave.core
 
 			// special case if types differ
 			if (typeof(newState) != type)
-				return newState;
+				return copyObject(newState); // make copies of non-primitives
 			
 			if (type == 'xml')
 			{
@@ -1415,7 +1527,7 @@ package weave.core
 			else if (oldState === null || newState === null || type != 'object') // other primitive value
 			{
 				if (oldState !== newState) // no type-casting
-					return newState;
+					return copyObject(newState);
 				
 				return undefined; // no diff
 			}
@@ -1426,7 +1538,7 @@ package weave.core
 				{
 					if (StandardLib.compare(oldState, newState) == 0)
 						return undefined; // no diff
-					return newState;
+					return ObjectUtil.copy(newState);
 				}
 				
 				// create an array of new DynamicState objects for all new names followed by missing old names
@@ -1467,9 +1579,9 @@ package weave.core
 					// If the object specified in newState does not exist in oldState, we don't need to do anything further.
 					// If the class is the same as before, then we can save a diff instead of the entire session state.
 					// If the class changed, we can't save only a diff -- we need to keep the entire session state.
-					// Replace the sessionState in the new DynamicState object with the diff.
 					if (oldTypedState != null && oldTypedState[DynamicState.CLASS_NAME] == className)
 					{
+						// Replace the sessionState in the new DynamicState object with the diff.
 						className = null; // no change
 						diffValue = computeDiff(oldTypedState[DynamicState.SESSION_STATE], sessionState);
 						if (diffValue === undefined)
@@ -1478,12 +1590,17 @@ package weave.core
 							// we only need to specify that this name is still present.
 							result.push(objectName);
 							
+							// see if name order changed
 							if (!changeDetected && oldState[i][DynamicState.OBJECT_NAME] != objectName)
 								changeDetected = true;
 							
 							continue;
 						}
 						sessionState = diffValue;
+					}
+					else
+					{
+						sessionState = copyObject(sessionState);
 					}
 					
 					// save in new array and remove from lookup
@@ -1516,7 +1633,10 @@ package weave.core
 					{
 						if (!diff)
 							diff = {};
-						diff[oldName] = diffValue;
+						if (newState.hasOwnProperty(oldName))
+							diff[oldName] = diffValue;
+						else
+							diff[oldName] = undefined; // property was removed
 					}
 				}
 
@@ -1527,7 +1647,7 @@ package weave.core
 					{
 						if (!diff)
 							diff = {};
-						diff[newName] = newState[newName]; // TODO: same object pointer.. potential problem?
+						diff[newName] = copyObject(newState[newName]);
 					}
 				}
 
@@ -1546,10 +1666,7 @@ package weave.core
 			// special cases
 			if (baseDiff == null || diffToAdd == null || baseType != diffType || baseType != 'object')
 			{
-				if (diffType == 'object') // not a primitive, so make a copy
-					baseDiff = ObjectUtil.copy(diffToAdd);
-				else
-					baseDiff = diffToAdd;
+				baseDiff = copyObject(diffToAdd);
 			}
 			else if (baseDiff is Array && diffToAdd is Array)
 			{
@@ -1602,10 +1719,7 @@ package weave.core
 						var oldTypedState:Object = baseLookup[objectName];
 						if (oldTypedState is String || oldTypedState == null)
 						{
-							if (typedState is String || typedState == null)
-								baseLookup[objectName] = typedState; // avoid unnecessary function call overhead
-							else
-								baseLookup[objectName] = ObjectUtil.copy(typedState);
+							baseLookup[objectName] = copyObject(typedState);
 						}
 						else if (!(typedState is String || typedState == null)) // update dynamic state
 						{

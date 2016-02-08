@@ -1,8 +1,22 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+
 package weave.data.DataSources
 {
     import flare.data.converters.GraphMLConverter;
     
-    import flash.net.URLLoaderDataFormat;
     import flash.net.URLRequest;
     
     import mx.rpc.events.FaultEvent;
@@ -11,7 +25,6 @@ package weave.data.DataSources
     import weave.api.data.ColumnMetadata;
     import weave.api.data.DataType;
     import weave.api.data.IAttributeColumn;
-    import weave.api.data.IColumnReference;
     import weave.api.data.IDataSource;
     import weave.api.data.IDataSource_File;
     import weave.api.data.IQualifiedKey;
@@ -24,6 +37,8 @@ package weave.data.DataSources
     import weave.data.AttributeColumns.StringColumn;
     import weave.data.QKeyManager;
     import weave.data.hierarchy.ColumnTreeNode;
+    import weave.services.URLRequestUtils;
+    import weave.services.addAsyncResponder;
     import weave.utils.VectorUtils;
 
     public class GraphMLDataSource extends AbstractDataSource implements IDataSource_File
@@ -68,16 +83,21 @@ package weave.data.DataSources
         override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
         {
             return new ColumnTreeNode({
-                source: this,
+                dataSource: this,
                 idFields: [GRAPH_GROUP_META, GRAPH_ID_META],
-                columnMetadata: metadata
+				data: metadata
             });
         }
 
         private function handleURLChange():void
         {
 			if (sourceUrl.value)
-	            WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(sourceUrl.value), handleGraphMLDownload, handleGraphMLDownloadError, sourceUrl.value, URLLoaderDataFormat.TEXT);
+				addAsyncResponder(
+	            	WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(sourceUrl.value), URLRequestUtils.DATA_FORMAT_TEXT),
+					handleGraphMLDownload,
+					handleGraphMLDownloadError,
+					sourceUrl.value
+				);
         }
 
 
@@ -98,7 +118,7 @@ package weave.data.DataSources
             handleEdgeKeyPropertyChange();
 
             refreshAllProxyColumns();
-            refreshHierarchy(); // this triggers callbacks
+            hierarchyRefresh.triggerCallbacks();
         }
 
         private function handleGraphMLDownloadError(event:FaultEvent, token:Object = null):void
@@ -250,19 +270,18 @@ package weave.data.DataSources
                 var source:GraphMLDataSource = this;
 
                 _rootNode = new ColumnTreeNode({
-                    source: source,
+					dataSource: source,
                     data: source,
                     label: WeaveAPI.globalHashMap.getName(this),
-                    isBranch: true,
                     hasChildBranches: true,
                     children: function():Array {
                         return [GraphMLConverter.NODE, GraphMLConverter.EDGE].map(
                             function(group:String, ..._):Object {
                                 return {
-                                    source: source,
+									dataSource: source,
+									dependency: source, //TODO - evaluate whether or not this is needed
                                     data: group,
                                     label: group == GraphMLConverter.NODE ? "Nodes" : "Edges",
-                                    isBranch: true,
                                     hasChildBranches: false,
                                     children: function ():Array {
                                         var groupProperties:Array = group == GraphMLConverter.NODE ? nodeProperties : edgeProperties;

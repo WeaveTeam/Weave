@@ -1,21 +1,17 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
@@ -66,6 +62,7 @@ package weave.visualization.plotters
 	import weave.radviz.RandomLayoutAlgorithm;
 	import weave.utils.CachedBitmap;
 	import weave.utils.ColumnUtils;
+	import weave.utils.DrawUtils;
 	import weave.utils.RadVizUtils;
 	import weave.visualization.plotters.styles.SolidFillStyle;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -202,11 +199,11 @@ package weave.visualization.plotters
 		private const radiusColumnStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(radiusColumn));
 		public const radiusConstant:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		
-		private static var randomValueArray:Array = new Array();		
-		private static var randomArrayIndexMap:Dictionary;
-		private var keyNumberMap:Dictionary;		
-		private var keyNormMap:Dictionary;
-		private var keyGlobalNormMap:Dictionary;
+		private var randomValueArray:Array = new Array();
+		private var randomArrayIndexMap:Dictionary = new Dictionary(true);
+		private var keyNumberMap:Dictionary = new Dictionary(true);
+		private var keyNormMap:Dictionary = new Dictionary(true);
+		private var keyGlobalNormMap:Dictionary = new Dictionary(true);
 		
 		private const _currentScreenBounds:Bounds2D = new Bounds2D();
 		
@@ -287,7 +284,10 @@ package weave.visualization.plotters
 			
 			setAnchorLocations();
 			
-			if (doCDLayoutFlag) setClassDiscriminationAnchorsLocations();
+			if (doCDLayoutFlag)
+				setClassDiscriminationAnchorsLocations();
+			
+			clearCoordCache();
 		}
 		
 		private function getNorm(column:IAttributeColumn, key:IQualifiedKey):Number
@@ -413,6 +413,7 @@ package weave.visualization.plotters
 			{
 				coordinate.x = cached[0];
 				coordinate.y = cached[1];
+				return;
 			}
 			
 			//implements RadViz algorithm for x and y coordinates of a record
@@ -422,9 +423,9 @@ package weave.visualization.plotters
 			
 			var anchorArray:Array = anchors.getObjects();			
 			
-			var value:Number = 0;			
+			var value:Number = 0;
 			var anchor:AnchorPoint;
-			var normArray:Array = (localNormalization.value) ? keyNormMap[recordKey] : keyGlobalNormMap[recordKey];
+			var normArray:Array = localNormalization.value ? keyNormMap[recordKey] : keyGlobalNormMap[recordKey];
 			var _cols:Array = columns.getObjects();
 			for (var i:int = 0; i < _cols.length; i++)
 			{
@@ -482,8 +483,6 @@ package weave.visualization.plotters
 		{
 			if (task.iteration == 0)
 			{
-				if (!keyNumberMap || keyNumberMap[task.recordKeys[0]] == null)
-					return 1;
 				if (columns.getObjects().length != anchors.getObjects().length)
 					return 1;
 				if (detectLinkableObjectChange(drawPlotAsyncIteration, lineStyle, fillStyle, radiusConstant, radiusColumn))
@@ -499,8 +498,8 @@ package weave.visualization.plotters
 				var key:IQualifiedKey = task.recordKeys[recordIndex] as IQualifiedKey;
 				
 				getXYcoordinates(key);
-				// skip missing x,y
-				if (isFinite(coordinate.x) && isFinite(coordinate.y))
+				// skip if excluded from subset or missing x,y
+				if (filteredKeySet.containsKey(key) && isFinite(coordinate.x) && isFinite(coordinate.y))
 				{
 					task.dataBounds.projectPointTo(coordinate, task.screenBounds);
 					var radius:Number;
@@ -605,12 +604,11 @@ package weave.visualization.plotters
 		 */
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			output.setBounds(-1, -1.1, 1, 1.1);
+			output.setBounds(-1, -1, 1, 1);
 		}		
 		
 		public var drawProbe:Boolean = false;
 		public var probedKeys:Array = null;
-		private var _destination:BitmapData = null;
 		
 		public function drawProbeLines(keys:Array,dataBounds:Bounds2D, screenBounds:Bounds2D, destination:Graphics):void
 		{						
@@ -658,7 +656,7 @@ package weave.visualization.plotters
 					/*We  draw the value (upto to 1 decimal place) in the middle of the probe line. We use the solution as described here:
 					http://cookbooks.adobe.com/post_Adding_text_to_flash_display_Graphics_instance-14246.html
 					*/
-					graphics.lineStyle(0,0,0);
+					DrawUtils.clearLineStyle(graphics);
 					var uit:UITextField = new UITextField();
 					var numberValue:String = ColumnUtils.getNumber(column,key).toString();
 					numberValue = numberValue.substring(0,numberValue.indexOf('.')+2);
@@ -741,7 +739,7 @@ package weave.visualization.plotters
 					*/
 					if(showValuesForAnchorProbeLines.value)
 					{
-						graphics.lineStyle(0,0,0);
+						DrawUtils.clearLineStyle(graphics);
 						var uit:UITextField = new UITextField();
 						var numberValue:String = ColumnUtils.getNumber(column,key).toString();
 						numberValue = numberValue.substring(0,numberValue.indexOf('.')+2);

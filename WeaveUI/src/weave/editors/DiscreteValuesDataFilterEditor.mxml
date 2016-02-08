@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
+<mx:HBox xmlns="weave.editors.*" 
+		xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:ui="weave.ui.*"
+		implements="weave.api.ui.ILinkableObjectEditor,weave.api.core.ILinkableObject"
+		horizontalScrollPolicy="off"
+		verticalScrollPolicy="off"
+		width="100%"
+		height="100%"
+		verticalAlign="middle">
+	<ui:CustomCheckBox id="filterToggle" paddingLeft="4" change="toggleFilter();"/>
+	<ui:PlayButton id="playButton" enabled="{filterToggle.selected}"/>
+	<ui:MenuToolViewStack id="menuStack"
+		enabled="{filterToggle.selected}"
+		allowMultipleSelection="true"
+		prompt="{lang('Select filter value...')}"/>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.ColumnMetadata;
+			import weave.api.data.DataType;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
+			import weave.api.linkBindableProperty;
+			import weave.api.newLinkableChild;
+			import weave.api.registerLinkableChild;
+			import weave.api.unlinkBindableProperty;
+			import weave.compiler.StandardLib;
+			import weave.core.LinkableBoolean;
+			import weave.core.LinkableFunction;
+			import weave.core.LinkableNumber;
+			import weave.core.LinkableString;
+			import weave.core.LinkableWatcher;
+			import weave.core.UIUtils;
+			import weave.data.AttributeColumns.DynamicColumn;
+			import weave.data.KeySets.ColumnDataFilter;
+			import weave.utils.ColumnUtils;
+			import weave.utils.VectorUtils;
+
+			private const filterWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleFilter, true);
+			private const columnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleColumn, true);
+			private var _linkedFilter:ColumnDataFilter;
+			
+			public const thumbColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xe0e0e0, isFinite), setThumbColor);
+			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(MenuToolViewStack.LAYOUT_LIST), handleLayoutMode, true);
+			public const showToggle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const showToggleLabel:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true), updateToggleLabel);
+			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['column', 'string', 'number']), updateLabels);
+			
+			override protected function childrenCreated():void
+			{
+				super.childrenCreated();
+				
+				UIUtils.linkVisibility(this, showPlayButton, playButton);
+				UIUtils.linkVisibility(this, showToggle, filterToggle);
+				BindingUtils.bindSetter(handlePlayStep, playButton, 'step');
+				playButton.button.addEventListener(MouseEvent.CLICK, handlePlayClick);
+			}
+			
+			public function get filter():ColumnDataFilter
+			{
+				return filterWatcher.target as ColumnDataFilter;
+			}
+			[Deprecated(replacement="filter")] public function get stringFilter():ColumnDataFilter { return filter; }
+			
+			public function setTarget(object:ILinkableObject):void
+			{
+				filterWatcher.target = object as ColumnDataFilter;
+				
+				if (filter)
+				{
+					columnWatcher.target = filter.column;
+					this.enabled = true;
+				}
+				else
+				{
+					columnWatcher.target = null;
+					this.enabled = false;
+				}
+				
+				linkNewFilter();
+			}
+			private function linkNewFilter():void
+			{
+				if (!parent)
+				{
+					callLater(linkNewFilter);
+					return;
+				}
+				if (_linkedFilter != filter)
+				{
+					if (_linkedFilter)
+						unlinkBindableProperty(_linkedFilter.values, menuStack, 'chosenItems');
+					_linkedFilter = filter;
+					if (_linkedFilter)
+						linkBindableProperty(_linkedFilter.values, menuStack, 'chosenItems', 0, true);
+				}
+				handleFilter();
+			}
+			public function hasPendingChanges():Boolean { return false; }
+			public function applyChanges():void { }
+
+			private function toggleFilter():void
+			{
+				if (filter)
+					filter.enabled.value = filterToggle.selected;
+			}
+			
+			private function setMenuChosenIndex(index:int):void
+			{
+				if (_linkedFilter)
+					_linkedFilter.values.setSessionState([menuStack.choices[index]]);
+				else
+					menuStack.chosenIndex = index;
+			}
+			
+			private function handlePlayClick(event:MouseEvent):void
+			{
+				if (playButton.button.selected)
+				{
+					// if slider is at maximum, reset slider to minimum
+					var value:Number = menuStack.chosenIndex;
+					var max:Number = menuStack.choices.length - 1;
+					if (!isFinite(value) || value >= max)
+						setMenuChosenIndex(0);
+				}
+			}
+			
+			private function handlePlayStep(step:int):void
+			{
+				if (!playButton.button.selected || !showPlayButton.value || !filter || !filter.enabled.value)
+					return;
+				
+				// we can actually ignore the step number because we only care that it has stepped.
+				
+				var value:Number = menuStack.chosenIndex;
+				var max:Number = menuStack.choices.length - 1;
+				
+				// stop playing at end
+				if (!isFinite(value) || value >= max)
+				{
+					// stop playing at end
+					playButton.button.selected = false;
+					return;
+				}
+				
+				setMenuChosenIndex(Math.min(value + 1, max));
+			}
+			
+			private function handleFilter():void
+			{
+				if (!parent)
+				{
+					callLater(handleFilter);
+					return;
+				}
+				
+				if (filter)
+				{
+					enabled = true;
+					filterToggle.selected = filter.enabled.value;
+					menuStack.chosenItems = filter.values.getSessionState() as Array;
+				}
+				else
+				{
+					enabled = false;
+					filterToggle.selected = false;
+					menuStack.chosenItem = null;
+				}
+			}
+			
+			private function handleColumn():void
+			{
+				if (!parent)
+				{
+					callLater(handleColumn);
+					return;
+				}
+				if (!filter)
+					return;
+				
+				var column:DynamicColumn = filter.column;
+				if (column)
+					menuStack.choices = getChoices(column);
+				else
+					menuStack.choices = null;
+				updateToggleLabel();
+				handleFilter();
+			}
+			
+			private function handleLayoutMode():void
+			{
+				if (!parent)
+				{
+					callLater(handleLayoutMode);
+					return;
+				}
+				menuStack.layoutMode = layoutMode.value;
+			}
+			
+			private function updateToggleLabel():void
+			{
+				if (!parent)
+				{
+					callLater(updateToggleLabel);
+					return;
+				}
+				
+				if (showToggleLabel.value)
+				{
+					var title:String = filter.column ? ColumnUtils.getTitle(filter.column) : null;
+					filterToggle.label = lang('Filter by {0}', title || '...');
+				}
+				else
+					filterToggle.label = '';
+			}
+			
+			private function updateLabels():void
+			{
+				if (!parent)
+				{
+					callLater(updateLabels);
+					return;
+				}
+				menuStack.choiceLabelFunction = getChoiceLabel;
+			}
+			
+			public function getChoiceLabel(choice:*):String
+			{
+				var column:IAttributeColumn = columnWatcher.target as IAttributeColumn;
+				var string:String;
+				var number:Number;
+				if (choice is Number)
+				{
+					number = choice as Number;
+					string = ColumnUtils.deriveStringFromNumber(column, number);
+				}
+				else
+				{
+					string = String(choice);
+					number = NaN;
+				}
+				return labelFunction.apply(this, [columnWatcher.target, string, number]) || '';
+			}
+			
+			private function setThumbColor():void
+			{
+				if (!parent)
+				{
+					callLater(setThumbColor);
+					return;
+				}
+				menuStack.choiceHSlider.setStyle('fillColors', [thumbColor.value, thumbColor.value]);
+				menuStack.choiceVSlider.setStyle('fillColors', [thumbColor.value, thumbColor.value]);
+			}
+			
+			//TODO - make this asynchronous
+			public static function getChoices(column:IAttributeColumn, dataType:Class = null):Array
+			{
+				var valueMap:Object = {};
+				var key:IQualifiedKey;
+				var number:Number;
+				var string:String;
+				var valueList:Array;
+				
+				if (!dataType)
+					dataType = DataType.getClass(column.getMetadata(ColumnMetadata.DATA_TYPE));
+				
+				if (dataType == Number)
+				{
+					valueList = [];
+					for each (key in column.keys)
+					{
+						number = column.getValueFromKey(key, Number);
+						if (!valueMap.hasOwnProperty(number))
+						{
+							valueList.push(number);
+							valueMap[number] = number;
+						}
+					}
+				}
+				else
+				{
+					for each (key in column.keys)
+					{
+						number = column.getValueFromKey(key, Number);
+						string = column.getValueFromKey(key, String);
+						valueMap[string] = number;
+					}
+					valueList = VectorUtils.getKeys(valueMap);
+				}
+				
+				StandardLib.sortOn(valueList, valueMap);
+				
+				return valueList;
+			}
+		]]>
+	</mx:Script>
+</mx:HBox>

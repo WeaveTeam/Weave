@@ -1,28 +1,26 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.AttributeColumns
 {
 	import flash.utils.Dictionary;
 	
+	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
+	import weave.compiler.Compiler;
 	import weave.core.CallbackCollection;
 	import weave.primitives.Dictionary2D;
 	import weave.utils.ColumnUtils;
@@ -38,6 +36,7 @@ package weave.data.AttributeColumns
 	{
 		public function AbstractAttributeColumn(metadata:Object = null)
 		{
+			super();
 			if (metadata)
 				setMetadata(metadata);
 		}
@@ -54,6 +53,8 @@ package weave.data.AttributeColumns
 				throw new Error("Cannot call setMetadata() if already set");
 			// make a copy because we don't want any surprises (metadata being set afterwards)
 			_metadata = copyValues(metadata);
+			// make sure dataType will be included in getMetadataPropertyNames() result
+			_metadata[ColumnMetadata.DATA_TYPE] = getMetadata(ColumnMetadata.DATA_TYPE);
 		}
 		
 		/**
@@ -65,16 +66,16 @@ package weave.data.AttributeColumns
 			if (obj_or_xml is XML_Class)
 				return HierarchyUtils.getMetadata(XML(obj_or_xml));
 			
-			var obj:Object = {};
+			var copy:Object = {};
 			for (var key:String in obj_or_xml)
 			{
 				var value:* = obj_or_xml[key];
 				if (value is Array)
-					obj[key] = WeaveAPI.CSVParser.createCSVRow(value as Array);
+					copy[key] = Compiler.stringify(value);
 				else
-					obj[key] = value;
+					copy[key] = value;
 			}
-			return obj;
+			return copy;
 		}
 		
 		// metadata for this attributeColumn (statistics, description, unit, etc)

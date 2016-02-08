@@ -1,24 +1,21 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
 package weave.menus
 {
-	import weave.core.LinkableBoolean;
+	import weave.api.core.ILinkableVariable;
 	import weave.primitives.WeaveTreeItem;
 	
 	/**
@@ -97,7 +94,7 @@ package weave.menus
 		}
 		
 		/**
-		 * This can be either a Function or a LinkableBoolean.
+		 * This can be either a Function or an ILinkableVariable to be treated as a boolean setting.
 		 * The Function signature can be like function():void or function(item:WeaveMenuItem):void.
 		 * Instead of reading this property directly, call runClickFunction().
 		 * @see #runClickFunction()
@@ -117,7 +114,11 @@ package weave.menus
 		private var _enabled:* = true;
 		private var _shown:* = true;
 		private var _toggled:* = false;
-		private var _children:* = null;
+		
+		override public function get label():String
+		{
+			return super.label || " ";
+		}
 		
 		/**
 		 * This property is checked by Flex's default data descriptor.
@@ -128,6 +129,18 @@ package weave.menus
 		}
 		public function set toggled(value:*):void
 		{
+			// Here we check if _toggled is a special value before setting it because
+			// we don't want DefaultDataDescriptor.setToggled() to overwrite it.
+			if (value is Boolean)
+			{
+				if (_toggled is ILinkableVariable)
+				{
+					(_toggled as ILinkableVariable).setSessionState(value);
+					return;
+				}
+				if (_toggled is Function)
+					return;
+			}
 			_toggled = value;
 		}
 		
@@ -169,7 +182,7 @@ package weave.menus
 			if (!items)
 				return null;
 			
-			// filter children based on "shown" status
+			// filter children based on "shown" status (makes a copy)
 			items = items.filter(_filterShown);
 			// remove leading separators
 			while (items.length && WeaveMenuItem(items[0]).type == TYPE_SEPARATOR)
@@ -193,16 +206,19 @@ package weave.menus
 		/**
 		 * If the click property is set to a Function, it will be called like click.call(this)
 		 *   or click.call(this, this) if the former produces an ArgumentError.
-		 * If the click property is set to a LinkableBoolean, it will be toggled.
+		 * If the click property is set to an ILinkableVariable, it will be toggled as a boolean.
 		 */
 		public function runClickFunction():void
 		{
 			if (click is Function)
 				evalFunction(click as Function);
 			
-			var lb:LinkableBoolean = click as LinkableBoolean;
-			if (lb)
-				lb.value = !lb.value;
+			// If 'click' is set to the same ILinkableVariable as 'toggled',
+			// don't do anything here because Flex automatically calls "set toggled"
+			// which will set the session state of the ILinkableVariable.
+			var lv:ILinkableVariable = click as ILinkableVariable;
+			if (lv && lv != _toggled)
+				lv.setSessionState(!lv.getSessionState());
 		}
 	}
 }

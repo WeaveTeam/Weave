@@ -1,35 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 -->
 <mx:VBox xmlns="weave.editors.*" 
 		 xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 width="100%" 
 		 height="100%" xmlns:ui="weave.ui.*"
 		 >
-	<ui:CheckBoxWithNestedOptions id="enableMenuBar"
-								  label="{lang('Show menu bar')}"
-								  creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');">
-		<ui:CustomCheckBox label="{lang('Show copyright')}"
-						   creationComplete="linkBindableProperty(Weave.properties.showCopyright, event.target, 'selected');"/>
-	</ui:CheckBoxWithNestedOptions>
+	<ui:CustomCheckBox id="enableMenuBar"
+			label="{lang('Show menu bar')}"
+			creationComplete="linkBindableProperty(Weave.properties.enableMenuBar, event.target, 'selected');">
+	</ui:CustomCheckBox>
 	
 	<ui:CustomCheckBox label="{lang('Show session history controls')}"
 				 creationComplete="linkBindableProperty(Weave.properties.enableSessionHistoryControls, event.target, 'selected');"
@@ -48,7 +42,7 @@
 				<ui:CustomCheckBox label="{lang('Pen Tool')}" creationComplete="linkBindableProperty(Weave.properties.enablePenTool, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Add Marker')}" creationComplete="linkBindableProperty(Weave.properties.enableMarker, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Add Circle')}" creationComplete="linkBindableProperty(Weave.properties.enableDrawCircle, event.target, 'selected')"/>
-				<ui:CustomCheckBox label="{lang('Add Annotation')}" creationComplete="linkBindableProperty(Weave.properties.enableAnnotation, event.target, 'selected')"/>
+				<!--<ui:CustomCheckBox label="{lang('Add Annotation')}" creationComplete="linkBindableProperty(Weave.properties.enableAnnotation, event.target, 'selected')"/>-->
 				<ui:CustomCheckBox label="{lang('Print/Export Panel Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportToolImage, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Print/Export Application Image')}" creationComplete="linkBindableProperty(Weave.properties.enableExportApplicationScreenshot, event.target, 'selected')"/>
 				<ui:CustomCheckBox label="{lang('Export CSV')}" creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>
@@ -88,6 +82,11 @@
 							 label="{lang('Refresh data source hierarchies')}"
 							 creationComplete="linkBindableProperty(Weave.properties.enableRefreshHierarchies, refreshDataCheckBox, 'selected')"/> 
 				<ui:CustomCheckBox label="{lang('Export CSV')}" creationComplete="linkBindableProperty(Weave.properties.enableExportCSV, event.target, 'selected')"/>
+				
+				<mx:HRule width="100%" height="22"/>
+				<ui:DividedCheckBoxList id="dataMenuCheckList"/>
+				<mx:HRule width="100%" height="22"/>
+
 				<ui:CustomCheckBox label="{lang('Equation Column Editor')}"
 								   creationComplete="linkBindableProperty(Weave.properties.showEquationEditor, event.target, 'selected')"/>
 			</mx:VBox>
@@ -97,7 +96,7 @@
 						 label="{lang('Tools Menu')}"
 						 creationComplete="linkBindableProperty(Weave.properties.enableDynamicTools, event.target, 'selected')"/>
 			
-			<mx:HBox enabled="{toolsMenu.selected}" paddingLeft="10" horizontalGap="10">
+			<mx:HBox enabled="{toolsMenu.selected}" paddingLeft="10" horizontalGap="10" width="100%">
 				<mx:VBox verticalGap="{verticalGap}">
 					<ui:CustomCheckBox label="{lang('Color Controller')}"
 								 creationComplete="linkBindableProperty(Weave.properties.showColorController, event.target, 'selected')"/>
@@ -112,7 +111,7 @@
 					<ui:CustomCheckBox label="{lang('Add External Tool')}"
 								 creationComplete="linkBindableProperty(Weave.properties.showAddExternalTools, event.target, 'selected')"/>
 				</mx:VBox>
-				<mx:VBox verticalGap="{verticalGap}" id="menuToggleVBox"/>
+				<ui:DividedCheckBoxList id="toolsMenuCheckList"/>
 			</mx:HBox>	
 		</mx:VBox>	
 		
@@ -175,55 +174,83 @@
 							 creationComplete="linkBindableProperty(Weave.properties.enableCloseAllWindows, event.target, 'selected')"/>
 			</mx:VBox>
 		</mx:VBox>	
-		
-		<mx:VBox label="{lang('Help')}" verticalGap="{verticalGap}">
-			<ui:CustomCheckBox
-					 label="{lang('Help Menu')}"
-					 width="120" 
-					 creationComplete="linkBindableProperty(Weave.properties.enableAboutMenu, event.target, 'selected')"/> 
-		</mx:VBox>
 	</ui:CustomTabNavigator>
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ICollectionView;
 			import mx.controls.Alert;
 			import mx.controls.HRule;
 			import mx.events.CloseEvent;
 			
 			import weave.Weave;
+			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
-			import weave.api.ui.IVisTool;
+			import weave.core.LinkableBoolean;
+			import weave.core.UIUtils;
+			import weave.menus.DataMenu;
 			import weave.menus.ToolsMenu;
 			import weave.menus.WeaveMenuItem;
-			
-			override protected function createChildren():void
-			{
-				super.createChildren();
-				
-				if (menuToggleVBox.numChildren > 0)
-					return;
-				
-				for each (var item:WeaveMenuItem in ToolsMenu.getDynamicItems(null, null, true))
-				{
-					if (item.type == WeaveMenuItem.TYPE_SEPARATOR)
-					{
-						var hr:HRule = new HRule();
-						hr.percentWidth = 100;
-						menuToggleVBox.addChild(hr);
-					}
-					else
-					{
-						var cb:CustomCheckBox = new CustomCheckBox();
-						cb.label = item.label;
-						linkBindableProperty(Weave.properties.getToolToggle(item.data as Class), cb, 'selected');
-						menuToggleVBox.addChild(cb);
-					}
-				}
-			}
+			import weave.utils.EventUtils;
+			import weave.utils.VectorUtils;
 			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
+				
 				Weave.properties.enableMenuBar.addGroupedCallback(this, handleMenuToggled);
+				
+				dataMenuCheckList.labelFunction = getMenuItemLabel;
+				toolsMenuCheckList.labelFunction = getMenuItemLabel;
+				
+				addEventListener(MouseEvent.ROLL_OVER, initCheckListData);
+				callLater(loadCheckLists);
+
+				var delayedSave:Function = EventUtils.generateDelayedCallback(this, saveCheckLists, 0);
+				BindingUtils.bindSetter(delayedSave, dataMenuCheckList, 'selection');
+				BindingUtils.bindSetter(delayedSave, toolsMenuCheckList, 'selection');
+				
+				getCallbackCollection(Weave.properties.menuToggles).addGroupedCallback(this, initCheckListData);
+			}
+			
+			private function getMenuItemLabel(item:WeaveMenuItem):String
+			{
+				return item.label;
+			}
+			
+			private function initCheckListData(event:MouseEvent = null):void
+			{
+				function mapper(item:WeaveMenuItem, i:int, a:Array):* { return item.data ? item : null; }
+				dataMenuCheckList.dataProvider = DataMenu.getDynamicItems().map(mapper);
+				toolsMenuCheckList.dataProvider = ToolsMenu.getDynamicItems(null, null, true).map(mapper);
+				loadCheckLists();
+			}
+			
+			private var loadCheckListFromState:Boolean = false;
+			
+			private function getMenuToggles(checkList:DividedCheckBoxList):Array
+			{
+				var menuItems:Array = VectorUtils.getArrayFromCollection(checkList.dataProvider as ICollectionView, false);
+				return menuItems.map(function(item:WeaveMenuItem, i:int, a:Array):LinkableBoolean {
+					return item ? Weave.properties.getMenuToggle(item.data as Class) : null;
+				});
+			}
+			private function saveCheckLists():void
+			{
+				for each (var checkList:DividedCheckBoxList in [dataMenuCheckList, toolsMenuCheckList])
+					if (UIUtils.hasFocus(checkList))
+						getMenuToggles(checkList).forEach(function(toggle:LinkableBoolean, i:int, a:Array):void {
+							if (toggle)
+								toggle.value = checkList.getSelectedState(i);
+						});
+			}
+			private function loadCheckLists():void
+			{
+				for each (var checkList:DividedCheckBoxList in [dataMenuCheckList, toolsMenuCheckList])
+					getMenuToggles(checkList).forEach(function(toggle:LinkableBoolean, i:int, a:Array):void {
+						if (toggle)
+							checkList.setSelectedState(i, toggle.value);
+					});
 			}
 			
 			private function handleMenuToggled():void

@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml"
 		 xmlns:ui="weave.ui.*"
 		 xmlns="weave.editors.*"
@@ -6,7 +22,7 @@
 		 implements="weave.api.ui.ILinkableObjectEditor">
 	<ui:DynamicColumnComponent id="labelComponent" label="{lang('Label')}"/> 
 	<ui:DynamicColumnComponent id="geometryComponent" label="{lang('Geometry')}" errorStringFunction="{getGeometryErrorString}"/>
-	<ui:Indent label="{lang('Label Text Size')}">
+	<ui:Indent label="{lang('Label text size')}">
 		<mx:HSlider id="labelSizeSlider"
 					width="100%"
 					alpha="1.0"
@@ -16,9 +32,12 @@
 					liveDragging="true" mouseDown="event.stopPropagation()"
 					creationComplete="linkBindableProperty(_plotter.size.defaultValue,event.target,'value')"/>
 	</ui:Indent>
-	<ui:Indent label="{lang('Label Text Color')}">
+	<ui:Indent label="{lang('Label text color')}">
 		<ui:CustomColorPicker id="colorPicker"
 						creationComplete="linkBindableProperty(_plotter.color.defaultValue, event.target, 'selectedColor')"/>
+	</ui:Indent>
+	<ui:Indent label="{lang('Text alignment')}">
+		<ui:AlignmentControl id="labelAlign"/>
 	</ui:Indent>
 	
 	<mx:Script>
@@ -56,6 +75,8 @@
 			{
 				labelComponent.dynamicObject = _plotter.text;
 				geometryComponent.dynamicObject = _plotter.geometryColumn.internalDynamicColumn;
+				linkBindableProperty(_plotter.hAlign.defaultValue, labelAlign, 'horizontalAlign');
+				linkBindableProperty(_plotter.vAlign.defaultValue, labelAlign, 'verticalAlign');
 			}
 			
 			

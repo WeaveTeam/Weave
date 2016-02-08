@@ -1,30 +1,27 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+
 package weave.visualization.tools
 {
 	import mx.utils.UIDUtil;
 	
+	import weave.api.getLinkableDescendants;
+	import weave.api.reportError;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.getLinkableDescendants;
-	import weave.api.reportError;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableHashMap;
@@ -46,7 +43,7 @@ package weave.visualization.tools
 		/**
 		 * The popup's window.name
 		 */
-		public const windowName:String = StandardLib.replace(UIDUtil.createUID(), '-', '');
+		public const windowName:String = generateWindowName();
 		
 		public function ExternalTool()
 		{
@@ -60,21 +57,31 @@ package weave.visualization.tools
 		{
 			if (toolUrl.value)
 			{
-				launch();
+				this.launch();
 			}
 		}
 		
 		public function launch():Boolean
+		{
+			return ExternalTool.launch(this, toolUrl.value, windowName, "menubar=no,status=no,toolbar=no");
+		}
+		
+		public static function generateWindowName():String
+		{
+			return StandardLib.replace(UIDUtil.createUID(), '-', '');
+		}
+		
+		public static function launch(owner:ILinkableObject, url:String, windowName:String = '', features:String = null):Boolean
 		{
 			try
 			{
 				var success:Boolean = JavaScript.exec(
 					{
 						WEAVE_EXTERNAL_TOOLS: WEAVE_EXTERNAL_TOOLS,
-						"url": toolUrl.value,
+						"path": WeaveAPI.getPath(owner),
+						"url": url,
 						"windowName": windowName,
-						"features": "menubar=no,status=no,toolbar=no",
-						"path": WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, this)
+						"features": features
 					},
 					'if (!window[WEAVE_EXTERNAL_TOOLS]) {',
 					'    window[WEAVE_EXTERNAL_TOOLS] = {};',

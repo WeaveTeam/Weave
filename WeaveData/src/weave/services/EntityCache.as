@@ -1,21 +1,17 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.services
 {
@@ -24,10 +20,12 @@ package weave.services
     import mx.rpc.events.ResultEvent;
     
     import weave.api.core.ICallbackCollection;
+    import weave.api.core.IDisposableObject;
     import weave.api.core.ILinkableObject;
     import weave.api.data.ColumnMetadata;
     import weave.api.data.EntityType;
     import weave.api.getCallbackCollection;
+    import weave.api.objectWasDisposed;
     import weave.api.registerLinkableChild;
     import weave.api.reportError;
     import weave.api.services.IWeaveEntityManagementService;
@@ -41,7 +39,7 @@ package weave.services
 	/**
 	 * Provides an interface to a set of cached Entity objects.
 	 */
-    public class EntityCache implements ILinkableObject
+    public class EntityCache implements ILinkableObject, IDisposableObject
     {
 		/**
 		 * A special flag value to represent a root node, which doesn't actually exist.
@@ -110,8 +108,13 @@ package weave.services
 		 */
 		public function invalidate(id:int, alsoInvalidateRelatives:Boolean = false):void
 		{
+			if (objectWasDisposed(this))
+				return;
+			
 			//trace('invalidate',id, alsoInvalidateRelatives, entityCache[id]);
 			callbacks.delayCallbacks();
+			
+			WeaveAPI.SessionManager.assignBusyTask(delayedCallback, this);
 			
 			// trigger callbacks if we haven't previously decided to fetch this id
 			if (!idsToFetch[id])
@@ -224,6 +227,8 @@ package weave.services
 					splicedIds
 				);
 			}
+			
+			WeaveAPI.SessionManager.unassignBusyTask(delayedCallback);
         }
 		
 		private function handleIdsToInvalidate(event:ResultEvent, alsoInvalidateRelatives:Boolean):void
@@ -312,7 +317,7 @@ package weave.services
 		private function handleEntityHierarchyInfo(event:ResultEvent, publicMetadata:Object):void
 		{
 			var entityType:String = publicMetadata[ColumnMetadata.ENTITY_TYPE];
-			var infoArray:Array = event.result as Array;
+			var infoArray:Array = event.result as Array || [];
 			var ids:Array = new Array(infoArray.length);
 			for (var i:int = 0; i < infoArray.length; i++)
 			{
@@ -371,6 +376,8 @@ package weave.services
 		 */
 		public function invalidateAll(purge:Boolean = false):void
         {
+			if (objectWasDisposed(this))
+				return;
 			if (purge)
 			{
 				idsToFetch = {};
@@ -502,6 +509,11 @@ package weave.services
 		private function handleServiceFault(event:FaultEvent, token:Object = null):void
 		{
 			reportError(event);
+		}
+		
+		public function dispose():void
+		{
+			WeaveAPI.SessionManager.unassignBusyTask(delayedCallback);
 		}
     }
 }

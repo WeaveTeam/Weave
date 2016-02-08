@@ -1,21 +1,17 @@
-/*
-Weave (Web-based Analysis and Visualization Environment)
-Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-This file is a part of Weave.
-
-Weave is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License, Version 3,
-as published by the Free Software Foundation.
-
-Weave is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.utils
 {
@@ -30,6 +26,7 @@ package weave.utils
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.getCallbackCollection;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerDisposableChild;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
 	import weave.core.StageUtils;
@@ -58,7 +55,7 @@ package weave.utils
 		
 		private var callbacks:ICallbackCollection;
 		
-		private var _kdTree:KDTree = new KDTree(5);
+		private const _kdTree:KDTree = registerDisposableChild(this, new KDTree(5));
 		private const _keysArray:Array = []; // of IQualifiedKey
 		private var _keyToBoundsMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of IBounds2D
 		private var _keyToGeometriesMap:Dictionary = new Dictionary(); // IQualifiedKey -> Array of GeneralizedGeometry or ISimpleGeometry
@@ -127,7 +124,7 @@ package weave.utils
 			
 			_iterateAll(-1); // restart from first task
 			// normal priority because some things can be done without having a fully populated spatial index (?)
-			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_NORMAL, callbacks.triggerCallbacks);
+			WeaveAPI.StageUtils.startTask(this, _iterateAll, WeaveAPI.TASK_PRIORITY_NORMAL, callbacks.triggerCallbacks, lang("Creating spatial index for {0}", debugId(plotter)));
 		}
 		
 		private const _iterateAll:Function = StageUtils.generateCompoundIterativeTask(_iterate0, _iterate1, _iterate2);
@@ -152,13 +149,9 @@ package weave.utils
 			if (_plotter)
 				VectorUtils.copy(_plotter.filteredKeySet.keys, _keysArray);			
 			
-			// if auto-balance is disabled, randomize insertion order
-			if (!_kdTree.autoBalance)
-			{
-				// randomize the order of the shapes to avoid a possibly poorly-performing
-				// KDTree structure due to the given ordering of the records
-				VectorUtils.randomSort(_keysArray);
-			}
+			// randomize the order of the shapes to avoid a possibly poorly-performing
+			// KDTree structure due to the given ordering of the records
+			VectorUtils.randomSort(_keysArray);
 			if (debug)
 				debugTrace(_plotter,this,'keys',_keysArray.length);
 			
@@ -679,7 +672,7 @@ package weave.utils
 						
 						// Consider all keys until we have found one that overlaps the query center.
 						// After that, only consider keys that overlap query center.
-						if (!foundQueryCenterOverlap || overlapsQueryCenter)
+						if (!foundQueryCenterOverlap || overlapsQueryCenter || recordBounds.isEmpty())
 						{
 							// if this is the first record that overlaps the query center, reset the list of keys
 							if (!foundQueryCenterOverlap && overlapsQueryCenter)

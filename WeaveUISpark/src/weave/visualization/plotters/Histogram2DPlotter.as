@@ -1,21 +1,17 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
@@ -54,16 +50,24 @@ package weave.visualization.plotters
 		
 		public function Histogram2DPlotter()
 		{
+			colorColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
+
 			setColumnKeySources([xColumn, yColumn]);
 		}
 		
 		public function getSelectableAttributeNames():Array
 		{
-			return ["X", "Y"];
+			var array:Array = ["X", "Y"];
+			if (showAverageColorData.value)
+				array.push("Color");
+			return array;
 		}
 		public function getSelectableAttributes():Array
 		{
-			return [xColumn, yColumn];
+			var array:Array = [xColumn, yColumn];
+			if (showAverageColorData.value)
+				array.push(colorColumn);
+			return array;
 		}
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
@@ -76,9 +80,8 @@ package weave.visualization.plotters
 
 		public const showAverageColorData:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
-		// hack, only supports default color column
-		public const _colorColumn:ColorColumn = registerLinkableChild(this, Weave.defaultColorColumn);
-		
+		public const colorColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
+
 		public function get xColumn():DynamicColumn { return xBinnedColumn.internalDynamicColumn; }
 		public function get yColumn():DynamicColumn { return yBinnedColumn.internalDynamicColumn; }
 		
@@ -130,9 +133,10 @@ package weave.visualization.plotters
 			if (isNaN(xBinWidth) || isNaN(yBinWidth))
 				return;
 			
-			var binCol:BinnedColumn = _colorColumn.getInternalColumn() as BinnedColumn;
+			var colorCol:ColorColumn = colorColumn.getInternalColumn() as ColorColumn;
+			var binCol:BinnedColumn = colorCol ? colorCol.getInternalColumn() as BinnedColumn : null;
 			var dataCol:IAttributeColumn = binCol ? binCol.internalDynamicColumn : null;
-			var ramp:ColorRamp = showAverageColorData.value ? _colorColumn.ramp : this.binColors;
+			var ramp:ColorRamp = showAverageColorData.value && colorCol ? colorCol.ramp : this.binColors;
 			
 			var graphics:Graphics = tempShape.graphics;
 			graphics.clear();

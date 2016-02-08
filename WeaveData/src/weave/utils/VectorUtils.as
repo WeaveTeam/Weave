@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.utils
 {
@@ -24,6 +20,8 @@ package weave.utils
 	import mx.collections.ArrayCollection;
 	import mx.collections.ICollectionView;
 	import mx.collections.IViewCursor;
+	
+	import weave.compiler.StandardLib;
 	
 	/**
 	 * This class contains static functions that manipulate Vectors and Arrays.
@@ -36,6 +34,16 @@ package weave.utils
 	{
 		private static var _lookup:Dictionary = new Dictionary(true);
 		private static var _lookupId:int = 0;
+		
+		private static const VectorClass:Class = Object(new Vector.<Object>()).constructor;
+		
+		/**
+		 * Tests if an object is a Vector.
+		 */
+		public static function isVector(object:*):Boolean
+		{
+			return object is VectorClass || object is Vector.<int> || object is Vector.<uint> || object is Vector.<Number>;
+		}
 		
 		/**
 		 * Computes the union of the items in a list of Arrays. Can also be used to get a list of unique items in an Array.
@@ -94,6 +102,26 @@ package weave.utils
 		}
 		
 		/**
+		 * Removes items from an Array.
+		 * @param array An Array (or Vector) of items.
+		 * @param itemsToRemove An Array (or Vector) of items to skip when making a copy of the array.
+		 * @return A new Array containing the items from the original array except those that appear in itemsToRemove.
+		 */
+		public static function subtract(array:*, itemsToRemove:*):Array
+		{
+			var item:*;
+			_lookupId++;
+			for each (item in itemsToRemove)
+				_lookup[item] = _lookupId;
+			var result:Array = [];
+			var i:int = 0;
+			for each (item in array)
+				if (_lookup[item] != _lookupId)
+					result[i++] = item;
+			return result;
+		}
+		
+		/**
 		 * This function copies the contents of the source to the destination.
 		 * Either parameter may be either an Array or a Vector.
 		 * @param source An Array-like object.
@@ -123,8 +151,17 @@ package weave.utils
 		public static function getKeys(hashMap:Object):Array
 		{
 			var keys:Array = [];
-			for (var key:* in hashMap)
-				keys.push(key);
+			if (hashMap is Dictionary)
+			{
+				for (var key:* in hashMap)
+					keys.push(key);
+			}
+			else
+			{
+				// workaround for when the string looks like a Number, var key:* will give you a Number instead of a String
+				for (var stringKey:String in hashMap)
+					keys.push(stringKey);
+			}
 			return keys;
 		}
 
@@ -161,7 +198,7 @@ package weave.utils
 		}
 		/**
 		 * randomizes the order of the elements in the vector in O(n) time by modifying the given array.
-		 * @param the vector to randomize
+		 * @param vector the vector to randomize
 		 */
 		public static function randomSort(vector:*):void
 		{
@@ -441,11 +478,15 @@ package weave.utils
 				output = object is Array ? [] : {};
 			if (!object)
 				return output;
-			for (var keyIndex:* in keys)
+			
+			var keyIndex:*,
+				keyValue:*,
+				item:*;
+			
+			for (keyIndex in keys)
 			{
-				var keyValue:* = keys[keyIndex];
+				keyValue = keys[keyIndex];
 				
-				var item:*;
 				if (object is XML_Class)
 					item = String((object as XML_Class).attribute(keyValue));
 				else
@@ -456,7 +497,28 @@ package weave.utils
 				else
 					output[keyValue] = item;
 			}
+			if (output is Array)
+				output.length = keys ? keys.length : 0;
+			
 			return output;
+		}
+		
+		/**
+		 * Compares a list of properties in two objects
+		 * @param object1 The first object
+		 * @param object2 The second object
+		 * @param propertyNames A list of names of properties to compare
+		 * @return -1, 0, or 1
+		 */
+		public static function compareProperties(object1:Object, object2:Object, propertyNames:Array):int
+		{
+			for each (var name:String in propertyNames)
+			{
+				var result:int = StandardLib.compare(object1[name], object2[name]);
+				if (result)
+					return result;
+			}
+			return 0;
 		}
 		
 		/**
@@ -464,7 +526,7 @@ package weave.utils
 		 * @param array Array or Vector
 		 * @param indices Array of indices to remove
 		 */
-		public static function removeItems(array:*, indices:Array):void
+		public static function removeByIndex(array:*, indices:Array):void
 		{
 			var n:int = array.length;
 			var skipList:Vector.<int> = Vector.<int>(indices).sort(Array.NUMERIC);
@@ -498,7 +560,25 @@ package weave.utils
 		private static var _pluckProperty:String;
 		private static function _pluck(item:Object, i:int, a:*):*
 		{
-			return item[_pluckProperty];
+			return item != null ? item[_pluckProperty] : undefined;
+		}
+		
+		/**
+		 * Transposes a two-dimensional table.
+		 */
+		public static function transpose(table:Array):Array
+		{
+			var result:Array = [];
+			for (var iCol:int = 0; iCol < table.length; iCol++)
+			{
+				var col:Array = table[iCol];
+				for (var iRow:int = 0; iRow < col.length; iRow++)
+				{
+					var row:Array = result[iRow] || (result[iRow] = []);
+					row[iCol] = col[iRow];
+				}
+			}
+			return result;
 		}
 		
 		/**

@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.core
 {
@@ -28,6 +24,7 @@ package weave.core
 	
 	import weave.api.core.DynamicState;
 	import weave.api.reportError;
+	import weave.compiler.Compiler;
 	
 	/**
 	 * This extension of SimpleXMLDecoder adds support for XML objects encoded with XMLEncoder.
@@ -38,7 +35,7 @@ package weave.core
 	public class WeaveXMLDecoder extends SimpleXMLDecoder
 	{
 		/**
-		 * This function will include a package in ClassUtils.defaultPackages,
+		 * This function will include a package in Compiler.defaultPackages,
 		 * which is consulted when decoding dynamic session states.
 		 * @param packageOrClass Either a qualified class name as a String, or a pointer to a Class.
 		 * @param others More qualified class names or Class objects.
@@ -59,14 +56,10 @@ package weave.core
 				if (!packageOrClass)
 					continue; // no package
 				packageOrClass = String(packageOrClass);
-				if (packageOrClass && defaultPackages.indexOf(packageOrClass) < 0)
-					defaultPackages.push(packageOrClass);
+				if (packageOrClass && Compiler.defaultPackages.indexOf(packageOrClass) < 0)
+					Compiler.defaultPackages.push(packageOrClass);
 			}
 		}
-		/**
-		 * The list of packages to check for classes when calling getClassDefinition().
-		 */
-		internal static const defaultPackages:Array = [""];
 
 		/**
 		 * This function will check all the packages specified in the static
@@ -77,14 +70,19 @@ package weave.core
 		 */
 		public static function getClassName(className:String, packageName:String = null):String
 		{
+			// backwards compatibility
 			const oldPkg:String = "org.openindicators";
 			if (packageName && packageName.substr(0, oldPkg.length) === oldPkg)
 				packageName = 'weave' + packageName.substr(oldPkg.length);
 			
-			for (var i:int = -1; i < defaultPackages.length; i++)
+			var qname:String = packageName + "::" + className;
+			if (ClassUtils.hasClassDefinition(qname))
+				return qname;
+			if (ClassUtils.hasClassDefinition(className))
+				return className;
+			for each (var pkg:String in Compiler.defaultPackages)
 			{
-				var pkg:String = (i < 0) ? packageName : defaultPackages[i];
-				var qname:String = pkg ? (pkg + "::" + className) : className;
+				qname = pkg + "::" + className;
 				if (ClassUtils.hasClassDefinition(qname))
 					return qname;
 			}
@@ -180,7 +178,7 @@ package weave.core
 				if (json)
 					object = json.parse(str);
 				else
-					reportError("JSON encoding is not supported by your version of Flash Player.");
+					object = Compiler.parseConstant(str);
 				return object;
 			}
 			else if (encoding == WeaveXMLEncoder.XML_ENCODING)

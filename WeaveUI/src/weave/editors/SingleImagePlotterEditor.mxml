@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
 		 xmlns="weave.editors.*"
 		 xmlns:ui="weave.ui.*"
@@ -13,8 +29,9 @@
 	</ui:Paragraph>
 	<ui:IndentTextInput id="xInput" label="{lang('X')}"/>
 	<ui:IndentTextInput id="yInput" label="{lang('Y')}"/>
-	<ui:IndentTextInput id="widthInput" label="{lang('Width')}"/>
-	<ui:IndentTextInput id="heightInput" label="{lang('Height')}"/>
+	<ui:IndentTextInput id="widthInput" label="{lang('Width')}" alpha="{useImageSizeCheck.selected ? 0.5 : 1}"/>
+	<ui:IndentTextInput id="heightInput" label="{lang('Height')}" alpha="{useImageSizeCheck.selected ? 0.5 : 1}"/>
+	<ui:CustomCheckBox id="useImageSizeCheck" label="{lang('Use image coordinates')}"/>
 	<ui:Indent label="Alignment">
 		<ui:AlignmentControl id="alignmentInput"/>
 	</ui:Indent>
@@ -47,6 +64,7 @@
 				linkBindableProperty(_plotter.dataY, yInput, "text");
 				linkBindableProperty(_plotter.dataWidth, widthInput, "text");
 				linkBindableProperty(_plotter.dataHeight, heightInput, "text");
+				linkBindableProperty(_plotter.useImageSize, useImageSizeCheck, "selected");
 				linkBindableProperty(_plotter.horizontalAlign, alignmentInput, 'horizontalAlign');
 				linkBindableProperty(_plotter.verticalAlign, alignmentInput, 'verticalAlign');
 			}
@@ -97,6 +115,7 @@
 					var localAnchorPoint:Point = tool.visualization.globalToLocal(anchorPoint);
 					pm.zoomBounds.projectScreenToData(localAnchorPoint);
 					
+					plotter.imageURL.value = SingleImagePlotter.RED_CIRCLE_IMAGE_URL;
 					plotter.dataX.value = localAnchorPoint.x;
 					plotter.dataY.value = localAnchorPoint.y;
 					

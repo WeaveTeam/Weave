@@ -1,28 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 -->
 <DraggablePanel xmlns:mx="http://www.adobe.com/2006/mxml"
 		xmlns="weave.ui.*" 
 		borderColor="#939178"
-		title="Error Log"
+		title="Error Log / Console"
 		escapeKeyClosesPanel="true"
 		>
 	<Console id="console" context="{errorManager}" padding="0"/>
@@ -41,11 +37,12 @@
 			import mx.managers.PopUpManager;
 			
 			import weave.Weave;
-			import weave.api.core.IErrorManager;
 			import weave.api.getCallbackCollection;
+			import weave.api.core.IErrorManager;
 			import weave.compiler.StandardLib;
 			import weave.core.ErrorManager;
 			import weave.core.LinkableBoolean;
+			import weave.data.DataSources.WeaveDataSource;
 			import weave.utils.DebugUtils;
 			import weave.utils.Identify;
 			
@@ -70,7 +67,6 @@
 					Weave.properties.enableSubsetsMenu,
 					Weave.properties.enableSessionMenu,
 					Weave.properties.enableWindowMenu,
-					Weave.properties.enableAboutMenu,
 					Weave.properties.enableToolControls,
 					Weave.properties.enableSessionHistoryControls
 				];
@@ -131,7 +127,12 @@
 				while (errorIndex < WeaveAPI.ErrorManager.errors.length)
 				{
 					if (errorIndex == 0)
+					{
 						console.log.text += StandardLib.substitute('\r\rWeave {0}; Flash {1}', Weave.properties.version.value, Capabilities.version);
+						for each (var wds:WeaveDataSource in WeaveAPI.globalHashMap.getObjects(WeaveDataSource))
+							if (wds.serverVersion)
+								console.log.text += StandardLib.substitute('\rWeave server {0}', wds.serverVersion);
+					}
 					var error:Error = WeaveAPI.ErrorManager.errors[errorIndex++];
 					console.log.text += '\r\r' + ErrorManager.errorToString(error);
 				}
@@ -154,7 +155,7 @@
 					var desiredHeight:Number = 150;
 					var percentHeight:Number = Math.round(desiredHeight / app.stage.stageHeight * 100);
 					
-					instance.panelY.value = (100 - percentHeight) + "%";
+					instance.panelY.value = (98 - percentHeight) + "%";
 					instance.panelHeight.value = percentHeight + "%";
 					
 					instance.panelX.value = "0%";

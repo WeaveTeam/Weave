@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.utils
 {
@@ -31,12 +27,14 @@ package weave.utils
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
+	import weave.api.registerDisposableChild;
 	import weave.api.reportError;
+	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.primitives.Bounds2D;
+	import weave.primitives.Dictionary2D;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.primitives.GeometryType;
-	import weave.primitives.KDNode;
 	import weave.primitives.KDTree;
 
 	/**
@@ -119,17 +117,14 @@ package weave.utils
 		 * The dimensions are minImportance, maxImportance, xMin, yMin, xMax, yMax.
 		 * The objects contained in the KDNodes are integers representing tile ID numbers.
 		 */
-		private const metadataTiles:KDTree = new KDTree(KD_DIMENSIONALITY);
-		private const geometryTiles:KDTree = new KDTree(KD_DIMENSIONALITY);
-		/**
-		 * metadataTileIDToKDNodeMapping & geometryTileIDToKDNodeMapping
-		 * These vectors map a tileID to a KDNode which is used for deleting nodes from the KDTrees.
-		 */
-		private const metadataTileIDToKDNodeMapping:Vector.<KDNode> = new Vector.<KDNode>();
-		private const geometryTileIDToKDNodeMapping:Vector.<KDNode> = new Vector.<KDNode>();
+		private const metadataTiles:KDTree = registerDisposableChild(this, new KDTree(KD_DIMENSIONALITY));
+		private const geometryTiles:KDTree = registerDisposableChild(this, new KDTree(KD_DIMENSIONALITY));
 		
-		private const metadataTilesChecklist:Array = [];
-		private const geometryTilesChecklist:Array = [];
+		/**
+		 * (KDTree, int) -> TileDescriptor
+		 */
+		private const tileLookup:Dictionary2D = new Dictionary2D();
+		
 		/**
 		 * These constants define indices in a KDKey corresponding to the different KDTree dimensions.
 		 */
@@ -144,29 +139,34 @@ package weave.utils
 		private const maxKDKey:Array = [Infinity, Infinity, Infinity, Infinity, Infinity];
 		
 		/**
-		 * getRequiredMetadataTileIDs, getRequiredGeometryTileIDs, and getRequiredTileIDs
-		 * These functions return an array of tile IDs that need to be downloaded in
+		 * These functions return an array of tiles that need to be downloaded in
 		 * order for shapes to be displayed at the given importance (quality) level.
-		 * IDs of tiles that have already been decoded from a stream will not be returned.
-		 * @return A list of tile IDs, sorted descending by maxImportance.
+		 * Tiles that have already been decoded from a stream will not be returned.
+		 * @return A list of tiles, sorted descending by maxImportance.
 		 */
 		public function getRequiredMetadataTileIDs(bounds:IBounds2D, minImportance:Number, removeTilesFromList:Boolean):Array
 		{
-			var tileIDs:Array = getRequiredTileIDs(metadataTiles, bounds, minImportance);
-			if (removeTilesFromList)
-				for each (var id:int in tileIDs)
-					metadataTiles.remove(metadataTileIDToKDNodeMapping[id]);
-			return tileIDs;
+			return getRequiredTileIDs(metadataTiles, bounds, minImportance, removeTilesFromList);
 		}
 		public function getRequiredGeometryTileIDs(bounds:IBounds2D, minImportance:Number, removeTilesFromList:Boolean):Array
 		{
-			var tileIDs:Array = getRequiredTileIDs(geometryTiles, bounds, minImportance);
-			if (removeTilesFromList)
-				for each (var id:int in tileIDs)
-					geometryTiles.remove(geometryTileIDToKDNodeMapping[id]);
-			return tileIDs;
+			return getRequiredTileIDs(geometryTiles, bounds, minImportance, removeTilesFromList);
 		}
-		private function getRequiredTileIDs(tileTree:KDTree, bounds:IBounds2D, minImportance:Number):Array
+		
+		private function _filterTiles(tile:TileDescriptor, ..._):Boolean
+		{
+			return !tile.exclude;
+		}
+		private function _tileToId(tile:TileDescriptor, ..._):int
+		{
+			return tile.tileID;
+		}
+		private function _getMaxImportance(tile:TileDescriptor):Number
+		{
+			return tile.kdKey[IMAX_INDEX];
+		}
+		
+		private function getRequiredTileIDs(tileTree:KDTree, bounds:IBounds2D, minImportance:Number, removeTilesFromList:Boolean):Array
 		{
 			//trace("getRequiredTileIDs, minImportance="+minImportance);
 			// filter out tiles with maxImportance less than the specified minImportance
@@ -177,9 +177,16 @@ package weave.utils
 			// set the maximum query values for xMin, yMin
 			maxKDKey[XMIN_INDEX] = bounds.getXNumericMax();
 			maxKDKey[YMIN_INDEX] = bounds.getYNumericMax();
-			// make a copy of the query result with Array.concat()
-			// because queryRange re-uses a temporary array.
-			return tileTree.queryRange(minKDKey, maxKDKey, true, IMAX_INDEX, KDTree.DESCENDING).concat();
+			
+			var tiles:Array = tileTree.queryRange(minKDKey, maxKDKey, true);
+			tiles = tiles.filter(_filterTiles);
+			StandardLib.sortOn(tiles, _getMaxImportance, -1);
+			
+			if (removeTilesFromList)
+				for each (var tile:TileDescriptor in tiles)
+					tile.exclude = true;
+			
+			return tiles.map(_tileToId);
 		}
 
 		/**
@@ -188,7 +195,7 @@ package weave.utils
 		 */
 		public function decodeMetadataTileList(stream:ByteArray):void
 		{
-			decodeTileList(metadataTiles, metadataTileIDToKDNodeMapping, stream);
+			decodeTileList(metadataTiles, stream);
 		}
 		/**
 		 * This function will decode a tile list stream.
@@ -196,14 +203,14 @@ package weave.utils
 		 */
 		public function decodeGeometryTileList(stream:ByteArray):void
 		{
-			decodeTileList(geometryTiles, geometryTileIDToKDNodeMapping, stream);
+			decodeTileList(geometryTiles, stream);
 		}
 		/**
 		 * @private
 		 */
-		private function decodeTileList(tileTree:KDTree, tileIDToKDNodeMapping:Vector.<KDNode>, stream:ByteArray):void
+		private function decodeTileList(tileTree:KDTree, stream:ByteArray):void
 		{
-			var tileDescriptors:Array = []; // array of descriptor objects containing kdKey and tileID
+			var tiles:Array = []; // array of descriptor objects containing kdKey and tileID
 		    try {
 				// read tile descriptors from stream
 				var tileID:int = 0;
@@ -215,8 +222,9 @@ package weave.utils
 					kdKey[XMAX_INDEX] = stream.readDouble();
 					kdKey[YMAX_INDEX] = stream.readDouble();
 					kdKey[IMAX_INDEX] = stream.readFloat();
-					//trace((tileTree == metadataTiles ? "metadata tile" : "geometry tile") + " " + tileID + "[" + kdKey + "]");
-					tileDescriptors.push(new TileDescriptor(kdKey, tileID));
+					if (debug)
+						trace((tileTree == metadataTiles ? "metadata tile" : "geometry tile") + " " + tileID + "[" + kdKey + "]");
+					tiles.push(new TileDescriptor(kdKey, tileID));
 					collectiveBounds.includeCoords(kdKey[XMIN_INDEX], kdKey[YMIN_INDEX]);
 					collectiveBounds.includeCoords(kdKey[XMAX_INDEX], kdKey[YMAX_INDEX]);
 					tileID++;
@@ -225,35 +233,16 @@ package weave.utils
 			catch(e:EOFError) { }
 			// randomize the order of tileDescriptors to avoid a possibly
 			// poorly-performing KDTree structure due to the given ordering.
-			VectorUtils.randomSort(tileDescriptors);
-			// expand vector to hold all tileDescriptor nodes
-			tileIDToKDNodeMapping.length = tileDescriptors.length;
+			VectorUtils.randomSort(tiles);
 			// insert tileDescriptors into tree
-			var node:KDNode;
-			var tileDescriptor:TileDescriptor;
-			for (var i:int = tileDescriptors.length; i--;)
+			for each (var tile:TileDescriptor in tiles)
 			{
-				tileDescriptor = tileDescriptors[i] as TileDescriptor;
-				// insert a new node in the tree, mapping kdKey to tileID
-				node = tileTree.insert(tileDescriptor.kdKey, tileDescriptor.tileID);
-				// save mapping from tile ID to KDNode so the node can be deleted from the tree later
-				tileIDToKDNodeMapping[tileDescriptor.tileID] = node;
+				// insert a new node in the tree, mapping kdKey to tile
+				tileTree.insert(tile.kdKey, tile);
+				// save mapping from tile ID to TileDescriptor so it can be excluded later
+				tileLookup.set(tileTree, tile.tileID, tile);
 			}
 
-			if (debug)
-			{
-				trace("decodeTileList(): tile counts: ",metadataTiles.nodeCount,geometryTiles.nodeCount);
-				
-				// generate checklists for debugging
-				geometryTilesChecklist.length = 0;
-				while (geometryTilesChecklist.length < geometryTileIDToKDNodeMapping.length)
-					geometryTilesChecklist.push(geometryTilesChecklist.length);
-				
-				metadataTilesChecklist.length = 0;
-				while (metadataTilesChecklist.length < metadataTileIDToKDNodeMapping.length)
-					metadataTilesChecklist.push(metadataTilesChecklist.length);
-			}
-			
 			// collective bounds changed
 			
 			// Weave automatically triggers callbacks when all tasks complete
@@ -307,10 +296,10 @@ package weave.utils
 						if (flag < 0) // flag is negativeTileID
 						{
 							var tileID:int = (-1 - flag); // decode negativeTileID
-							if (tileID < metadataTileIDToKDNodeMapping.length)
+							var tile:TileDescriptor = tileLookup.get(metadataTiles, tileID);
+							if (tile)
 							{
-								// remove tile from tree
-								metadataTiles.remove(metadataTileIDToKDNodeMapping[tileID]);
+								tile.exclude = true;
 								
 								flag = stream.readInt();
 								if (flag < 0)
@@ -319,22 +308,14 @@ package weave.utils
 									stream.position -= 4; // version 0; rewind
 	
 								if (debug)
-								{
-									trace("got metadata tileID=" + tileID + "/"+metadataTileIDToKDNodeMapping.length+"; "+stream.position+'/'+stream.length);
-									flag = metadataTilesChecklist.indexOf(tileID);
-									if (flag >= 0)
-									{
-										metadataTilesChecklist.splice(flag, 1);
-										trace("remaining metadata tiles: "+metadataTilesChecklist);
-									}
-								}
+									trace("got metadata tileID=" + tileID + "; "+stream.position+'/'+stream.length);
 							}
 							else
 							{
 								// something went wrong
 								// either the tileDescriptors were not requested yet,
 								// or the service is returning incorrect data.
-								reportError("ERROR! decodeMetadataStream(): tileID is out of range ("+tileID+" >= "+metadataTileIDToKDNodeMapping.length+")");
+								reportError("ERROR! decodeMetadataStream(): tileID "+tileID+" is out of range");
 								break;
 							}
 							
@@ -484,10 +465,10 @@ package weave.utils
 							totalGeomTiles++;
 							
 							var tileID:int = (-1 - flag); // decode negativeTileID
-							if (tileID < geometryTileIDToKDNodeMapping.length)
+							var tile:TileDescriptor = tileLookup.get(geometryTiles, tileID);
+							if (tile)
 							{
-								// remove tile from tree
-								geometryTiles.remove(geometryTileIDToKDNodeMapping[tileID]);
+								tile.exclude = true;
 	
 								flag = stream.readInt();
 								if (flag < 0)
@@ -496,22 +477,14 @@ package weave.utils
 									stream.position -= 4; // version 0; rewind
 
 								if (debug)
-								{
-									trace("got geometry tileID=" + tileID + "/" + geometryTileIDToKDNodeMapping.length + "; "+stream.length);
-									flag = geometryTilesChecklist.indexOf(tileID);
-									if (flag >= 0)
-									{
-										geometryTilesChecklist.splice(flag, 1);
-										trace("remaining geometry tiles: "+geometryTilesChecklist);
-									}
-								}
+									trace("got geometry tileID=" + tileID + "; "+stream.length);
 							}
 							else
 							{
 								// something went wrong
 								// either the tileDescriptors were not requested yet,
 								// or the service is returning incorrect data.
-								reportError("ERROR! decodeGeometryStream(): tileID is out of range ("+tileID+" >= "+geometryTileIDToKDNodeMapping.length+")");
+								reportError("ERROR! decodeGeometryStream(): tileID "+tileID+" is out of range");
 								break;
 							}
 							
@@ -589,7 +562,7 @@ package weave.utils
 			
 			// Weave automatically triggers callbacks when all tasks complete
 			// low priority because the geometries can still be used even without all the detail.
-			WeaveAPI.StageUtils.startTask(this, task, WeaveAPI.TASK_PRIORITY_LOW);
+			WeaveAPI.StageUtils.startTask(this, task, WeaveAPI.TASK_PRIORITY_NORMAL);
 		}
 
 		
@@ -626,4 +599,5 @@ internal class TileDescriptor
 	}
 	public var kdKey:Array;
 	public var tileID:int;
+	public var exclude:Boolean = false;
 }

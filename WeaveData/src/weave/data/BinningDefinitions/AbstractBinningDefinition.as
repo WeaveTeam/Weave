@@ -1,21 +1,17 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.BinningDefinitions
 {
@@ -27,10 +23,12 @@ package weave.data.BinningDefinitions
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableHashMap;
+	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 
 	/**
@@ -41,6 +39,18 @@ package weave.data.BinningDefinitions
 	 */
 	public class AbstractBinningDefinition implements IBinningDefinition
 	{
+		public function AbstractBinningDefinition(allowOverrideBinNames:Boolean, allowOverrideInputRange:Boolean)
+		{
+			if (allowOverrideBinNames)
+				_overrideBinNames = registerLinkableChild(this, new LinkableString(''));
+			
+			if (allowOverrideInputRange)
+			{
+				_overrideInputMin = newLinkableChild(this, LinkableNumber);
+				_overrideInputMax = newLinkableChild(this, LinkableNumber);
+			}
+		}
+		
 		/**
 		 * Implementations that extend this class should use this as an output buffer.
 		 */		
@@ -85,14 +95,20 @@ package weave.data.BinningDefinitions
 		
 		//-------------------
 		
-		public const overrideBinNames:LinkableString = registerLinkableChild(this, new LinkableString(''));
+		private var _overrideBinNames:LinkableString;
+		private var _overrideInputMin:LinkableNumber;
+		private var _overrideInputMax:LinkableNumber;
+		private var _overrideBinNamesArray:Array = [];
 		
-		private var names:Array = [];
+		public function get overrideBinNames():LinkableString { return _overrideBinNames; }
+		public function get overrideInputMin():LinkableNumber { return _overrideInputMin; }
+		public function get overrideInputMax():LinkableNumber { return _overrideInputMax; }
+		
 		protected function getOverrideNames():Array
 		{
-			if (detectLinkableObjectChange(getOverrideNames, overrideBinNames))
-				names = WeaveAPI.CSVParser.parseCSVRow(overrideBinNames.value) || [];
-			return names;
+			if (overrideBinNames && detectLinkableObjectChange(getOverrideNames, overrideBinNames))
+				_overrideBinNamesArray = WeaveAPI.CSVParser.parseCSVRow(overrideBinNames.value) || [];
+			return _overrideBinNamesArray;
 		}
 	}
 }

@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.utils
 {
@@ -227,12 +223,55 @@ package weave.utils
 		private static function geometryAsFeature(obj:Object, id:* = undefined, _:* = undefined):Object
 		{
 			var feature:Object = {};
-			feature[T_FEATURE]
+			feature[P_TYPE] = feature[T_FEATURE];
 			if (id !== undefined)
 				feature[F_P_ID] = id;
 			feature[F_P_GEOMETRY] = obj;
 			feature[F_P_PROPERTIES] = null;
 			return feature;
+		}
+		
+		/**
+		 * Combines an Array of GeoJson Geometry objects into a single "Multi" Geometry object.
+		 * This assumes all geometry objects are of the same type.
+		 * @param geoms An Array of GeoJson Geometry objects sharing a common type.
+		 * @return A single GeoJson Geometry object with type MultiPoint/MultiLineString/MultiPolygon
+		 */
+		public static function getMultiGeomObject(geoms:Array):Object
+		{
+			var first:Object = geoms[0];
+			var type:String = first ? first[P_TYPE] : T_MULTI_POINT;
+			var multiType:String = typeToMultiType(type);
+			
+			var allCoords:Array = geoms.map(function(geom:Object, ..._):Array {
+				return geom[G_P_COORDINATES];
+			});
+			var multiCoords:Array;
+			if (type == multiType)
+			{
+				multiCoords = [];
+				multiCoords = multiCoords.concat.apply(multiCoords, allCoords);
+			}
+			else
+			{
+				multiCoords = allCoords;
+			}
+			
+			var multiGeom:Object = {};
+			multiGeom[P_TYPE] = multiType;
+			multiGeom[G_P_COORDINATES] = multiCoords;
+			return multiGeom;
+		}
+		
+		private static function typeToMultiType(type:String):String
+		{
+			if (type == T_POINT || type == T_MULTI_POINT)
+				return T_MULTI_POINT;
+			if (type == T_LINE_STRING || type == T_MULTI_LINE_STRING)
+				return T_MULTI_LINE_STRING;
+			if (type == T_POLYGON || type == T_MULTI_POLYGON)
+				return T_MULTI_POLYGON;
+			return null;
 		}
 	}
 }

@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 -->
 
 <!---
@@ -32,7 +28,7 @@
 				   layout="absolute" implements="weave.api.ui.IVisTool_Basic, weave.api.ui.IInitSelectableAttributes"
 				   title="{lang('Table')}" xmlns:editors="weave.editors.*"
 				   >
-	<mx:VBox width="100%" height="100%" id="tableArea" verticalGap="0" horizontalScrollPolicy="off">
+	<mx:VBox width="100%" height="100%" id="toolVBox" verticalGap="0" horizontalScrollPolicy="off">
 		<CustomDataGrid:CustomDataGrid
 			id="dataGrid"
 			dataProvider="{dataProvider}"
@@ -64,6 +60,7 @@
 	
 	<mx:Script>
 		<![CDATA[
+			import mx.binding.utils.BindingUtils;
 			import mx.collections.ArrayCollection;
 			import mx.controls.dataGridClasses.DataGridColumn;
 			import mx.core.mx_internal;
@@ -74,15 +71,15 @@
 			import mx.managers.IFocusManagerComponent;
 			
 			import weave.Weave;
-			import weave.api.core.ILinkableObject;
-			import weave.api.data.IAttributeColumn;
-			import weave.api.data.IQualifiedKey;
 			import weave.api.detectLinkableObjectChange;
 			import weave.api.getCallbackCollection;
 			import weave.api.linkBindableProperty;
 			import weave.api.newLinkableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.reportError;
+			import weave.api.core.ILinkableObject;
+			import weave.api.data.IAttributeColumn;
+			import weave.api.data.IQualifiedKey;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
 			import weave.core.LinkableBoolean;
@@ -90,15 +87,17 @@
 			import weave.core.LinkableNumber;
 			import weave.core.LinkableString;
 			import weave.core.UIUtils;
-			import weave.data.AttributeColumns.KeyColumn;
+			import weave.data.KeySets.DynamicKeySet;
 			import weave.data.KeySets.FilteredKeySet;
 			import weave.data.KeySets.KeySet;
 			import weave.primitives.ColorRamp;
+			import weave.ui.Paragraph;
 			import weave.ui.CustomDataGrid.DataGridColumnForQKey;
-			import weave.ui.DraggablePanel;
 			import weave.utils.ColumnUtils;
 			import weave.utils.LinkableTextFormat;
 			import weave.utils.NumberUtils;
+			import weave.utils.ProbeTextUtils;
+			
 			use namespace mx_internal;
 			
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, TableTool, "Table");
@@ -115,26 +114,40 @@
 			public const dataGridVerticalScrollPosition:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			
 			private var _textFormat:LinkableTextFormat = Weave.properties.visTextFormat;
-			private var _selection:KeySet = Weave.defaultSelectionKeySet;
-			private var _probe:KeySet = Weave.defaultProbeKeySet;
-
+			
 			public const sortFieldIndex:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
 			public const sortInDescendingOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			
 			public const filteredKeySet:FilteredKeySet = newLinkableChild(this, FilteredKeySet);
+			public const selectionKeySet:DynamicKeySet = newLinkableChild(this, DynamicKeySet);
+			public const mouseoverKeySet:DynamicKeySet = newLinkableChild(this, DynamicKeySet);
 			private const dataProvider:ArrayCollection = new ArrayCollection();
 			
 			public const maxRows:LinkableNumber = registerLinkableChild(this, new LinkableNumber()); // by default, no limit
 			public const maxHeaderHeight:LinkableNumber = registerLinkableChild(this, new LinkableNumber(50));
 			
+			private function get _probe():KeySet
+			{
+				return mouseoverKeySet.target as KeySet;
+			}
+			private function get _selection():KeySet
+			{
+				return selectionKeySet.target as KeySet;
+			}
+			
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
 				
+				selectionKeySet.target = Weave.defaultSelectionKeySet;
+				mouseoverKeySet.target = Weave.defaultProbeKeySet;
+				
 				filteredKeySet.keyFilter.targetPath = [Weave.DEFAULT_SUBSET_KEYFILTER];
-				_probe.addImmediateCallback(this, updateGlobalProbeChangeLater);
-				for each (var target:ILinkableObject in [this, _selection, Weave.defaultColorColumn, _textFormat])
+				mouseoverKeySet.addImmediateCallback(this, updateGlobalProbeChangeLater);
+				for each (var target:ILinkableObject in [this, selectionKeySet, Weave.defaultColorColumn, _textFormat])
 					getCallbackCollection(target).addGroupedCallback(this, groupedUpdate, true);
+				
+				getCallbackCollection(Weave.properties.visTitleTextFormat).addGroupedCallback(this, updateTitleLabel, true);
 			}
 			
 			/**
@@ -149,6 +162,18 @@
 					});
 			}
 
+			override protected function createChildren():void
+			{
+				if (createdChildren)
+					return;
+				
+				super.createChildren();
+				
+				visTitle = new Paragraph();
+				visTitle.setStyle('textAlign', 'center');
+				updateTitleLabel();
+			}
+			
 			override protected function childrenCreated():void
 			{
 				super.childrenCreated();
@@ -164,6 +189,8 @@
 				
 				columns.childListCallbacks.addImmediateCallback(this, handleColumnListChange, true);
 				columnWidths.childListCallbacks.addImmediateCallback(this, assertColumnOrder,true);
+				
+				BindingUtils.bindSetter(handleBindableTitle, this, 'title');
 			}
 
 			private function assertColumnOrder():void
@@ -172,7 +199,7 @@
 			}
 			
 			/**
-			 * This function(event ListeSner) gets called during dataGrid Resize event
+			 * This function(event Listener) gets called during dataGrid Resize event
 			 * handleDataGridHorizontalScroll calls updateColumnWidths, when the dataGridHorizontalScrollPosition.value is Maximum
 			 * handleDataGridHorizontalScroll is called to update FilterComponents Position
 			 */			
@@ -183,10 +210,12 @@
 			
 			private function handleRollOver(event:ListEvent):void
 			{
-				if (enableProbing.value == false)
+				if (enableProbing.value == false || !_probe)
 					return;
-
-				var key:IQualifiedKey = dataProvider.getItemAt(event.rowIndex) as IQualifiedKey;
+				ProbeTextUtils.getProbeText([], null);
+				var key:IQualifiedKey;
+				if (event.rowIndex < dataProvider.length)
+					key = dataProvider.getItemAt(event.rowIndex) as IQualifiedKey;
 				if (key)
 					_probe.replaceKeys([key]);
 				else
@@ -194,7 +223,7 @@
 			}
 			private function handleRollOut(event:MouseEvent):void
 			{
-				if (enableProbing.value == false)
+				if (enableProbing.value == false || !_probe)
 					return;
 				
 				_probe.clearKeys();
@@ -251,7 +280,7 @@
 						dataGrid.verticalScrollPosition = dataGridVerticalScrollPosition.value;
 				}
 				
-				if (detectLinkableObjectChange(groupedUpdate, _selection))
+				if (detectLinkableObjectChange(groupedUpdate, selectionKeySet))
 				{
 					updateGlobalSelectionChange();
 					dataGrid.invalidateList();
@@ -362,7 +391,8 @@
 			 */	
 			private function handleItemSelection(event:Event=null):void
 			{
-				_selection.replaceKeys(dataGrid.selectedItems);
+				if (_selection)
+					_selection.replaceKeys(dataGrid.selectedItems);
 			}
 			
 			/* TODO: Move this method into an abstract class to extend CustomDataGrid
@@ -384,7 +414,7 @@
 				var selectedItems:Array = [];
 				for each (item in dataProvider)
 				{
-					if (_selection.containsKey(item as IQualifiedKey))
+					if (_selection && _selection.containsKey(item as IQualifiedKey))
 					{
 						if (!isSelected[item])
 							changeDetected = true;
@@ -415,7 +445,7 @@
 				}
 				dataGrid.invalidateList();
 				dataGrid.validateNow();
-				dataGrid.highlightItemsForced(_probe.keys, _selection.containsKey);
+				dataGrid.highlightItemsForced(_probe ? _probe.keys : null, _selection ? _selection.containsKey : null);
 			}
 			
 			private function updateKeysColumnsDataProviderAndSelection():void
@@ -626,26 +656,58 @@
 					dataGrid.lockedColumnCount = lockedColumns.value;
 			}
 			
-			private var _previousSelection:Object ;
+			private var _previousSelection:Object;
 			
 			private function handleMouseDown():void
 			{
-				detectLinkableObjectChange( handleMouseClick, _selection )
+				detectLinkableObjectChange(handleMouseClick, selectionKeySet);
 			}
 			
 			private function handleMouseClick():void
 			{
-				if (!detectLinkableObjectChange( handleMouseClick, _selection ))
-					if ( dataGrid.mouseY > dataGrid.headerHeight )
-						if ( dataGrid.mouseX < dataGrid.width - SCROLLBAR_WIDTH)
-							if ( WeaveAPI.StageUtils.pointClicked )
-								_selection.clearKeys() ;
+				if (!detectLinkableObjectChange(handleMouseClick, selectionKeySet) && _selection)
+					if (dataGrid.mouseY > dataGrid.headerHeight)
+						if (dataGrid.mouseX < dataGrid.width - SCROLLBAR_WIDTH)
+							if (WeaveAPI.StageUtils.pointClicked)
+								_selection.clearKeys();
 			}
 			private static const SCROLLBAR_WIDTH:int = 16;
 			
-			internal static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xEEF6FF];
+			internal static const DEFAULT_BACKGROUND_COLORS:Array = [0xffffff, 0xf4f4f4];
 			public const backgroundColor1:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[0]));
 			public const backgroundColor2:LinkableNumber = registerLinkableChild(this, new LinkableNumber(DEFAULT_BACKGROUND_COLORS[1]));
+			
+			private var visTitle:Paragraph; // For display of title inside the window area
+			public const enableTitle:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleTitleToggleChange, true);
+			private function handleBindableTitle(value:String):void
+			{
+				visTitle.text = title;
+			}
+			private function updateTitleLabel():void
+			{
+				if (!createdChildren)
+					return callLater(updateTitleLabel);
+				
+				Weave.properties.visTitleTextFormat.copyToStyle(visTitle);
+			}
+			private function handleTitleToggleChange():void
+			{
+				if (!createdChildren)
+				{
+					callLater(handleTitleToggleChange);
+					return;
+				}
+				if (!enableTitle.value)
+				{
+					if (toolVBox == visTitle.parent)
+						toolVBox.removeChild(visTitle);
+				}
+				else
+				{
+					if (toolVBox != visTitle.parent)
+						toolVBox.addChildAt(visTitle,0);
+				}
+			}
 		]]>
 	</mx:Script>
 	<ui:editorFactory><mx:Component><ui:ControlPanel>

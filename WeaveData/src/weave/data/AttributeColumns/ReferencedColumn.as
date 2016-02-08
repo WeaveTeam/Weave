@@ -1,33 +1,29 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.AttributeColumns
 {
+	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
+	import weave.api.objectWasDisposed;
+	import weave.api.setSessionState;
 	import weave.api.core.ILinkableDynamicObject;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newDisposableChild;
-	import weave.api.newLinkableChild;
-	import weave.api.objectWasDisposed;
-	import weave.api.setSessionState;
 	import weave.core.CallbackCollection;
 	import weave.core.ClassUtils;
 	import weave.core.LinkableDynamicObject;
@@ -35,6 +31,7 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableVariable;
 	import weave.core.LinkableWatcher;
 	import weave.core.WeaveXMLDecoder;
+	import weave.data.hierarchy.GlobalColumnDataSource;
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	
@@ -47,7 +44,8 @@ package weave.data.AttributeColumns
 	{
 		public function ReferencedColumn()
 		{
-			WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateDataSource);
+			super();
+			WeaveAPI.globalHashMap.childListCallbacks.addImmediateCallback(this, updateDataSource, true);
 		}
 		
 		private var _dataSource:IDataSource;
@@ -55,6 +53,8 @@ package weave.data.AttributeColumns
 		private function updateDataSource():void
 		{
 			var ds:IDataSource = WeaveAPI.globalHashMap.getObject(dataSourceName.value) as IDataSource;
+			if (!ds)
+				ds = GlobalColumnDataSource.getInstance(WeaveAPI.globalHashMap);
 			if (_dataSource != ds)
 			{
 				_dataSource = ds;
@@ -113,13 +113,25 @@ package weave.data.AttributeColumns
 					_dataSource = null;
 				
 				var col:IAttributeColumn = null;
-				if (dataSourceName.value && !_dataSource)
+				var meta:Object = metadata.state;
+				if (dataSourceName.value && !_dataSource && dataSourceName.value != 'null')
 				{
 					// data source was named but not found
 				}
+				else if (!_dataSource)
+				{
+					// data source is not named - get global column
+					var name:String;
+					if (meta is String)
+						name = meta as String;
+					else if (meta && typeof meta === 'object')
+						name = meta['name'];
+					col = WeaveAPI.globalHashMap.getObject(name) as IAttributeColumn;
+				}
 				else
 				{
-					col = WeaveAPI.AttributeColumnCache.getColumn(_dataSource, metadata.getSessionState());
+					// get column from data source
+					col = WeaveAPI.AttributeColumnCache.getColumn(_dataSource, meta);
 				}
 				_columnWatcher.target = _internalColumn = col;
 				
@@ -203,8 +215,8 @@ package weave.data.AttributeColumns
 	}
 }
 
-import weave.api.core.ILinkableObject;
 import weave.api.newLinkableChild;
+import weave.api.core.ILinkableObject;
 import weave.core.LinkableString;
 import weave.core.LinkableXML;
 import weave.data.AttributeColumns.ReferencedColumn;

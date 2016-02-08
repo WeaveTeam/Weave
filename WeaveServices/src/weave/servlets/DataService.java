@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.servlets;
 
@@ -30,15 +26,18 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpSession;
 
 import org.postgis.Geometry;
 import org.postgis.PGgeometry;
@@ -47,9 +46,12 @@ import org.postgis.Point;
 import weave.beans.AttributeColumnData;
 import weave.beans.GeometryStreamMetadata;
 import weave.beans.PGGeom;
+import weave.beans.TableData;
 import weave.beans.WeaveJsonDataSet;
 import weave.beans.WeaveRecordList;
+import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
+import weave.config.ConnectionConfig.WeaveAuthenticationException;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
@@ -59,11 +61,13 @@ import weave.config.DataConfig.EntityHierarchyInfo;
 import weave.config.DataConfig.EntityType;
 import weave.config.DataConfig.PrivateMetadata;
 import weave.config.DataConfig.PublicMetadata;
+import weave.config.WeaveConfig;
 import weave.config.WeaveContextParams;
 import weave.geometrystream.SQLGeometryStreamReader;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
 import weave.utils.MapUtils;
+import weave.utils.Numbers;
 import weave.utils.SQLResult;
 import weave.utils.SQLUtils;
 import weave.utils.SQLUtils.WhereClause;
@@ -85,6 +89,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	
 	public DataService()
 	{
+		//hack_memoizeEverything = new HashMap<String, Object>();
 	}
 	
 	public void init(ServletConfig config) throws ServletException
@@ -96,6 +101,50 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	public void destroy()
 	{
 		SQLUtils.staticCleanup();
+	}
+	
+	///////////////////
+	// Authentication
+	
+	private static final String SESSION_USERNAME = "DataService.user";
+	private static final String SESSION_PASSWORD = "DataService.pass";
+	
+	/**
+	 * @param user
+	 * @param password
+	 * @return true if the user has superuser privileges.
+	 * @throws RemoteException If authentication fails.
+	 */
+	public void authenticate(String username, String password) throws RemoteException
+	{
+		ConnectionConfig connConfig = getConnectionConfig();
+		ConnectionInfo info = connConfig.getConnectionInfo(ConnectionInfo.DIRECTORY_SERVICE, username, password);
+		if (info == null)
+			throw new RemoteException("Incorrect username or password");
+		
+		HttpSession session = getServletRequestInfo().request.getSession(true);
+		session.setAttribute(SESSION_USERNAME, username);
+		session.setAttribute(SESSION_PASSWORD, password);
+	}
+	
+	/**
+	 * Gets static, read-only connection from a ConnectionInfo object using pass-through authentication if necessary.
+	 * @param connInfo
+	 * @return
+	 * @throws RemoteException
+	 */
+	private Connection getStaticReadOnlyConnection(ConnectionInfo connInfo) throws RemoteException
+	{
+ 		if (connInfo.requiresAuthentication())
+ 		{
+ 			HttpSession session = getServletRequestInfo().request.getSession(true);
+ 			String user = (String)session.getAttribute(SESSION_USERNAME);
+ 			String pass = (String)session.getAttribute(SESSION_PASSWORD);
+ 			connInfo = getConnectionConfig().getConnectionInfo(connInfo.name, user, pass);
+ 			if (connInfo == null)
+ 				throw new WeaveAuthenticationException("Incorrect username or password");
+ 		}
+ 		return connInfo.getStaticReadOnlyConnection();
 	}
 	
 	/////////////////////
@@ -146,6 +195,23 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		}
 	}
 	
+	////////////////
+	// Server info
+	
+	public Map<String,Object> getServerInfo() throws RemoteException
+	{
+		ConnectionConfig connConfig = getConnectionConfig();
+		HttpSession session = getServletRequestInfo().request.getSession(true);
+		String username = (String)session.getAttribute(SESSION_USERNAME);
+
+		return MapUtils.fromPairs(
+			"version", WeaveConfig.getVersion(),
+			"authenticatedUser", username,
+			"hasDirectoryService", connConfig.getConnectionInfo(ConnectionInfo.DIRECTORY_SERVICE) != null,
+			"idFields", connConfig.getDatabaseConfigInfo().idFields
+		);
+	}
+	
 	////////////////////
 	// DataEntity info
 	
@@ -181,7 +247,8 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	private static ConnectionInfo getColumnConnectionInfo(DataEntity entity) throws RemoteException
 	{
 		String connName = entity.privateMetadata.get(PrivateMetadata.CONNECTION);
-		ConnectionInfo connInfo = getConnectionConfig().getConnectionInfo(connName);
+		ConnectionConfig connConfig = getConnectionConfig();
+		ConnectionInfo connInfo = connConfig.getConnectionInfo(connName);
  		if (connInfo == null)
 		{
 			String title = entity.publicMetadata.get(PublicMetadata.TITLE);
@@ -190,6 +257,79 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
  		return connInfo;
 	}
 	
+	private static class FakeDataProperties
+	{
+		public int[] dim = new int[]{5};
+		public boolean sequence = false;
+		public double mean = 0;
+		public double stddev = 1;
+		public int digits = 2;
+		public boolean realKeys = false;
+		public int repeat = 1;
+		public boolean repeatKeys = false;
+		public int sort = 0;
+		
+		public int getNumRows()
+		{
+			int numRows = repeat;
+			for (int i = 0; i < dim.length; i++)
+				numRows *= dim[i];
+			return numRows;
+		}
+		
+		public List<String> generateStrings(String prefix, boolean forKeys)
+		{
+			int numRows = getNumRows();
+			List<String> strings = new ArrayList<String>(numRows);
+			generateStrings(strings, 0, prefix, "", forKeys && !repeatKeys);
+			return strings;
+		}
+		
+		private void generateStrings(List<String> output, int depth, String prefix, String suffix, boolean noRepeat)
+		{
+			int n = dim[depth];
+			for (int i = 1; i <= n; i++)
+			{
+				String newSuffix = suffix + "_" + i;
+				if (depth + 1 < dim.length)
+					generateStrings(output, depth + 1, prefix, newSuffix, noRepeat);
+				else
+					for (int r = 0; r < repeat; r++)
+					{
+						if (noRepeat)
+							output.add(prefix + newSuffix + "_" + r);
+						else
+							output.add(prefix + newSuffix);
+					}
+			}
+		}
+		
+		public List<Double> generateDoubles(long seed)
+		{
+			int numRows = getNumRows();
+			List<Double> doubles = new ArrayList<Double>(numRows);
+			Random rand = new Random(seed);
+			Double value = mean;
+			for (int i = 0; i < numRows; i++)
+			{
+				if (sequence)
+				{
+					value += stddev;
+				}
+				else
+				{
+					value = mean + stddev * rand.nextGaussian();
+					value = Numbers.roundSignificant(value, digits);
+				}
+				doubles.add(value);
+			}
+			if (sort != 0)
+				Collections.sort(doubles);
+			if (sort < 0)
+				Collections.reverse(doubles);
+			return doubles;
+		}
+	}
 	
 	/**
 	 * This retrieves the data and the public metadata for a single attribute column.
@@ -201,14 +341,14 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	 * @throws RemoteException
 	 */
 	@SuppressWarnings("unchecked")
-	public AttributeColumnData getColumn(Object columnId, double minParam, double maxParam, String[] sqlParams)
+	public AttributeColumnData getColumn(Object columnId, double minParam, double maxParam, Object[] sqlParams)
 		throws RemoteException
 	{
 		DataEntity entity = null;
 		
 		if (columnId instanceof Map)
 		{
-			@SuppressWarnings({ "rawtypes" })
+			@SuppressWarnings("rawtypes")
 			Map metadata = (Map)columnId;
 			metadata.put(PublicMetadata.ENTITYTYPE, EntityType.COLUMN);
 			int[] ids = findEntityIds(metadata, null);
@@ -241,51 +381,287 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 		}
 		
 		String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
+		String fakeData = entity.publicMetadata.get("fakeData");
 		String dataType = entity.publicMetadata.get(PublicMetadata.DATATYPE);
 		
-		ConnectionInfo connInfo = getColumnConnectionInfo(entity);
+		int tableId = DataConfig.NULL;
+		String tableField = null;
 		
-		List<String> keys = new ArrayList<String>();
+		boolean getRealKeys = true;
+		boolean getRealData = true;
+		
+		// special case when sqlParams is an empty Array - don't query
+		if (sqlParams != null && sqlParams.length == 0)
+		{
+			fakeData = "{dim:[0]}";
+		}
+		else if (Strings.isEmpty(query) && Strings.isEmpty(fakeData))
+		{
+			String entityType = entity.publicMetadata.get(PublicMetadata.ENTITYTYPE);
+			tableField = entity.privateMetadata.get(PrivateMetadata.SQLCOLUMN);
+			
+			if (!Strings.equal(entityType, EntityType.COLUMN))
+				throw new RemoteException(String.format("Entity %s has no sqlQuery and is not a column (entityType=%s)", entity.id, entityType));
+			
+			if (Strings.isEmpty(tableField))
+				throw new RemoteException(String.format("Entity %s has no sqlQuery and no sqlColumn private metadata", entity.id));
+			
+			// if there's no query, the query lives in the table entity instead of the column entity
+			DataConfig config = getDataConfig();
+			List<Integer> parentIds = config.getParentIds(entity.id);
+			Map<Integer, String> idToType = config.getEntityTypes(parentIds);
+			for (int id : parentIds)
+			{
+				if (Strings.equal(idToType.get(id), EntityType.TABLE))
+				{
+					tableId = id;
+					break;
+				}
+			}
+		}
+		
+		List<String> keys = null;
 		List<Double> numericData = null;
 		List<String> stringData = null;
 		List<Object> thirdColumn = null; // hack for dimension slider format
 		List<PGGeom> geometricData = null;
-		
-		// use config min,max or param min,max to filter the data
-		double minValue = Double.NaN;
-		double maxValue = Double.NaN;
-		
-		// server min,max values take priority over user-specified params
-		if (entity.publicMetadata.containsKey(PublicMetadata.MIN))
+
+		if (!Strings.isEmpty(fakeData))
 		{
-			try {
-				minValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MIN));
-			} catch (Exception e) { }
-		}
-		else
-		{
-			minValue = minParam;
-		}
-		if (entity.publicMetadata.containsKey(PublicMetadata.MAX))
-		{
-			try {
-				maxValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MAX));
-			} catch (Exception e) { }
-		}
-		else
-		{
-			maxValue = maxParam;
+			FakeDataProperties props;
+			try
+			{
+				props = GSON.fromJson(fakeData, FakeDataProperties.class);
+			}
+			catch (Exception e)
+			{
+				throw new RemoteException(String.format("Unable to retrieve data for column %s (Invalid \"fakeData\" JSON)", columnId));
+			}
+			
+			getRealKeys = props.realKeys;
+			getRealData = false;
+			
+			String title = entity.publicMetadata.get(PublicMetadata.TITLE);
+			String keyType = entity.publicMetadata.get(PublicMetadata.KEYTYPE);
+			String sqlParamsStr = "key";
+			if (sqlParams != null)
+				sqlParamsStr = GSON.toJson(sqlParams);
+			
+			if (!getRealKeys)
+				keys = props.generateStrings(sqlParamsStr, true);
+			
+			if (Strings.equal(dataType, DataType.NUMBER) || Strings.equal(dataType, DataType.DATE))
+			{
+				int seed = title.hashCode() ^ keyType.hashCode() ^ sqlParamsStr.hashCode();
+				numericData = props.generateDoubles(seed);
+			}
+			else
+				stringData = props.generateStrings(title, false);
 		}
 		
-		if (Double.isNaN(minValue))
-			minValue = Double.NEGATIVE_INFINITY;
+		if (!Strings.isEmpty(query) && (getRealKeys || getRealData))
+		{
+			ConnectionInfo connInfo = getColumnConnectionInfo(entity);
+			
+			keys = new ArrayList<String>();
+			
+			////// begin MIN/MAX code
+			
+			// use config min,max or param min,max to filter the data
+			double minValue = Double.NaN;
+			double maxValue = Double.NaN;
+			
+			// server min,max values take priority over user-specified params
+			if (entity.publicMetadata.containsKey(PublicMetadata.MIN))
+			{
+				try {
+					minValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MIN));
+				} catch (Exception e) { }
+			}
+			else
+			{
+				minValue = minParam;
+			}
+			if (entity.publicMetadata.containsKey(PublicMetadata.MAX))
+			{
+				try {
+					maxValue = Double.parseDouble(entity.publicMetadata.get(PublicMetadata.MAX));
+				} catch (Exception e) { }
+			}
+			else
+			{
+				maxValue = maxParam;
+			}
+			
+			if (Double.isNaN(minValue))
+				minValue = Double.NEGATIVE_INFINITY;
+			
+			if (Double.isNaN(maxValue))
+				maxValue = Double.POSITIVE_INFINITY;
+			
+			////// end MIN/MAX code
+			
+			try
+			{
+				Connection conn = getStaticReadOnlyConnection(connInfo);
+				
+				// use default sqlParams if not specified by query params
+				if (sqlParams == null)
+				{
+					String sqlParamsString = entity.privateMetadata.get(PrivateMetadata.SQLPARAMS);
+					try
+					{
+						sqlParams = (Object[])GSON.fromJson(sqlParamsString, Object[].class);
+					}
+					catch (Exception e)
+					{
+						sqlParams = CSVParser.defaultParser.parseCSVRow(sqlParamsString, true);
+					}
+				}
+				
+				SQLResult result = SQLUtils.getResultFromQuery(conn, query, sqlParams, false);
+				
+				// if dataType is defined in the config file, use that value.
+				// otherwise, derive it from the sql result.
+				if (Strings.isEmpty(dataType))
+				{
+					dataType = DataType.fromSQLType(result.columnTypes[1]);
+					entity.publicMetadata.put(PublicMetadata.DATATYPE, dataType); // fill in missing metadata for the client
+				}
+				
+				if (!getRealData)
+				{
+					// do nothing
+				}
+				else if (dataType.equalsIgnoreCase(DataType.NUMBER)) // special case: "number" => Double
+				{
+					numericData = new LinkedList<Double>();
+				}
+				else if (dataType.equalsIgnoreCase(DataType.GEOMETRY))
+				{
+					geometricData = new LinkedList<PGGeom>();
+				}
+				else
+				{
+					stringData = new LinkedList<String>();
+				}
+				
+				// hack for dimension slider format
+				if (getRealData && result.columnTypes.length == 3)
+					thirdColumn = new LinkedList<Object>();
+				
+				Object keyObj, dataObj;
+				double value;
+				for (int i = 0; i < result.rows.length; i++)
+				{
+					keyObj = result.rows[i][0];
+					if (keyObj == null)
+						continue;
+					
+					dataObj = result.rows[i][1];
+					if (dataObj == null)
+						continue;
+					
+					if (numericData != null)
+					{
+						try
+						{
+							if (dataObj instanceof String)
+								dataObj = Double.parseDouble((String)dataObj);
+							value = ((Number)dataObj).doubleValue();
+						}
+						catch (Exception e)
+						{
+							continue;
+						}
+						// filter the data based on the min,max values
+						if (minValue <= value && value <= maxValue)
+							numericData.add(value);
+						else
+							continue;
+					}
+					else if (geometricData != null)
+					{
+						// The dataObj must be cast to PGgeometry before an individual Geometry can be extracted.
+						if (!(dataObj instanceof PGgeometry))
+							continue;
+						Geometry geom = ((PGgeometry) dataObj).getGeometry();
+						int numPoints = geom.numPoints();
+						// Create PGGeom Bean here and fill it up!
+						PGGeom bean = new PGGeom();
+						bean.type = geom.getType();
+						bean.xyCoords = new double[numPoints * 2];
+						for (int j = 0; j < numPoints; j++)
+						{
+							Point pt = geom.getPoint(j);
+							bean.xyCoords[j * 2] = pt.x;
+							bean.xyCoords[j * 2 + 1] = pt.y;
+						}
+						geometricData.add(bean);
+					}
+					else if (stringData != null)
+					{
+						stringData.add(dataObj.toString());
+					}
+					
+					// if we got here, it means a data value was added, so add the corresponding key
+					keys.add(keyObj.toString());
+					
+					// hack for dimension slider format
+					if (thirdColumn != null)
+						thirdColumn.add(result.rows[i][2]);
+				}
+			}
+			catch (SQLException e)
+			{
+				System.err.println(query);
+				e.printStackTrace();
+				throw new RemoteException(String.format("Unable to retrieve data for column %s", columnId));
+			}
+			catch (NullPointerException e)
+			{
+				e.printStackTrace();
+				throw new RemoteException("Unexpected error", e);
+			}
+		}
+
+		AttributeColumnData result = new AttributeColumnData();
+		result.id = entity.id;
+		result.tableId = tableId;
+		result.tableField = tableField;
+		result.metadata = entity.publicMetadata;
+		if (keys != null)
+			result.keys = keys.toArray(new String[keys.size()]);
+		if (numericData != null)
+			result.data = numericData.toArray();
+		else if (geometricData != null)
+			result.data = geometricData.toArray();
+		else if (stringData != null)
+			result.data = stringData.toArray();
+		// hack for dimension slider
+		if (thirdColumn != null)
+			result.thirdColumn = thirdColumn.toArray();
 		
-		if (Double.isNaN(maxValue))
-			maxValue = Double.POSITIVE_INFINITY;
+		// truncate fake data or keys if necessary
+		if ((!getRealData || !getRealKeys) && result.keys != null && result.data != null && result.keys.length != result.data.length)
+		{
+			int minLength = Math.min(result.keys.length, result.data.length);
+			result.keys = Arrays.copyOf(result.keys, minLength);
+			result.data = Arrays.copyOf(result.data, minLength);
+		}
 		
+		return result;
+	}
+	
+	public TableData getTable(int id, Object[] sqlParams) throws RemoteException
+	{
+		DataEntity entity = getDataConfig().getEntity(id);
+		ConnectionInfo connInfo = getColumnConnectionInfo(entity);
+		String query = entity.privateMetadata.get(PrivateMetadata.SQLQUERY);
+		Map<String, Object[]> data = new HashMap<String, Object[]>();
 		try
 		{
-			Connection conn = connInfo.getStaticReadOnlyConnection();
+			Connection conn = getStaticReadOnlyConnection(connInfo);
 			
 			// use default sqlParams if not specified by query params
 			if (sqlParams == null || sqlParams.length == 0)
@@ -296,118 +672,33 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 			
 			SQLResult result = SQLUtils.getResultFromQuery(conn, query, sqlParams, false);
 			
-			// if dataType is defined in the config file, use that value.
-			// otherwise, derive it from the sql result.
-			if (Strings.isEmpty(dataType))
+			// transpose
+			int iColCount = result.columnNames.length;
+			int iRowCount = result.rows.length;
+			for (int iCol = 0; iCol < iColCount; iCol++)
 			{
-				dataType = DataType.fromSQLType(result.columnTypes[1]);
-				entity.publicMetadata.put(PublicMetadata.DATATYPE, dataType); // fill in missing metadata for the client
-			}
-			if (dataType.equalsIgnoreCase(DataType.NUMBER)) // special case: "number" => Double
-			{
-				numericData = new LinkedList<Double>();
-			}
-			else if (dataType.equalsIgnoreCase(DataType.GEOMETRY))
-			{
-				geometricData = new LinkedList<PGGeom>();
-			}
-			else
-			{
-				stringData = new LinkedList<String>();
-			}
-			
-			// hack for dimension slider format
-			if (result.columnTypes.length == 3)
-				thirdColumn = new LinkedList<Object>();
-			
-			Object keyObj, dataObj;
-			double value;
-			for (int i = 0; i < result.rows.length; i++)
-			{
-				keyObj = result.rows[i][0];
-				if (keyObj == null)
-					continue;
-				
-				dataObj = result.rows[i][1];
-				if (dataObj == null)
-					continue;
-				
-				if (numericData != null)
-				{
-					try
-					{
-						if (dataObj instanceof String)
-							dataObj = Double.parseDouble((String)dataObj);
-						value = ((Number)dataObj).doubleValue();
-					}
-					catch (Exception e)
-					{
-						continue;
-					}
-					// filter the data based on the min,max values
-					if (minValue <= value && value <= maxValue)
-						numericData.add(value);
-					else
-						continue;
-				}
-				else if (geometricData != null)
-				{
-					// The dataObj must be cast to PGgeometry before an individual Geometry can be extracted.
-					if (!(dataObj instanceof PGgeometry))
-						continue;
-					Geometry geom = ((PGgeometry) dataObj).getGeometry();
-					int numPoints = geom.numPoints();
-					// Create PGGeom Bean here and fill it up!
-					PGGeom bean = new PGGeom();
-					bean.type = geom.getType();
-					bean.xyCoords = new double[numPoints * 2];
-					for (int j = 0; j < numPoints; j++)
-					{
-						Point pt = geom.getPoint(j);
-						bean.xyCoords[j * 2] = pt.x;
-						bean.xyCoords[j * 2 + 1] = pt.y;
-					}
-					geometricData.add(bean);
-				}
-				else
-				{
-					stringData.add(dataObj.toString());
-				}
-				
-				// if we got here, it means a data value was added, so add the corresponding key
-				keys.add(keyObj.toString());
-				
-				// hack for dimension slider format
-				if (thirdColumn != null)
-					thirdColumn.add(result.rows[i][2]);
+				Object[] column = new Object[result.rows.length];
+				for (int iRow = 0; iRow < iRowCount; iRow++)
+					column[iRow] = result.rows[iRow][iCol];
+				data.put(result.columnNames[iCol], column);
 			}
 		}
 		catch (SQLException e)
 		{
 			System.err.println(query);
 			e.printStackTrace();
-			throw new RemoteException(String.format("Unable to retrieve data for column %s", columnId));
+			throw new RemoteException(String.format("Unable to retrieve data for table %s", id));
 		}
 		catch (NullPointerException e)
 		{
 			e.printStackTrace();
 			throw new RemoteException("Unexpected error", e);
 		}
-
-		AttributeColumnData result = new AttributeColumnData();
-		result.id = entity.id;
-		result.metadata = entity.publicMetadata;
-		result.keys = keys.toArray(new String[keys.size()]);
-		if (numericData != null)
-			result.data = numericData.toArray();
-		else if (geometricData != null)
-			result.data = geometricData.toArray();
-		else
-			result.data = stringData.toArray();
-		// hack for dimension slider
-		if (thirdColumn != null)
-			result.thirdColumn = thirdColumn.toArray();
 		
+		TableData result = new TableData();
+		result.id = id;
+		result.keyColumns = CSVParser.defaultParser.parseCSVRow(entity.privateMetadata.get(PrivateMetadata.SQLKEYCOLUMN), true);
+		result.columns = data;
 		return result;
 	}
 	
@@ -465,7 +756,7 @@ public class DataService extends WeaveServlet implements IWeaveEntityService
 	{
 		assertStreamingGeometryColumn(entity, true);
 		
-		Connection conn = getColumnConnectionInfo(entity).getStaticReadOnlyConnection();
+		Connection conn = getStaticReadOnlyConnection(getColumnConnectionInfo(entity));
 		String schema = entity.privateMetadata.get(PrivateMetadata.SQLSCHEMA);
 		String tablePrefix = entity.privateMetadata.get(PrivateMetadata.SQLTABLEPREFIX);
 		try

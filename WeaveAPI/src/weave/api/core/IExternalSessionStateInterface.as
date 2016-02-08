@@ -1,10 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  *
- * This file is part of the Weave API.
+ * This file is part of Weave.
  *
- * The Initial Developer of the Weave API is the Institute for Visualization
+ * The Initial Developer of Weave is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
  * the Initial Developer. All Rights Reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -133,10 +133,11 @@ package weave.api.core
 		 * @param callback The callback function.
 		 * @param triggerCallbackNow If this is set to true, the callback will be triggered after it is added.
 		 * @param immediateMode If this is set to true, addImmediateCallback() will be used.  Otherwise, addGroupedCallback() will be used.
+		 * @param delayWhileBusy Specifies whether to delay the callback while the object is busy.
 		 * @return true if successful.
 		 * @see weave.api.core.ICallbackCollection#addGroupedCallback
 		 */
-		function addCallback(scopeObjectPathOrVariableName:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false):Boolean;
+		function addCallback(scopeObjectPathOrVariableName:Object, callback:Function, triggerCallbackNow:Boolean = false, immediateMode:Boolean = false, delayWhileBusy:Boolean = true):Boolean;
 		
 		/**
 		 * This function will remove a callback that was previously added.

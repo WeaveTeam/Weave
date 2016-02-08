@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.DataSources
 {
@@ -28,6 +24,8 @@ package weave.data.DataSources
 	import weave.api.data.IWeaveTreeNode;
 	import weave.api.getCallbackCollection;
 	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
+	import weave.core.CallbackCollection;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.utils.HierarchyUtils;
 	
@@ -61,6 +59,25 @@ package weave.data.DataSources
 		 * ProxyColumn -> (true if pending, false if not pending)
 		 */
 		protected var _proxyColumns:Dictionary = new Dictionary(true);
+		
+		private const _hierarchyRefresh:ICallbackCollection = newLinkableChild(this, CallbackCollection, refreshHierarchy);
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function get hierarchyRefresh():ICallbackCollection
+		{
+			return _hierarchyRefresh;
+		}
+		
+		/**
+		 * Sets _rootNode to null and triggers callbacks.
+		 * @inheritDoc
+		 */
+		protected function refreshHierarchy():void
+		{
+			_rootNode = null;
+		}
 		
 		/**
 		 * This function must be implemented by classes that extend AbstractDataSource.
@@ -108,22 +125,14 @@ package weave.data.DataSources
 		 * This function will be called as a grouped callback the frame after the session state for the data source changes.
 		 * When overriding this function, super.initialize() should be called.
 		 */
-		protected function initialize():void
+		protected function initialize(forceRefresh:Boolean = false):void
 		{
 			// set initialized to true so other parts of the code know if this function has been called.
 			_initializeCalled = true;
-
-			handleAllPendingColumnRequests();
-		}
-		
-		/**
-		 * Sets _rootNode to null and triggers callbacks.
-		 * @inheritDoc
-		 */
-		public function refreshHierarchy():void
-		{
-			_rootNode = null;
-			getCallbackCollection(this).triggerCallbacks();
+			if (forceRefresh)
+				refreshAllProxyColumns(initializationComplete);
+			else
+				handleAllPendingColumnRequests(initializationComplete);
 		}
 		
 		/**
@@ -136,7 +145,7 @@ package weave.data.DataSources
 		 */
 		public function findHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
-			var path:Array = HierarchyUtils.findPathToNode(_rootNode, generateHierarchyNode(metadata));
+			var path:Array = HierarchyUtils.findPathToNode(getHierarchyRoot(), generateHierarchyNode(metadata));
 			if (path)
 				return path[path.length - 1];
 			return null;
@@ -151,7 +160,9 @@ package weave.data.DataSources
 		{
 			var proxyColumn:ProxyColumn = newDisposableChild(this, ProxyColumn);
 			proxyColumn.setMetadata(metadata);
-			WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn);
+			var description:String = (WeaveAPI.globalHashMap.getName(this) || debugId(this)) + " pending column request";
+			WeaveAPI.ProgressIndicator.addTask(proxyColumn, this, description);
+			WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn, description);
 			handlePendingColumnRequest(proxyColumn);
 			return proxyColumn;
 		}
@@ -164,11 +175,11 @@ package weave.data.DataSources
 		 * for the pending column, it is recommended to call super.handlePendingColumnRequest() instead.
 		 * @param request The request that needs to be handled.
 		 */
-		protected function handlePendingColumnRequest(column:ProxyColumn):void
+		protected function handlePendingColumnRequest(column:ProxyColumn, forced:Boolean = false):void
 		{
 			// If data source is already initialized (session state is stable, not currently changing), we can request the column now.
 			// Otherwise, we have to wait.
-			if (initializationComplete)
+			if (initializationComplete || forced)
 			{
 				_proxyColumns[column] = false; // no longer pending
 				WeaveAPI.ProgressIndicator.removeTask(column);
@@ -183,20 +194,20 @@ package weave.data.DataSources
 		/**
 		 * This function will call handlePendingColumnRequest() on each pending column request.
 		 */
-		protected function handleAllPendingColumnRequests():void
+		protected function handleAllPendingColumnRequests(forced:Boolean = false):void
 		{
 			for (var proxyColumn:Object in _proxyColumns)
 				if (_proxyColumns[proxyColumn]) // pending?
-					handlePendingColumnRequest(proxyColumn as ProxyColumn);
+					handlePendingColumnRequest(proxyColumn as ProxyColumn, forced);
 		}
 		
 		/**
 		 * Calls requestColumnFromSource() on all ProxyColumn objects created previously via getAttributeColumn().
 		 */
-		protected function refreshAllProxyColumns():void
+		protected function refreshAllProxyColumns(forced:Boolean = false):void
 		{
 			for (var proxyColumn:Object in _proxyColumns)
-				handlePendingColumnRequest(proxyColumn as ProxyColumn);
+				handlePendingColumnRequest(proxyColumn as ProxyColumn, forced);
 		}
 		
 		/**
@@ -205,6 +216,8 @@ package weave.data.DataSources
 		 */
 		public function dispose():void
 		{
+			for (var column:Object in _proxyColumns)
+				WeaveAPI.ProgressIndicator.removeTask(column);
 			_initializeCalled = false;
 			_proxyColumns = null;
 		}

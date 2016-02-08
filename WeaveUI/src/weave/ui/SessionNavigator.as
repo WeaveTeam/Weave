@@ -1,21 +1,18 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+
 package weave.ui
 {
 	import flash.events.Event;
@@ -27,21 +24,29 @@ package weave.ui
 	import mx.events.ListEvent;
 	
 	import weave.api.core.ILinkableObject;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.reportError;
+	import weave.api.ui.IObjectWithDescription;
 	import weave.compiler.Compiler;
+	import weave.compiler.StandardLib;
+	import weave.core.LinkableWatcher;
 	import weave.core.SessionManager;
 	import weave.primitives.WeaveTreeItem;
 			
-	public class SessionNavigator extends CustomTree
+	public class SessionNavigator extends CustomTree implements ILinkableObject
 	{
 			override protected function itemToUID(data:Object):String
 			{
 				if (data is WeaveTreeItem)
-					data = (data as WeaveTreeItem).source;
+					data = (data as WeaveTreeItem).data;
 				return super.itemToUID(data);
 			}
 			private function compareItems(a:WeaveTreeItem, b:WeaveTreeItem):Boolean
 			{
-				return (a && b) ? a.source === b.source : a === b;
+				return (a && b) ? a.data === b.data : a === b;
 			}
 			override public function getItemIndex(item:Object):int
 			{
@@ -53,7 +58,7 @@ package weave.ui
 					
 					var a:WeaveTreeItem = cursor.current as WeaveTreeItem;
 					var b:WeaveTreeItem = item as WeaveTreeItem;
-					if ((a && b) ? a.source === b.source : a === b)
+					if ((a && b) ? a.data === b.data : a === b)
 						break;
 					i++;
 				}
@@ -63,7 +68,6 @@ package weave.ui
 			}
 			
 			private var _linkableObjectName:String;
-			private var _linkableObjectTypeFilter:Class = null;
 			private var _overrideSelectedItem:WeaveTreeItem;
 			private var _rootObject:ILinkableObject;
 			private var _treeChanged:Boolean;
@@ -91,6 +95,7 @@ package weave.ui
 				
 				if (rootObject == null)
 					rootObject = WeaveAPI.globalHashMap;
+				getCallbackCollection(WeaveAPI.EditorManager).addGroupedCallback(this, invalidateList);
 				(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, handleTreeChange);
 			}
 			
@@ -115,8 +120,14 @@ package weave.ui
 				if (_rootObject == value)
 					return;
 				
+				if (_rootObject)
+					getCallbackCollection(_rootObject).removeCallback(invalidateList);
+				
 				_rootObject = value;
 				
+				if (_rootObject)
+					getCallbackCollection(_rootObject).addGroupedCallback(this, invalidateList);
+
 				if (_rootObject == WeaveAPI.globalHashMap)
 				{
 					_linkableObjectName = "Weave";
@@ -136,7 +147,7 @@ package weave.ui
 			
 			private function updateRootNode():void
 			{
-				var rootNode:WeaveTreeItem = (WeaveAPI.SessionManager as SessionManager).getSessionStateTree(_rootObject, _linkableObjectName, _linkableObjectTypeFilter);
+				var rootNode:WeaveTreeItem = (WeaveAPI.SessionManager as SessionManager).getSessionStateTree(_rootObject, _linkableObjectName);
 				refreshDataProvider(rootNode);
 				expandItem(rootNode, true);
 			}
@@ -144,9 +155,26 @@ package weave.ui
 			private function nodeLabelFunction(item:WeaveTreeItem):String
 			{
 				// append class name to the label.
-				var label:String = getQualifiedClassName(item.source).split("::").pop();
+				var label:String = getQualifiedClassName(item.data).split("::").pop();
 				if (item.label)
 					label += ' ' + Compiler.encodeString(item.label);
+				
+				// get editor label
+				var editorLabel:String = WeaveAPI.EditorManager.getLabel(item.data as ILinkableObject);
+				// get description
+				var description:String = null;
+				var iowd:IObjectWithDescription = item.data as IObjectWithDescription
+				if (iowd)
+					description = iowd.getDescription();
+				else if (item.data is IAttributeColumn)
+					description = (item.data as IAttributeColumn).getMetadata(ColumnMetadata.TITLE);
+				
+				var inParens:String = editorLabel || description;
+				if (editorLabel && description)
+					inParens = editorLabel + ': ' + description;
+				if (inParens)
+					label += StandardLib.substitute(' ({0})', inParens);
+				
 				return label;
 			}
 			
@@ -162,19 +190,32 @@ package weave.ui
 			
 			public function set linkableObjectTypeFilter(className:Class):void
 			{
-				_linkableObjectTypeFilter = className;
+				reportError("linkableObjectTypeFilter not implemented");
+				//_linkableObjectTypeFilter = className;
 				updateRootNode();
 			}
 			
-			public function getSelectedPath(fromGlobalHashMap:Boolean = true):Array
+			public function getSelectedPath():Array
 			{
-				var root:ILinkableObject = fromGlobalHashMap ? WeaveAPI.globalHashMap : rootObject;
-				return WeaveAPI.SessionManager.getPath(root, getSelectedLinkableObject());
+				return WeaveAPI.getPath(getSelectedLinkableObject());
+			}
+			
+			public function setSelectedLinkableObject(object:ILinkableObject):void
+			{
+				if (object)
+				{
+					var tree:WeaveTreeItem = (WeaveAPI.SessionManager as SessionManager).getSessionStateTree(object, null);
+					scrollToAndSelectMatchingItem(tree);
+					expandItem(tree, true);
+					setFocus();
+				}
+				else
+					selectedItem = null;
 			}
 			
 			public function getSelectedLinkableObject():ILinkableObject
 			{
-				return selectedTreeItem ? selectedTreeItem.source : null;
+				return selectedTreeItem ? selectedTreeItem.data as ILinkableObject : null;
 			}
 			
 			[Bindable("change")]

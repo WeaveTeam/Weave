@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.core
 {
@@ -36,14 +32,16 @@ package weave.core
 	 */
 	internal class Synchronizer implements IDisposableObject
 	{
-		public function Synchronizer(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void
+		public function Synchronizer(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false, delayWhenFocused:Boolean = true):void
 		{
 			sm.registerDisposableChild(bindableParent, this);
+			sm.registerDisposableChild(linkableVariable, this);
 			this.linkableVariable = linkableVariable;
 			this.bindableParent = bindableParent;
 			this.bindablePropertyName = bindablePropertyName;
 			this.delay = delay;
 			this.onlyWhenFocused = onlyWhenFocused;
+			this.delayWhenFocused = delayWhenFocused;
 			this.callbackCollection = sm.getCallbackCollection(linkableVariable);
 			this.uiComponent = bindableParent as UIComponent;
 			
@@ -59,12 +57,21 @@ package weave.core
 			
 			// when the session state changes, set the bindable property
 			if (this.callbackCollection)
+			{
 				this.callbackCollection.addImmediateCallback(bindableParent, synchronize);
+				this.callbackCollection.addDisposeCallback(bindableParent, linkableVariableDisposeCallback);
+			}
+		}
+		
+		private function linkableVariableDisposeCallback():void
+		{
+			WeaveAPI.SessionManager.disposeObject(this);
 		}
 		
 		public function dispose():void
 		{
-			this.callbackCollection.removeCallback(synchronize);
+			if (this.callbackCollection)
+				this.callbackCollection.removeCallback(synchronize);
 			if (this.watcher)
 				this.watcher.unwatch();
 			
@@ -84,6 +91,7 @@ package weave.core
 		private var bindablePropertyName:String;
 		private var delay:uint;
 		private var onlyWhenFocused:Boolean;
+		private var delayWhenFocused:Boolean;
 		private var watcher:ChangeWatcher;
 		private var uiComponent:UIComponent;
 		private var useLinkableValue:Boolean = true;
@@ -96,11 +104,11 @@ package weave.core
 			var bind:String = (!useLinkableBefore && !useLinkableAfter ? 'BIND' : 'bind') + '(' + Compiler.stringify(bindVal) + ')';
 			var str:String = link + ', ' + bind;
 			if (useLinkableBefore && !useLinkableAfter)
-			str = link + ' = ' + bind;
+				str = link + ' = ' + bind;
 			if (!useLinkableBefore && useLinkableAfter)
-			str = bind + ' = ' + link;
+				str = bind + ' = ' + link;
 			if (callingLater)
-			str += ' (callingLater)';
+				str += ' (callingLater)';
 			
 			trace(str);
 		}
@@ -136,14 +144,15 @@ package weave.core
 			if (!callingLater)
 			{
 				// remember which value changed last -- the linkable one or the bindable one
-				useLinkableValue = firstParam === undefined; // true when called from linkable variable grouped callback
+				useLinkableValue = firstParam === undefined; // true when called from linkable variable callback
 				// if we're not calling later and there is already a timestamp, just wait for the callLater to trigger
 				if (callLaterTime)
 				{
 					// if there is a callLater waiting to trigger, update the target time
 					callLaterTime = useLinkableValue ? int.MAX_VALUE : getTimer() + delay;
 					
-					//trace('\tdelaying the timer some more');
+					if (debug)
+						trace('\tdelaying the timer some more (' + (callLaterTime - getTimer()) + ')');
 					
 					return;
 				}
@@ -153,7 +162,7 @@ package weave.core
 			var bindableValue:Object = bindableParent[bindablePropertyName];
 			if (uiComponent && !(bindableValue is Boolean))
 			{
-				if (UIUtils.hasFocus(uiComponent))
+				if (watcher && UIUtils.hasFocus(uiComponent))
 				{
 					if (linkableVariable is LinkableVariable)
 					{
@@ -184,7 +193,12 @@ package weave.core
 					
 					// if we're not calling later, set the target time (int.MAX_VALUE means delay until focus is lost)
 					if (!callingLater)
-						callLaterTime = useLinkableValue ? int.MAX_VALUE : currentTime + delay;
+					{
+						if (delayWhenFocused && useLinkableValue)
+							callLaterTime = int.MAX_VALUE;
+						else
+							callLaterTime = currentTime + delay;
+					}
 					
 					// if we haven't reached the target time yet or callbacks are delayed, call later
 					if (currentTime < callLaterTime)
@@ -197,6 +211,8 @@ package weave.core
 				else if (!useLinkableValue && onlyWhenFocused && !callingLater)
 				{
 					// component does not have focus, so ignore the bindableValue.
+					if (debug)
+						trace('\tno focus, cancelled');
 					return;
 				}
 				
@@ -206,7 +222,7 @@ package weave.core
 			}
 			
 			// if the linkable variable's callbacks are delayed, delay synchronization
-			if (sm.getCallbackCollection(linkableVariable).callbacksAreDelayed)
+			if (watcher && sm.getCallbackCollection(linkableVariable).callbacksAreDelayed)
 			{
 				// firstParam is ignored when callingLater=true
 				WeaveAPI.StageUtils.callLater(this, synchronize, [firstParam, true]);
@@ -230,7 +246,9 @@ package weave.core
 						else
 						{
 							linkableVariable.setSessionState(Number(linkableValue));
-							linkableValue = linkableVariable.getSessionState();
+							// need to check if linkableVariable is still there because setting the state may cause this Synchronizer to be disposed.
+							if (linkableVariable)
+								linkableValue = linkableVariable.getSessionState();
 						}
 					} catch (e:Error) { }
 				}
@@ -249,7 +267,8 @@ package weave.core
 				// be constraints on the session state that will prevent the callbacks
 				// from triggering if the bindable value does not match those constraints.
 				// This makes UIComponents update to the real value after they lose focus.
-				if (callbackCollection.triggerCounter == prevCount && !recursiveCall)
+				// We also have to check if the callbackCollection is set because setting the session state may cause this Synchronizer to be disposed.
+				if (callbackCollection && callbackCollection.triggerCounter == prevCount && !recursiveCall)
 				{
 					// avoid infinite recursion in the case where the new value is not accepted by a verifier function
 					recursiveCall = true;

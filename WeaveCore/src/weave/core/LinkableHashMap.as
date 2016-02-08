@@ -1,34 +1,31 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.core
 {
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
-	import weave.api.core.DynamicState;
-	import weave.api.core.IChildListCallbackInterface;
-	import weave.api.core.ILinkableHashMap;
-	import weave.api.core.ILinkableObject;
 	import weave.api.disposeObject;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.core.DynamicState;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.core.IChildListCallbackInterface;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.core.ILinkableObject;
 	
 	/**
 	 * Allows dynamically creating instances of objects implementing ILinkableObject at runtime.
@@ -186,6 +183,9 @@ package weave.core
 			//var className:String = getQualifiedClassName(objectToCopy);
 			var classDef:Class = Object(objectToCopy).constructor; //ClassUtils.getClassDefinition(className);
 			var sessionState:Object = WeaveAPI.SessionManager.getSessionState(objectToCopy);
+			//  if the name refers to the same object, remove the existing object so it can be replaced with a new one.
+			if (name == getName(objectToCopy))
+				removeObject(name);
 			var object:ILinkableObject = requestObject(name, classDef, false);
 			if (object != null)
 				WeaveAPI.SessionManager.setSessionState(object, sessionState);
@@ -233,7 +233,7 @@ package weave.core
 				// if no name is specified, generate a unique one now.
 				if (!name)
 					name = generateUniqueName(className.split("::").pop());
-				if ( ClassUtils.classImplements(className, SessionManager.ILinkableObjectQualifiedClassName)
+				if ( ClassUtils.classImplements(className, SessionManager.ILinkableObject_QName)
 					&& (_typeRestriction == null || ClassUtils.classIs(className, _typeRestrictionClassName)) )
 				{
 //					try
@@ -413,6 +413,8 @@ package weave.core
 			//trace(LinkableHashMap, "setSessionState "+setMissingValuesToNull, ObjectUtil.toString(newState.qualifiedClassNames), ObjectUtil.toString(newState));
 			// first pass: make sure the types match and sessioned properties are instantiated.
 			var i:int;
+			var delayed:Array = [];
+			var callbacks:ICallbackCollection;
 			var objectName:String;
 			var className:String;
 			var typedState:Object;
@@ -421,11 +423,19 @@ package weave.core
 			var newNameOrder:Array = []; // the order the object names appear in the vector
 			if (newStateArray != null)
 			{
+				// first pass: delay callbacks of all children
+				for each (objectName in _orderedNames)
+				{
+					callbacks = WeaveAPI.SessionManager.getCallbackCollection(_nameToObjectMap[objectName]);
+					delayed.push(callbacks)
+					callbacks.delayCallbacks();
+				}
+				
 				// initialize all the objects before setting their session states because they may refer to each other.
 				for (i = 0; i < newStateArray.length; i++)
 				{
 					typedState = newStateArray[i];
-					if (!DynamicState.isDynamicState(typedState))
+					if (!DynamicState.isDynamicState(typedState, true))
 						continue;
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					className = typedState[DynamicState.CLASS_NAME];
@@ -439,7 +449,16 @@ package weave.core
 					if (_nameToObjectMap[objectName] != initObjectByClassName(objectName, className))
 						newObjects[objectName] = true;
 				}
-				// second pass: copy the session state for each property that is defined.
+				
+				// next pass: delay callbacks of all children (again, because there may be new children)
+				for each (objectName in _orderedNames)
+				{
+					callbacks = WeaveAPI.SessionManager.getCallbackCollection(_nameToObjectMap[objectName]);
+					delayed.push(callbacks)
+					callbacks.delayCallbacks();
+				}
+				
+				// next pass: copy the session state for each property that is defined.
 				// Also remember the ordered list of names that appear in the session state.
 				for (i = 0; i < newStateArray.length; i++)
 				{
@@ -453,7 +472,7 @@ package weave.core
 						continue;
 					}
 					
-					if (!DynamicState.isDynamicState(typedState))
+					if (!DynamicState.isDynamicState(typedState, true))
 						continue;
 					objectName = typedState[DynamicState.OBJECT_NAME];
 					if (objectName == null)
@@ -482,6 +501,13 @@ package weave.core
 			}
 			// update name order AFTER objects have been added and removed.
 			setNameOrder(newNameOrder);
+			
+			// final pass: resume all callbacks
+			
+			// next pass: delay callbacks of all children
+			for each (callbacks in delayed)
+				if (!WeaveAPI.SessionManager.objectWasDisposed(callbacks))
+					callbacks.resumeCallbacks();
 			
 			resumeCallbacks();
 		}

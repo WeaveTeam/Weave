@@ -1,26 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 -->
 <DraggablePanel xmlns="weave.ui.*" xmlns:mx="http://www.adobe.com/2006/mxml" 
-				implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes"
+				implements="weave.api.ui.IVisTool_Utility, weave.api.ui.ISelectableAttributes,weave.api.core.IDisposableObject"
 				layout="vertical" xmlns:tools="weave.visualization.tools.*" xmlns:editors="weave.editors.*">
 	
 	<CustomViewStack id="layoutViewStack" width="100%" height="100%">
@@ -34,26 +30,40 @@
 		<mx:Canvas label="{lang('Combo Box')}">
 			<CustomComboBox id="choiceCombo"
 							width="100%" height="100%" minHeight="0"
-							labelFunction="choiceLabelFunction"
-							valueCommit="if (UIUtils.hasFocus(choiceCombo)) handleAttrSelected(choiceCombo.selectedIndex);"
-							change="if (alwaysShowPrompt.value) choiceCombo.selectedIndex = -1;"
-							/>
+							cornerRadius="0" highlightAlphas="{[0, 0]}" fillAlphas="{[0, 0]}"
+							labelFunction="choiceLabelFunction">
+				<valueCommit>
+					<![CDATA[
+						if (!_settingComboSelection && UIUtils.hasFocus(choiceCombo))
+						{
+							_settingComboSelection = true;
+							var tc:int = selectedAttribute.triggerCounter;
+							handleAttrSelected(choiceCombo.selectedIndex);
+							if (tc == selectedAttribute.triggerCounter)
+								handleSelectedAttributeChange();
+							_settingComboSelection = false;
+						}
+					]]>
+				</valueCommit>
+			</CustomComboBox>
 		</mx:Canvas>
 		<mx:Canvas label="{lang('Vertical Slider')}">
 			<mx:VSlider id="choiceVSlider" liveDragging="true" tickInterval="1"
 						width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-						change="handleAttrSelected(choiceVSlider.maximum - choiceVSlider.value);"
+						change="if (UIUtils.hasFocus(choiceVSlider)) handleAttrSelected(choiceVSlider.maximum - choiceVSlider.value);"
+						mouseDown="choiceVSlider.setFocus()" click="handleSelectedAttributeChange()"
 						/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 		</mx:Canvas>
 		<mx:Canvas label="{lang('Horizontal Slider')}">
 			<mx:HBox verticalAlign="middle" width="100%" height="100%">
 				<mx:VBox creationComplete="UIUtils.linkVisibility(this, showPlayButton, event.target)" horizontalAlign="center">
 					<mx:Button id="playButton" label="&gt;" toggle="true" toolTip="{lang('Play')}" click="handlePlayClick();"/>
-					<mx:HSlider id="playSlider" width="48" minWidth="0" minimum=".5" maximum="2" tickInterval="0.5" snapInterval="0.25" value=".75" dataTipFormatFunction="{formatPlayTip}" liveDragging="true"/>
+					<mx:HSlider id="playSlider" fillAlphas="{[1, 1]}" width="48" minWidth="0" minimum=".5" maximum="2" tickInterval="0.5" snapInterval="0.25" value=".75" dataTipFormatFunction="{formatPlayTip}" liveDragging="true"/>
 				</mx:VBox>
-				<mx:HSlider id="choiceHSlider" liveDragging="true" tickInterval="1"
+				<mx:HSlider id="choiceHSlider" fillAlphas="{[1, 1]}" liveDragging="true" tickInterval="1"
 							width="100%" height="100%" snapInterval="1" minimum="0" minHeight="0" showDataTip="false"
-							change="handleAttrSelected(choiceHSlider.value);"
+							change="if (UIUtils.hasFocus(choiceHSlider)) handleAttrSelected(choiceHSlider.value);"
+							mouseDown="choiceHSlider.setFocus()" click="handleSelectedAttributeChange()"
 							/><!-- slider may not have focus (bar may be clicked instead of thumb) -->
 			</mx:HBox>
 		</mx:Canvas>
@@ -128,26 +138,54 @@
 					
 					choicesComponent.hashMap = outerDocument.choices;
 					linkBindableProperty(outerDocument.layoutMode, layoutCombo, 'selectedItem');
-					(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, handleGlobalListChange, true);
+					(WeaveAPI.SessionManager as SessionManager).addTreeCallback(this, function():void { _recheckDescendants = true; }, true);
 					getCallbackCollection(outerDocument.toolWatcher).addGroupedCallback(this, handleToolChange);
 					outerDocument.targetAttribute.addImmediateCallback(this, handleTargetAttributeChange);
 					handleToolChange();
+					outerDocument.targetToolPath.addGroupedCallback(this, updateToolComboText, true);
+					targetToolCombo.addEventListener(MouseEvent.MOUSE_DOWN, updateTargetToolComboDataProvider, true);
+					targetToolCombo.addEventListener(KeyboardEvent.KEY_DOWN, updateTargetToolComboDataProvider, true);
+					updateTargetToolComboDataProvider();
+				}
+				
+				private function updateToolComboText():void
+				{
+					var path:Array = outerDocument.targetToolPath.getSessionState() as Array;
+					if (path)
+						targetToolCombo.text = toolLabelFunction(pathToString(path));
+					else
+						targetToolCombo.selectedIndex = -1;
 				}
 
+				private var _recheckDescendants:Boolean = true;
 				private var _prevDescendants:Array;
 				
 				// called whenever a global object gets added/removed/reordered
-				private function handleGlobalListChange():void
+				private function updateTargetToolComboDataProvider(event:Event = null):void
 				{
+					if (!parent)
+					{
+						callLater(updateTargetToolComboDataProvider);
+						return;
+					}
+					
+					if (!_recheckDescendants)
+						return;
+					
 					// update the list of tools
 					var descendants:Array = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, ISelectableAttributes);
+					
 					// two filter passes because the filter function may modify the array on the first pass
 					descendants = descendants.filter(outerDocument.filterDescendants).filter(outerDocument.filterDescendants).map(objectToPathString);
+					
 					StandardLib.sort(descendants);
 					if (StandardLib.compare(_prevDescendants, descendants) != 0)
 						targetToolCombo.dataProvider = _prevDescendants = descendants;
 					// make sure the correct item is selected
 					targetToolCombo.selectedItem = pathToString(outerDocument.targetToolPath.getSessionState() as Array);
+					
+					if (_prevDescendants.length)
+						_recheckDescendants = false;
 				}
 				
 				private var _stringToPath:Object = {};
@@ -159,7 +197,7 @@
 				}
 				private function objectToPathString(object:ILinkableObject, i:int, a:Array):String
 				{
-					var path:Array = WeaveAPI.SessionManager.getPath(WeaveAPI.globalHashMap, object);
+					var path:Array = WeaveAPI.getPath(object);
 					return pathToString(path);
 				}
 				
@@ -228,6 +266,8 @@
 	</ControlPanel></mx:Component></editorFactory>
 	<mx:Script>
 		<![CDATA[
+			import weave.api.detectLinkableObjectChange;
+			import weave.api.objectWasDisposed;
 			import mx.core.UIComponent;
 			
 			import weave.api.copySessionState;
@@ -263,6 +303,8 @@
 
 			WeaveAPI.ClassRegistry.registerImplementation(IVisTool, AttributeMenuTool, "Attribute Menu Tool");
 
+			private static const ALL_INSTANCES:Dictionary = new Dictionary(true); // AMT -> true
+			
 			internal const DEFAULT_LABEL_FUNCTION:String = 'column.getMetadata("title")';
 			
 			private function handlePlayClick():void
@@ -322,11 +364,13 @@
 			public const layoutMode:LinkableString = registerLinkableChild(this, new LinkableString(layouts[0], verifyLayoutMode));
 			public const labelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction(DEFAULT_LABEL_FUNCTION, true, false, ['column']), handleChoicesChange);
 			public const selectedAttribute:LinkableString = newLinkableChild(this, LinkableString, handleSelectedAttributeChange);
+			public const useChoiceIndex:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), handleSelectedAttributeChange, true);
 			public const showPlayButton:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 			public const autoPlayRepeat:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 			internal const toolWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(ISelectableAttributes), handleToolChange, true);
 			private var _attrNames:Array = [];
 			private var _attrs:Array = [];
+			private var _settingComboSelection:Boolean = false;
 			
 			private function verifyTargetAttribute(value:*):Boolean
 			{
@@ -335,7 +379,12 @@
 			
 			public function getSelectedLabel():String
 			{
-				var column:IAttributeColumn = choices.getObject(selectedAttribute.value) as IAttributeColumn;
+				var selected:String = selectedAttribute.value;
+				var column:IAttributeColumn;
+				if (useChoiceIndex.value)
+					column = (choices.getObjects()[selected]) as IAttributeColumn;
+				else
+					column = choices.getObject(selectedAttribute.value) as IAttributeColumn;
 				return choiceLabelFunction(column);
 			}
 			
@@ -368,7 +417,9 @@
 			override protected function inConstructor():void
 			{
 				super.inConstructor();
-				
+
+				ALL_INSTANCES[this] = true;
+
 				// have a default dynamic title
 				panelTitle.value = lang('Attribute menu for {0}', '{targetAttributeName}');
 				
@@ -382,7 +433,10 @@
 				
 				var ltf:LinkableTextFormat = LinkableTextFormat.defaultTextFormat;
 				var target:UIComponent = this;
-				getCallbackCollection(ltf).addGroupedCallback(this, function():void { ltf.copyToStyle(target); }, true);
+				getCallbackCollection(ltf).addGroupedCallback(this, function():void {
+					ltf.copyToStyle(target);
+					ltf.copyToStyle(choiceCombo);
+				}, true);
 				
 				addEventListener(Event.ENTER_FRAME, enterFrame);
 				
@@ -468,16 +522,24 @@
 				
 				// backwards compatibility
 				var tool:ISelectableAttributes = getTargetTool();
-				if (tool && tool.getSelectableAttributes().length == 0)
+				if (tool)
 				{
-					var sm:ISessionManager = WeaveAPI.SessionManager;
-					var descendants:Array = sm.getLinkableDescendants(tool, ISelectableAttributes);
-					descendants = descendants.filter(filterDescendants).filter(filterDescendants);
-					if (descendants.length)
+					var attrNames:Array = tool.getSelectableAttributeNames();
+					if (attrNames.length == 0 || attrNames.indexOf(targetAttributeName) < 0)
 					{
-						var path:Array = sm.getPath(WeaveAPI.globalHashMap, descendants[0]);
-						targetToolPath.setSessionState(path);
-						toolWatcher.targetPath = path;
+						var sm:ISessionManager = WeaveAPI.SessionManager;
+						var descendants:Array = sm.getLinkableDescendants(tool, ISelectableAttributes);
+						descendants = descendants.filter(filterDescendants).filter(filterDescendants);
+						if (descendants.length)
+						{
+							tool = descendants[0];
+							if (tool.getSelectableAttributeNames().indexOf(targetAttributeName) >= 0)
+							{
+								var path:Array = sm.getPath(WeaveAPI.globalHashMap, tool);
+								targetToolPath.setSessionState(path);
+								toolWatcher.targetPath = path;
+							}
+						}
 					}
 				}
 			}
@@ -532,6 +594,9 @@
 				choiceHSlider.labels = names;
 				choiceVSlider.maximum = names.length - 1;
 				choiceHSlider.maximum = names.length - 1;
+				
+				if (useChoiceIndex.value || layoutMode.value == 'VSlider' || layoutMode.value == 'HSlider')
+					handleSelectedAttributeChange();
 			}
 			
 			// called when the user clicks on the combo in the main AttributeMenuTool window
@@ -541,7 +606,13 @@
 				var choiceNames:Array = choices.getNames(IAttributeColumn);
 				var selectedName:String = choiceNames[selectedIndex];
 				
-				if (selectedAttribute.value != selectedName)
+				if (useChoiceIndex.value && selectedAttribute.value != selectedIndex.toString())
+				{
+					// setting this will cause a recursive call, so we can return afterwards
+					selectedAttribute.value = selectedIndex.toString();
+					return;
+				}
+				if (!useChoiceIndex.value && selectedAttribute.value != selectedName)
 				{
 					// setting this will cause a recursive call, so we can return afterwards
 					selectedAttribute.value = selectedName;
@@ -560,6 +631,12 @@
 				
 				// stop if target attribute is not configured properly or session state is not initialized yet
 				if (index < 0 || index >= _attrs.length)
+					return;
+				
+				// Note that this is not a complete solution since restarting Weave may cause
+				// the selected attribute from multiple AttributeMenuTools to apply in a
+				// different order on startup.
+				if (!detectLinkableObjectChange(handleAttrSelected, targetToolPath, targetAttribute, selectedAttribute, useChoiceIndex, choices))
 					return;
 				
 				// using the index, get the corresponding "SelectableAttribute" from the tool
@@ -594,8 +671,25 @@
 					return;
 				}
 				
+				// if the two AMTs target the same tool and attribute, clear the selection of the other AMT
+				// note that this is mostly cosmetic and does not take care of all cases
+				if (selectedAttribute.getSessionState() != null)
+				{
+					for (var key:* in ALL_INSTANCES)
+					{
+						var other:AttributeMenuTool = key;
+						if (other === this)
+							continue;
+						if (StandardLib.compare(this.targetToolPath.getSessionState(), other.targetToolPath.getSessionState()) == 0
+							&& StandardLib.compare(this.targetAttribute.getSessionState(), other.targetAttribute.getSessionState()) == 0)
+						{
+							other.selectedAttribute.setSessionState(null);
+						}
+					}
+				}
+				
 				var names:Array = choices.getNames();
-				var selectedIndex:int = names.indexOf(selectedAttribute.value);
+				var selectedIndex:int = useChoiceIndex.value ? StandardLib.asNumber(selectedAttribute.value) : names.indexOf(selectedAttribute.value);
 				choiceCombo.selectedIndex = alwaysShowPrompt.value ? -1 : selectedIndex;
 				choiceList.selectedIndex = selectedIndex;
 				if (selectedIndex >= 0)
@@ -613,6 +707,20 @@
 			public function getSelectableAttributeNames():Array
 			{
 				return ["Choices"];
+			}
+			
+			override public function dispose():void
+			{
+				delete ALL_INSTANCES[this];
+				super.dispose();
+			}
+			
+			override public function sendWindowToForeground():void
+			{
+				super.sendWindowToForeground();
+				// Note that this is not a complete solution since replaying session state and then
+				// reloading it may cause selected attribute to apply in different order on startup.
+//				handleSelectedAttributeChange();
 			}
 			
 			//----------------------------------------------

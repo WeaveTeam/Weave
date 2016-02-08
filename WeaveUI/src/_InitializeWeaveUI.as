@@ -1,21 +1,17 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package
 {
@@ -27,6 +23,7 @@ package
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.DataSources.CKANDataSource;
 	import weave.data.DataSources.CSVDataSource;
+	import weave.data.DataSources.CensusDataSource;
 	import weave.data.DataSources.DBFDataSource;
 	import weave.data.DataSources.GeoJSONDataSource;
 	import weave.data.DataSources.GraphMLDataSource;
@@ -35,15 +32,15 @@ package
 	import weave.data.DataSources.WFSDataSource;
 	import weave.data.DataSources.WeaveDataSource;
 	import weave.data.DataSources.XLSDataSource;
-	import weave.data.KeySets.NumberDataFilter;
-	import weave.data.KeySets.StringDataFilter;
 	import weave.data.Transforms.ForeignDataMappingTransform;
 	import weave.data.Transforms.GroupedDataTransform;
 	import weave.data.Transforms.PartitionDataTransform;
 	import weave.editors.AxisLabelPlotterEditor;
 	import weave.editors.CKANDataSourceEditor;
 	import weave.editors.CSVDataSourceEditor;
+	import weave.editors.CensusDataSourceEditor;
 	import weave.editors.DBFDataSourceEditor;
+	import weave.editors.DiscreteValuesDataFilterEditor;
 	import weave.editors.DynamicColumnEditor;
 	import weave.editors.ForeignDataMappingTransformEditor;
 	import weave.editors.GeoJSONDataSourceEditor;
@@ -54,13 +51,12 @@ package
 	import weave.editors.GridLinePlotterEditor;
 	import weave.editors.GroupedDataTransformEditor;
 	import weave.editors.ImageGlyphPlotterEditor;
-	import weave.editors.NumberDataFilterEditor;
+	import weave.editors.NumericRangeDataFilterEditor;
 	import weave.editors.PartitionDataTransformEditor;
 	import weave.editors.ScatterPlotPlotterEditor;
 	import weave.editors.SessionHistorySlider;
 	import weave.editors.SingleImagePlotterEditor;
 	import weave.editors.SocrataDataSourceEditor;
-	import weave.editors.StringDataFilterEditor;
 	import weave.editors.TransposedDataSourceEditor;
 	import weave.editors.WFSDataSourceEditor;
 	import weave.editors.WMSPlotterEditor;
@@ -69,12 +65,13 @@ package
 	import weave.primitives.ColorRamp;
 	import weave.ui.AttributeMenuTool;
 	import weave.ui.ColorRampEditor;
-	import weave.ui.DataFilter;
+	import weave.ui.DataFilterTool;
 	import weave.ui.FontControl;
 	import weave.ui.RTextEditor;
 	import weave.ui.SchafersMissingDataTool;
 	import weave.ui.SessionStateEditor;
-	import weave.ui.annotation.SessionedTextBox;
+	import weave.ui.SessionStateMenuTool;
+	import weave.ui.TextTool;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.AxisLabelPlotter;
 	import weave.visualization.plotters.GeometryLabelPlotter;
@@ -146,6 +143,7 @@ package
 			em.registerEditor(WFSDataSource, WFSDataSourceEditor);
 			em.registerEditor(XLSDataSource, XLSDataSourceEditor);
 			em.registerEditor(DBFDataSource, DBFDataSourceEditor);
+			em.registerEditor(CensusDataSource, CensusDataSourceEditor);
 			em.registerEditor(CSVDataSource, CSVDataSourceEditor);
 			em.registerEditor(GraphMLDataSource, GraphMLDataSourceEditor);
 			em.registerEditor(TransposedDataSource, TransposedDataSourceEditor);
@@ -155,9 +153,6 @@ package
 			em.registerEditor(CKANDataSource, CKANDataSourceEditor);
 			em.registerEditor(SocrataDataSource, SocrataDataSourceEditor);
 			em.registerEditor(GeoJSONDataSource, GeoJSONDataSourceEditor);
-			
-			em.registerEditor(StringDataFilter, StringDataFilterEditor);
-			em.registerEditor(NumberDataFilter, NumberDataFilterEditor);
 			
 			em.registerEditor(GeometryRelationPlotter, GeometryRelationPlotterEditor);
 			em.registerEditor(GeometryLabelPlotter, GeometryLabelPlotterEditor);
@@ -186,7 +181,7 @@ package
 				CustomGraphicsTool,
 				CytoscapeWebTool,
 				SchafersMissingDataTool,
-				DataFilter,
+				DataFilterTool,
 				AdvancedTableTool,
 				GaugeTool,
 				HistogramTool,
@@ -210,7 +205,8 @@ package
 				TreeTool,
 				KeyMappingTool,
 				LayerSettingsTool,
-				ParallelCoordinatesTool
+				ParallelCoordinatesTool,
+				SessionStateMenuTool
 			]);
 			
 			/**
@@ -236,9 +232,13 @@ package
 			
 			ClassUtils.registerDeprecatedClass("EmptyTool", CustomTool);
 			ClassUtils.registerDeprecatedClass("WMSPlotter2", WMSPlotter);
-			ClassUtils.registerDeprecatedClass("SessionedTextArea", SessionedTextBox);
+			ClassUtils.registerDeprecatedClass("SessionedTextArea", TextTool);
+			ClassUtils.registerDeprecatedClass("weave.ui.annotation.SessionedTextBox", TextTool);
 			ClassUtils.registerDeprecatedClass("weave.visualization.tools.DataTableTool", AdvancedTableTool);
 			ClassUtils.registerDeprecatedClass("weave.api.ui.IObjectWithSelectableAttributes", ISelectableAttributes);
+			ClassUtils.registerDeprecatedClass("weave.ui.DataFilter", DataFilterTool);
+			ClassUtils.registerDeprecatedClass("weave.editors.StringDataFilterEditor", DiscreteValuesDataFilterEditor);
+			ClassUtils.registerDeprecatedClass("weave.editors.NumberDataFilterEditor", NumericRangeDataFilterEditor);
 		}();
 	}
 }

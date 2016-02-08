@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.core
 {
@@ -80,12 +76,11 @@ package weave.core
 		}
 		
 		/**
-		 * Storage for registerDeprecatedClass()
+		 * Storage for registerDeprecatedClass() must be separate from Compiler.classAliases for isClassDeprecated() to work.
 		 * Keys in this Object use dot notation rather than "::" package notation.
 		 * @see #registerDeprecatedClass()
-		 * @see Compiler#deprecatedClassReplacements
 		 */
-		private static const _deprecatedLookup:Object = Compiler.deprecatedClassReplacements;
+		private static const _deprecatedLookup:Object = {};
 		
 		/**
 		 * Registers a replacement class for a deprecated qualified class name.
@@ -97,19 +92,27 @@ package weave.core
 			if (deprecatedClassQName.indexOf("::") >= 0)
 				deprecatedClassQName = StandardLib.replace(deprecatedClassQName, "::", ".");
 			
+			// cache in both places
 			_deprecatedLookup[deprecatedClassQName] = replacementClass;
+			Compiler.classAliases[deprecatedClassQName] = replacementClass;
 			
 			// handle case when package is not specified
 			var shortName:String = deprecatedClassQName.substr(deprecatedClassQName.lastIndexOf('.') + 1);
 			if (!_deprecatedLookup[shortName])
+			{
 				_deprecatedLookup[shortName] = replacementClass;
+				Compiler.classAliases[shortName] = replacementClass;
+			}
 			
 			// make sure class can be looked up by name (in case it's an internal class)
 			deprecatedClassQName = getQualifiedClassName(replacementClass);
 			if (deprecatedClassQName.indexOf("::") >= 0)
 				deprecatedClassQName = StandardLib.replace(deprecatedClassQName, "::", ".");
 			if (!getClassDefinition(deprecatedClassQName))
+			{
 				_deprecatedLookup[deprecatedClassQName] = replacementClass;
+				Compiler.classAliases[deprecatedClassQName] = replacementClass;
+			}
 		}
 
 		/**

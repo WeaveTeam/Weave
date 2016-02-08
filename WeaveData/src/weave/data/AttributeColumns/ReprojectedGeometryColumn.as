@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.AttributeColumns
 {
@@ -25,6 +21,7 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.ui.IObjectWithDescription;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableString;
 	import weave.core.LinkableWatcher;
@@ -35,17 +32,25 @@ package weave.data.AttributeColumns
 	 * 
 	 * @author adufilie
 	 */
-	public class ReprojectedGeometryColumn extends ExtendedDynamicColumn
+	public class ReprojectedGeometryColumn extends ExtendedDynamicColumn implements IObjectWithDescription
 	{
-		private function debugTrace(..._):void { } // comment this line to enable debugging
-		
 		public function ReprojectedGeometryColumn()
 		{
+			super();
 			// force the internal column to always be a ReferencedColumn
 			addImmediateCallback(this, updateReprojectedColumn);
-			
-			var self:Object = this;
-			boundingBoxCallbacks.addImmediateCallback(this, function():void{ debugTrace(self, 'boundingBoxCallbacks', boundingBoxCallbacks); });
+		}
+		
+		public function getDescription():String
+		{
+			var title:String = internalDynamicColumn.getMetadata(ColumnMetadata.TITLE);
+			var srcproj:String = internalDynamicColumn.getMetadata(ColumnMetadata.PROJECTION);
+			var destproj:String = this.getMetadata(ColumnMetadata.PROJECTION);
+			if (destproj && srcproj != destproj)
+				return lang('{0} ({1} -> {2})', title, srcproj || '?', destproj);
+			else if (srcproj)
+				return lang('{0} ({1})', title, srcproj);
+			return title;
 		}
 		
 		/**
@@ -59,7 +64,7 @@ package weave.data.AttributeColumns
 			if (propertyName == ColumnMetadata.PROJECTION)
 			{
 				var srs:String = projectionSRS.value;
-				if (srs != null && srs != '')
+				if (srs)
 					return srs;
 			}
 			
@@ -97,9 +102,6 @@ package weave.data.AttributeColumns
 			
 			// get the callback target that should trigger boundingBoxCallbacks
 			var newTarget:ILinkableObject = _unprojectedColumn ? _unprojectedColumn.boundingBoxCallbacks : _reprojectedColumn;
-			
-			debugTrace(this, '_unprojectedColumn =', _unprojectedColumn);
-			debugTrace(this, 'target =', newTarget);
 			
 			boundingBoxCallbacksTriggerWatcher.target = newTarget;
 		}

@@ -1,34 +1,38 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.utils
 {
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.IBitmapDrawable;
+	import flash.display.Stage;
 	import flash.external.ExternalInterface;
 	import flash.geom.Matrix;
+	import flash.geom.Point;
 	import flash.utils.ByteArray;
 	
+	import mx.core.BitmapAsset;
 	import mx.core.IFlexDisplayObject;
+	import mx.core.UIComponent;
+	import mx.events.ToolTipEvent;
 	import mx.graphics.ImageSnapshot;
 	import mx.graphics.codec.PNGEncoder;
+	
+	import spark.components.BorderContainer;
+	import spark.primitives.BitmapImage;
 	
 	import weave.compiler.StandardLib;
 	
@@ -78,6 +82,16 @@ package weave.utils
 //		
 		// reusable temporary objects
 		private static var tempMatrix:Matrix = new Matrix();
+
+		[Embed(source="/weave/resources/images/missing.png")]
+		private static var _missingImageClass:Class;
+		private static var _missingImage:BitmapData;
+		public static function get MISSING_IMAGE():BitmapData
+		{
+			if (!_missingImage)
+				_missingImage = (new _missingImageClass() as BitmapAsset).bitmapData;
+			return _missingImage;
+		}
 		
 		/**
 		 * This function will draw an image centered on an x,y coordinate.
@@ -231,5 +245,57 @@ package weave.utils
 				base64data
 			);
 		}
+		
+		
+		public static function setBitmapDataToolTip(component:UIComponent, getBitmapData:Function):void
+		{
+			component.toolTip = ' ';
+			component.addEventListener(ToolTipEvent.TOOL_TIP_SHOWN, onToolTipShown);
+			component.addEventListener(ToolTipEvent.TOOL_TIP_HIDE, onToolTipHide);
+			function onToolTipShown(event:ToolTipEvent):void
+			{
+				var bitmapData:BitmapData = getBitmapData() as BitmapData;
+				if (bitmapData)
+				{
+					if (!staticBitmapBorder)
+					{
+						staticBitmapBorder = new BorderContainer();
+						staticBitmap = new BitmapImage();
+						staticBitmapBorder.addElement(staticBitmap);
+					}
+					staticBitmap.source = bitmapData;
+					staticBitmapBorder.x = 0;
+					staticBitmapBorder.y = 0;
+					staticBitmapBorder.width = bitmapData.width + 2;
+					staticBitmapBorder.height = bitmapData.height + 2;
+					(event.toolTip as UIComponent).addChild(staticBitmapBorder);
+					
+					// reposition so it's on the screen
+					var p:Point = event.toolTip.localToGlobal(new Point(0, 0));
+					var stage:Stage = event.toolTip.stage as Stage;
+					var sw:Number = stage.stageWidth;
+					var sh:Number = stage.stageHeight;
+					if (p.x + bitmapData.width > sw)
+						p.x = stage.mouseX - bitmapData.width - 2;
+					if (p.y + bitmapData.height > sh)
+						p.y = stage.mouseY - bitmapData.height - 2;
+					p = event.toolTip.parent.globalToLocal(p);
+					event.toolTip.x = p.x;
+					event.toolTip.y = p.y;
+				}
+				else
+				{
+					event.toolTip.visible = false;
+				}
+			}
+			function onToolTipHide(event:ToolTipEvent):void
+			{
+				if ((event.toolTip as UIComponent).contains(staticBitmapBorder))
+					(event.toolTip as UIComponent).removeChild(staticBitmapBorder);
+			}
+		}
+		
+		private static var staticBitmapBorder:BorderContainer;
+		private static var staticBitmap:BitmapImage;
 	}
 }

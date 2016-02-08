@@ -1,22 +1,17 @@
-
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
@@ -131,10 +126,8 @@ package weave.visualization.plotters
 		// TODO This should go somewhere else...
 		/**
 		 * This is the compiled function to apply to the title of the tool.
-		 * 
-		 * @default string  
 		 */		
-		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
+		public const legendTitleFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('column.getMetadata("title")', true, false, ['string', 'column']));
 		
 		private const statsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 		
@@ -211,7 +204,7 @@ package weave.visualization.plotters
 			if (internalColorColumn == null)
 				return; // draw nothing
 			var binnedColumn:BinnedColumn = internalColorColumn.getInternalColumn() as BinnedColumn;
-			if (binnedColumn && binnedColumn.binningDefinition.internalObject)
+			if (binnedColumn && binnedColumn.numberOfBins)
 				drawBinnedPlot(recordKeys, dataBounds, screenBounds, destination);
 			else
 				drawContinuousPlot(recordKeys, dataBounds, screenBounds, destination);
@@ -237,10 +230,16 @@ package weave.visualization.plotters
 			lineStyle.beginLineStyle(null, tempShape.graphics);
 			tempShape.graphics.drawRect(tempBounds.getXNumericMin(), tempBounds.getYNumericMin(), tempBounds.getXCoverage() - 1, tempBounds.getYCoverage() - 1);
 			
-			var minLabel:String = ColumnUtils.deriveStringFromNumber(dataColumn, stats.getMin());
+			var minLabel:String = ColumnUtils.deriveStringFromNumber(dataColumn, colorColumn.getDataMin());
 			LegendUtils.renderLegendItemText(destination, minLabel, screenBounds, _shapeSize + labelGap, null, reverseOrder.value ? BitmapText.VERTICAL_ALIGN_BOTTOM : BitmapText.VERTICAL_ALIGN_TOP);
 			
-			var maxLabel:String = ColumnUtils.deriveStringFromNumber(dataColumn, stats.getMax());
+			if (colorColumn.rampCenterAtZero.value)
+			{
+				var midLabel:String = ColumnUtils.deriveStringFromNumber(dataColumn, 0);
+				LegendUtils.renderLegendItemText(destination, midLabel, screenBounds, _shapeSize + labelGap, null, BitmapText.VERTICAL_ALIGN_MIDDLE);
+			}
+			
+			var maxLabel:String = ColumnUtils.deriveStringFromNumber(dataColumn, colorColumn.getDataMax());
 			LegendUtils.renderLegendItemText(destination, maxLabel, screenBounds, _shapeSize + labelGap, null, reverseOrder.value ? BitmapText.VERTICAL_ALIGN_TOP : BitmapText.VERTICAL_ALIGN_BOTTOM);
 			
 			destination.draw(tempShape);
@@ -267,8 +266,6 @@ package weave.visualization.plotters
 			var xShapeOffset:Number = _shapeSize / 2; 
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(colorColumn.internalDynamicColumn);
 			statsWatcher.target = stats;
-			var internalMin:Number = stats.getMin();
-			var internalMax:Number = stats.getMax();
 			var binCount:int = binnedColumn.numberOfBins;
 			for (var iBin:int = 0; iBin < binCount; ++iBin)
 			{
@@ -288,7 +285,7 @@ package weave.visualization.plotters
 				
 				// draw circle
 				var iColorIndex:int = reverseOrder.value ? (binCount - 1 - iBin) : iBin;
-				var color:Number = colorColumn.ramp.getColorFromNorm(StandardLib.normalize(iBin, internalMin, internalMax));
+				var color:Number = colorColumn.getColorFromDataValue(iBin);
 				var xMin:Number = tempBounds.getXNumericMin(); 
 				var yMin:Number = tempBounds.getYNumericMin();
 				var xMax:Number = tempBounds.getXNumericMax(); 

@@ -1,26 +1,20 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.layers
 {
-	import com.cartogrammar.drawing.DashedLine;
-	
 	import flash.display.Graphics;
 	import flash.display.InteractiveObject;
 	import flash.events.ContextMenuEvent;
@@ -37,10 +31,11 @@ package weave.visualization.layers
 	import spark.components.Group;
 	
 	import weave.Weave;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.getSessionState;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.IDynamicKeyFilter;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -51,6 +46,7 @@ package weave.visualization.layers
 	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.CustomCursorManager;
+	import weave.utils.DrawUtils;
 	import weave.utils.ProbeTextUtils;
 	import weave.utils.VectorUtils;
 	import weave.utils.ZoomUtils;
@@ -91,9 +87,6 @@ package weave.visualization.layers
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_DOWN, this, handleKeyboardEvent);
 			WeaveAPI.StageUtils.addEventCallback(KeyboardEvent.KEY_UP, this, handleKeyboardEvent);
 			WeaveAPI.StageUtils.addEventCallback(StageUtils.POINT_CLICK_EVENT, this, _handlePointClick);
-			
-			Weave.properties.dashedSelectionBox.addImmediateCallback(this, validateDashedLine, true);
-			
 		}
 		
 		override protected function createChildren():void
@@ -167,7 +160,10 @@ package weave.visualization.layers
 			}
 			if (!enableSelection.value && isModeSelection(_mouseMode))
 			{
-				_mouseMode = null;//Weave.properties.toolInteractions.defaultDragMode.value;
+				if (enableZoomAndPan.value)
+					_mouseMode = InteractionController.PAN;
+				else
+					_mouseMode = null;//Weave.properties.toolInteractions.defaultDragMode.value;
 			}
 			
 			updateMouseCursor();
@@ -239,14 +235,24 @@ package weave.visualization.layers
 			handleMouseEvent(event);
 		}
 		
-		private var hack_mouseDownSelectionState:Object = null;
+		private var mouseDownSelectionState:Object = null; // layer name -> selection state
+		private function getAllLayerSelectionState():Object
+		{
+			var result:Object = {};
+			for each (var name:String in plotManager.layerSettings.getNames())
+			{
+				var idkf:IDynamicKeyFilter = (plotManager.layerSettings.getObject(name) as LayerSettings).selectionFilter;
+				result[name] = idkf.internalObject ? getSessionState(idkf.internalObject) : null;
+			}
+			return result;
+		}
+		
 		protected function handleMouseDown(event:MouseEvent):void
 		{			
 			updateMouseMode(InteractionController.INPUT_DRAG); // modifier keys may have changed just prior to pressing mouse button, so update mode now
 			
 			//for detecting change between drag start and drag end
-			// TEMPORARY HACK - Weave.defaultSelectionKeySet
-			hack_mouseDownSelectionState = getSessionState(Weave.defaultSelectionKeySet);
+			mouseDownSelectionState = getAllLayerSelectionState();
 			
 			mouseDragActive = true;
 			// clear probe when drag starts
@@ -593,58 +599,38 @@ package weave.visualization.layers
 			_selectionGraphicsCleared = false; 
 			
 			// use a blue rectangle for zoom mode, green for selection
-			_dashedLine.graphics = g; 
+			var lineColor:Number;
 			if (_mouseMode == InteractionController.ZOOM)
-			{
-				_dashedLine.lineStyle(2, Weave.properties.dashedZoomColor.value, .75);
-			}
+				lineColor = Weave.properties.dashedZoomColor.value;
 			else
-			{
-				_dashedLine.lineStyle(2, Weave.properties.dashedSelectionColor.value, .75);
-			}
+				lineColor = Weave.properties.dashedSelectionColor.value;
 			
-			mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
-			var localMinPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
-			mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
-			var localMaxPoint:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
-			
-			var dragX:Number = localMinPoint.x;
-			var dragY:Number = localMinPoint.y;
-			var dragWidth:Number = localMaxPoint.x - localMinPoint.x;
-			var dragHeight:Number = localMaxPoint.y - localMinPoint.y;
+			var dashedLengths:Array = Weave.properties.dashedLengths.getSessionState() as Array;
 			
 			// init temp bounds for reprojecting coordinates
 			plotManager.zoomBounds.getDataBounds(tempDataBounds);
 			plotManager.zoomBounds.getScreenBounds(tempScreenBounds);
 			
+			g.lineStyle(2, lineColor, .75, false, 'normal', 'none');
 			if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_RECTANGLE || _mouseMode == InteractionController.ZOOM)
 			{
-				_dashedLine.drawRect(dragX, dragY, dragWidth, dragHeight);
+				mouseDragStageCoords.getMinPoint(tempPoint); // stage coords
+				var min:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+				mouseDragStageCoords.getMaxPoint(tempPoint); // stage coords
+				var max:Point = selectionCanvas.globalToLocal(tempPoint); // local screen coords
+				
+				DrawUtils.drawDashedLine(g, [min, new Point(min.x, max.y), max], dashedLengths);
+				DrawUtils.drawDashedLine(g, [min, new Point(max.x, min.y), max], dashedLengths);
 			}
 			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_CIRCLE)
 			{
-				var coords:Array = getCircleLocalScreenCoords();
-				for (var i:int = 0; i <= coords.length; i++)
-				{
-					var point:Point = coords[i % coords.length];
-					if (i == 0)
-						_dashedLine.moveTo(point.x, point.y);
-					else
-						_dashedLine.lineTo(point.x, point.y);
-				}
+				DrawUtils.drawDashedLine(g, getCircleLocalScreenCoords(), dashedLengths);
 			}
 			else if (Weave.properties.selectionMode.value == InteractionController.SELECTION_MODE_LASSO)
 			{
-				fillPolygon(g, _dashedLine.lineColor, 0.05, _lassoScreenPoints);
-				
-				for (var k:int = 0; k <= _lassoScreenPoints.length; k++)
-				{
-					var kp:Point = _lassoScreenPoints[k % _lassoScreenPoints.length];
-					if (k == 0)
-						_dashedLine.moveTo(kp.x, kp.y);
-					else
-						_dashedLine.lineTo(kp.x, kp.y);
-				}
+				var lassoPolygon:Array = _lassoScreenPoints.concat(_lassoScreenPoints[0]);
+				DrawUtils.drawDashedLine(g, lassoPolygon, dashedLengths);
+				fillPolygon(g, lineColor, 0.05, lassoPolygon);
 			}
 		}
 		
@@ -682,7 +668,7 @@ package weave.visualization.layers
 		
 		private function fillPolygon(graphics:Graphics, color:uint, alpha:Number, points:Array):void
 		{
-			graphics.lineStyle(0,0,0);
+			DrawUtils.clearLineStyle(graphics);
 			var n:int = points.length;
 			for (var i:int = 0; i <= n; i++)
 			{
@@ -696,12 +682,6 @@ package weave.visualization.layers
 					graphics.lineTo(point.x, point.y);
 			}
 			graphics.endFill();
-		}
-		
-		private const _dashedLine:DashedLine = new DashedLine(0, 0, null);
-		private function validateDashedLine():void
-		{
-			_dashedLine.lengthsString = Weave.properties.dashedSelectionBox.value;
 		}
 		
 		private function handleSelectionEvent(event:Event, mode:String):void
@@ -849,12 +829,10 @@ package weave.visualization.layers
 				break; // select only one layer at a time
 			}
 			
-			
-			// TEMPORARY HACK - Weave.defaultSelectionKeySet
-			var hack_noSelectionChangeSinceMouseDown:Boolean = WeaveAPI.SessionManager.computeDiff(hack_mouseDownSelectionState, getSessionState(Weave.defaultSelectionKeySet)) === undefined;
+			var noSelectionChangeSinceMouseDown:Boolean = StandardLib.compare(mouseDownSelectionState, getAllLayerSelectionState()) == 0;
 			
 			// if mouse is released and selection hasn't changed since mouse down, clear selection
-			if (_mouseMode == InteractionController.SELECT && !WeaveAPI.StageUtils.mouseButtonDown && hack_noSelectionChangeSinceMouseDown)
+			if (_mouseMode == InteractionController.SELECT && !WeaveAPI.StageUtils.mouseButtonDown && noSelectionChangeSinceMouseDown)
 			{
 				clearSelection();
 			}

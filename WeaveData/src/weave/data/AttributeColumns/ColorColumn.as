@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.AttributeColumns
 {
@@ -29,7 +25,9 @@ package weave.data.AttributeColumns
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
+	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
 	import weave.primitives.ColorRamp;
 	
 	/**
@@ -41,6 +39,7 @@ package weave.data.AttributeColumns
 	{
 		public function ColorColumn()
 		{
+			super();
 			_internalColumnStats = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(internalDynamicColumn));
 		}
 		
@@ -56,20 +55,80 @@ package weave.data.AttributeColumns
 		private var _internalColumnStats:IColumnStatistics;
 		
 		public const ramp:ColorRamp = newLinkableChild(this, ColorRamp);
+		public const rampCenterAtZero:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), cacheState);
+		
+		private var _rampCenterAtZero:Boolean;
+		private function cacheState():void
+		{
+			_rampCenterAtZero = rampCenterAtZero.value;
+		}
+		
+		public function getDataMin():Number
+		{
+			if (_rampCenterAtZero)
+			{
+				var dataMin:Number = _internalColumnStats.getMin();
+				var dataMax:Number = _internalColumnStats.getMax();
+				return -Math.max(Math.abs(dataMin), Math.abs(dataMax));
+			}
+			return _internalColumnStats.getMin();
+		}
+		public function getDataMax():Number
+		{
+			if (_rampCenterAtZero)
+			{
+				var dataMin:Number = _internalColumnStats.getMin();
+				var dataMax:Number = _internalColumnStats.getMax();
+				return Math.max(Math.abs(dataMin), Math.abs(dataMax));
+			}
+			return _internalColumnStats.getMax();
+		}
+		public function getColorFromDataValue(value:Number):Number
+		{
+			var dataMin:Number = _internalColumnStats.getMin();
+			var dataMax:Number = _internalColumnStats.getMax();
+			var norm:Number;
+			if (dataMin == dataMax)
+			{
+				norm = isFinite(value) ? 0.5 : NaN;
+			}
+			else if (_rampCenterAtZero)
+			{
+				var absMax:Number = Math.max(Math.abs(dataMin), Math.abs(dataMax));
+				norm = (value + absMax) / (2 * absMax);
+			}
+			else
+			{
+				norm = (value - dataMin) / (dataMax - dataMin);
+			}
+			return ramp.getColorFromNorm(norm);
+		}
 		
 		/**
 		 * This is a CSV containing specific colors associated with record keys.
 		 * The format for each row in the CSV is:  keyType,localName,color
 		 */
-		public const recordColors:LinkableString = newLinkableChild(this, LinkableString);
+		public const recordColors:LinkableVariable = registerLinkableChild(this, new LinkableVariable(null, verifyRecordColors));
+		private function verifyRecordColors(value:Object):Boolean
+		{
+			if (value is String)
+			{
+				value = WeaveAPI.CSVParser.parseCSV(value as String);
+				recordColors.setSessionState(value);
+				return false;
+			}
+			if (value === null)
+				return true;
+			
+			return value is Array && StandardLib.arrayIsType(value as Array, Array);
+		}
 		private var _recordColorsMap:Dictionary;
 		private function handleRecordColors():void
 		{
-			var rows:Array = WeaveAPI.CSVParser.parseCSV(recordColors.value);
+			var rows:Array = recordColors.getSessionState() as Array;
 			_recordColorsMap = new Dictionary();
-			for (var iRow:int = 0; iRow < rows.length; iRow++)
+			for each (var row:Array in rows)
 			{
-				var row:Array = rows[iRow] as Array;
 				if (row.length != 3)
 					continue;
 				try
@@ -103,15 +162,8 @@ package weave.data.AttributeColumns
 			}
 			else
 			{
-				var dataMin:Number = _internalColumnStats.getMin();
-				var dataMax:Number = _internalColumnStats.getMax();
 				var value:Number = internalDynamicColumn.getValueFromKey(key, Number);
-				var norm:Number;
-				if (dataMin == dataMax)
-					norm = isFinite(value) ? 0 : NaN;
-				else
-					norm = (value - dataMin) / (dataMax - dataMin);
-				color = ramp.getColorFromNorm(norm);
+				color = getColorFromDataValue(value);
 			}
 			
 			if (dataType == Number)

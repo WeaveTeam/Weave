@@ -1,25 +1,22 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.DataSources
 {
 	import mx.utils.ObjectUtil;
+	import mx.utils.URLUtil;
 	
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
@@ -32,7 +29,6 @@ package weave.data.DataSources
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ProxyColumn;
 	
 	public class CKANDataSource extends AbstractDataSource implements IDataSource_Service
@@ -56,20 +52,20 @@ package weave.data.DataSources
 		/**
 		 * This gets called when callbacks are triggered.
 		 */		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			// TODO handle url change
 
-			super.initialize();
+			super.initialize(forceRefresh);
 		}
 		
-		override public function refreshHierarchy():void
+		override protected function refreshHierarchy():void
 		{
 			getCallbackCollection(this).delayCallbacks();
 			for (var url:String in _dataSourceCache)
 			{
 				var ds:IDataSource = _dataSourceCache[url];
-				ds.refreshHierarchy();
+				ds.hierarchyRefresh.triggerCallbacks();
 			}
 			super.refreshHierarchy();
 			getCallbackCollection(this).resumeCallbacks();
@@ -149,6 +145,21 @@ package weave.data.DataSources
 		public static const PARAMS_CKAN_FIELD:String = 'ckan_field';
 		public static const DATASTORE_FORMAT:String = 'ckan_datastore';
 		
+		public function getBaseURL():String
+		{
+			var baseurl:String = this.url.value || '';
+			var i:int = baseurl.lastIndexOf('/api');
+			if (i >= 0)
+				baseurl = baseurl.substr(0, i);
+			if (baseurl.charAt(baseurl.length - 1) != '/')
+				baseurl += '/';
+			return baseurl;
+		}
+		public function getFullURL(relativeURL:String):String
+		{
+			return URLUtil.getFullURL(getBaseURL(), relativeURL);
+		}
+		
 		/**
 		 * @private
 		 */
@@ -184,9 +195,10 @@ package weave.data.DataSources
 				if (format == DATASTORE_FORMAT)
 				{
 					var datastore:CSVDataSource = new CSVDataSource();
+					datastore.url.value = getFullURL('datastore/dump/' + params[PARAMS_CKAN_ID]);
 					var node:CKANAction = new CKANAction(this);
 					node.action = CKANAction.DATASTORE_SEARCH;
-					node.params = {"resource_id": params[PARAMS_CKAN_ID]};
+					node.params = {"resource_id": params[PARAMS_CKAN_ID], "limit": 1};
 					node.resultHandler = function(result:Object):void {
 						datastore.metadata.setSessionState(
 							result['fields'].map(function(field:Object, i:*, a:*):Object {
@@ -204,9 +216,6 @@ package weave.data.DataSources
 								return meta;
 							})
 						);
-						var columnOrder:Array = result['fields'].map(function(field:Object, i:*, a:*):String { return field['id']; });
-						var rows:Array = WeaveAPI.CSVParser.convertRecordsToRows(result['records'], columnOrder, true);
-						datastore.csvData.setSessionState(rows);
 					};
 					node.result; // will cause resultHandler to be called later
 					dataSource = datastore;
@@ -226,7 +235,6 @@ package weave.data.DataSources
 }
 
 import flash.events.Event;
-import flash.external.ExternalInterface;
 import flash.net.URLRequest;
 import flash.net.URLRequestHeader;
 import flash.net.URLRequestMethod;
@@ -250,6 +258,7 @@ import weave.core.ClassUtils;
 import weave.data.DataSources.CKANDataSource;
 import weave.data.DataSources.CSVDataSource;
 import weave.services.URLRequestUtils;
+import weave.services.addAsyncResponder;
 import weave.utils.VectorUtils;
 
 internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTreeNodeWithPathFinding
@@ -301,7 +310,12 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			{
 				// make CKAN API request
 				_result = {};
-				WeaveAPI.URLRequestUtils.getURL(source, getURLRequest(), handleResponse, handleResponse, _result, URLRequestUtils.DATA_FORMAT_TEXT);
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(source, getURLRequest(), URLRequestUtils.DATA_FORMAT_TEXT),
+					handleResponse,
+					handleResponse,
+					_result
+				);
 			}
 		}
 		return _result || {};
@@ -318,20 +332,11 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 	}
 	private function getURLRequest():URLRequest
 	{
-		// get base url
-		var url:String = source.url.value || '';
-		var i:int = url.lastIndexOf('/api');
-		if (i >= 0)
-			url = url.substr(0, i);
-		if (url.charAt(url.length - 1) != '/')
-			url += '/';
-		
 		// append api command to url
 		var request:URLRequest;
 		if (apiVersion3)
 		{
-			url = URLUtil.getFullURL(url, "api/3/action/" + action);
-			request = new URLRequest(url);
+			request = new URLRequest(source.getFullURL("api/3/action/" + action));
 			if (params)
 			{
 				if (source.useHttpPost.value)
@@ -353,8 +358,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			var cmd:String = 'api/' + source.apiVersion.value + '/rest/' + action.split('_')[0];
 			if (params && params.hasOwnProperty('id'))
 				cmd += '/' + params['id'];
-			url = URLUtil.getFullURL(url, cmd);
-			request = new URLRequest(url);
+			request = new URLRequest(source.getFullURL(cmd));
 		}
 		return request;
 	}
@@ -416,10 +420,8 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			var JSON:Object = ClassUtils.getClassDefinition('JSON');
 			if (JSON)
 				return JSON.parse(json);
-			else if (ExternalInterface.available)
-				return ExternalInterface.call('JSON.parse', json);
-			
-			reportError("No JSON parser available");
+			else
+				return Compiler.parseConstant(json);
 		}
 		catch (e:Error)
 		{
@@ -621,7 +623,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 				{
 					node.action = DATASTORE_SEARCH;
 					node.metadata = resource;
-					node.params = {"resource_id": resource['id'], "limit": 0};
+					node.params = {"resource_id": resource['id'], "limit": 1};
 				}
 				else
 				{

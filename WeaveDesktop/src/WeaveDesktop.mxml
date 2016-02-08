@@ -1,4 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
 <mx:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
 					   xmlns:s="library://ns.adobe.com/flex/spark" 
 					   xmlns:mx="library://ns.adobe.com/flex/mx"
@@ -18,6 +34,8 @@
 			
 			import weave.api.reportError;
 			import weave.application.VisApp;
+			import weave.menus.FileMenu;
+			import weave.services.addAsyncResponder;
 			
 			weaveTraceImpl as Function; // if we don't reference this, it won't be included in the build
 			
@@ -28,6 +46,117 @@
 			override public function get parameters():Object
 			{
 				return params;
+			}
+			
+			private function readFileBytes(file:File):ByteArray
+			{
+				var bytes:ByteArray = new ByteArray();
+				var fs:FileStream = new FileStream();
+				fs.open(file, FileMode.READ);
+				fs.readBytes(bytes);
+				fs.close();
+				return bytes;
+			}
+			private function readFileString(file:File):String
+			{
+				return file.exists ? readFileBytes(file).toString() : null;
+			}
+			private function writeFileString(file:File, string:String):void
+			{
+				var fs:FileStream = new FileStream();
+				fs.open(file, FileMode.WRITE);
+				fs.position = 0;
+				fs.writeUTFBytes(string);
+				fs.truncate();
+				fs.close();
+			}
+			
+			private function getAppFile(appDir:File):File
+			{
+				var appPaths:Array = ['WeaveDesktop.exe', '../MacOS/WeaveDesktop', 'WeaveDesktop'];
+				var app:File;
+				for each (var appPath:String in appPaths)
+				{
+					app = appDir.resolvePath(appPath);
+					if (app.exists)
+						break;
+				}
+				return app;
+			}
+			
+			public function get openNewSession():Function
+			{
+				return NativeProcess.isSupported ? _openNewSession : null;
+			}
+			public function _openNewSession():void
+			{
+				try
+				{
+					// allow files to override app/storage locations
+					const INSTALL_DIR:String = 'applicationDirectory';
+					const STORAGE_DIR:String = 'applicationStorageDirectory';
+					const installPath:String = readFileString(File.applicationDirectory.resolvePath(INSTALL_DIR)) || File.applicationDirectory.nativePath;
+					const storagePath:String = readFileString(File.applicationDirectory.resolvePath(STORAGE_DIR)) || File.applicationStorageDirectory.nativePath;
+					
+					// read original application.xml and get app id
+					const xmlPath:String = 'META-INF/AIR/application.xml';
+					const xmlFile:File = new File(installPath).resolvePath(xmlPath);
+					const xmlBytes:ByteArray = readFileBytes(xmlFile);
+					const xml:XML = XML(xmlBytes);
+					const appIdQName:QName = new QName(xml.namespace(), 'id');
+					const appId:String = xml[appIdQName];
+					
+					// make a copy of the app folder
+					var appCopyFolder:File;
+					var appFile:File;
+					const MAX_SESSIONS:int = 10;
+					for (var i:int = 1; i < MAX_SESSIONS; i++)
+					{
+						try
+						{
+							appCopyFolder = new File(storagePath).resolvePath(appId + '.temp' + i);
+							
+							appFile = getAppFile(appCopyFolder);
+							
+							// if the app already exists, attempt to delete it since it will fail if the application is in use
+							if (appFile.exists)
+								appFile.deleteFile();
+							
+							// copy the entire app folder
+							new File(installPath).copyTo(appCopyFolder, true);
+							
+							// create files to override app/storage locations
+							writeFileString(appCopyFolder.resolvePath(INSTALL_DIR), installPath);
+							writeFileString(appCopyFolder.resolvePath(STORAGE_DIR), storagePath);
+							
+							// success
+							break;
+						}
+						catch (e:Error)
+						{
+							appCopyFolder = null;
+						}
+					}
+					if (!appCopyFolder)
+					{
+						reportError("Too many copies of Weave are open");
+						return;
+					}
+					
+					// save modified application.xml to temp folder
+					xml[appIdQName] = appCopyFolder.name;
+					writeFileString(appCopyFolder.resolvePath(xmlPath), xml.toXMLString());
+					
+					// launch the app
+					const appInfo:NativeProcessStartupInfo = new NativeProcessStartupInfo();
+					const appProcess:NativeProcess = new NativeProcess();
+					appInfo.executable = getAppFile(appCopyFolder);
+					appProcess.start(appInfo);
+				}
+				catch (e:Error)
+				{
+					reportError(e);
+				}
 			}
 			
 			private function appComplete():void
@@ -52,13 +181,10 @@
 				{
 					for each (var file:File in dropFiles)
 					{
-						switch (file.extension.toLowerCase())
-						{
-							case "xml":
-							case "weave":
-								params['file'] = file.nativePath;
-							default:
-						}
+						var ext:String = file.extension.toLowerCase();
+						if (ext == 'xml' || ext == 'weave')
+							params['file'] = file.nativePath;
+						
 						WeaveAPI.StageUtils.callLater(this, loadFile, [file]);
 					}
 				}
@@ -88,7 +214,7 @@
 			private function handleFileLoadComplete(event:Event):void
 			{
 				var file:File = event.target as File;
-				visApp.handleDraggedFile(file.name, file.data);
+				FileMenu.loadFile(file.name, file.data);
 			}
 			
 			private function doDragExit(e:NativeDragEvent):void
@@ -98,9 +224,8 @@
 			
 			private function loadFileUrl(url:String):void
 			{
-				WeaveAPI.URLRequestUtils.getURL(
-					null,
-					new URLRequest(url),
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(null, new URLRequest(url)),
 					function (event:ResultEvent, token:Object = null):void
 					{
 						WeaveAPI.URLRequestUtils.setBaseURL(url);

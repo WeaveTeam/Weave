@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.services
 {
@@ -30,11 +26,13 @@ package weave.services
 	import flash.utils.ByteArray;
 	
 	import mx.core.mx_internal;
+	import mx.rpc.AsyncToken;
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.URLUtil;
 	
+	import weave.api.reportError;
 	import weave.api.services.IURLRequestToken;
 	import weave.api.services.IURLRequestUtils;
 	import weave.compiler.StandardLib;
@@ -87,7 +85,11 @@ package weave.services
 		public function saveLocalFile(name:String, content:ByteArray):String
 		{
 			_localFiles[name] = content;
-			return LOCAL_FILE_URL_SCHEME + name;
+			var url:String = LOCAL_FILE_URL_SCHEME + name;
+			var urlLoader:CustomURLLoader = _requestURLToLoader[url] as CustomURLLoader;
+			if (urlLoader)
+				urlLoader.applyResult(content);
+			return url;
 		}
 		
 		/**
@@ -104,6 +106,10 @@ package weave.services
 		public function removeLocalFile(name:String):void
 		{
 			delete _localFiles[name];
+			var url:String = LOCAL_FILE_URL_SCHEME + name;
+			var urlLoader:CustomURLLoader = _requestURLToLoader[url] as CustomURLLoader;
+			if (urlLoader)
+				urlLoader.applyFault(new Fault('FileError', lang('File removed: {0}', url)));
 		}
 
 		/**
@@ -117,16 +123,9 @@ package weave.services
 		}
 		
 		/**
-		 * This function performs an HTTP GET request and calls result or fault handlers when the request succeeds or fails.
-		 * @param relevantContext Specifies an object that the async handlers are relevant to.  If the object is disposed via WeaveAPI.SessionManager.dispose() before the download finishes, the async handler functions will not be called.  This parameter may be null.
-		 * @param request The URL to get.
-		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
-		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
-		 * @param token An object that gets passed to the handler functions.
-		 * @param dataFormat The value to set as the dataFormat property of a URLLoader object.
-		 * @return The URLLoader used to perform the HTTP GET request.
+		 * @inheritDoc
 		 */
-		public function getURL(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, dataFormat:String = "binary"):URLLoader
+		public function getURL(relevantContext:Object, request:URLRequest, dataFormat:String = "binary", allowMultipleEvents:Boolean = false):AsyncToken
 		{
 			var urlLoader:CustomURLLoader;
 			var fault:Fault;
@@ -135,10 +134,17 @@ package weave.services
 			{
 				var fileName:String = request.url.substr(LOCAL_FILE_URL_SCHEME.length);
 				
-				// If it's a local file, we still need to return a new URLLoader.
+				// If it's a local file, we still need to create a URLLoader.
 				// CustomURLLoader doesn't load if the last parameter to the constructor is false.
-				urlLoader = new CustomURLLoader(request, dataFormat, false);
-				urlLoader.addResponder(new CustomAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token));
+				if (allowMultipleEvents)
+					urlLoader = _requestURLToLoader[request.url] as CustomURLLoader;
+				if (!urlLoader)
+				{
+					urlLoader = new CustomURLLoader(request, dataFormat, false);
+					if (allowMultipleEvents)
+						_requestURLToLoader[request.url] = urlLoader;
+				}
+				urlLoader.asyncToken.addRelevantContext(relevantContext);
 				
 				if (_localFiles.hasOwnProperty(fileName))
 				{
@@ -150,7 +156,7 @@ package weave.services
 					WeaveAPI.StageUtils.callLater(relevantContext, urlLoader.applyFault, [fault]);
 				}
 				
-				return urlLoader;
+				return urlLoader.asyncToken;
 			}
 			
 			addBaseURL(request);
@@ -174,20 +180,13 @@ package weave.services
 				WeaveAPI.StageUtils.callLater(relevantContext, urlLoader.applyFault, [fault]);
 			}
 			
-			urlLoader.addResponder(new CustomAsyncResponder(relevantContext, null, asyncResultHandler, asyncFaultHandler, token));
+			urlLoader.asyncToken.addRelevantContext(relevantContext);
 			
-			return urlLoader;
+			return urlLoader.asyncToken;
 		}
 		
 		/**
-		 * This function will download content from a URL and call the given handler functions when it completes or a fault occurrs.
-		 * @param relevantContext Specifies an object that the async handlers are relevant to.  If the object is disposed via WeaveAPI.SessionManager.dispose() before the download finishes, the async handler functions will not be called.  This parameter may be null.
-		 * @param request The URL from which to get content.
-		 * @param asyncResultHandler A function with the following signature:  function(e:ResultEvent, token:Object = null):void.  This function will be called if the request succeeds.
-		 * @param asyncFaultHandler A function with the following signature:  function(e:FaultEvent, token:Object = null):void.  This function will be called if there is an error.
-		 * @param token An object that gets passed to the handler functions.
-		 * @param useCache A boolean indicating whether to use the cached images for HTTP GET requests. If set to <code>true</code>, this function will return null if there is already a bitmap for the request.
-		 * @return An IURLRequestToken that can be used to cancel the request and cancel the async handlers.
+		 * @inheritDoc
 		 */
 		public function getContent(relevantContext:Object, request:URLRequest, asyncResultHandler:Function = null, asyncFaultHandler:Function = null, token:Object = null, useCache:Boolean = true):IURLRequestToken
 		{
@@ -195,7 +194,7 @@ package weave.services
 			
 			if (useCache && request.method == URLRequestMethod.GET)
 			{
-				var content:Object = _contentCache[request.url]; 
+				var content:Object = _contentCache[request.url];
 				if (content)
 				{
 					// create a request token so its cancel function can be used and the result handler won't be called next frame
@@ -212,7 +211,21 @@ package weave.services
 			if (loader == null || loader.isClosed)
 			{
 				// make the request and add handler function that will load the content
-				loader = getURL(relevantContext, request, handleGetContentResult, handleGetContentFault, request.url, DATA_FORMAT_BINARY) as CustomURLLoader;
+				var customAsyncToken:CustomAsyncToken;
+				if (useCache && _rawCache.hasOwnProperty(request.url))
+				{
+					loader = new CustomURLLoader(request, DATA_FORMAT_BINARY, false);
+					customAsyncToken = loader.asyncToken;
+					WeaveAPI.StageUtils.callLater(relevantContext, loader.applyResult, [_rawCache[request.url]]);
+				}
+				else
+				{
+					customAsyncToken = getURL(null, request, DATA_FORMAT_BINARY) as CustomAsyncToken;
+					loader = customAsyncToken.loader as CustomURLLoader;
+				}
+				if (!loader)
+					reportError('URLLoader missing from CustomAsyncToken', null, customAsyncToken);
+				addAsyncResponder(customAsyncToken, handleGetContentResult, handleGetContentFault, request.url);
 				_requestURLToLoader[request.url] = loader;
 			}
 			
@@ -221,15 +234,51 @@ package weave.services
 		}
 		
 		/**
+		 * Maps a URL to the raw ByteArray downloaded from a URL via getContent().
+		 */
+		private var _rawCache:Object = {};
+		
+		/**
+		 * TEMPORARY SOLUTION
+		 */
+		public var saveCache:Boolean = false;
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function getCache():Object
+		{
+			return _rawCache;
+		}
+		
+		/**
+		 * @inheritDoc
+		 */
+		public function setCache(urlCache:Object):void
+		{
+			try
+			{
+				urlCache['']; // test if it's a dynamic object
+				_rawCache = urlCache;
+				saveCache = true;
+			}
+			catch (e:Error)
+			{
+				_rawCache = {};
+				saveCache = false;
+			}
+		}
+		
+		/**
 		 * This maps a URL to the content that was downloaded from that URL.
-		 */		
-		private const _contentCache:Object = new Object();
+		 */
+		private const _contentCache:Object = {};
 		
 		/**
 		 * A mapping of URL Strings to CustomURLLoaders.
 		 * This mapping is necessary for cached requests to return the active request.
 		 */
-		private const _requestURLToLoader:Object = new Object();
+		private const _requestURLToLoader:Object = {};
 		
 		/**
 		 * This function gets called asynchronously from getContent().
@@ -240,15 +289,22 @@ package weave.services
 		private function handleGetContentResult(resultEvent:ResultEvent, url:String):void
 		{
 			var customURLLoader:CustomURLLoader = _requestURLToLoader[url] as CustomURLLoader;
+			if (!customURLLoader)
+				reportError('URLLoader missing in handleGetContentResult() for ' + url);
 			
 			var bytes:ByteArray = resultEvent.result as ByteArray;
 			if (!bytes || bytes.length == 0)
 			{
 				var fault:Fault = new Fault("Error", "HTTP GET failed: Content is null from " + url);
 				delete _requestURLToLoader[url];
-				customURLLoader.applyFault(fault);
+				if (customURLLoader)
+					customURLLoader.applyFault(fault);
+				else
+					reportError('Content is null and URLLoader is missing in handleGetContentResult() for ' + url);
 				return;
 			}
+			
+			_rawCache[url] = bytes;
 
 			var handleLoaderComplete:Function = function (completeEvent:Event):void
 			{
@@ -259,7 +315,7 @@ package weave.services
 				_contentCache[url] = result;
 				delete _requestURLToLoader[url];
 				// run the responders from ContentRequestTokens that were not called before
-				var responders:Array = customURLLoader.asyncToken.responders;
+				var responders:Array = customURLLoader ? customURLLoader.asyncToken.responders : [];
 				var contentResultEvent:ResultEvent = ResultEvent.createEvent(result);
 				for (var i:int = 0; i < responders.length; i++)
 				{
@@ -272,7 +328,10 @@ package weave.services
 			{
 				var fault:Fault = new Fault(errorEvent.type, errorEvent.text + " (" + url + ")");
 				delete _requestURLToLoader[url];
-				customURLLoader.applyFault(fault);
+				if (customURLLoader)
+					customURLLoader.applyFault(fault);
+				else
+					reportError('Received fault from content Loader; URLLoader is missing in handleGetContentResult() for ' + url);
 			};
 		
 		
@@ -320,6 +379,7 @@ internal class CustomURLLoader extends URLLoader
 	{
 		super.dataFormat = dataFormat;
 		_urlRequest = request;
+		_asyncToken = new CustomAsyncToken(this);
 		
 		if (loadNow)
 		{
@@ -352,8 +412,16 @@ internal class CustomURLLoader extends URLLoader
 			
 			if (URLRequestUtils.debug)
 				trace(debugId(this), 'request', request.url);
+			
+			//WeaveAPI.StageUtils.callLater(null, loadLater);
 			super.load(request);
 		}
+	}
+	
+	private function loadLater():void
+	{
+		if (!_isClosed)
+			super.load(_urlRequest);
 	}
 	
 	/**
@@ -370,7 +438,7 @@ internal class CustomURLLoader extends URLLoader
 	}
 	
 	internal var label:String;
-	private var _asyncToken:AsyncToken = new AsyncToken();
+	private var _asyncToken:CustomAsyncToken;
 	private var _isClosed:Boolean = false;
 	private var _urlRequest:URLRequest = null;
 	
@@ -381,6 +449,7 @@ internal class CustomURLLoader extends URLLoader
 	
 	override public function close():void
 	{
+		WeaveAPI.ProgressIndicator.removeTask(_asyncToken);
 		if (URLRequestUtils.debug)
 			trace(debugId(this), 'cancel', _urlRequest.url);
 		_isClosed = true;
@@ -392,7 +461,7 @@ internal class CustomURLLoader extends URLLoader
 	/**
 	 * This is the AsyncToken that keeps track of IResponders.
 	 */	
-	public function get asyncToken():AsyncToken
+	public function get asyncToken():CustomAsyncToken
 	{
 		return _asyncToken;
 	}
@@ -438,16 +507,15 @@ internal class CustomURLLoader extends URLLoader
 			for each (var obj:Object in _asyncToken.responders)
 				if (obj is CustomAsyncResponder)
 					return;
-			// no more URLRequestTokens found, so cancel
+			// no more CustomAsyncResponders found, so cancel
 			close();
 		}
 	}
 
 	private function handleProgressUpdate(event:Event):void
 	{
-		for each (var responder:Object in _asyncToken.responders)
-			if (responder is CustomAsyncResponder)
-				WeaveAPI.ProgressIndicator.updateTask(responder, bytesLoaded / bytesTotal);
+		if (WeaveAPI.ProgressIndicator.hasTask(_asyncToken))
+			WeaveAPI.ProgressIndicator.updateTask(_asyncToken, bytesLoaded / bytesTotal);
 	}
 
 	private var _resumeFunc:Function = null;
@@ -485,7 +553,9 @@ internal class CustomURLLoader extends URLLoader
 		}
 		
 		// broadcast result to responders
-		applyResult(data);
+		WeaveAPI.StageUtils.callLater(null, applyResult, [data]);
+		//applyResult(data);
+	
 	}
 	
 	private function fixErrorMessage(errorEvent:ErrorEvent):void
@@ -524,6 +594,7 @@ internal class CustomURLLoader extends URLLoader
 		}
 		else
 			fault = new Fault(event.type, event.type, "Request cancelled");
+		fault.rootCause = this;
 		applyFault(fault);
 		_isClosed = true;
 	}
@@ -557,6 +628,49 @@ internal class CustomURLLoader extends URLLoader
 	internal function applyFault(fault:Fault):void
 	{
 		_asyncToken.mx_internal::applyFault(FaultEvent.createEvent(fault));
+	}
+}
+
+internal class CustomAsyncToken extends AsyncToken
+{
+	public function CustomAsyncToken(loader:CustomURLLoader)
+	{
+		_loader = loader;
+		addResponder(new AsyncResponder(firstResponder, firstResponder));
+	}
+	
+	private var _loader:CustomURLLoader;
+	private var relevantContexts:Array = [];
+	
+	public function get loader():CustomURLLoader
+	{
+		return _loader;
+	}
+	
+	/**
+	 * Adds a context in which this AsyncToken is relevant.
+	 * If all contexts are disposed, this AsyncToken will not broadcast a ResultEvent or FaultEvent.
+	 */
+	public function addRelevantContext(context:Object):void
+	{
+		var desc:String = "URL request";
+		if (loader)
+			desc += ": " + loader.urlRequest.url;
+		WeaveAPI.ProgressIndicator.addTask(this, context as ILinkableObject, desc);
+		relevantContexts.push(context);
+	}
+	
+	private function contextDisposed(context:Object, i:int, a:Array):Boolean
+	{
+		return WeaveAPI.SessionManager.objectWasDisposed(context);
+	}
+	
+	private function firstResponder(event:Event, token:Object):void
+	{
+		WeaveAPI.ProgressIndicator.removeTask(this);
+		// if there are contexts and none are relevant, don't call responders
+		if (relevantContexts.length && relevantContexts.every(contextDisposed))
+			super.responders.length = 0;
 	}
 }
 

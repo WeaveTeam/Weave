@@ -1,31 +1,27 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.KeySets
 {
 	import flash.utils.Dictionary;
 	
-	import weave.api.data.IKeySet;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.data.IKeySet;
+	import weave.api.data.IKeySetCallbackInterface;
+	import weave.api.data.IQualifiedKey;
 	import weave.compiler.Compiler;
-	import weave.compiler.StandardLib;
 	import weave.core.LinkableVariable;
 	
 	/**
@@ -45,7 +41,7 @@ package weave.data.KeySets
 		/**
 		 * An interface for keys added and removed
 		 */
-		public const keyCallbacks:KeySetCallbackInterface = newLinkableChild(this, KeySetCallbackInterface);
+		public const keyCallbacks:IKeySetCallbackInterface = newLinkableChild(this, KeySetCallbackInterface);
 		
 		/**
 		 * Verifies that the value is a two-dimensional array or null.
@@ -76,7 +72,7 @@ package weave.data.KeySets
 			// each row of CSV represents a different keyType (keyType is the first token in the row)
 			var newKeys:Array = [];
 			for each (var row:Array in _sessionStateInternal)
-				newKeys.push.apply(null, WeaveAPI.QKeyManager.getQKeys(row[0], row.slice(1)));
+				newKeys.push.apply(newKeys, WeaveAPI.QKeyManager.getQKeys(row[0], row.slice(1)));
 			
 			// avoid internal recursion while still allowing callbacks to cause recursion afterwards
 			delayCallbacks();

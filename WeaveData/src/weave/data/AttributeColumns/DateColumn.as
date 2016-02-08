@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.AttributeColumns
 {
@@ -23,13 +19,17 @@ package weave.data.AttributeColumns
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
+	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
+	import weave.api.data.DateFormat;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.reportError;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
+	import weave.flascc.date_format;
+	import weave.flascc.date_parse;
+	import weave.flascc.dates_detect;
 	
 	/**
 	 * @author adufilie
@@ -42,7 +42,7 @@ package weave.data.AttributeColumns
 		}
 		
 		private const _uniqueKeys:Array = new Array();
-		private var _keyToDate:Dictionary = new Dictionary();
+		private var _keyToData:Dictionary = new Dictionary();
 		
 		// temp variables for async task
 		private var _i:int;
@@ -55,6 +55,9 @@ package weave.data.AttributeColumns
 		private var _stringToNumberFunction:Function = null;
 		private var _numberToStringFunction:Function = null;
 		private var _dateFormat:String = null;
+		private var _dateDisplayFormat:String = null;
+		private var _durationMode:Boolean = false;
+		private var _fakeData:Boolean = false;
 		
 		/**
 		 * @inheritDoc
@@ -63,6 +66,8 @@ package weave.data.AttributeColumns
 		{
 			if (propertyName == ColumnMetadata.DATA_TYPE)
 				return DataType.DATE;
+			if (propertyName == ColumnMetadata.DATE_FORMAT)
+				return _dateFormat || super.getMetadata(propertyName);
 			return super.getMetadata(propertyName);
 		}
 
@@ -79,7 +84,7 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return _keyToDate[key] != undefined;
+			return _keyToData[key] != undefined;
 		}
 		
 		public function setRecords(keys:Vector.<IQualifiedKey>, dates:Vector.<String>):void
@@ -90,8 +95,30 @@ package weave.data.AttributeColumns
 				return;
 			}
 			
+			_fakeData = !!getMetadata("fakeData");
+			
 			// read dateFormat metadata
 			_dateFormat = getMetadata(ColumnMetadata.DATE_FORMAT);
+			if (!_dateFormat)
+			{
+				var possibleFormats:Array = detectDateFormats(dates);
+				StandardLib.sortOn(possibleFormats, 'length');
+				_dateFormat = possibleFormats.pop();
+			}
+			
+			_dateFormat = convertDateFormat_as_to_c(_dateFormat);
+
+			// read dateDisplayFormat metadata, default to the input format if none is specified.
+			_dateDisplayFormat = getMetadata(ColumnMetadata.DATE_DISPLAY_FORMAT);
+
+			if (_dateDisplayFormat)
+			{
+				_dateDisplayFormat = convertDateFormat_as_to_c(_dateDisplayFormat);
+			}
+			else
+			{
+				_dateDisplayFormat = _dateFormat;
+			}
 			
 			// compile the number format function from the metadata
 			_stringToNumberFunction = null;
@@ -126,9 +153,15 @@ package weave.data.AttributeColumns
 			_i = 0;
 			_keys = keys;
 			_dates = dates;
-			_keyToDate = new Dictionary();
+			_keyToData = new Dictionary();
 			_uniqueKeys.length = 0;
 			_reportedError = false;
+			
+			/*if (!_dateFormat && _keys.length)
+			{
+				_reportedError = true;
+				reportError(lang('No common date format could be determined from the column values. Attribute Column: {0}', Compiler.stringify(_metadata)));
+			}*/
 			
 			// high priority because not much can be done without data
 			WeaveAPI.StageUtils.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, _asyncComplete);
@@ -147,6 +180,52 @@ package weave.data.AttributeColumns
 			triggerCallbacks();
 		}
 		
+		private function parseDate(string:String):Object
+		{
+			if (_dateFormat)
+				return weave.flascc.date_parse(string, _dateFormat);
+			return new Date(string);
+		}
+		
+		private static const SECOND:Number = 1000;
+		private static const MINUTE:Number = 60 * 1000;
+		private static const HOUR:Number = 60 * 60 * 1000;
+		
+		private function formatDate(value:Object):String
+		{
+			if (_dateDisplayFormat)
+			{
+				if (value is Number && !_durationMode)
+					value = new Date(value);
+				
+				if (value is Number)
+				{
+					// TEMPORARY SOLUTION
+					var n:Number = Math.floor(value as Number);
+					var milliseconds:Number = n % 1000;
+					n = Math.floor(n / 1000);
+					var seconds:Number = n % 60;
+					n = Math.floor(n / 60);
+					var minutes:Number = n % 60;
+					n = Math.floor(n / 60);
+					var hours:Number = n;
+					var obj:Object = {
+						milliseconds: milliseconds,
+						seconds: seconds,
+						minutes: minutes,
+						hours: hours
+					};
+					return weave.flascc.date_format(obj, _dateDisplayFormat);
+				}
+				else
+				{
+					var date:Date = value as Date || new Date(value);
+					return weave.flascc.date_format(date, _dateDisplayFormat);
+				}
+			}
+			return StandardLib.formatDate(value, _dateDisplayFormat);
+		}
+		
 		private function _asyncIterate(stopTime:int):Number
 		{
 			for (; _i < _keys.length; _i++)
@@ -157,23 +236,41 @@ package weave.data.AttributeColumns
 				// get values for this iteration
 				var key:IQualifiedKey = _keys[_i];
 				var string:String = _dates[_i];
-				var date:Date;
-				if (_stringToNumberFunction != null)
+				var value:Object;
+				if (_fakeData)
+				{
+					var oneDay:Number = 24 * 60 * 60 * 1000;
+					var fakeTime:Number = StandardLib.asNumber(string) * oneDay;
+					var d:Date = new Date();
+					d.setTime(d.getTime() - d.getTime() % oneDay + fakeTime);
+					value = d;
+				}
+				else if (_stringToNumberFunction != null)
 				{
 					var number:Number = _stringToNumberFunction(string);
 					if (_numberToStringFunction != null)
 					{
 						string = _numberToStringFunction(number);
-						date = StandardLib.parseDate(string, _dateFormat);
+						if (!string)
+							continue;
+						value = parseDate(string);
 					}
 					else
-						date = new Date(number);
+					{
+						if (!isFinite(number))
+							continue;
+						value = number;
+					}
 				}
 				else
 				{
 					try
 					{
-						date = StandardLib.parseDate(string, _dateFormat);
+						if (!string)
+							continue;
+						value = parseDate(string);
+						if (value is Date && isNaN((value as Date).getTime()))
+							value = StandardLib.asNumber(string);
 					}
 					catch (e:Error)
 					{
@@ -187,18 +284,19 @@ package weave.data.AttributeColumns
 								string,
 								Compiler.stringify(_metadata)
 							);
-							reportError(err);
+							reportError(err, null, e);
 						}
 						continue;
 					}
 				}
 				
 				// keep track of unique keys
-				if (_keyToDate[key] === undefined)
+				if (_keyToData[key] === undefined)
 				{
+					_durationMode = value is Number;
 					_uniqueKeys.push(key);
 					// save key-to-data mapping
-					_keyToDate[key] = date;
+					_keyToData[key] = value;
 				}
 				else if (!_reportedError)
 				{
@@ -221,7 +319,7 @@ package weave.data.AttributeColumns
 				return _numberToStringFunction(number);
 			
 			if (_dateFormat)
-				return StandardLib.formatDate(number, _dateFormat);
+				return formatDate(number);
 			
 			return new Date(number).toString();
 		}
@@ -233,11 +331,11 @@ package weave.data.AttributeColumns
 		{
 			var number:Number;
 			var string:String;
-			var date:Date;
+			var value:*;
 			
 			if (dataType == Number)
 			{
-				number = _keyToDate[key];
+				number = _keyToData[key];
 				return number;
 			}
 			
@@ -245,34 +343,73 @@ package weave.data.AttributeColumns
 			{
 				if (_numberToStringFunction != null)
 				{
-					number = _keyToDate[key];
+					number = _keyToData[key];
 					return _numberToStringFunction(number);
 				}
 				
-				date = _keyToDate[key];
+				value = _keyToData[key];
 				
-				if (!date)
+				if (value === undefined)
 					return '';
 				
 				if (_dateFormat)
-					string = StandardLib.formatDate(date, _dateFormat);
+					string = formatDate(value);
 				else
-					string = date.toString();
+					string = value.toString();
 				
 				return string;
 			}
 			
-			date = _keyToDate[key];
+			value = _keyToData[key];
+			
+			if (!dataType || dataType == Array)
+				return value != null ? [value] : null;
 			
 			if (dataType)
-				return date as DataType;
+				return value as dataType;
 			
-			return date;
+			return value;
 		}
 
 		override public function toString():String
 		{
 			return debugId(this) + '{recordCount: '+keys.length+', keyType: "'+getMetadata('keyType')+'", title: "'+getMetadata('title')+'"}';
+		}
+		
+		private static function convertDateFormat_as_to_c(format:String):String
+		{
+			if (!format || format.indexOf('%') >= 0)
+				return format;
+			return StandardLib.replace.apply(null, [format].concat(dateFormat_replacements_as_to_c));
+		}
+		
+		private static const dateFormat_replacements_as_to_c:Array = [
+			'YYYY','%Y',
+			'YY','%y',
+			'MMMM','%B',
+			'MMM','%b',
+			'MM','%m',
+			'M','%-m',
+			'DD','%d',
+			'D','%-d',
+			'E','%u',
+			'A','%p',
+			'JJ','%H',
+			'J','%-H',
+			'LL','%I',
+			'L','%-I',
+			'EEEE','%A', // note that %A appears after the A replaced above
+			'EEE','%a',
+			'NN','%M', // note that %M and %-M appear after the M's replaced above
+			'N','%-M',
+			'SS','%S',
+			'QQQ','%Q'
+			//,'S','%-S'
+		];
+		
+		public static function detectDateFormats(dates:*):Array
+		{
+			return weave.flascc.dates_detect(dates, DateFormat.FOR_AUTO_DETECT);
 		}
 	}
 }

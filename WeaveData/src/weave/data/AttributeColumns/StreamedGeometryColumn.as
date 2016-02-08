@@ -1,25 +1,22 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.AttributeColumns
 {
 	import flash.utils.ByteArray;
+	import flash.utils.getTimer;
 	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -28,15 +25,21 @@ package weave.data.AttributeColumns
 	import weave.api.core.ICallbackCollection;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IQualifiedKey;
+	import weave.api.disposeObject;
 	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.services.IWeaveGeometryTileService;
+	import weave.compiler.StandardLib;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
+	import weave.primitives.Bounds2D;
+	import weave.primitives.GeneralizedGeometry;
+	import weave.primitives.KDTree;
 	import weave.services.addAsyncResponder;
 	import weave.utils.GeometryStreamDecoder;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * StreamedGeometryColumn
@@ -104,7 +107,12 @@ package weave.data.AttributeColumns
 			if (dataType == Boolean)
 				value = (value is Array);
 			else if (dataType == Number)
-				value = value ? (value as Array).length : NaN;
+			{
+				var sum:Number = value is Array ? 0 : NaN;
+				for each (var geom:GeneralizedGeometry in value)
+					sum += geom.bounds.getArea();
+				value = sum;
+			}
 			else if (dataType == String)
 				value = value ? 'Geometry(' + key.keyType + '#' + key.localName + ')' : undefined;
 			
@@ -280,6 +288,48 @@ package weave.data.AttributeColumns
 		private static function verifyMinimumScreenArea(value:Number):Boolean
 		{
 			return value >= 1;
+		}
+		
+		public static function test_kdtree(iterations:int = 10):Object
+		{
+			var cols:Array = WeaveAPI.SessionManager.getLinkableDescendants(WeaveAPI.globalHashMap, StreamedGeometryColumn);
+			for each (var sgc:StreamedGeometryColumn in cols)
+				return sgc.test_kdtree(iterations);
+			return "No StreamedGeometryColumn to test";
+		}
+		
+		public function test_kdtree(iterations:int = 10):Object
+		{
+			var todo:Array = [];
+			for each (var geom:GeneralizedGeometry in _geometryStreamDecoder.geometries)
+			{
+				var bounds:Bounds2D = geom.bounds as Bounds2D;
+				var key:Array = [bounds.getXNumericMin(), bounds.getYNumericMin(), bounds.getXNumericMax(), bounds.getYNumericMax(), bounds.getArea()];
+				todo.push([key, geom]);
+			}
+			
+			// ------
+			
+			var results:Array = [];
+			for (var i:int = 0; i < iterations; i++)
+			{
+				VectorUtils.randomSort(todo);
+				var t:int = getTimer();
+				var kdtree:KDTree = new KDTree(5);
+				for each (var params:Array in todo)
+					kdtree.insert(params[0], params[1]);
+				t = getTimer() - t;
+				disposeObject(kdtree);
+				results.push(t);
+			}
+			
+			return {
+				node_count: todo.length,
+				times_in_ms: results.join(', '),
+				time_mean_ms: StandardLib.mean(results),
+				time_min_ms: Math.min.apply(null, results),
+				time_max_ms: Math.max.apply(null, results)
+			};
 		}
 	}
 }

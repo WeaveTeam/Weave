@@ -1,26 +1,21 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data
 {
 	import flash.utils.Dictionary;
-	import flash.utils.getTimer;
 	
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.DataType;
@@ -28,6 +23,7 @@ package weave.data
 	import weave.api.data.IQualifiedKeyManager;
 	import weave.compiler.StandardLib;
 	import weave.flascc.stringHash;
+	import weave.utils.WeavePromise;
 	
 	/**
 	 * This class manages a global list of IQualifiedKey objects.
@@ -75,7 +71,7 @@ package weave.data
 			for (var i:int = iStart; i < iEnd; i++)
 			{
 				var localName:* = keyStrings[i];
-				var hash:int = stringHash(localName); // using stringHash improves lookup speed for a large number of strings
+				var hash:int = stringHash(localName, true); // using stringHash improves lookup speed for a large number of strings
 				var qkey:* = keyLookup[hash];
 				if (qkey === undefined)
 				{
@@ -130,7 +126,25 @@ package weave.data
 			var qkg:QKeyGetter = _qkeyGetterLookup[relevantContext] as QKeyGetter;
 			if (!qkg)
 				_qkeyGetterLookup[relevantContext] = qkg = new QKeyGetter(this, relevantContext);
-			qkg.asyncStart(keyType, keyStrings, asyncCallback, outputKeys);
+			var promise:WeavePromise = qkg.asyncStart(keyType, keyStrings, outputKeys);
+			if (asyncCallback != null)
+				promise.then(function(..._):* { asyncCallback(); });
+		}
+		
+		/**
+		 * Get a list of QKey objects, all with the same key type.
+		 * @param relevantContext The owner of the WeavePromise. Only one WeavePromise will be generated per owner.
+		 * @param keyType The keyType.
+		 * @param keyStrings An Array of localName values.
+		 * @return A WeavePromise that produces a Vector.<IQualifiedKey>.
+		 */
+		public function getQKeysPromise(relevantContext:Object, keyType:String, keyStrings:Array):WeavePromise
+		{
+			var qkg:QKeyGetter = _qkeyGetterLookup[relevantContext] as QKeyGetter;
+			if (!qkg)
+				_qkeyGetterLookup[relevantContext] = qkg = new QKeyGetter(this, relevantContext);
+			qkg.asyncStart(keyType, keyStrings);
+			return qkg;
 		}
 		
 		private const _qkeyGetterLookup:Dictionary = new Dictionary(true);
@@ -230,37 +244,39 @@ internal class QKey implements IQualifiedKey
 
 import flash.utils.getTimer;
 
-import weave.api.core.ILinkableObject;
 import weave.api.data.IQualifiedKey;
-import weave.api.detectLinkableObjectChange;
 import weave.data.QKeyManager;
+import weave.utils.WeavePromise;
 
-internal class QKeyGetter
+internal class QKeyGetter extends WeavePromise
 {
-	public function QKeyGetter(manager:QKeyManager, relevantContext:ILinkableObject)
+	public function QKeyGetter(manager:QKeyManager, relevantContext:Object)
 	{
+		super(relevantContext);
+		
 		this.manager = manager;
-		this.relevantContext = relevantContext;
 	}
 	
-	public function asyncStart(keyType:String, keyStrings:Array, asyncCallback:Function, outputKeys:Vector.<IQualifiedKey>):void
+	public function asyncStart(keyType:String, keyStrings:Array, outputKeys:Vector.<IQualifiedKey> = null):QKeyGetter
 	{
+		if (!keyStrings)
+			keyStrings = [];
 		this.manager = manager;
 		this.keyType = keyType;
 		this.keyStrings = keyStrings;
-		this.outputKeys = outputKeys;
 		this.i = 0;
-		this.asyncCallback = asyncCallback;
+		this.outputKeys = outputKeys || new Vector.<IQualifiedKey>(keyStrings.length);
 		
-		outputKeys.length = keyStrings.length;
+		this.outputKeys.length = keyStrings.length;
 		// high priority because all visualizations depend on key sets
 		WeaveAPI.StageUtils.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, lang("Initializing {0} record identifiers", keyStrings.length));
+		
+		return this;
 	}
 	
 	private var asyncCallback:Function;
 	private var i:int;
 	private var manager:QKeyManager;
-	private var relevantContext:ILinkableObject;
 	private var keyType:String;
 	private var keyStrings:Array;
 	private var outputKeys:Vector.<IQualifiedKey>;
@@ -280,6 +296,6 @@ internal class QKeyGetter
 	
 	private function asyncComplete():void
 	{
-		asyncCallback();
+		setResult(this.outputKeys);
 	}
 }

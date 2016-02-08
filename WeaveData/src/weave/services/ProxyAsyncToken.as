@@ -1,25 +1,22 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.services
 {
 	import flash.events.Event;
+	import flash.utils.ByteArray;
 	
 	import mx.core.mx_internal;
 	import mx.messaging.messages.ErrorMessage;
@@ -30,7 +27,7 @@ package weave.services
 	import mx.rpc.events.ResultEvent;
 	import mx.utils.ObjectUtil;
 	
-	import weave.api.reportError;
+	import weave.utils.fixErrorMessage;
 	
 	use namespace mx_internal;
 
@@ -63,13 +60,9 @@ package weave.services
 		public var _resultCastFunction:Function;
 		public var _handleErrorMessageObjects:Boolean;
 
-		public var eventReceived:Event = null; // for debugging
-		
 		// the token associated with the call, null until query is performed
 		private var internalAsyncToken:AsyncToken = null;
-
-		// used to keep track of the time spent running responder functions
-		private var processingTime:int = 0;
+		public var eventReceived:Event = null; // for debugging
 		
 		/**
 		 * This function will invoke the async method using the parameters previously specified.
@@ -78,25 +71,38 @@ package weave.services
 		{
 			if (internalAsyncToken != null)
 			{
-				trace("invoke(): Operation has already been called.", toString());
+				trace("invoke(): Operation has already been invoked. Use cancel() first.", toString());
 				return;
 			}
 			
 			internalAsyncToken = _invoke.apply(null, _params);
 			
 			// forward the event to the responders in this AsyncToken.
-			internalAsyncToken.addResponder(new DelayedAsyncResponder(handleResult, handleFault, this));
+			internalAsyncToken.addResponder(new DelayedAsyncResponder(handleResult, handleFault, internalAsyncToken));
+		}
+		
+		/**
+		 * Immediately stops result and fault handlers from being called, and allows invoke() to be called again.
+		 */
+		public function cancel():void
+		{
+			internalAsyncToken = null;
+			eventReceived = null;
 		}
 		
 		/**
 		 * This function gets called when the internalAsyncToken runs its result functions.
 		 * This function will call the result functions of the responders added to this object.
 		 */
-		private function handleResult(event:ResultEvent, token:Object = null):void
+		private function handleResult(event:ResultEvent, internalAsyncToken:AsyncToken):void
 		{
+			if (this.internalAsyncToken != internalAsyncToken)
+				return;
+			
 			eventReceived = event;
 			
 			var fault:Fault;
+			var faultEvent:FaultEvent;
 			try
 			{
 				if (_resultCastFunction != null && !(_handleErrorMessageObjects && event.result is ErrorMessage))
@@ -104,9 +110,16 @@ package weave.services
 			}
 			catch (e:Error)
 			{
-				reportError(e, null, event.result);
-				fault = new Fault(e.name, "Unable to parse result from server", e.message);
-				handleFault(FaultEvent.createEvent(fault, this));
+				fixErrorMessage(e);
+				trace(e.getStackTrace());
+				//reportError(e, null, event.result);
+				var faultString:String = "Cannot read response from server";
+				if (event.result == null || (event.result is ByteArray && (event.result as ByteArray).length == 0))
+					faultString = "No response from server";
+				fault = new Fault(e.name, faultString, e.message);
+				fault.content = event.result;
+				faultEvent = FaultEvent.createEvent(fault, this);
+				handleFault(faultEvent, internalAsyncToken);
 				return;
 			}
 			
@@ -119,27 +132,32 @@ package weave.services
 				fault.message = msg;
 				fault.content = event;
 				fault.rootCause = this;
-				var faultEvent:FaultEvent = FaultEvent.createEvent(fault, this, msg);
-				handleFault(faultEvent, token);
+				faultEvent = FaultEvent.createEvent(fault, this, msg);
+				handleFault(faultEvent, internalAsyncToken);
 				return;
 			}
 			
-			// broadcast result to responders in the order they were added
+			// Broadcast result to responders in the order they were added.
+			// Check internalAsyncToken before calling each responder to allow cancel() to have immediate effect.
 			if (responders != null)
-				for (var i:int = 0; i < responders.length; i++)
+				for (var i:int = 0; i < responders.length && this.internalAsyncToken == internalAsyncToken; i++)
 					(responders[i] as IResponder).result(event);
 		}
 		/**
 		 * This function gets called when the internalAsyncToken runs its fault functions.
 		 * This function will call the fault functions of the responders added to this object.
 		 */
-		private function handleFault(event:FaultEvent, token:Object = null):void
+		private function handleFault(event:FaultEvent, internalAsyncToken:AsyncToken):void
 		{
+			if (this.internalAsyncToken != internalAsyncToken)
+				return;
+			
 			eventReceived = event;
 			
-			// broadcast fault to responders in the order they were added
+			// Broadcast fault to responders in the order they were added.
+			// Check internalAsyncToken before calling each responder to allow cancel() to have immediate effect.
 			if (responders != null)
-				for (var i:int = 0; i < responders.length; i++)
+				for (var i:int = 0; i < responders.length && this.internalAsyncToken == internalAsyncToken; i++)
 					(responders[i] as IResponder).fault(event);
 		}
 		

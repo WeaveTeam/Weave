@@ -1,50 +1,40 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.DataSources
 {
-	import flash.net.URLLoaderDataFormat;
-	import flash.net.URLRequest;
-	import flash.system.Capabilities;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getTimer;
 	
-	import mx.rpc.events.FaultEvent;
-	import mx.rpc.events.ResultEvent;
-	
+	import weave.api.detectLinkableObjectChange;
+	import weave.api.linkableObjectIsBusy;
+	import weave.api.newLinkableChild;
+	import weave.api.reportError;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
-	import weave.api.detectLinkableObjectChange;
-	import weave.api.linkableObjectIsBusy;
-	import weave.api.newLinkableChild;
-	import weave.api.reportError;
-	import weave.compiler.StandardLib;
+	import weave.compiler.Compiler;
+	import weave.core.LinkableFile;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.ProjectionManager;
 	import weave.primitives.GeneralizedGeometry;
 	import weave.utils.GeoJSON;
 	import weave.utils.VectorUtils;
@@ -57,7 +47,7 @@ package weave.data.DataSources
 		{
 		}
 
-		public const url:LinkableString = newLinkableChild(this, LinkableString);
+		public const url:LinkableFile = newLinkableChild(this, LinkableFile, handleFile);
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
 		public const keyProperty:LinkableString = newLinkableChild(this, LinkableString);
 		
@@ -97,24 +87,15 @@ package weave.data.DataSources
 		
 		override protected function get initializationComplete():Boolean
 		{
-			return super.initializationComplete
-				&& !linkableObjectIsBusy(this)
-				&& jsonData;
+			return super.initializationComplete && !linkableObjectIsBusy(url) && jsonData;
 		}
 		
 		/**
 		 * This gets called as a grouped callback.
 		 */		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			_rootNode = null;
-			
-			if (detectLinkableObjectChange(initialize, url))
-			{
-				jsonData = null;
-				if (url.value)
-					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url.value), handleDownload, handleDownloadError, url.value, URLLoaderDataFormat.TEXT);
-			}
 			
 			if (detectLinkableObjectChange(initialize, keyType, keyProperty))
 			{
@@ -123,19 +104,25 @@ package weave.data.DataSources
 			}
 			
 			// recalculate all columns previously requested because data may have changed.
-			refreshAllProxyColumns();
-
-			super.initialize();
+			super.initialize(true);
 		}
 		
-		/**
-		 * Called when the CSV data is downloaded from a URL.
-		 */
-		private function handleDownload(event:ResultEvent, requestedUrl:String):void
+		private function handleFile():void
 		{
-			// ignore old results
-			if (requestedUrl != url.value)
+			if (linkableObjectIsBusy(url))
 				return;
+			
+			jsonData = null;
+			
+			if (!url.result)
+			{
+				hierarchyRefresh.triggerCallbacks();
+				
+				if (url.error)
+					reportError(url.error);
+				
+				return;
+			}
 			
 			try
 			{
@@ -146,11 +133,12 @@ package weave.data.DataSources
 				}
 				catch (e:Error)
 				{
-					throw new Error("GeoJSON: Your version of Flash Player (" + Capabilities.version + " " + Capabilities.playerType + ") does not have native JSON support.");
+					json = {"parse": Compiler.parseConstant};
 				}
 				
 				// parse the json
-				var obj:Object = json.parse(event.result);
+				var str:String = String(url.result);
+				var obj:Object = json.parse(str);
 				
 				// make sure it's valid GeoJSON
 				if (!GeoJSON.isGeoJSONObject(obj))
@@ -159,21 +147,12 @@ package weave.data.DataSources
 				// parse data
 				jsonData = new GeoJSONData(obj, getKeyType(), keyProperty.value);
 				
-				refreshHierarchy(); // this triggers callbacks
+				hierarchyRefresh.triggerCallbacks();
 			}
 			catch (e:Error)
 			{
 				reportError(e);
 			}
-		}
-		
-		/**
-		 * Called when the data fails to download from a URL.
-		 */
-		private function handleDownloadError(event:FaultEvent, requestedUrl:String):void
-		{
-			if (requestedUrl == url.value)
-				reportError(event);
 		}
 		
 		/**
@@ -252,7 +231,8 @@ package weave.data.DataSources
 						if (getTimer() > stopTime)
 							return i / jsonData.qkeys.length;
 						
-						for each (var geom:GeneralizedGeometry in jsonData.convertToGeneralizedGeometries(i))
+						var geomsFromJson:Array = GeneralizedGeometry.fromGeoJson(jsonData.geometries[i]);
+						for each (var geom:GeneralizedGeometry in geomsFromJson)
 						{
 							keys.push(jsonData.qkeys[i]);
 							geoms.push(geom);
@@ -326,9 +306,6 @@ package weave.data.DataSources
 	}
 }
 
-import flash.system.Capabilities;
-import flash.utils.getDefinitionByName;
-
 import weave.api.data.ColumnMetadata;
 import weave.api.data.IColumnReference;
 import weave.api.data.IDataSource;
@@ -337,8 +314,6 @@ import weave.api.data.IWeaveTreeNode;
 import weave.compiler.StandardLib;
 import weave.data.ProjectionManager;
 import weave.primitives.GeneralizedGeometry;
-import weave.primitives.GeometryType;
-import weave.utils.BLGTreeUtils;
 import weave.utils.GeoJSON;
 import weave.utils.VectorUtils;
 
@@ -496,52 +471,7 @@ internal class GeoJSONData
 		var values:Array = ids;
 		if (propertyName && propertyNames.indexOf(propertyName) >= 0)
 			values = VectorUtils.pluck(properties, propertyName);
-		
+
 		qkeys = Vector.<IQualifiedKey>(WeaveAPI.QKeyManager.getQKeys(keyType, values));
-	}
-	
-	/**
-	 * Derives GeneralizedGeometry objects from the GeoJSON data and overwrites the existing GeoJSON Geometry object.
-	 * @param index Index in the geometries Array.
-	 * @return An Array of GeneralizedGeometry objects
-	 */
-	public function convertToGeneralizedGeometries(index:int):Array
-	{
-		var obj:Object = geometries[index];
-		var type:String = obj[GeoJSON.P_TYPE];
-		var coords:Array = obj[GeoJSON.G_P_COORDINATES];
-		
-		// convert coords to MultiPolygon format: multi[ poly[ line[ point[] ] ] ]
-		if (type == GeoJSON.T_POINT)
-			type = GeometryType.POINT, coords = /*multi*/[/*poly*/[/*line*/[/*point*/coords]]];
-		else if (type == GeoJSON.T_MULTI_POINT)
-			type = GeometryType.POINT, coords = /*multi*/[/*poly*/[/*line*/coords]];
-		else if (type == GeoJSON.T_LINE_STRING)
-			type = GeometryType.LINE, coords = /*multi*/[/*poly*/[/*line*/coords]];
-		else if (type == GeoJSON.T_MULTI_LINE_STRING)
-			type = GeometryType.LINE, coords = /*multi*/[/*poly line*/coords];
-		else if (type == GeoJSON.T_POLYGON)
-			type = GeometryType.POLYGON, coords = /*multi*/[/*poly*/coords];
-		else if (type == GeoJSON.T_MULTI_POLYGON)
-			type = GeometryType.POLYGON;
-		
-		var result:Array = [];
-		for each (var poly:Array in coords)
-		{
-			var geom:GeneralizedGeometry = new GeneralizedGeometry(type);
-			var xyCoords:Array = [];
-			for each (var part:Array in poly)
-			{
-				// add part marker if this is not the first part
-				if (xyCoords.length > 0)
-					xyCoords.push(NaN, NaN);
-				// push x,y coords
-				for each (var point:Array in part)
-					xyCoords.push(point[0], point[1]);
-			}
-			geom.setCoordinates(xyCoords, BLGTreeUtils.METHOD_SAMPLE);
-			result.push(geom);
-		}
-		return result;
 	}
 }

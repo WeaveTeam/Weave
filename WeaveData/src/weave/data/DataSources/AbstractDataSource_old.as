@@ -1,31 +1,26 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.DataSources
 {
-	import weave.api.core.ICallbackCollection;
-	import weave.api.data.IWeaveTreeNode;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
+	import weave.api.core.ICallbackCollection;
+	import weave.api.data.IWeaveTreeNode;
 	import weave.core.LinkableXML;
-	import weave.core.SessionManager;
 	import weave.data.hierarchy.XMLEntityNode;
 	import weave.utils.HierarchyUtils;
 	
@@ -45,57 +40,11 @@ package weave.data.DataSources
 		}
 		
 		/**
-		 * For each tag matching tagName, replace attribute names of that tag using the nameMapping.
-		 * Example usage: convertOldHierarchyFormat(root, 'attribute', {dataTableName: "dataTable", dataType: myFunction})
-		 * @param root The root XML hierachy tag.
-		 * @param tagName The name of tags that need to be converted from an old format.
-		 * @param nameMapping Maps attribute names to new attribute names or functions that convert the old values, with the following signature:  function(value:String):String
-		 */
-		protected function convertOldHierarchyFormat(root:XML, tagName:String, nameMapping:Object):void
-		{
-			if (root == null)
-				return;
-			
-			var node:XML;
-			var oldName:String;
-			var value:String;
-			var nodes:XMLList;
-			var nameMap:Object;
-			var newName:String;
-			var valueConverter:Function;
-
-			nodes = root.descendants(tagName);
-			for each (node in nodes)
-			{
-				for (oldName in nameMapping)
-				{
-					newName = nameMapping[oldName] as String;
-					valueConverter = nameMapping[oldName] as Function;
-					
-					value = node.attribute(oldName);
-					if (value) // if there's an old value
-					{
-						if (valueConverter != null) // if there's a converter
-						{
-							node.@[oldName] = valueConverter(value); // convert the old value
-						}
-						else if (!String(node.attribute(newName))) // if there's no value under the newName
-						{
-							// rename the attribute from oldName to newName
-							delete node.@[oldName];
-							node.@[newName] = value;
-						}
-					}
-				}
-			}
-		}
-		
-		/**
 		 * This function must be implemented by classes that extend AbstractDataSource.
 		 * It will be called the frame after the session state for the data source changes.
 		 * When overriding this function, super.initialize() should be called.
 		 */
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			// set initialized to true so other parts of the code know if this function has been called.
 			_initializeCalled = true;
@@ -113,7 +62,10 @@ package weave.data.DataSources
 				initializeHierarchySubtree(null);
 			}
 			
-			handleAllPendingColumnRequests();
+			if (forceRefresh)
+				refreshAllProxyColumns(initializationComplete);
+			else
+				handleAllPendingColumnRequests(initializationComplete);
 		}
 		
 		/**
@@ -127,11 +79,10 @@ package weave.data.DataSources
 		/**
 		 * @inheritDoc
 		 */
-		override public function refreshHierarchy():void
+		override protected function refreshHierarchy():void
 		{
 			_rootNode = null;
 			_attributeHierarchy.setSessionState(null);
-			getCallbackCollection(this).triggerCallbacks();
 		}
 
 		/**

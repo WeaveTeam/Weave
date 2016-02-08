@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.services.beans
 {
@@ -32,14 +28,16 @@ package weave.services.beans
 		 */
 		public static function get dbmsList():Array
 		{
-			return [MYSQL, SQLITE, POSTGRESQL, SQLSERVER, ORACLE];
+			return [MYSQL, POSTGRESQL, SQLSERVER, ORACLE, SQLITE];
 		}
 		
 		public static const MYSQL:String = 'MySQL';
-		public static const SQLITE:String = 'SQLite';
 		public static const POSTGRESQL:String = 'PostGreSQL';
 		public static const SQLSERVER:String = 'Microsoft SQL Server';
 		public static const ORACLE:String = 'Oracle';
+		public static const SQLITE:String = 'SQLite';
+		
+		public static const DIRECTORY_SERVICE_CONNECTION_NAME:String = 'Directory Service';
 		
 		/**
 		 * This function will get the default port for a DBMS.
@@ -51,10 +49,10 @@ package weave.services.beans
 			switch (dbms)
 			{
 				case MYSQL: return 3306;
-				case SQLITE: return 0;
 				case POSTGRESQL: return 5432;
 				case SQLSERVER: return 1433;
 				case ORACLE: return 1521;
+				case SQLITE: return 0;
 			}
 			return 0;
 		}

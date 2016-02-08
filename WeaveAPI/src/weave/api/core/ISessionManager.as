@@ -1,10 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  *
- * This file is part of the Weave API.
+ * This file is part of Weave.
  *
- * The Initial Developer of the Weave API is the Institute for Visualization
+ * The Initial Developer of Weave is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
  * the Initial Developer. All Rights Reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -112,7 +112,7 @@ package weave.api.core
 		 * @return An Array containing a list of descendant objects.
 		 * @see #getLinkableOwner()
 		 */
-		function getLinkableDescendants(root:ILinkableObject, flter:Class = null):Array;
+		function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array;
 		
 		/**
 		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>
@@ -212,11 +212,12 @@ package weave.api.core
 		 * @param linkableVariable An ILinkableVariable to link to a bindable property.
 		 * @param bindableParent An object with a bindable property.
 		 * @param bindablePropertyName The variable name of the bindable property.
-		 * @param delay The delay to use before setting the linkable variable to reflect a change in the bindable property while the bindableParent has focus.
+		 * @param delay A number of milliseconds to delay before setting the linkable variable to reflect a change in the bindable property while the bindableParent has focus.
 		 * @param onlyWhenFocused If this is set to true and the bindableParent is a UIComponent, the bindable value will only be copied to the linkableVariable when the component has focus.
+		 * @param delayWhenFocused If this is set to true and the bindableParent is a UIComponent, setting the bindable value will be delayed until the component loses focus. This avoids interrupting the user when typing numbers in a text area.
 		 * @see #unlinkBindableProperty()
 		 */
-		function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false):void;
+		function linkBindableProperty(linkableVariable:ILinkableVariable, bindableParent:Object, bindablePropertyName:String, delay:uint = 0, onlyWhenFocused:Boolean = false, delayWhenFocused:Boolean = true):void;
 
 		/**
 		 * This function will unlink an ILinkableVariable from a bindable property that has been previously linked with linkBindableProperty().

@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
@@ -120,7 +116,7 @@
 				var colTitle:String = ColumnUtils.getTitle(_plotter.dynamicColorColumn);
 				try
 				{
-					marginLabel.text = _plotter.legendTitleFunction.apply(null, [colTitle]);   
+					marginLabel.text = _plotter.legendTitleFunction.apply(null, [colTitle, _plotter.dynamicColorColumn]);
 				}
 				catch (e:Error)
 				{
@@ -172,11 +168,13 @@
 				<mx:HSlider liveDragging="true" minimum="10" maximum="100" tickInterval="10" snapInterval="5" width="100%" dataTipFormatFunction="{Math.round}"
 							creationComplete="linkBindableProperty(outerDocument._plotter.shapeSize, event.target, 'value')"/>
 			</ui:Indent>
+			<ui:CustomCheckBox id="centerAtZero" label="{lang('Center color ramp at zero (when binning is disabled')}" change="handleCenterAtZero()"/>
 			<ui:ColorRampEditor id="cRampEditor"/>
 		</mx:VBox>
 		<mx:Script>
 			<![CDATA[
 				import weave.api.linkBindableProperty;
+				import weave.data.AttributeColumns.ColorColumn;
 				import weave.visualization.plotters.ColorBinLegendPlotter;
 				
 				override protected function childrenCreated():void
@@ -184,18 +182,28 @@
 					super.childrenCreated();
 					
 					outerDocument._plotter.dynamicColorColumn.addImmediateCallback(this, colorColumnCallback, true);
-					dataColumnComponent.dynamicObject = outerDocument._plotter.dynamicColorColumn;
+					dataColumnComponent.columnWrapper = outerDocument._plotter.dynamicColorColumn;
 					outerDocument.visualization.plotManager.marginTopNumber.addImmediateCallback(this, handleMarginChange);
 					
 					linkBindableProperty(outerDocument._plotter.maxColumns, legendControls.numColumns, 'value');
 					linkBindableProperty(outerDocument._plotter.reverseOrder, legendControls.reverseOrderCheck, 'selected');
 					linkBindableProperty(outerDocument._plotter.itemLabelFunction, legendControls.txtLegendValuesFunction, 'text', 500);
 					linkBindableProperty(outerDocument._plotter.legendTitleFunction, legendControls.txtLegendAttrNameFunc, 'text', 500);
+					
 					legendControls.chkShowLegendAttrName.addEventListener(Event.CHANGE, toggleShowAttributeName);
+				}
+				
+				private function handleCenterAtZero():void
+				{
+					var cc:ColorColumn = outerDocument._plotter.getInternalColorColumn();
+					if (cc)
+						cc.rampCenterAtZero.value = centerAtZero.selected;
 				}
 				
 				private function colorColumnCallback():void
 				{
+					var cc:ColorColumn = outerDocument._plotter.getInternalColorColumn();
+					centerAtZero.selected = cc && cc.rampCenterAtZero.value;
 					binEditor.setTarget(outerDocument.internalBinnedColumn);
 					cRampEditor.colorRamp = outerDocument.internalColorRamp;
 				}

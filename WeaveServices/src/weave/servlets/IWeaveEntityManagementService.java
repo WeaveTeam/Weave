@@ -1,10 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  *
- * This file is part of the Weave API.
+ * This file is part of Weave.
  *
- * The Initial Developer of the Weave API is the Institute for Visualization
+ * The Initial Developer of Weave is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
  * the Initial Developer. All Rights Reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -33,14 +33,14 @@ public interface IWeaveEntityManagementService
 	 * @param publicMetadata EntityMetadata containing values to match.
 	 * @return An Array of EntityHierarchyInfo objects, sorted by title.
 	 */
-	public EntityHierarchyInfo[] getHierarchyInfo(String user, String pass, Map<String,String> publicMetadata) throws RemoteException;
+	public EntityHierarchyInfo[] getHierarchyInfo(Map<String,String> publicMetadata) throws RemoteException;
 	
 	/**
 	 * Gets an Array of Entity objects.
 	 * @param ids A list of entity IDs.
 	 * @return An Array of Entity objects.
 	 */
-	public DataEntityWithRelationships[] getEntities(String user, String pass, int[] ids) throws RemoteException;
+	public DataEntityWithRelationships[] getEntities(int[] ids) throws RemoteException;
 	
 	/**
 	 * Gets an Array of entity IDs with matching public metadata. 
@@ -50,7 +50,7 @@ public interface IWeaveEntityManagementService
 	 *                       and multi-character matching, respectively.
 	 * @return An Array of IDs matching the search criteria.
 	 */
-	public int[] findEntityIds(String user, String pass, Map<String,String> publicMetadata, String[] wildcardFields) throws RemoteException;
+	public int[] findEntityIds(Map<String,String> publicMetadata, String[] wildcardFields) throws RemoteException;
 	
 	/**
 	 * Finds matching values for a public metadata field.
@@ -58,7 +58,7 @@ public interface IWeaveEntityManagementService
 	 * @param valueSearch A search string.
 	 * @return An Array of matching values for the specified public metadata field.
 	 */
-	public String[] findPublicFieldValues(String user, String pass, String fieldName, String valueSearch) throws RemoteException;
+	public String[] findPublicFieldValues(String fieldName, String valueSearch) throws RemoteException;
 	
 	/**
 	 * Creates a new entity.
@@ -67,21 +67,21 @@ public interface IWeaveEntityManagementService
 	 * @param insertAtIndex Specifies insertion index for sort order.
 	 * @return An entity ID.
 	 */
-	public int newEntity(String user, String pass, DataEntityMetadata metadata, int parentId, int insertAtIndex) throws RemoteException;
+	public int newEntity(DataEntityMetadata metadata, int parentId, int insertAtIndex) throws RemoteException;
 	
 	/**
 	 * Updates the metadata for an existing entity.
 	 * @param entityId An entity ID.
 	 * @param diff Specifies the changes to make to the metadata.
 	 */
-	public void updateEntity(String user, String pass, int entityId, DataEntityMetadata diff) throws RemoteException;
+	public void updateEntity(int entityId, DataEntityMetadata diff) throws RemoteException;
 	
 	/**
 	 * Removes entities and their children recursively.
 	 * @param entityIds A list of entity IDs to remove.
 	 * @return An Array of entity IDs that were removed.
 	 */
-	public int[] removeEntities(String user, String pass, int[] entityIds) throws RemoteException;
+	public int[] removeEntities(int[] entityIds) throws RemoteException;
 	
 	/**
 	 * Adds a parent-child relationship to the server-side entity hierarchy table.
@@ -90,12 +90,12 @@ public interface IWeaveEntityManagementService
 	 * @param insertAtIndex Specifies insertion index for sort order.
 	 * @return An Array of IDs whose relationships have changed as a result of adding the parent-child relationship.
 	 */
-	public int[] addChild(String user, String pass, int parentId, int childId, int insertAtIndex) throws RemoteException;
+	public int[] addChild(int parentId, int childId, int insertAtIndex) throws RemoteException;
 	
 	/**
 	 * Removes a parent-child relationship from the server-side entity hierarchy table.
 	 * @param parentId The ID of the parent entity.
 	 * @param childId The ID of the child entity.
 	 */
-	public void removeChild(String user, String pass, int parentId, int childId) throws RemoteException;
+	public void removeChild(int parentId, int childId) throws RemoteException;
 }

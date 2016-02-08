@@ -1,30 +1,26 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.data.DataSources
 {	
-	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
 	
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
+	import mx.utils.StringUtil;
 	
 	import org.vanrijkom.dbf.DbfField;
 	import org.vanrijkom.dbf.DbfHeader;
@@ -48,13 +44,13 @@ package weave.data.DataSources
 	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableString;
-	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.GeometryColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.StringColumn;
 	import weave.primitives.GeneralizedGeometry;
+	import weave.services.addAsyncResponder;
 	import weave.utils.ShpFileReader;
 
 	/**
@@ -72,7 +68,7 @@ package weave.data.DataSources
 		{
 			// make sure everything is ready before column requests get handled.
 			return super.initializationComplete
-				&& !linkableObjectIsBusy(this)
+				&& dbfData
 				&& (!shpfile || shpfile.geomsReady);
 		}
 		
@@ -92,17 +88,25 @@ package weave.data.DataSources
 			}
 		}
 		
-		override protected function initialize():void
+		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			if (detectLinkableObjectChange(initialize, dbfUrl) && dbfUrl.value)
-				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(dbfUrl.value), handleDBFDownload, handleDBFDownloadError, dbfUrl.value, URLLoaderDataFormat.BINARY);
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(dbfUrl.value)),
+					handleDBFDownload,
+					handleDBFDownloadError,
+					dbfUrl.value
+				);
 			if (detectLinkableObjectChange(initialize, shpUrl) && shpUrl.value)
-				WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(shpUrl.value), handleShpDownload, handleShpDownloadError, shpUrl.value, URLLoaderDataFormat.BINARY);
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(shpUrl.value)),
+					handleShpDownload,
+					handleShpDownloadError,
+					shpUrl.value
+				);
 			
 			// recalculate all columns previously requested because data may have changed.
-			refreshAllProxyColumns();
-			
-			super.initialize();
+			super.initialize(true);
 		}
 		
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
@@ -272,7 +276,7 @@ package weave.data.DataSources
 			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
 			if (dataType == DataType.GEOMETRY)
 			{
-				newColumn = new GeometryColumn();
+				newColumn = new GeometryColumn(metadata);
 				(newColumn as GeometryColumn).setGeometries(keysVector, Vector.<GeneralizedGeometry>(data));
 			}
 			else if (dataType == DataType.DATE)
@@ -358,7 +362,8 @@ package weave.data.DataSources
 				if (columnName)
 				{
 					record = DbfTools.getRecord(dbfData, dbfHeader, i);
-					values.push( record.values[columnName] );
+					var value:* = record.values[columnName];
+					values.push(value);
 				}
 				else
 					values.push(String(i + 1));

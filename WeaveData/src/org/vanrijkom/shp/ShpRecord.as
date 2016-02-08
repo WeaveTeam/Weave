@@ -88,6 +88,11 @@ public class ShpRecord
 		shapeType = src.readInt();
 				
 		switch(shapeType) {
+			
+			// Added for Weave
+			case ShpType.SHAPE_NULL:
+				break;
+			
 			case ShpType.SHAPE_POINT:
 				shape = new ShpPoint(src,contentLengthBytes);
 				break;

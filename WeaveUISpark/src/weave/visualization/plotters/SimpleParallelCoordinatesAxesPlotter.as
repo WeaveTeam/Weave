@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
@@ -30,8 +26,7 @@ package weave.visualization.plotters
 	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableVariable;
-	import weave.core.LinkableWatcher;
+	import weave.core.LinkableDynamicObject;
 	import weave.primitives.Bounds2D;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
@@ -44,8 +39,7 @@ package weave.visualization.plotters
 		{
 		}
 		
-		public const plotterPath:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array, arrayTypeIsString), handlePlotterPath);
-		private const plotterWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(SimpleParallelCoordinatesPlotter));
+		public const mainPlotter:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(SimpleParallelCoordinatesPlotter));
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		private const textFormat:LinkableTextFormat = registerLinkableChild(this, Weave.properties.visTextFormat);
 		
@@ -54,19 +48,9 @@ package weave.visualization.plotters
 		private static const maxPoint:Point = new Point();
 		private static const bitmapBounds:Bounds2D = new Bounds2D();
 		
-		private function arrayTypeIsString(array:Array):Boolean
-		{
-			return StandardLib.getArrayType(array) == String;
-		}
-		
-		private function handlePlotterPath():void
-		{
-			plotterWatcher.targetPath = plotterPath.getSessionState() as Array;
-		}
-		
 		override public function getBackgroundDataBounds(output:IBounds2D):void
 		{
-			var plotter:SimpleParallelCoordinatesPlotter = plotterWatcher.target as SimpleParallelCoordinatesPlotter;
+			var plotter:SimpleParallelCoordinatesPlotter = mainPlotter.target as SimpleParallelCoordinatesPlotter;
 			if (plotter)
 			{
 				plotter.getBackgroundDataBounds(output)
@@ -81,7 +65,7 @@ package weave.visualization.plotters
 		override public function drawBackground(dataBounds:IBounds2D, screenBounds:IBounds2D, destination:BitmapData):void
 		{
 			var graphics:Graphics = tempShape.graphics;
-			var plotter:SimpleParallelCoordinatesPlotter = plotterWatcher.target as SimpleParallelCoordinatesPlotter;
+			var plotter:SimpleParallelCoordinatesPlotter = mainPlotter.target as SimpleParallelCoordinatesPlotter;
 			if (!plotter)
 				return;
 			var columns:Array = plotter.columns.getObjects();
@@ -159,5 +143,7 @@ package weave.visualization.plotters
 			
 			destination.draw(tempShape);
 		}
+		
+		[Deprecated(replacement="mainPlotter")] public function set plotterPath(path:Array):void { mainPlotter.targetPath = path; }
 	}
 }

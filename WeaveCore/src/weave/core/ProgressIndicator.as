@@ -1,39 +1,33 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.core
 {
+	import flash.system.Capabilities;
 	import flash.utils.Dictionary;
 	
 	import mx.rpc.AsyncResponder;
 	import mx.rpc.AsyncToken;
 	
+	import weave.api.getCallbackCollection;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.IProgressIndicator;
-	import weave.api.getCallbackCollection;
 	import weave.compiler.StandardLib;
+	import weave.utils.WeavePromise;
 
-	/**
-	 * This is an implementation of IProgressIndicator.
-	 * @author adufilie
-	 */
 	public class ProgressIndicator implements IProgressIndicator
 	{
 		public static var debug:Boolean = false;
@@ -55,7 +49,7 @@ package weave.core
 			{
 				var desc:String = _description[task] || "Unnamed task";
 				if (desc)
-					result.push("(" + StandardLib.roundSignificant(100*_progress[task], 3) + "%) " + desc);
+					result.push(debugId(task) + " (" + StandardLib.roundSignificant(100*_progress[task], 3) + "%) " + desc);
 			}
 			StandardLib.sort(result);
 			return result;
@@ -77,13 +71,22 @@ package weave.core
 			var cc:ICallbackCollection = getCallbackCollection(this);
 			cc.delayCallbacks();
 			
-			if (taskToken is AsyncToken && _progress[taskToken] === undefined)
-				(taskToken as AsyncToken).addResponder(new AsyncResponder(handleAsyncToken, handleAsyncToken, taskToken));
+			var isNewTask:Boolean = _progress[taskToken] === undefined;
 			
 			_description[taskToken] = description;
 			
 			// add task before WeaveAPI.SessionManager.assignBusyTask()
 			updateTask(taskToken, NaN); // NaN is used as a special case when adding the task
+			
+			if (isNewTask && taskToken is AsyncToken)
+			{
+				(taskToken as AsyncToken).addResponder(new AsyncResponder(handleAsyncToken, handleAsyncToken, taskToken));
+			}
+			if (isNewTask && taskToken is WeavePromise)
+			{
+				var remove:Function = function(_:*):* { removeTask(taskToken); };
+				(taskToken as WeavePromise).then(remove, remove);
+			}
 			
 			if (busyObject)
 				WeaveAPI.SessionManager.assignBusyTask(taskToken, busyObject);
@@ -186,7 +189,11 @@ package weave.core
 			{
 				var stackTrace:String = _stackTrace[i]; // check this when debugging
 				var description:String = _description[i];
-				trace(description, stackTrace);
+				var args:Array = [debugId(i), description, stackTrace];
+				if (Capabilities.isDebugger)
+					trace.apply(null, args);
+				else
+					weaveTrace.apply(null, args);
 			}
 		}
 	}

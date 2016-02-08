@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.core
 {
@@ -34,13 +30,13 @@ package weave.core
 	import mx.core.UIComponent;
 	import mx.events.IndexChangedEvent;
 	
+	import weave.api.getCallbackCollection;
+	import weave.api.objectWasDisposed;
 	import weave.api.core.IChildListCallbackInterface;
 	import weave.api.core.ILinkableDisplayObject;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.ILinkableVariable;
-	import weave.api.getCallbackCollection;
-	import weave.api.objectWasDisposed;
 	import weave.api.ui.ILinkableLayoutManager;
 	import weave.primitives.Dictionary2D;
 
@@ -296,6 +292,16 @@ package weave.core
 			//TODO
 		}
 		
+		private static const _previousParents:Dictionary = new Dictionary(true);
+		
+		/**
+		 * Returns the previous parent of a child if it was moved to a new parent using one of the static functions defined in this class.
+		 */
+		public static function getPreviousParent(child:DisplayObject):DisplayObjectContainer
+		{
+			return _previousParents[child];
+		}
+		
 		/**
 		 * This function adds a callback to a LinkableHashMap to monitor any DisplayObjects contained in it.
 		 * @param uiParent A UIComponent to synchronize with the given hashMap.
@@ -480,6 +486,12 @@ package weave.core
 		
 		public static function spark_addChild(parent:DisplayObjectContainer, child:DisplayObject):DisplayObject
 		{
+			if (child.parent && child.parent != parent)
+			{
+				_previousParents[child] = child.parent;
+				spark_removeChild(child.parent, child);
+			}
+			
 			if (parent is IVisualElementContainer)
 			{
 				if (child is IVisualElement)
@@ -496,7 +508,18 @@ package weave.core
 			if (parent is IVisualElementContainer)
 			{
 				if (child is IVisualElement)
-					return (parent as IVisualElementContainer).removeElement(child as IVisualElement) as DisplayObject;
+				{
+					try
+					{
+						return (parent as IVisualElementContainer).removeElement(child as IVisualElement) as DisplayObject;
+					}
+					catch (e:Error)
+					{
+						if (e.errorID != 2025) // The supplied DisplayObject must be a child of the caller
+							throw e;
+					}
+					return child;
+				}
 				else
 					throw new Error("parent is IVisualElementContainer, but child is not an IVisualElement");
 			}
@@ -506,6 +529,12 @@ package weave.core
 		
 		public static function spark_addChildAt(parent:DisplayObjectContainer, child:DisplayObject, index:int):DisplayObject
 		{
+			if (child.parent && child.parent != parent)
+			{
+				_previousParents[child] = child.parent;
+				spark_removeChild(child.parent, child);
+			}
+			
 			if (parent is IVisualElementContainer)
 			{
 				if (child is IVisualElement)

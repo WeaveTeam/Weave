@@ -1,45 +1,50 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.menus
 {
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
+	
 	import weave.Weave;
+	import weave.api.core.ILinkableHashMap;
+	import weave.api.data.ColumnMetadata;
+	import weave.api.data.DataType;
+	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IDataSource;
 	import weave.api.data.IDataSource_File;
 	import weave.api.data.IDataSource_Service;
 	import weave.api.data.IDataSource_Transform;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.reportError;
 	import weave.api.ui.ISelectableAttributes;
+	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
+	import weave.data.AttributeColumns.CSVColumn;
 	import weave.editors.managers.AddDataSourcePanel;
 	import weave.editors.managers.DataSourceManager;
+	import weave.services.addAsyncResponder;
+	import weave.services.beans.KMeansClusteringResult;
+	import weave.ui.AlertTextBox;
 	import weave.ui.AttributeSelectorPanel;
 	import weave.ui.DraggablePanel;
 	import weave.ui.EquationEditor;
+	import weave.utils.ColumnUtils;
 
 	public class DataMenu extends WeaveMenuItem
 	{
-		// TODO: make it so we are not dependent on VisApplication
-		private static function exportCSV():void
-		{
-			WeaveAPI.topLevelApplication['visApp']['exportCSV']();
-		}
-		
 		public static const staticItems:Array = createItems([
 			{
 				shown: Weave.properties.enableBrowseData,
@@ -51,18 +56,20 @@ package weave.menus
 				click: function():void { DraggablePanel.openStaticInstance(DataSourceManager); }
 			},{
 				shown: Weave.properties.enableRefreshHierarchies,
-				label: lang("Refresh all data source hierarchies"),
+				label: lang("Refresh all data sources"),
 				click: function():void {
-					var sources:Array = WeaveAPI.globalHashMap.getObjects(IDataSource);
-					for each (var source:IDataSource in sources)
-					source.refreshHierarchy();
+					var ghm:ILinkableHashMap = WeaveAPI.globalHashMap;
+					var dataSources:Array = ghm.getObjects(IDataSource);
+					for each (var dataSource:IDataSource in dataSources)
+					{
+						dataSource.hierarchyRefresh.triggerCallbacks();
+						// TEMPORARY SOLUTION until all data sources behave correctly - force creating a new copy
+						var name:String = ghm.getName(dataSource);
+						if (name)
+							ghm.requestObjectCopy(name, dataSource);
+					}
 				},
 				enabled: function():Boolean { return WeaveAPI.globalHashMap.getObjects(IDataSource).length > 0; }
-			},{
-				shown: Weave.properties.enableExportCSV,
-				label: lang("Export CSV from all visualizations"),
-				click: exportCSV,
-				enabled: function():Boolean { return WeaveAPI.globalHashMap.getObjects(ISelectableAttributes).length > 0; }
 			}
 		]);
 		
@@ -98,8 +105,11 @@ package weave.menus
 					function(group:Array, i:*, a:*):Array {
 						return group.map(
 							function(impl:Class, i:*, a:*):Object {
+								var shown:* = Weave.properties.getMenuToggle(impl);
+								if (!alwaysShow)
+									shown = [shown, Weave.properties.enableManageDataSources];
 								return {
-									shown: {or: [alwaysShow, Weave.properties.enableManageDataSources]},
+									shown: shown,
 									label: getLabel,
 									click: onClick,
 									data: impl
@@ -117,6 +127,60 @@ package weave.menus
 			click: function():void { DraggablePanel.openStaticInstance(EquationEditor); }
 		});
 		
+		public static const kMeansClusteringItem:WeaveMenuItem = new WeaveMenuItem({
+			dependency: WeaveAPI.globalHashMap.childListCallbacks,
+			shown: [Weave.properties.showKMeansClustering],
+			label: lang("K-means clustering"),
+			children: function():Array {
+				return WeaveAPI.globalHashMap.getObjects(ISelectableAttributes)
+					.map(function(isa:ISelectableAttributes, i:int, a:Array):Object {
+						return {
+							label: WeaveAPI.globalHashMap.getName(isa),
+							click: doKMeans,
+							data: isa
+						};
+					});
+			}
+		});
+		private static function doKMeans(item:WeaveMenuItem):void
+		{
+			AlertTextBox.show(
+				'K-means Clustering',
+				'Please specify the number of clusters.',
+				'4',
+				null,
+				function(userInput:String):void {
+					var numberOfClusters:int = StandardLib.asNumber(userInput);
+					var isa:ISelectableAttributes = item.data as ISelectableAttributes;
+					var cols:Array = ColumnUtils.getNonWrapperColumnsFromSelectableAttributes(isa.getSelectableAttributes());
+					cols = cols.filter(function(col:IAttributeColumn, i:int, a:Array):Boolean {
+						return col.getMetadata(ColumnMetadata.DATA_TYPE) == DataType.NUMBER;
+					});
+					var inputValues:Array = ColumnUtils.joinColumns(cols, Number);
+					var keys:Array = inputValues.shift();
+					addAsyncResponder(
+						Weave.properties.getRService().KMeansClustering(inputValues, false, numberOfClusters, 1000),
+						function(event:ResultEvent, keys:Array):void {
+							var result:KMeansClusteringResult = new KMeansClusteringResult(event.result as Array, keys);
+							var rows:Array = keys.map(function(key:IQualifiedKey, i:int, a:Array):Array {
+								return [key.localName, result.clusterVector[i]];
+							});
+							var name:String = WeaveAPI.globalHashMap.generateUniqueName('Clusters');
+							var csvColumn:CSVColumn = WeaveAPI.globalHashMap.requestObject(name, CSVColumn, false);
+							csvColumn.data.setSessionState(rows);
+							csvColumn.title.value = name;
+							csvColumn.keyType.value = (keys[0] as IQualifiedKey).keyType;
+							weaveTrace(lang('The "{0}" column was generated.', name));
+						},
+						function(event:FaultEvent, keys:Array):void {
+							reportError(event);
+						},
+						keys
+					);
+				}
+			);
+		}
+		
 		public function DataMenu()
 		{
 			super({
@@ -127,7 +191,9 @@ package weave.menus
 					return createItems([
 						staticItems,
 						getDynamicItems("+ {0}"),
-						equationColumnItem
+						equationColumnItem,
+						WeaveMenuItem.TYPE_SEPARATOR,
+						kMeansClusteringItem
 					]);
 				}
 			});

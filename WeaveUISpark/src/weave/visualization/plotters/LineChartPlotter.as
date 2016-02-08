@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
@@ -24,10 +20,12 @@ package weave.visualization.plotters
 	
 	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISelectableAttributes;
+	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.KeySets.FilteredKeySet;
 	import weave.visualization.layers.PlotTask;
@@ -59,6 +57,7 @@ package weave.visualization.plotters
 		public const group:DynamicColumn = newLinkableChild(this, DynamicColumn);
  		public const order:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
+		public const useFilteredDataGaps:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		override public function drawPlotAsyncIteration(task:IPlotTask):Number
 		{
@@ -71,7 +70,7 @@ package weave.visualization.plotters
 		{
 			var x:Number = dataX.getValueFromKey(recordKey, Number);
 			var y:Number = dataY.getValueFromKey(recordKey, Number);
-			initBoundsArray(output).setCenteredRectangle(x, y, 0, 0);
+			initBoundsArray(output).setBounds(x, y, x, y);
 		}
 	}
 }
@@ -103,16 +102,16 @@ internal class AsyncState
 		this.renderer = new AsyncLineRenderer();
 		
 		if ((task as PlotTask).taskType != PlotTask.TASK_TYPE_SUBSET)
-			this.keySet = newDisposableChild(plotter, KeySet);
+			this.taskKeySet = newDisposableChild(plotter, KeySet);
 	}
 	
 	public var renderer:AsyncLineRenderer;
 	public var plotter:LineChartPlotter;
 	public var task:IPlotTask;
 	public var unfilteredKeySet:IKeySet;
-	public var keys:Array;
+	public var allKeys:Array;
 	public var keyIndex:Number;
-	public var keySet:KeySet;
+	public var taskKeySet:KeySet;
 	public var group:Number;
 	
 	private static const tempPoint:Point = new Point();
@@ -122,28 +121,28 @@ internal class AsyncState
 		if (task.iteration == 0)
 		{
 			renderer.reset();
-			if (keySet)
+			if (taskKeySet)
 			{
-				keySet.clearKeys();
-				keySet.replaceKeys(task.recordKeys);
+				taskKeySet.clearKeys();
+				taskKeySet.replaceKeys(task.recordKeys);
 			}
-			keys = unfilteredKeySet.keys;
+			allKeys = plotter.useFilteredDataGaps.value ? unfilteredKeySet.keys : plotter.filteredKeySet.keys;
 			keyIndex = 0;
 		}
 		
 		try
 		{
-			for (; keyIndex < keys.length; keyIndex++)
+			for (; keyIndex < allKeys.length; keyIndex++)
 			{
 				if (getTimer() > task.iterationStopTime)
 				{
 					renderer.flush(task.buffer);
-					return keyIndex / keys.length;
+					return keyIndex / allKeys.length;
 				}
 				
-				var key:IQualifiedKey = keys[keyIndex] as IQualifiedKey;
+				var key:IQualifiedKey = allKeys[keyIndex] as IQualifiedKey;
 				
-				if (keySet ? keySet.containsKey(key) : plotter.filteredKeySet.containsKey(key))
+				if (taskKeySet ? taskKeySet.containsKey(key) : plotter.filteredKeySet.containsKey(key))
 				{
 					tempPoint.x = plotter.dataX.getValueFromKey(key, Number);
 					tempPoint.y = plotter.dataY.getValueFromKey(key, Number);

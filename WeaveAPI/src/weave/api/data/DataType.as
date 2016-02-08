@@ -1,10 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  *
- * This file is part of the Weave API.
+ * This file is part of Weave.
  *
- * The Initial Developer of the Weave API is the Institute for Visualization
+ * The Initial Developer of Weave is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
  * the Initial Developer. All Rights Reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -21,6 +21,8 @@ package weave.api.data
 	 */
 	public class DataType
 	{
+		public static const ALL_TYPES:Array = [NUMBER, STRING, DATE, GEOMETRY];
+		
 		public static const NUMBER:String = "number";
 		public static const STRING:String = "string";
 		public static const DATE:String = "date";
@@ -46,6 +48,24 @@ package weave.api.data
 				default:
 					return String;
 			}
+		}
+		
+		/**
+		 * @param data An Array of data values.
+		 * @return A dataType metadata value, or null if no data was found.
+		 */
+		public static function getDataTypeFromData(data:Array):String
+		{
+			for each (var value:* in data)
+			{
+				if (value is Number)
+					return NUMBER;
+				if (value is Date)
+					return DATE;
+				if (value != null)
+					return STRING;
+			}
+			return null;
 		}
 	}
 }

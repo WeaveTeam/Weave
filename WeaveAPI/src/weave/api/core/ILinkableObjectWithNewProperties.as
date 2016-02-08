@@ -1,10 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  *
- * This file is part of the Weave API.
+ * This file is part of Weave.
  *
- * The Initial Developer of the Weave API is the Institute for Visualization
+ * The Initial Developer of Weave is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
  * the Initial Developer. All Rights Reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -16,19 +16,15 @@
 package weave.api.core
 {
 	/**
-	 * Allows a reviewSessionState() function to be defined which will receive
-	 * the full session state for the ILinkableObject 
+	 * Implement this interface to detect when a full session state is missing properties or a session state contains extra properties.
 	 */
 	public interface ILinkableObjectWithNewProperties extends ILinkableObject
 	{
 		/**
-		 * This function will be called by SessionManager.setSessionState()
-		 * to give this object a chance to determine if a missing property
-		 * should be derived using backwards compatibility code for old
-		 * session states from when the property did not exist.
+		 * This function will be called by SessionManager.setSessionState() when a full session state is missing properties or a session state contains extra properties.
 		 * @param newState The new session state for this object.
-		 * @param missingProperty The name of the missing property.
+		 * @param missingProperty The name of the property, whether it is missing from the newState or this ILinkableObject.
 		 */
-		function handleMissingSessionStateProperty(newState:Object, missingProperty:String):void;
+		function handleMissingSessionStateProperty(newState:Object, property:String):void;
 	}
 }

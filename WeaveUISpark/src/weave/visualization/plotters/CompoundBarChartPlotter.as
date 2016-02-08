@@ -1,21 +1,17 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.visualization.plotters
 {
@@ -58,6 +54,7 @@ package weave.visualization.plotters
 	import weave.primitives.Range;
 	import weave.utils.BitmapText;
 	import weave.utils.ColumnUtils;
+	import weave.utils.DrawUtils;
 	import weave.utils.LinkableTextFormat;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
@@ -174,7 +171,7 @@ package weave.visualization.plotters
 		public const recordValueLabelColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const labelFormatter:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string']));
+		public const labelFormatter:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['string', 'column']));
 		public const labelDataCoordinate:LinkableNumber = registerLinkableChild(this, new LinkableNumber(NaN));
 		public const labelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_RIGHT));
 		public const labelVerticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE));
@@ -186,6 +183,7 @@ package weave.visualization.plotters
 		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const positiveErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
 		public const negativeErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		public const errorIsRelative:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
 		public const zoomToSubsetBars:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
@@ -263,6 +261,7 @@ package weave.visualization.plotters
 				var _heightColumns:Array;
 				var _posErrCols:Array;
 				var _negErrCols:Array;
+				var _errorIsRelative:Boolean;
 				var _groupingMode:String;
 				var _horizontalMode:Boolean;
 				var _groupBySortColumn:Boolean;
@@ -284,10 +283,11 @@ package weave.visualization.plotters
 						_heightColumns = heightColumns.getObjects();
 						_posErrCols = positiveErrorColumns.getObjects();
 						_negErrCols = negativeErrorColumns.getObjects();
+						_errorIsRelative = errorIsRelative.value;
 						_groupingMode = getActualGroupingMode();
 						_horizontalMode = horizontalMode.value;
 						_groupBySortColumn = groupBySortColumn.value;
-						reverseOrder = (_horizontalMode == (_groupingMode == GROUP));
+						reverseOrder = _groupingMode == GROUP && _horizontalMode;
 						if (reverseOrder)
 						{
 							_heightColumns.reverse();
@@ -497,7 +497,7 @@ package weave.visualization.plotters
 									graphics.beginFill(color, 1);
 								line.beginLineStyle(recordKey, graphics);
 								if (tempBounds.getHeight() == 0)
-									graphics.lineStyle(0,0,0);
+									DrawUtils.clearLineStyle(graphics);
 								
 								graphics.drawRect(tempBounds.getXMin(), tempBounds.getYMin(), tempBounds.getWidth(), tempBounds.getHeight());
 								
@@ -520,7 +520,12 @@ package weave.visualization.plotters
 										var right:Number = center + width / 4;
 										var top:Number;
 										var bottom:Number;
-										if (height >= 0)
+										if (!_errorIsRelative)
+										{
+											top = errorPlusVal;
+											bottom = errorMinusVal;
+										}
+										else if (height >= 0)
 										{
 											top = yMax + errorPlusVal;
 											bottom = yMax - errorMinusVal;
@@ -646,7 +651,7 @@ package weave.visualization.plotters
 								
 								try
 								{
-									_bitmapText.text = labelFormatter.apply(null, [_bitmapText.text]);
+									_bitmapText.text = labelFormatter.apply(null, [_bitmapText.text, heightColumn]);
 								}
 								catch (e:Error)
 								{

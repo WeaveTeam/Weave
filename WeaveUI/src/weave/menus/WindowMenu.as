@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.menus
 {
@@ -25,8 +21,6 @@ package weave.menus
 	import mx.controls.Alert;
 	
 	import weave.Weave;
-	import weave.api.detectLinkableObjectChange;
-	import weave.editors.WeavePropertiesEditor;
 	import weave.ui.DraggablePanel;
 
 	public class WindowMenu extends WeaveMenuItem
@@ -70,17 +64,19 @@ package weave.menus
 		
 		public static const staticItems:Array = createItems([
 			{
-				shown: {or: [SessionMenu.fn_adminMode, Weave.properties.enableUserPreferences]},
-				label: lang("Preferences"),
-				click: function():void { DraggablePanel.openStaticInstance(WeavePropertiesEditor); }
-			},
-			TYPE_SEPARATOR,
-			{
 				label: function():String {
 					var dash:Boolean = Weave.properties.dashboardMode.value;
 					return lang((dash ? "Disable" : "Enable") + " dashboard mode");
 				},
 				click: Weave.properties.dashboardMode
+			},
+			TYPE_SEPARATOR,
+			{
+				label: function():String {
+					var shown:Boolean = Weave.properties.enableSessionHistoryControls.value;
+					return lang((shown ? "Hide" : "Show") + " session history controls");
+				},
+				click: Weave.properties.enableSessionHistoryControls
 			},
 			TYPE_SEPARATOR,
 			{
@@ -174,8 +170,9 @@ package weave.menus
 		
 		public static function get dynamicItems():Array
 		{
+			var allPanels:Array = getAllPanels().sortOn('title');
 			return createItems(
-				getAllPanels().map(
+				allPanels.map(
 					function(panel:DraggablePanel, ..._):* {
 						return {
 							shown: {not: Weave.properties.dashboardMode},
@@ -194,8 +191,8 @@ package weave.menus
 		public function WindowMenu()
 		{
 			super({
-				source: WeaveAPI.globalHashMap.childListCallbacks,
-				shown: {or: [SessionMenu.fn_adminMode, Weave.properties.enableWindowMenu]},
+				dependency: WeaveAPI.globalHashMap.childListCallbacks,
+				shown: {or: [FileMenu.fn_adminMode, Weave.properties.enableWindowMenu]},
 				label: lang("Window"),
 				children: function():Array {
 					return createItems([

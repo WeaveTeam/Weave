@@ -1,21 +1,17 @@
-/*
-	Weave (Web-based Analysis and Visualization Environment)
-	Copyright (C) 2008-2011 University of Massachusetts Lowell
-	
-	This file is a part of Weave.
-	
-	Weave is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License, Version 3,
-	as published by the Free Software Foundation.
-	
-	Weave is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-	
-	You should have received a copy of the GNU General Public License
-	along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.editors
 {
@@ -91,7 +87,7 @@ package weave.editors
 			{
 				var codeEditor:CodeEditor = new CodeEditor();
 				codeEditor.addEventListener(FlexEvent.CREATION_COMPLETE, function(event:Event):void {
-					if (lv is LinkableString || lv is LinkableNumber || lv is LinkableBoolean || !JsonSynchronizer.available)
+					if (lv is LinkableString || lv is LinkableNumber || lv is LinkableBoolean)
 						linkBindableProperty(lv, event.target, 'text', 500, true)
 					else
 						new JsonSynchronizer(lv, codeEditor, 'text');
@@ -187,6 +183,7 @@ import weave.api.core.ILinkableVariable;
 import weave.api.detectLinkableObjectChange;
 import weave.api.getCallbackCollection;
 import weave.api.ui.ISelectableAttributes;
+import weave.compiler.Compiler;
 import weave.compiler.StandardLib;
 import weave.core.ClassUtils;
 import weave.core.SessionManager;
@@ -213,7 +210,7 @@ internal class ComponentUpdater
 	private function update():void
 	{
 		// stop if nothing changed
-		if (!detectLinkableObjectChange(update, tree.source))
+		if (!detectLinkableObjectChange(update, tree.data as ILinkableObject))
 			return;
 		
 		vbox.label = lang(tree.label);
@@ -222,12 +219,12 @@ internal class ComponentUpdater
 		
 		var subtrees:Array = tree.children || [];
 		
-		if (!(tree.source is ILinkableHashMap))
+		if (!(tree.data is ILinkableHashMap))
 		{
 			// sort by class, then by name
 			StandardLib.sort(subtrees, function(st1:WeaveTreeItem, st2:WeaveTreeItem):int {
-				var c1:Class = Object(st1.source).constructor;
-				var c2:Class = Object(st2.source).constructor;
+				var c1:Class = Object(st1.data).constructor;
+				var c2:Class = Object(st2.data).constructor;
 				var l1:String = st1.label;
 				var l2:String = st2.label;
 				return ObjectUtil.stringCompare(String(c1), String(c2))
@@ -236,14 +233,14 @@ internal class ComponentUpdater
 		}
 		
 		// editors for enumerated selectable attributes should appear first
-		var sa:ISelectableAttributes = tree.source as ISelectableAttributes;
+		var sa:ISelectableAttributes = tree.data as ISelectableAttributes;
 		if (sa)
 		{
 			// this code adds duplicate items to the subtrees array
-			var lookup:Dictionary = VectorUtils.createLookup(subtrees, 'source');
+			var lookup:Dictionary = VectorUtils.createLookup(subtrees, 'data');
 			var names:Array = sa.getSelectableAttributeNames();
 			subtrees = sa.getSelectableAttributes()
-				.map(function(attr:*, i:*, a:*):WeaveTreeItem{
+				.map(function(attr:*, i:*, a:*):WeaveTreeItem {
 					return subtrees[lookup[attr]]
 						|| (WeaveAPI.SessionManager as SessionManager).getSessionStateTree(attr, names[i]);
 				})
@@ -263,7 +260,7 @@ internal class ComponentUpdater
 				continue;
 			ignore[subtree] = true;
 			
-			var childTarget:ILinkableObject = subtree.source;
+			var childTarget:ILinkableObject = subtree.data as ILinkableObject;
 			
 			// create component if necessary
 			component = cachedComponents[childTarget];
@@ -290,13 +287,12 @@ internal class ComponentUpdater
 
 internal class JsonSynchronizer
 {
-	public static function get available():Boolean
-	{
-		return ClassUtils.getClassDefinition('JSON') != null;
-	}
-	
 	public function JsonSynchronizer(linkableVariable:ILinkableVariable, host:UIComponent, prop:String, delay:uint = 500)
 	{
+		this.JSON = ClassUtils.getClassDefinition('JSON');
+		if (!JSON)
+			JSON = {"stringify": Compiler.stringify, "parse": Compiler.parseConstant};
+
 		this.lv = linkableVariable;
 		this.host = host;
 		this.prop = prop;
@@ -305,7 +301,7 @@ internal class JsonSynchronizer
 		BindingUtils.bindSetter(EventUtils.generateDelayedCallback(linkableVariable, handleJson, delay, true), this.host, this.prop);
 	}
 	
-	public var JSON:Object = ClassUtils.getClassDefinition('JSON');
+	public var JSON:Object;
 	public var lv:ILinkableVariable;
 	public var host:UIComponent;
 	public var prop:String;

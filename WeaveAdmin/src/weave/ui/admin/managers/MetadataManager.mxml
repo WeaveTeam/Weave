@@ -1,11 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+-->
 <mx:HDividedBox xmlns:mx="http://www.adobe.com/2006/mxml"
                 xmlns:ui="weave.ui.*"
                 xmlns:aci="weave.services.beans.*"
                 xmlns="weave.ui.admin.managers.*"
-                label="{lang('Data Hierarchies')}{metadataEditor.isChanged?'*':''}">
+                label="{lang('Data hierarchies')}{metadataEditor.isChanged?'*':''}">
     <mx:VBox height="100%" width="100%" enabled="{!metadataEditor.isChanged}">
-		<ui:Indent label="{lang('Data Tables')}" labelFontWeight="bold">
+		<ui:Indent label="{lang('Data tables')}" labelFontWeight="bold">
 			<ui:TextInputWithPrompt id="tableSearch" prompt="{lang('Search tables')}" width="100%"/>
 			<ui:TextInputWithPrompt id="columnSearch" prompt="{lang('Search columns')}" width="100%"/>
 			<ui:HelpComponent>
@@ -29,15 +45,15 @@
 			 enabled="{!metadataEditor.isChanged &amp;&amp; !editTablesButton.selected}">
         <mx:HBox width="100%" horizontalGap="0">
 			<mx:HBox width="100%" minWidth="0" visible="{minusButton.visible}" includeInLayout="{minusButton.visible}" horizontalScrollPolicy="off">
-				<mx:Label text="{lang('Custom Hierarchies')}" fontWeight="bold"/>
+				<mx:Label text="{lang('Custom hierarchies')}" fontWeight="bold"/>
 				<mx:Spacer width="100%"/>
 			</mx:HBox>
 			<mx:Button id="minusButton" width="{minusButton.height}"
-					   toolTip="{lang('Hide Custom Hierarchies')}"
+					   toolTip="{lang('Hide custom hierarchies')}"
 					   click="hierarchyDiv.width = plusButton.height; hierarchyTree.selectedItem = null; this.selectedItems = tableTree.selectedItems;"
 					   icon="@Embed(source='/weave/resources/images/minus.png')"/>
 			<mx:Button id="plusButton" width="{plusButton.height}" visible="false"
-					   toolTip="{lang('Show Custom Hierarchies')}"
+					   toolTip="{lang('Show custom hierarchies')}"
 					   click="hierarchyDiv.width = hierarchyDiv.parent.width / 3"
 					   icon="@Embed(source='/weave/resources/images/plus.png')"/>
 		</mx:HBox>

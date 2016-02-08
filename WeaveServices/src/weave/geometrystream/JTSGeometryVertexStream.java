@@ -1,26 +1,23 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.geometrystream;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 
 /**
  * This is an interface to a stream of vertices from a geometry.
@@ -33,10 +30,17 @@ public class JTSGeometryVertexStream implements IGeometryVertexStream
 	{
 		coords = geom.getCoordinates();
 		index = -1; // start before the first coord so the first call to next() will not skip anything
+		partNum = -1; // start before the first part
+		partEndIndex = -1;
+		if (geom.getGeometryType().equals("Polygon"))
+			polygon = (Polygon)geom;
 	}
 	
+	private Polygon polygon = null;
 	private Coordinate[] coords;
 	private int index;
+	private int partNum;
+	private int partEndIndex;
 	
 	/**
 	 * This checks if there is a vertex available from the stream.
@@ -55,11 +59,28 @@ public class JTSGeometryVertexStream implements IGeometryVertexStream
 	 */
 	public boolean next()
 	{
+		if (index == partEndIndex)
+		{
+			++partNum;
+			if (partNum == 0)
+				partEndIndex += polygon != null ? polygon.getExteriorRing().getNumPoints() : coords.length;
+			else
+				partEndIndex += polygon != null ? polygon.getInteriorRingN(partNum - 1).getNumPoints() : coords.length;
+		}
+		
 		return ++index < coords.length;
 	}
 	
 	/**
-	 * @return The X coordinate of the current vertex.
+	 * Checks if the current vertex ends a part of the geometry, meaning vertices that follow will be from a new part.
+	 */
+	public boolean isEndOfPart()
+	{
+		return index == partEndIndex;
+	}
+	
+	/**
+	 * Gets the X coordinate of the current vertex.
 	 */
 	public double getX()
 	{
@@ -67,7 +88,7 @@ public class JTSGeometryVertexStream implements IGeometryVertexStream
 	}
 
 	/**
-	 * @return The Y coordinate of the current vertex.
+	 * Gets the Y coordinate of the current vertex.
 	 */
 	public double getY()
 	{

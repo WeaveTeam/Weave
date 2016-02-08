@@ -1,10 +1,10 @@
 /* ***** BEGIN LICENSE BLOCK *****
  *
- * This file is part of the Weave API.
+ * This file is part of Weave.
  *
- * The Initial Developer of the Weave API is the Institute for Visualization
+ * The Initial Developer of Weave is the Institute for Visualization
  * and Perception Research at the University of Massachusetts Lowell.
- * Portions created by the Initial Developer are Copyright (C) 2008-2012
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
  * the Initial Developer. All Rights Reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -20,7 +20,7 @@ package weave.api.ui
 	/**
 	 * Manages implementations of ILinkableObjectEditor.
 	 */
-	public interface IEditorManager
+	public interface IEditorManager extends ILinkableObject
 	{
 		/**
 		 * This function will register an ILinkableObjectEditor Class corresponding to an object or Class implementing ILinkableObject.

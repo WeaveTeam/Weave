@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 -->
 
 <ui:ControlPanel xmlns:mx="http://www.adobe.com/2006/mxml"
@@ -74,13 +70,6 @@
 		</mx:VBox>
 		
 		<mx:Button label="{lang('Edit translations (Beta)')}" click="DraggablePanel.openStaticInstance(TranslationPanel)" />
-		
-		<mx:HBox>
-			<ui:CustomCheckBox label="{lang('Enable experimental filtering controls')}" creationComplete="linkBindableProperty(Weave.properties.getToolToggle(DataFilter), event.target, 'selected');"/>
-			<ui:HelpComponent>
-				This will include "Add Data Filter" as an option in the tools menu.
-			</ui:HelpComponent>
-		</mx:HBox>
 	</mx:VBox>
 	
 	<MacroEditor/>
@@ -94,7 +83,7 @@
 				See the JavaScript API documentation for examples.
 			</ui:HelpComponent>
 			<mx:Spacer width="100%"/>
-			<mx:Button label="{lang('View documentation')}" click="navigateToURL(new URLRequest('http://info.oicweave.org/projects/weave/wiki/JavaScript_API'), '_blank')"/>
+			<mx:Button label="{lang('View documentation')}" click="navigateToURL(new URLRequest('http://info.iweave.com/projects/weave/wiki/JavaScript_API'), '_blank')"/>
 			<mx:Button label="{lang('Restart Weave')}" click="Weave.externalReload()"/>
 		</mx:HBox>
 		<ui:CodeEditor creationComplete="linkBindableProperty(Weave.properties.startupJavaScript, event.target, 'text', 500)"/>
@@ -106,7 +95,6 @@
 			import weave.api.linkBindableProperty;
 			import weave.core.StageUtils;
 			import weave.data.AttributeColumns.StreamedGeometryColumn;
-			import weave.ui.DataFilter;
 			import weave.ui.DraggablePanel;
 			import weave.ui.TranslationPanel;
 			

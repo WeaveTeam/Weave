@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 -->
 
 <mx:VBox xmlns:mx="http://www.adobe.com/2006/mxml" 
@@ -62,6 +58,7 @@
 							<![CDATA[
 								import mx.core.UIComponent;
 								
+								import weave.api.core.ILinkableObject;
 								import weave.api.getSessionState;
 								import weave.api.linkBindableProperty;
 								import weave.api.objectWasDisposed;
@@ -155,14 +152,15 @@
 								}
 								private function rename():void
 								{
-									var defaultInputString:String = outerDocument.controller.getItemName(data);
+									var defaultInputString:String = outerDocument.controller.hashMap.getName(data as ILinkableObject);
 									var alertBox:AlertTextBox = AlertTextBox.show(lang("Rename Layer"), lang("Please enter a new layer name:"), defaultInputString);
 									
 									alertBox.addEventListener(AlertTextBoxEvent.BUTTON_CLICKED, 
 										function (e:AlertTextBoxEvent):void 
 										{
 											// if the user clicked cancel, then we will just return from here and save nothing
-											if( !e.confirm ) return;
+											if (!e.confirm)
+												return;
 											
 											//Alert.show("Input was " + e.textInput);
 											var ls:LayerSettings = plotManager.layerSettings.getObject(defaultInputString) as LayerSettings;
@@ -175,7 +173,7 @@
 								}
 								private function remove():void
 								{
-									var name:String = outerDocument.controller.getItemName(data);
+									var name:String = outerDocument.controller.hashMap.getName(data as ILinkableObject);
 									outerDocument.controller.hashMap.removeObject(name);
 								}
 							]]>
@@ -215,6 +213,8 @@
 	</ui:Indent>
 	<mx:Script>
 		<![CDATA[
+			import weave.api.core.ILinkableObject;
+			import weave.api.ui.IObjectWithDescription;
 			import mx.controls.sliderClasses.Slider;
 			import weave.ui.ControlPanel;
 			import weave.api.getSessionState;
@@ -240,11 +240,6 @@
 			[Bindable] private var overrideZoomLabel:String;
 			[Bindable] internal var _visualization:Visualization = null;
 			public const controller:VariableListController = newDisposableChild(this, VariableListController);
-			
-			public function set labelFunction(value:Function):void
-			{
-				controller.labelFunction = value;
-			}
 			
 			public function get selectedPlotterName():String
 			{
@@ -287,8 +282,26 @@
 				
 				controller.reverse = true;
 				controller.view = list;
+				controller.labelFunction = getPlotterLabel;
 				
 				initAddLayerButton(addButton, function():Visualization { return visualization; });
+			}
+			
+			private function getPlotterLabel(plotter:IPlotter):String
+			{
+				return getLabelWithDescription(_visualization.plotManager.plotters, plotter);
+			}
+			
+			public static function getLabelWithDescription(hashMap:ILinkableHashMap, item:ILinkableObject):String
+			{
+				if (!item)
+					return '';
+				
+				var plotterName:String = hashMap.getName(item);
+				var label:String = plotterName;
+				if (item is IObjectWithDescription)
+					label += ': ' + (item as IObjectWithDescription).getDescription();
+				return label;
 			}
 			
 			private function setOverrideCoords(setOrUnset:Boolean):void

@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.primitives
 {
@@ -27,26 +23,84 @@ package weave.primitives
 	
 	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
-	import weave.core.LinkableString;
+	import weave.core.LinkableVariable;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * @author adufilie
 	 * @author abaumann
 	 */
-	public class ColorRamp extends LinkableString
+	public class ColorRamp extends LinkableVariable
 	{
+		public static const COLOR:String = 'color';
+		public static const POSITION:String = 'position';
+		
 		public function ColorRamp(sessionState:Object = null)
 		{
-			if (!sessionState)
-				sessionState = getColorRampXMLByName("Blues").toString();
-			
-			if (sessionState is XML)
-				sessionState = (sessionState as XML).toXMLString();
-			
-			super(sessionState as String);
+			super(null, verifyState, sessionState || getColorRampXMLByName("Blues").toString());
 		}
-		
-		private var _isXML:Boolean = false;
+		private function verifyState(state:Object):Boolean
+		{
+			if (state is XML)
+				state = (state as XML).toXMLString();
+			
+			if (state is String)
+			{
+				var reversed:Boolean = false;
+				
+				// see if we should try parsing as xml
+				if ((state as String).charAt(0) == '<' && (state as String).substr(-1) == '>')
+				{
+					try
+					{
+						var xml:XML = XML(state);
+						var text:String = xml.text();
+						reversed = String(xml.@reverse) == 'true';
+						if (text)
+						{
+							state = text;
+						}
+						else
+						{
+							// handle a list of colorNode tags containing position and color attributes
+							var objects:Array = [];
+							var nodes:XMLList = xml.children();
+							var n:int = nodes.length();
+							for each (var node:XML in nodes)
+							{
+								var position:String = node.@[POSITION];
+								var pos:Number = position == '' ? objects.length / (n - 1) : Number(position);
+								var color:Number = Number(node.@[COLOR]);
+								objects.push({"color": color, "position": pos});
+							}
+							if (reversed)
+								objects.reverse();
+							this.setSessionState(objects);
+							return false;
+						}
+					}
+					catch (e:Error) { } // not an XML
+				}
+				
+				// parse list of color values
+				var colors:Array = WeaveAPI.CSVParser.parseCSVRow(text || state as String);
+				if (reversed)
+					colors.reverse();
+				this.setSessionState(colors);
+				return false;
+			}
+			
+			var type:Class = StandardLib.getArrayType(state as Array);
+			if (type == Number)
+			{
+				var array:Array = [];
+				for each (var number:Number in state)
+					array.push('0x' + StandardLib.numberToBase(number, 16, 6).toUpperCase());
+				this.setSessionState(array);
+				return false;
+			}
+			return type == String || type == Object;
+		}
 		
 		private var _validateTriggerCount:uint = 0;
 		
@@ -57,117 +111,37 @@ package weave.primitives
 			
 			_validateTriggerCount = triggerCounter;
 			
-			var i:int;
-			var pos:Number;
-			var color:Number;
-			var positions:Array = [];
-			var reversed:Boolean = false;
-			var string:String = value || '';
-			var xml:XML = null;
-			if (string.charAt(0) == '<' && string.substr(-1) == '>')
+			_colorNodes = [];
+			for each (var item:Object in this.getSessionState())
 			{
-				try // try parsing as xml
-				{
-					xml = XML(string);
-					reversed = String(xml.@reverse) == 'true';
-					
-					var text:String = xml.text();
-					if (text)
-					{
-						// treat a single text node as a list of color values
-						string = text;
-						xml = null;
-					}
-					else
-					{
-						// handle a list of colorNode tags containing position and color attributes
-						var xmlNodes:XMLList = xml.children();
-						_colorNodes.length = xmlNodes.length();
-						for (i = 0; i < xmlNodes.length(); i++)
-						{
-							var position:String = xmlNodes[i].@position;
-							pos = position == '' ? i / (_colorNodes.length - 1) : Number(position);
-							color = Number(xmlNodes[i].@color);
-							_colorNodes[i] = new ColorNode(pos, color);
-							positions[i] = pos;
-						}
-					}
-				}
-				catch (e:Error) { } // not an xml
-			}
-			_isXML = (xml != null);
-			
-			if (!_isXML)
-			{
-				var colors:Array = WeaveAPI.CSVParser.parseCSVRow(string) || [];
-				_colorNodes.length = colors.length;
-				for (i = 0; i < colors.length; i++)
-				{
-					pos = i / (colors.length - 1);
-					color = StandardLib.asNumber(colors[i]);
-					_colorNodes[i] = new ColorNode(pos, color);
-					positions[i] = pos;
-				}
+				if (typeof item == 'object')
+					_colorNodes.push(new ColorNode(item[POSITION], item[COLOR]));
+				else
+					_colorNodes.push(new ColorNode(_colorNodes.length, StandardLib.asNumber(item)));
 			}
 			
 			// if min,max positions are not 0,1, normalize all positions between 0 and 1
+			var positions:Array = VectorUtils.pluck(_colorNodes, POSITION);
 			var minPos:Number = Math.min.apply(null, positions);
 			var maxPos:Number = Math.max.apply(null, positions);
 			for each (var node:ColorNode in _colorNodes)
-			{
 				node.position = StandardLib.normalize(node.position, minPos, maxPos);
-				if (reversed)
-					node.position = 1 - node.position;
-			}
 			
 			_colorNodes.sortOn("position");
 		}
 		
 		public function reverse():void
 		{
-			validate();
-			
-			if (_isXML)
-			{
-				var xml:XML = XML(value);
-				var str:String = xml.@reverse;
-				xml.@reverse = (str == 'true' ? 'false' : 'true');
-				value = xml.toXMLString();
-			}
-			else
-			{
-				var colors:Array = WeaveAPI.CSVParser.parseCSVRow(value) || [];
-				colors.reverse();
-				value = WeaveAPI.CSVParser.createCSVRow(colors);
-			}
+			var array:Array = this.getSessionState() as Array;
+			if (array)
+				this.setSessionState(array.reverse());
 		}
 
-		public function get name():String
-		{
-			validate();
-			
-			if (_isXML)
-				return XML(value).@name;
-			else
-				return null;
-		}
-		public function set name(newName:String):void
-		{
-			validate();
-			
-			if (_isXML)
-			{
-				var xml:XML = XML(value);
-				xml.@name = newName;
-				value = xml.toXMLString();
-			}
-		}
-		
 		/**
 		 * An array of ColorNode objects, each having "color" and "position" properties, sorted by position.
 		 * This Array should be kept private.
 		 */
-		private const _colorNodes:Array = [];
+		private var _colorNodes:Array = [];
 		
 		public function getColors():Array
 		{
@@ -175,10 +149,8 @@ package weave.primitives
 			
 			var colors:Array = [];
 			
-			for(var i:int =0;i< _colorNodes.length;i++)
-			{
+			for(var i:int = 0; i < _colorNodes.length; i++)
 				colors.push((_colorNodes[i] as ColorNode).color);
-			}
 			
 			return colors;
 		}
@@ -282,11 +254,18 @@ package weave.primitives
 			catch (e:Error) { }
 			return null;
 		}
-		public static function getColorRampXMLByColorString(colors:String):XML
+		public static function findMatchingColorRampXML(ramp:ColorRamp):XML
 		{
+			var colors:Array = ramp.getColors();
+			for (var i:int = 0; i < colors.length; i++)
+				colors[i] = '0x' + StandardLib.numberToBase(colors[i], 16, 6);
+			var str:String = colors.join(',').toUpperCase();
 			for each (var xml:XML in allColorRamps.colorRamp)
-				if (xml.toString().toUpperCase() == colors.toUpperCase())
+			{
+				var text:String = xml.toString().toUpperCase();
+				if (text == str)
 					return xml;
+			}
 			return null;
 		}
 	}

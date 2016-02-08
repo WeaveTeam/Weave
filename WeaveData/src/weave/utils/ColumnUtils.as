@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.utils
 {
@@ -23,23 +19,20 @@ package weave.utils
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	import mx.utils.ObjectUtil;
-	
 	import weave.api.copySessionState;
+	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableDescendants;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnReference;
 	import weave.api.data.IColumnWrapper;
-	import weave.api.data.IDataSource;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IPrimitiveColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableDescendants;
-	import weave.api.getLinkableOwner;
+	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.ExtendedDynamicColumn;
@@ -56,6 +49,8 @@ package weave.utils
 	 */
 	public class ColumnUtils
 	{
+		public static var debugKeyTypes:Boolean = false;
+		
 		/**
 		 * This is a shortcut for column.getMetadata(ColumnMetadata.TITLE).
 		 * @param column A column to get the title of.
@@ -65,8 +60,7 @@ package weave.utils
 		{
 			var title:String = column.getMetadata(ColumnMetadata.TITLE) || ProxyColumn.DATA_UNAVAILABLE;
 			
-			// debug code
-			if (false)
+			if (debugKeyTypes)
 			{
 				var keyType:String = column.getMetadata(ColumnMetadata.KEY_TYPE);
 				if (keyType)
@@ -338,6 +332,47 @@ package weave.utils
 			return result;			
 		}
 		
+		/**
+		 * @param geometryColumn A column with metadata dataType="geometry"
+		 * @param keys An Array of IQualifiedKeys
+		 * @param minImportance No points with importance less than this value will be returned.
+		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
+		 * @return An Array of GeoJson Geometry objects corresponding to the keys.  The Array may be sparse if there are no coordinates for some of the keys.
+		 */
+		public static function getGeoJsonGeometries(geometryColumn:IAttributeColumn, keys:Array, minImportance:Number = 0, visibleBounds:IBounds2D = null):Array
+		{
+			var map_inputGeomArray_outputMultiGeom:Dictionary = new Dictionary(true);
+			var output:Array = new Array(keys.length);
+			var multiGeom:Object;
+			for (var i:int = 0; i < keys.length; i++)
+			{
+				var key:IQualifiedKey = keys[i];
+				var inputGeomArray:Array = geometryColumn.getValueFromKey(key, Array) as Array;
+				if (inputGeomArray)
+				{
+					if (map_inputGeomArray_outputMultiGeom[inputGeomArray] !== undefined)
+					{
+						multiGeom = map_inputGeomArray_outputMultiGeom[inputGeomArray];
+					}
+					else
+					{
+						var outputGeomArray:Array = [];
+						for each (var inputGeom:GeneralizedGeometry in inputGeomArray)
+						{
+							var outputGeom:Object = inputGeom.toGeoJson(minImportance, visibleBounds);
+							if (outputGeom)
+								outputGeomArray.push(outputGeom);
+						}
+						multiGeom = outputGeomArray.length ? GeoJSON.getMultiGeomObject(outputGeomArray) : null;
+						map_inputGeomArray_outputMultiGeom[inputGeomArray] = multiGeom;
+					}
+					if (multiGeom)
+						output[i] = multiGeom;
+				}
+			}
+			return output;
+		}
+		
 		public static function test_getAllValues(column:IAttributeColumn, dataType:Class):Array
 		{
 			var t:int = getTimer();
@@ -357,7 +392,7 @@ package weave.utils
 		 * @param keyFilter Either an IKeyFilter or an Array of IQualifiedKey objects used to filter the results.
 		 * @return An Array of Arrays, the first being IQualifiedKeys and the rest being Arrays data values from the given columns that correspond to the IQualifiedKeys. 
 		 */
-		public static function joinColumns(columns:Array, dataType:Class = null, allowMissingData:Boolean = false, keyFilter:Object = null):Array
+		public static function joinColumns(columns:Array, dataType:Object = null, allowMissingData:Boolean = false, keyFilter:Object = null):Array
 		{
 			var keys:Array;
 			var key:IQualifiedKey;
@@ -376,7 +411,7 @@ package weave.utils
 				// count the number of appearances of each key in each column
 				var keyCounts:Dictionary = new Dictionary();
 				for each (column in columns)
-					for each (key in column.keys)
+					for each (key in column ? column.keys : null)
 						keyCounts[key] = int(keyCounts[key]) + 1;
 				// get a list of keys
 				keys = [];
@@ -386,6 +421,10 @@ package weave.utils
 						if (!filter || filter.containsKey(qkey))
 							keys.push(qkey);
 			}
+			
+			if (dataType is String)
+				dataType = DataType.getClass(dataType as String);
+			
 			// put the keys in the result
 			var result:Array = [keys];
 			// get all the data values in the same order as the common keys
@@ -393,7 +432,7 @@ package weave.utils
 			{
 				column = columns[cIndex];
 				
-				var dt:Class = dataType;
+				var dt:Class = dataType as Class;
 				if (!dt && column)
 					dt = DataType.getClass(column.getMetadata(ColumnMetadata.DATA_TYPE));
 				
@@ -419,23 +458,17 @@ package weave.utils
 			return result;
 		}
 		/**
-		 * This function takes an array of attribute columns, a set of keys, and the type of the columns
 		 * @param attrCols An array of IAttributeColumns or ILinkableHashMaps containing IAttributeColumns.
-		 * @param subset An IKeyFilter or IKeySet specifying which keys to include in the CSV output, or null to indicate all keys available in the Attributes.
-		 * @param dataType
-		 * @return A string containing a CSV-formatted table containing the attributes of the requested keys.
+		 * @return An Array of non-wrapper columns with duplicates removed.
 		 */
-		public static function generateTableCSV(attrCols:Array, subset:IKeyFilter = null, dataType:Class = null):String
+		public static function getNonWrapperColumnsFromSelectableAttributes(attrCols:Array):Array
 		{
-			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
-			
-			var records:Array = [];				
 			var columnLookup:Dictionary = new Dictionary(true);
 			attrCols = attrCols.map(
 				function(item:Object, i:int, a:Array):* {
 					return item is ILinkableHashMap
-						? (item as ILinkableHashMap).getObjects(IAttributeColumn)
-						: item as IAttributeColumn;
+					? (item as ILinkableHashMap).getObjects(IAttributeColumn)
+					: item as IAttributeColumn;
 				}
 			);
 			attrCols = VectorUtils.flatten(attrCols);
@@ -451,6 +484,21 @@ package weave.utils
 					return true;
 				}
 			);
+			return attrCols;
+		}
+		/**
+		 * This function takes an array of attribute columns, a set of keys, and the type of the columns
+		 * @param attrCols An array of IAttributeColumns or ILinkableHashMaps containing IAttributeColumns.
+		 * @param subset An IKeyFilter or IKeySet specifying which keys to include in the CSV output, or null to indicate all keys available in the Attributes.
+		 * @param dataType
+		 * @return A string containing a CSV-formatted table containing the attributes of the requested keys.
+		 */
+		public static function generateTableCSV(attrCols:Array, subset:IKeyFilter = null, dataType:Class = null):String
+		{
+			SecondaryKeyNumColumn.allKeysHack = true; // dimension slider hack
+			
+			var records:Array = [];
+			attrCols = getNonWrapperColumnsFromSelectableAttributes(attrCols);
 			var columnTitles:Array = attrCols.map(
 				function(column:IAttributeColumn, i:int, a:Array):String {
 					return getTitle(column);
@@ -661,8 +709,13 @@ package weave.utils
 					outputRC.setColumnReference(null, null);
 			}
 			
+			var foundGlobalColumn:Boolean = false;
+			if (selectableAttribute is DynamicColumn)
+				foundGlobalColumn = (selectableAttribute as DynamicColumn).targetPath != null;
+			if (selectableAttribute is ExtendedDynamicColumn)
+				foundGlobalColumn = (selectableAttribute as ExtendedDynamicColumn).internalDynamicColumn.targetPath != null;
 			var outputDC:DynamicColumn = ColumnUtils.hack_findInternalDynamicColumn(selectableAttribute as IColumnWrapper);
-			if (outputDC && outputDC.getInternalColumn() == null)
+			if (outputDC && (outputDC.getInternalColumn() == null || !foundGlobalColumn))
 			{
 				if (inputCol)
 				{
@@ -702,5 +755,40 @@ package weave.utils
 		//todo: (cached) get sorted index from a key and a column
 		
 		//todo: (cached) get bins from a column with a filter applied
+		
+		public static function unlinkNestedColumns(columnWrapper:IColumnWrapper):void
+		{
+			var col:IColumnWrapper = columnWrapper;
+			while (col)
+			{
+				var dc:DynamicColumn = col as DynamicColumn;
+				var edc:ExtendedDynamicColumn = col as ExtendedDynamicColumn;
+				if (dc && dc.globalName) // if linked
+				{
+					// unlink
+					dc.globalName = null;
+					// prevent infinite loop
+					if (dc.globalName)
+						break;
+					// restart from selected
+					col = columnWrapper;
+				}
+				else if (edc && edc.internalDynamicColumn.globalName) // if linked
+				{
+					// unlink
+					edc.internalDynamicColumn.globalName = null;
+					// prevent infinite loop
+					if (edc.internalDynamicColumn.globalName)
+						break;
+					// restart from selected
+					col = columnWrapper;
+				}
+				else
+				{
+					// get nested column
+					col = col.getInternalColumn() as IColumnWrapper;
+				}
+			}
+		}
 	}
 }

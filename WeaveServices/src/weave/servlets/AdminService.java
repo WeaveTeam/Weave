@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.servlets;
 
@@ -51,15 +47,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpSession;
 
 import weave.beans.UploadFileFilter;
 import weave.beans.WeaveFileInfo;
 import weave.config.ConnectionConfig;
 import weave.config.ConnectionConfig.ConnectionInfo;
 import weave.config.ConnectionConfig.DatabaseConfigInfo;
+import weave.config.ConnectionConfig.WeaveAuthenticationException;
 import weave.config.DataConfig;
 import weave.config.DataConfig.DataEntity;
 import weave.config.DataConfig.DataEntityMetadata;
@@ -135,6 +134,11 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		}
 	}
 	
+	public String getVersion()
+	{
+		return WeaveConfig.getVersion();
+	}
+	
 	public boolean checkDatabaseConfigExists() throws RemoteException
 	{
 		if (initializationError != null)
@@ -146,6 +150,8 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		//TODO: if getConnectionConfig().getAdminConnection() fails, ask user to set up databaseConfig (other GUI should be hidden)
 	}
 
+	private static final String SESSION_USERNAME = "AdminService.user";
+	private static final String SESSION_PASSWORD = "AdminService.pass";
 	
 	/**
 	 * @param user
@@ -153,26 +159,49 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	 * @return true if the user has superuser privileges.
 	 * @throws RemoteException If authentication fails.
 	 */
-	public boolean authenticate(String user, String password) throws RemoteException
+	public boolean authenticate(String username, String password) throws RemoteException
 	{
-		return getConnectionInfo(user, password).is_superuser;
+		HttpSession session = getServletRequestInfo().request.getSession(true);
+		session.setAttribute(SESSION_USERNAME, username);
+		session.setAttribute(SESSION_PASSWORD, password);
+		
+		return getConnectionInfo().is_superuser;
 	}
 	
-	private ConnectionInfo getConnectionInfo(String user, String password) throws RemoteException
+	public void keepAlive() throws RemoteException
 	{
+		getConnectionInfo();
+	}
+	
+	private ConnectionInfo getConnectionInfo() throws RemoteException
+	{
+		HttpSession session = getServletRequestInfo().request.getSession(true);
+		String user = (String)session.getAttribute(SESSION_USERNAME);
+		String pass = (String)session.getAttribute(SESSION_PASSWORD);
+		if (user == null || pass == null)
+			throw new WeaveAuthenticationException("Authentication required");
+		
+		if (Strings.equal(user,  ConnectionInfo.DIRECTORY_SERVICE))
+			throw new RemoteException(String.format("Cannot authenticate as \"%s\".", user));
+		
 		ConnectionConfig connConfig = getConnectionConfig();
 		ConnectionInfo info = connConfig.getConnectionInfo(user);
-		if (info == null || password == null || !password.equals(info.pass))
+		
+		if (info == null)
+			info = connConfig.getConnectionInfo(ConnectionInfo.DIRECTORY_SERVICE, user, pass);
+		
+		if (info == null || !Strings.equal(pass, info.pass))
 		{
-			System.out.println(String.format("authenticate failed, name=\"%s\" pass=\"%s\"", user, password));
+			//System.out.println(String.format("authenticate failed, name=\"%s\" pass=\"%s\"", user, pass));
 			throw new RemoteException("Incorrect username or password.");
 		}
 		return info;
 	}
 	
-    private void tryModify(String user, String pass, Integer ...entityIds) throws RemoteException
+    private void tryModify(Integer ...entityIds) throws RemoteException
     {
-        if (getConnectionInfo(user, pass).is_superuser)
+    	ConnectionInfo info = getConnectionInfo();
+        if (info.is_superuser)
         	return; // superuser can modify anything
         
     	Collection<DataEntity> entities = getDataConfig().getEntities(Arrays.asList(entityIds), true);
@@ -181,8 +210,14 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
     		String entityType = entity.publicMetadata.get(PublicMetadata.ENTITYTYPE);
 	    	// permissions only supported on data tables and columns
 	    	if (Strings.equal(entityType, EntityType.TABLE) || Strings.equal(entityType, EntityType.COLUMN))
-	    		if (!Strings.equal(user, entity.privateMetadata.get(PrivateMetadata.CONNECTION)))
-		        	throw new RemoteException(String.format("User \"%s\" cannot modify entity %s.", user, entity.id));
+	    	{
+	    		String connectionName = info.usingDirectoryService() ? ConnectionInfo.DIRECTORY_SERVICE : info.name;
+	    		String sqlUser = info.usingDirectoryService() ? info.name : null;
+	    		boolean wrongConnection = !Strings.equal(connectionName, entity.privateMetadata.get(PrivateMetadata.CONNECTION));
+	    		boolean wrongUser = info.usingDirectoryService() && !Strings.equal(sqlUser, entity.privateMetadata.get(PrivateMetadata.SQLUSER));
+	    		if (wrongConnection || wrongUser)
+		        	throw new RemoteException(String.format("User \"%s\" cannot modify entity %s.", info.name, entity.id));
+	    	}
 	    }
     }
 	
@@ -194,10 +229,10 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	 * 
 	 * @return A list of (xml) client config files existing in the docroot folder.
 	 */
-	public String[] getWeaveFileNames(String user, String password, Boolean showAllFiles)
+	public String[] getWeaveFileNames(Boolean showAllFiles)
 		throws RemoteException
 	{
-		ConnectionInfo info = getConnectionInfo(user, password);
+		ConnectionInfo info = getConnectionInfo();
 		File[] files = null;
 		List<String> listOfFiles = new ArrayList<String>();
 		FilenameFilter fileFilter = new FilenameFilter()
@@ -262,19 +297,16 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	}
 
 	/**
-	 * @param user
-	 * @param password
 	 * @param fileContent
 	 * @param fileName
 	 * @param overwriteFile
 	 * @return A description of the success or failure of this function.
 	 * @throws RemoteException
 	 */
-	public String saveWeaveFile(
-			String user, String password, InputStream fileContent, String fileName, boolean overwriteFile)
+	public String saveWeaveFile(InputStream fileContent, String fileName, boolean overwriteFile)
 		throws RemoteException
 	{
-		ConnectionInfo info = getConnectionInfo(user, password);
+		ConnectionInfo info = getConnectionInfo();
 
 		try
 		{
@@ -297,7 +329,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 				if (!info.is_superuser && Strings.isEmpty(info.folderName))
 					return String.format(
 							"User \"%s\" does not have permission to overwrite configuration files.  Please save under a new filename.",
-							user);
+							info.name);
 			}
 
 			FileUtils.copy(fileContent, new FileOutputStream(file));
@@ -316,14 +348,14 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	 * @return A String message indicating if file was deleted.
 	 * 
 	 */
-	public String removeWeaveFile(String user, String password, String fileName)
+	public String removeWeaveFile(String fileName)
 		throws RemoteException, IllegalArgumentException
 	{
-		ConnectionInfo info = getConnectionInfo(user, password);
+		ConnectionInfo info = getConnectionInfo();
 
 		if (!info.is_superuser && Strings.isEmpty(info.folderName))
 			return String.format(
-					"User \"%s\" does not have permission to remove configuration files.", user);
+					"User \"%s\" does not have permission to remove configuration files.", info.name);
 
 		String path = getDocrootPath();
 		if (!Strings.isEmpty(info.folderName))
@@ -357,17 +389,17 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		}
 	}
 
-	public WeaveFileInfo getWeaveFileInfo(String user, String password, String fileName)
+	public WeaveFileInfo getWeaveFileInfo(String fileName)
 		throws RemoteException
 	{
-		authenticate(user, password);
+		getConnectionInfo();
 		return new WeaveFileInfo(getDocrootPath(), fileName);
 	}
 
 	//////////////////////////////
 	// ConnectionInfo management
 	
-	public String[] getConnectionNames(String user, String password)
+	public String[] getConnectionNames()
 		throws RemoteException
 	{
 		try
@@ -377,8 +409,9 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			if (config.getDatabaseConfigInfo() != null)
 			{
 				// non-superusers can't get connection info for other users
-				if (!getConnectionInfo(user, password).is_superuser)
-					return new String[] { user };
+				ConnectionInfo info = getConnectionInfo();
+				if (!info.is_superuser)
+					return new String[] { info.name };
 			}
 			// otherwise, return all connection names
 			String[] connectionNames = config.getConnectionInfoNames().toArray(new String[0]);
@@ -391,17 +424,16 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		}
 	}
 
-	public ConnectionInfo getConnectionInfo(String loginUser, String loginPass, String userToGet)
+	public ConnectionInfo getConnectionInfo(String userToGet)
 		throws RemoteException
 	{
 		// non-superusers can't get connection info
-		if (getConnectionInfo(loginUser, loginPass).is_superuser)
+		if (getConnectionInfo().is_superuser)
 			return getConnectionConfig().getConnectionInfo(userToGet);
 		return null;
 	}
 	
 	public String saveConnectionInfo(
-			String currentUser, String currentPass,
 			String newUser, String newPass,
 			String folderName, boolean grantSuperuser, String connectString,
 			boolean configOverwrite)
@@ -423,38 +455,46 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		
 		if (config.getConnectionInfoNames().size() > 0 && config.getDatabaseConfigInfo() != null)
 		{
-			authenticate(currentUser, currentPass);
+			ConnectionInfo info = getConnectionInfo();
 
 			// non-superusers can't save connection info
-			if (!config.getConnectionInfo(currentUser).is_superuser)
+			if (!info.is_superuser)
 				throw new RemoteException(String.format(
-						"User \"%s\" does not have permission to modify connections.", currentUser));
+						"User \"%s\" does not have permission to modify connections.", info.name));
 			// is_superuser for the new connection will only be false if there
 			// is an existing superuser connection and grantSuperuser is false.
 			newConnectionInfo.is_superuser = grantSuperuser;
 		}
 
-		// test connection only - to validate parameters
-		Connection conn = null;
-		try
+		if (Strings.equal(newUser, ConnectionInfo.DIRECTORY_SERVICE))
 		{
-			conn = newConnectionInfo.getConnection();
-			SQLUtils.testConnection(conn);
+			newConnectionInfo.is_superuser = false;
+			newConnectionInfo.pass = "";
 		}
-		catch (Exception e)
+		else
 		{
-			throw new RemoteException(
-					String.format("The connection named \"%s\" was not created because the server could not"
-							+ " connect to the specified database with the given parameters.", newConnectionInfo.name),
-					e);
-		}
-		finally
-		{
-			// close the connection, as we will not use it later
-			SQLUtils.cleanup(conn);
+			// test connection only - to validate parameters
+			Connection conn = null;
+			try
+			{
+				conn = newConnectionInfo.getConnection();
+				SQLUtils.testConnection(conn);
+			}
+			catch (Exception e)
+			{
+				throw new RemoteException(
+						String.format("The connection named \"%s\" was not created because the server could not"
+								+ " connect to the specified database with the given parameters.", newConnectionInfo.name),
+						e);
+			}
+			finally
+			{
+				// close the connection, as we will not use it later
+				SQLUtils.cleanup(conn);
+			}
 		}
 
-		// if the connection already exists AND overwrite == false throw error
+		// if the connection already exists AND (overwrite == false), throw error
 		if (!configOverwrite && config.getConnectionInfoNames().contains(newConnectionInfo.name))
 		{
 			throw new RemoteException(String.format(
@@ -470,15 +510,19 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 
 			// check for number of superusers
 			int numSuperUsers = 0;
+			String superUserName = null;
 			for (String name : connectionNames)
 			{
 				if (config.getConnectionInfo(name).is_superuser)
+				{
+					superUserName = name;
 					++numSuperUsers;
+				}
 				if (numSuperUsers >= 2)
 					break;
 			}
 			// sanity check
-			if (Strings.equal(currentUser, newUser) && numSuperUsers == 1 && !newConnectionInfo.is_superuser)
+			if (numSuperUsers == 1 && Strings.equal(superUserName, newUser) && !newConnectionInfo.is_superuser)
 				throw new RemoteException("Cannot remove superuser privileges from last remaining superuser.");
 
 			config.saveConnectionInfo(newConnectionInfo);
@@ -493,12 +537,12 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		return String.format("The connection named \"%s\" was created successfully.", newUser);
 	}
 
-	public String removeConnectionInfo(
-			String loginUser, String loginPassword, String userToRemove)
+	public String removeConnectionInfo(String userToRemove)
 		throws RemoteException
 	{
+		ConnectionInfo info = getConnectionInfo();
 		// allow only a superuser to remove a connection
-		if (!getConnectionInfo(loginUser, loginPassword).is_superuser)
+		if (!info.is_superuser)
 			throw new RemoteException("Only superusers can remove connections.");
 
 		try
@@ -520,7 +564,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 				if (config.getConnectionInfo(name).is_superuser)
 					++numSuperUsers;
 			// do not allow removal of last superuser
-			if (numSuperUsers == 1 && loginUser.equals(userToRemove))
+			if (numSuperUsers == 1 && Strings.equal(info.name, userToRemove))
 				throw new RemoteException("Cannot remove the only superuser.");
 
 			config.removeConnectionInfo(userToRemove);
@@ -536,99 +580,103 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	//////////////////////////////////
 	// DatabaseConfigInfo management
 	
-	public DatabaseConfigInfo getDatabaseConfigInfo(String user, String password)
+	public DatabaseConfigInfo getDatabaseConfigInfo()
 		throws RemoteException
 	{
 		DatabaseConfigInfo dbInfo = getConnectionConfig().getDatabaseConfigInfo();
 		if (dbInfo != null)
-			authenticate(user, password);
+			getConnectionInfo();
 		return dbInfo;
 	}
 
-	public String setDatabaseConfigInfo(String user, String password, String schema)
+	public String setDatabaseConfigInfo(String connectionName, String password, String schema, String[] idFields)
 		throws RemoteException
 	{
-		if (!getConnectionInfo(user, password).is_superuser)
+		ConnectionConfig config = getConnectionConfig();
+		boolean activeSuperuser = config.getDatabaseConfigInfo() == null || getConnectionInfo().is_superuser;
+		ConnectionInfo paramInfo = config.getConnectionInfo(connectionName);
+		if (paramInfo == null || !Strings.equal(password, paramInfo.pass))
+			throw new RemoteException("Incorrect username or password.");
+		if (!activeSuperuser || !paramInfo.is_superuser)
 			throw new RemoteException("Unable to store configuration information without superuser privileges.");
 		
 		//TODO: option to migrate all data from old db to new db?
 		
 		// create info object
-		DatabaseConfigInfo info = new DatabaseConfigInfo();
-		info.schema = schema;
-		info.connection = user;
-		getConnectionConfig().setDatabaseConfigInfo(info);
+		DatabaseConfigInfo dbInfo = new DatabaseConfigInfo();
+		dbInfo.schema = schema;
+		dbInfo.connection = connectionName;
+		dbInfo.idFields = idFields;
+		config.setDatabaseConfigInfo(dbInfo);
 
-		return String.format(
-				"The admin console will now use the \"%s\" connection to store configuration information.",
-				user);
+		return String.format("The admin console will now use the \"%s\" connection to store configuration information.", connectionName);
 	}
 
 	//////////////////////////
 	// DataEntity management
 	
-	public int[] addChild(String user, String password, int parentId, int childId, int insertAtIndex) throws RemoteException
+	public int[] addChild(int parentId, int childId, int insertAtIndex) throws RemoteException
 	{
-		tryModify(user, password, parentId);
+		tryModify(parentId);
 		return ListUtils.toIntArray( getDataConfig().buildHierarchy(parentId, childId, insertAtIndex) );
 	}
 	
-	public void removeChild(String user, String password, int parentId, int childId) throws RemoteException
+	public void removeChild(int parentId, int childId) throws RemoteException
 	{
 		if (parentId == DataConfig.NULL)
 			throw new RemoteException("removeChild() called with parentId=" + DataConfig.NULL);
 		
-		tryModify(user, password, parentId);
+		tryModify(parentId);
 		getDataConfig().removeChild(parentId, childId);
 	}
 	
-	public int newEntity(String user, String password, DataEntityMetadata meta, int parentId, int insertAtIndex) throws RemoteException
+	public int newEntity(DataEntityMetadata meta, int parentId, int insertAtIndex) throws RemoteException
 	{
-		tryModify(user, password, parentId);
+		tryModify(parentId);
 		return getDataConfig().newEntity(meta, parentId, insertAtIndex);
 	}
 
-	public int[] removeEntities(String user, String password, int[] entityIds) throws RemoteException
+	public int[] removeEntities(int[] entityIds) throws RemoteException
 	{
 		Collection<Integer> ids = new LinkedList<Integer>();
 		for (int id : entityIds)
 		{
-			tryModify(user, password, id);
+			tryModify(id);
 			ids.add(id);
 		}
 		return ListUtils.toIntArray( getDataConfig().removeEntities(ids) );
 	}
 
-	public void updateEntity(String user, String password, int entityId, DataEntityMetadata diff) throws RemoteException
+	public void updateEntity(int entityId, DataEntityMetadata diff) throws RemoteException
 	{
-		tryModify(user, password, entityId);
+		tryModify(entityId);
 		getDataConfig().updateEntity(entityId, diff);
 	}
 	
-	public EntityHierarchyInfo[] getHierarchyInfo(String user, String pass, Map<String,String> publicMetadata) throws RemoteException
+	public EntityHierarchyInfo[] getHierarchyInfo(Map<String,String> publicMetadata) throws RemoteException
 	{
-		authenticate(user, pass);
+		getConnectionInfo();
 		return getDataConfig().getEntityHierarchyInfo(publicMetadata);
 	}
 
-	public DataEntityWithRelationships[] getEntities(String user, String pass, int[] ids) throws RemoteException
+	public DataEntityWithRelationships[] getEntities(int[] ids) throws RemoteException
 	{
 		if (ids.length > DataConfig.MAX_ENTITY_REQUEST_COUNT)
 			throw new RemoteException(String.format("You cannot request more than %s entities at a time.", DataConfig.MAX_ENTITY_REQUEST_COUNT));
 		
-		authenticate(user, pass);
+		getConnectionInfo();
 		return getDataConfig().getEntitiesWithRelationships(ids, true);
 	}
 
-	public int[] findEntityIds(String user, String pass, Map<String,String> publicMetadata, String[] wildcardFields) throws RemoteException
+	public int[] findEntityIds(Map<String,String> publicMetadata, String[] wildcardFields) throws RemoteException
 	{
-		authenticate(user, pass);
+		getConnectionInfo();
 		return ListUtils.toIntArray( getDataConfig().searchPublicMetadata(publicMetadata, wildcardFields) );
 	}
 	
-	public String[] findPublicFieldValues(String user, String pass, String fieldName, String valueSearch) throws RemoteException
+	public String[] findPublicFieldValues(String fieldName, String valueSearch) throws RemoteException
 	{
-		authenticate(user, pass);
+		getConnectionInfo();
 		throw new RemoteException("Not implemented yet");
 	}
 	
@@ -638,12 +686,12 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	/**
 	 * The following functions get information about the database associated with a given connection name.
 	 */
-	public String[] getSQLSchemaNames(String user, String password)
+	public String[] getSQLSchemaNames()
 		throws RemoteException
 	{
 		try
 		{
-			Connection conn = getConnectionInfo(user, password).getStaticReadOnlyConnection();
+			Connection conn = getConnectionInfo().getStaticReadOnlyConnection();
 			List<String> schemas = SQLUtils.getSchemas(conn);
 			// don't want to list information_schema.
 			ListUtils.removeIgnoreCase("information_schema", schemas);
@@ -655,12 +703,12 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		}
 	}
 
-	public String[] getSQLTableNames(String configConnectionName, String password, String schemaName)
+	public String[] getSQLTableNames(String schemaName)
 		throws RemoteException
 	{
 		try
 		{
-			Connection conn = getConnectionInfo(configConnectionName, password).getStaticReadOnlyConnection();
+			Connection conn = getConnectionInfo().getStaticReadOnlyConnection();
 			List<String> tables = SQLUtils.getTables(conn, schemaName);
 			return ListUtils.toStringArray(getSortedUniqueValues(tables, false));
 		}
@@ -670,12 +718,12 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		}
 	}
 
-	public String[] getSQLColumnNames(String configConnectionName, String password, String schemaName, String tableName)
+	public String[] getSQLColumnNames(String schemaName, String tableName)
 		throws RemoteException
 	{
 		try
 		{
-			Connection conn = getConnectionInfo(configConnectionName, password).getStaticReadOnlyConnection();
+			Connection conn = getConnectionInfo().getStaticReadOnlyConnection();
 			List<String> columns = SQLUtils.getColumns(conn, schemaName, tableName);
 			return ListUtils.toStringArray(columns);
 		}
@@ -712,10 +760,10 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	 * @param content The file content.
 	 * @param append Set to true to append to an existing file.
 	 */
-	public void uploadFile(String user, String password, String fileName, InputStream content, boolean append)
+	public void uploadFile(String fileName, InputStream content, boolean append)
 		throws RemoteException
 	{
-		authenticate(user, password);
+		getConnectionInfo();
 		
 		// make sure the upload folder exists
 		(new File(getUploadPath())).mkdirs();
@@ -846,14 +894,10 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	/////////////////////////////////
 	// Key column uniqueness checks
 
-	public void checkKeyColumnsForSQLImport(String connectionName, String password, String schemaName, String tableName, String[] keyColumns)
+	public void checkKeyColumnsForSQLImport(String schemaName, String tableName, String[] keyColumns)
 		throws RemoteException
 	{
-		ConnectionInfo info = getConnectionInfo(connectionName, password);
-		
-		if (info == null)
-			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
-
+		ConnectionInfo info = getConnectionInfo();
 		Connection conn = null;
 		String query = null;
 		try
@@ -985,32 +1029,21 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	////////////////
 	// Data import
 
+	private Pattern doublePattern = Pattern.compile("-?(0|0?\\.[0-9]+|[1-9][0-9]*(\\.[0-9]+)?)([eE][-+]?[0-9]+)?");
+	private Pattern intPattern = Pattern.compile("-?0|-?[1-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?"); // up to 10 digits
+	
 	private boolean valueIsInt(String value)
 	{
-		try
-		{
-			return Integer.toString(Integer.parseInt(value)).equals(value);
-		}
-		catch (Exception e)
-		{
-			return false;
-		}
+		return intPattern.matcher(value).matches();
 	}
-
+	
 	/**
 	 * @param value
 	 * @return true if the value can be parsed as an int or double without losing information including leading zeros or whitespace padding.
 	 */
 	private boolean valueIsDouble(String value)
 	{
-		try
-		{
-			return Double.toString(Double.parseDouble(value)).equals(value) || valueIsInt(value);
-		}
-		catch (Exception e)
-		{
-			return false;
-		}
+		return doublePattern.matcher(value).matches();
 	}
 	
 	private boolean isDuplicateItem(String[] items, int index)
@@ -1022,13 +1055,13 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	}
 
 	public int importCSV(
-			String connectionName, String password, String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn,
+			String csvFile, String csvKeyColumn, String csvSecondaryKeyColumn,
 			String sqlSchema, String sqlTable, boolean sqlOverwrite, String configDataTableName,
 			String configKeyType, String[] nullValues,
 			String[] filterColumnNames, boolean configAppend)
 		throws RemoteException
 	{
-		ConnectionInfo connInfo = getConnectionInfo(connectionName, password);
+		ConnectionInfo connInfo = getConnectionInfo();
 		
 		if (Strings.isEmpty(sqlSchema))
 			throw new RemoteException("SQL schema must be specified.");
@@ -1039,10 +1072,6 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		final int IntType = 1;
 		final int DoubleType = 2;
 		
-		if (sqlOverwrite && !connInfo.is_superuser)
-			throw new RemoteException(String.format(
-					"User \"%s\" does not have permission to overwrite SQL tables.", connectionName));
-
 		Connection conn = null;
 		Statement stmt = null;
 		try
@@ -1239,7 +1268,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			}
 			else
 			{
-				if (ListUtils.findIgnoreCase(sqlTable, getSQLTableNames(connectionName, password, sqlSchema)) >= 0)
+				if (ListUtils.findIgnoreCase(sqlTable, getSQLTableNames(sqlSchema)) >= 0)
 					throw new RemoteException("CSV not imported.\nSQL table already exists.");
 			}
 
@@ -1271,9 +1300,19 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
             	PrivateMetadata.KEYCOLUMN, csvKeyColumn
             );
 			int table_id = addConfigDataTable(
-					configDataTableName, connectionName,
-					configKeyType, sqlColumnNames[keyColumnIndex], secondKeyColumnIndex, csvColumnNames, sqlColumnNames, sqlSchema,
-					sqlTable, ignoreKeyColumnQueries, filterColumnIndices, tableInfo, configAppend);
+				configDataTableName,
+				configKeyType,
+				sqlColumnNames[keyColumnIndex],
+				secondKeyColumnIndex,
+				csvColumnNames,
+				sqlColumnNames,
+				sqlSchema,
+				sqlTable,
+				ignoreKeyColumnQueries,
+				filterColumnIndices,
+				tableInfo,
+				configAppend
+			);
 
             return table_id;
 		}
@@ -1304,19 +1343,17 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	}
 
 	public int importSQL(
-			String connectionName, String password, String schemaName, String tableName, String keyColumnName,
+			String schemaName, String tableName, String keyColumnName,
 			String secondaryKeyColumnName, String configDataTableName,
 			String keyType, String[] filterColumnNames, boolean append)
 		throws RemoteException
 	{
-		authenticate(connectionName, password);
-		
 		if (Strings.isEmpty(schemaName))
 			throw new RemoteException("SQL schema must be specified.");
 		if (Strings.isEmpty(tableName))
 			throw new RemoteException("SQL table must be specified.");
 		
-		String[] columnNames = getSQLColumnNames(connectionName, password, schemaName, tableName);
+		String[] columnNames = getSQLColumnNames(schemaName, tableName);
         DataEntityMetadata tableInfo = new DataEntityMetadata();
        	tableInfo.setPrivateValues(PrivateMetadata.IMPORTMETHOD, "importSQL");
        	int[] filterColumnIndices = null;
@@ -1340,7 +1377,6 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
        	
         int tableId = addConfigDataTable(
 				configDataTableName,
-				connectionName,
 				keyType,
 				keyColumnName,
 				ListUtils.findString(secondaryKeyColumnName, columnNames),
@@ -1355,9 +1391,24 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			);
         return tableId;
 	}
+	
+	private void setPrivateConnectionMetadata(DataEntityMetadata output, ConnectionInfo info)
+	{
+		if (info.usingDirectoryService())
+		{
+			output.setPrivateValues(
+				PrivateMetadata.CONNECTION, ConnectionInfo.DIRECTORY_SERVICE,
+				PrivateMetadata.SQLUSER, info.name
+			);
+		}
+		else
+			output.setPrivateValues(
+				PrivateMetadata.CONNECTION, info.name
+			);
+	}
 
 	private int addConfigDataTable(
-			String configDataTableName, String connectionName,
+			String configDataTableName,
 			String keyType, String sqlKeyColumn, int secondKeyColumnIndex,
 			String[] configColumnNames, String[] sqlColumnNames, String sqlSchema, String sqlTable,
 			boolean ignoreKeyColumnQueries, int[] filterColumnIndices, DataEntityMetadata tableImportInfo, boolean configAppend)
@@ -1368,9 +1419,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		
 		if (sqlColumnNames == null || sqlColumnNames.length == 0)
 			throw new RemoteException("No columns were found.");
-		ConnectionInfo connInfo = getConnectionConfig().getConnectionInfo(connectionName);
-		if (connInfo == null)
-			throw new RemoteException(String.format("Connection named \"%s\" does not exist.", connectionName));
+		ConnectionInfo connInfo = getConnectionInfo();
 		
 		String failMessage = String.format("Failed to add DataTable \"%s\" to the configuration.\n", configDataTableName);
 		String query = null;
@@ -1450,10 +1499,8 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 				DataEntityMetadata metaQuery = new DataEntityMetadata();
 				// we don't search public metadata because that would be a separate sql query
 				// and we only know the entityType.
-				metaQuery.setPrivateValues(
-						PrivateMetadata.CONNECTION, connectionName,
-						PrivateMetadata.SQLQUERY, query
-					);
+				setPrivateConnectionMetadata(metaQuery, connInfo);
+				metaQuery.setPrivateValues(PrivateMetadata.SQLQUERY, query);
 				if (filteredValues != null)
 				{
 					String filteredQuery = buildFilteredQuery(conn, query, filteredValues.columnNames);
@@ -1537,8 +1584,8 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			
 			DataEntityMetadata tableInfo = tableImportInfo == null ? new DataEntityMetadata() : tableImportInfo;
 			tableInfo.setPublicValues(PublicMetadata.ENTITYTYPE, EntityType.TABLE);
+			setPrivateConnectionMetadata(tableInfo, connInfo);
         	tableInfo.setPrivateValues(
-        		PrivateMetadata.CONNECTION, connectionName,
         		PrivateMetadata.SQLSCHEMA, sqlSchema,
         		PrivateMetadata.SQLTABLE, sqlTable,
         		PrivateMetadata.SQLKEYCOLUMN, sqlKeyColumn
@@ -1572,8 +1619,8 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 					PublicMetadata.DATATYPE, info.dataType,
 					PublicMetadata.PROJECTION, info.projection
 				);
+				setPrivateConnectionMetadata(newMeta, connInfo);
 				newMeta.setPrivateValues(
-					PrivateMetadata.CONNECTION, connectionName,
 					PrivateMetadata.SQLQUERY, info.query,
 					PrivateMetadata.SQLSCHEMA, info.schema,
 					PrivateMetadata.SQLTABLE, info.table,
@@ -1734,12 +1781,12 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	 */
 
 	public int importSHP(
-			String configConnectionName, String password, String[] fileNameWithoutExtension, String[] keyColumns,
+			String[] fileNameWithoutExtension, String[] keyColumns,
 			String sqlSchema, String sqlTablePrefix, boolean sqlOverwrite, String configTitle,
 			String configKeyType, String projectionSRS, String[] nullValues, boolean importDBFData, boolean append)
 		throws RemoteException
 	{
-		ConnectionInfo connInfo = getConnectionInfo(configConnectionName, password);
+		ConnectionInfo connInfo = getConnectionInfo();
 		DataConfig dataConfig = getDataConfig();
 		
 		if (Strings.isEmpty(sqlSchema))
@@ -1750,10 +1797,6 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTablePrefix = sqlTablePrefix.toLowerCase();
 
-		if (sqlOverwrite && !connInfo.is_superuser)
-			throw new RemoteException(String.format(
-					"User \"%s\" does not have permission to overwrite SQL tables.", configConnectionName));
-
 		String dbfTableName = sqlTablePrefix + "_dbfdata";
 		Connection conn = null;
         int tableId = -1;
@@ -1762,11 +1805,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			conn = connInfo.getConnection();
 			// store dbf data to database
 			if (importDBFData)
-			{
-				importDBF(
-						configConnectionName, password, fileNameWithoutExtension, sqlSchema, dbfTableName,
-						sqlOverwrite, nullValues);
-			}
+				importDBF(fileNameWithoutExtension, sqlSchema, dbfTableName, sqlOverwrite, nullValues);
 
 			GeometryStreamConverter converter = new GeometryStreamConverter(new SQLGeometryStreamDestination(
 					conn, sqlSchema, sqlTablePrefix, sqlOverwrite));
@@ -1789,11 +1828,11 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		}
 
         DataEntityMetadata tableInfo = new DataEntityMetadata();
+		setPrivateConnectionMetadata(tableInfo, connInfo);
         tableInfo.setPrivateValues(
         	PrivateMetadata.IMPORTMETHOD, "importSHP",
         	PrivateMetadata.FILENAME, CSVParser.defaultParser.createCSVRow(fileNameWithoutExtension, true),
         	PrivateMetadata.KEYCOLUMN, CSVParser.defaultParser.createCSVRow(keyColumns, true),
-        	PrivateMetadata.CONNECTION, configConnectionName,
         	PrivateMetadata.SQLSCHEMA, sqlSchema,
         	PrivateMetadata.SQLTABLEPREFIX, sqlTablePrefix
         );
@@ -1820,11 +1859,21 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			}
 
 			// add SQL statements to sqlconfig
-			String[] columnNames = getSQLColumnNames(configConnectionName, password, sqlSchema, dbfTableName);
+			String[] columnNames = getSQLColumnNames(sqlSchema, dbfTableName);
 			tableId = addConfigDataTable(
-					configTitle, configConnectionName,
-					configKeyType, keyColumnsString, -1, columnNames, columnNames,
-					sqlSchema, dbfTableName, false, null, tableInfo, append);
+				configTitle,
+				configKeyType,
+				keyColumnsString,
+				-1,
+				columnNames,
+				columnNames,
+				sqlSchema,
+				dbfTableName,
+				false,
+				null,
+				tableInfo,
+				append
+			);
 		}
 		else
 		{
@@ -1840,8 +1889,8 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			// prepare metadata for existing column check
 			DataEntityMetadata geomInfo = new DataEntityMetadata();
 			// we don't search public metadata because that would require two sql queries
+			setPrivateConnectionMetadata(geomInfo, connInfo);
 			geomInfo.setPrivateValues(
-				PrivateMetadata.CONNECTION, configConnectionName,
 				PrivateMetadata.SQLSCHEMA, sqlSchema,
 				PrivateMetadata.SQLTABLEPREFIX, sqlTablePrefix
 			);
@@ -1894,21 +1943,17 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	}
 
 	public void importDBF(
-			String configConnectionName, String password, String[] fileNameWithoutExtension, String sqlSchema,
+			String[] fileNameWithoutExtension, String sqlSchema,
 			String sqlTableName, boolean sqlOverwrite, String[] nullValues)
 		throws RemoteException
 	{
-		ConnectionInfo info = getConnectionInfo(configConnectionName, password);
+		ConnectionInfo info = getConnectionInfo();
 		
 		if (Strings.isEmpty(sqlSchema))
 			throw new RemoteException("Schema must be specified.");
 		
 		// use lower case sql table names (fix for mysql linux problems)
 		sqlTableName = sqlTableName.toLowerCase();
-
-		if (sqlOverwrite && !info.is_superuser)
-			throw new RemoteException(String.format(
-					"User \"%s\" does not have permission to overwrite SQL tables.", configConnectionName));
 
 		Connection conn = null;
 		try
@@ -1937,10 +1982,10 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	/**
 	 * Returns the results of testing attribute column sql queries.
 	 */
-	public DataEntity[] testAllQueries(String user, String password, int table_id)
+	public DataEntity[] testAllQueries(int table_id)
 		throws RemoteException
 	{
-		authenticate(user, password);
+		getConnectionInfo();
 		DataConfig config = getDataConfig();
 		Collection<Integer> ids = config.getChildIds(table_id);
 		DataEntity[] columns = config.getEntities(ids, true).toArray(new DataEntity[0]);

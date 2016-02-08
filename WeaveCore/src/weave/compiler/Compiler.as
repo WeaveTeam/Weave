@@ -1,26 +1,21 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.compiler
 {
-	import avmplus.DescribeType;
-	
+	import flash.system.ApplicationDomain;
 	import flash.utils.Dictionary;
 	import flash.utils.Proxy;
 	import flash.utils.flash_proxy;
@@ -28,6 +23,8 @@ package weave.compiler
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.utils.StringUtil;
+	
+	import avmplus.DescribeType;
 	
 	import weave.utils.fixErrorMessage;
 	
@@ -213,6 +210,10 @@ package weave.compiler
 		 */
 		private var constants:Object = null;
 		/**
+		 * The eval() function.
+		 */
+		private var _eval:Function = null;
+		/**
 		 * This object maps the name of a global symbol to its value.
 		 */
 		private var globals:Object = null;
@@ -230,6 +231,11 @@ package weave.compiler
 		 * This object is used as a quick lookup to see if an operator is an assignment operator.
 		 */
 		private var assignmentOperators:Object = null;
+		/**
+		 * This object maps a block operator like "if" to its corresponding function.
+		 * This object is used as a quick lookup to see if an operator is a block operator.
+		 */
+		private var blockOperators:Object = null;
 		/**
 		 * This is a two-dimensional Array of operator symbols arranged in the order they should be evaluated.
 		 * Each nested Array is a group of operators that should be evaluated in the same pass.
@@ -280,10 +286,45 @@ package weave.compiler
 			return finalize(compileTokens(getTokens(expression), true));
 		}
 		
+		private static var _staticInstance:Compiler = null;
+		
 		/**
-		 * Add keys to this dictionary for deprecated library replacements using dot notation rather than "::" package notation.
+		 * Attempts to compile an expression as a constant, then returns the constant value.
+		 * @param constantExpression
+		 * @return The value of the expression.
+		 * @throws Error if the expression cannot be evaluated as a constant.
 		 */
-		public static const deprecatedClassReplacements:Object = {};
+		public static function parseConstant(constantExpression:String):*
+		{
+			try
+			{
+				if (!_staticInstance)
+					_staticInstance = new Compiler(false);
+				var compiled:ICompiledObject = _staticInstance.finalize(_staticInstance.compileTokens(_staticInstance.getTokens(constantExpression), false), true);
+				if (compiled is CompiledConstant)
+				{
+					return (compiled as CompiledConstant).value;
+				}
+				else
+				{
+					throw new Error("Expression does not evaluate to a constant");
+				}
+			}
+			catch (e:Error)
+			{
+				throw new Error("Expression does not evaluate to a constant. " + e.message);
+			}
+		}
+		
+		/**
+		 * Add keys to this dictionary for class alias names or deprecated library replacements using dot notation (".") rather than "::" package notation.
+		 */
+		public static const classAliases:Object = {};
+		
+		/**
+		 * The list of packages to check when looking up class definitions.
+		 */
+		public static const defaultPackages:Array = [];
 		
 		/**
 		 * First checks deprecatedClassReplacements, then getDefinitionByName().
@@ -291,11 +332,41 @@ package weave.compiler
 		 * @return The corresponding object.
 		 * @throws Error If there is no definition corresponding to the name.
 		 */
-		private static function getDefinition(name:String):Object
+		public static function getDefinition(name:String):Object
 		{
+			// return cached definition if present
+			var def:Object = classAliases[name];
+			if (def)
+				return def;
+			
+			var altName:String = name; // altName possibly uses colon notation
 			if (name.indexOf("::") >= 0)
 				name = StandardLib.replace(name, "::", ".");
-			return deprecatedClassReplacements[name] as Class || getDefinitionByName(name);
+			
+			def = classAliases[name];
+			if (def)
+			{
+				classAliases[altName] = def;
+				return def;
+			}
+			
+			// if it's not a fully qualified name, check the default packages
+			var domain:ApplicationDomain = ApplicationDomain.currentDomain;
+			for (var i:int = -1; i < defaultPackages.length; i++)
+			{
+				var qname:String = i < 0 ? name : (defaultPackages[i] + "::" + name);
+				if (domain.hasDefinition(qname))
+				{
+					// cache definition for next time
+					def = domain.getDefinition(qname);
+					classAliases[name] = def;
+					classAliases[altName] = def;
+					return def;
+				}
+			}
+			
+			// this will throw a meaningful error if there is no definition
+			return domain.getDefinition(name);
 		}
 		
 		/**
@@ -428,6 +499,7 @@ package weave.compiler
 			operators = {};
 			pureOperators = {};
 			assignmentOperators = {};
+			blockOperators = {};
 			
 			// constant, built-in symbols
 			for each (var _const:* in [null, true, false, undefined, NaN, Infinity])
@@ -515,13 +587,14 @@ package weave.compiler
 			};
 			operators[ST_VAR] = function(..._):*{};
 			operators[ST_IMPORT] = function(..._):*{};
-			// loop statements
-			operators[ST_DO] = function(x:*, y:*):* { return x && y; };
-			operators[ST_WHILE] = function(x:*, y:*):* { return x && y; };
-			operators[ST_FOR] = function(x:*, y:*):* { return x && y; };
-			operators[ST_FOR_DO] = function(x:*, y:*):* { return x && y; };
-			operators[ST_FOR_IN] = function(..._):*{};
-			operators[ST_FOR_EACH] = function(..._):*{};
+			// conditional block statements
+			blockOperators[ST_IF] = function(c:*, t:*, f:*):* { return c ? t : f; };
+			blockOperators[ST_DO] = function(x:*, y:*):* { return x && y; };
+			blockOperators[ST_WHILE] = function(x:*, y:*):* { return x && y; };
+			blockOperators[ST_FOR] = function(x:*, y:*):* { return x && y; };
+			blockOperators[ST_FOR_DO] = function(x:*, y:*):* { return x && y; };
+			blockOperators[ST_FOR_IN] = function(..._):*{};
+			blockOperators[ST_FOR_EACH] = function(..._):*{};
 			// jump statements
 			operators[ST_BREAK] = function(..._):*{};
 			operators[ST_CONTINUE] = function(..._):*{};
@@ -529,7 +602,7 @@ package weave.compiler
 			operators[ST_THROW] = function(e:*):* { throw e; };
 			
 			// 'if' statement can be considered a pure operator
-			pureOperators[ST_IF] = function(c:*, t:*, f:*):* { return c ? t : f; };
+			pureOperators[ST_IF] = blockOperators[ST_IF];
 			// math
 			pureOperators["**"] = Math.pow;
 			pureOperators["*"] = function(x:*, y:*):Number { return x * y; };
@@ -632,11 +705,13 @@ package weave.compiler
 
 			var op:String;
 			
-			// copy over pure and assignment operators
+			// copy over special operators
 			for (op in pureOperators)
 				operators[op] = pureOperators[op];
 			for (op in assignmentOperators)
 				operators[op] = assignmentOperators[op];
+			for (op in blockOperators)
+				operators[op] = blockOperators[op];
 			
 			// create a corresponding function name for each operator
 			for (op in operators)
@@ -681,6 +756,11 @@ package weave.compiler
 		public function setHashOperator(hashFunction:Function):void
 		{
 			constants[OPERATOR_ESCAPE + '#'] = operators['#'] = hashFunction;
+		}
+		
+		public function setEvalFunction(eval:Function):void
+		{
+			this._eval = eval;
 		}
 		
 		/**
@@ -788,7 +868,7 @@ package weave.compiler
 			}
 			
 			// handle numbers
-			var foundNumber:Object = numberRegex.exec(expression.substr(index))
+			var foundNumber:Object = numberRegex.exec(expression.substr(index));
 			if (foundNumber)
 				return foundNumber[0];
 
@@ -999,7 +1079,7 @@ package weave.compiler
 				{
 					if (isFunctionHeader(tokens[i]))
 						tokens.splice(i, 2, compileFunctionDefinition(tokens[i], tokens[i + 1]));
-					else if (assignmentOperators.hasOwnProperty(tokens[i]))
+					else if (assignmentOperators.hasOwnProperty(tokens[i]) && unaryOperatorSymbols.indexOf(tokens[i]) < 0)
 						break;
 				}
 				if (i < 0)
@@ -1177,13 +1257,14 @@ package weave.compiler
 			
 			// loop over keys in Array or Object
 			var lineBreakIndent:String = lineBreak + indent;
+			var valueIsArrayOrVector:Boolean = value is Array || isVector(value);
 			output = [];
-			if (value is Array)
+			if (valueIsArrayOrVector)
 			{
-				for (var i:int = 0; i < (value as Array).length; i++)
+				for (var i:int = 0; i < value.length; i++)
 					output.push(_stringify(String(i), value[i], replacer, lineBreakIndent, indent, json_values_only));
 			}
-			else if (value.constructor == Object)
+			else if (getQualifiedClassName(value) == 'Object')
 			{
 				for (key in value)
 					output.push(encodeString(key) + ": " + _stringify(key, value[key], replacer, lineBreakIndent, indent, json_values_only));
@@ -1194,20 +1275,30 @@ package weave.compiler
 			{
 				for each (var list:Array in DescribeType.getInfo(value, DescribeType.ACCESSOR_FLAGS | DescribeType.VARIABLE_FLAGS)['traits'])
 					for each (item in list)
-						if (item.access != 'writeonly')
+						if (item.access != 'writeonly' && !item.uri) // ignore properties with namespaces
 							output.push(encodeString(item.name) + ": " + _stringify(item.name, value[item.name], replacer, lineBreakIndent, indent, json_values_only));
 				// sort keys
 				StandardLib.sort(output);
 			}
 			
 			if (output.length == 0)
-				return value is Array ? "[]" : "{}";
+				return valueIsArrayOrVector ? "[]" : "{}";
 			
-			return (value is Array ? "[" : "{")
+			return (valueIsArrayOrVector ? "[" : "{")
 				+ lineBreakIndent
 				+ output.join(indent ? ',' + lineBreakIndent : ', ')
 				+ lineBreak
-				+ (value is Array ? "]" : "}");
+				+ (valueIsArrayOrVector ? "]" : "}");
+		}
+		
+		private static const VectorClass:Class = Object(new Vector.<Object>()).constructor;
+		
+		/**
+		 * Tests if an object is a Vector.
+		 */
+		private static function isVector(object:*):Boolean
+		{
+			return object is VectorClass || object is Vector.<int> || object is Vector.<uint> || object is Vector.<Number>;
 		}
 		
 		/**
@@ -1624,7 +1715,7 @@ package weave.compiler
 					throw new Error("Misplaced unary operator '" + token + "'");
 				
 				// skip infix operator
-				if (index > 0 && compiledTokens[index - 1] is ICompiledObject)
+				if (index > 0 && compiledTokens[index - 1] is ICompiledObject && (index < 2 || !blockOperators.hasOwnProperty(compiledTokens[index - 2])))
 				{
 					call = compiledTokens[index - 1] as CompiledFunctionCall;
 					if (!call || call.evaluatedMethod != operators[';'])
@@ -1895,7 +1986,7 @@ package weave.compiler
 						// special case for "y, x = 3;" which at this point is stored as {y, x = 3}
 						if (call.evaluatedMethod == operators[';'])
 						{
-							if (call.evaluatedParams.length != 1 || !(call.compiledParams[0] is CompiledFunctionCall))
+							if (!(call.evaluatedParams.length == 1 && call.compiledParams[0] is CompiledFunctionCall))
 								throwInvalidSyntax(stmt);
 							// remove the operator ';' wrapper
 							tokens[startIndex + iPattern] = token = call = call.compiledParams[0];
@@ -2142,13 +2233,14 @@ package weave.compiler
 		/**
 		 * Call this to move all var declarations at the beginning of the code and perform optimizations on the compiled objects.
 		 * @param compiledObject An ICompiledObject to finalize.
+		 * @param forceInlineObjectConstants If true, forces the evaluation of inline objects to constants.
 		 * @return A finialized/optimized version of compiledObject.
 		 */
-		private function finalize(compiledObject:ICompiledObject):ICompiledObject
+		private function finalize(compiledObject:ICompiledObject, forceInlineObjectConstants:Boolean = false):ICompiledObject
 		{
 			var varLookup:Object = {};
 			
-			var final:ICompiledObject = _finalize(compiledObject, varLookup);
+			var final:ICompiledObject = _finalize(compiledObject, forceInlineObjectConstants, varLookup);
 			if (!final)
 				return compiledObject;
 			
@@ -2176,7 +2268,7 @@ package weave.compiler
 		/**
 		 * @private helper function
 		 */
-		private function _finalize(compiledObject:ICompiledObject, varLookup:Object):ICompiledObject
+		private function _finalize(compiledObject:ICompiledObject, forceInlineObjectConstants:Boolean, varLookup:Object):ICompiledObject
 		{
 			if (compiledObject is CompiledConstant)
 				return compiledObject;
@@ -2188,7 +2280,7 @@ package weave.compiler
 			if (isFunctionHeader(call))
 				compileFunctionDefinition(call, null); // this will throw an appropriate error
 				
-			call.compiledMethod = _finalize(call.compiledMethod, varLookup);
+			call.compiledMethod = _finalize(call.compiledMethod, forceInlineObjectConstants, varLookup);
 			if (!call.compiledMethod)
 				throw new Error("Misplaced variable declaration");
 			var params:Array = call.compiledParams;
@@ -2196,7 +2288,7 @@ package weave.compiler
 			{
 				for (i = 0; i < params.length; i++)
 				{
-					params[i] = _finalize(params[i], varLookup);
+					params[i] = _finalize(params[i], forceInlineObjectConstants, varLookup);
 					if (params[i] == null) // variable declaration eliminated?
 						params.splice(i--, 1);
 				}
@@ -2228,7 +2320,7 @@ package weave.compiler
 				{
 					if (debug)
 						trace('optimized unnecessary wrapper function call:',decompileObject(compiledObject));
-					return _finalize(params[0], varLookup);
+					return _finalize(params[0], forceInlineObjectConstants, varLookup);
 				}
 				
 				// flatten nested grouping operators
@@ -2273,7 +2365,7 @@ package weave.compiler
 				return params[INDEX_CONDITION];
 			}
 			
-			if (PURE_OP_LOOKUP[method as Function])
+			if (PURE_OP_LOOKUP[method as Function] || (forceInlineObjectConstants && (method == operators['{'] || method == operators['['])))
 			{
 				// if all parameters are constants, just evaluate the pure operator as a constant.
 				for each (var param:Object in params)
@@ -2461,46 +2553,37 @@ package weave.compiler
 				return function(...args):* { return value; };
 			}
 			
-			// create the variables that will be used inside the wrapper function
-
-			const builtInSymbolTable:Object = {};
-			builtInSymbolTable['eval'] = undefined;
-			builtInSymbolTable['this'] = bindThis;
+			const EVAL:* = this._eval as Function || undefined;
 			
 			// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
-			const allSymbolTables:Array = [builtInSymbolTable]; // buit-in first
-			const LOCAL_SYMBOL_TABLE_INDEX:int = allSymbolTables.push(null) - 1; // placeholder
-			
-			// add custom symbol table(s)
+			const BUILT_IN_SYMBOL_TABLE_INDEX:int = 0;
+			const LOCAL_SYMBOL_TABLE_INDEX:int = 1;
+			var THIS_SYMBOL_TABLE_INDEX:int = LOCAL_SYMBOL_TABLE_INDEX + 1;
 			if (symbolTable is Array)
 			{
-				for each (var _symbolTable:Object in symbolTable)
-					allSymbolTables.push(_symbolTable);
+				symbolTable = (symbolTable as Array).concat();
+				THIS_SYMBOL_TABLE_INDEX += symbolTable.length;
 			}
 			else
-			{
-				allSymbolTables.push(symbolTable);
-			}
-			
-			// push placeholder for 'this' symbol table
-			const THIS_SYMBOL_TABLE_INDEX:int = allSymbolTables.push(null) - 1;
-			
-			// add libraries in reverse order so the last one will be checked first
-			var i:int = libraries.length;
-			while (i--)
-				allSymbolTables.push(libraries[i]);
-			// check globals last
-			allSymbolTables.push(globals);
+				THIS_SYMBOL_TABLE_INDEX += 1;
 			
 			// this flag is set to useThisScope when the compiledObject is a function definition
 			var cascadeThisScope:Boolean = false;
+			
+			// Each recursive call must use a clone of the CompiledFunctionCall,
+			// so we keep track of recursion depth and re-use copies of the CompiledFunctionCall.
+			var recursion:int = 0;
+			var recursiveCalls:Array = [];
+			var recursiveCallSymbolTables:Array = [];
 			
 			// this function avoids unnecessary function call overhead by keeping its own call stack rather than using recursion.
 			var wrapperFunction:Function = function():*
 			{
 				const stack:Array = []; // used as a queue of function calls
-				const localSymbolTable:Object = {};
+				const localSymbolTable:Object = {}; // new local symbol table for each invocation
 				var call:CompiledFunctionCall;
+				var allSymbolTables:Array;
+				var builtInSymbolTable:Object;
 				var subCall:CompiledFunctionCall;
 				var compiledParams:Array;
 				var method:Object;
@@ -2510,10 +2593,54 @@ package weave.compiler
 				var propertyHost:Object;
 				var propertyName:String;
 				
-				if (bindThis === null)
-					builtInSymbolTable['this'] = this;
+				// initialize top-level function and push it onto the stack
+				call = recursiveCalls[recursion] as CompiledFunctionCall;
+				allSymbolTables = recursiveCallSymbolTables[recursion] as Array;
+				
+				// if recursion has not been this deep before, initialize a copy of the top-level function call structures
+				if (!call)
+				{
+					call = compiledObject as CompiledFunctionCall;
+					if (recursion)
+						call = call.clone();
+					allSymbolTables = [];
+					
+					recursiveCalls[recursion] = call;
+					recursiveCallSymbolTables[recursion] = allSymbolTables;
+					
+					// set up Array of symbol tables in the correct scope order: built-in, local, params, this, global
+					allSymbolTables[BUILT_IN_SYMBOL_TABLE_INDEX] = {};
+					allSymbolTables[LOCAL_SYMBOL_TABLE_INDEX] = null; // placeholder
+					
+					// add custom symbol table(s)
+					if (symbolTable is Array)
+					{
+						for each (var _symbolTable:Object in symbolTable)
+							allSymbolTables.push(_symbolTable);
+					}
+					else
+					{
+						allSymbolTables.push(symbolTable);
+					}
+					
+					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = null; // placeholder
+					
+					// add libraries in reverse order so the last one will be checked first
+					i = libraries.length;
+					while (i--)
+						allSymbolTables.push(libraries[i]);
+					// check globals last
+					allSymbolTables.push(globals);
+				}
+				recursion++;
+
+				// initialize built-in symbol table
+				builtInSymbolTable = allSymbolTables[BUILT_IN_SYMBOL_TABLE_INDEX];
+				builtInSymbolTable['eval'] = EVAL;
+				builtInSymbolTable['this'] = bindThis !== null ? bindThis : this;
 				builtInSymbolTable['arguments'] = arguments;
 				
+				// initialize local symbol table
 				allSymbolTables[LOCAL_SYMBOL_TABLE_INDEX] = localSymbolTable;
 				if (useThisScope)
 					allSymbolTables[THIS_SYMBOL_TABLE_INDEX] = builtInSymbolTable['this'];
@@ -2523,8 +2650,6 @@ package weave.compiler
 					for (i = 0; i < paramNames.length; i++)
 						localSymbolTable[paramNames[i] as String] = i < arguments.length ? arguments[i] : paramDefaults[i];
 				
-				// initialize top-level function and push it onto the stack
-				call = compiledObject as CompiledFunctionCall;
 				call.evalIndex = INDEX_METHOD;
 				stack.length = 1;
 				stack[0] = call;
@@ -2635,6 +2760,7 @@ package weave.compiler
 						{
 							if (method == operators[ST_RETURN])
 							{
+								recursion--;
 								return compiledParams.length ? call.evaluatedParams[0] : undefined;
 							}
 							else if (method == operators[ST_CONTINUE])
@@ -2643,7 +2769,10 @@ package weave.compiler
 								{
 									stack.pop();
 									if (stack.length == 0)
+									{
+										recursion--;
 										return result; // executing continue at top level of script
+									}
 									
 									call = stack[stack.length - 1] as CompiledFunctionCall;
 									method = call.evaluatedMethod;
@@ -2663,6 +2792,7 @@ package weave.compiler
 										continue stackLoop;
 									}
 								}
+								recursion--;
 								return result; // executing break at top level
 							}
 							else if (method == operators[ST_THROW])
@@ -2782,6 +2912,8 @@ package weave.compiler
 					}
 					catch (e:*)
 					{
+						recursion--;
+						
 						var decompiled:String = decompileObject(call);
 						var err:Error = e as Error;
 						if (err)
@@ -2796,7 +2928,10 @@ package weave.compiler
 							throw e;
 						
 						if (errorHandler(e))
+						{
 							result = undefined; // ignore and continue
+							recursion++;
+						}
 						else
 							return undefined; // halt
 					}
@@ -2822,7 +2957,10 @@ package weave.compiler
 					stack.pop();
 					// if there is no parent function call, return the result
 					if (stack.length == 0)
+					{
+						recursion--;
 						return result;
+					}
 					// otherwise, store the result in the evaluatedParams array of the parent call
 					call = stack[stack.length - 1] as CompiledFunctionCall;
 					if (call.evalIndex == INDEX_METHOD)
@@ -2886,7 +3024,7 @@ package weave.compiler
 		 */
 		public static function cast(object:Object, type:Class):*
 		{
-			if (object is type || object === null || object.constructor != Object)
+			if (object is type || object === null || getQualifiedClassName(object) != 'Object')
 				return type(object);
 			var newObj:Object = new type();
 			for (var key:String in object)

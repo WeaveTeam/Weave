@@ -1,27 +1,24 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.services
 {
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
+	import flash.net.URLRequestHeader;
 	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
 	import flash.utils.ByteArray;
@@ -159,6 +156,7 @@ package weave.services
 			else if (_urlRequestDataFormat == REQUEST_FORMAT_BINARY)
 			{
 				request.method = URLRequestMethod.POST;
+				request.requestHeaders = [new URLRequestHeader("Content-Type", "application/octet-stream")];
 				// create object containing method name and parameters
 				var obj:Object = new Object();
 				obj[METHOD] = methodName;
@@ -192,7 +190,9 @@ package weave.services
 			}
 			
 			// the last argument is BINARY instead of _dataFormat because the stream should not be parsed
-			_asyncTokenData[invokeToken] = WeaveAPI.URLRequestUtils.getURL(this, request, resultHandler, faultHandler, invokeToken, URLLoaderDataFormat.BINARY);
+			var token:AsyncToken = WeaveAPI.URLRequestUtils.getURL(this, request, URLLoaderDataFormat.BINARY);
+			addAsyncResponder(token, resultHandler, faultHandler, invokeToken);
+			_asyncTokenData[invokeToken] = token.loader;
 		}
 		
 		/**
@@ -236,7 +236,7 @@ package weave.services
 		 * This is a mapping of AsyncToken objects to URLLoader objects. 
 		 * This mapping is necessary so a client with an AsyncToken can cancel the loader. 
 		 */		
-		private const _asyncTokenData:Dictionary = new Dictionary();
+		private var _asyncTokenData:Dictionary = new Dictionary();
 		
 		private function resultHandler(event:ResultEvent, token:AsyncToken):void
 		{
@@ -258,12 +258,14 @@ package weave.services
 		
 		public function dispose():void
 		{
-			var fault:Fault = new Fault('Notification', 'Servlet was disposed', null);
+//			var fault:Fault = new Fault('Notification', 'Servlet was disposed', null);
 			for each (var token:AsyncToken in VectorUtils.getKeys(_asyncTokenData))
 			{
-				var event:FaultEvent = new FaultEvent(FaultEvent.FAULT, false, true, fault, token);
-				faultHandler(event, token);
+				cancelLoaderFromToken(token);
+//				var event:FaultEvent = new FaultEvent(FaultEvent.FAULT, false, true, fault, token);
+//				faultHandler(event, token);
 			}
+			_asyncTokenData = new Dictionary();
 		}
 	}
 }

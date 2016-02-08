@@ -1,21 +1,17 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.utils
 {
@@ -53,7 +49,8 @@ package weave.utils
 		 * This function calculates the unambiguous scale value (defined as pixels per data unit) based on the parameters.
 		 * @param fullDataBounds The full extent in data coordinates.
 		 * @param minScreenSize The minimum size that the fullDataBounds can appear as on the screen (the screen size of zoom level zero).
-		 * @return The zoom level, where the screen size of the full extent is 2^zoomLevel * minSize.
+		 * @param zoomLevel The zoom level, where the screen size of the full extent is 2^zoomLevel * minSize.
+		 * @return The scale, defined as pixels per data unit.
 		 */
 		public static function getScaleFromZoomLevel(fullDataBounds:IBounds2D, minScreenSize:Number, zoomLevel:Number):Number
 		{
@@ -91,7 +88,6 @@ package weave.utils
 		}
 
 		/**
-		 * conformDataBoundsToAspectRatio
 		 * Enforce an aspect ratio on xDataUnitsPerPixel to yDataUnitsPerPixel.
 		 * This will increase the size of the given dataBounds either vertically or horizontally if necessary.
 		 * @param dataBounds The Bounds2D object to enforce an aspectRatio on.

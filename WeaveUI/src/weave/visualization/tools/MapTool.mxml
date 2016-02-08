@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 -->
 <SimpleVisTool xmlns="weave.visualization.tools.*" 
 	     xmlns:mx="http://www.adobe.com/2006/mxml"
@@ -44,6 +40,7 @@
 			import weave.api.newDisposableChild;
 			import weave.api.registerLinkableChild;
 			import weave.api.services.IWMSService;
+			import weave.api.ui.IObjectWithDescription;
 			import weave.api.ui.IPlotter;
 			import weave.api.ui.IVisTool;
 			import weave.compiler.StandardLib;
@@ -64,6 +61,7 @@
 			import weave.ui.SubMenu;
 			import weave.ui.VariableListController;
 			import weave.utils.ColumnUtils;
+			import weave.utils.DrawUtils;
 			import weave.utils.ProbeTextUtils;
 			import weave.visualization.layers.InteractionController;
 			import weave.visualization.layers.LayerSettings;
@@ -106,6 +104,8 @@
 				var nonGeomColumns:Array = input.filter(function(o:*, i:*, a:*):Boolean { return !isGeomColumnOrRef(o, i, a); });
 				if (geomColumns.length)
 				{
+					visualization.plotManager.plotters.removeAllObjects();
+					
 					var geomColumn:Object = geomColumns[0];
 					var gp:GeometryPlotter = LayerListComponent.addPlotterAndEdit(visualization, GeometryPlotter, false);
 					if (gp)
@@ -284,7 +284,6 @@
 				
 				// make sure WMS layers are included in the full data bounds
 				visualization.plotManager.includeNonSelectableLayersInAutoZoom.value = true;
-				visualization.plotManager.includeNonSelectableLayersInAutoZoom.lock();
 				
 				visualization.plotManager.enableFixedAspectRatio.value = true;
 				visualization.plotManager.enableAutoZoomToExtent.value = false;
@@ -292,7 +291,7 @@
 				
 				// hack
 				Weave.defaultColorDataColumn.addGroupedCallback(this, handlePanelTitleChange);
-				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange);
+				Weave.properties.toolInteractions.defaultDragMode.addGroupedCallback(this, handleMouseModeChange, true);
 				
 				visualization.plotManager.hack_onUpdateZoom(updateZoom);
 				visualization.plotManager.plotters.addGroupedCallback(this,handlePlottersChange,true);
@@ -452,44 +451,11 @@
 				visualization.graphics.clear();
 				if (enableBackground.value)
 				{
-					visualization.graphics.lineStyle(0,0,0);
+					DrawUtils.clearLineStyle(visualization.graphics);
 					visualization.graphics.beginBitmapFill(backgroundImageBitmapData);
 					visualization.graphics.drawRect(0, 0, visualization.width, visualization.height);
 					visualization.graphics.endFill();
 				}
-			}
-			
-			internal function getPlotterLabel(plotter:IPlotter):String
-			{
-				if (!plotter)
-					return '';
-				
-				var plotterName:String = visualization.plotManager.plotters.getName(plotter);
-				var label:String = plotterName;
-				var wmsPlotter:WMSPlotter = plotter as WMSPlotter
-				var dgc:DynamicColumn = getDynamicGeomColumn(plotter);
-				
-				if (dgc)
-					label += ": " + ColumnUtils.getTitle(dgc);
-				else if (wmsPlotter)
-					label += ": " + wmsPlotter.providerName;
-				
-				// get the source projection to be used in the label
-				var proj:String;
-				if (dgc)
-				{
-					proj = dgc.getMetadata(ColumnMetadata.PROJECTION);
-				}
-				else if (plotter is WMSPlotter)
-				{
-					var service:IWMSService = wmsPlotter.service.internalObject as IWMSService;
-					if (service && service.getProjectionSRS())
-						proj = service.getProjectionSRS();
-				}
-				
-				if (proj)
-					label += ' (' + proj + ')';
-				return label;
 			}
 			
 			private function getDynamicGeomColumn(p:IPlotter):DynamicColumn
@@ -665,7 +631,7 @@
 			public function addMarker(name:String,url:String,x:Number,y:Number,width:Number=NaN,height:Number=NaN):void
 			{
 				var marker:SingleImagePlotter = visualization.plotManager.plotters.requestObject(name, SingleImagePlotter, false);
-				marker.imageURL.value = url;
+				marker.imageURL.value = url || SingleImagePlotter.RED_CIRCLE_IMAGE_URL;
 				marker.dataX.value = x;
 				marker.dataY.value = y;
 				marker.dataWidth.value = width;
@@ -805,6 +771,7 @@
 						tickInterval="1"
 						minimum="{zoomSliderMinimum}"
 						maximum="{zoomSliderMaximum}"
+						mouseDown="zoomSlider.setFocus()"
 						change="handleZoomSliderChange(event);"/>
 			
 			<mx:Button id="zoomOut"
@@ -885,7 +852,6 @@
 			outerDocument.layersEditor.addChildAt(layerButtons, 0);
 			outerDocument.layersEditor.removeChild(outerDocument.layersEditor.layerButtons);
 			outerDocument.layersEditor.visible = true;
-			outerDocument.layersEditor.labelFunction = outerDocument.getPlotterLabel;
 		</ui:creationComplete>
 		<mx:VBox id="layerControls" label="{lang('Layers')}" width="100%" height="100%">
 			<ui:Indent id="layerButtons" grouped="false" label="Add a layer:" translate="true" horizontalGap="4">
@@ -936,7 +902,7 @@
 					<mx:NumericStepper maximum="100" stepSize="1" creationComplete="linkBindableProperty(outerDocument.visualization.plotManager.maxZoomLevel, event.target, 'value'); linkBindableProperty(outerDocument.visualization.plotManager.minZoomLevel, event.target, 'minimum')"/>
 				</ui:Indent>
 				<ui:Indent label="Zoom factor" translate="true">
-					<mx:NumericStepper maximum="10" minimum="1" stepSize=".25" creationComplete="linkBindableProperty(outerDocument.visualization.zoomFactor, event.target, 'value')"/>
+					<mx:NumericStepper maximum="10" minimum="1.25" stepSize=".25" creationComplete="linkBindableProperty(outerDocument.visualization.zoomFactor, event.target, 'value')"/>
 					<ui:HelpComponent>
 						Used for zoom +/- buttons, mouse wheel, and double-click.
 					</ui:HelpComponent>
@@ -987,6 +953,7 @@
 									import weave.api.ui.IPlotter;
 									import weave.compiler.StandardLib;
 									import weave.core.UIUtils;
+									import weave.editors.managers.LayerListComponent;
 									import weave.utils.ZoomUtils;
 									import weave.visualization.layers.LayerSettings;
 									import weave.visualization.layers.PlotManager;
@@ -1002,6 +969,7 @@
 									
 									private function get pm():PlotManager { return outerDocument.outerDocument.visualization.plotManager; }
 									private function get settings():LayerSettings { return data as LayerSettings; }
+									private function get plotter():IPlotter { return pm.plotters.getObject(pm.layerSettings.getName(data as LayerSettings)) as IPlotter; }
 									
 									override public function set data(value:Object):void
 									{
@@ -1014,7 +982,7 @@
 										if (!settings)
 											return;
 										
-										label = outerDocument.outerDocument.getPlotterLabel(pm.plotters.getObject(pm.layerSettings.getName(settings)) as IPlotter);
+										label = LayerListComponent.getLabelWithDescription(pm.plotters, plotter);
 										var area:Number = pm.fullDataBounds.getArea();
 										if (!isNaN(area))
 										{
@@ -1088,6 +1056,7 @@
 					
 					visibleScaleController.view = visibleScaleRangesList;
 					visibleScaleController.hashMap = outerDocument.visualization.plotManager.layerSettings;
+					WeaveAPI.SessionManager.getCallbackCollection(outerDocument.visualization.plotManager.plotters).addGroupedCallback(this, visibleScaleRangesList.invalidateList);
 				}
 				
 				private function handleProjectionComboChange():void

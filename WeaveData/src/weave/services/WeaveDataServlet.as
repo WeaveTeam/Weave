@@ -1,42 +1,40 @@
-/*
-    Weave (Web-based Analysis and Visualization Environment)
-    Copyright (C) 2008-2011 University of Massachusetts Lowell
-
-    This file is a part of Weave.
-
-    Weave is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, Version 3,
-    as published by the Free Software Foundation.
-
-    Weave is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with Weave.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * This file is part of Weave.
+ *
+ * The Initial Developer of Weave is the Institute for Visualization
+ * and Perception Research at the University of Massachusetts Lowell.
+ * Portions created by the Initial Developer are Copyright (C) 2008-2015
+ * the Initial Developer. All Rights Reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ * 
+ * ***** END LICENSE BLOCK ***** */
 
 package weave.services
 {
-	import avmplus.DescribeType;
-	
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.core.mx_internal;
 	import mx.rpc.AsyncToken;
+	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.data.IQualifiedKey;
+	import avmplus.DescribeType;
+	
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.services.IWeaveEntityService;
 	import weave.api.services.IWeaveGeometryTileService;
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
 	import weave.services.beans.AttributeColumnData;
 	import weave.services.beans.GeometryStreamMetadata;
+	import weave.services.beans.TableData;
 	
 	use namespace mx_internal;
 	
@@ -47,20 +45,23 @@ package weave.services
 	 */
 	public class WeaveDataServlet implements IWeaveEntityService
 	{
-		protected var servlet:AMF3Servlet;
-		private var propertyNameLookup:Dictionary = new Dictionary(); // Function -> String
-
 		public static const DEFAULT_URL:String = '/WeaveServices/DataService';
-				
+		public static const WEAVE_AUTHENTICATION_EXCEPTION:String = 'WeaveAuthenticationException';
+		private static const AUTHENTICATED_USER:String = 'authenticatedUser';
+		
+		private var propertyNameLookup:Dictionary = new Dictionary(); // Function -> String
+		protected var servlet:AMF3Servlet;
+		protected var _serverInfo:Object = null;
+
 		public function WeaveDataServlet(url:String = null)
 		{
-			servlet = new AMF3Servlet(url || DEFAULT_URL);
+			servlet = new AMF3Servlet(url || DEFAULT_URL, false);
 			registerLinkableChild(this, servlet);
 			
 			var info:* = DescribeType.getInfo(this, DescribeType.METHOD_FLAGS);
 			for each (var item:Object in info.traits.methods)
 			{
-				var func:Function = this[item.name] as Function;
+				var func:Function = item.uri ? null : this[item.name] as Function;
 				if (func != null)
 					propertyNameLookup[func] = item.name;
 			}
@@ -69,11 +70,11 @@ package weave.services
 		////////////////////
 		// Helper functions
 		
+		
 		/**
-		 * This function will generate a AsyncToken representing a servlet method invocation and add it to the queue.
+		 * This function will generate a AsyncToken representing a servlet method invocation.
 		 * @param method A WeaveAdminService class member function or a String.
 		 * @param parameters Parameters for the servlet method.
-		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
 		 * @param returnType_or_castFunction
 		 *     Either the type of object (Class) returned by the service or a Function that converts an Object to the appropriate type.
 		 *     If the service returns an Array of objects, each object in the Array will be cast to this type.
@@ -92,7 +93,7 @@ package weave.services
 			if (!methodName)
 				throw new Error("method must be a member of " + getQualifiedClassName(this));
 			
-			var token:AsyncToken = servlet.invokeAsyncMethod(methodName, parameters);
+			var token:ProxyAsyncToken = servlet.invokeAsyncMethod(methodName, parameters) as ProxyAsyncToken;
 			if (returnType_or_castFunction)
 			{
 				if (!(returnType_or_castFunction is Function || returnType_or_castFunction is Class))
@@ -100,6 +101,24 @@ package weave.services
 				if ([Array, String, Number, int, uint].indexOf(returnType_or_castFunction) < 0)
 					addAsyncResponder(token, castResult, null, returnType_or_castFunction);
 			}
+			if (!_authenticationRequired)
+				token.invoke();
+			
+			var originalArgs:Array = arguments;
+			addAsyncResponder(
+				token,
+				null,
+				function firstFaultHandler(event:FaultEvent, ..._):void
+				{
+					if (event.fault.faultCode == WEAVE_AUTHENTICATION_EXCEPTION)
+					{
+						_authenticationRequired = true;
+						token.cancel();
+						_tokensPendingAuthentication.push(token);
+					}
+				}
+			);
+
 			return token;
 		}
 		
@@ -111,7 +130,7 @@ package weave.services
 				if (cast is Class)
 				{
 					var result:Object = results[i];
-					if (result is (cast as Class))
+					if (result === null || result is (cast as Class))
 						continue;
 					var newResult:Object = new cast();
 					for (var key:String in result)
@@ -128,12 +147,107 @@ package weave.services
 				event.setResult(results[0]);
 		}
 		
+		//////////////////
+		// Authentication
+		
+		private var _authenticationRequired:Boolean = false;
+		private var _user:String = null;
+		private var _pass:String = null;
+		private var _tokensPendingAuthentication:Array = [];
+		
+		/**
+		 * Check this to determine if authenticate() may be necessary.
+		 * @return true if authenticate() may be necessary.
+		 */
+		public function get authenticationSupported():Boolean
+		{
+			var info:Object = getServerInfo();
+			return info && info['hasDirectoryService'];
+		}
+		
+		/**
+		 * Check this to determine if authenticate() must be called.
+		 * @return true if authenticate() should be called.
+		 */
+		public function get authenticationRequired():Boolean
+		{
+			return _authenticationRequired && !_user && !_pass;
+		}
+		
+		public function get authenticatedUser():String
+		{
+			return getServerInfo()[AUTHENTICATED_USER];
+		}
+		
+		/**
+		 * Authenticates with the server.
+		 * @param user
+		 * @param pass
+		 */
+		public function authenticate(user:String, pass:String):void
+		{
+			if (user && pass)
+			{
+				_user = user;
+				_pass = pass;
+				var token:ProxyAsyncToken = invoke(authenticate, arguments) as ProxyAsyncToken;
+				addAsyncResponder(
+					token,
+					handleAuthenticateResult,
+					handleAuthenticateFault
+				);
+				// check if we have to invoke manually
+				if (_authenticationRequired)
+					token.invoke();
+			}
+			else
+			{
+				_user = null;
+				_pass = null;
+			}
+		}
+		private function handleAuthenticateResult(event:ResultEvent, token:Object = null):void
+		{
+			while (_tokensPendingAuthentication.length)
+				(_tokensPendingAuthentication.shift() as ProxyAsyncToken).invoke();
+			getServerInfo()[AUTHENTICATED_USER] = _user;
+		}
+		private function handleAuthenticateFault(event:FaultEvent, token:Object = null):void
+		{
+			_user = null;
+			_pass = null;
+		}
+		
+		////////////////
+		// Server info
+		
+		public function getServerInfo():Object
+		{
+			if (!_serverInfo)
+			{
+				_serverInfo = true;
+				addAsyncResponder(
+					invoke(getServerInfo, arguments),
+					function(event:ResultEvent, token:WeaveDataServlet):void
+					{
+						_serverInfo = event.result || {};
+					},
+					function(event:FaultEvent, token:Object):void
+					{
+						_serverInfo = {"error": event.fault};
+					},
+					this
+				);
+			}
+			return typeof _serverInfo == 'object' ? _serverInfo : null;
+		}
+		
 		////////////////////
 		// DataEntity info
 		
 		public function get entityServiceInitialized():Boolean
 		{
-			return true;
+			return getServerInfo() != null;
 		}
 		
 		public function getHierarchyInfo(publicMetadata:Object):AsyncToken // returns EntityHierarchyInfo[]
@@ -162,6 +276,11 @@ package weave.services
 		public function getColumn(columnId:Object, minParam:Number, maxParam:Number, sqlParams:Array):AsyncToken
 		{
 			return invoke(getColumn, arguments, AttributeColumnData);
+		}
+		
+		public function getTable(id:int, sqlParams:Array):AsyncToken
+		{
+			return invoke(getTable, arguments, TableData);
 		}
 		
 		/////////////////////
