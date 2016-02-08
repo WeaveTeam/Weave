@@ -432,7 +432,7 @@ package
 			var interfaces:Array = [ILinkableObject];
 			for each (var item:* in additionalInterfaces)
 			{
-				var classDef:Class = item as Class;
+				var classDef:Class = JS.asClass(item);
 				if (item is String)
 					classDef = getDefinition(item);
 				if (!classDef)
