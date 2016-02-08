@@ -67,7 +67,7 @@ package
 			// handle path(linkableObject)
 			if (basePath.length == 1 && isLinkable(basePath[0]))
 				basePath = findPath(root, basePath[0]);
-			return new WeavePathUI(this, basePath);
+			return basePath ? new WeavePathUI(this, basePath) : null;
 		}
 		
 		/**
