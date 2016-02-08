@@ -55,6 +55,7 @@ package weavejs.core
 		
 		protected var _typeRestriction:Class;
 		private var _target:ILinkableObject; // the current target or ancestor of the to-be-target
+		private var _foundRoot:Boolean = false; // false until Weave.getRoot(this) returns non-null
 		private var _foundTarget:Boolean = true; // false when _target is not the desired target
 		protected var _targetPath:Array; // the path that is being watched
 		private var _pathDependencies:Dictionary2D = new Dictionary2D(); // (ILinkableCompositeObject, String) -> child object
@@ -65,6 +66,8 @@ package weavejs.core
 		 */		
 		public function get target():ILinkableObject
 		{
+			if (!_foundRoot && !_foundTarget)
+				handlePath();
 			return _foundTarget ? _target : null;
 		}
 		public function set target(newTarget:ILinkableObject):void
@@ -183,6 +186,7 @@ package weavejs.core
 			
 			// traverse the path, finding ILinkableDynamicObject path dependencies along the way
 			var node:ILinkableObject = Weave.getRoot(this);
+			_foundRoot = node != null;
 			var subPath:Array = [];
 			for each (var name:* in _targetPath)
 			{
