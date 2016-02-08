@@ -63,25 +63,59 @@ package weavejs.core
 		public const defaultPackages:Array = [];
 		
 		private static const FLEXJS_CLASS_INFO:String = "FLEXJS_CLASS_INFO";
+		private static const NAMES:String = 'names';
+		private static const NAME:String = 'name';
+		private static const QNAME:String = 'qName';
+		private static const INTERFACES:String = 'interfaces';
 		
 		/**
 		 * Registers a class for use with Weave.className() and Weave.getDefinition().
+		 * @param qualifiedName
+		 * @param definition
+		 * @param interfaces An Array of Class objects that are the interfaces the class implements.
 		 */
 		public function registerClass(qualifiedName:String, definition:Class, interfaces:Array = null):void
 		{
-			map_name_class.set(qualifiedName, definition);
+			// register qualified name
+			if (!map_name_class.has(qualifiedName))
+				map_name_class.set(qualifiedName, definition);
 			if (!map_class_name.has(definition))
 				map_class_name.set(definition, qualifiedName);
 			
-			if (!definition.prototype[FLEXJS_CLASS_INFO])
-				definition.prototype[FLEXJS_CLASS_INFO] = {
-					names: [{ name: shortName, qName: qualifiedName}],
-					interfaces: interfaces || []
-				};
-			
+			// register short name
 			var shortName:String = qualifiedName.split('.').pop().split(':').pop();
-			if (shortName != qualifiedName)
-				registerClass(shortName, definition);
+			if (!map_name_class.has(shortName))
+				map_name_class.set(shortName, definition);
+			
+			// get class info
+			var info:Object = definition.prototype[FLEXJS_CLASS_INFO] || (definition.prototype[FLEXJS_CLASS_INFO] = {});
+			var items:Array;
+			var item:Object;
+			
+			// add name if not present
+			var found:Boolean = false;
+			items = info[NAMES] || (info[NAMES] = []);
+			for each (item in items)
+			{
+				if (item[QNAME] == qualifiedName)
+				{
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+			{
+				item = {};
+				item[NAME] = shortName;
+				item[QNAME] = qualifiedName;
+				items.push(item);
+			}
+			
+			// add interfaces if not present
+			items = info[INTERFACES] || (info[INTERFACES] = []);
+			for each (item in interfaces)
+				if (items.indexOf(item) < 0)
+					items.push(item);
 		}
 		
 		/**
