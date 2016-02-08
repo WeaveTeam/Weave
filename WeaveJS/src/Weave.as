@@ -426,20 +426,13 @@ package
 		
 		/**
 		 * Registers an ILinkableObject class for use with Weave.className() and Weave.getDefinition().
+		 * @param qualifiedName
+		 * @param definition
+		 * @param additionalInterfaces An Array of interfaces (Class objects) that the definition implements in addition to ILinkableObject.
 		 */
 		public static function registerClass(qualifiedName:String, definition:Class, additionalInterfaces:Array = null):void
 		{
-			var interfaces:Array = [ILinkableObject];
-			for each (var item:* in additionalInterfaces)
-			{
-				var classDef:Class = JS.asClass(item);
-				if (item is String)
-					classDef = getDefinition(item);
-				if (!classDef)
-					throw new Error("Interface not found: " + item);
-				interfaces.push(classDef);
-			}
-			WeaveAPI.ClassRegistry.registerClass(qualifiedName, definition, interfaces);
+			WeaveAPI.ClassRegistry.registerClass(qualifiedName, definition, [ILinkableObject].concat(additionalInterfaces || []));
 		}
 		
 		/**
