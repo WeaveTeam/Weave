@@ -59,6 +59,11 @@ package weavejs.core
 		protected var _locked:Boolean = false;
 		
 		/**
+		 * If true, session states will be altered to bypass the diff calculation on DynamicState Arrays.
+		 */
+		protected var _bypassDiff:Boolean = true;
+		
+		/**
 		 * If a defaultValue is specified, callbacks will be triggered in a later frame unless they have already been triggered before then.
 		 * This behavior is desirable because it allows the initial value to be handled by the same callbacks that handles new values.
 		 * @param sessionStateType The type of values accepted for this sessioned property.
@@ -163,7 +168,8 @@ package weavejs.core
 				if (!wasCopied)
 					value = JS.copyObject(value);
 				
-				DynamicState.alterSessionStateToBypassDiff(value);
+				if (_bypassDiff)
+					DynamicState.alterSessionStateToBypassDiff(value);
 				
 				// save external copy, accessible via getSessionState()
 				_sessionStateExternal = value;

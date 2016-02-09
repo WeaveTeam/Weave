@@ -19,6 +19,7 @@ package weavejs.core
 		public function LinkablePlaceholder(classDef:Class)
 		{
 			this.classDef = classDef;
+			_bypassDiff = classDef === LinkableVariable || classDef.prototype is LinkableVariable;
 		}
 		
 		private var classDef:Class;
