@@ -222,7 +222,7 @@ package weavejs.data.source
 				var setGeoms:Function = function():void
 				{
 					var gc:GeometryColumn = new GeometryColumn(metadata);
-					gc.setGeometries(qkeys, geoms);
+					gc.setRecords(qkeys, geoms);
 					proxyColumn.setInternalColumn(gc);
 				}
 				// high priority because not much can be done without data

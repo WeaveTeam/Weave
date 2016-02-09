@@ -443,7 +443,7 @@ package weavejs.data.source
 						var createGeomColumn:Function = function():void
 						{
 							var newGeometricColumn:GeometryColumn = new GeometryColumn(metadata);
-							newGeometricColumn.setGeometries(qkeys, geometriesVector);
+							newGeometricColumn.setRecords(qkeys, geometriesVector);
 							proxyColumn.setInternalColumn(newGeometricColumn);
 						};
 						var pgGeomTask:Function = PGGeomUtil.newParseTask(result.data, geometriesVector);

@@ -255,7 +255,7 @@ package weavejs.data.source
 			if (dataType == DataType.GEOMETRY)
 			{
 				newColumn = new GeometryColumn(metadata);
-				(newColumn as GeometryColumn).setGeometries(qkeys, data);
+				(newColumn as GeometryColumn).setRecords(qkeys, data);
 			}
 			else if (dataType == DataType.DATE)
 			{

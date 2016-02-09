@@ -47,7 +47,7 @@ package weave.data.AttributeColumns
 		// temp variables for async task
 		private var _i:int;
 		private var _keys:Vector.<IQualifiedKey>;
-		private var _dates:Vector.<String>;
+		private var _dates:Array;
 		private var _reportedError:Boolean;
 		
 		// variables that do not get reset after async task
@@ -59,9 +59,6 @@ package weave.data.AttributeColumns
 		private var _durationMode:Boolean = false;
 		private var _fakeData:Boolean = false;
 		
-		/**
-		 * @inheritDoc
-		 */
 		override public function getMetadata(propertyName:String):String
 		{
 			if (propertyName == ColumnMetadata.DATA_TYPE)
@@ -71,23 +68,17 @@ package weave.data.AttributeColumns
 			return super.getMetadata(propertyName);
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		override public function get keys():Array
 		{
 			return _uniqueKeys;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
 			return _keyToData[key] != undefined;
 		}
 		
-		public function setRecords(keys:Vector.<IQualifiedKey>, dates:Vector.<String>):void
+		public function setRecords(keys:Vector.<IQualifiedKey>, dates:Array):void
 		{
 			if (keys.length > dates.length)
 			{
@@ -235,25 +226,29 @@ package weave.data.AttributeColumns
 				
 				// get values for this iteration
 				var key:IQualifiedKey = _keys[_i];
-				var string:String = _dates[_i];
+				var input:* = _dates[_i];
 				var value:Object;
-				if (_fakeData)
+				var fakeTime:Number = _fakeData ? StandardLib.asNumber(input) : NaN;
+				if (input is Date)
 				{
-					var oneDay:Number = 24 * 60 * 60 * 1000;
-					var fakeTime:Number = StandardLib.asNumber(string) * oneDay;
+					value = input;
+				}
+				else if (_fakeData && isFinite(fakeTime))
+				{
 					var d:Date = new Date();
-					d.setTime(d.getTime() - d.getTime() % oneDay + fakeTime);
+					var oneDay:Number = 24 * 60 * 60 * 1000;
+					d.setTime(d.getTime() - d.getTime() % oneDay + fakeTime * oneDay);
 					value = d;
 				}
 				else if (_stringToNumberFunction != null)
 				{
-					var number:Number = _stringToNumberFunction(string);
+					var number:Number = _stringToNumberFunction(input);
 					if (_numberToStringFunction != null)
 					{
-						string = _numberToStringFunction(number);
-						if (!string)
+						input = _numberToStringFunction(number);
+						if (!input)
 							continue;
-						value = parseDate(string);
+						value = parseDate(input);
 					}
 					else
 					{
@@ -266,11 +261,11 @@ package weave.data.AttributeColumns
 				{
 					try
 					{
-						if (!string)
+						if (!input)
 							continue;
-						value = parseDate(string);
+						value = parseDate(input);
 						if (value is Date && isNaN((value as Date).getTime()))
-							value = StandardLib.asNumber(string);
+							value = StandardLib.asNumber(input);
 					}
 					catch (e:Error)
 					{
@@ -281,7 +276,7 @@ package weave.data.AttributeColumns
 								'Warning: Unable to parse this value as a date: "{0}"'
 								+ ' (only the first error for this column is reported).'
 								+ ' Attribute column: {1}',
-								string,
+								input,
 								Compiler.stringify(_metadata)
 							);
 							reportError(err, null, e);
@@ -310,9 +305,6 @@ package weave.data.AttributeColumns
 			return 1;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function deriveStringFromNumber(number:Number):String
 		{
 			if (_numberToStringFunction != null)
@@ -324,9 +316,6 @@ package weave.data.AttributeColumns
 			return new Date(number).toString();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			var number:Number;

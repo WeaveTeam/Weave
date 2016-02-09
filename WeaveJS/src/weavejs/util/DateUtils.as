@@ -23,7 +23,7 @@ package weavejs.util
 		}
 		public static function date_format(date:Object, fmt:String):String
 		{
-			return null;
+			return String(date);
 		}
 		public static function dates_detect(dates:*, formats:Array):Array
 		{

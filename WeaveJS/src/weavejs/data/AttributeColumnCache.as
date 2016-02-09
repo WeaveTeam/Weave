@@ -21,6 +21,7 @@ package weavejs.data
 	import weavejs.api.data.DataType;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IAttributeColumnCache;
+	import weavejs.api.data.IBaseColumn;
 	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.data.column.DateColumn;
@@ -188,7 +189,7 @@ package weavejs.data
 				return;
 			}
 			
-			var column:IAttributeColumn;
+			var column:IBaseColumn;
 			var keyType:String = metadata[ColumnMetadata.KEY_TYPE];
 			var dataType:String = metadata[ColumnMetadata.DATA_TYPE];
 			
@@ -204,11 +205,7 @@ package weavejs.data
 			(WeaveAPI.QKeyManager as QKeyManager)
 				.getQKeysPromise(column, keyType, keyStrings)
 				.then(function(keys:Array):void {
-					var gc:GeometryColumn = column as GeometryColumn;
-					var dc:DateColumn = column as DateColumn;
-					var nc:NumberColumn = column as NumberColumn;
-					var sc:StringColumn = column as StringColumn;
-					if (gc)
+					if (column is GeometryColumn)
 					{
 						var geomKeys:Array = [];
 						var geoms:Array = [];
@@ -221,20 +218,10 @@ package weavejs.data
 								geoms.push(geom);
 							}
 						}
-						gc.setGeometries(geomKeys, geoms);
+						keys = geomKeys;
+						data = geoms;
 					}
-					else if (dc)
-					{
-						dc.setRecords(keys, data);
-					}
-					else if (nc)
-					{
-						nc.setRecords(keys, data);
-					}
-					else if (sc)
-					{
-						sc.setRecords(keys, data);
-					}
+					column.setRecords(keys, data);
 				});
 			
 			// insert into cache

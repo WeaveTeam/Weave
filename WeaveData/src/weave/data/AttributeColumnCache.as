@@ -233,7 +233,7 @@ package weave.data
 				(WeaveAPI.QKeyManager as QKeyManager)
 					.getQKeysPromise(column, keyType, keyStrings)
 					.then(function(keys:Vector.<IQualifiedKey>):void {
-						dc.setRecords(keys, Vector.<String>(data));
+						dc.setRecords(keys, data);
 					});
 			}
 			else // string

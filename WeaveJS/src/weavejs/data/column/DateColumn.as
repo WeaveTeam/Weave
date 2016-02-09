@@ -72,9 +72,9 @@ package weavejs.data.column
 			return map_key_data.has(key);
 		}
 		
-		public function setRecords(qkeys:Array, dateStrings:Array):void
+		public function setRecords(qkeys:Array, dates:Array):void
 		{
-			if (keys.length > dateStrings.length)
+			if (keys.length > dates.length)
 			{
 				JS.error("Array lengths differ");
 				return;
@@ -86,7 +86,7 @@ package weavejs.data.column
 			_dateFormat = getMetadata(ColumnMetadata.DATE_FORMAT);
 			if (!_dateFormat)
 			{
-				var possibleFormats:Array = detectDateFormats(dateStrings);
+				var possibleFormats:Array = detectDateFormats(dates);
 				StandardLib.sortOn(possibleFormats, 'length');
 				_dateFormat = possibleFormats.pop();
 			}
@@ -137,7 +137,7 @@ package weavejs.data.column
 			
 			_i = 0;
 			_keys = qkeys;
-			_dates = dateStrings;
+			_dates = dates;
 			map_key_data = new JS.Map();
 			_uniqueKeys.length = 0;
 			_reportedError = false;
@@ -220,25 +220,29 @@ package weavejs.data.column
 				
 				// get values for this iteration
 				var key:IQualifiedKey = _keys[_i];
-				var string:String = _dates[_i];
+				var input:* = _dates[_i];
 				var value:Object;
-				if (_fakeData)
+				var fakeTime:Number = _fakeData ? StandardLib.asNumber(input) : NaN;
+				if (input is Date)
 				{
-					var oneDay:Number = 24 * 60 * 60 * 1000;
-					var fakeTime:Number = StandardLib.asNumber(string) * oneDay;
+					value = input;
+				}
+				else if (_fakeData && isFinite(fakeTime))
+				{
 					var d:Date = new Date();
-					d.setTime(d.getTime() - d.getTime() % oneDay + fakeTime);
+					var oneDay:Number = 24 * 60 * 60 * 1000;
+					d.setTime(d.getTime() - d.getTime() % oneDay + fakeTime * oneDay);
 					value = d;
 				}
 				else if (_stringToNumberFunction != null)
 				{
-					var number:Number = _stringToNumberFunction(string);
+					var number:Number = _stringToNumberFunction(input);
 					if (_numberToStringFunction != null)
 					{
-						string = _numberToStringFunction(number);
-						if (!string)
+						input = _numberToStringFunction(number);
+						if (!input)
 							continue;
-						value = parseDate(string);
+						value = parseDate(input);
 					}
 					else
 					{
@@ -251,11 +255,11 @@ package weavejs.data.column
 				{
 					try
 					{
-						if (!string)
+						if (!input)
 							continue;
-						value = parseDate(string);
+						value = parseDate(input);
 						if (value is Date && isNaN((value as Date).getTime()))
-							value = StandardLib.asNumber(string);
+							value = StandardLib.asNumber(input);
 					}
 					catch (e:Error)
 					{
@@ -264,11 +268,10 @@ package weavejs.data.column
 							_reportedError = true;
 							var err:String = StandardLib.substitute(
 								'Warning: Unable to parse this value as a date: "{0}"'
-								+ ' (only the first error for this column is reported).'
-								+ ' Attribute column:',
-								string
+								+ ' (only the first error for this column is reported).',
+								input
 							);
-							JS.error(err, _metadata, e);
+							JS.error(err, 'Attribute column:', _metadata, e);
 						}
 						continue;
 					}
@@ -311,7 +314,7 @@ package weavejs.data.column
 			
 			if (dataType == Number)
 			{
-				number = map_key_data.get(key);
+				number = Number(map_key_data.get(key));
 				return number;
 			}
 			
@@ -319,7 +322,7 @@ package weavejs.data.column
 			{
 				if (_numberToStringFunction != null)
 				{
-					number = map_key_data.get(key);
+					number = Number(map_key_data.get(key));
 					return _numberToStringFunction(number);
 				}
 				
