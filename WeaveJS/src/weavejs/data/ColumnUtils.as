@@ -468,7 +468,7 @@ package weavejs.data
 		 * @param keyProperty The property name which should be used to store the IQualifiedKey for a record.
 		 * @return An array of record objects matching the structure of the format object.
 		 */
-		public function getRecords(format:Object, keys:Array = null, dataType:Class = null, keyProperty:String = 'id'):Array
+		public static function getRecords(format:Object, keys:Array = null, dataType:Class = null, keyProperty:String = 'id'):Array
 		{
 			if (JS.isPrimitive(format) || format is IAttributeColumn)
 				throw new Error("Invalid record format");
