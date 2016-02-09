@@ -7,6 +7,13 @@ package weavejs.util
 
 	public class BackwardsCompatibility
 	{
+		public static function forceDeprecatedState(classDef:Class):void
+		{
+			map_class_ignore.set(classDef, true);
+		}
+		
+		private static const map_class_ignore:Object = new JS.Map();
+		
 		public static function updateSessionState(state:Object):Object
 		{
 			var key:String;
@@ -21,7 +28,10 @@ package weavejs.util
 			for each (var typedState:Object in state)
 			{
 				var className:String = typedState[DynamicState.CLASS_NAME];
-				if (!isDeprecatedClass(className))
+				if (!classLookup.hasOwnProperty(className))
+					continue;
+				var classDef:Class = Weave.getDefinition(className);
+				if (classDef && !map_class_ignore.get(classDef))
 					continue;
 				if (!classLookup[className])
 				{
@@ -52,7 +62,7 @@ package weavejs.util
 								if (name.charAt(0) === 'I' && name.charAt(1) === name.charAt(1).toUpperCase())
 								{
 									name = name.substr(1);
-									var classDef:Class = Weave.getDefinition(name);
+									classDef = Weave.getDefinition(name);
 									if (classDef)
 										propType = Weave.className(classDef);
 								}
@@ -66,11 +76,6 @@ package weavejs.util
 				typedState[DynamicState.SESSION_STATE] = updateSessionState(childState);
 			}
 			return state;
-		}
-		
-		public static function isDeprecatedClass(qname:String):Boolean
-		{
-			return classLookup.hasOwnProperty(qname) && Weave.getDefinition(qname) == null;
 		}
 		
 		public static const classLookup:Object = {
