@@ -556,23 +556,7 @@ package weavejs.path
 		{
 			relativePath = _A(relativePath, 1);
 			var state:Object = JS.copyObject(this.getState(relativePath));
-			return _removeTypeFromState(state);
-		}
-		
-		private function _removeTypeFromState(state:Object):Object
-		{
-			if (DynamicState.isDynamicStateArray(state))
-			{
-				var newState:Object = {};
-				for each (var typedState:Object in state)
-					newState[typedState[DynamicState.OBJECT_NAME] || ''] = _removeTypeFromState(typedState[DynamicState.SESSION_STATE]);
-				return newState;
-			}
-			
-			if (typeof state === 'object')
-				for (var key:String in state)
-					state[key] = _removeTypeFromState(state[key]);
-			return state;
+			return DynamicState.removeTypeFromState(state);
 		}
 		
 		/**

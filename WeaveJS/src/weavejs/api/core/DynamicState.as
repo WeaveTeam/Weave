@@ -122,5 +122,63 @@ package weavejs.api.core
 				for (var key:* in object)
 					alterSessionStateToBypassDiff(object[key]);
 		}
+		
+		/**
+		 * Converts DynamicState Arrays into Objects.
+		 * @param state The state to convert
+		 * @return The converted state
+		 */
+		public static function removeTypeFromState(state:Object):Object
+		{
+			if (DynamicState.isDynamicStateArray(state))
+			{
+				var newState:Object = {};
+				for each (var typedState:Object in state)
+					newState[typedState[OBJECT_NAME] || ''] = removeTypeFromState(typedState[SESSION_STATE]);
+				return newState;
+			}
+			
+			if (typeof state === 'object')
+				for (var key:String in state)
+					state[key] = removeTypeFromState(state[key]);
+			return state;
+		}
+		
+		/**
+		 * Sets or gets a value in a session state.
+		 * @param state The state to traverse
+		 * @param path The path in the state to traverse
+		 * @param newValue The new value, or undefined to retrieve the current value
+		 * @return The new or existing value
+		 */
+		public static function traverseState(state:Object, path:Array, newValue:* = undefined):*
+		{
+			if (!path.length)
+				return newValue === undefined ? state : newValue;
+			
+			var property:* = path[0];
+			path = path.slice(1);
+			if (isDynamicStateArray(state))
+			{
+				var i:int;
+				if (property is Number)
+					i = property;
+				else
+					for (i = 0; i < state.length; i++)
+						if (state[i][OBJECT_NAME] == property)
+							break;
+				
+				var typedState:Object = state[i];
+				if (!typedState)
+					return undefined;
+				if (path.length)
+					return traverseState(typedState[SESSION_STATE], path, newValue);
+				return newValue === undefined ? typedState[SESSION_STATE] : typedState[SESSION_STATE] = newValue;
+			}
+			
+			if (path.length)
+				return traverseState(state[property], path, newValue);
+			return newValue === undefined ? state[property] : state[property] = newValue;
+		}
 	}
 }
