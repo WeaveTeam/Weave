@@ -155,6 +155,8 @@ package weavejs.api.core
 		{
 			if (!path.length)
 				return newValue === undefined ? state : newValue;
+			if (!state)
+				return undefined;
 			
 			var property:* = path[0];
 			path = path.slice(1);
