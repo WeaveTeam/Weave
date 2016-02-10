@@ -102,16 +102,25 @@ package weavejs.core
 			return _nameToObjectMap[name];
 		}
 		
-		public function setObject(name:String, object:ILinkableObject):void
+		public function setObject(name:String, object:ILinkableObject, lockObject:Boolean = false):void
 		{
-			if (_nameToObjectMap[name] === object)
+			if (_nameIsLocked[name] || _nameToObjectMap[name] === object)
 				return;
 			
+			var className:String = Weave.className(object);
+			if (!className)
+				throw new Error("Cannot get class name from object");
+			if (Weave.getDefinition(className) != object['constructor'])
+				throw new Error("The Class of the object is not registered");
 			if (Weave.getOwner(object))
 				throw new Error("LinkableHashMap cannot accept an object that is already registered with an owner.");
 			
 			if (object)
 			{
+				// if no name is specified, generate a unique one now.
+				if (!name)
+					name = generateUniqueName(className.split('::').pop().split('.').pop());
+				
 				delayCallbacks();
 				
 				// register the object as a child of this LinkableHashMap
@@ -122,6 +131,8 @@ package weavejs.core
 				_map_objectToNameMap.set(object, name);
 				if (_orderedNames.indexOf(name) < 0)
 					_orderedNames.push(name);
+				if (lockObject)
+					_nameIsLocked[name] = true;
 				// remember that this name was used in case there was no previous object
 				_previousNameMap[name] = true;
 				
@@ -184,7 +195,7 @@ package weavejs.core
 				_childListCallbacks.runCallbacks(null, null, null);
 		}
 		
-		public function requestObject(name:String, classDef:Class, lockObject:Boolean):*
+		public function requestObject(name:String, classDef:Class, lockObject:Boolean = false):*
 		{
 			var className:String = classDef ? Weave.className(classDef) : null;
 			var result:* = initObjectByClassName(name, className, lockObject);
@@ -248,7 +259,7 @@ package weavejs.core
 			{
 				// if no name is specified, generate a unique one now.
 				if (!name)
-					name = generateUniqueName(className.split("::").pop());
+					name = generateUniqueName(className.split('::').pop().split('.').pop());
 				var classDef:Class = Weave.getDefinition(className);
 				if (Weave.isLinkable(classDef)
 					&& (_typeRestriction == null || classDef === _typeRestriction || classDef.prototype is _typeRestriction) )

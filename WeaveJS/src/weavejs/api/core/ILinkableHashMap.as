@@ -77,9 +77,10 @@ package weavejs.api.core
 		/**
 		 * Sets an entry in the hash map, replacing any existing object under the same name.
 		 * @param name The identifying name to associate with an object.
+		 * @param lockObject If this is true, the object will be locked in place under the specified name.
 		 * @return The object to be associated with the given name.
 		 */
-		function setObject(name:String, object:ILinkableObject):void;
+		function setObject(name:String, object:ILinkableObject, lockObject:Boolean = false):void;
 
 		/**
 		 * This function creates an object in the hash map if it doesn't already exist.
@@ -90,7 +91,7 @@ package weavejs.api.core
 		 * @param lockObject If this is true, the object will be locked in place under the specified name.
 		 * @return The object under the requested name of the requested type, or null if an error occurred.
 		 */
-		function requestObject(name:String, classDef:Class, lockObject:Boolean):*;
+		function requestObject(name:String, classDef:Class, lockObject:Boolean = false):*;
 
 		/**
 		 * This function will copy the session state of an ILinkableObject to a new object under the given name in this LinkableHashMap.
