@@ -110,36 +110,33 @@ package weavejs.core
 			if (Weave.getOwner(object))
 				throw new Error("LinkableHashMap cannot accept an object that is already registered with an owner.");
 			
-			delayCallbacks();
-			
 			if (object)
 			{
-				// preserve name order
-				var order:Array = _orderedNames.concat();
-				if (order.indexOf(name) < 0)
-					order.push(name);
+				delayCallbacks();
 				
-				// remove any object currently using this name
-				removeObject(name);
 				// register the object as a child of this LinkableHashMap
 				Weave.linkableChild(this, object);
-				// save the name-object mappings
+				// replace existing object
+				var oldObject:ILinkableObject = _nameToObjectMap[name];
 				_nameToObjectMap[name] = object;
 				_map_objectToNameMap.set(object, name);
-				// remember that this name was used.
+				if (_orderedNames.indexOf(name) < 0)
+					_orderedNames.push(name);
+				// remember that this name was used in case there was no previous object
 				_previousNameMap[name] = true;
 				
-				// preserve name order
-				setNameOrder(order);
-				// make sure the callback variables signal that the object was added
-				_childListCallbacks.runCallbacks(name, object, null);
+				// make callback variables signal that the object was replaced or added
+				_childListCallbacks.runCallbacks(name, object, oldObject);
+				
+				// dispose the object AFTER the callbacks know that the object was removed
+				Weave.dispose(oldObject);
+				
+				resumeCallbacks();
 			}
 			else
 			{
 				removeObject(name);
 			}
-			
-			resumeCallbacks();
 		}
 		
 		public function getName(object:ILinkableObject):String
@@ -352,6 +349,8 @@ package weavejs.core
 			if (object == null)
 				return; // do nothing if the name isn't mapped to an object.
 			
+			delayCallbacks();
+			
 			//trace(LinkableHashMap, "removeObject",name,object);
 			// remove name & associated object
 			delete _nameToObjectMap[name];
@@ -364,6 +363,8 @@ package weavejs.core
 
 			// dispose the object AFTER the callbacks know that the object was removed
 			Weave.dispose(object);
+			
+			resumeCallbacks();
 		}
 
 		public function removeAllObjects():void
