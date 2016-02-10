@@ -464,11 +464,12 @@ package weavejs.data
 		 * @param format An object mapping names to IAttributeColumn objects or constant values to be included in every record.
 		 *               You can nest Objects or Arrays.
 		 * @param keys An Array of IQualifiedKeys
-		 * @param dataType A Class specifying the dataType to retrieve from columns: String/Number/Date/Array
+		 * @param dataType A Class specifying the dataType to retrieve from columns: String/Number/Date/Array (default is Array)
+		 *                 You can also specify different data types in a structure matching that of the format object.
 		 * @param keyProperty The property name which should be used to store the IQualifiedKey for a record.
 		 * @return An array of record objects matching the structure of the format object.
 		 */
-		public static function getRecords(format:Object, keys:Array = null, dataType:Class = null, keyProperty:String = 'id'):Array
+		public static function getRecords(format:Object, keys:Array = null, dataType:Object = null, keyProperty:String = 'id'):Array
 		{
 			if (JS.isPrimitive(format) || format is IAttributeColumn)
 				throw new Error("Invalid record format");
@@ -502,22 +503,24 @@ package weavejs.data
 		 * @param format An object mapping names to IAttributeColumn objects or constant values to be included in every record.
 		 *               You can nest Objects or Arrays.
 		 * @param key An IQualifiedKey
-		 * @param dataType A Class specifying the dataType to retrieve from columns: String/Number/Date/Array
+		 * @param dataType A Class specifying the dataType to retrieve from columns: String/Number/Date/Array (default is Array)
+		 *                 You can also specify different data types in a structure matching that of the format object.
 		 * @return A record object matching the structure of the format object.
 		 */
-		public static function getRecord(format:Object, key:IQualifiedKey, dataType:Class):Object
+		public static function getRecord(format:Object, key:IQualifiedKey, dataType:Object):Object
 		{
 			// check for primitive values
 			if (format === null || typeof format !== 'object')
 				return format;
 			
+			var dataTypeClass:Class = JS.asClass(dataType || Array);
 			var column:IAttributeColumn = format as IAttributeColumn;
 			if (column)
-				return column.getValueFromKey(key, dataType);
+				return column.getValueFromKey(key, dataTypeClass);
 			
 			var record:Object = format is Array ? [] : {};
 			for (var prop:String in format)
-				record[prop] = getRecord(format[prop], key, dataType);
+				record[prop] = getRecord(format[prop], key, dataTypeClass || dataType[prop]);
 			return record;
 		}
 		
