@@ -47,9 +47,9 @@ package weavejs.net
 			var responseType:String = urlRequest.responseType || ResponseType.UINT8ARRAY;
 			var promise:WeavePromise;
 			
-			if (urlRequest.url.indexOf(LOCAL_FILE_URL_SCHEME) == 0)
+			if (String(urlRequest.url).indexOf(LOCAL_FILE_URL_SCHEME) == 0)
 			{
-				var fileName:String = urlRequest.url.substr(LOCAL_FILE_URL_SCHEME.length);
+				var fileName:String = String(urlRequest.url).substr(LOCAL_FILE_URL_SCHEME.length);
 				var weaveRoot:ILinkableHashMap = Weave.getRoot(relevantContext as ILinkableObject);
 				var cachedPromise:WeavePromise = get_d2d_weaveRoot_fileName_promise(weaveRoot, fileName);
 				if (cachedPromise.getResult() == null && cachedPromise.getError() == null)
