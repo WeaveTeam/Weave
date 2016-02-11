@@ -20,11 +20,20 @@ package weavejs.core
 
 		public function get value():String
 		{
+			if (_sessionStateExternal === undefined)
+				return null;
 			return _sessionStateExternal;
 		}
 		public function set value(value:String):void
 		{
 			setSessionState(value);
+		}
+		
+		override public function getSessionState():Object
+		{
+			if (_sessionStateExternal === undefined)
+				return null;
+			return _sessionStateExternal;
 		}
 		
 		override public function setSessionState(value:Object):void

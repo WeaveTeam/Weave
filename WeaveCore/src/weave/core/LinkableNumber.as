@@ -31,6 +31,8 @@ package weave.core
 
 		public function get value():Number
 		{
+			if (_sessionStateExternal === undefined)
+				return NaN;
 			return _sessionStateExternal;
 		}
 		public function set value(value:Number):void
@@ -40,7 +42,9 @@ package weave.core
 		
 		override public function getSessionState():Object
 		{
-			return Number(_sessionStateExternal);
+			if (_sessionStateExternal === undefined)
+				return NaN;
+			return _sessionStateExternal;
 		}
 
 		override public function setSessionState(value:Object):void

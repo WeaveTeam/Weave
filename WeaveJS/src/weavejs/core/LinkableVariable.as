@@ -241,7 +241,7 @@ package weavejs.core
 
 		public function get state():Object
 		{
-			return _sessionStateExternal;
+			return getSessionState();
 		}
 		public function set state(value:Object):void
 		{
