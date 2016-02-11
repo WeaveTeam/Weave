@@ -33,6 +33,22 @@ package weavejs.geom
 		public const color:AlwaysDefinedColumn = Weave.linkableChild(this, new AlwaysDefinedColumn(NaN));
 		public const alpha:AlwaysDefinedColumn = Weave.linkableChild(this, new AlwaysDefinedColumn(1.0));
 		
+		/**
+		 * For use with ColumnUtils.getRecords()
+		 */
+		public function get recordFormat():Object
+		{
+			return { 'color': color, 'alpha': alpha };
+		}
+		
+		/**
+		 * For use with ColumnUtils.getRecords()
+		 */
+		public function get recordType():Object
+		{
+			return { 'color': Number, 'alpha': Number };
+		}
+		
 		public function getStyle(key:IQualifiedKey):Object
 		{
 			return {

@@ -65,6 +65,22 @@ package weavejs.geom
 		public function get normalizedWeightColumn():NormalizedColumn { return weight.getInternalColumn() as NormalizedColumn; }
 		
 		/**
+		 * For use with ColumnUtils.getRecords()
+		 */
+		public function get recordFormat():Object
+		{
+			return { 'color': color, 'weight': weight, 'alpha': alpha, 'caps': caps, 'joints': joints, 'miterLimit': miterLimit };
+		}
+		
+		/**
+		 * For use with ColumnUtils.getRecords()
+		 */
+		public function get recordType():Object
+		{
+			return { 'color': Number, 'weight': Number, 'alpha': Number, 'caps': String, 'joints': String, 'miterLimit': Number };
+		}
+		
+		/**
 		 * IQualifiedKey -> getLineStyleParams() result
 		 */
 		private var map_key_style:Object;
