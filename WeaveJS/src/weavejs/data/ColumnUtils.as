@@ -463,13 +463,14 @@ package weavejs.data
 		 * Generates records using a custom format.
 		 * @param format An object mapping names to IAttributeColumn objects or constant values to be included in every record.
 		 *               You can nest Objects or Arrays.
+		 *               If you want each record to include its corresponding key, include a property with a value equal to weavejs.api.data.IQualifiedKey.
 		 * @param keys An Array of IQualifiedKeys
 		 * @param dataType A Class specifying the dataType to retrieve from columns: String/Number/Date/Array (default is Array)
 		 *                 You can also specify different data types in a structure matching that of the format object.
 		 * @param keyProperty The property name which should be used to store the IQualifiedKey for a record.
 		 * @return An array of record objects matching the structure of the format object.
 		 */
-		public static function getRecords(format:Object, keys:Array = null, dataType:Object = null, keyProperty:String = 'id'):Array
+		public static function getRecords(format:Object, keys:Array = null, dataType:Object = null):Array
 		{
 			if (JS.isPrimitive(format) || format is IAttributeColumn)
 				throw new Error("Invalid record format");
@@ -477,11 +478,7 @@ package weavejs.data
 				keys = getAllKeys(getColumnsFromFormat(format, []));
 			var records:Array = new Array(keys.length);
 			for (var i:int in keys)
-			{
 				records[i] = getRecord(format, keys[i], dataType);
-				if (keyProperty)
-					records[i][keyProperty] = keys[i];
-			}
 			return records;
 		}
 		
@@ -502,6 +499,7 @@ package weavejs.data
 		 * Generates a record using a custom format.
 		 * @param format An object mapping names to IAttributeColumn objects or constant values to be included in every record.
 		 *               You can nest Objects or Arrays.
+		 *               If you want the record to include its corresponding key, include include a property with a value equal to weavejs.api.data.IQualifiedKey.
 		 * @param key An IQualifiedKey
 		 * @param dataType A Class specifying the dataType to retrieve from columns: String/Number/Date/Array (default is Array)
 		 *                 You can also specify different data types in a structure matching that of the format object.
@@ -509,6 +507,9 @@ package weavejs.data
 		 */
 		public static function getRecord(format:Object, key:IQualifiedKey, dataType:Object):Object
 		{
+			if (format === IQualifiedKey)
+				return key;
+			
 			// check for primitive values
 			if (format === null || typeof format !== 'object')
 				return format;
