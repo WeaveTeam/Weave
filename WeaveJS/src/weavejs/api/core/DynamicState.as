@@ -160,7 +160,7 @@ package weavejs.api.core
 			
 			var property:* = path[0];
 			path = path.slice(1);
-			if (isDynamicStateArray(state))
+			if (isDynamicStateArray(state, true))
 			{
 				var i:int;
 				if (property is Number)
