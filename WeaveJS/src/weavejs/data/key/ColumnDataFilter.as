@@ -234,8 +234,13 @@ package weavejs.data.key
 			return new RegExp(value[REGEXP] || value[ALTERNATE_REGEX_PROPERTY]);
 		}
 		
+		public function get deprecatedStateMapping():Object
+		{
+			return this.handleMissingSessionStateProperties;
+		}
+		
 		private var _deprecatedRangeState:Object;
-		public function handleMissingSessionStateProperties(newState:Object):void
+		private function handleMissingSessionStateProperties(newState:Object):void
 		{
 			// handle deprecated StringDataFilter single-string value
 			const STRING_VALUE:String = 'stringValue';

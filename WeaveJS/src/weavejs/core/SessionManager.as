@@ -332,6 +332,36 @@ package weavejs.core
 			
 			return base;
 		}
+		
+		public static const DEPRECATED_STATE_MAPPING:String = 'deprecatedStateMapping';
+		
+		/**
+		 * Uses DynamicState.traverseState() to traverse a state and copy portions of the state to ILinkableObjects.
+		 * @param state A session state
+		 * @param mapping A structure that defines the traversal, where the leaf nodes are ILinkableObjects or Functions to call.
+		 *                Functions should have the following signature: function(state:Object, removeMissingDynamicObjects:Boolean = true):void
+		 */
+		public static function traverseAndSetState(state:Object, mapping:Object, removeMissingDynamicObjects:Boolean = true):void
+		{
+			var ilo:ILinkableObject = mapping as ILinkableObject;
+			if (ilo)
+			{
+				Weave.setState(ilo, state, removeMissingDynamicObjects);
+			}
+			else if (mapping is Function)
+			{
+				mapping(state, removeMissingDynamicObjects);
+			}
+			else if (state && typeof state === 'object' && typeof mapping === 'object')
+			{
+				for (var key:* in mapping)
+				{
+					var value:* = DynamicState.traverseState(state, [key]);
+					if (value !== undefined)
+						traverseAndSetState(value, mapping[key], removeMissingDynamicObjects);
+				}
+			}
+		}
 
 		public function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean = true):void
 		{
@@ -386,11 +416,12 @@ package weavejs.core
 			
 			// set session state
 			var foundMissingProperty:Boolean = false;
+			var hasDeprecatedStateMapping:Boolean = linkableObject is ILinkableObjectWithNewProperties || JS.hasProperty(linkableObject, DEPRECATED_STATE_MAPPING);
 			for each (name in propertyNames)
 			{
 				if (!newState.hasOwnProperty(name))
 				{
-					if (removeMissingDynamicObjects && linkableObject is ILinkableObjectWithNewProperties)
+					if (removeMissingDynamicObjects && hasDeprecatedStateMapping)
 						foundMissingProperty = true;
 					continue;
 				}
@@ -415,8 +446,9 @@ package weavejs.core
 				setSessionState(property, newState[name], removeMissingDynamicObjects);
 			}
 			
-			if (linkableObject is ILinkableObjectWithNewProperties)
+			if (hasDeprecatedStateMapping)
 			{
+				var doMapping:Boolean = false;
 				if (foundMissingProperty)
 				{
 					// handle properties missing from absolute session state
@@ -424,7 +456,7 @@ package weavejs.core
 					{
 						if (!newState.hasOwnProperty(name))
 						{
-							(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperties(newState);
+							doMapping = true;
 							break;
 						}
 					}
@@ -444,10 +476,19 @@ package weavejs.core
 						}
 						if (!property || !Weave.isLinkable(property) || !d2d_child_parent.get(property, linkableObject))
 						{
-							(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperties(newState);
+							doMapping = true;
 							break;
 						}
 					}
+				}
+				if (doMapping)
+				{
+					var mapping:Object = linkableObject[DEPRECATED_STATE_MAPPING];
+					if (mapping is Function)
+						mapping.call(linkableObject, newState, removeMissingDynamicObjects);
+					else
+						for each (var item:Object in (mapping as Array || [mapping]))
+							traverseAndSetState(newState, item, removeMissingDynamicObjects);
 				}
 			}
 			

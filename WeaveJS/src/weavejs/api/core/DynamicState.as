@@ -167,7 +167,7 @@ package weavejs.api.core
 					i = property;
 				else
 					for (i = 0; i < state.length; i++)
-						if (state[i][OBJECT_NAME] == property)
+						if (state[i][OBJECT_NAME] == property || (!property && !state[i][OBJECT_NAME]))
 							break;
 				
 				var typedState:Object = state[i];
