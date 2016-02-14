@@ -141,7 +141,7 @@ package weavejs.util
 		 * @param key1_key2_value A function which may return true to stop iterating.
 		 * @param thisArg The 'this' argument for the function.
 		 */
-		public function forEach(key1_key2_value:/*/(key1:K1, key2:K2, value:V) => void|boolean/*/Function, thisArg:Object):void
+		public function forEach(key1_key2_value:/*/(key1:K1, key2:K2, value:V) => any/*/Function, thisArg:Object):void
 		{
 			if (weak1 || weak2)
 				throwWeakIterationError();
