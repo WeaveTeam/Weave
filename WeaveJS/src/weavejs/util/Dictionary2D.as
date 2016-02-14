@@ -11,7 +11,7 @@ package weavejs.util
 	 * 
 	 * @author adufilie
 	 */
-	public class Dictionary2D
+	public class Dictionary2D/*/<K1,K2,V>/*/
 	{
 		public function Dictionary2D(weakPrimaryKeys:Boolean = false, weakSecondaryKeys:Boolean = false, defaultType:Class = null)
 		{
@@ -34,7 +34,7 @@ package weavejs.util
 		 * @param key2 The second map key.
 		 * @return The value.
 		 */
-		public function get(key1:Object, key2:Object):*
+		public function get(key1:/*/K1/*/Object, key2:/*/K2/*/Object):/*/V/*/*
 		{
 			var value:* = undefined;
 			var map2:* = map.get(key1);
@@ -54,7 +54,7 @@ package weavejs.util
 		 * @param key2 The second map key.
 		 * @param value The value.
 		 */
-		public function set(key1:Object, key2:Object, value:Object):void
+		public function set(key1:/*/K1/*/Object, key2:/*/K2/*/Object, value:/*/V/*/Object):void
 		{
 			var map2:Object = map.get(key1);
 			if (map2 == null)
@@ -65,14 +65,14 @@ package weavejs.util
 			map2.set(key2, value);
 		}
 		
-		public function primaryKeys():Array
+		public function primaryKeys():Array/*/<K1>/*/
 		{
 			if (weak1)
 				throwWeakIterationError();
 			return JS.mapKeys(map);
 		}
 		
-		public function secondaryKeys(key1:Object):Array
+		public function secondaryKeys(key1:/*/K1/*/Object):Array/*/<K2>/*/
 		{
 			if (weak2)
 				throwWeakIterationError();
@@ -83,7 +83,7 @@ package weavejs.util
 		 * This removes all values associated with the given primary key.
 		 * @param key1 The first dictionary key.
 		 */
-		public function removeAllPrimary(key1:Object):void
+		public function removeAllPrimary(key1:/*/K1/*/Object):void
 		{
 			map['delete'](key1);
 		}
@@ -93,7 +93,7 @@ package weavejs.util
 		 * @param key2 The second dictionary key.
 		 * @private
 		 */
-		public function removeAllSecondary(key2:Object):void
+		public function removeAllSecondary(key2:/*/K2/*/Object):void
 		{
 			if (weak1)
 				throwWeakIterationError();
@@ -112,7 +112,7 @@ package weavejs.util
 		 * @param key2 The second dictionary key.
 		 * @return The value that was in the dictionary.
 		 */
-		public function remove(key1:Object, key2:Object):*
+		public function remove(key1:/*/K1/*/Object, key2:/*/K2/*/Object):/*/V/*/*
 		{
 			var value:* = undefined;
 			var map2:* = map.get(key1);
@@ -141,7 +141,7 @@ package weavejs.util
 		 * @param key1_key2_value A function which may return true to stop iterating.
 		 * @param thisArg The 'this' argument for the function.
 		 */
-		public function forEach(key1_key2_value:Function, thisArg:Object):void
+		public function forEach(key1_key2_value:/*/(key1:K1, key2:K2, value:V) => void/*/Function, thisArg:Object):void
 		{
 			if (weak1 || weak2)
 				throwWeakIterationError();

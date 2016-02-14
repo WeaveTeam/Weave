@@ -41,9 +41,9 @@ package weavejs.path
 		public var selection_keyset:WeavePathData;
 		public var subset_filter:WeavePathData;
 
-		public var d2d_keySet_addedKeys:Dictionary2D = new Dictionary2D(true);
-		public var d2d_keySet_removedKeys:Dictionary2D = new Dictionary2D(true);
-		public var map_keySet_timeoutId:Object = new JS.WeakMap();
+		private var d2d_keySet_addedKeys:Dictionary2D = new Dictionary2D(true);
+		private var d2d_keySet_removedKeys:Dictionary2D = new Dictionary2D(true);
+		private var map_keySet_timeoutId:Object = new JS.WeakMap();
 		
 		/** 
 		 * Retrieves or allocates the index for the given QualifiedKey object based on its localName and keyType properties
