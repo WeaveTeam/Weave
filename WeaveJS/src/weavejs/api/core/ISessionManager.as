@@ -49,7 +49,7 @@ package weavejs.api.core
 		 * @return The new child object.
 		 * @see #registerLinkableChild()
 		 */
-		function newLinkableChild(linkableParent:Object, linkableChildType:Class, callback:Function = null, useGroupedCallback:Boolean = false):*;
+		function newLinkableChild/*/<T extends ILinkableObject>/*/(linkableParent:Object, linkableChildType:/*/new()=>T/*/Class, callback:Function = null, useGroupedCallback:Boolean = false):/*/T/*/*;
 		
 		/**
 		 * This function tells the SessionManager that the session state of the specified child should appear in the
@@ -71,7 +71,7 @@ package weavejs.api.core
 		 * @return The linkableChild object that was passed to the function.
 		 * @see #newLinkableChild()
 		 */
-		function registerLinkableChild(linkableParent:Object, linkableChild:ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):*;
+		function registerLinkableChild/*/<T extends ILinkableObject>/*/(linkableParent:Object, linkableChild:/*/T/*/ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):/*/T/*/*;
 
 		/**
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
@@ -117,7 +117,7 @@ package weavejs.api.core
 		 * @return An Array containing a list of descendant objects.
 		 * @see #getLinkableOwner()
 		 */
-		function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array;
+		function getLinkableDescendants/*/<T>/*/(root:ILinkableObject, filter:/*/new(..._:any[])=>T/*/Class = null):Array/*/<T & ILinkableObject>/*/;
 		
 		/**
 		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>

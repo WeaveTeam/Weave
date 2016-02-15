@@ -24,7 +24,7 @@ package weavejs.util
 		/**
 		 * The primary Map object.
 		 */		
-		public var map:Object;
+		public var map:/*/Map<K1, Map<K2, V>>/*/Object;
 		private var weak1:Boolean;
 		private var weak2:Boolean; // used as a constructor parameter for nested Dictionaries
 		private var defaultType:Class; // used for creating objects automatically via get()

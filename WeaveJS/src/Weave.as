@@ -155,14 +155,14 @@ package
 		 * @return A value of true if the callbacks for any of the objects have triggered since the last time this function was called
 		 *         with the same observer for any of the specified linkable objects.
 		 */
-		public static function detectChange(observer:Object, linkableObject:ILinkableObject, ...moreLinkableObjects):Boolean
+		public static function detectChange(observer:Object, linkableObject:ILinkableObject, ...moreLinkableObjects/*/<ILinkableObject>/*/):Boolean
 		{
 			var changeDetected:Boolean = false;
 			moreLinkableObjects.unshift(linkableObject);
 			// it's important not to short-circuit like a boolean OR (||) because we need to clear the 'changed' flag on each object.
 			for each (linkableObject in moreLinkableObjects)
-			if (linkableObject && _internalDetectChange(observer, linkableObject, true)) // clear 'changed' flag
-				changeDetected = true;
+				if (linkableObject && _internalDetectChange(observer, linkableObject, true)) // clear 'changed' flag
+					changeDetected = true;
 			return changeDetected;
 		}
 		/**
@@ -221,7 +221,7 @@ package
 		 * @return The closest ancestor of the given type.
 		 * @see weave.api.core.ISessionManager#getLinkableOwner()
 		 */
-		public static function getAncestor(descendant:ILinkableObject, ancestorType:Class):ILinkableObject
+		public static function getAncestor/*/<T>/*/(descendant:ILinkableObject, ancestorType:/*/new(..._:any[])=>T/*/Class):/*/T & ILinkableObject/*/ILinkableObject
 		{
 			var sm:ISessionManager = WeaveAPI.SessionManager;
 			do {
@@ -244,7 +244,7 @@ package
 		 * Shortcut for WeaveAPI.SessionManager.getLinkableDescendants()
 		 * @copy weave.api.core.ISessionManager#getLinkableDescendants()
 		 */
-		public static function getDescendants(object:ILinkableObject, filter:Class = null):Array
+		public static function getDescendants/*/<T>/*/(object:ILinkableObject, filter:/*/new(..._:any[])=>T/*/Class = null):Array/*/<T & ILinkableObject>/*/
 		{
 			return WeaveAPI.SessionManager.getLinkableDescendants(object, filter);
 		}
@@ -329,7 +329,7 @@ package
 		 * @see weave.api.core.ISessionManager#newLinkableChild()
 		 * @see weave.api.core.ISessionManager#registerLinkableChild()
 		 */
-		public static function linkableChild(linkableParent:Object, linkableChildOrType:Object, callback:Function = null, useGroupedCallback:Boolean = false):*
+		public static function linkableChild/*/<T extends ILinkableObject>/*/(linkableParent:Object, linkableChildOrType:/*/(new(..._:any[])=>T) | T/*/Object, callback:Function = null, useGroupedCallback:Boolean = false):/*/T/*/*
 		{
 			if (JS.isClass(linkableChildOrType))
 				return WeaveAPI.SessionManager.newLinkableChild(linkableParent, JS.asClass(linkableChildOrType), callback, useGroupedCallback);
