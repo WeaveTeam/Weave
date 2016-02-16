@@ -38,10 +38,12 @@ package weavejs.util
 				return value;
 			
 			try {
-				value = String(value);
-				if (value == '')
+				var str:String = String(value);
+				if (str == '')
 					return NaN; // return NaN because Number('') == 0
-				return Number(value);
+				if (str.charAt(0) === '#')
+					str = '0x' + str.substr(1);
+				return Number(str);
 			} catch (e:Error) { }
 
 			return NaN;
