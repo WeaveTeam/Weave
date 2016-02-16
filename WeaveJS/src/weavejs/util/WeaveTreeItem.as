@@ -29,7 +29,7 @@ package weavejs.util
 		 * @param WeaveTreeItem_implementation The implementation of WeaveTreeItem to use.
 		 * @param items Item descriptors.
 		 */
-		public static function createItems(WeaveTreeItem_implementation:Class, items:Array):Array
+		public static function createItems/*/<T>/*/(WeaveTreeItem_implementation:/*/new(params?:Object)=>WeaveTreeItem/*/Class, items:Array):Array/*/<WeaveTreeItem>/*/
 		{
 			// flatten
 			var n:int = 0;

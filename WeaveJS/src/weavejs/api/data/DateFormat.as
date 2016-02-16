@@ -17,15 +17,15 @@ package weavejs.api.data
 {
 	public class DateFormat
 	{
-		public static function getSuggestions():Array
+		public static function getSuggestions():Array/*/<string>/*/
 		{
 			return ADDITIONAL_SUGGESTIONS.concat(FOR_AUTO_DETECT);
 		}
 		
-		public static const ADDITIONAL_SUGGESTIONS:Array = [
+		public static const ADDITIONAL_SUGGESTIONS:Array/*/<string>/*/ = [
 			"%Y"
 		];
-		public static const FOR_AUTO_DETECT:Array = [
+		public static const FOR_AUTO_DETECT:Array/*/<string>/*/ = [
 			'%d-%b-%y',
 			'%b-%d-%y',
 			'%d-%b-%Y',

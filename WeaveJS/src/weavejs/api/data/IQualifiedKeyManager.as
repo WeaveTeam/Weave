@@ -42,7 +42,7 @@ package weavejs.api.data
 		 * @param keyStrings An Array of localNames.
 		 * @return An array of IQualifiedKeys.
 		 */
-		function getQKeys(keyType:String, keyStrings:Array):Array;
+		function getQKeys(keyType:String, keyStrings:Array/*/<string>/*/):Array/*/<IQualifiedKey>/*/;
 
 		/**
 		 * This will replace untyped Objects in an Array with their IQualifiedKey counterparts.
@@ -50,21 +50,21 @@ package weavejs.api.data
 		 * @param objects An Array to modify.
 		 * @return The same Array that was passed in, modified.
 		 */
-		function convertToQKeys(objects:Array):Array;
+		function convertToQKeys(objects:Array/*/<{keyType:string, localName:string}>/*/):Array/*/<IQualifiedKey>/*/;
 		
 		/**
 		 * Get a list of all previoused key types.
 		 *
 		 * @return An array of IQualifiedKeys.
 		 */
-		function getAllKeyTypes():Array;
+		function getAllKeyTypes():Array/*/<string>/*/;
 
 		/**
 		 * Get a list of all referenced IQualifiedKeys for a given key type
 		 * @param keyType The key type.
 		 * @return An array of IQualifiedKeys
 		 */
-		function getAllQKeys(keyType:String):Array;
+		function getAllQKeys(keyType:String):Array/*/<IQualifiedKey>/*/;
 		
 		/**
 		 * Get a QualifiedKey from its string representation.

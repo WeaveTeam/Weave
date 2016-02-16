@@ -33,15 +33,15 @@ package weavejs.api.data
 		 * This can be used as a buffer prior to calling flushKeys().
 		 * @see #flushKeys()
 		 */
-		function get keysAdded():Array
-		function set keysAdded(qkeys:Array):void;
+		function get keysAdded():Array/*/<IQualifiedKey>/*/;
+		function set keysAdded(qkeys:Array/*/<IQualifiedKey>/*/):void;
 		
 		/**
 		 * The keys that were most recently removed, causing callbacks to trigger.
 		 * This can be used as a buffer prior to calling flushKeys().
 		 * @see #flushKeys()
 		 */
-		function get keysRemoved():Array
-		function set keysRemoved(qkeys:Array):void;
+		function get keysRemoved():Array/*/<IQualifiedKey>/*/;
+		function set keysRemoved(qkeys:Array/*/<IQualifiedKey>/*/):void;
 	}
 }

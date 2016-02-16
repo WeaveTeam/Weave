@@ -120,7 +120,7 @@ package weavejs.data.key
 		 * @param sortDirections Sort directions (-1, 0, 1)
 		 * @return A function that returns a sorted copy of an Array of keys.
 		 */
-		public static function generateSortCopyFunction(columns:Array, sortDirections:Array = null):Function
+		public static function generateSortCopyFunction(columns:Array/*/<IAttributeColumn|((key:IQualifiedKey)=>number)>/*/, sortDirections:Array/*/<number>/*/ = null):/*/(keys:IQualifiedKey[])=>IQualifiedKey[]/*/Function
 		{
 			return function(keys:Array):Array
 			{

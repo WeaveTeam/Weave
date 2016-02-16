@@ -36,7 +36,7 @@ package weavejs.api.data
 		 * Retrieves all metadata property names for this column.
 		 * @return An Array of all available metadata property names.
 		 */
-		function getMetadataPropertyNames():Array;
+		function getMetadataPropertyNames():Array/*/<string>/*/;
 		
 		/**
 		 * This function gets a value associated with a record key.

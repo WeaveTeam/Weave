@@ -128,7 +128,7 @@ package weavejs.data.key
 		/**
 		 * A list of keys included in this KeySet.
 		 */
-		public function get keys():Array
+		public function get keys():Array/*/<IQualifiedKey>/*/
 		{
 			return _keys;
 		}
@@ -138,7 +138,7 @@ package weavejs.data.key
 		 * @param newKeys An Array of IQualifiedKey objects.
 		 * @return true if the set changes as a result of calling this function.
 		 */
-		public function replaceKeys(newKeys:Array):Boolean
+		public function replaceKeys(newKeys:Array/*/<IQualifiedKey>/*/):Boolean
 		{
 			if (_locked)
 				return false;
@@ -235,7 +235,7 @@ package weavejs.data.key
 		 * @param additionalKeys A list of keys to add to this set.
 		 * @return true if the set changes as a result of calling this function.
 		 */
-		public function addKeys(additionalKeys:Array):Boolean
+		public function addKeys(additionalKeys:Array/*/<IQualifiedKey>/*/):Boolean
 		{
 			if (_locked)
 				return false;
@@ -267,7 +267,7 @@ package weavejs.data.key
 		 * @param unwantedKeys A list of keys to remove from this set.
 		 * @return true if the set changes as a result of calling this function.
 		 */
-		public function removeKeys(unwantedKeys:Array):Boolean
+		public function removeKeys(unwantedKeys:Array/*/<IQualifiedKey>/*/):Boolean
 		{
 			if (_locked)
 				return false;
@@ -309,7 +309,7 @@ package weavejs.data.key
 		/**
 		 * This function sets the session state for the KeySet.
 		 * @param value A CSV-formatted String where each row is a keyType followed by a list of key strings of that keyType.
-		 */		
+		 */
 		override public function setSessionState(value:Object):void
 		{
 			// backwards compatibility 0.9.6

@@ -36,7 +36,7 @@ package weavejs.api.data
 		public static const MIN:String = "min";
 		public static const MAX:String = "max";
 		
-		public static function getAllMetadata(column:IAttributeColumn):Object
+		public static function getAllMetadata(column:IAttributeColumn):/*/{[name:string]:string}/*/Object
 		{
 			var meta:Object = {};
 			var names:Array = column.getMetadataPropertyNames();
@@ -49,7 +49,7 @@ package weavejs.api.data
 		 * @param propertyName The name of a metadata property.
 		 * @return An Array of suggested String values for the specified metadata property.
 		 */
-		public static function getSuggestedPropertyValues(propertyName:String):Array
+		public static function getSuggestedPropertyValues(propertyName:String):Array/*/<string>/*/
 		{
 			switch (propertyName)
 			{

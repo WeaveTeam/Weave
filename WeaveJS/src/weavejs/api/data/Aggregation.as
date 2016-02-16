@@ -21,7 +21,7 @@ package weavejs.api.data
 	 */
 	public class Aggregation
 	{
-		public static const ALL_TYPES:Array = [SAME, FIRST, LAST, MEAN, SUM, MIN, MAX, COUNT];
+		public static const ALL_TYPES:Array/*/string/*/ = [SAME, FIRST, LAST, MEAN, SUM, MIN, MAX, COUNT];
 		
 		public static const SAME:String = "same";
 		public static const FIRST:String = "first";

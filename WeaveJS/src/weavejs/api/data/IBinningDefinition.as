@@ -50,13 +50,13 @@ package weavejs.api.data
 		 * @return An Array of IBinClassifier objects, or null if the current task has not completed yet.
 		 * @see #resultCallbacks
 		 */
-		function getBinClassifiers():Array;
+		function getBinClassifiers():Array/*/<IBinClassifier>/*/;
 		
 		/**
 		 * This accesses the result from the asynchronous task started by generateBinClassifiersForColumn().
 		 * @return An Array of Strings, or null if the current task has not completed yet.
 		 * @see #resultCallbacks
 		 */
-		function getBinNames():Array;
+		function getBinNames():Array/*/<string>/*/;
 	}
 }

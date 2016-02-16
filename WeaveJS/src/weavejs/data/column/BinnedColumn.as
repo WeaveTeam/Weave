@@ -177,7 +177,7 @@ package weavejs.data.column
 		 * @param binIndex The index of the bin to get the keys from.
 		 * @return An Array of keys in the specified bin.
 		 */
-		public function getKeysFromBinIndex(binIndex:uint):Array
+		public function getKeysFromBinIndex(binIndex:uint):Array/*/<IQualifiedKey>/*/
 		{
 			validateBins();
 			if (binIndex < _binnedKeysArray.length)
@@ -190,7 +190,7 @@ package weavejs.data.column
 		 * @param binIndex The name of the bin to get the keys from.
 		 * @return An Array of keys in the specified bin.
 		 */
-		public function getKeysFromBinName(binName:String):Array
+		public function getKeysFromBinName(binName:String):Array/*/<IQualifiedKey>/*/
 		{
 			validateBins();
 			return _binnedKeysMap[binName] as Array;

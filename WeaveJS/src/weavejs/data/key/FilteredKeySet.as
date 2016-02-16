@@ -76,7 +76,7 @@ package weavejs.data.key
 		 * @param keyInclusionLogic Passed to KeySetUnion constructor.
 		 * @see weave.data.KeySets.SortedKeySet#generateCompareFunction()
 		 */
-		public function setColumnKeySources(columns:Array, sortDirections:Array = null, keySortCopy:Function = null, keyInclusionLogic:Function = null):void
+		public function setColumnKeySources(columns:Array/*/<IKeySet|IAttributeColumn>/*/, sortDirections:Array/*/<number>/*/ = null, keySortCopy:/*/(keys:IQualifiedKey[])=>IQualifiedKey[]/*/Function = null, keyInclusionLogic:/*/(key:IQualifiedKey)=>boolean/*/Function = null):void
 		{
 			if (StandardLib.compare(_setColumnKeySources_arguments, arguments) == 0)
 				return;

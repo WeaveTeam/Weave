@@ -14,9 +14,9 @@ package weavejs.core
 	/**
 	 * Represents an object that must be instantiated asynchronously.
 	 */
-	public class LinkablePlaceholder extends LinkableVariable
+	public class LinkablePlaceholder/*/<T extends ILinkableObject>/*/ extends LinkableVariable
 	{
-		public function LinkablePlaceholder(classDef:Class)
+		public function LinkablePlaceholder(classDef:/*/new(..._:any[])=>T/*/Class)
 		{
 			this.classDef = classDef;
 			_bypassDiff = classDef === LinkableVariable || classDef.prototype is LinkableVariable;
@@ -25,17 +25,17 @@ package weavejs.core
 		private var classDef:Class;
 		private var instance:ILinkableObject;
 		
-		public function getClass():Class
+		public function getClass():/*/new(..._:any[])=>T/*/Class
 		{
 			return classDef;
 		}
 		
-		public function getInstance():ILinkableObject
+		public function getInstance():/*/T & ILinkableObject/*/ILinkableObject
 		{
 			return instance;
 		}
 		
-		public function setInstance(instance:ILinkableObject):void
+		public function setInstance(instance:/*/T/*/ILinkableObject):void
 		{
 			if (Weave.wasDisposed(this))
 				throw new Error("LinkablePlaceholder was already disposed");
@@ -65,7 +65,7 @@ package weavejs.core
 		 * @param object An object, which may be null.
 		 * @return The class definition, or null if the object was null.
 		 */
-		public static function getClass(object:Object):Class
+		public static function getClass(object:/*/ILinkableObject | LinkablePlaceholder<ILinkableObject>/*/Object):/*/new(..._:any[])=>ILinkableObject/*/Class
 		{
 			var placeholder:LinkablePlaceholder = object as LinkablePlaceholder;
 			if (placeholder)

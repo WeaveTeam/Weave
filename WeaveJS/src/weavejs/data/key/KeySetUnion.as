@@ -36,7 +36,7 @@ package weavejs.data.key
 		/**
 		 * @param keyInclusionLogic A function that accepts an IQualifiedKey and returns true or false.
 		 */		
-		public function KeySetUnion(keyInclusionLogic:Function = null)
+		public function KeySetUnion(keyInclusionLogic:/*/(key:IQualifiedKey)=>boolean/*/Function = null)
 		{
 			_keyInclusionLogic = keyInclusionLogic;
 			
