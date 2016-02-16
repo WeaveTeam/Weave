@@ -41,7 +41,7 @@ package weavejs.util
 		 * @param arrays A list of Arrays.
 		 * @return The union of all the unique items in the Arrays in the order they appear.
 		 */
-		public static function union(...arrays):Array
+		public static function union/*/<T>/*/(...arrays/*/<T[]>/*/):Array/*/<T>/*/
 		{
 			var result:Array = [];
 			_lookupId++;
@@ -62,10 +62,9 @@ package weavejs.util
 		
 		/**
 		 * Computes the intersection of the items in a list of two or more Arrays.
-		 * @param arrays A list of Arrays.
 		 * @return The intersection of the items appearing in all Arrays, in the order that they appear in the first Array.
 		 */
-		public static function intersection(firstArray:*, secondArray:*, ...moreArrays):Array
+		public static function intersection/*/<T>/*/(firstArray:Array/*/<T>/*/, secondArray:Array/*/<T>/*/, ...moreArrays/*/<T[]>/*/):Array/*/<T>/*/
 		{
 			moreArrays.unshift(secondArray);
 			
@@ -98,7 +97,7 @@ package weavejs.util
 		 * @param itemsToRemove An Array of items to skip when making a copy of the array.
 		 * @return A new Array containing the items from the original array except those that appear in itemsToRemove.
 		 */
-		public static function subtract(array:*, itemsToRemove:*):Array
+		public static function subtract/*/<T>/*/(array:Array/*/<T>/*/, itemsToRemove:Array/*/<T>/*/):Array/*/<T>/*/
 		{
 			var item:*;
 			_lookupId++;
@@ -119,7 +118,7 @@ package weavejs.util
 		 * @param destination An Array.
 		 * @return A pointer to the destination Array
 		 */
-		public static function copy(source:*, destination:* = null):*
+		public static function copy/*/<T>/*/(source:Array/*/<T>/*/, destination:Array/*/<T>/*/ = null):Array/*/<T>/*/
 		{
 			if (!destination)
 				destination = [];
@@ -129,9 +128,9 @@ package weavejs.util
 			return destination;
 		}
 		/**
-		 * Fills a hash map with the keys from an Array.
+		 * Fills an Object with the keys from an Array.
 		 */
-		public static function fillKeys(output:Object, keys:Array):void
+		public static function fillKeys(output:/*/{[key:string]:boolean}/*/Object, keys:Array/*/<string>/*/):void
 		{
 			for each (var key:* in keys)
 				output[key] = true;
@@ -195,7 +194,7 @@ package weavejs.util
 		 * @param compareFunction A function that takes two array elements a,b and returns -1 if a&lt;b, 1 if a&gt;b, or 0 if a==b.
 		 * @return The index the pivot element was moved to during the execution of the function.
 		 */
-		private static function partition(list:*, firstIndex:int, lastIndex:int, pivotIndex:int, compareFunction:Function):int
+		private static function partition(list:Array, firstIndex:int, lastIndex:int, pivotIndex:int, compareFunction:Function):int
 		{
 			var temp:*;
 			var pivotValue:* = list[pivotIndex];
@@ -251,7 +250,7 @@ package weavejs.util
 		 * @param lastIndex The index of the last element in the list to calculate a median from.
 		 * @return The index the median element.
 		 */
-		public static function getMedianIndex(list:*, compareFunction:Function, firstIndex:int = 0, lastIndex:int = -1):int
+		public static function getMedianIndex(list:Array, compareFunction:Function, firstIndex:int = 0, lastIndex:int = -1):int
 		{
 			var left:int = firstIndex;
 			var right:int = (lastIndex >= 0) ? (lastIndex) : (list.length - 1);
@@ -278,7 +277,7 @@ package weavejs.util
 		 * @param mergedOutput An array to store the merged arrays.
 		 * @param comparator A function that takes two parameters and returns -1 if the first parameter is less than the second, 0 if equal, or 1 if the first is greater than the second.
 		 */		
-		public static function mergeSorted(sortedInputA:*, sortedInputB:*, mergedOutput:*, comparator:Function):void
+		public static function mergeSorted/*/<T>/*/(sortedInputA:Array/*/<T>/*/, sortedInputB:Array/*/<T>/*/, mergedOutput:Array/*/<T>/*/, comparator:/*/(a:T,b:T)=>number/*/Function):void
 		{
 			var indexA:int = 0;
 			var indexB:int = 0;
@@ -307,7 +306,7 @@ package weavejs.util
 		 * @param destination An Array to append items to.  If none specified, a new one will be created.
 		 * @return The destination Array with all the nested items in the source appended to it.
 		 */
-		public static function flatten(source:*, destination:* = null):*
+		public static function flatten/*/<T>/*/(source:Array/*/<T>/*/, destination:Array/*/<T>/*/ = null):Array/*/<T>/*/
 		{
 			if (destination == null)
 				destination = [];
@@ -344,7 +343,7 @@ package weavejs.util
 		 * @param includeEmptyItems Set this to true to include empty-strings and undefined items in the nested Arrays.
 		 * @return An Array of String-joined items in the same order they appear in the nested Arrays.
 		 */
-		public static function joinItems(arrayOfArrays:Array, separator:String, includeEmptyItems:Boolean):Array
+		public static function joinItems(arrayOfArrays:Array/*/<string[]>/*/, separator:String, includeEmptyItems:Boolean):Array/*/<string>/*/
 		{
 			var maxLength:int = 0;
 			var itemList:Array;
@@ -376,7 +375,7 @@ package weavejs.util
 		 * @param exactMatchOnly If true, searches for exact match. If false, searches for insertion point.
 		 * @return The index of the matching value or insertion point.
 		 */
-		public static function binarySearch(sortedUniqueValues:*, item:*, exactMatchOnly:Boolean, compare:Function = null):int
+		public static function binarySearch(sortedUniqueValues:Array, item:*, exactMatchOnly:Boolean, compare:/*/(a:any,b:any)=>number/*/Function = null):int
 		{
 			var i:int = 0,
 				imin:int = 0,
@@ -403,7 +402,7 @@ package weavejs.util
 		 * @param values Values corresponding to the keys.
 		 * @return A new Object.
 		 */
-		public static function zipObject(keys:Array, values:Array):Object
+		public static function zipObject/*/<T>/*/(keys:Array/*/<string>/*/, values:Array/*/<T>/*/):/*/{[key:string]:T}/*/Object
 		{
 			var n:int = Math.min(keys.length, values.length);
 			var o:Object = {};
@@ -414,12 +413,12 @@ package weavejs.util
 		
 		/**
 		 * This will get a subset of properties/items/attributes from an Object/Array/XML.
-		 * @param object An Object/Array/XML containing properties/items/attributes to retrieve.
-		 * @param keys A list of property names, index values, or attribute names.
+		 * @param object An Object/Array containing properties/items to retrieve.
+		 * @param keys A list of property names, index values.
 		 * @param output Optionally specifies where to store the resulting items.
 		 * @return An Object (or Array) containing the properties/items/attributes specified by keysOrIndices.
 		 */
-		public static function getItems(object:*, keys:Array, output:* = null):*
+		public static function getItems(object:/*/Object|any[]/*/*, keys:Array/*/<string>/*/, output:/*/Object|any[]/*/* = null):/*/Object|any[]/*/*
 		{
 			if (!output)
 				output = object is Array ? [] : {};
@@ -454,7 +453,7 @@ package weavejs.util
 		 * @param propertyNames A list of names of properties to compare
 		 * @return -1, 0, or 1
 		 */
-		public static function compareProperties(object1:Object, object2:Object, propertyNames:Array):int
+		public static function compareProperties(object1:Object, object2:Object, propertyNames:Array/*/<string>/*/):int
 		{
 			for each (var name:String in propertyNames)
 			{
@@ -468,9 +467,9 @@ package weavejs.util
 		/**
 		 * Removes items from an Array.
 		 * @param array Array
-		 * @param indices Array of indices to remove
+		 * @param indices Array of numerically sorted indices to remove
 		 */
-		public static function removeByIndex(array:*, indices:Array):void
+		public static function removeByIndex(array:Array, indices:Array/*/<number>/*/):void
 		{
 			var n:int = array.length;
 			var skipList:Array = union(indices);
@@ -493,7 +492,7 @@ package weavejs.util
 		 * @param property The property name to get from each object
 		 * @return A list of the values of the specified property for each object in the original list.
 		 */
-		public static function pluck(array:*, property:String):*
+		public static function pluck(array:Array, property:String):Array
 		{
 			_pluckProperty = property;
 			return array.map(_pluck);
@@ -507,7 +506,7 @@ package weavejs.util
 		/**
 		 * Transposes a two-dimensional table.
 		 */
-		public static function transpose(table:Array):Array
+		public static function transpose/*/<T>/*/(table:Array/*/<T[]>/*/):Array/*/<T[]>/*/
 		{
 			var result:Array = [];
 			for (var iCol:int = 0; iCol < table.length; iCol++)
@@ -523,12 +522,12 @@ package weavejs.util
 		}
 		
 		/**
-		 * Creates a lookup from item (or item property) to index. Does not consider duplicate items (or item property values).
+		 * Creates a lookup from item (or item property) to index. Does not consider duplicate items (or duplicate item property values).
 		 * @param array An Array or Object
 		 * @param propertyChain A property name or chain of property names to index on rather than the item itself.
 		 * @return A reverse lookup Map.
 		 */
-		public static function createLookup(array:*, ...propertyChain):Object
+		public static function createLookup/*/<T>/*/(array:/*/Array<T>|{[key:string]:T}/*/*, ...propertyChain/*/<string>/*/):/*/Map<T,string>/*/Object
 		{
 			var lookup:Object = new JS.Map();
 			for (var key:* in array)

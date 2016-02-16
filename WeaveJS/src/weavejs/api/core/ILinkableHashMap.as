@@ -42,7 +42,7 @@ package weavejs.api.core
 		 * Callbacks will be called if the new name order differs from the old order.
 		 * @param newOrder The new desired ordering of names.
 		 */
-		function setNameOrder(newOrder:Array):void;
+		function setNameOrder(newOrder:Array/*/<string>/*/):void;
 
 		/**
 		 * This function returns an ordered list of names in the hash map.
@@ -50,7 +50,7 @@ package weavejs.api.core
 		 * @param filterIncludesPlaceholders If true, matching LinkablePlaceholders will be included in the results.
 		 * @return A copy of the ordered list of names of objects contained in this LinkableHashMap.
 		 */
-		function getNames(filter:Class = null, filterIncludesPlaceholders:Boolean = false):Array;
+		function getNames(filter:Class = null, filterIncludesPlaceholders:Boolean = false):Array/*/<string>/*/;
 		
 		/**
 		 * This function returns an ordered list of objects in the hash map. 
@@ -58,7 +58,7 @@ package weavejs.api.core
 		 * @param filterIncludesPlaceholders If true, matching LinkablePlaceholders will be included in the results.
 		 * @return An ordered Array of objects that correspond to the names returned by getNames(filter).
 		 */
-		function getObjects(filter:Class = null, filterIncludesPlaceholders:Boolean = false):Array;
+		function getObjects/*/<T>/*/(filter:/*/new(..._:any[])=>T/*/Class = null, filterIncludesPlaceholders:Boolean = false):Array/*/<T & ILinkableObject>/*/;
 
 		/**
 		 * This function gets the name of the specified object in the hash map.
@@ -91,7 +91,7 @@ package weavejs.api.core
 		 * @param lockObject If this is true, the object will be locked in place under the specified name.
 		 * @return The object under the requested name of the requested type, or null if an error occurred.
 		 */
-		function requestObject(name:String, classDef:Class, lockObject:Boolean = false):*;
+		function requestObject/*/<T>/*/(name:String, classDef:/*/new()=>T/*/Class, lockObject:Boolean = false):/*/T/*/*;
 
 		/**
 		 * This function will copy the session state of an ILinkableObject to a new object under the given name in this LinkableHashMap.
@@ -99,7 +99,7 @@ package weavejs.api.core
 		 * @param objectToCopy An object to copy the session state from.
 		 * @return The new object of the same type, or null if an error occurred.
 		 */
-		function requestObjectCopy(name:String, objectToCopy:ILinkableObject):ILinkableObject;
+		function requestObjectCopy/*/<T extends ILinkableObject>/*/(name:String, objectToCopy:/*/T/*/ILinkableObject):/*/T/*/ILinkableObject;
 
 		/**
 		 * This function will rename an object by making a copy and removing the original.

@@ -37,14 +37,14 @@ package weavejs.api.core
 		/**
 		 * This is the path that is currently being watched for linkable object targets.
 		 */
-		function get targetPath():Array;
+		function get targetPath():Array/*/<string|number>/*/;
 
 		/**
 		 * This will set a path which should be watched for new targets.
 		 * Callbacks will be triggered immediately if the path points to a new target.
 		 * @param newPath The new path to watch.
 		 */
-		function set targetPath(newPath:Array):void;
+		function set targetPath(newPath:Array/*/<string|number>/*/):void;
 
 		/**
 		 * This function creates a global object using the given Class definition if it doesn't already exist.
@@ -55,7 +55,7 @@ package weavejs.api.core
 		 * @param lockObject If this is true, this object will be locked so the internal object cannot be removed or replaced.
 		 * @return The global object of the requested name and type, or null if the object could not be created.
 		 */
-		function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean):*;
+		function requestGlobalObject/*/<T extends ILinkableObject>/*/(name:String, objectType:/*/new()=>T/*/Class, lockObject:Boolean):/*/T/*/*;
 		
 		/**
 		 * This function creates a local object using the given Class definition if it doesn't already exist.
@@ -64,7 +64,7 @@ package weavejs.api.core
 		 * @param lockObject If this is true, this object will be locked so the internal object cannot be removed or replaced.
 		 * @return The local object of the requested type, or null if the object could not be created.
 		 */
-		function requestLocalObject(objectType:Class, lockObject:Boolean):*;
+		function requestLocalObject/*/<T extends ILinkableObject>/*/(objectType:/*/new()=>T/*/Class, lockObject:Boolean):/*/T/*/*;
 
 		/**
 		 * This function will copy the session state of an ILinkableObject to a new local internalObject of the same type.

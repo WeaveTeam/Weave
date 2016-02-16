@@ -329,7 +329,7 @@ package
 		 * @see weave.api.core.ISessionManager#newLinkableChild()
 		 * @see weave.api.core.ISessionManager#registerLinkableChild()
 		 */
-		public static function linkableChild/*/<T extends ILinkableObject>/*/(linkableParent:Object, linkableChildOrType:/*/(new(..._:any[])=>T) | T/*/Object, callback:Function = null, useGroupedCallback:Boolean = false):/*/T/*/*
+		public static function linkableChild/*/<T extends ILinkableObject>/*/(linkableParent:Object, linkableChildOrType:/*/(new()=>T) | T/*/Object, callback:Function = null, useGroupedCallback:Boolean = false):/*/T/*/*
 		{
 			if (JS.isClass(linkableChildOrType))
 				return WeaveAPI.SessionManager.newLinkableChild(linkableParent, JS.asClass(linkableChildOrType), callback, useGroupedCallback);

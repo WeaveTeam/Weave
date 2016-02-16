@@ -24,12 +24,12 @@ package weavejs.geom
 	 * 
 	 * @author adufilie
 	 */
-	public class KDTree
+	public class KDTree/*/<T>/*/
 	{
 		/**
 		 * Constructs an empty KDTree with the given dimensionality.
 		 * 
-		 * TODO: add parameter for a vector of key,object pairs and create a balanced tree from those.
+		 * TODO: add parameter for an Array of key,object pairs and create a balanced tree from those.
 		 */
 		public function KDTree(dimensionality:uint)
 		{
@@ -46,12 +46,12 @@ package weavejs.geom
 		/**
 		 * This is the root of the tree.
 		 */
-		private var rootNode:KDNode = null;
+		private var rootNode:KDNode/*/<T>/*/ = null;
 		
 		/**
-		 * This vector contains pointers to all nodes in the tree.
+		 * This Array contains pointers to all nodes in the tree.
 		 */
-		private var allNodes:Vector.<KDNode> = new Vector.<KDNode>();
+		private var allNodes:Array/*/<KDNode<T>>/*/ = [];
 		
 		/**
 		 * The number of nodes in the tree.
@@ -73,7 +73,7 @@ package weavejs.geom
 		 */
 		private var needsBalancing:Boolean = false;
 		
-		private var balanceStack:Vector.<Object> = new Vector.<Object>();
+		private var balanceStack:Array = [];
 		private const LEFT_SIDE:int = 0, RIGHT_SIDE:int = 1;
 		/**
 		 * Balance the tree so there are an (approximately) equal number of points
@@ -160,7 +160,7 @@ package weavejs.geom
 		 * @param object The object to insert in the tree.
 		 * @return A KDNode object that can be used as a parameter to the remove() function.
 		 */
-		public function insert(key:Array, obj:Object):KDNode
+		public function insert(key:Array/*/<number>/*/, obj:/*/T/*/Object):KDNode/*/<T>/*/
 		{
 			if (key.length != dimensionality)
 				throw new Error("KDTree.insert key parameter must have same dimensionality as tree");
@@ -232,13 +232,13 @@ package weavejs.geom
 		 * Remove a single node from the tree.
 		 * @param node The node to remove from the tree.
 		 */
-		public function remove(node:KDNode):void
+		public function remove(node:KDNode/*/<T>/*/):void
 		{
 			var index:int = allNodes.indexOf(node);
 			// stop if node not in tree
 			if (index < 0)
 				return;
-			// remove node from allNodes vector
+			// remove node from allNodes Array
 			allNodes.splice(index, 1);
 			//temporary solution: set object to null so it won't be returned in future query results
 			node.object = null;
@@ -259,7 +259,7 @@ package weavejs.geom
 		/**
 		 * used internally to keep track of the current traversal operation
 		 */
-		private var nodeStack:Vector.<KDNode> = new Vector.<KDNode>();
+		private var nodeStack:Array/*/<KDNode>/*/ = [];
 		
 		/**
 		 * Use these values for the sortDirection parameter of queryRange().
@@ -274,7 +274,7 @@ package weavejs.geom
 		 * @param sortDirection Specify either ASCENDING or DESCENDING
 		 * @return An array of pointers to objects with K-Dimensional keys that fall between minKey and maxKey.
 		 */
-		public function queryRange(minKey:Array, maxKey:Array, boundaryInclusive:Boolean = true, sortDimension:int = -1, sortDirection:String = 'ascending'):Array
+		public function queryRange(minKey:Array/*/<number>/*/, maxKey:Array/*/<number>/*/, boundaryInclusive:Boolean = true, sortDimension:int = -1, sortDirection:String = 'ascending'):Array/*/<T>/*/
 		{
 			var queryResult:Array = new Array();
 			if (minKey.length != dimensionality || maxKey.length != dimensionality)
@@ -396,11 +396,11 @@ package weavejs.geom
 		/**
 		 * This function is used to sort the results of queryRange().
 		 */
-		private static function getNodeSortValue(node:KDNode):Number
+		private static function getNodeSortValue(node:KDNode/*/<T>/*/):Number
 		{
 			return node.key[compareNodesSortDimension];
 		}
-		private static function compareNodes(node1:KDNode, node2:KDNode):int
+		private static function compareNodes(node1:KDNode/*/<T>/*/, node2:KDNode/*/<T>/*/):int
 		{
 			var result:int = StandardLib.numericCompare(
 				node1.key[compareNodesSortDimension],
@@ -420,7 +420,7 @@ package weavejs.geom
 		 * This function is used to save old nodes for later use.
 		 * @param node The node to save for later.
 		 */		
-		private static function saveUnusedNode(node:KDNode):void
+		private static function saveUnusedNode(node:KDNode/*/<T>/*/):void
 		{
 			for each (var sibling:KDNode in node.siblings)
 			saveUnusedNode(sibling);
@@ -437,7 +437,7 @@ package weavejs.geom
 		 * This function uses object pooling to get an instance of KDNode.
 		 * @return Either a previously saved unused node, or a new node.
 		 */
-		private static function getUnusedNode(key:Array, object:Object, splitDimension:int = 0):KDNode
+		private static function getUnusedNode(key:Array/*/<number>/*/, object:/*/T/*/Object, splitDimension:int = 0):KDNode/*/<T>/*/
 		{
 			var node:KDNode;
 			// if no more unused nodes left, return new node

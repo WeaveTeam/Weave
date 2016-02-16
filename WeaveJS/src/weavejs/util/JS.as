@@ -19,8 +19,8 @@ package weavejs.util
 		 */
 		public static var JSZip:Class;
 		
-		private static const console:Object = getGlobal("console");
-		private static const Symbol:Object = getGlobal("Symbol");
+		private static const console:/*/typeof console/*/Object = getGlobal("console");
+		private static const Symbol:/*/typeof Symbol/*/Object = getGlobal("Symbol");
 		
 		/**
 		 * Calls console.error()
@@ -46,7 +46,7 @@ package weavejs.util
 		 * @param paramNames A list of parameter names for the generated function, so that these variable names can be used in the script.
 		 * @param errorHandler A function that handles errors.
 		 */
-		public static function compile(script:String, paramNames:Array = null, errorHandler:Function = null):Function
+		public static function compile(script:String, paramNames:Array/*/<string>/*/ = null, errorHandler:/*/(e:Error)=>void/*/Function = null):Function
 		{
 			var isFunc:Boolean = unnamedFunctionRegExp.test(script);
 			if (isFunc)
@@ -91,37 +91,37 @@ package weavejs.util
 		/**
 		 * AS->JS Language helper for ArrayBuffer
 		 */
-		public static const ArrayBuffer:Class = getGlobal('ArrayBuffer');
+		public static const ArrayBuffer:/*/typeof ArrayBuffer/*/Class = getGlobal('ArrayBuffer');
 		
 		/**
 		 * AS->JS Language helper for Uint8Array
 		 */
-		public static const Uint8Array:Class = getGlobal('Uint8Array');
+		public static const Uint8Array:/*/typeof Uint8Array/*/Class = getGlobal('Uint8Array');
 		
 		/**
 		 * AS->JS Language helper for DataView
 		 */
-		public static const DataView:Class = getGlobal('DataView');
+		public static const DataView:/*/typeof DataView/*/Class = getGlobal('DataView');
 		
 		/**
 		 * AS->JS Language helper for Promise
 		 */
-		public static const Promise:Class = getGlobal('Promise');
+		public static const Promise:/*/typeof Promise/*/Class = getGlobal('Promise');
 		
 		/**
 		 * AS->JS Language helper for Map
 		 */
-		public static const Map:Class = getGlobal('Map');
+		public static const Map:/*/typeof Map/*/Class = getGlobal('Map');
 		
 		/**
 		 * AS->JS Language helper for WeakMap
 		 */
-		public static const WeakMap:Class = getGlobal('WeakMap');
+		public static const WeakMap:/*/typeof WeakMap/*/Class = getGlobal('WeakMap');
 		
 		/**
 		 * AS->JS Language helper for getting an Array of Map keys.
 		 */
-		public static function mapKeys(map:Object):Array
+		public static function mapKeys/*/<K,V>/*/(map:/*/Map<K,V>/*/Object):Array/*/<K>/*/
 		{
 			return map ? toArray(map.keys()) : [];
 		}
@@ -129,7 +129,7 @@ package weavejs.util
 		/**
 		 * AS->JS Language helper for getting an Array of Map values.
 		 */
-		public static function mapValues(map:Object):Array
+		public static function mapValues/*/<K,V>/*/(map:/*/Map<K,V>/*/Object):Array/*/<V>/*/
 		{
 			return map ? toArray(map.values()) : [];
 		}
@@ -137,7 +137,7 @@ package weavejs.util
 		/**
 		 * AS->JS Language helper for getting an Array of Map entries.
 		 */
-		public static function mapEntries(map:Object):Array
+		public static function mapEntries/*/<K,V>/*/(map:/*/Map<K,V>/*/Object):Array/*/<[K,V]>/*/
 		{
 			return map ? toArray(map.entries()) : [];
 		}
@@ -186,7 +186,7 @@ package weavejs.util
 		/**
 		 * AS->JS Language helper for Object.keys()
 		 */
-		public static function objectKeys(object:Object):Array
+		public static function objectKeys(object:Object):Array/*/<string>/*/
 		{
 			return Object['keys'](object);
 		}
@@ -202,7 +202,7 @@ package weavejs.util
 		/**
 		 * Makes a deep copy of an object.
 		 */
-		public static function copyObject(object:Object):Object
+		public static function copyObject/*/<T>/*/(object:/*/T/*/Object):/*/T/*/Object
 		{
 			// check for primitive values
 			if (object === null || typeof object !== 'object')
@@ -219,7 +219,7 @@ package weavejs.util
 		/**
 		 * AS->JS Language helper for binding class instance functions
 		 */
-		private static function bindAll(instance:Object):*
+		private static function bindAll/*/<T>/*/(instance:/*/T/*/Object):/*/T/*/*
 		{
 			var proto:Object = Object['getPrototypeOf'](instance);
 			for (var key:String in proto)
@@ -244,7 +244,7 @@ package weavejs.util
 		/**
 		 * Implementation of "classDef as Class"
 		 */
-		public static function asClass(classDef:Object):*
+		public static function asClass(classDef:*):Class
 		{
 			return isClass(classDef) ? classDef : null;
 		}
@@ -297,7 +297,7 @@ package weavejs.util
 		/**
 		 * AS->JS Language helper for Object.getOwnPropertyNames()
 		 */
-		public static function getOwnPropertyNames(object:Object):Array
+		public static function getOwnPropertyNames(object:Object):Array/*/<string>/*/
 		{
 			return Object['getOwnPropertyNames'](object);
 		}
@@ -305,7 +305,7 @@ package weavejs.util
 		/**
 		 * Similar to Object.getOwnPropertyNames(), except it also checks prototypes.
 		 */
-		public static function getPropertyNames(object:Object, useCache:Boolean):Array
+		public static function getPropertyNames(object:Object, useCache:Boolean):Array/*/<string>/*/
 		{
 			if (object == null || object === Object.prototype)
 				return [];

@@ -22,7 +22,7 @@ package weavejs.geom
 	 * 
 	 * @author adufilie
 	 */	
-	public class KDNode
+	public class KDNode/*/<T>/*/
 	{
 		/**
 		 * The dimension that the splitting plane is defined on
@@ -51,26 +51,26 @@ package weavejs.geom
 		/**
 		 * The numbers in K-Dimensions used to locate the object
 		 */
-		public const key:Array = [];
+		public const key:Array/*/<number>/*/ = [];
 		
 		/**
 		 * The object that is associated with the key
 		 */
-		public var object:Object;
+		public var object:/*/T/*/Object;
 		
 		/**
 		 * Child node corresponding to the left side of the splitting plane
 		 */
-		public var left:KDNode = null;
+		public var left:KDNode/*/<T>/*/ = null;
 		
 		/**
 		 * Child node corresponding to the right side of the splitting plane
 		 */
-		public var right:KDNode = null;
+		public var right:KDNode/*/<T>/*/ = null;
 		
 		/**
 		 * An Array of additional nodes having identical keys
 		 */
-		public var siblings:Array;
+		public var siblings:Array/*/<KDNode<T>>/*/;
 	}
 }
