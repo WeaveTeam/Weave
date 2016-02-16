@@ -527,7 +527,7 @@ package weavejs.util
 		 * @param propertyChain A property name or chain of property names to index on rather than the item itself.
 		 * @return A reverse lookup Map.
 		 */
-		public static function createLookup/*/<T>/*/(array:/*/Array<T>|{[key:string]:T}/*/*, ...propertyChain/*/<string>/*/):/*/Map<T,string>/*/Object
+		public static function createLookup(array:/*/any[]|{[key:string]:any}/*/*, ...propertyChain/*/<string>/*/):/*/Map<any,string>/*/Object
 		{
 			var lookup:Object = new JS.Map();
 			for (var key:* in array)
