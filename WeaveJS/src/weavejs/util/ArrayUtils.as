@@ -535,7 +535,7 @@ package weavejs.util
 				var value:* = array[key];
 				for each (var prop:String in propertyChain)
 					value = value[prop];
-				lookup[value] = key;
+				lookup.set(value, key);
 			}
 			return lookup;
 		}
