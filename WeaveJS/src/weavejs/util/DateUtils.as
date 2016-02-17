@@ -13,24 +13,34 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-
-import weavejs.util.JS;
-
 package weavejs.util
 {
+	import weavejs.util.JS;
+	
 	public class DateUtils
 	{
-		public static function date_parse(date:String, fmt:String, force_utc:Boolean = false, force_local:Boolean = false):*
+		/**
+		 * This must be set externally.
+		 */
+		public static var moment:Object;
+		
+		public static function parse(date:Object, moment_fmt:String, force_utc:Boolean = false, force_local:Boolean = false):Date
 		{
-			return JS.moment(date, fmt, true);
+			if (moment_fmt)
+				return moment(date, moment_fmt, true).toDate();
+			return moment(date).toDate();
 		}
-		public static function date_format(date:Object, fmt:String):String
+		public static function format(date:Object, moment_fmt:String):String
 		{
-			return JS.moment(date).format(fmt);
+			return moment(date).format(moment_fmt);
 		}
-		public static function dates_detect(dates:Array, formats:Array):Array
+		public static function formatDuration(date:Object):String
 		{
-			var validFormatsSparse:Array = [].concat(formats);
+			return moment.duration(date).humanize();
+		}
+		public static function detectFormats(dates:Array/*/<string>/*/, moment_formats:Array/*/<string>/*/):Array/*/<string>/*/
+		{
+			var validFormatsSparse:Array = [].concat(moment_formats);
 			var fmt:String;
 
 			for each (var date:String in dates)

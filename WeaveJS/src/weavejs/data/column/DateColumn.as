@@ -52,8 +52,6 @@ package weavejs.data.column
 		private var _dateDisplayFormat:String = null;
 		private var _durationMode:Boolean = false;
 		private var _fakeData:Boolean = false;
-
-		private static const ONEDAY:Number = 24 * 60 * 60 * 1000;
 		
 		override public function getMetadata(propertyName:String):String
 		{
@@ -93,14 +91,14 @@ package weavejs.data.column
 				_dateFormat = possibleFormats.pop();
 			}
 			
-			_dateFormat = convertDateFormat_c_to_moment(_dateFormat);
+			_dateFormat = DateFormat.convertDateFormat_c_to_moment(_dateFormat);
 
 			// read dateDisplayFormat metadata, default to the input format if none is specified.
 			_dateDisplayFormat = getMetadata(ColumnMetadata.DATE_DISPLAY_FORMAT);
 
 			if (_dateDisplayFormat)
 			{
-				_dateDisplayFormat = convertDateFormat_c_to_moment(_dateDisplayFormat);
+				_dateDisplayFormat = DateFormat.convertDateFormat_c_to_moment(_dateDisplayFormat);
 			}
 			else
 			{
@@ -169,9 +167,7 @@ package weavejs.data.column
 		
 		private function parseDate(string:String):Object
 		{
-			if (_dateFormat)
-				return DateUtils.date_parse(string, _dateFormat);
-			return new JS.moment(string);
+			return DateUtils.parse(string, _dateFormat);
 		}
 		
 		private static const SECOND:Number = 1000;
@@ -180,37 +176,9 @@ package weavejs.data.column
 		
 		private function formatDate(value:Object):String
 		{
-			if (_dateDisplayFormat)
-			{
-				if (value is Number && !_durationMode)
-					value = new JS.moment(value);
-				
-				if (value is Number)
-				{
-					// TEMPORARY SOLUTION
-					var n:Number = Math.floor(value as Number);
-					var milliseconds:Number = n % 1000;
-					n = Math.floor(n / 1000);
-					var seconds:Number = n % 60;
-					n = Math.floor(n / 60);
-					var minutes:Number = n % 60;
-					n = Math.floor(n / 60);
-					var hours:Number = n;
-					var obj:Object = {
-						milliseconds: milliseconds,
-						seconds: seconds,
-						minutes: minutes,
-						hours: hours
-					};
-					return DateUtils.date_format(value, _dateDisplayFormat);
-				}
-				else
-				{
-					var date:* = value as JS.moment || new JS.moment(value);
-					return DateUtils.date_format(date, _dateDisplayFormat);
-				}
-			}
-			return StandardLib.formatDate(value, _dateDisplayFormat);
+			if (_durationMode)
+				return DateUtils.formatDuration(value);
+			return DateUtils.format(value, _dateDisplayFormat);
 		}
 		
 		private function _asyncIterate(stopTime:int):Number
@@ -225,16 +193,16 @@ package weavejs.data.column
 				var input:* = _dates[_i];
 				var value:Object;
 				var fakeTime:Number = _fakeData ? StandardLib.asNumber(input) : NaN;
-				if (input is JS.moment)
+				if (input is Date)
 				{
 					value = input;
 				}
 				else if (_fakeData && isFinite(fakeTime))
 				{
-					var d:* = new JS.moment();
-					
-					var nowMs:Number = d.valueOf();
-					value = new JS.moment(nowMs - nowMs % DateColumn.ONEDAY + fakeTime * DateColumn.ONEDAY);
+					var d:Date = new Date();
+					var oneDay:Number = 24 * 60 * 60 * 1000;
+					d.setTime(d.getTime() - d.getTime() % oneDay + fakeTime * oneDay);
+					value = d;
 				}
 				else if (_stringToNumberFunction != null)
 				{
@@ -260,8 +228,8 @@ package weavejs.data.column
 						if (!input)
 							continue;
 						value = parseDate(input);
-						if (value is JS.moment && (value as JS.moment).isValid())
-							value = value.valueOf();
+						if (value is Date && isNaN((value as Date).getTime()))
+							value = Number(input);
 					}
 					catch (e:Error)
 					{
@@ -302,10 +270,7 @@ package weavejs.data.column
 			if (_numberToStringFunction != null)
 				return _numberToStringFunction(number);
 			
-			if (_dateFormat)
-				return formatDate(number);
-			
-			return new JS.moment(number).toString();
+			return formatDate(number);
 		}
 		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
@@ -352,44 +317,10 @@ package weavejs.data.column
 			return value;
 		}
 
-		private static function convertDateFormat_c_to_moment(format:String):String
-		{
-			if (!format || format.indexOf('%') === -1)
-				return format;
-			return StandardLib.replace.apply(null, [format].concat(dateFormat_replacements_c_to_moment));
-		}
-
-		private static const dateFormat_replacements_c_to_moment:Array = [
-			'%Y', 'YYYY',
-			'%y', 'YY',
-			'%B', 'MMMM',
-			'%b', 'MMM',
-			'%m', 'MM',
-			'%-m', 'M',
-			'%d', 'DD',
-			'%-d', 'D',
-			'%u', 'E',
-			'%p', 'A',
-			'%H', 'HH',
-			'%-H', 'H',
-			'%I', 'hh',
-			'%-I', 'h',
-			'%A', 'dddd',
-			'%a', 'ddd',
-			'%M', 'mm',
-			'%-M', 'm',
-			'%S', 'ss',
-			'%s', 'X',
-			'%Q', 'SSS',
-			'%z', 'zz',
-			'%Z', 'z',
-			'%%', '%'
-		];
-		
 		public static function detectDateFormats(dates:*):Array
 		{
-			var convertedFormats:Array = DateFormat.FOR_AUTO_DETECT.map(convertDateFormat_c_to_moment);
-			return DateUtils.dates_detect(dates, convertedFormats);
+			var convertedFormats:Array = DateFormat.FOR_AUTO_DETECT.map(DateFormat.convertDateFormat_c_to_moment);
+			return DateUtils.detectFormats(dates, convertedFormats);
 		}
 	}
 }

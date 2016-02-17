@@ -19,7 +19,6 @@ package weavejs.core
 	import weavejs.data.AttributeColumnCache;
 	import weavejs.net.URLRequest;
 	import weavejs.util.BackwardsCompatibility;
-	import weavejs.util.JS;
 	import weavejs.util.JSByteArray;
 	import weavejs.util.WeavePromise;
 	
@@ -30,6 +29,11 @@ package weavejs.core
 	 */
 	public class WeaveArchive
 	{
+		/**
+		 * This must be set externally.
+		 */
+		public static var JSZip:Class;
+		
 		/**
 		 * @param input A Weave file to decode.
 		 */
@@ -60,7 +64,7 @@ package weavejs.core
 		 */		
 		private function _readArchive(byteArray:/*Uint8*/Array):void
 		{
-			var zip:Object = new JS.JSZip(byteArray);
+			var zip:Object = new JSZip(byteArray);
 			for (var filePath:String in zip.files)
 			{
 				var fileName:String = filePath.substr(filePath.indexOf('/') + 1);
@@ -88,7 +92,7 @@ package weavejs.core
 		 */
 		public function serialize():/*Uint8*/Array
 		{
-			var zip:Object = new JS.JSZip();
+			var zip:Object = new JSZip();
 			var name:String;
 			var folder:Object;
 			

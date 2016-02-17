@@ -14,12 +14,6 @@ package weavejs.util
 		 */
 		public static const global:Object = getGlobal("this");
 		
-		/**
-		 * These must be set externally.
-		 */
-		public static var JSZip:Class;
-		public static var moment:Class;
-		
 		private static const console:/*/typeof console/*/Object = getGlobal("console");
 		private static const Symbol:/*/typeof Symbol/*/Object = getGlobal("Symbol");
 		
