@@ -13,11 +13,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.primitives
+package weavejs.geom
 {
-	import weave.api.primitives.IBounds2D;
-	import weave.compiler.StandardLib;
-	import weave.core.LinkableVariable;
+	import weavejs.core.LinkableVariable;
+	import weavejs.geom.Bounds2D;
+	import weavejs.util.StandardLib;
 	
 	/**
 	 * This is a linkable version of a Bounds2D object.
@@ -66,13 +66,13 @@ package weave.primitives
 		}
 		private static const tempBounds:Bounds2D = new Bounds2D(); // reusable temporary object
 		
-		public function copyFrom(sourceBounds:IBounds2D):void
+		public function copyFrom(sourceBounds:Bounds2D):void
 		{
 			tempBounds.copyFrom(sourceBounds);
 			setSessionState(tempBounds);
 		}
 		
-		public function copyTo(destinationBounds:IBounds2D):void
+		public function copyTo(destinationBounds:Bounds2D):void
 		{
 			tempBounds.reset();
 			detectChanges();
