@@ -35,14 +35,16 @@ package weavejs.util
 				return NaN; // return NaN because Number(null) == 0
 			
 			if (value is Number || value is Date)
-				return value;
+				return Number(value);
 			
 			try {
 				var str:String = String(value);
 				if (str == '')
 					return NaN; // return NaN because Number('') == 0
 				if (str.charAt(0) === '#')
-					str = '0x' + str.substr(1);
+					return Number('0x' + str.substr(1));
+				if (str.charAt(str.length - 1) === '%')
+					return Number(str.substr(0, -1)) / 100;
 				return Number(str);
 			} catch (e:Error) { }
 
