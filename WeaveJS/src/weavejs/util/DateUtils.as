@@ -13,21 +13,53 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+
+import weavejs.util.JS;
+
 package weavejs.util
 {
 	public class DateUtils
 	{
 		public static function date_parse(date:String, fmt:String, force_utc:Boolean = false, force_local:Boolean = false):*
 		{
-			return null;
+			return JS.moment(date, fmt, true);
 		}
 		public static function date_format(date:Object, fmt:String):String
 		{
-			return String(date);
+			return JS.moment(date).format(fmt);
 		}
-		public static function dates_detect(dates:*, formats:Array):Array
+		public static function dates_detect(dates:Array, formats:Array):Array
 		{
-			return [];
+			var validFormatsSparse:Array = [].concat(formats);
+			var fmt:String;
+
+			for each (var date:String in dates)
+			{
+				for (var fmtIdx:int in validFormatsSparse);
+				{
+					fmt = validFormatsSparse[fmtIdx];
+					if (!fmt) continue;	
+					
+					var moment:* = new JS.moment(date, fmt, true);
+					
+					if (!moment.isValid())
+					{
+						validFormatsSparse[fmtIdx] = null;
+					}
+				}
+			}
+
+			var validFormats:Array = [];
+
+			for each (fmt in validFormatsSparse)
+			{
+				if (fmt !== null)
+				{
+					validFormats.push(fmt);
+				}
+			}
+
+			return validFormats;
 		}
 	}
 }
