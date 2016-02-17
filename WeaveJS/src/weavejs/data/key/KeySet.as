@@ -169,7 +169,7 @@ package weavejs.data.key
 				// save key-to-index mapping
 				map_key_index.set(key, outputIndex);
 				// if the previous key index did not have this key, a change has been detected.
-				if (prevKeyIndex[key] == undefined)
+				if (prevKeyIndex.get(key) === undefined)
 				{
 					changeDetected = true;
 					keyCallbacks.keysAdded.push(key);
