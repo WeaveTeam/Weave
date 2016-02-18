@@ -43,7 +43,7 @@ package weavejs.util
 
 			for each (var date:String in dates)
 			{
-				for (var fmtIdx:int in validFormatsSparse);
+				for (var fmtIdx:int in validFormatsSparse)
 				{
 					fmt = validFormatsSparse[fmtIdx];
 					if (!fmt)
