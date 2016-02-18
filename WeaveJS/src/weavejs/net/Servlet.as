@@ -168,7 +168,7 @@ package weavejs.net
 		 * @return The result of calling readObject() on the ByteArray, or null if the RPC returns void.
 		 * @throws Error if unable to read the result.
 		 */
-		public static function readAmf3Object(bytes:/*Uint8*/Array):Object
+		public static function readAmf3Object(bytes:/*/Uint8Array/*/Array):Object
 		{
 			// length may be zero for void result
 			var obj:Object = bytes && bytes.length && new JSByteArray(bytes).readObject();

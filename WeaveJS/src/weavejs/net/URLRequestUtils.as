@@ -25,12 +25,12 @@ package weavejs.net
 
 	public class URLRequestUtils implements IURLRequestUtils
 	{
-		private function byteArrayToDataUri(byteArray:/*Uint8*/Array, mimeType:String):String
+		private function byteArrayToDataUri(byteArray:/*/Uint8Array/*/Array, mimeType:String):String
 		{
 			return "data:" + (mimeType || '') + ';base64,' + JS.global.btoa(byteArrayToString(byteArray));
 		}
 		
-		private function byteArrayToString(byteArray:/*Uint8*/Array):String
+		private function byteArrayToString(byteArray:/*/Uint8Array/*/Array):String
 		{
 			var CHUNK_SIZE:int = 8192;
 			var n:int = byteArray.length;
@@ -61,7 +61,7 @@ package weavejs.net
 				}
 				promise = new WeavePromise(relevantContext)
 					.setResult(cachedPromise)
-					.then(function(byteArray:/*Uint8*/Array):Object {
+					.then(function(byteArray:/*/Uint8Array/*/Array):Object {
 						switch (responseType) {
 							default:
 							case ResponseType.TEXT:
@@ -154,14 +154,14 @@ package weavejs.net
 			return promise;
 		}
 		
-		public function saveLocalFile(weaveRoot:ILinkableHashMap, fileName:String, byteArray:/*Uint8*/Array):String
+		public function saveLocalFile(weaveRoot:ILinkableHashMap, fileName:String, byteArray:/*/Uint8Array/*/Array):String
 		{
 			var promise:WeavePromise = get_d2d_weaveRoot_fileName_promise(weaveRoot, fileName);
 			promise.setResult(byteArray);
 			return LOCAL_FILE_URL_SCHEME + fileName;
 		}
 		
-		public function getLocalFile(weaveRoot:ILinkableHashMap, fileName:String):/*Uint8*/Array
+		public function getLocalFile(weaveRoot:ILinkableHashMap, fileName:String):/*/Uint8Array/*/Array
 		{
 			var promise:WeavePromise = get_d2d_weaveRoot_fileName_promise(weaveRoot, fileName);
 			var result:* = promise.getResult();

@@ -107,7 +107,7 @@ package weavejs.data.source
 		/**
 		 * Called when the DBF file is downloaded from the URL
 		 */
-		private function handleDBFDownload(url:String, result:/*Uint8*/Array):void
+		private function handleDBFDownload(url:String, result:/*/Uint8Array/*/Array):void
 		{
 			// ignore outdated results
 			if (Weave.wasDisposed(this) || url != dbfUrl.value)
@@ -163,7 +163,7 @@ package weavejs.data.source
 		/**
 		 * Called when the Shp file is downloaded from the URL
 		 */
-		private function handleShpDownload(url:String, result:/*Uint8*/Array):void
+		private function handleShpDownload(url:String, result:/*/Uint8Array/*/Array):void
 		{
 			// ignore outdated results
 			if (Weave.wasDisposed(this) || url != shpUrl.value)

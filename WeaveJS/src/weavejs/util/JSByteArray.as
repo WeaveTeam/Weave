@@ -68,8 +68,8 @@ package weavejs.util
 		private const AMF3_AvmPlusXml:int = 11;
 		private const AMF3_ByteArray:int  = 12;
 		
-		public var data:/*Uint8*/Array;
-		public var dataView:Object; // DataView
+		public var data:/*/Uint8Array/*/Array;
+		public var dataView:/*/DataView/*/Object;
 		public var length:int = 0;
 		public var position:int = 0;
 		public var littleEndian:Boolean = false;
@@ -85,7 +85,7 @@ package weavejs.util
 		 * to kick-start it, but I added optimizations and support both big and little endian.
 		 * @param data A Uint8Array
 		 */
-		public function JSByteArray(data:/*Uint8*/Array, littleEndian:Boolean = false)
+		public function JSByteArray(data:/*/Uint8Array/*/Array, littleEndian:Boolean = false)
 		{
 			this.data = data as JS.Uint8Array || new JS.Uint8Array(data);
 			this.dataView = new JS.DataView(this.data.buffer, this.data.byteOffset, this.data.length);

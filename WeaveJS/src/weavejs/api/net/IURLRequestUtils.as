@@ -34,14 +34,14 @@ package weavejs.api.net
 		 * @param byteArray The file content in a Uint8Array.
 		 * @return The URL at which the file can be accessed later via getURL(). This will be the string "local://" followed by the filename.
 		 */
-		function saveLocalFile(weaveRoot:ILinkableHashMap, name:String, byteArray:/*Uint8*/Array):String;
+		function saveLocalFile(weaveRoot:ILinkableHashMap, name:String, byteArray:/*/Uint8Array/*/Array):String;
 		
 		/**
 		 * Retrieves file content previously saved via saveLocalFile().
 		 * @param The file name that was passed to saveLocalFile().
 		 * @return The file content in a Uint8Array.
 		 */
-		function getLocalFile(weaveRoot:ILinkableHashMap, name:String):/*Uint8*/Array;
+		function getLocalFile(weaveRoot:ILinkableHashMap, name:String):/*/Uint8Array/*/Array;
 		
 		/**
 		 * Removes a local file that was previously added via saveLocalFile().

@@ -37,7 +37,7 @@ package weavejs.core
 		/**
 		 * @param input A Weave file to decode.
 		 */
-		public function WeaveArchive(byteArray:/*Uint8*/Array = null)
+		public function WeaveArchive(byteArray:/*/Uint8Array/*/Array = null)
 		{
 			if (byteArray)
 				_readArchive(byteArray);
@@ -62,7 +62,7 @@ package weavejs.core
 		/**
 		 * @private
 		 */		
-		private function _readArchive(byteArray:/*Uint8*/Array):void
+		private function _readArchive(byteArray:/*/Uint8Array/*/Array):void
 		{
 			var zip:Object = new JSZip(byteArray);
 			for (var filePath:String in zip.files)
@@ -90,7 +90,7 @@ package weavejs.core
 		 * @param contentType A String describing the type of content contained in the objects.
 		 * @return A Uint8Array in the Weave file format.
 		 */
-		public function serialize():/*Uint8*/Array
+		public function serialize():/*/Uint8Array/*/Array
 		{
 			var zip:Object = new JSZip();
 			var name:String;
@@ -132,7 +132,7 @@ package weavejs.core
 		/**
 		 * Loads a WeaveArchive from file content.
 		 */
-		public static function loadFileContent(weave:Weave, fileContent:/*Uint8*/Array):void
+		public static function loadFileContent(weave:Weave, fileContent:/*/Uint8Array/*/Array):void
 		{
 			var archive:WeaveArchive = new WeaveArchive(fileContent);
 			
