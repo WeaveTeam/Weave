@@ -15,8 +15,6 @@
 
 package weavejs.util
 {
-	import weavejs.util.JS;
-	
 	public class DateUtils
 	{
 		/**
