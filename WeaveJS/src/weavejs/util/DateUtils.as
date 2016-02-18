@@ -48,9 +48,10 @@ package weavejs.util
 				for (var fmtIdx:int in validFormatsSparse);
 				{
 					fmt = validFormatsSparse[fmtIdx];
-					if (!fmt) continue;	
+					if (!fmt)
+						continue;	
 					
-					var moment:* = new JS.moment(date, fmt, true);
+					var moment:* = new moment(date, fmt, true);
 					
 					if (!moment.isValid())
 					{
