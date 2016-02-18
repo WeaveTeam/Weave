@@ -49,9 +49,8 @@ package weavejs.util
 					if (!fmt)
 						continue;	
 					
-					var moment:* = new moment(date, fmt, true);
-					
-					if (!moment.isValid())
+					var m:Object = new moment(date, fmt, true);
+					if (!m.isValid())
 					{
 						validFormatsSparse[fmtIdx] = null;
 					}
@@ -59,7 +58,6 @@ package weavejs.util
 			}
 
 			var validFormats:Array = [];
-
 			for each (fmt in validFormatsSparse)
 			{
 				if (fmt !== null)
