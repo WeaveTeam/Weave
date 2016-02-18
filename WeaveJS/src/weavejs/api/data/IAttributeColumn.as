@@ -44,6 +44,6 @@ package weavejs.api.data
 		 * @param dataType The desired value type (Examples: Number, String, Date, Array, IQualifiedKey)
 		 * @return The value associated with the given record key.
 		 */
-		function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*;
+		function getValueFromKey/* /<T>/ */(key:IQualifiedKey, dataType:/* /new(..._:any[])=>T/ */Class = null):/* /T/ */*;
 	}
 }
