@@ -85,8 +85,12 @@ package weavejs.core
 		 */
 		protected function internalSetTarget(newTarget:ILinkableObject):void
 		{
-			if (_foundTarget && _typeRestriction)
-				newTarget = (newTarget as _typeRestriction) as ILinkableObject;
+			if (newTarget && _foundTarget && _typeRestriction)
+			{
+				var classDef:Class = LinkablePlaceholder.getClass(newTarget);
+				if (!(classDef === _typeRestriction || classDef.prototype is _typeRestriction))
+					newTarget = null;
+			}
 			
 			// do nothing if the targets are the same.
 			if (_target == newTarget)

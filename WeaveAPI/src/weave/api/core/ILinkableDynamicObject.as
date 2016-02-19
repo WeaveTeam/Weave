@@ -48,7 +48,7 @@ package weave.api.core
 		 * @param lockObject If this is true, this object will be locked so the internal object cannot be removed or replaced.
 		 * @return The global object of the requested name and type, or null if the object could not be created.
 		 */
-		function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean):*;
+		function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean = false):*;
 		
 		/**
 		 * This function creates a local object using the given Class definition if it doesn't already exist.
@@ -57,7 +57,7 @@ package weave.api.core
 		 * @param lockObject If this is true, this object will be locked so the internal object cannot be removed or replaced.
 		 * @return The local object of the requested type, or null if the object could not be created.
 		 */
-		function requestLocalObject(objectType:Class, lockObject:Boolean):*;
+		function requestLocalObject(objectType:Class, lockObject:Boolean = false):*;
 
 		/**
 		 * This function will copy the session state of an ILinkableObject to a new local internalObject of the same type.

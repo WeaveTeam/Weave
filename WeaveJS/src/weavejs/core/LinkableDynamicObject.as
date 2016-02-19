@@ -119,7 +119,10 @@ package weavejs.core
 					// if className is not specified, make no change unless removeMissingDynamicObjects is true
 					if (className || removeMissingDynamicObjects)
 						setLocalObjectType(classDef);
-					if ((!className && target) || (classDef && target is classDef))
+					
+					var targetClassDef:Class = LinkablePlaceholder.getClass(target);
+					
+					if ((!className && target) || (classDef && (targetClassDef === classDef || targetClassDef.prototype is classDef)))
 						Weave.setState(target, sessionState, prevTarget != target || removeMissingDynamicObjects);
 				}
 			}
@@ -132,7 +135,7 @@ package weavejs.core
 		
 		override public function set target(newTarget:ILinkableObject):void
 		{
-			if (_locked)
+			if (_locked || this.target === newTarget)
 				return;
 			
 			if (!newTarget)
@@ -207,7 +210,7 @@ package weavejs.core
 			cc.resumeCallbacks();
 		}
 		
-		public function requestLocalObject(objectType:Class, lockObject:Boolean):*
+		public function requestLocalObject(objectType:Class, lockObject:Boolean = false):*
 		{
 			cc.delayCallbacks();
 			
@@ -226,7 +229,7 @@ package weavejs.core
 			return target;
 		}
 		
-		public function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean):*
+		public function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean = false):*
 		{
 			if (!name)
 				return requestLocalObject(objectType, lockObject);

@@ -7,6 +7,7 @@
 package weavejs.core
 {
 	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.ILinkableCompositeObject;
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
@@ -39,6 +40,9 @@ package weavejs.core
 		{
 			if (Weave.wasDisposed(this))
 				throw new Error("LinkablePlaceholder was already disposed");
+			
+			if (!(instance is classDef))
+				throw new Error("Unexpected object type");
 			
 			var owner:ILinkableObject = Weave.getOwner(this);
 			var lhm:ILinkableHashMap = owner as ILinkableHashMap;
@@ -73,6 +77,24 @@ package weavejs.core
 			if (object)
 				return object.constructor;
 			return null;
+		}
+		
+		/**
+		 * Replaces a LinkablePlaceholder with an instance of the expected type.
+		 * @param possiblePlaceholder A LinkablePlaceholder or the instance object if it has already been placed.
+		 * @param instance An instance of the type of object that the placeholder is expecting.
+		 */
+		public static function setInstance(possiblePlaceholder:ILinkableObject, instance:ILinkableObject):void
+		{
+			var placeholder:LinkablePlaceholder = possiblePlaceholder as LinkablePlaceholder;
+			if (placeholder)
+			{
+				placeholder.setInstance(instance);
+				return;
+			}
+			
+			if (possiblePlaceholder != instance)
+				throw new Error("Attempted to put an instance where there was no placeholder for it."); 
 		}
 	}
 }

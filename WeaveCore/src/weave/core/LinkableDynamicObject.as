@@ -148,7 +148,7 @@ package weave.core
 		
 		override public function set target(newTarget:ILinkableObject):void
 		{
-			if (_locked)
+			if (_locked || this.target === newTarget)
 				return;
 			
 			if (!newTarget)
@@ -225,7 +225,7 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function requestLocalObject(objectType:Class, lockObject:Boolean):*
+		public function requestLocalObject(objectType:Class, lockObject:Boolean = false):*
 		{
 			cc.delayCallbacks();
 			
@@ -247,7 +247,7 @@ package weave.core
 		/**
 		 * @inheritDoc
 		 */
-		public function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean):*
+		public function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean = false):*
 		{
 			if (!name)
 				return requestLocalObject(objectType, lockObject);
