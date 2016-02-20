@@ -26,39 +26,6 @@ package weave.primitives
 	 */
 	public class LinkableBounds2D extends LinkableVariable
 	{
-		public function LinkableBounds2D()
-		{
-			super(null, null, tempBounds);
-		}
-		
-		override public function setSessionState(value:Object):void
-		{
-			if (typeof value !== 'object' && value)
-			{
-				tempBounds.setBounds(
-					StandardLib.asNumber(value.xMin),
-					StandardLib.asNumber(value.yMin),
-					StandardLib.asNumber(value.xMax),
-					StandardLib.asNumber(value.yMax)
-				);
-			}
-			else
-			{
-				tempBounds.setBounds(NaN, NaN, NaN, NaN);
-			}
-			super.setSessionState(tempBounds);
-		}
-		
-		public function get xMin():Number { return this._sessionStateInternal.xMin; }
-		public function get yMin():Number { return this._sessionStateInternal.yMin; }
-		public function get xMax():Number { return this._sessionStateInternal.xMax; }
-		public function get yMax():Number { return this._sessionStateInternal.yMax; }
-		
-		public function set xMin(value:Number):void { this._sessionStateExternal.xMin = value; detectChanges(); }
-		public function set yMin(value:Number):void { this._sessionStateExternal.yMin = value; detectChanges(); }
-		public function set xMax(value:Number):void { this._sessionStateExternal.xMax = value; detectChanges(); }
-		public function set yMax(value:Number):void { this._sessionStateExternal.yMax = value; detectChanges(); }
-		
 		public function setBounds(xMin:Number, yMin:Number, xMax:Number, yMax:Number):void
 		{
 			tempBounds.setBounds(xMin, yMin, xMax, yMax);
