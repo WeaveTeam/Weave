@@ -121,7 +121,7 @@ package
 		 * Shortcut for WeaveAPI.SessionManager.getPath()
 		 * @copy weave.api.core.ISessionManager#getPath()
 		 */
-		public static function findPath(root:ILinkableObject, descendant:ILinkableObject):Array
+		public static function findPath(root:ILinkableObject, descendant:ILinkableObject):Array/*/<string>/*/
 		{
 			return WeaveAPI.SessionManager.getPath(root, descendant);
 		}
@@ -130,7 +130,7 @@ package
 		 * Shortcut for WeaveAPI.SessionManager.getObject()
 		 * @copy weave.api.core.ISessionManager#getObject()
 		 */
-		public static function followPath(root:ILinkableObject, path:Array):ILinkableObject
+		public static function followPath(root:ILinkableObject, path:Array/*/<string|number>/*/):ILinkableObject
 		{
 			return WeaveAPI.SessionManager.getObject(root, path);
 		}
@@ -430,7 +430,7 @@ package
 		 * @param definition
 		 * @param additionalInterfaces An Array of interfaces (Class objects) that the definition implements in addition to ILinkableObject.
 		 */
-		public static function registerClass(qualifiedName:String, definition:Class, additionalInterfaces:Array = null):void
+		public static function registerClass(qualifiedName:String, definition:Class, additionalInterfaces:Array/*/<new()=>any>/*/ = null):void
 		{
 			WeaveAPI.ClassRegistry.registerClass(qualifiedName, definition, [ILinkableObject].concat(additionalInterfaces || []));
 		}
