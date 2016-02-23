@@ -1063,8 +1063,9 @@ package weavejs.core
 		public function getObject(root:ILinkableObject, path:Array):ILinkableObject
 		{
 			var object:ILinkableObject = root;
-			for each (var propertyName:Object in path)
+			for (var i:int = 0; i < path.length; i++)
 			{
+				var propertyName:Object = path[i];
 				if (object == null || map_disposed.get(object))
 					return null;
 				if (object is ILinkableHashMap)
@@ -1079,16 +1080,46 @@ package weavejs.core
 					// ignore propertyName and always return the internalObject
 					object = (object as ILinkableDynamicObject).internalObject;
 				}
+				else if (getLinkablePropertyNames(object).indexOf(propertyName) < 0)
+				{
+					if (object is ILinkableObjectWithNewProperties || JS.hasProperty(object, DEPRECATED_STATE_MAPPING))
+						return getObjectFromDeprecatedPath(object[DEPRECATED_STATE_MAPPING], path, i);
+					return null;
+				}
 				else
 				{
-					if (getLinkablePropertyNames(object).indexOf(propertyName) < 0)
-						return null;
 					object = object[propertyName] as ILinkableObject;
 				}
 			}
 			return map_disposed.get(object) ? null : object;
 		}
 		
+		private function getObjectFromDeprecatedPath(mapping:Object, path:Array, startAtIndex:int):ILinkableObject
+		{
+			var object:ILinkableObject;
+			if (mapping is Array)
+			{
+				for each (var item:Object in mapping)
+				{
+					object = getObjectFromDeprecatedPath(item, path, startAtIndex);
+					if (object)
+						return object;
+				}
+				return null;
+			}
+			
+			for (var i:int = startAtIndex; i < path.length; i++)
+			{
+				if (!mapping || typeof mapping !== 'object')
+					return null;
+				mapping = mapping[path[i]];
+				object = mapping as ILinkableObject;
+				if (object)
+					return i + 1 == path.length ? object : getObject(object, path.slice(i + 1));
+			}
+			
+			return null;
+		}
 		
 		
 		
