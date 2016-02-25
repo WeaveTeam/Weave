@@ -387,9 +387,10 @@ package
 		 * Dynamic items in the session state that extend this class will be replaced with
 		 * LinkablePlaceholder objects that can be replaced with actual instances later.
 		 */
-		public static function registerAsyncClass(type:Class):void
+		public static function registerAsyncClass/*/<T>/*/(type:/*/new(..._:any[])=>T/*/Class, instanceHandler:Function/*/(instance:T)=>void/*/):void
 		{
-			map_class_isAsync.set(type, true);
+			var valueInMap:* = instanceHandler || true;
+			map_class_isAsync.set(type, valueInMap);
 			
 			// update previously-cached types in case async status has changed
 			for each (var cachedType:Class in JS.mapKeys(map_class_isAsync))
@@ -397,7 +398,7 @@ package
 				if (!map_class_isAsync.get(cachedType) && type.isPrototypeOf(cachedType))
 				{
 					// new type is in the prototype chain of a non-async type
-					map_class_isAsync.set(cachedType, true);
+					map_class_isAsync.set(cachedType, valueInMap);
 				}
 			}
 		}
@@ -412,16 +413,25 @@ package
 			
 			for each (var cachedType:Class in JS.mapKeys(map_class_isAsync))
 			{
-				if (map_class_isAsync.get(cachedType) && cachedType.isPrototypeOf(type))
+				var valueInMap:* = map_class_isAsync.get(cachedType);
+				if (valueInMap && cachedType.isPrototypeOf(type))
 				{
 					// new type extends registered async type
-					map_class_isAsync.set(type, true);
+					map_class_isAsync.set(type, valueInMap);
 					return true;
 				}
 			}
 			// new type does not extend any registered async type
 			map_class_isAsync.set(type, false);
 			return false;
+		}
+		
+		/**
+		 * Gets the function that was passed in to registerAsyncClass() for a given type.
+		 */
+		public static function getAsyncInstanceHandler(type:Class):Function
+		{
+			return map_class_isAsync.get(type) as Function;
 		}
 		
 		/**

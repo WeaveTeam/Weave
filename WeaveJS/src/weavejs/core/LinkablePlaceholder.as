@@ -44,22 +44,35 @@ package weavejs.core
 			if (!(instance is classDef))
 				throw new Error("Unexpected object type");
 			
-			var owner:ILinkableObject = Weave.getOwner(this);
+			replace(this, instance);
+			
+			this.instance = instance;
+			
+			var handler:Function = Weave.getAsyncInstanceHandler(classDef);
+			if (handler != null)
+				handler(instance);
+		}
+		
+		/**
+		 * @return success flag
+		 */
+		private static function replace(oldObject:ILinkableObject, newObject:ILinkableObject):void
+		{
+			var owner:ILinkableObject = Weave.getOwner(oldObject);
 			var lhm:ILinkableHashMap = owner as ILinkableHashMap;
 			var ldo:ILinkableDynamicObject = owner as ILinkableDynamicObject;
 			if (!lhm && !ldo)
-				throw new Error("Unable to replace LinkablePlaceholder with instance because owner is not an ILinkableHashMap or ILinkableDynamicObject");
+				throw new Error("Unable to replace object because owner is not an ILinkableHashMap or ILinkableDynamicObject");
 			
 			var ownerCC:ICallbackCollection = Weave.getCallbacks(owner);
 			ownerCC.delayCallbacks();
 			
-			this.instance = instance;
-			var sessionState:Object = this.state;
+			var sessionState:Object = Weave.getState(oldObject);
 			if (lhm)
-				lhm.setObject(lhm.getName(this), instance);
+				lhm.setObject(lhm.getName(oldObject), newObject);
 			else if (ldo)
-				ldo.target = instance;
-			Weave.setState(instance, sessionState);
+				ldo.target = newObject;
+			Weave.setState(newObject, sessionState);
 			
 			ownerCC.resumeCallbacks();
 		}
@@ -86,15 +99,31 @@ package weavejs.core
 		 */
 		public static function setInstance(possiblePlaceholder:ILinkableObject, instance:ILinkableObject):void
 		{
-			var placeholder:LinkablePlaceholder = possiblePlaceholder as LinkablePlaceholder;
-			if (placeholder)
-			{
-				placeholder.setInstance(instance);
+			// stop if instance has already been placed
+			if (possiblePlaceholder === instance)
 				return;
-			}
 			
-			if (possiblePlaceholder != instance)
-				throw new Error("Attempted to put an instance where there was no placeholder for it."); 
+			var placeholder:LinkablePlaceholder = possiblePlaceholder as LinkablePlaceholder;
+			if (!placeholder)
+				throw new Error("Attempted to put an instance where there was no placeholder for it.");
+			
+			placeholder.setInstance(instance);
+		}
+		
+		public static function replaceInstanceWithPlaceholder(instance:ILinkableObject):void
+		{
+			if (instance is LinkablePlaceholder)
+				return;
+			
+			var placeholder:LinkablePlaceholder = new LinkablePlaceholder(getClass(instance));
+			try
+			{
+				replace(instance, placeholder);
+			}
+			catch (e:Error)
+			{
+				Weave.dispose(placeholder);
+			}
 		}
 	}
 }
