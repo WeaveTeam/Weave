@@ -7,6 +7,7 @@
 package
 {
 	import weavejs.WeaveAPI;
+	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILocale;
 	import weavejs.api.core.IProgressIndicator;
@@ -19,6 +20,7 @@ package
 	import weavejs.api.net.IURLRequestUtils;
 	import weavejs.api.ui.IEditorManager;
 	import weavejs.core.EditorManager;
+	import weavejs.core.LinkableDynamicObject;
 	import weavejs.core.LinkableHashMap;
 	import weavejs.core.LinkableVariable;
 	import weavejs.core.Locale;
@@ -62,6 +64,7 @@ package
 			);
 			
 			WeaveAPI.ClassRegistry.registerImplementation(ILinkableHashMap, LinkableHashMap);
+			WeaveAPI.ClassRegistry.registerImplementation(ILinkableDynamicObject, LinkableDynamicObject);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IURLRequestUtils, URLRequestUtils);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
