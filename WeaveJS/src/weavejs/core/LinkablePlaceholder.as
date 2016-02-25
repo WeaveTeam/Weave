@@ -66,15 +66,19 @@ package weavejs.core
 			
 			var ownerCC:ICallbackCollection = Weave.getCallbacks(owner);
 			ownerCC.delayCallbacks();
-			
-			var sessionState:Object = Weave.getState(oldObject);
-			if (lhm)
-				lhm.setObject(lhm.getName(oldObject), newObject);
-			else if (ldo)
-				ldo.target = newObject;
-			Weave.setState(newObject, sessionState);
-			
-			ownerCC.resumeCallbacks();
+			try
+			{
+				var sessionState:Object = Weave.getState(oldObject);
+				if (lhm)
+					lhm.setObject(lhm.getName(oldObject), newObject);
+				else if (ldo)
+					ldo.target = newObject;
+				Weave.setState(newObject, sessionState);
+			}
+			finally
+			{
+				ownerCC.resumeCallbacks();
+			}
 		}
 		
 		/**
@@ -123,6 +127,7 @@ package weavejs.core
 			catch (e:Error)
 			{
 				Weave.dispose(placeholder);
+				throw e;
 			}
 		}
 	}
