@@ -78,6 +78,7 @@ package
 	import weavejs.geom.SolidLineStyle;
 	import weavejs.geom.ZoomBounds;
 	import weavejs.util.JS;
+	import weavejs.util.WeaveMenuItem;
 	
 	public class WeaveTest
 	{
@@ -140,6 +141,7 @@ package
 			DBFDataSource,
 			GroupedDataTransform,
 			
+			WeaveMenuItem,
 			ZoomBounds,
 			WeaveArchive,
 			WeaveRootDataTreeNode,
