@@ -387,7 +387,7 @@ package
 		 * Dynamic items in the session state that extend this class will be replaced with
 		 * LinkablePlaceholder objects that can be replaced with actual instances later.
 		 */
-		public static function registerAsyncClass/*/<T>/*/(type:/*/new(..._:any[])=>T/*/Class, instanceHandler:Function/*/(instance:T)=>void/*/):void
+		public static function registerAsyncClass/*/<T>/*/(type:/*/new(..._:any[])=>T/*/Class, instanceHandler:/*/(instance:T)=>void/*/Function):void
 		{
 			var valueInMap:* = instanceHandler || true;
 			map_class_isAsync.set(type, valueInMap);
