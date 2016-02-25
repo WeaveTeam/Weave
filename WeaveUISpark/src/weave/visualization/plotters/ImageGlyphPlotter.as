@@ -78,7 +78,7 @@ package weave.visualization.plotters
 		public const dataInDegrees:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const reverseRotation:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 
-		private static const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
+		private const _urlToImageMap:Object = new Object(); // maps a url to a BitmapData
 		private const tempMatrix:Matrix = new Matrix(); // reusable object
 
 		[Embed(source="/weave/resources/images/missing.png")]
