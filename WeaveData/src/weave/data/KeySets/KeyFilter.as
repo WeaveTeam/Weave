@@ -15,15 +15,16 @@
 
 package weave.data.KeySets
 {
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IKeyFilter;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
+	import weave.core.LinkableString;
 	
 	/**
 	 * This class is used to include and exclude IQualifiedKeys from a set.
@@ -39,6 +40,9 @@ package weave.data.KeySets
 			filters.childListCallbacks.addImmediateCallback(this, cacheValues);
 		}
 		
+		public static const UNION:String = 'union';
+		public static const INTERSECTION:String = 'intersection';
+		
 		// option to include missing keys or not
 		public const includeMissingKeys:LinkableBoolean = newLinkableChild(this, LinkableBoolean, cacheValues);
 		public const includeMissingKeyTypes:LinkableBoolean = newLinkableChild(this, LinkableBoolean, cacheValues);
@@ -47,15 +51,19 @@ package weave.data.KeySets
 		public const excluded:KeySet = newLinkableChild(this, KeySet, handleExcludeChange);
 		
 		public const filters:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IKeyFilter));
+		public const filterSetOp:LinkableString = registerLinkableChild(this, new LinkableString(INTERSECTION, verifyFilterSetOp), cacheValues);
+		private function verifyFilterSetOp(value:String):Boolean { return value === UNION || value === INTERSECTION; }
 		
 		private var _includeMissingKeys:Boolean;
 		private var _includeMissingKeyTypes:Boolean;
 		private var _filters:Array;
+		private var _filterSetOp:String;
 		private function cacheValues():void
 		{
 			_includeMissingKeys = includeMissingKeys.value;
 			_includeMissingKeyTypes = includeMissingKeyTypes.value;
 			_filters = filters.getObjects();
+			_filterSetOp = filterSetOp.value;
 		}
 
 		/**
@@ -124,9 +132,27 @@ package weave.data.KeySets
 		 */
 		public function containsKey(key:IQualifiedKey):Boolean
 		{
-			for each (var filter:IKeyFilter in _filters)
+			var filter:IKeyFilter;
+			if (_filterSetOp === INTERSECTION)
+			{
+				for each (filter in _filters)
 				if (!filter.containsKey(key))
 					return false;
+			}
+			else if (_filterSetOp === UNION)
+			{
+				var found:Boolean = false;
+				for each (filter in _filters)
+				{
+					if (filter.containsKey(key))
+					{
+						found = true;
+						break;
+					}
+				}
+				if (!found)
+					return false;
+			}
 			
 			if (_includeMissingKeys || (_includeMissingKeyTypes && !_includedKeyTypeMap[key.keyType]))
 			{

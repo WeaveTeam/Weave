@@ -56,8 +56,8 @@ package weave.core
 			} catch (e:Error) { }
 			
 			eventManager.throttledMouseMoveInterval = maxComputationTimePerFrame;
-			addEventCallback(Event.ENTER_FRAME, null, handleCallLater);
-			addEventCallback(Event.RENDER, null, handleCallLater);
+			addEventCallback(Event.ENTER_FRAME, null, _handleCallLater);
+			addEventCallback(Event.RENDER, null, _handleCallLater);
 		}
 		
 		private const eventManager:EventManager = new EventManager();
@@ -67,7 +67,7 @@ package weave.core
 		public static var debug_async_time:Boolean = false;
 		public static var debug_async_stack:Boolean = false;
 		public static var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
-		public static var debug_callLater:Boolean = false; // set this to true to delay async tasks
+		public static var debug_callLater:Boolean = false;
 		public var averageFrameTime:int = 0;
 		
 		private var pauseForGCIfCollectionImminent:Function = null;
@@ -116,7 +116,6 @@ package weave.core
 		private var _activePriorityElapsedTime:uint = 0; // elapsed time for active task priority
 		private const _priorityAllocatedTimes:Array = [int.MAX_VALUE, 300, 200, 100]; // An Array of allocated times corresponding to callLater queues.
 		private var _deactivatedMaxComputationTimePerFrame:uint = 1000;
-		private var _nextCallLaterPriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE; // private variable to control the priority of the next callLater() internally
 
 		/**
 		 * This gets the maximum milliseconds spent per frame performing asynchronous tasks.
@@ -283,7 +282,7 @@ package weave.core
 		/**
 		 * This function gets called during ENTER_FRAME and RENDER events.
 		 */
-		private function handleCallLater():void
+		private function _handleCallLater():void
 		{
 			// sanity check
 			if (maxComputationTimePerFrame == 0)
@@ -298,7 +297,7 @@ package weave.core
 				maxComputationTime = maxComputationTimePerFrame;
 			if (!eventManager.event)
 			{
-				reportError("StageUtils.handleCallLater(): _event is null. This should never happen.");
+				reportError("StageUtils._handleCallLater(): _event is null. This should never happen.");
 				return;
 			}
 			if (eventManager.event.type == Event.ENTER_FRAME)
@@ -481,6 +480,10 @@ package weave.core
 		 */
 		public function callLater(relevantContext:Object, method:Function, parameters:Array = null):void
 		{
+			_callLaterPriority(WeaveAPI.TASK_PRIORITY_IMMEDIATE, relevantContext, method, parameters);
+		}
+		public function _callLaterPriority(priority:uint, relevantContext:Object, method:Function, parameters:Array = null):void
+		{
 			if (method == null)
 			{
 				reportError('StageUtils.callLater(): received null "method" parameter');
@@ -490,11 +493,11 @@ package weave.core
 //			WeaveAPI.SessionManager.assignBusyTask(arguments, relevantContext as ILinkableObject);
 			
 			//trace("call later @",currentFrameElapsedTime);
-			_priorityCallLaterQueues[_nextCallLaterPriority].push(arguments);
-			_nextCallLaterPriority = WeaveAPI.TASK_PRIORITY_IMMEDIATE;
+			var args:Array = [relevantContext, method, parameters];
+			_priorityCallLaterQueues[priority].push(args);
 			
 			if (debug_async_stack)
-				_stackTraceMap[arguments] = new Error("This is the stack trace from when callLater() was called.").getStackTrace();
+				_stackTraceMap[args] = new Error("This is the stack trace from when callLater() was called.").getStackTrace();
 		}
 		
 		/**
@@ -576,8 +579,7 @@ package weave.core
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed.
-			_nextCallLaterPriority = priority;
-			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback, useTimeParameter]);
+			_callLaterPriority(priority, null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback, useTimeParameter]);
 			//_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
 		}
 		
@@ -665,8 +667,7 @@ package weave.core
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed.
-			_nextCallLaterPriority = priority;
-			callLater(null, _iterateTask, arguments);
+			_callLaterPriority(priority, null, _iterateTask, arguments);
 		}
 		
 		/**

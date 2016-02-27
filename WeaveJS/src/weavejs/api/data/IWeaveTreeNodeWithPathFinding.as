@@ -27,6 +27,6 @@ package weavejs.api.data
 		 * @return An Array of IWeaveTreeNode objects which can be followed as a path from this node to the descendant, including this node and the descendant node.
 		 *         Returns null if the descendant is unreachable from this node.
 		 */
-		function findPathToNode(descendant:IWeaveTreeNode):Array;
+		function findPathToNode(descendant:IWeaveTreeNode):Array/*/<IWeaveTreeNode>/*/;
     }
 }

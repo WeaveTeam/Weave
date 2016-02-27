@@ -23,7 +23,6 @@ package weavejs.core
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.util.Dictionary2D;
-	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	
 	/**
@@ -56,6 +55,7 @@ package weavejs.core
 		
 		protected var _typeRestriction:Class;
 		private var _target:ILinkableObject; // the current target or ancestor of the to-be-target
+		private var _foundRoot:Boolean = false; // false until Weave.getRoot(this) returns non-null
 		private var _foundTarget:Boolean = true; // false when _target is not the desired target
 		protected var _targetPath:Array; // the path that is being watched
 		private var _pathDependencies:Dictionary2D = new Dictionary2D(); // (ILinkableCompositeObject, String) -> child object
@@ -66,6 +66,8 @@ package weavejs.core
 		 */		
 		public function get target():ILinkableObject
 		{
+			if (!_foundRoot && !_foundTarget)
+				handlePath();
 			return _foundTarget ? _target : null;
 		}
 		public function set target(newTarget:ILinkableObject):void
@@ -83,8 +85,12 @@ package weavejs.core
 		 */
 		protected function internalSetTarget(newTarget:ILinkableObject):void
 		{
-			if (_foundTarget && _typeRestriction)
-				newTarget = JS.AS(newTarget, _typeRestriction) as ILinkableObject;
+			if (newTarget && _foundTarget && _typeRestriction)
+			{
+				var classDef:Class = LinkablePlaceholder.getClass(newTarget);
+				if (!(classDef === _typeRestriction || classDef.prototype is _typeRestriction))
+					newTarget = null;
+			}
 			
 			// do nothing if the targets are the same.
 			if (_target == newTarget)
@@ -182,51 +188,57 @@ package weavejs.core
 				return;
 			}
 			
-			// traverse the path, finding ILinkableDynamicObject path dependencies along the way
-			var node:ILinkableObject = Weave.getRoot(this);
-			var subPath:Array = [];
-			for each (var name:* in _targetPath)
+			var root:ILinkableObject = Weave.getRoot(this);
+			_foundRoot = root != null;
+			var node:ILinkableObject = Weave.followPath(root, _targetPath);
+			if (!node)
 			{
-				if (node is ILinkableCompositeObject)
-					addPathDependency(node as ILinkableCompositeObject, name);
-				
-				subPath[0] = name;
-				var child:ILinkableObject = Weave.followPath(node, subPath);
-				if (child)
+				// traverse the path, finding ILinkableDynamicObject path dependencies along the way
+				node = root;
+				var subPath:Array = [];
+				for each (var name:* in _targetPath)
 				{
-					node = child;
-				}
-				else
-				{
-					// the path points to an object that doesn't exist yet
-					if (node is ILinkableHashMap)
+					if (node is ILinkableCompositeObject)
+						addPathDependency(node as ILinkableCompositeObject, name);
+					
+					subPath[0] = name;
+					var child:ILinkableObject = Weave.followPath(node, subPath);
+					if (child)
 					{
-						// watching childListCallbacks instead of the hash map accomplishes two things:
-						// 1. eliminate unnecessary calls to handlePath()
-						// 2. avoid watching the root hash map (and registering the root as a child of the watcher)
-						node = (node as ILinkableHashMap).childListCallbacks;
+						node = child;
 					}
-					if (node is ILinkableDynamicObject)
+					else
 					{
-						// path dependency code will detect changes to this node, so we don't need to set the target
-						node = null;
+						// the path points to an object that doesn't exist yet
+						if (node is ILinkableHashMap)
+						{
+							// watching childListCallbacks instead of the hash map accomplishes two things:
+							// 1. eliminate unnecessary calls to handlePath()
+							// 2. avoid watching the root hash map (and registering the root as a child of the watcher)
+							node = (node as ILinkableHashMap).childListCallbacks;
+						}
+						if (node is ILinkableDynamicObject)
+						{
+							// path dependency code will detect changes to this node, so we don't need to set the target
+							node = null;
+						}
+						
+						var lostTarget:Boolean = _foundTarget;
+						_foundTarget = false;
+						
+						internalSetTarget(node);
+						
+						// must trigger here when we lose the target because internalSetTarget() won't trigger when _foundTarget is false
+						if (lostTarget)
+							Weave.getCallbacks(this).triggerCallbacks();
+						
+						return;
 					}
-					
-					var lostTarget:Boolean = _foundTarget;
-					_foundTarget = false;
-					
-					internalSetTarget(node);
-					
-					// must trigger here when we lose the target because internalSetTarget() won't trigger when _foundTarget is false
-					if (lostTarget)
-						Weave.getCallbacks(this).triggerCallbacks();
-					
-					return;
 				}
 			}
 			
-			// we found a desired target if there is no type restriction or the object fits the restriction
-			_foundTarget = !_typeRestriction || JS.IS(node, _typeRestriction);
+			// we found a desired target if (there is no type restriction or the object fits the restriction) and it's not a placeholder
+			_foundTarget = (!_typeRestriction || node is _typeRestriction) && !(node is LinkablePlaceholder);
 			internalSetTarget(node);
 		}
 		
@@ -285,9 +297,6 @@ package weavejs.core
 			getDependencyCallbacks(parent).removeCallback(this, handlePathDependencies);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function dispose():void
 		{
 			_targetPath = null;

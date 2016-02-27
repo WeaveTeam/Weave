@@ -29,12 +29,6 @@ package weave.compiler
 	import weave.utils.CustomDateFormatter;
 	import weave.utils.DebugTimer;
 
-	/**
-	 * This provides a set of useful static functions.
-	 * All the functions defined in this class are pure functions, meaning they always return the same result with the same arguments, and they have no side-effects.
-	 * 
-	 * @author adufilie
-	 */
 	public class StandardLib
 	{
 		/**

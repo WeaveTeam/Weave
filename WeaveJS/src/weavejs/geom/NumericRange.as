@@ -21,9 +21,9 @@ package weavejs.geom
 	 * 
 	 * @author adufilie
 	 */
-	public class Range
+	public class NumericRange
 	{
-		public function Range(begin:Number = NaN, end:Number = NaN)
+		public function NumericRange(begin:Number = NaN, end:Number = NaN)
 		{
 			this.begin = begin;
 			this.end = end;
@@ -143,7 +143,7 @@ package weavejs.geom
 		 * @param rangeToConstrain The range to be repositioned.
 		 * @param allowShrinking If set to true, the rangeToConstrain may be resized to fit within this range.
 		 */
-		public function constrainRange(rangeToConstrain:Range, allowShrinking:Boolean = false):void
+		public function constrainRange(rangeToConstrain:NumericRange, allowShrinking:Boolean = false):void
 		{
 			// don't constrain if this range is NaN
 			if (isNaN(this.coverage))

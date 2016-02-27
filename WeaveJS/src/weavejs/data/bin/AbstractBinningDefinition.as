@@ -52,25 +52,16 @@ package weavejs.data.bin
 		protected var output:ILinkableHashMap = Weave.disposableChild(this, new LinkableHashMap(IBinClassifier));
 		private var _asyncResultCallbacks:ICallbackCollection = Weave.disposableChild(this, CallbackCollection);
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			throw new Error("Not implemented");
 		}
 		
-		/**
-		 * @inheritDoc
-		 */		
 		public function get asyncResultCallbacks():ICallbackCollection
 		{
 			return _asyncResultCallbacks;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getBinNames():Array
 		{
 			if (Weave.isBusy(this))
@@ -78,9 +69,6 @@ package weavejs.data.bin
 			return output.getNames();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getBinClassifiers():Array
 		{
 			if (Weave.isBusy(this))

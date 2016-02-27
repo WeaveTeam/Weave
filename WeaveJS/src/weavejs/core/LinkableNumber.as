@@ -6,6 +6,8 @@
 */
 package weavejs.core
 {
+	import weavejs.util.StandardLib;
+
 	/**
 	 * This is a LinkableVariable which limits its session state to Number values.
 	 * @author adufilie
@@ -22,7 +24,7 @@ package weavejs.core
 
 		public function get value():Number
 		{
-			return _sessionStateExternal;
+			return Number(_sessionStateExternal);
 		}
 		public function set value(value:Number):void
 		{
@@ -37,13 +39,7 @@ package weavejs.core
 		override public function setSessionState(value:Object):void
 		{
 			if (!(value is Number))
-			{
-				// special case for null and '' which would otherwise get converted to 0
-				if (value == null || value === '')
-					value = NaN;
-				else
-					value = Number(value);
-			}
+				value = StandardLib.asNumber(value);
 			super.setSessionState(value);
 		}
 

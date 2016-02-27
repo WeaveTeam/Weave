@@ -35,7 +35,7 @@ package weavejs.data.bin
 			super(true, true);
 		}
 		
-		public var dataInterval:LinkableNumber = Weave.linkableChild(this, new LinkableNumber());
+		public const dataInterval:LinkableNumber = Weave.linkableChild(this, new LinkableNumber());
 		
 		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{

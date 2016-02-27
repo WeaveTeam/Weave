@@ -12,10 +12,10 @@ package weavejs.util
 		/**
 		 * AS->JS Language helper to get the global scope
 		 */
-		public static const global:Object = getGlobal("window");
+		public static const global:Object = getGlobal("this");
 		
-		private static const console:Object = getGlobal("console");
-		private static const Symbol:Object = getGlobal("Symbol");
+		private static const console:/*/typeof console/*/Object = getGlobal("console");
+		private static const Symbol:/*/typeof Symbol/*/Object = getGlobal("Symbol");
 		
 		/**
 		 * Calls console.error()
@@ -39,8 +39,9 @@ package weavejs.util
 		 * Compiles a script into a function with optional parameter names.
 		 * @param script A String containing JavaScript code.
 		 * @param paramNames A list of parameter names for the generated function, so that these variable names can be used in the script.
+		 * @param errorHandler A function that handles errors.
 		 */
-		public static function compile(script:String, paramNames:Array = null):Function
+		public static function compile(script:String, paramNames:Array/*/<string>/*/ = null, errorHandler:/*/(e:Error)=>void/*/Function = null):Function
 		{
 			var isFunc:Boolean = unnamedFunctionRegExp.test(script);
 			if (isFunc)
@@ -67,34 +68,55 @@ package weavejs.util
 						{
 							if (e2 is SyntaxError)
 								func = Function['apply']();
-							throw e2;
+							if (errorHandler != null)
+								return errorHandler(e2);
+							else
+								throw e2;
 						}
 						return func.apply(this, arguments);
 					}
-					throw e;
+					if (errorHandler != null)
+						return errorHandler(e);
+					else
+						throw e;
 				}
 			};
 		}
 		
 		/**
+		 * AS->JS Language helper for ArrayBuffer
+		 */
+		public static const ArrayBuffer:/*/typeof ArrayBuffer/*/Class = getGlobal('ArrayBuffer');
+		
+		/**
+		 * AS->JS Language helper for Uint8Array
+		 */
+		public static const Uint8Array:/*/typeof Uint8Array/*/Class = getGlobal('Uint8Array');
+		
+		/**
+		 * AS->JS Language helper for DataView
+		 */
+		public static const DataView:/*/typeof DataView/*/Class = getGlobal('DataView');
+		
+		/**
 		 * AS->JS Language helper for Promise
 		 */
-		public static const Promise:Class = getGlobal('Promise');
+		public static const Promise:/*/typeof Promise/*/Class = getGlobal('Promise');
 		
 		/**
 		 * AS->JS Language helper for Map
 		 */
-		public static const Map:Class = getGlobal('Map');
+		public static const Map:/*/typeof Map/*/Class = getGlobal('Map');
 		
 		/**
 		 * AS->JS Language helper for WeakMap
 		 */
-		public static const WeakMap:Class = getGlobal('WeakMap');
+		public static const WeakMap:/*/typeof WeakMap/*/Class = getGlobal('WeakMap');
 		
 		/**
 		 * AS->JS Language helper for getting an Array of Map keys.
 		 */
-		public static function mapKeys(map:Object):Array
+		public static function mapKeys/*/<K,V>/*/(map:/*/Map<K,V>/*/Object):Array/*/<K>/*/
 		{
 			return map ? toArray(map.keys()) : [];
 		}
@@ -102,7 +124,7 @@ package weavejs.util
 		/**
 		 * AS->JS Language helper for getting an Array of Map values.
 		 */
-		public static function mapValues(map:Object):Array
+		public static function mapValues/*/<K,V>/*/(map:/*/Map<K,V>/*/Object):Array/*/<V>/*/
 		{
 			return map ? toArray(map.values()) : [];
 		}
@@ -110,7 +132,7 @@ package weavejs.util
 		/**
 		 * AS->JS Language helper for getting an Array of Map entries.
 		 */
-		public static function mapEntries(map:Object):Array
+		public static function mapEntries/*/<K,V>/*/(map:/*/Map<K,V>/*/Object):Array/*/<[K,V]>/*/
 		{
 			return map ? toArray(map.entries()) : [];
 		}
@@ -159,7 +181,7 @@ package weavejs.util
 		/**
 		 * AS->JS Language helper for Object.keys()
 		 */
-		public static function objectKeys(object:Object):Array
+		public static function objectKeys(object:Object):Array/*/<string>/*/
 		{
 			return Object['keys'](object);
 		}
@@ -175,7 +197,7 @@ package weavejs.util
 		/**
 		 * Makes a deep copy of an object.
 		 */
-		public static function copyObject(object:Object):Object
+		public static function copyObject/*/<T>/*/(object:/*/T/*/Object):/*/T/*/Object
 		{
 			// check for primitive values
 			if (object === null || typeof object !== 'object')
@@ -192,7 +214,7 @@ package weavejs.util
 		/**
 		 * AS->JS Language helper for binding class instance functions
 		 */
-		private static function bindAll(instance:Object):*
+		private static function bindAll/*/<T>/*/(instance:/*/T/*/Object):/*/T/*/*
 		{
 			var proto:Object = Object['getPrototypeOf'](instance);
 			for (var key:String in proto)
@@ -217,27 +239,36 @@ package weavejs.util
 		/**
 		 * Implementation of "classDef as Class"
 		 */
-		public static function asClass(classDef:Object):*
+		public static function asClass(classDef:*):Class
 		{
 			return isClass(classDef) ? classDef : null;
 		}
 		
-		/**
-		 * setTimeout
-		 */
 		public static function setTimeout(func:Function, delay:int, ...params):int
 		{
 			params.unshift(func, delay);
 			return global['setTimeout'].apply(global, params);
 		}
 		
-		/**
-		 * setInterval
-		 */
+		public static function clearTimeout(id:int):void
+		{
+			global['clearTimeout'](id);
+		}
+		
 		public static function setInterval(func:Function, delay:int, ...params):int
 		{
 			params.unshift(func, delay);
 			return global['setInterval'].apply(global, params);
+		}
+		
+		public static function requestAnimationFrame(func:Function):int
+		{
+			return global['requestAnimationFrame'].call(global, func);
+		}
+		
+		public static function cancelAnimationFrame(id:int):void
+		{
+			global['cancelAnimationFrame'].call(global, id);
 		}
 		
 		/**
@@ -246,99 +277,6 @@ package weavejs.util
 		public static function now():Number
 		{
 			return Date['now']();
-		}
-		
-		private static var Language:Class;
-		
-		/**
-		 * Fixes bugs with the "is" operator.
-		 */
-		public static function fix_is():*
-		{
-			if (!Language)
-				Language = getGlobal("org.apache.flex.utils.Language");
-			Language['is'] = IS;
-			if (!(true is Boolean))
-				throw new Error('"is" operator is broken')
-		}
-		
-		/**
-		 * Safe version of 'as' operator
-		 * Using this will avoid the bug where "obj as this.classDef" compiles incorrectly as "...Language.as(obj, classDef)"
-		 */
-		public static function AS(leftOperand:Object, rightOperand:Class):*
-		{
-			if (!Language)
-				Language = getGlobal("org.apache.flex.utils.Language");
-			return Language['as'](leftOperand, rightOperand);
-		}
-		
-		/**
-		 * Bug fixes for 'is' operator, modified from org.apache.flex.utils.Language.is
-		 * - "this is Boolean" works
-		 * - won't compile "obj is this.classDef" incorrectly as "...Language.is(obj, classDef)"
-		 */
-		public static function IS(leftOperand:Object, rightOperand:Class):Boolean
-		{
-			var superClass:Object;
-			
-			if (leftOperand == null || rightOperand == null)
-				return false;
-			
-			// (adufilie) separated instanceof check to catch more cases.
-			if (leftOperand instanceof rightOperand)
-				return true;
-			
-			// (adufilie) simplified String check and added check for boolean
-			if (typeof leftOperand === 'string')
-				return rightOperand === String;
-			if (typeof leftOperand === 'number')
-				return rightOperand === Number;
-			if (typeof leftOperand === 'boolean')
-				return rightOperand === Boolean;
-			if (rightOperand === Array)
-				return Array['isArray'](leftOperand);
-			
-			if (leftOperand.FLEXJS_CLASS_INFO === undefined)
-				return false; // could be a function but not an instance
-			if (leftOperand.FLEXJS_CLASS_INFO.interfaces) {
-				if (_IS_checkInterfaces(leftOperand, rightOperand)) {
-					return true;
-				}
-			}
-			
-			superClass = leftOperand.constructor.superClass_;
-			if (superClass) {
-				while (superClass && superClass.FLEXJS_CLASS_INFO) {
-					if (superClass.FLEXJS_CLASS_INFO.interfaces) {
-						if (_IS_checkInterfaces(superClass, rightOperand)) {
-							return true;
-						}
-					}
-					superClass = superClass.constructor.superClass_;
-				}
-			}
-			
-			return false;
-		}
-		private static function _IS_checkInterfaces(leftOperand:Object, rightOperand:Object):Boolean
-		{
-			var i:int, interfaces:Array;
-			
-			interfaces = leftOperand.FLEXJS_CLASS_INFO.interfaces;
-			for (i = interfaces.length - 1; i > -1; i--) {
-				if (interfaces[i] === rightOperand) {
-					return true;
-				}
-				
-				if (interfaces[i].prototype.FLEXJS_CLASS_INFO.interfaces) {
-					// (adufilie) avoid creating new instance of interface by checking prototype
-					if (_IS_checkInterfaces(interfaces[i].prototype, rightOperand))
-						return true;
-				}
-			}
-			
-			return false;
 		}
 		
 		/**
@@ -352,12 +290,26 @@ package weavejs.util
 		}
 		
 		/**
+		 * AS->JS Language helper for Object.getOwnPropertyNames()
+		 */
+		public static function getOwnPropertyNames(object:Object):Array/*/<string>/*/
+		{
+			return Object['getOwnPropertyNames'](object);
+		}
+		
+		/**
 		 * Similar to Object.getOwnPropertyNames(), except it also checks prototypes.
 		 */
-		public static function getPropertyNames(object:Object, useCache:Boolean):Array
+		public static function getPropertyNames(object:Object, useCache:Boolean):Array/*/<string>/*/
 		{
 			if (object == null || object === Object.prototype)
 				return [];
+			
+			if (!map_obj_names)
+			{
+				map_obj_names = new JS.WeakMap();
+				map_prop_skip = new JS.Map();
+			}
 			
 			if (useCache && map_obj_names.has(object))
 				return map_obj_names.get(object);
@@ -390,8 +342,8 @@ package weavejs.util
 			return names;
 		}
 		
-		private static const map_obj_names:Object = new JS['WeakMap']();
-		private static const map_prop_skip:Object = new JS['Map']();
+		private static var map_obj_names:Object;
+		private static var map_prop_skip:Object;
 		private static var skip_id:int = 0;
 	}
 }

@@ -40,7 +40,7 @@ package weavejs.api.core
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
 		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed.
 		 * 
-		 * Example usage:   public var foo:LinkableNumber = newLinkableChild(this, LinkableNumber, handleFooChange);
+		 * Example usage:   public const foo:LinkableNumber = newLinkableChild(this, LinkableNumber, handleFooChange);
 		 * 
 		 * @param linkableParent A parent ILinkableObject to create a new child for.
 		 * @param linkableChildType The class definition that implements ILinkableObject used to create the new child.
@@ -49,7 +49,7 @@ package weavejs.api.core
 		 * @return The new child object.
 		 * @see #registerLinkableChild()
 		 */
-		function newLinkableChild(linkableParent:Object, linkableChildType:Class, callback:Function = null, useGroupedCallback:Boolean = false):*;
+		function newLinkableChild/*/<T extends ILinkableObject>/*/(linkableParent:Object, linkableChildType:/*/new()=>T/*/Class, callback:Function = null, useGroupedCallback:Boolean = false):/*/T/*/*;
 		
 		/**
 		 * This function tells the SessionManager that the session state of the specified child should appear in the
@@ -62,7 +62,7 @@ package weavejs.api.core
 		 * 
 		 * If a callback function is given, the callback will be added to the child and cleaned up when the parent is disposed.
 		 * 
-		 * Example usage:   public var foo:LinkableNumber = registerLinkableChild(this, someLinkableNumber, handleFooChange);
+		 * Example usage:   public const foo:LinkableNumber = registerLinkableChild(this, someLinkableNumber, handleFooChange);
 		 * 
 		 * @param linkableParent A parent ILinkableObject that the child will be registered with.
 		 * @param linkableChild The child ILinkableObject to register as a child.
@@ -71,14 +71,14 @@ package weavejs.api.core
 		 * @return The linkableChild object that was passed to the function.
 		 * @see #newLinkableChild()
 		 */
-		function registerLinkableChild(linkableParent:Object, linkableChild:ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):*;
+		function registerLinkableChild/*/<T extends ILinkableObject>/*/(linkableParent:Object, linkableChild:/*/T/*/ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):/*/T/*/*;
 
 		/**
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
 		 * Use this function when a child object can be disposed but you do not want to link the callbacks.
 		 * The child will be disposed when the parent is disposed.
 		 * 
-		 * Example usage:   public var foo:LinkableNumber = newDisposableChild(this, LinkableNumber);
+		 * Example usage:   public const foo:LinkableNumber = newDisposableChild(this, LinkableNumber);
 		 * 
 		 * @param disposableParent A parent ILinkableObject to create a new child for.
 		 * @param disposableChildType The class definition that implements ILinkableObject used to create the new child.
@@ -92,7 +92,7 @@ package weavejs.api.core
 		 * Use this function when a child object can be disposed but you do not want to link the callbacks.
 		 * The child will be disposed when the parent is disposed.
 		 * 
-		 * Example usage:   public var foo:LinkableNumber = registerDisposableChild(this, someLinkableNumber);
+		 * Example usage:   public const foo:LinkableNumber = registerDisposableChild(this, someLinkableNumber);
 		 * 
 		 * @param disposableParent A parent disposable object that the child will be registered with.
 		 * @param disposableChild The disposable object to register as a child of the parent.
@@ -117,7 +117,7 @@ package weavejs.api.core
 		 * @return An Array containing a list of descendant objects.
 		 * @see #getLinkableOwner()
 		 */
-		function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array;
+		function getLinkableDescendants/*/<T>/*/(root:ILinkableObject, filter:/*/new(..._:any[])=>T/*/Class = null):Array/*/<T & ILinkableObject>/*/;
 		
 		/**
 		 * This will assign an asynchronous task to a linkable object so that <code>linkableObjectIsBusy(busyObject)</code>

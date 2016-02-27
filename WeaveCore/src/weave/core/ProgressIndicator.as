@@ -21,11 +21,12 @@ package weave.core
 	import mx.rpc.AsyncResponder;
 	import mx.rpc.AsyncToken;
 	
+	import weave.api.getCallbackCollection;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.core.IProgressIndicator;
-	import weave.api.getCallbackCollection;
 	import weave.compiler.StandardLib;
+	import weave.utils.WeavePromise;
 
 	public class ProgressIndicator implements IProgressIndicator
 	{
@@ -70,13 +71,22 @@ package weave.core
 			var cc:ICallbackCollection = getCallbackCollection(this);
 			cc.delayCallbacks();
 			
-			if (taskToken is AsyncToken && _progress[taskToken] === undefined)
-				(taskToken as AsyncToken).addResponder(new AsyncResponder(handleAsyncToken, handleAsyncToken, taskToken));
+			var isNewTask:Boolean = _progress[taskToken] === undefined;
 			
 			_description[taskToken] = description;
 			
 			// add task before WeaveAPI.SessionManager.assignBusyTask()
 			updateTask(taskToken, NaN); // NaN is used as a special case when adding the task
+			
+			if (isNewTask && taskToken is AsyncToken)
+			{
+				(taskToken as AsyncToken).addResponder(new AsyncResponder(handleAsyncToken, handleAsyncToken, taskToken));
+			}
+			if (isNewTask && taskToken is WeavePromise)
+			{
+				var remove:Function = function(_:*):* { removeTask(taskToken); };
+				(taskToken as WeavePromise).then(remove, remove);
+			}
 			
 			if (busyObject)
 				WeaveAPI.SessionManager.assignBusyTask(taskToken, busyObject);

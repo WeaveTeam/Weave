@@ -37,11 +37,8 @@ package weavejs.data.bin
 		/**
 		 * A list of numeric values separated by commas that mark the beginning and end of bin ranges.
 		 */
-		public var splitValues:LinkableString = Weave.linkableChild(this, LinkableString);
+		public const splitValues:LinkableString = Weave.linkableChild(this, LinkableString);
 		
-		/**
-		 * @inheritDoc
-		 */
 		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			// make sure callbacks only run once.

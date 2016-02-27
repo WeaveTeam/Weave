@@ -34,7 +34,6 @@ package weavejs.data.bin
 	{
 		public function NumberClassifier(min:* = NaN, max:* = NaN, minInclusive:Boolean = true, maxInclusive:Boolean = true)
 		{
-			super();
 			_callbacks = Weave.getCallbacks(this);
 			this.min.value = min;
 			this.max.value = max;
@@ -45,17 +44,17 @@ package weavejs.data.bin
 		/**
 		 * These values define the bounds of the continuous range contained in this classifier.
 		 */
-		public var min:LinkableNumber = Weave.linkableChild(this, LinkableNumber);
-		public var max:LinkableNumber = Weave.linkableChild(this, LinkableNumber);
+		public const min:LinkableNumber = Weave.linkableChild(this, LinkableNumber);
+		public const max:LinkableNumber = Weave.linkableChild(this, LinkableNumber);
 
 		/**
 		 * This value is the result of contains(value) when value == min.
 		 */
-		public var minInclusive:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean);
+		public const minInclusive:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean);
 		/**
 		 * This value is the result of contains(value) when value == max.
 		 */
-		public var maxInclusive:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean);
+		public const maxInclusive:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean);
 
 		// private variables for holding session state, used for speed
 		private var _callbacks:ICallbackCollection;

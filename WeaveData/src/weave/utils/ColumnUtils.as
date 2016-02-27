@@ -337,19 +337,38 @@ package weave.utils
 		 * @param keys An Array of IQualifiedKeys
 		 * @param minImportance No points with importance less than this value will be returned.
 		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
-		 * @return An Array of GeoJson Geometry objects corresponding to the keys.
+		 * @return An Array of GeoJson Geometry objects corresponding to the keys.  The Array may be sparse if there are no coordinates for some of the keys.
 		 */
 		public static function getGeoJsonGeometries(geometryColumn:IAttributeColumn, keys:Array, minImportance:Number = 0, visibleBounds:IBounds2D = null):Array
 		{
+			var map_inputGeomArray_outputMultiGeom:Dictionary = new Dictionary(true);
 			var output:Array = new Array(keys.length);
+			var multiGeom:Object;
 			for (var i:int = 0; i < keys.length; i++)
 			{
 				var key:IQualifiedKey = keys[i];
-				var genGeoms:Array = geometryColumn.getValueFromKey(key, Array) as Array;
-				var geoJsonGeoms:Array = genGeoms.map(function(genGeom:GeneralizedGeometry, ..._):Object {
-					return genGeom.toGeoJson(minImportance, visibleBounds);
-				});
-				output[i] = GeoJSON.getMultiGeomObject(geoJsonGeoms);
+				var inputGeomArray:Array = geometryColumn.getValueFromKey(key, Array) as Array;
+				if (inputGeomArray)
+				{
+					if (map_inputGeomArray_outputMultiGeom[inputGeomArray] !== undefined)
+					{
+						multiGeom = map_inputGeomArray_outputMultiGeom[inputGeomArray];
+					}
+					else
+					{
+						var outputGeomArray:Array = [];
+						for each (var inputGeom:GeneralizedGeometry in inputGeomArray)
+						{
+							var outputGeom:Object = inputGeom.toGeoJson(minImportance, visibleBounds);
+							if (outputGeom)
+								outputGeomArray.push(outputGeom);
+						}
+						multiGeom = outputGeomArray.length ? GeoJSON.getMultiGeomObject(outputGeomArray) : null;
+						map_inputGeomArray_outputMultiGeom[inputGeomArray] = multiGeom;
+					}
+					if (multiGeom)
+						output[i] = multiGeom;
+				}
 			}
 			return output;
 		}

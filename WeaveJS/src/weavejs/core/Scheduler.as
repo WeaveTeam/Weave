@@ -16,6 +16,8 @@
 package weavejs.core
 {
 	import weavejs.WeaveAPI;
+	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.IScheduler;
 	import weavejs.util.DebugTimer;
@@ -31,21 +33,40 @@ package weavejs.core
 	 * 
 	 * @author adufilie
 	 */
-	public class Scheduler implements IScheduler
+	public class Scheduler implements IScheduler, IDisposableObject
 	{
+		public static var debug_fps:Boolean = false;
+		public static var debug_async_time:Boolean = false;
+		public static var debug_async_stack_elapsed:Boolean = false;
+		public static var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
+		public static var debug_callLater:Boolean = false;
+		public static var debug_visibility:Boolean = false;
+		
 		public function Scheduler()
 		{
-			JS.setInterval(handleCallLater, 0);
+			_frameCallbacks.addImmediateCallback(this, _requestNextFrame, true);
+			_frameCallbacks.addImmediateCallback(this, _handleCallLater);
 			initVisibilityHandler();
 		}
 		
-		public static var debug_fps:Boolean = false;
-		public static var debug_async_time:Boolean = false;
-		public static var debug_async_stack:Boolean = false;
-		public static var debug_async_stack_elapsed:Boolean = false;
-		public static var debug_delayTasks:Boolean = false; // set this to true to delay async tasks
-		public static var debug_callLater:Boolean = false; // set this to true to delay async tasks
-		public static var debug_visibility:Boolean = false; // set this to true to delay async tasks
+		public function get frameCallbacks():ICallbackCollection
+		{
+			return _frameCallbacks;
+		}
+		
+		private const _frameCallbacks:ICallbackCollection = Weave.disposableChild(this, CallbackCollection);
+		private var _nextAnimationFrame:int;
+		
+		private function _requestNextFrame():void
+		{
+			_nextAnimationFrame = JS.requestAnimationFrame(_frameCallbacks.triggerCallbacks);
+		}
+		
+		public function dispose():void
+		{
+			JS.cancelAnimationFrame(_nextAnimationFrame);
+		}
+		
 		public var averageFrameTime:int = 0;
 		private var _currentFrameStartTime:int = JS.now(); // this is the result of JS.now() on the last ENTER_FRAME event.
 		private var _previousFrameElapsedTime:int = 0; // this is the amount of time it took to process the previous frame.
@@ -66,8 +87,7 @@ package weavejs.core
 		private var _activePriorityElapsedTime:uint = 0; // elapsed time for active task priority
 		private var _priorityAllocatedTimes:Array = [Number.MAX_VALUE, 300, 200, 100]; // An Array of allocated times corresponding to callLater queues.
 		private var _deactivatedMaxComputationTimePerFrame:uint = 1000;
-		private var _nextCallLaterPriority:uint = WeaveAPI.TASK_PRIORITY_IMMEDIATE; // private variable to control the priority of the next callLater() internally
-
+		
 		/**
 		 * This gets the maximum milliseconds spent per frame performing asynchronous tasks.
 		 */
@@ -111,17 +131,11 @@ package weavejs.core
 		public var maxComputationTimePerFrame:uint = 100;
 		private var maxComputationTimePerFrame_noActivity:uint = 250;
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get previousFrameElapsedTime():int
 		{
 			return _previousFrameElapsedTime;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get currentFrameElapsedTime():int
 		{
 			return JS.now() - _currentFrameStartTime;
@@ -202,7 +216,7 @@ package weavejs.core
 		/**
 		 * This function gets called during ENTER_FRAME and RENDER events.
 		 */
-		private function handleCallLater():void
+		private function _handleCallLater():void
 		{
 			// detect deactivated framerate (when app is hidden)
 			if (deactivated)
@@ -275,7 +289,7 @@ package weavejs.core
 					return;
 				}
 				
-				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint)
+				// args: (relevantContext:Object, method:Function, parameters:Array)
 				args = queue.shift();
 				stackTrace = map_task_stackTrace.get(args);
 				
@@ -369,7 +383,7 @@ package weavejs.core
 				_currentTaskStopTime = pStop; // make sure _iterateTask knows when to stop
 				
 				// call the next function in the queue
-				// args: (relevantContext:Object, method:Function, parameters:Array, priority:uint)
+				// args: (relevantContext:Object, method:Function, parameters:Array)
 				args = queue.shift() as Array;
 				stackTrace = map_task_stackTrace.get(args); // check this for debugging where the call came from
 				
@@ -393,10 +407,12 @@ package weavejs.core
 			}
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function callLater(relevantContext:Object, method:Function, parameters:Array = null):void
+		{
+			_callLaterPriority(WeaveAPI.TASK_PRIORITY_IMMEDIATE, relevantContext, method, parameters);
+		}
+		
+		private function _callLaterPriority(priority:uint, relevantContext:Object, method:Function, parameters:Array = null):void
 		{
 			if (method == null)
 			{
@@ -407,11 +423,11 @@ package weavejs.core
 //			WeaveAPI.SessionManager.assignBusyTask(arguments, relevantContext as ILinkableObject);
 			
 			//JS.log("call later @",currentFrameElapsedTime);
-			_priorityCallLaterQueues[_nextCallLaterPriority].push(JS.toArray(arguments));
-			_nextCallLaterPriority = WeaveAPI.TASK_PRIORITY_IMMEDIATE;
+			var args:Array = [relevantContext, method, parameters];
+			_priorityCallLaterQueues[priority].push(args);
 			
-			if (debug_async_stack)
-				map_task_stackTrace.set(JS.toArray(arguments), new Error("This is the stack trace from when callLater() was called."));
+			if (WeaveAPI.debugAsyncStack)
+				map_task_stackTrace.set(args, new Error("This is the stack trace from when callLater() was called."));
 		}
 		
 		/**
@@ -459,9 +475,6 @@ package weavejs.core
 		
 		private var map_task_time:Object = new JS.WeakMap();
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function startTask(relevantContext:Object, iterativeTask:Function, priority:uint, finalCallback:Function = null, description:String = null):void
 		{
 			// do nothing if task already active
@@ -485,9 +498,10 @@ package weavejs.core
 				priority = WeaveAPI.TASK_PRIORITY_NORMAL;
 			}
 			
-			if (debug_async_stack)
-			{
+			if (WeaveAPI.debugAsyncStack)
 				map_task_stackTrace.set(iterativeTask, [DebugUtils.debugId(iterativeTask), new Error("Stack trace")]);
+			if (debug_async_stack_elapsed)
+			{
 				map_task_startTime.set(iterativeTask, JS.now());
 				map_task_elapsedTime.set(iterativeTask, 0);
 			}
@@ -497,8 +511,7 @@ package weavejs.core
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed.
-			_nextCallLaterPriority = priority;
-			callLater(null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback, useTimeParameter]);
+			_callLaterPriority(priority, null, _iterateTask, [relevantContext, iterativeTask, priority, finalCallback, useTimeParameter]);
 			//_iterateTask(relevantContext, iterativeTask, priority, finalCallback);
 		}
 		
@@ -520,8 +533,8 @@ package weavejs.core
 				return;
 			}
 
-			var debug_time:int = debug_async_stack ? JS.now() : -1;
-			var stackTrace:String = debug_async_stack ? map_task_stackTrace.get(task) : null;
+			var debug_time:int = WeaveAPI.debugAsyncStack ? JS.now() : -1;
+			var stackTrace:String = WeaveAPI.debugAsyncStack ? map_task_stackTrace.get(task) : null;
 			
 			var progress:* = undefined;
 			// iterate on the task until _currentTaskStopTime is reached
@@ -537,7 +550,7 @@ package weavejs.core
 				if (progress === null || isNaN(progress) || progress < 0 || progress > 1)
 				{
 					JS.error("Received unexpected result from iterative task (" + progress + ").  Expecting a number between 0 and 1.  Task cancelled.");
-					if (debug_async_stack)
+					if (WeaveAPI.debugAsyncStack)
 					{
 						JS.log(stackTrace);
 						// this is incorrect behavior, but we can put a breakpoint here
@@ -548,7 +561,7 @@ package weavejs.core
 					}
 					progress = 1;
 				}
-				if (debug_async_stack && currentFrameElapsedTime > 3000)
+				if (WeaveAPI.debugAsyncStack && currentFrameElapsedTime > 3000)
 				{
 					JS.log(JS.now() - time, stackTrace);
 					// this is incorrect behavior, but we can put a breakpoint here
@@ -580,7 +593,7 @@ package weavejs.core
 				if (debug_delayTasks)
 					break;
 			}
-			if (debug_async_stack && debug_async_stack_elapsed)
+			if (debug_async_stack_elapsed)
 			{
 				var start:int = int(map_task_startTime.get(task));
 				var elapsed:int = int(map_task_elapsedTime.get(task)) + (time - debug_time);
@@ -594,8 +607,7 @@ package weavejs.core
 			
 			// Set relevantContext as null for callLater because we always want _iterateTask to be called later.
 			// This makes sure that the task is removed when the actual context is disposed.
-			_nextCallLaterPriority = priority;
-			callLater(null, _iterateTask, JS.toArray(arguments));
+			_callLaterPriority(priority, null, _iterateTask, JS.toArray(arguments));
 		}
 	}
 }

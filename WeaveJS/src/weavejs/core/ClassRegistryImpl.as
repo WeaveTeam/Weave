@@ -30,22 +30,155 @@ package weavejs.core
 		/**
 		 * interface Class -&gt; singleton implementation instance.
 		 */
-		public var singletonInstances:Object = new JS.Map();
+		public const map_interface_singletonInstance:Object = new JS.Map();
 		
 		/**
 		 * interface Class -&gt; implementation Class
 		 */
-		public var singletonImplementations:Object = new JS.Map();
+		public const map_interface_singletonImplementation:Object = new JS.Map();
 		
 		/**
 		 * interface Class -&gt; Array&lt;implementation Class&gt;
 		 */
-		public var implementations:Object = new JS.Map();
+		public const map_interface_implementations:Object = new JS.Map();
 		
 		/**
 		 * implementation Class -&gt; String
 		 */
-		public var displayNames:Object = new JS.Map();
+		public const map_class_displayName:Object = new JS.Map();
+		
+		/**
+		 * qualifiedName:String -> definition:Class
+		 */
+		public const map_name_class:Object = new JS.Map();
+		
+		/**
+		 * definition:Class -> qualifiedName:String
+		 */
+		public const map_class_name:Object = new JS.Map();
+		
+		/**
+		 * An Array of default packages to check when looking up a class by name.
+		 */
+		public const defaultPackages:Array = [];
+		
+		private static const FLEXJS_CLASS_INFO:String = "FLEXJS_CLASS_INFO";
+		private static const NAMES:String = 'names';
+		private static const NAME:String = 'name';
+		private static const QNAME:String = 'qName';
+		private static const INTERFACES:String = 'interfaces';
+		
+		/**
+		 * Registers a class for use with Weave.className() and Weave.getDefinition().
+		 * @param qualifiedName
+		 * @param definition
+		 * @param interfaces An Array of Class objects that are the interfaces the class implements.
+		 */
+		public function registerClass(qualifiedName:String, definition:Class, interfaces:Array = null):void
+		{
+			// register qualified name
+			if (!map_name_class.has(qualifiedName))
+				map_name_class.set(qualifiedName, definition);
+			if (!map_class_name.has(definition))
+				map_class_name.set(definition, qualifiedName);
+			
+			// register short name
+			var shortName:String = qualifiedName.split('.').pop().split(':').pop();
+			if (!map_name_class.has(shortName))
+				map_name_class.set(shortName, definition);
+			
+			// get class info
+			var info:Object = definition.prototype[FLEXJS_CLASS_INFO] || (definition.prototype[FLEXJS_CLASS_INFO] = {});
+			var items:Array;
+			var item:Object;
+			
+			// add name if not present
+			var found:Boolean = false;
+			items = info[NAMES] || (info[NAMES] = []);
+			for each (item in items)
+			{
+				if (item[QNAME] == qualifiedName)
+				{
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+			{
+				item = {};
+				item[NAME] = shortName;
+				item[QNAME] = qualifiedName;
+				items.push(item);
+			}
+			
+			// add interfaces if not present
+			items = info[INTERFACES] || (info[INTERFACES] = []);
+			for each (item in interfaces)
+				if (items.indexOf(item) < 0)
+					items.push(item);
+		}
+		
+		/**
+		 * Gets the qualified class name from a class definition or an object instance.
+		 */
+		public function getClassName(definition:Object):String
+		{
+			if (!definition)
+				return null;
+			
+			if (!definition.prototype)
+				definition = definition.constructor;
+			
+			if (definition.prototype && definition.prototype[FLEXJS_CLASS_INFO])
+				return definition.prototype[FLEXJS_CLASS_INFO].names[0].qName;
+			
+			if (map_class_name.has(definition))
+				return map_class_name.get(definition);
+			
+			return definition.name;
+		}
+		
+		/**
+		 * Looks up a static definition by name.
+		 */
+		public function getDefinition(name:String):*
+		{
+			// check cache
+			var def:* = map_name_class.get(name);
+			if (def || !name)
+				return def;
+			
+			// try following names from global scope
+			var names:Array = name.split('.');
+			def = JS.global;
+			for each (var key:String in names)
+			{
+				if (!def)
+					break;
+				def = def[key];
+			}
+			
+			// check default packages
+			if (!def && names.length == 1)
+			{
+				for each (var pkg:String in defaultPackages)
+				{
+					def = getDefinition(pkg + '.' + name);
+					if (def)
+						break;
+				}
+			}
+			
+			// try short name
+			if (!def && name.indexOf("::") > 0)
+				def = getDefinition(name.split('::').pop());
+			
+			// save in cache
+			if (def)
+				map_name_class.set(name, def);
+			
+			return def;
+		}
 		
 		/**
 		 * This registers an implementation for a singleton interface.
@@ -55,12 +188,12 @@ package weavejs.core
 		 */
 		public function registerSingletonImplementation(theInterface:Class, theImplementation:Class):Boolean
 		{
-			if (!singletonImplementations.get(theInterface))
+			if (!map_interface_singletonImplementation.get(theInterface))
 			{
 				verifyImplementation(theInterface, theImplementation);
-				singletonImplementations.set(theInterface, theImplementation);
+				map_interface_singletonImplementation.set(theInterface, theImplementation);
 			}
-			return singletonImplementations.get(theInterface) == theImplementation;
+			return map_interface_singletonImplementation.get(theInterface) == theImplementation;
 		}
 		
 		/**
@@ -69,7 +202,7 @@ package weavejs.core
 		 */
 		public function getSingletonImplementation(theInterface:Class):Class
 		{
-			return singletonImplementations.get(theInterface);
+			return map_interface_singletonImplementation.get(theInterface);
 		}
 		
 		/**
@@ -83,14 +216,14 @@ package weavejs.core
 		 */
 		public function getSingletonInstance(theInterface:Class):*
 		{
-			if (!singletonInstances.get(theInterface))
+			if (!map_interface_singletonInstance.get(theInterface))
 			{
 				var classDef:Class = getSingletonImplementation(theInterface);
 				if (classDef)
-					singletonInstances.set(theInterface, new classDef());
+					map_interface_singletonInstance.set(theInterface, new classDef());
 			}
 			
-			return singletonInstances.get(theInterface);
+			return map_interface_singletonInstance.get(theInterface);
 		}
 		
 		/**
@@ -103,30 +236,30 @@ package weavejs.core
 		{
 			verifyImplementation(theInterface, theImplementation);
 			
-			var array:Array = implementations.get(theInterface);
+			var array:Array = map_interface_implementations.get(theInterface);
 			if (!array)
-				implementations.set(theInterface, array = []);
+				map_interface_implementations.set(theInterface, array = []);
 			
 			// overwrite existing displayName if specified
-			if (displayName || !displayNames.get(theImplementation))
-				displayNames.set(theImplementation, displayName || Weave.className(theImplementation).split(':').pop());
+			if (displayName || !map_class_displayName.get(theImplementation))
+				map_class_displayName.set(theImplementation, displayName || getClassName(theImplementation).split(':').pop());
 			
 			if (array.indexOf(theImplementation) < 0)
 			{
 				array.push(theImplementation);
 				// sort by displayName
-				array.sort(_sortImplementations);
+				array.sort(compareDisplayNames);
 			}
 		}
 		
 		/**
-		 * This will get an Array of class definitions that were previously registered as implementations of the specified interface.
+		 * This will get an Array of class definitions that were previously registered as map_interface_implementations of the specified interface.
 		 * @param theInterface The interface class.
-		 * @return An Array of class definitions that were previously registered as implementations of the specified interface.
+		 * @return An Array of class definitions that were previously registered as map_interface_implementations of the specified interface.
 		 */
 		public function getImplementations(theInterface:Class):Array
 		{
-			var array:Array = implementations.get(theInterface);
+			var array:Array = map_interface_implementations.get(theInterface);
 			return array ? array.concat() : [];
 		}
 		
@@ -137,7 +270,7 @@ package weavejs.core
 		 */
 		public function getDisplayName(theImplementation:Class):String
 		{
-			var str:String = displayNames.get(theImplementation);
+			var str:String = map_class_displayName.get(theImplementation);
 			return str;// && lang(str);
 		}
 		
@@ -145,10 +278,10 @@ package weavejs.core
 		 * @private
 		 * sort by displayName
 		 */
-		private function _sortImplementations(impl1:Class, impl2:Class):int
+		private function compareDisplayNames(impl1:Class, impl2:Class):int
 		{
-			var name1:String = displayNames.get(impl1);
-			var name2:String = displayNames.get(impl2);
+			var name1:String = map_class_displayName.get(impl1);
+			var name2:String = map_class_displayName.get(impl2);
 			if (name1 < name2)
 				return -1;
 			if (name1 > name2)
@@ -159,10 +292,10 @@ package weavejs.core
 		/**
 		 * Verifies that a Class implements an interface.
 		 */
-		public static function verifyImplementation(theInterface:Class, theImplementation:Class):void
+		public function verifyImplementation(theInterface:Class, theImplementation:Class):void
 		{
 			if (!(theImplementation.prototype is theInterface))
-				throw new Error(Weave.className(theImplementation) + ' does not implement ' + Weave.className(theInterface));
+				throw new Error(getClassName(theImplementation) + ' does not implement ' + getClassName(theInterface));
 		}
 	}
 }

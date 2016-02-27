@@ -57,7 +57,7 @@ package weavejs.data.column
 			{
 				try
 				{
-					numberToStringFunction = JS.compile(stringFormat, [ColumnMetadata.NUMBER, 'array']);
+					numberToStringFunction = JS.compile(stringFormat, [ColumnMetadata.NUMBER, 'array'], errorHandler);
 				}
 				catch (e:Error)
 				{

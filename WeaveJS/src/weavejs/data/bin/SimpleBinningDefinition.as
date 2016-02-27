@@ -40,7 +40,7 @@ package weavejs.data.bin
 		/**
 		 * The number of bins to generate when calling deriveExplicitBinningDefinition().
 		 */
-		public var numberOfBins:LinkableNumber = Weave.linkableChild(this, new LinkableNumber(5));
+		public const numberOfBins:LinkableNumber = Weave.linkableChild(this, new LinkableNumber(5));
 
 		/**
 		 * From this simple definition, derive an explicit definition.

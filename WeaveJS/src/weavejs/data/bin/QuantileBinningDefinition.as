@@ -36,7 +36,7 @@ package weavejs.data.bin
 			super(true, false);
 		}
 		
-		public var refQuantile:LinkableNumber = Weave.linkableChild(this, new LinkableNumber(.3));
+		public const refQuantile:LinkableNumber = Weave.linkableChild(this, new LinkableNumber(.3));
 		
 		/**
 		 * getBinClassifiersForColumn - implements IBinningDefinition Interface

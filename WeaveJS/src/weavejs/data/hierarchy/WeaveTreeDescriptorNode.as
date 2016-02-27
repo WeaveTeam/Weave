@@ -64,9 +64,6 @@ package weavejs.data.hierarchy
 		}
 		private var __hasChildBranches:* = null;
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function equals(other:IWeaveTreeNode):Boolean
 		{
 			var that:WeaveTreeDescriptorNode = other as WeaveTreeDescriptorNode;
@@ -87,26 +84,17 @@ package weavejs.data.hierarchy
 			return true;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getLabel():String
 		{
 			return label;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function isBranch():Boolean
 		{
 			// assume that if children property was defined that this is a branch
 			return _children != null;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function hasChildBranches():Boolean
 		{
 			var id:String = 'hasChildBranches';
@@ -123,9 +111,6 @@ package weavejs.data.hierarchy
 			return cache(id, false);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getChildren():Array
 		{
 			return children;

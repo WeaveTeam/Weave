@@ -21,6 +21,11 @@ package weavejs.util
 		public var onRejected:Function;
 		public var next:WeavePromise;
 		
+		/**
+		 * Used as a flag to indicate that this handler has not been called yet
+		 */
+		public var isNew:Boolean = true;
+		
 		public function WeavePromiseHandler(onFulfilled:Function, onRejected:Function, next:WeavePromise)
 		{
 			this.next = next;
@@ -30,23 +35,13 @@ package weavejs.util
 		
 		public function onResult(result:Object):void
 		{
-			wasCalled = true;
+			isNew = false;
 			try
 			{
-				next.setResult(onFulfilled(result));
-			}
-			catch (e:Error)
-			{
-				onError(e);
-			}
-		}
-		
-		public function onError(error:Object):void
-		{
-			wasCalled = true;
-			try
-			{
-				next.setError(onRejected(error));
+				if (onFulfilled != null)
+					next.setResult(onFulfilled(result));
+				else
+					next.setResult(result);
 			}
 			catch (e:Error)
 			{
@@ -54,9 +49,20 @@ package weavejs.util
 			}
 		}
 		
-		/**
-		 * Used as a flag to indicate whether or not this handler has been called 
-		 */
-		public var wasCalled:Boolean = false;
+		public function onError(error:Object):void
+		{
+			isNew = false;
+			try
+			{
+				if (onRejected != null)
+					next.setResult(onRejected(error));
+				else
+					next.setError(error);
+			}
+			catch (e:Error)
+			{
+				next.setError(e);
+			}
+		}
 	}
 }

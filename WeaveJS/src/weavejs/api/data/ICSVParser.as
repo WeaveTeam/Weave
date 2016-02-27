@@ -25,9 +25,9 @@ package weavejs.api.data
 		/**
 		 * This will parse a CSV String into a two-dimensional Array of String values.
 		 * @param csvData The CSV String to parse.
-		 * @return The destination Array, or a new Array if none was specified.  The result of parsing the CSV string will be stored here.
+		 * @return A 2-dimensional Array of Strings.
 		 */
-		function parseCSV(csvData:String):Array;
+		function parseCSV(csvData:String):Array/*/<string[]>/*/;
 		
 		/**
 		 * This will generate a CSV String from an Array of rows in a table.

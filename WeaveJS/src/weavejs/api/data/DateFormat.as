@@ -15,17 +15,19 @@
 
 package weavejs.api.data
 {
+	import weavejs.util.StandardLib;
+
 	public class DateFormat
 	{
-		public static function getSuggestions():Array
+		public static function getSuggestions():Array/*/<string>/*/
 		{
 			return ADDITIONAL_SUGGESTIONS.concat(FOR_AUTO_DETECT);
 		}
 		
-		public static const ADDITIONAL_SUGGESTIONS:Array = [
+		public static const ADDITIONAL_SUGGESTIONS:Array/*/<string>/*/ = [
 			"%Y"
 		];
-		public static const FOR_AUTO_DETECT:Array = [
+		public static const FOR_AUTO_DETECT:Array/*/<string>/*/ = [
 			'%d-%b-%y',
 			'%b-%d-%y',
 			'%d-%b-%Y',
@@ -131,6 +133,40 @@ package weavejs.api.data
 			"M d yyyy", "MM dd yyyy",                                    
 			"d M yyyy", "dd MM yyyy", 
 			"yyyy M d", "yyyy MM dd" */
+		];
+		
+		public static function convertDateFormat_c_to_moment(format:String):String
+		{
+			if (format && format.indexOf('%') >= 0)
+				return StandardLib.replace.apply(StandardLib, [format].concat(dateFormat_replacements_c_to_moment));
+			return format;
+		}
+		
+		private static const dateFormat_replacements_c_to_moment:Array = [
+			'%Y', 'YYYY',
+			'%y', 'YY',
+			'%B', 'MMMM',
+			'%b', 'MMM',
+			'%m', 'MM',
+			'%-m', 'M',
+			'%d', 'DD',
+			'%-d', 'D',
+			'%u', 'E',
+			'%p', 'A',
+			'%H', 'HH',
+			'%-H', 'H',
+			'%I', 'hh',
+			'%-I', 'h',
+			'%A', 'dddd',
+			'%a', 'ddd',
+			'%M', 'mm',
+			'%-M', 'm',
+			'%S', 'ss',
+			'%s', 'X',
+			'%Q', 'SSS',
+			'%z', 'zz',
+			'%Z', 'z',
+			'%%', '%'
 		];
 	}
 }

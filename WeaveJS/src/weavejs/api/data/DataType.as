@@ -21,7 +21,7 @@ package weavejs.api.data
 	 */
 	public class DataType
 	{
-		public static const ALL_TYPES:Array = [NUMBER, STRING, DATE, GEOMETRY];
+		public static const ALL_TYPES:Array/*/<string>/*/ = [NUMBER, STRING, DATE, GEOMETRY];
 		
 		public static const NUMBER:String = "number";
 		public static const STRING:String = "string";
@@ -48,6 +48,24 @@ package weavejs.api.data
 				default:
 					return String;
 			}
+		}
+		
+		/**
+		 * @param data An Array of data values.
+		 * @return A dataType metadata value, or null if no data was found.
+		 */
+		public static function getDataTypeFromData(data:Array):String
+		{
+			for each (var value:* in data)
+			{
+				if (value is Number)
+					return NUMBER;
+				if (value is Date)
+					return DATE;
+				if (value != null)
+					return STRING;
+			}
+			return null;
 		}
 	}
 }

@@ -19,6 +19,14 @@ package weave.data.DataSources
 	
 	import mx.utils.StringUtil;
 	
+	import weave.api.detectLinkableObjectChange;
+	import weave.api.disposeObject;
+	import weave.api.getCallbackCollection;
+	import weave.api.getLinkableOwner;
+	import weave.api.linkableObjectIsBusy;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.ColumnMetadata;
@@ -28,30 +36,23 @@ package weave.data.DataSources
 	import weave.api.data.IDataSource_File;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.IWeaveTreeNode;
-	import weave.api.detectLinkableObjectChange;
-	import weave.api.disposeObject;
-	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableOwner;
-	import weave.api.linkableObjectIsBusy;
-	import weave.api.newLinkableChild;
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
 	import weave.core.LinkableFile;
 	import weave.core.LinkableString;
 	import weave.core.LinkableVariable;
 	import weave.core.LinkableXML;
+	import weave.data.CSVParser;
+	import weave.data.QKeyManager;
 	import weave.data.AttributeColumns.DateColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.NumberColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
 	import weave.data.AttributeColumns.ReferencedColumn;
 	import weave.data.AttributeColumns.StringColumn;
-	import weave.data.CSVParser;
-	import weave.data.QKeyManager;
 	import weave.data.hierarchy.ColumnTreeNode;
 	import weave.utils.HierarchyUtils;
+	import weave.utils.VectorUtils;
 	
 	/**
 	 * 
@@ -590,7 +591,7 @@ package weave.data.DataSources
 				if (dataType == DataType.DATE || (dateFormats && dateFormats.length > 0))
 				{
 					newColumn = new DateColumn(metadata);
-					(newColumn as DateColumn).setRecords(keysVector, strings);
+					(newColumn as DateColumn).setRecords(keysVector, VectorUtils.copy(strings, []));
 				}
 				else
 				{

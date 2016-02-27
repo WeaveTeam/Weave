@@ -40,8 +40,8 @@ package weavejs.data.column
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsList);
 		}
 		
-		public var useFirstColumnMetadata:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
-		public var columns:ILinkableHashMap = Weave.linkableChild(this, new LinkableHashMap(IAttributeColumn));
+		public const useFirstColumnMetadata:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
+		public const columns:ILinkableHashMap = Weave.linkableChild(this, new LinkableHashMap(IAttributeColumn));
 		private var keySetUnion:KeySetUnion = Weave.linkableChild(this, KeySetUnion);
 		
 		private var _columnsArray:Array = [];

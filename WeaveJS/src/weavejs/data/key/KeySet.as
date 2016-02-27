@@ -17,6 +17,7 @@ package weavejs.data.key
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.data.IKeySet;
+	import weavejs.api.data.IKeySetCallbackInterface;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.core.LinkableVariable;
 	import weavejs.util.JS;
@@ -38,7 +39,7 @@ package weavejs.data.key
 		/**
 		 * An interface for keys added and removed
 		 */
-		public var keyCallbacks:KeySetCallbackInterface = Weave.linkableChild(this, KeySetCallbackInterface);
+		public const keyCallbacks:IKeySetCallbackInterface = Weave.linkableChild(this, KeySetCallbackInterface);
 		
 		/**
 		 * Verifies that the value is a two-dimensional array or null.
@@ -127,7 +128,7 @@ package weavejs.data.key
 		/**
 		 * A list of keys included in this KeySet.
 		 */
-		public function get keys():Array
+		public function get keys():Array/*/<IQualifiedKey>/*/
 		{
 			return _keys;
 		}
@@ -137,7 +138,7 @@ package weavejs.data.key
 		 * @param newKeys An Array of IQualifiedKey objects.
 		 * @return true if the set changes as a result of calling this function.
 		 */
-		public function replaceKeys(newKeys:Array):Boolean
+		public function replaceKeys(newKeys:Array/*/<IQualifiedKey>/*/):Boolean
 		{
 			if (_locked)
 				return false;
@@ -168,7 +169,7 @@ package weavejs.data.key
 				// save key-to-index mapping
 				map_key_index.set(key, outputIndex);
 				// if the previous key index did not have this key, a change has been detected.
-				if (prevKeyIndex[key] == undefined)
+				if (prevKeyIndex.get(key) === undefined)
 				{
 					changeDetected = true;
 					keyCallbacks.keysAdded.push(key);
@@ -178,7 +179,8 @@ package weavejs.data.key
 			}
 			_keys.length = outputIndex; // trim to actual length
 			// loop through old keys and see if any were removed
-			for (key in prevKeyIndex)
+			var oldKeys:Array = JS.mapKeys(prevKeyIndex);
+			for each (key in oldKeys)
 			{
 				if (!map_key_index.has(key)) // if this previous key is gone now, change detected
 				{
@@ -233,7 +235,7 @@ package weavejs.data.key
 		 * @param additionalKeys A list of keys to add to this set.
 		 * @return true if the set changes as a result of calling this function.
 		 */
-		public function addKeys(additionalKeys:Array):Boolean
+		public function addKeys(additionalKeys:Array/*/<IQualifiedKey>/*/):Boolean
 		{
 			if (_locked)
 				return false;
@@ -265,7 +267,7 @@ package weavejs.data.key
 		 * @param unwantedKeys A list of keys to remove from this set.
 		 * @return true if the set changes as a result of calling this function.
 		 */
-		public function removeKeys(unwantedKeys:Array):Boolean
+		public function removeKeys(unwantedKeys:Array/*/<IQualifiedKey>/*/):Boolean
 		{
 			if (_locked)
 				return false;
@@ -307,7 +309,7 @@ package weavejs.data.key
 		/**
 		 * This function sets the session state for the KeySet.
 		 * @param value A CSV-formatted String where each row is a keyType followed by a list of key strings of that keyType.
-		 */		
+		 */
 		override public function setSessionState(value:Object):void
 		{
 			// backwards compatibility 0.9.6

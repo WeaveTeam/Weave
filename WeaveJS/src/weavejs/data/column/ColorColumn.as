@@ -50,8 +50,8 @@ package weavejs.data.column
 		// color values depend on the min,max stats of the internal column
 		private var _internalColumnStats:IColumnStatistics;
 		
-		public var ramp:ColorRamp = Weave.linkableChild(this, ColorRamp);
-		public var rampCenterAtZero:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(false), cacheState);
+		public const ramp:ColorRamp = Weave.linkableChild(this, ColorRamp);
+		public const rampCenterAtZero:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(false), cacheState);
 		
 		private var _rampCenterAtZero:Boolean;
 		private function cacheState():void
@@ -104,7 +104,7 @@ package weavejs.data.column
 		 * This is a CSV containing specific colors associated with record keys.
 		 * The format for each row in the CSV is:  keyType,localName,color
 		 */
-		public var recordColors:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(null, verifyRecordColors));
+		public const recordColors:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(null, verifyRecordColors));
 		private function verifyRecordColors(value:Object):Boolean
 		{
 			if (value is String)

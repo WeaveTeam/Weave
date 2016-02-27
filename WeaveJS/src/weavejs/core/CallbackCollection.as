@@ -6,6 +6,7 @@
 */
 package weavejs.core
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableObject;
@@ -17,12 +18,8 @@ package weavejs.core
 	 */
 	public class CallbackCollection implements ICallbackCollection, IDisposableObject
 	{
-		/**
-		 * Set this to true to enable stack traces for debugging.
-		 */
-		public static var debug:Boolean = false;
 		internal var _linkableObject:ILinkableObject; // for debugging only... will be set when debug==true
-		private var _lastTriggerStackTrace:String; // for debugging only... will be set when debug==true
+		private var _lastTriggerStackTrace:Error; // for debugging only... will be set when debug==true
 		private var _oldEntries:Array;
 
 		/**
@@ -74,9 +71,6 @@ package weavejs.core
 		 */
 		private var _triggerCounter:uint = DEFAULT_TRIGGER_COUNT;
 		
-		/**
-		 * @inheritDoc
-		 */
 		public final function addImmediateCallback(relevantContext:Object, callback:Function, runCallbackNow:Boolean = false, alwaysCallLast:Boolean = false):void
 		{
 			if (callback == null)
@@ -100,13 +94,10 @@ package weavejs.core
 			}
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public final function triggerCallbacks():void
 		{
-			if (debug)
-				_lastTriggerStackTrace = new Error(STACK_TRACE_TRIGGER).getStackTrace();
+			if (WeaveAPI.debugAsyncStack)
+				_lastTriggerStackTrace = new Error(STACK_TRACE_TRIGGER);
 			if (_delayCount > 0)
 			{
 				// we still want to increase the counter even if callbacks are delayed
@@ -158,13 +149,13 @@ package weavejs.core
 					else if (entry.context is CallbackCollection) // special case
 						shouldRemoveEntry = (entry.context as CallbackCollection)._wasDisposed;
 					else
-						shouldRemoveEntry = Weave.wasDisposed(entry.context);
+						shouldRemoveEntry = WeaveAPI.SessionManager.objectWasDisposed(entry.context);
 					if (shouldRemoveEntry)
 					{
 						entry.dispose();
 						// remove the empty callback reference from the list
 						var removed:Array = _callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
-						if (debug)
+						if (WeaveAPI.debugAsyncStack)
 							_oldEntries = _oldEntries ? _oldEntries.concat(removed) : removed;
 						continue;
 					}
@@ -187,9 +178,6 @@ package weavejs.core
 			_runCallbacksCompleted = true;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public final function removeCallback(relevantContext:Object, callback:Function):void
 		{
 			// if the callback was added as a grouped callback, we need to remove the trigger function
@@ -212,33 +200,21 @@ package weavejs.core
 			}
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public final function get triggerCounter():uint
 		{
 			return _triggerCounter;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public final function get callbacksAreDelayed():Boolean
 		{
 			return _delayCount > 0
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public final function delayCallbacks():void
 		{
 			_delayCount++;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public final function resumeCallbacks():void
 		{
 			if (_delayCount > 0)
@@ -248,9 +224,6 @@ package weavejs.core
 				triggerCallbacks();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function addDisposeCallback(relevantContext:Object, callback:Function):void
 		{
 			// don't do anything if the dispose callback was already added
@@ -266,14 +239,11 @@ package weavejs.core
 		 */		
 		private var _disposeCallbackEntries:Array = [];
 
-		/**
-		 * @inheritDoc
-		 */
 		public function dispose():void
 		{
 			// remove all callbacks
 			var entry:CallbackEntry;
-			if (debug)
+			if (WeaveAPI.debugAsyncStack)
 				_oldEntries = _oldEntries ? _oldEntries.concat(_callbackEntries) : _callbackEntries.concat();
 			for each (entry in _callbackEntries)
 				entry.dispose();
@@ -285,7 +255,7 @@ package weavejs.core
 			{
 				entry = _disposeCallbackEntries.shift();
 				
-				if (entry.callback != null && !Weave.wasDisposed(entry.context))
+				if (entry.callback != null && !WeaveAPI.SessionManager.objectWasDisposed(entry.context))
 					entry.callback.apply(entry.context || entry.callback['this']);
 			}
 		}
@@ -303,9 +273,6 @@ package weavejs.core
 			return _wasDisposed;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function addGroupedCallback(relevantContext:Object, groupedCallback:Function, triggerCallbackNow:Boolean = false, delayWhileBusy:Boolean = true):void
 		{
 			GroupedCallbackEntry.addGroupedCallback(this, relevantContext, groupedCallback, triggerCallbackNow, delayWhileBusy);

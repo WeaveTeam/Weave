@@ -28,7 +28,7 @@ package weavejs.data.key
 			this.manager = manager;
 		}
 		
-		public function asyncStart(keyType:String, keyStrings:Array, outputKeys:Array = null):QKeyGetter
+		public function asyncStart(keyType:String, keyStrings:Array/*/<string>/*/, outputKeys:Array/*/<weavejs.api.data.IQualifiedKey>/*/ = null):QKeyGetter
 		{
 			if (!keyStrings)
 				keyStrings = [];

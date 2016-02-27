@@ -6,6 +6,7 @@
 */
 package weavejs.core
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
@@ -58,6 +59,11 @@ package weavejs.core
 		protected var _locked:Boolean = false;
 		
 		/**
+		 * If true, session states will be altered to bypass the diff calculation on DynamicState Arrays.
+		 */
+		protected var _bypassDiff:Boolean = true;
+		
+		/**
 		 * If a defaultValue is specified, callbacks will be triggered in a later frame unless they have already been triggered before then.
 		 * This behavior is desirable because it allows the initial value to be handled by the same callbacks that handles new values.
 		 * @param sessionStateType The type of values accepted for this sessioned property.
@@ -86,7 +92,7 @@ package weavejs.core
 				// If callbacks were triggered, make sure callbacks are triggered again one frame later when
 				// it is possible for other classes to have a pointer to this object and retrieve the value.
 				if (defaultValueTriggersCallbacks && triggerCounter > DEFAULT_TRIGGER_COUNT)
-					Weave.callLater(this, _defaultValueTrigger);
+					WeaveAPI.Scheduler.callLater(this, _defaultValueTrigger);
 			}
 		}
 		
@@ -118,17 +124,11 @@ package weavejs.core
 			return _sessionStateType;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function getSessionState():Object
 		{
 			return _sessionStateExternal;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function setSessionState(value:Object):void
 		{
 			if (_locked)
@@ -136,11 +136,7 @@ package weavejs.core
 
 			// cast value now in case it is not the appropriate type
 			if (_sessionStateType != null)
-			{
-				// using a local variable is necessary in order to avoid an 'as' compiler bug
-				var sst:Class = _sessionStateType;
-				value = value as sst;
-			}
+				value = value as _sessionStateType;
 			
 			// stop if verifier says it's not an accepted value
 			if (_verifier != null && !_verifier(value))
@@ -172,7 +168,8 @@ package weavejs.core
 				if (!wasCopied)
 					value = JS.copyObject(value);
 				
-				DynamicState.alterSessionStateToBypassDiff(value);
+				if (_bypassDiff)
+					DynamicState.alterSessionStateToBypassDiff(value);
 				
 				// save external copy, accessible via getSessionState()
 				_sessionStateExternal = value;
@@ -244,16 +241,13 @@ package weavejs.core
 
 		public function get state():Object
 		{
-			return _sessionStateExternal;
+			return getSessionState();
 		}
 		public function set state(value:Object):void
 		{
 			setSessionState(value);
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		override public function dispose():void
 		{
 			super.dispose();

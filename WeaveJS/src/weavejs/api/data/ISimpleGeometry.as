@@ -50,14 +50,14 @@ package weavejs.api.data
 		/**
 		 * Get the vertices.
 		 */
-		function getVertices():Array;
+		function getVertices():Array/*/<{x:number, y:number}>/*/;
 		
 		/**
 		 * Set the vertices.
 		 * 
 		 * @param An array of objects with x and y properties. 
 		 */		
-		function setVertices(o:Array):void;
+		function setVertices(o:Array/*/<{x:number, y:number}>/*/):void;
 		
 	}
 }

@@ -56,6 +56,6 @@ package weavejs.api.data
 		 * Gets children for this node.
 		 * @return A list of children implementing IWeaveTreeNode or null if this node has no children.
 		 */
-		function getChildren():Array;
+		function getChildren():Array/*/<IWeaveTreeNode>/*/;
     }
 }

@@ -11,25 +11,8 @@ package
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.api.core.IProgressIndicator;
-	import weavejs.api.core.IScheduler;
 	import weavejs.api.core.ISessionManager;
-	import weavejs.api.data.IAttributeColumnCache;
-	import weavejs.api.data.ICSVParser;
-	import weavejs.api.data.IQualifiedKeyManager;
-	import weavejs.api.data.IStatisticsCache;
-	import weavejs.api.ui.IEditorManager;
-	import weavejs.core.EditorManager;
-	import weavejs.core.LinkableHashMap;
-	import weavejs.core.LinkableVariable;
-	import weavejs.core.ProgressIndicator;
-	import weavejs.core.Scheduler;
-	import weavejs.core.SessionManager;
 	import weavejs.core.SessionStateLog;
-	import weavejs.data.AttributeColumnCache;
-	import weavejs.data.CSVParser;
-	import weavejs.data.StatisticsCache;
-	import weavejs.data.key.QKeyManager;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathUI;
 	import weavejs.util.Dictionary2D;
@@ -38,31 +21,19 @@ package
 	
 	public class Weave implements IDisposableObject
 	{
-		private static const HISTORY_SYNC_DELAY:int = 100;
+		public static const HISTORY_SYNC_DELAY:int = 100;
+		public static const FRAME_INTERVAL:Number = 1000/30;
 		
 		public function Weave()
 		{
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IQualifiedKeyManager, QKeyManager);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IScheduler, Scheduler);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IProgressIndicator, ProgressIndicator);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IStatisticsCache, StatisticsCache);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(IEditorManager, EditorManager);
-			WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
-			registerClass("FlexibleLayout", LinkableVariable);
-			
 			// set this property for backwards compatibility
 			this['WeavePath'] = WeavePathUI;
 			
-			root = disposableChild(this, LinkableHashMap);
+			root = disposableChild(this, WeaveAPI.ClassRegistry.getImplementations(ILinkableHashMap)[0]);
 			history = disposableChild(this, new SessionStateLog(root, HISTORY_SYNC_DELAY));
 			map_root_weave.set(root, this);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function dispose():void
 		{
 			Weave.dispose(this);
@@ -96,7 +67,24 @@ package
 			// handle path(linkableObject)
 			if (basePath.length == 1 && isLinkable(basePath[0]))
 				basePath = findPath(root, basePath[0]);
-			return new WeavePathUI(this, basePath);
+			return basePath ? new WeavePathUI(this, basePath) : null;
+		}
+		
+		/**
+		 * Gets the ILinkableObject at a specified path.
+		 * @param path An Array (or multiple parameters) specifying the path to an object in the session state.
+		 *             A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
+		 */
+		public function getObject(...path):ILinkableObject
+		{
+			if (path.length == 1)
+			{
+				if (path[0] is WeavePath)
+					return (path[0] as WeavePath).getObject();
+				if (path[0] is Array)
+					path = path[0];
+			}
+			return Weave.followPath(root, path);
 		}
 
 		
@@ -133,7 +121,7 @@ package
 		 * Shortcut for WeaveAPI.SessionManager.getPath()
 		 * @copy weave.api.core.ISessionManager#getPath()
 		 */
-		public static function findPath(root:ILinkableObject, descendant:ILinkableObject):Array
+		public static function findPath(root:ILinkableObject, descendant:ILinkableObject):Array/*/<string>/*/
 		{
 			return WeaveAPI.SessionManager.getPath(root, descendant);
 		}
@@ -142,7 +130,7 @@ package
 		 * Shortcut for WeaveAPI.SessionManager.getObject()
 		 * @copy weave.api.core.ISessionManager#getObject()
 		 */
-		public static function followPath(root:ILinkableObject, path:Array):ILinkableObject
+		public static function followPath(root:ILinkableObject, path:Array/*/<string|number>/*/):ILinkableObject
 		{
 			return WeaveAPI.SessionManager.getObject(root, path);
 		}
@@ -167,14 +155,14 @@ package
 		 * @return A value of true if the callbacks for any of the objects have triggered since the last time this function was called
 		 *         with the same observer for any of the specified linkable objects.
 		 */
-		public static function detectChange(observer:Object, linkableObject:ILinkableObject, ...moreLinkableObjects):Boolean
+		public static function detectChange(observer:Object, linkableObject:ILinkableObject, ...moreLinkableObjects/*/<ILinkableObject>/*/):Boolean
 		{
 			var changeDetected:Boolean = false;
 			moreLinkableObjects.unshift(linkableObject);
 			// it's important not to short-circuit like a boolean OR (||) because we need to clear the 'changed' flag on each object.
 			for each (linkableObject in moreLinkableObjects)
-			if (linkableObject && _internalDetectChange(observer, linkableObject, true)) // clear 'changed' flag
-				changeDetected = true;
+				if (linkableObject && _internalDetectChange(observer, linkableObject, true)) // clear 'changed' flag
+					changeDetected = true;
 			return changeDetected;
 		}
 		/**
@@ -233,7 +221,7 @@ package
 		 * @return The closest ancestor of the given type.
 		 * @see weave.api.core.ISessionManager#getLinkableOwner()
 		 */
-		public static function getAncestor(descendant:ILinkableObject, ancestorType:Class):ILinkableObject
+		public static function getAncestor/*/<T>/*/(descendant:ILinkableObject, ancestorType:/*/new(..._:any[])=>T/*/Class):/*/T & ILinkableObject/*/ILinkableObject
 		{
 			var sm:ISessionManager = WeaveAPI.SessionManager;
 			do {
@@ -256,7 +244,7 @@ package
 		 * Shortcut for WeaveAPI.SessionManager.getLinkableDescendants()
 		 * @copy weave.api.core.ISessionManager#getLinkableDescendants()
 		 */
-		public static function getDescendants(object:ILinkableObject, filter:Class = null):Array
+		public static function getDescendants/*/<T>/*/(object:ILinkableObject, filter:/*/new(..._:any[])=>T/*/Class = null):Array/*/<T & ILinkableObject>/*/
 		{
 			return WeaveAPI.SessionManager.getLinkableDescendants(object, filter);
 		}
@@ -341,7 +329,7 @@ package
 		 * @see weave.api.core.ISessionManager#newLinkableChild()
 		 * @see weave.api.core.ISessionManager#registerLinkableChild()
 		 */
-		public static function linkableChild(linkableParent:Object, linkableChildOrType:Object, callback:Function = null, useGroupedCallback:Boolean = false):*
+		public static function linkableChild/*/<T extends ILinkableObject>/*/(linkableParent:Object, linkableChildOrType:/*/(new()=>T) | T/*/Object, callback:Function = null, useGroupedCallback:Boolean = false):/*/T/*/*
 		{
 			if (JS.isClass(linkableChildOrType))
 				return WeaveAPI.SessionManager.newLinkableChild(linkableParent, JS.asClass(linkableChildOrType), callback, useGroupedCallback);
@@ -386,54 +374,75 @@ package
 			return objectOrClass && objectOrClass.prototype is ILinkableObject;
 		}
 		
-		public static function callLater(context:Object, func:Function, args:Array = null):void
-		{
-			// temporary solution?
-			JS.setTimeout(function():void {
-				if (!wasDisposed(context))
-					func.apply(context, args);
-			}, 0);
-		}
-		
 		
 		
 		//////////////////////////////////////////////////////////////////////////////////
 		// static general helper functions
 		//////////////////////////////////////////////////////////////////////////////////
 		
-		private static const map_name_class:Object = new JS.Map();
-		private static const map_class_name:Object = new JS.Map();
-		
-		public static const defaultPackages:Array = [
-			'weavejs',
-			'weavejs.api',
-			'weavejs.api.core',
-			'weavejs.api.data',
-			'weavejs.api.service',
-			'weavejs.api.ui',
-			'weavejs.core',
-			'weavejs.data',
-			'weavejs.data.bin',
-			'weavejs.data.column',
-			'weavejs.data.hierarchy',
-			'weavejs.data.key',
-			'weavejs.data.source',
-			'weavejs.geom',
-			'weavejs.path',
-			'weavejs.util'
-		];
+		private static const map_class_isAsync:Object = new JS.Map();
 		
 		/**
-		 * Registers a class for use with Weave.className() and Weave.getDefinition().
+		 * Registers a class that must be instantiated asynchronously.
+		 * Dynamic items in the session state that extend this class will be replaced with
+		 * LinkablePlaceholder objects that can be replaced with actual instances later.
 		 */
-		public static function registerClass(name:String, definition:Class):void
+		public static function registerAsyncClass/*/<T>/*/(type:/*/new(..._:any[])=>T/*/Class, instanceHandler:/*/(instance:T)=>void/*/Function):void
 		{
-			map_name_class.set(name, definition);
-			map_class_name.set(definition, name);
+			var valueInMap:* = instanceHandler || true;
+			map_class_isAsync.set(type, valueInMap);
 			
-			var shortName:String = name.split('.').pop().split(':').pop();
-			if (shortName != name)
-				registerClass(shortName, definition);
+			// update previously-cached types in case async status has changed
+			for each (var cachedType:Class in JS.mapKeys(map_class_isAsync))
+			{
+				if (!map_class_isAsync.get(cachedType) && type.isPrototypeOf(cachedType))
+				{
+					// new type is in the prototype chain of a non-async type
+					map_class_isAsync.set(cachedType, valueInMap);
+				}
+			}
+		}
+		
+		/**
+		 * Checks if a class is or extends one that was registered through registerAsyncClass().
+		 */
+		public static function isAsyncClass(type:Class):Boolean
+		{
+			if (map_class_isAsync.has(type))
+				return map_class_isAsync.get(type);
+			
+			for each (var cachedType:Class in JS.mapKeys(map_class_isAsync))
+			{
+				var valueInMap:* = map_class_isAsync.get(cachedType);
+				if (valueInMap && cachedType.isPrototypeOf(type))
+				{
+					// new type extends registered async type
+					map_class_isAsync.set(type, valueInMap);
+					return true;
+				}
+			}
+			// new type does not extend any registered async type
+			map_class_isAsync.set(type, false);
+			return false;
+		}
+		
+		/**
+		 * Gets the function that was passed in to registerAsyncClass() for a given type.
+		 */
+		public static function getAsyncInstanceHandler(type:Class):Function
+		{
+			return map_class_isAsync.get(type) as Function;
+		}
+		
+		/**
+		 * Registers an ILinkableObject class for use with Weave.className() and Weave.getDefinition().
+		 * @param qualifiedName
+		 * @param definition
+		 * @param additionalInterfaces An Array of interfaces (Class objects) that the definition implements in addition to ILinkableObject.
+		 */
+		public static function registerClass(qualifiedName:String, definition:Class, additionalInterfaces:Array/*/<new()=>any>/*/ = null):void
+		{
+			WeaveAPI.ClassRegistry.registerClass(qualifiedName, definition, [ILinkableObject].concat(additionalInterfaces || []));
 		}
 		
 		/**
@@ -441,54 +450,15 @@ package
 		 */
 		public static function className(def:Object):String
 		{
-			if (!def)
-				return null;
-			
-			if (!def.prototype)
-				def = def.constructor;
-			
-			if (def.prototype && def.prototype.FLEXJS_CLASS_INFO)
-				return def.prototype.FLEXJS_CLASS_INFO.names[0].qName;
-			
-			if (map_class_name.has(def))
-				return map_class_name.get(def);
-			
-			return def.name;
+			return WeaveAPI.ClassRegistry.getClassName(def);
 		}
 		
+		/**
+		 * Looks up a static definition by name.
+		 */
 		public static function getDefinition(name:String):*
 		{
-			if (!name)
-				return undefined;
-			
-			var def:* = JS.global;
-			var names:Array = name.split('.');
-			for each (var key:String in names)
-			{
-				if (def !== undefined)
-					def = def[key];
-				else
-					break;
-			}
-			if (def)
-				return def;
-			
-			if (names.length == 1)
-			{
-				for each (var pkg:String in defaultPackages)
-				{
-					def = getDefinition(pkg + '.' + name);
-					if (def)
-						return def;
-				}
-			}
-			
-			def = map_name_class.get(name);
-			if (def)
-				return def;
-			
-			if (name.indexOf("::") > 0)
-				return getDefinition(name.split('::').pop());
+			return WeaveAPI.ClassRegistry.getDefinition(name);
 		}
 		
 		/**
@@ -500,7 +470,7 @@ package
 		 */
 		public static function stringify(value:*, replacer:Function = null, indent:* = null, json_values_only:Boolean = false):String
 		{
-			indent = typeof indent === 'number' ? StandardLib.lpad('', indent, ' ') : indent as String || ''
+			indent = typeof indent === 'number' ? StandardLib.lpad('', indent, ' ') : indent as String || '';
 			return _stringify("", value, replacer, indent ? '\n' : '', indent, json_values_only);
 		}
 		private static function _stringify(key:String, value:*, replacer:Function, lineBreak:String, indent:String, json_values_only:Boolean):String
@@ -584,14 +554,12 @@ package
 		 */
 		public static function lang(text:String, ...parameters):String
 		{
-			var newText:String = text;
+			// call localize() either way to let the LocaleManager know that we are interested in translations of this text.
+			var newText:String = WeaveAPI.Locale.getText(text);
 			
 			try
 			{
-				// call localize() either way to let the LocaleManager know that we are interested in translations of this text.
-				newText = WeaveAPI.LocaleManager.localize(text);
-				
-				if (WeaveAPI.LocaleManager.getLocale() == 'developer')
+				if (WeaveAPI.Locale['locale'] == 'developer')
 				{
 					parameters.unshift(text);
 					return 'lang("' + parameters.join('", "') + '")';
@@ -605,6 +573,25 @@ package
 				return StandardLib.substitute(newText, parameters);
 			
 			return newText;
+		}
+		
+		/**
+		 * For testing purposes.
+		 */
+		public function triggerColumns():void
+		{
+			triggerAll('ReferencedColumn');
+		}
+		
+		/**
+		 * For testing purposes.
+		 */
+		public function triggerAll(filter:*):void
+		{
+			if (filter is String)
+				filter = getDefinition(filter);
+			Weave.getDescendants(root, JS.asClass(filter))
+				.forEach(function(obj:ILinkableObject):void { getCallbacks(obj).triggerCallbacks(); });
 		}
 	}
 }

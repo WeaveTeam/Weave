@@ -34,9 +34,6 @@ package weavejs.data.bin
 			super(true, false);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		override public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			// clear any existing bin classifiers

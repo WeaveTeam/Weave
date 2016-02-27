@@ -65,9 +65,9 @@ package weavejs.core
 		{
 			_task = task;
 			_description = description;
-			_callbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
+			_callbackCollection = Weave.getCallbacks(this);
 			_callbackCollection.addImmediateCallback(this, _immediateCallback);
-			_callbackCollection.addGroupedCallback(this, _groupedCallback, validateNow);
+			_callbackCollection.addGroupedCallback(this, _groupedCallback, validateNow, false);
 			if (validateNow)
 			{
 				_lazy = false;

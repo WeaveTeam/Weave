@@ -31,7 +31,7 @@ package weave.data.DataSources
 		{
 			var name:String = WeaveAPI.globalHashMap.getName(this);
 			var classDef:Class = ClassUtils.getClassDefinition(type.value);
-			var state:Object = state.state;
+			var state:Object = this.state.state;
 			var dataSource:IDataSource = WeaveAPI.globalHashMap.requestObject(name, classDef, false);
 			setSessionState(dataSource, state);
 		}

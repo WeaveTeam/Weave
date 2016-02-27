@@ -15,12 +15,13 @@
 
 package weave.data.KeySets
 {
+	import weave.api.data.IKeySetCallbackInterface;
 	import weave.core.CallbackCollection;
 	
 	/**
 	 * Provides an interface for getting KeySet event-related information.
 	 */
-	public class KeySetCallbackInterface extends CallbackCollection
+	public class KeySetCallbackInterface extends CallbackCollection implements IKeySetCallbackInterface
 	{
 		public function KeySetCallbackInterface()
 		{
@@ -28,35 +29,48 @@ package weave.data.KeySets
 			// variables will be set before each change callback.
 			super(setCallbackVariables);
 		}
-		private function setCallbackVariables(keysAdded:Array, keysRemoved:Array):void
+		
+		private var _keysAdded:Array = [];
+		private var _keysRemoved:Array = [];
+		
+		private function setCallbackVariables(keysAdded:Array = null, keysRemoved:Array = null):void
 		{
-			this.keysAdded = keysAdded;
-			this.keysRemoved = keysRemoved;
+			_keysAdded = keysAdded || [];
+			_keysRemoved = keysRemoved || [];
 		}
 		
 		/**
-		 * This function should be called when keysAdded and keysRemoved are ready to be shared with the callbacks.
-		 * The keysAdded and keysRemoved Arrays will be reset to empty Arrays after the callbacks finish running.
+		 * @inheritDoc
 		 */	
 		public function flushKeys():void
 		{
-			if (keysAdded.length || keysRemoved.length)
-				_runCallbacksImmediately(keysAdded, keysRemoved);
+			if (_keysAdded.length || _keysRemoved.length)
+				_runCallbacksImmediately(_keysAdded, _keysRemoved);
 			setCallbackVariables([], []); // reset the variables to new arrays
 		}
 		
 		/**
-		 * The keys that were most recently added, causing callbacks to trigger.
-		 * This can be used as a buffer prior to calling flushKeys().
-		 * @see #flushKeys()
+		 * @inheritDoc
 		 */
-		public var keysAdded:Array = [];
+		public function get keysAdded():Array
+		{
+			return _keysAdded;
+		}
+		public function set keysAdded(qkeys:Array):void
+		{
+			_keysAdded = qkeys;
+		}
 		
 		/**
-		 * The keys that were most recently removed, causing callbacks to trigger.
-		 * This can be used as a buffer prior to calling flushKeys().
-		 * @see #flushKeys()
+		 * @inheritDoc
 		 */
-		public var keysRemoved:Array = [];
+		public function get keysRemoved():Array
+		{
+			return _keysRemoved;
+		}
+		public function set keysRemoved(qkeys:Array):void
+		{
+			_keysRemoved = qkeys;
+		}
 	}
 }

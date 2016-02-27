@@ -70,7 +70,7 @@ package weavejs.data.column
 		 * This defines how to generate the bins for this BinnedColumn.
 		 * This is used to generate the derivedBins.
 		 */
-		public var binningDefinition:DynamicBinningDefinition = Weave.linkableChild(this, new DynamicBinningDefinition(true));
+		public const binningDefinition:DynamicBinningDefinition = Weave.linkableChild(this, new DynamicBinningDefinition(true));
 		
 		private var _binNames:Array = []; // maps a bin index to a bin name
 		private var _binClassifiers:Array = []; // maps a bin index to an IBinClassifier
@@ -177,7 +177,7 @@ package weavejs.data.column
 		 * @param binIndex The index of the bin to get the keys from.
 		 * @return An Array of keys in the specified bin.
 		 */
-		public function getKeysFromBinIndex(binIndex:uint):Array
+		public function getKeysFromBinIndex(binIndex:uint):Array/*/<IQualifiedKey>/*/
 		{
 			validateBins();
 			if (binIndex < _binnedKeysArray.length)
@@ -190,7 +190,7 @@ package weavejs.data.column
 		 * @param binIndex The name of the bin to get the keys from.
 		 * @return An Array of keys in the specified bin.
 		 */
-		public function getKeysFromBinName(binName:String):Array
+		public function getKeysFromBinName(binName:String):Array/*/<IQualifiedKey>/*/
 		{
 			validateBins();
 			return _binnedKeysMap[binName] as Array;

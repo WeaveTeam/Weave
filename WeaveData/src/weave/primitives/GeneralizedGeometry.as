@@ -16,7 +16,7 @@
 package weave.primitives
 {
 	import flash.utils.Dictionary;
-
+	
 	import weave.api.data.ISimpleGeometry;
 	import weave.api.primitives.IBounds2D;
 	import weave.utils.BLGTreeUtils;
@@ -94,7 +94,7 @@ package weave.primitives
 		 * Generates a GeoJson Geometry object.
 		 * @param minImportance No points with importance less than this value will be returned.
 		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
-		 * @return A GeoJson Geometry object.
+		 * @return A GeoJson Geometry object, or null if there are no coordinates.
 		 */
 		public function toGeoJson(minImportance:Number = 0, visibleBounds:IBounds2D = null):Object
 		{
@@ -119,7 +119,8 @@ package weave.primitives
 					{
 						lineString.push([node.x, node.y]);
 					}
-					coords.push(lineString);
+					if (lineString.length)
+						coords.push(lineString);
 				}
 			}
 			else if (type == GeoJSON.T_MULTI_POLYGON)
@@ -138,10 +139,12 @@ package weave.primitives
 					var last:Array = linearRing[linearRing.length - 1];
 					if (first && !(first[0] == last[0] && first[1] == last[1]))
 						linearRing.push(first.concat());
-
-					polygon.push(linearRing);
+					
+					if (linearRing.length)
+						polygon.push(linearRing);
 				}
-				coords.push(polygon);
+				if (polygon.length)
+					coords.push(polygon);
 			}
 
 			var geom:Object = {};

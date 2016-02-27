@@ -16,16 +16,15 @@
 package weavejs
 {
 	import weavejs.api.core.IClassRegistry;
-	import weavejs.api.core.ILocaleManager;
+	import weavejs.api.core.ILocale;
 	import weavejs.api.core.IProgressIndicator;
 	import weavejs.api.core.IScheduler;
 	import weavejs.api.core.ISessionManager;
 	import weavejs.api.data.IAttributeColumnCache;
 	import weavejs.api.data.ICSVParser;
-	import weavejs.api.data.IProjectionManager;
 	import weavejs.api.data.IQualifiedKeyManager;
 	import weavejs.api.data.IStatisticsCache;
-	import weavejs.api.service.IURLRequestUtils;
+	import weavejs.api.net.IURLRequestUtils;
 	import weavejs.api.ui.IEditorManager;
 	import weavejs.core.ClassRegistryImpl;
 	
@@ -36,6 +35,11 @@ package weavejs
 	 */
 	public class WeaveAPI
 	{
+		/**
+		 * Set this to true to enable stack traces for debugging.
+		 */
+		public static var debugAsyncStack:Boolean = false;
+		
 		/**
 		 * For use with StageUtils.startTask(); this priority is used for things that MUST be done before anything else.
 		 * Tasks having this priority will take over the scheduler and prevent any other asynchronous task from running until it is completed.
@@ -74,7 +78,7 @@ package weavejs
 		 */
 		public static function get SessionManager():ISessionManager
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[ISessionManager]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(ISessionManager)
 				|| _classRegistry.getSingletonInstance(ISessionManager);
 		}
 		
@@ -83,25 +87,16 @@ package weavejs
 		 */
 		public static function get Scheduler():IScheduler
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IScheduler]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IScheduler)
 				|| _classRegistry.getSingletonInstance(IScheduler);
 		}
 		
-//		/**
-//		 * This is the singleton instance of the registered IStageUtils implementation.
-//		 */
-//		public static function get StageUtils():IStageUtils
-//		{
-//			return (_classRegistry || ClassRegistry).singletonInstances[IStageUtils]
-//				|| _classRegistry.getSingletonInstance(IStageUtils);
-//		}
-
 		/**
 		 * This is the singleton instance of the registered IProgressIndicator implementation.
 		 */
 		public static function get ProgressIndicator():IProgressIndicator
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IProgressIndicator]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IProgressIndicator)
 				|| _classRegistry.getSingletonInstance(IProgressIndicator);
 		}
 		
@@ -110,7 +105,7 @@ package weavejs
 		 */
 		public static function get AttributeColumnCache():IAttributeColumnCache
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IAttributeColumnCache]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IAttributeColumnCache)
 				|| _classRegistry.getSingletonInstance(IAttributeColumnCache);
 		}
 		
@@ -119,17 +114,8 @@ package weavejs
 		 */
 		public static function get StatisticsCache():IStatisticsCache
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IStatisticsCache]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IStatisticsCache)
 				|| _classRegistry.getSingletonInstance(IStatisticsCache);
-		}
-		
-		/**
-		 * This is the singleton instance of the registered IProjectionManager implementation.
-		 */
-		public static function get ProjectionManager():IProjectionManager
-		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IProjectionManager]
-				|| _classRegistry.getSingletonInstance(IProjectionManager);
 		}
 		
 		/**
@@ -137,7 +123,7 @@ package weavejs
 		 */
 		public static function get QKeyManager():IQualifiedKeyManager
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IQualifiedKeyManager]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IQualifiedKeyManager)
 				|| _classRegistry.getSingletonInstance(IQualifiedKeyManager);
 		}
 		
@@ -146,7 +132,7 @@ package weavejs
 		 */
 		public static function get CSVParser():ICSVParser
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[ICSVParser]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(ICSVParser)
 				|| _classRegistry.getSingletonInstance(ICSVParser);
 		}
 		
@@ -155,24 +141,24 @@ package weavejs
 		 */
 		public static function get URLRequestUtils():IURLRequestUtils
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IURLRequestUtils]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IURLRequestUtils)
 				|| _classRegistry.getSingletonInstance(IURLRequestUtils);
 		}
 		
 		/**
 		 * This is the singleton instance of the registered ILocaleManager implementation.
 		 */
-		public static function get LocaleManager():ILocaleManager
+		public static function get Locale():ILocale
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[ILocaleManager]
-				|| _classRegistry.getSingletonInstance(ILocaleManager);
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(ILocale)
+				|| _classRegistry.getSingletonInstance(ILocale);
 		}
 		/**
 		 * This is the singleton instance of the registered IEditorManager implementation.
 		 */
 		public static function get EditorManager():IEditorManager
 		{
-			return (_classRegistry || ClassRegistry).singletonInstances[IEditorManager]
+			return (_classRegistry || ClassRegistry as ClassRegistryImpl).map_interface_singletonInstance.get(IEditorManager)
 				|| _classRegistry.getSingletonInstance(IEditorManager);
 		}
 	}

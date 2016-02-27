@@ -6,45 +6,89 @@
 */
 package
 {
+	import weavejs.WeaveAPI;
+	import weavejs.api.core.ILinkableDynamicObject;
+	import weavejs.api.core.ILinkableHashMap;
+	import weavejs.api.core.ILocale;
+	import weavejs.api.core.IProgressIndicator;
+	import weavejs.api.core.IScheduler;
+	import weavejs.api.core.ISessionManager;
+	import weavejs.api.data.IAttributeColumnCache;
+	import weavejs.api.data.ICSVParser;
+	import weavejs.api.data.IQualifiedKeyManager;
+	import weavejs.api.data.IStatisticsCache;
+	import weavejs.api.net.IURLRequestUtils;
+	import weavejs.api.ui.IEditorManager;
+	import weavejs.core.EditorManager;
+	import weavejs.core.LinkableDynamicObject;
+	import weavejs.core.LinkableHashMap;
+	import weavejs.core.LinkableVariable;
+	import weavejs.core.Locale;
+	import weavejs.core.ProgressIndicator;
+	import weavejs.core.Scheduler;
+	import weavejs.core.SessionManager;
+	import weavejs.data.AttributeColumnCache;
+	import weavejs.data.CSVParser;
 	import weavejs.data.ColumnUtils;
-	import weavejs.path.WeavePath;
-	import weavejs.util.JS;
+	import weavejs.data.StatisticsCache;
+	import weavejs.data.key.QKeyManager;
+	import weavejs.geom.SolidFillStyle;
+	import weavejs.geom.SolidLineStyle;
+	import weavejs.net.URLRequestUtils;
 	
 	public class WeaveJS
 	{
-		public static const _init:* = JS.fix_is();
-		
 		public function WeaveJS()
 		{
 		}
 		
-		private static const WEAVE_EXTERNAL_TOOLS:String = "WeaveExternalTools";
 		public function start():void
 		{
-			var window:Object = JS.global;
+			WeaveAPI.ClassRegistry['defaultPackages'].push(
+				'weavejs',
+				'weavejs.api',
+				'weavejs.api.core',
+				'weavejs.api.data',
+				'weavejs.api.service',
+				'weavejs.api.ui',
+				'weavejs.core',
+				'weavejs.data',
+				'weavejs.data.bin',
+				'weavejs.data.column',
+				'weavejs.data.hierarchy',
+				'weavejs.data.key',
+				'weavejs.data.source',
+				'weavejs.geom',
+				'weavejs.path',
+				'weavejs.util'
+			);
+			
+			WeaveAPI.ClassRegistry.registerImplementation(ILinkableHashMap, LinkableHashMap);
+			WeaveAPI.ClassRegistry.registerImplementation(ILinkableDynamicObject, LinkableDynamicObject);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IURLRequestUtils, URLRequestUtils);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IQualifiedKeyManager, QKeyManager);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IScheduler, Scheduler);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IProgressIndicator, ProgressIndicator);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IStatisticsCache, StatisticsCache);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(IEditorManager, EditorManager);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
+			WeaveAPI.ClassRegistry.registerSingletonImplementation(ILocale, Locale);
+			Weave.registerClass("FlexibleLayout", LinkableVariable);
+			Weave.registerClass("ExternalTool", LinkableHashMap);
+			Weave.registerClass("ExtendedFillStyle", SolidFillStyle);
+			Weave.registerClass("ExtendedLineStyle", SolidLineStyle);
 			
 			// TEMPORARY HACK - omit keySet filter
-			var joinColumns:Function = ColumnUtils['joinColumns'];
-			ColumnUtils['joinColumns'] = function(columns:Array, dataType:Object = null, allowMissingData:Boolean = false):Array {
-				return joinColumns.call(ColumnUtils, columns, dataType, allowMissingData);
-			};
+//			var joinColumns:Function = ColumnUtils.joinColumns;
+//			ColumnUtils['joinColumns'] = function(columns:Array, dataType:Object = null, allowMissingData:Boolean = false):Array {
+//				return joinColumns.call(ColumnUtils, columns, dataType, allowMissingData);
+//			};
 			
-			if (window.opener && window.opener[WEAVE_EXTERNAL_TOOLS] && window.opener[WEAVE_EXTERNAL_TOOLS][window.name])
-			{
-				JS.log('using WeaveJS');
-				var weave:Weave = new Weave();
-				// ownerPath is a WeavePath from ActionScript Weave
-				var ownerPath:* = window.opener.WeaveExternalTools[window.name].path;
-				WeavePath.migrate(ownerPath, weave);
-				
-				window.weave = weave;
-			}
-			else
-			{
-				// TEMPORARY until we read a session state using url params
-				//WeaveTest.test(weave);
-				WeaveTest;
-			}
+			// TEMPORARY
+			//WeaveTest.test(weave);
+			WeaveTest;
 		}
 	}
 }

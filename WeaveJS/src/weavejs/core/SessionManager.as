@@ -15,8 +15,6 @@
 
 package weavejs.core
 {
-	import avmplus.getQualifiedClassName;
-	
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
@@ -32,6 +30,7 @@ package weavejs.core
 	import weavejs.util.Dictionary2D;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
+	import weavejs.util.WeavePromise;
 	import weavejs.util.WeaveTreeItem;
 
 	/**
@@ -41,11 +40,8 @@ package weavejs.core
 	 */
 	public class SessionManager implements ISessionManager
 	{
-		public var debugBusyTasks:Boolean = false;
+		public static var debugUnbusy:Boolean = false;
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function newLinkableChild(linkableParent:Object, linkableChildType:Class, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
 			if (!Weave.isLinkable(linkableParent))
@@ -67,9 +63,6 @@ package weavejs.core
 			return registerLinkableChild(linkableParent, linkableChild, callback, useGroupedCallback);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function registerLinkableChild(linkableParent:Object, linkableChild:ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):*
 		{
 			if (!Weave.isLinkable(linkableParent))
@@ -113,17 +106,11 @@ package weavejs.core
 			return linkableChild;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function newDisposableChild(disposableParent:Object, disposableChildType:Class):*
 		{
 			return registerDisposableChild(disposableParent, new disposableChildType());
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function registerDisposableChild(disposableParent:Object, disposableChild:Object):*
 		{
 			if (!disposableParent)
@@ -194,9 +181,6 @@ package weavejs.core
 			return d2d_parent_child.secondaryKeys(parent);
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function getLinkableOwner(child:ILinkableObject):ILinkableObject
 		{
 			return map_child_owner.get(child) as ILinkableObject;
@@ -309,7 +293,7 @@ package weavejs.core
 				state = getSessionState(node.data as ILinkableObject);
 			else
 				state = children.map(getTypedStateFromTreeNode);
-			return DynamicState.create(node.label, getQualifiedClassName(node.data), state);
+			return DynamicState.create(node.label, Weave.className(node.data), state);
 		}
 		
 		/**
@@ -320,15 +304,12 @@ package weavejs.core
 		{
 			_treeCallbacks.addGroupedCallback(relevantContext, groupedCallback, triggerCallbackNow);
 		}
-		public function removeTreeCallback(relevantContext, groupedCallback:Function):void
+		public function removeTreeCallback(relevantContext:Object, groupedCallback:Function):void
 		{
 			_treeCallbacks.removeCallback(relevantContext, groupedCallback);
 		}
 		private var _treeCallbacks:CallbackCollection = new CallbackCollection();
 
-		/**
-		 * @inheritDoc
-		 */
 		public function copySessionState(source:ILinkableObject, destination:ILinkableObject):void
 		{
 			var sessionState:Object = getSessionState(source);
@@ -351,10 +332,37 @@ package weavejs.core
 			
 			return base;
 		}
-
+		
+		public static const DEPRECATED_STATE_MAPPING:String = 'deprecatedStateMapping';
+		
 		/**
-		 * @inheritDoc
+		 * Uses DynamicState.traverseState() to traverse a state and copy portions of the state to ILinkableObjects.
+		 * @param state A session state
+		 * @param mapping A structure that defines the traversal, where the leaf nodes are ILinkableObjects or Functions to call.
+		 *                Functions should have the following signature: function(state:Object, removeMissingDynamicObjects:Boolean = true):void
 		 */
+		public static function traverseAndSetState(state:Object, mapping:Object, removeMissingDynamicObjects:Boolean = true):void
+		{
+			var ilo:ILinkableObject = mapping as ILinkableObject;
+			if (ilo)
+			{
+				Weave.setState(ilo, state, removeMissingDynamicObjects);
+			}
+			else if (mapping is Function)
+			{
+				mapping(state, removeMissingDynamicObjects);
+			}
+			else if (state && typeof state === 'object' && typeof mapping === 'object')
+			{
+				for (var key:* in mapping)
+				{
+					var value:* = DynamicState.traverseState(state, [key]);
+					if (value !== undefined)
+						traverseAndSetState(value, mapping[key], removeMissingDynamicObjects);
+				}
+			}
+		}
+
 		public function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean = true):void
 		{
 			if (linkableObject == null)
@@ -408,11 +416,12 @@ package weavejs.core
 			
 			// set session state
 			var foundMissingProperty:Boolean = false;
+			var hasDeprecatedStateMapping:Boolean = linkableObject is ILinkableObjectWithNewProperties || JS.hasProperty(linkableObject, DEPRECATED_STATE_MAPPING);
 			for each (name in propertyNames)
 			{
 				if (!newState.hasOwnProperty(name))
 				{
-					if (removeMissingDynamicObjects && linkableObject is ILinkableObjectWithNewProperties)
+					if (removeMissingDynamicObjects && hasDeprecatedStateMapping)
 						foundMissingProperty = true;
 					continue;
 				}
@@ -437,16 +446,51 @@ package weavejs.core
 				setSessionState(property, newState[name], removeMissingDynamicObjects);
 			}
 			
-			// handle properties appearing in session state that do not appear in the linkableObject 
-			if (linkableObject is ILinkableObjectWithNewProperties)
-				for (name in newState)
-					(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperty(newState, name);
-			
-			// handle properties missing from absolute session state
-			if (foundMissingProperty)
-				for each (name in propertyNames)
-					if (!newState.hasOwnProperty(name))
-						(linkableObject as ILinkableObjectWithNewProperties).handleMissingSessionStateProperty(newState, name);
+			if (hasDeprecatedStateMapping)
+			{
+				var doMapping:Boolean = false;
+				if (foundMissingProperty)
+				{
+					// handle properties missing from absolute session state
+					for each (name in propertyNames)
+					{
+						if (!newState.hasOwnProperty(name))
+						{
+							doMapping = true;
+							break;
+						}
+					}
+				}
+				else
+				{
+					// handle properties appearing in session state that do not appear in the linkableObject 
+					for (name in newState)
+					{
+						try
+						{
+							property = linkableObject[name] as ILinkableObject;
+						}
+						catch (e:Error)
+						{
+							JS.error('SessionManager.setSessionState(): Unable to get property "'+name+'" of class "'+Weave.className(linkableObject)+'"',e);
+						}
+						if (!property || !Weave.isLinkable(property) || !d2d_child_parent.get(property, linkableObject))
+						{
+							doMapping = true;
+							break;
+						}
+					}
+				}
+				if (doMapping)
+				{
+					var mapping:Object = linkableObject[DEPRECATED_STATE_MAPPING];
+					if (mapping is Function)
+						mapping.call(linkableObject, newState, removeMissingDynamicObjects);
+					else
+						for each (var item:Object in (mapping as Array || [mapping]))
+							traverseAndSetState(newState, item, removeMissingDynamicObjects);
+				}
+			}
 			
 			// resume callbacks after setting session state
 			objectCC.resumeCallbacks();
@@ -457,9 +501,6 @@ package weavejs.core
 		 */
 		private var map_obj_getSessionStateIgnore:Object = new JS.WeakMap();
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getSessionState(linkableObject:ILinkableObject):Object
 		{
 			if (linkableObject == null)
@@ -484,7 +525,11 @@ package weavejs.core
 				// implicit session state
 				// first pass: get property names
 				
-				var propertyNames:Array = JS.getPropertyNames(linkableObject, true);
+				var propertyNames:Array;
+				if (Weave.isAsyncClass(linkableObject['constructor']))
+					propertyNames = JS.getOwnPropertyNames(linkableObject);
+				else
+					propertyNames = JS.getPropertyNames(linkableObject, true); // includes getters
 				var resultNames:Array = [];
 				var resultProperties:Array = [];
 				var property:ILinkableObject = null;
@@ -560,7 +605,11 @@ package weavejs.core
 			var name:String;
 			// get the names from the object itself because each instance must have different
 			// linkable children, so we don't want to grab them from the prototype
-			var propertyNames:Array = JS.getPropertyNames(linkableObject, true);
+			var propertyNames:Array;
+			if (Weave.isAsyncClass(linkableObject['constructor']))
+				propertyNames = JS.getOwnPropertyNames(linkableObject);
+			else
+				propertyNames = JS.getPropertyNames(linkableObject, true); // includes getters
 			
 			var linkableNames:Array = [];
 			for each (name in propertyNames)
@@ -594,9 +643,6 @@ package weavejs.core
 		 */
 		private var d2d_parent_child:Dictionary2D = new Dictionary2D(true, false);
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getLinkableDescendants(root:ILinkableObject, filter:Class = null):Array
 		{
 			var result:Array = [];
@@ -636,19 +682,16 @@ package weavejs.core
 			d2d_task_owner.removeAllSecondary(disposedObject);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function assignBusyTask(taskToken:Object, busyObject:ILinkableObject):void
 		{
-			if (debugBusyTasks)
+			if (WeaveAPI.debugAsyncStack)
 				map_task_stackTrace.set(taskToken, new Error("Stack trace when task was last assigned"));
 			
 			// stop if already assigned
 			if (d2d_task_owner.get(taskToken, busyObject))
 				return;
 			
-			if (taskToken is JS.Promise && !WeaveAPI.ProgressIndicator.hasTask(taskToken))
+			if ((taskToken is WeavePromise || taskToken is JS.Promise) && !WeaveAPI.ProgressIndicator.hasTask(taskToken))
 			{
 				var unassign:Function = unassignBusyTask.bind(this, taskToken);
 				taskToken.then(unassign, unassign);
@@ -658,9 +701,6 @@ package weavejs.core
 			d2d_task_owner.set(taskToken, busyObject, true);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function unassignBusyTask(taskToken:Object):void
 		{
 			if (WeaveAPI.ProgressIndicator.hasTask(taskToken))
@@ -685,7 +725,7 @@ package weavejs.core
 				// immediate priority because we want to trigger as soon as possible
 				WeaveAPI.Scheduler.startTask(null, unbusyTrigger, WeaveAPI.TASK_PRIORITY_IMMEDIATE);
 				
-				if (debugBusyTasks)
+				if (WeaveAPI.debugAsyncStack)
 				{
 					var stackTrace:Error = new Error("Stack trace when last task was unassigned");
 					map_unbusyStackTraces.set(owner, {
@@ -726,7 +766,7 @@ package weavejs.core
 					if (linkableObjectIsBusy(owner))
 						continue; // busy again
 					
-					if (debugBusyTasks)
+					if (WeaveAPI.debugAsyncStack && debugUnbusy)
 					{
 						var stackTraces:Object = map_unbusyStackTraces.get(owner);
 						JS.log('Triggering callbacks because they have not triggered since owner has becoming unbusy:', owner);
@@ -741,9 +781,6 @@ package weavejs.core
 			return 1;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function linkableObjectIsBusy(linkableObject:ILinkableObject):Boolean
 		{
 			// get the ILinkableObject associated with the the ICallbackCollection
@@ -760,11 +797,12 @@ package weavejs.core
 			
 			outerLoop: for (var i:int = 0; i < array_busyTraversal.length; i++)
 			{
-				linkableObject = array_busyTraversal[i] as ILinkableObject;
+				linkableObject = array_busyTraversal[i];
 				
-				if (linkableObject is ILinkableObjectWithBusyStatus)
+				var ilowbs:ILinkableObjectWithBusyStatus = linkableObject as ILinkableObjectWithBusyStatus;
+				if (ilowbs)
 				{
-					if ((linkableObject as ILinkableObjectWithBusyStatus).isBusy())
+					if (ilowbs.isBusy())
 					{
 						busy = true;
 						break;
@@ -777,7 +815,7 @@ package weavejs.core
 				var tasks:Array = d2d_owner_task.secondaryKeys(linkableObject);
 				for each (var task:Object in tasks)
 				{
-					if (debugBusyTasks)
+					if (WeaveAPI.debugAsyncStack)
 					{
 						var stackTrace:String = map_task_stackTrace.get(task);
 						//JS.log(stackTrace);
@@ -820,9 +858,6 @@ package weavejs.core
 		 */
 		private var map_ICallbackCollection_ILinkableObject:Object = new JS.WeakMap();
 
-		/**
-		 * @inheritDoc
-		 */
 		public function getCallbackCollection(linkableObject:ILinkableObject):ICallbackCollection
 		{
 			if (linkableObject == null)
@@ -835,7 +870,7 @@ package weavejs.core
 			if (objectCC == null)
 			{
 				objectCC = registerDisposableChild(linkableObject, new CallbackCollection());
-				if (CallbackCollection.debug)
+				if (WeaveAPI.debugAsyncStack)
 					(objectCC as CallbackCollection)._linkableObject = linkableObject;
 				map_ILinkableObject_ICallbackCollection.set(linkableObject, objectCC);
 				map_ICallbackCollection_ILinkableObject.set(objectCC, linkableObject);
@@ -843,17 +878,11 @@ package weavejs.core
 			return objectCC;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getLinkableObjectFromCallbackCollection(callbackCollection:ICallbackCollection):ILinkableObject
 		{
 			return map_ICallbackCollection_ILinkableObject.get(callbackCollection) || callbackCollection;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function objectWasDisposed(object:Object):Boolean
 		{
 			if (object == null)
@@ -871,9 +900,6 @@ package weavejs.core
 		
 		private static const DISPOSE:String = "dispose"; // this is the name of the dispose() function.
 
-		/**
-		 * @inheritDoc
-		 */
 		public function disposeObject(object:Object):void
 		{
 			if (object != null && !map_disposed.get(object))
@@ -933,7 +959,7 @@ package weavejs.core
 					disposeObject(child);
 				
 				// FOR DEBUGGING PURPOSES
-				if (CallbackCollection.debug && linkableObject)
+				if (WeaveAPI.debugAsyncStack && linkableObject)
 				{
 					var error:Error = new Error("This is the stack trace from when the object was previously disposed.");
 					objectCC.addImmediateCallback(null, function():void { debugDisposedObject(linkableObject, error); } );
@@ -1009,9 +1035,6 @@ package weavejs.core
 			return null;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getPath(root:ILinkableObject, descendant:ILinkableObject):Array
 		{
 			if (!descendant)
@@ -1037,14 +1060,12 @@ package weavejs.core
 			return null;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getObject(root:ILinkableObject, path:Array):ILinkableObject
 		{
 			var object:ILinkableObject = root;
-			for each (var propertyName:Object in path)
+			for (var i:int = 0; i < path.length; i++)
 			{
+				var propertyName:Object = path[i];
 				if (object == null || map_disposed.get(object))
 					return null;
 				if (object is ILinkableHashMap)
@@ -1059,16 +1080,46 @@ package weavejs.core
 					// ignore propertyName and always return the internalObject
 					object = (object as ILinkableDynamicObject).internalObject;
 				}
+				else if (getLinkablePropertyNames(object).indexOf(propertyName) < 0)
+				{
+					if (object is ILinkableObjectWithNewProperties || JS.hasProperty(object, DEPRECATED_STATE_MAPPING))
+						return getObjectFromDeprecatedPath(object[DEPRECATED_STATE_MAPPING], path, i);
+					return null;
+				}
 				else
 				{
-					if (getLinkablePropertyNames(object).indexOf(propertyName) < 0)
-						return null;
 					object = object[propertyName] as ILinkableObject;
 				}
 			}
 			return map_disposed.get(object) ? null : object;
 		}
 		
+		private function getObjectFromDeprecatedPath(mapping:Object, path:Array, startAtIndex:int):ILinkableObject
+		{
+			var object:ILinkableObject;
+			if (mapping is Array)
+			{
+				for each (var item:Object in mapping)
+				{
+					object = getObjectFromDeprecatedPath(item, path, startAtIndex);
+					if (object)
+						return object;
+				}
+				return null;
+			}
+			
+			for (var i:int = startAtIndex; i < path.length; i++)
+			{
+				if (!mapping || typeof mapping !== 'object')
+					return null;
+				mapping = mapping[path[i]];
+				object = mapping as ILinkableObject;
+				if (object)
+					return i + 1 == path.length ? object : getObject(object, path.slice(i + 1));
+			}
+			
+			return null;
+		}
 		
 		
 		
@@ -1087,9 +1138,6 @@ package weavejs.core
 		 *     function():void { setSessionState(destination, getSessionState(source), true); }
 		 */
 		private var d2d_lhs_rhs_setState:Dictionary2D = new Dictionary2D(true, true);
-		/**
-		 * @inheritDoc
-		 */
 		public function linkSessionState(primary:ILinkableObject, secondary:ILinkableObject):void
 		{
 			if (primary == null || secondary == null)
@@ -1105,9 +1153,6 @@ package weavejs.core
 			if (d2d_lhs_rhs_setState.get(primary, secondary) is Function)
 				return; // already linked
 			
-			if (CallbackCollection.debug)
-				var stackTrace:Error = new Error();
-				
 			var setPrimary:Function = function():void { setSessionState(primary, getSessionState(secondary), true); };
 			var setSecondary:Function = function():void { setSessionState(secondary, getSessionState(primary), true); };
 			
@@ -1119,9 +1164,6 @@ package weavejs.core
 			// when primary changes, copy from primary to secondary
 			getCallbackCollection(primary).addImmediateCallback(secondary, setSecondary, true); // copy from primary now
 		}
-		/**
-		 * @inheritDoc
-		 */
 		public function unlinkSessionState(first:ILinkableObject, second:ILinkableObject):void
 		{
 			if (first == null || second == null)
@@ -1148,9 +1190,6 @@ package weavejs.core
 		
 		public static const DIFF_DELETE:String = 'delete';
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function computeDiff(oldState:Object, newState:Object):*
 		{
 			var type:String = typeof(oldState); // the type of null is 'object'
@@ -1305,9 +1344,6 @@ package weavejs.core
 			}
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function combineDiff(baseDiff:Object, diffToAdd:Object):Object
 		{
 			var baseType:String = typeof(baseDiff); // the type of null is 'object'

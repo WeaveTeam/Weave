@@ -38,7 +38,7 @@ package weavejs.data.column
 		/**
 		 * This is an option to sort the column in ascending or descending order.
 		 */
-		public var ascending:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
+		public const ascending:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
 
 		private var _keys:Array = [];
 		private var _prevTriggerCounter:uint = 0;

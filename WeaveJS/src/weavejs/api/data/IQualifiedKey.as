@@ -27,5 +27,11 @@ package weavejs.api.data
 
 		// This is local record identifier in the namespace of the IQualifiedKey. Read-only.
 		function get localName():String;
+		
+		// unique serial ID
+		function toNumber():Number;
+		
+		// This is a String containing both the namespace and the local name of the QKey
+		function toString():String;
 	}
 }

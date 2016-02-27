@@ -23,7 +23,6 @@ package weavejs.data
 	import weavejs.api.data.IKeySet;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.data.column.DynamicColumn;
-	import weavejs.geom.Point;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	
@@ -61,7 +60,7 @@ package weavejs.data
 		 * @param dataType Either a Class object or a String containing the qualified class name of the desired value type.
 		 * @return The value of the object, optionally cast to the requested dataType.
 		 */
-		public static function getValue(object:Object, dataType:* = null):*
+		public static function getValue(object:/*/IAttributeColumn|ILinkableVariable/*/Object, dataType:* = null):*
 		{
 			// remember current key
 			var key:IQualifiedKey = currentRecordKey;
@@ -195,10 +194,10 @@ package weavejs.data
 					
 					if (!map_lookup.has(value.localName))
 						map_lookup.set(value.localName, []);
-					(map_lookup.get[value.localName] as Array).push(recordKey);
+					(map_lookup.get(value.localName) as Array).push(recordKey);
 				}
 			}
-			return map_lookup[ignoreKeyType ? keyValue.localName : keyValue] as Array;
+			return map_lookup.get(ignoreKeyType ? keyValue.localName : keyValue) as Array;
 		}
 		
 		/**
@@ -207,7 +206,7 @@ package weavejs.data
 		 * @param key A key to get the Number for.
 		 * @return The value of the object, cast to a Number.
 		 */
-		public static function getNumber(object:Object, key:IQualifiedKey = null):Number
+		public static function getNumber(object:/*/IAttributeColumn|ILinkableVariable/*/Object, key:IQualifiedKey = null):Number
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;
@@ -245,7 +244,7 @@ package weavejs.data
 		 * @param key A key to get the Number for.
 		 * @return The value of the object, cast to a String.
 		 */
-		public static function getString(object:Object, key:IQualifiedKey = null):String
+		public static function getString(object:/*/IAttributeColumn|ILinkableVariable/*/Object, key:IQualifiedKey = null):String
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;
@@ -283,7 +282,7 @@ package weavejs.data
 		 * @param key A key to get the Number for.
 		 * @return The value of the object, cast to a Boolean.
 		 */
-		public static function getBoolean(object:Object, key:IQualifiedKey = null):Boolean
+		public static function getBoolean(object:/*/IAttributeColumn|ILinkableVariable/*/Object, key:IQualifiedKey = null):Boolean
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;
@@ -354,7 +353,7 @@ package weavejs.data
 		 * @param key A key to search for.
 		 * @return The first IKeySet that contains the key.
 		 */
-		public static function findKeySet(keySets:Array, key:IQualifiedKey = null):IKeySet
+		public static function findKeySet(keySets:Array/*/<IKeySet>/*/, key:IQualifiedKey = null):IKeySet
 		{
 			// remember current key
 			var previousKey:IQualifiedKey = currentRecordKey;
@@ -444,7 +443,7 @@ package weavejs.data
 		 * @param value A value to cast.
 		 * @param newType Either a qualifiedClassName or a Class object referring to the type to cast the value as.
 		 */
-		public static function cast(value:*, newType:*):*
+		public static function cast/*/<T>/*/(value:*, newType:/*/T|string/*/*):/*/T/*/*
 		{
 			if (newType == null)
 				return value;
@@ -476,22 +475,8 @@ package weavejs.data
 		}
 		
 		/**
-		 * This function transforms an x,y coordinate pair from one coordinate reference system to another.
-		 * @param sourceSRS Specifies the source coordinate reference system.
-		 * @param destinationSRS Specifies the destination coordinate reference system.
-		 * @param x The X coordinate in the coordinate reference system specified by sourceSRS.
-		 * @param y The Y coordinate in the coordinate reference system specified by sourceSRS.
-		 * @return A new Point object containing the transformed coordinates.
-		 */		
-		public static function transformCoords(sourceSRS:String, destinationSRS:String, x:Number, y:Number):Point
-		{
-			var _tempPoint:Point = new Point(x, y);
-			return WeaveAPI.ProjectionManager.transformPoint(sourceSRS, destinationSRS, _tempPoint);
-		}
-		
-		/**
 		 * This is a macro for IQualifiedKey that can be used in equations.
 		 */		
-		public static const QKey:Class = IQualifiedKey;
+		public static const QKey:/*/typeof IQualifiedKey/*/Class = IQualifiedKey;
 	}
 }

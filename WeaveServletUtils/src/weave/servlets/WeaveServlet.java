@@ -18,6 +18,7 @@ package weave.servlets;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
@@ -55,6 +56,7 @@ import weave.beans.JsonRpcResponseModel;
 import weave.utils.CSVParser;
 import weave.utils.ListUtils;
 import weave.utils.MapUtils;
+import weave.utils.Strings;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -274,6 +276,7 @@ public class WeaveServlet extends HttpServlet
 		public Boolean isBatchRequest = false;
 		public boolean prettyPrinting = false;
 		public boolean setContentType = true;
+		public boolean compressAmf = true;
 	}
 	
 	/**
@@ -406,6 +409,7 @@ public class WeaveServlet extends HttpServlet
 	}
 	
 	public static final String JSONRPC_VERSION = "2.0";
+	public static final String JSONRPC_VERSION_AMF = "2.0/AMF3";
 	
 	protected static final Gson GSON = new GsonBuilder()
 		.registerTypeHierarchyAdapter(byte[].class, new ByteArrayToBase64TypeAdapter())
@@ -452,10 +456,17 @@ public class WeaveServlet extends HttpServlet
 			String streamString = IOUtils.toString(inputStream, "UTF-8");
 			
 			ServletRequestInfo info = getServletRequestInfo();
-			/*If first character is { then it is a single request. We add it to the array jsonRequests and continue*/
+			boolean returnJson = true;
+			// If first character is { then it is a single request. We add it to the array jsonRequests and continue
 			if (streamString.charAt(0) == '{')
 			{
 				JsonRpcRequestModel req = GSON.fromJson(streamString, JsonRpcRequestModel.class);
+				if (Strings.equal(req.jsonrpc, JSONRPC_VERSION_AMF))
+				{
+					req.jsonrpc = JSONRPC_VERSION;
+					info.compressAmf = false;
+					returnJson = false;
+				}
 				jsonRequests = new JsonRpcRequestModel[] { req };
 				info.isBatchRequest = false;
 			}
@@ -466,37 +477,39 @@ public class WeaveServlet extends HttpServlet
 			}
 			
 			
-			/* we loop through each request, get results or check error and add repsonses to an array*/ 
+			// we loop through each request, get results or check error and add responses to an array
 			for (int i = 0; i < jsonRequests.length; i++)
 			{
-				info.currentJsonRequest = jsonRequests[i];
+				JsonRpcRequestModel request = jsonRequests[i];
+				if (returnJson)
+					info.currentJsonRequest = request;
 				
-				/* Check to see if JSON-RPC protocol is 2.0*/
-				if (info.currentJsonRequest.jsonrpc == null || !info.currentJsonRequest.jsonrpc.equals(JSONRPC_VERSION))
+				// Check to see if JSON-RPC protocol is 2.0
+				if (!Strings.equal(request.jsonrpc, JSONRPC_VERSION))
 				{
-					sendJsonError(JSON_RPC_PROTOCOL_ERROR_MESSAGE, info.currentJsonRequest.jsonrpc);
+					sendJsonError(JSON_RPC_PROTOCOL_ERROR_MESSAGE, request.jsonrpc);
 					continue;
 				}
-				/*Check if ID is a number and if so it has not fractional numbers*/
-				else if (info.currentJsonRequest.id instanceof Number)
+				// Check if ID is a number and if so it has not fractional numbers
+				else if (request.id instanceof Number)
 				{
-					Number number = (Number) info.currentJsonRequest.id;
+					Number number = (Number) request.id;
 					if (number.intValue() != number.doubleValue())
 					{
-						sendJsonError(JSON_RPC_ID_ERROR_MESSAGE, info.currentJsonRequest.id);
+						sendJsonError(JSON_RPC_ID_ERROR_MESSAGE, request.id);
 						continue;
 					}
-					info.currentJsonRequest.id = number.intValue();
+					request.id = number.intValue();
 				}
 				
-				/*Check if Method exists*/
-				if (methodMap.get(info.currentJsonRequest.method) == null)
+				// Check if Method exists
+				if (methodMap.get(request.method) == null)
 				{
-					sendJsonError(JSON_RPC_METHOD_ERROR_MESSAGE, info.currentJsonRequest.method);
+					sendJsonError(JSON_RPC_METHOD_ERROR_MESSAGE, request.method);
 					continue;
 				}
 				
-				invokeMethod(info.currentJsonRequest.method, info.currentJsonRequest.params);
+				invokeMethod(request.method, request.params);
 			}
 			
 		}
@@ -558,7 +571,7 @@ public class WeaveServlet extends HttpServlet
 		
 		JsonRpcResponseModel result = new JsonRpcResponseModel();
 		result.id = id;
-		result.jsonrpc = "2.0";
+		result.jsonrpc = JSONRPC_VERSION;
 		result.error = new JsonRpcErrorModel();
 		result.error.message = message;
 		result.error.data = data;
@@ -995,7 +1008,7 @@ public class WeaveServlet extends HttpServlet
 					info.response.setContentType("application/octet-stream");
 
 				ServletOutputStream servletOutputStream = info.getOutputStream();
-				serializeCompressedAmf3(result, servletOutputStream);
+				serializeAmf3(result, servletOutputStream, info.compressAmf);
 			}
 		}
 		else // json
@@ -1005,7 +1018,7 @@ public class WeaveServlet extends HttpServlet
 			if (id != null)
 			{
 				JsonRpcResponseModel responseObj = new JsonRpcResponseModel();
-				responseObj.jsonrpc = "2.0";
+				responseObj.jsonrpc = JSONRPC_VERSION;
 				responseObj.result = result;
 				responseObj.id = id;
 				info.jsonResponses.add(responseObj);
@@ -1051,7 +1064,7 @@ public class WeaveServlet extends HttpServlet
 			ServletOutputStream servletOutputStream = info.getOutputStream();
 			ErrorMessage errorMessage = new ErrorMessage(new MessageException(message));
 			errorMessage.faultCode = exception.getClass().getSimpleName();
-			serializeCompressedAmf3(errorMessage, servletOutputStream);
+			serializeAmf3(errorMessage, servletOutputStream, info.compressAmf);
 		}
 		else
 		{
@@ -1060,18 +1073,19 @@ public class WeaveServlet extends HttpServlet
 	}
 	
 	// Serialize a Java Object to AMF3 ByteArray
-	protected void serializeCompressedAmf3(Object objToSerialize, ServletOutputStream servletOutputStream)
+	protected void serializeAmf3(Object objToSerialize, ServletOutputStream servletOutputStream, boolean compressed)
 	{
 		try
 		{
-			DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(servletOutputStream);
+			OutputStream out = compressed ? new DeflaterOutputStream(servletOutputStream) : servletOutputStream;
 			
 			Amf3Output amf3Output = new Amf3Output(serializationContext);
-			amf3Output.setOutputStream(deflaterOutputStream); // compress
+			amf3Output.setOutputStream(out); // compress
 			amf3Output.writeObject(objToSerialize);
 			amf3Output.flush();
 			
-			deflaterOutputStream.close(); // this is necessary to finish the compression
+			if (compressed)
+				out.close(); // this is necessary to finish the compression
 			
 			/*
 			 * Do not call amf3Output.close() because that will

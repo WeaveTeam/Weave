@@ -10,6 +10,9 @@ package weavejs.path
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IDataSource;
+	import weavejs.api.data.IKeySet;
+	import weavejs.api.data.IKeySetCallbackInterface;
+	import weavejs.api.data.IQualifiedKey;
 	import weavejs.data.ColumnUtils;
 	import weavejs.data.column.DynamicColumn;
 	import weavejs.data.column.ExtendedDynamicColumn;
@@ -46,9 +49,9 @@ package weavejs.path
 		
 		private var shared:WeavePathDataShared;
 		
-		public var probe_keyset:WeavePath;
-		public var selection_keyset:WeavePath;
-		public var subset_filter:WeavePath;
+		public var probe_keyset:WeavePathData;
+		public var selection_keyset:WeavePathData;
+		public var subset_filter:WeavePathData;
 		
 		public var qkeyToString:Function;
 		public var stringToQKey:Function;
@@ -63,7 +66,7 @@ package weavejs.path
 		 * @private
 		 * @return The current WeavePath object.
 		 */
-		private function _initProperty(manifest, callback_pass, property_descriptor):WeavePath
+		private function _initProperty(manifest:Object, callback_pass:Boolean, property_descriptor:Object):WeavePath
 		{
 		    var name:String = property_descriptor["name"]
 		    	|| _failMessage('initProperty', 'A "name" is required');
@@ -169,8 +172,7 @@ package weavejs.path
 		public function getKeys(...relativePath):Array
 		{
 		    var args:Array = _A(relativePath, 1);
-		    var raw_keys:Array = this.getObject(args)['keys'];
-		    return raw_keys.map(this.qkeyToString);
+			return IKeySet(this.getObject(args)).keys;
 		}
 		
 		/**
@@ -184,9 +186,8 @@ package weavejs.path
 		    var args:Array = _A(relativePath, 1);
 		    if (_assertParams('flushKeys', args))
 		    {
-		        var path:Array = this._path.concat(args);
-		
-		        this.shared._flushKeys(path);
+				var keySet:ILinkableObject = this.getObject(args);
+		        this.shared._flushKeys(keySet);
 		    }
 		    return this;
 		}
@@ -195,19 +196,19 @@ package weavejs.path
 		 * Adds the specified keys to the KeySet at this path. These will not be added immediately, but are queued with flush timeout of approx. 25 ms.
 		 * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
 		 *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
-		 * @param {Array} [keyStringArray] An array of alphanumeric keystrings that correspond to QualifiedKeys.
+		 * @param {Array} [qkeyStringArray] An array of alphanumeric keystrings that correspond to QualifiedKeys.
 		 * @return {weave.WeavePath} The current WeavePath object.
 		 */
-		public function addKeys(...relativePath_keyStringArray):WeavePath
+		public function addKeys(...relativePath_qkeyStringArray):WeavePath
 		{
-		    var args:Array = _A(relativePath_keyStringArray, 2);
+		    var args:Array = _A(relativePath_qkeyStringArray, 2);
 		
 		    if (_assertParams('addKeys', args))
 		    {
-		        var keyStringArray:Array = args.pop();
-		        var path:Array = this._path.concat(args);
+		        var qkeyStringArray:Array = args.pop();
+				var keySet:ILinkableObject = this.getObject(args);
 		
-		        this.shared._addKeys(path, keyStringArray);
+		        this.shared._addKeys(keySet, qkeyStringArray);
 		    }
 		    return this;
 		}
@@ -216,19 +217,19 @@ package weavejs.path
 		 * Removes the specified keys to the KeySet at this path. These will not be removed immediately, but are queued with a flush timeout of approx. 25 ms.
 		 * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
 		 *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
-		 * @param {Array} [keyStringArray] An array of alphanumeric keystrings that correspond to QualifiedKeys.
+		 * @param {Array} [qkeyStringArray] An array of alphanumeric keystrings that correspond to QualifiedKeys.
 		 * @return {weave.WeavePath} The current WeavePath object.
 		 */
-		public function removeKeys(...relativePath_keyStringArray):WeavePath
+		public function removeKeys(...relativePath_qkeyStringArray):WeavePath
 		{
-		    var args:Array = _A(relativePath_keyStringArray, 2);
+		    var args:Array = _A(relativePath_qkeyStringArray, 2);
 		
 		    if (_assertParams('removeKeys', args))
 		    {
-		        var keyStringArray:Array = args.pop();
-		        var path:Array = this._path.concat(args);
+		        var qkeyStringArray:Array = args.pop();
+				var keySet:ILinkableObject = this.getObject(args);
 		
-		        this.shared._removeKeys(path, keyStringArray);
+		        this.shared._removeKeys(keySet, qkeyStringArray);
 		    }
 		    return this;
 		}
@@ -242,29 +243,20 @@ package weavejs.path
 		 */
 		public function addKeySetCallback(callback:Function, triggerCallbackNow:Boolean = false):WeavePath
 		{
-		    var wrapper:Function = function():void
-		    {
-		        var key_event:Object = this.weave.directAPI.evaluateExpression(this._path, '{added: this.keysAdded, removed: this.keysRemoved}');
-		        
-		        key_event.added = key_event.added.map(this.qkeyToString);
-		        key_event.removed = key_event.removed.map(this.qkeyToString);
-		
-		        callback.call(this, key_event);
-		    };
-		
-			// wrapper function 'this' context becomes the WeavePath
-			var p:WeavePath = this.push('keyCallbacks');
-			p.addCallback(p, wrapper, false, true);
+			var self:WeavePath = this;
+			var keyCallbacks:IKeySetCallbackInterface = this.getObject('keyCallbacks') as IKeySetCallbackInterface;
+			keyCallbacks.addImmediateCallback(keyCallbacks, function():void {
+				callback.call(self, {
+					added: keyCallbacks.keysAdded,
+					removed: keyCallbacks.keysRemoved
+				});
+			});
 		
 		    if (triggerCallbackNow)
-		    {
-		        var key_event:Object = {
-		            added: this.getKeys(),
-		            removed: []
-		        };
-		
-		        callback.call(this, key_event);
-		    }
+		        callback.call(this, {
+					added: this.getKeys(),
+					removed: []
+				});
 		
 		    return this;
 		}
@@ -273,16 +265,16 @@ package weavejs.path
 		 * Replaces the contents of the KeySet at this path with the specified keys.
 		 * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
 		 *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
-		 * @param {Array} keyStringArray An array of alphanumeric keystrings that correspond to QualifiedKeys.
+		 * @param {Array} qkeyStringArray An array of alphanumeric keystrings that correspond to QualifiedKeys.
 		 * @return {weave.WeavePath} The current WeavePath object.
 		 */
-		public function setKeys(...relativePath_keyStringArray):WeavePath
+		public function setKeys(...relativePath_qkeyStringArray):WeavePath
 		{
-		    var args:Array = _A(relativePath_keyStringArray, 2);
+		    var args:Array = _A(relativePath_qkeyStringArray, 2);
 		    if (_assertParams('setKeys', args))
 		    {
-		        var keyStringArray:Array = args.pop();
-		        var keyObjectArray:Array = keyStringArray.map(this.stringToQKey);
+		        var qkeyStringArray:Array = args.pop();
+		        var keyObjectArray:Array = qkeyStringArray.map(this.stringToQKey);
 				this.getObject(args)['replaceKeys'](keyObjectArray);
 		
 		        return this;
@@ -293,22 +285,21 @@ package weavejs.path
 		 * Intersects the specified keys with the KeySet at this path.
 		 * @param [relativePath] An optional Array (or multiple parameters) specifying descendant names relative to the current path
 		 *                     A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
-		 * @param {Array} keyStringArray An array of alphanumeric keystrings that correspond to QualifiedKeys.
-		 * @return {Array} The keys which exist in both the keyStringArray and in the KeySet at this path.
+		 * @param {Array} qkeyStringArray An array of alphanumeric keystrings that correspond to QualifiedKeys.
+		 * @return {Array} The keys which exist in both the qkeyStringArray and in the KeySet at this path.
 		 */
 		
-		public function filterKeys(...relativePath_keyStringArray):Array
+		public function filterKeys(...relativePath_qkeyStringArray):Array
 		{
-//		    var args:Array = _A(relativePath_keyStringArray, 2);
-//		    if (_assertParams('filterKeys', args))
-//		    {
-//		        var keyStringArray:Array = args.pop();
-//		        var keyObjects:Array = keyStringArray.map(this.stringToQKey);
-//				var obj:Object = this.getObject(args);
-//				return WeaveAPI.QKeyManager.convertToQKeys(keyObjects)
-//					.filter(function(key:*):Boolean { return obj.containsKey(key); })
-//		        	.map(this.qkeyToString, this);
-//		    }
+		    var args:Array = _A(relativePath_qkeyStringArray, 2);
+		    if (_assertParams('filterKeys', args))
+		    {
+		        var qkeyStringArray:Array = args.pop();
+		        var keyObjects:Array = qkeyStringArray.map(this.stringToQKey);
+				var obj:Object = this.getObject(args);
+				return WeaveAPI.QKeyManager.convertToQKeys(keyObjects)
+					.filter(function(key:*):Boolean { return obj.containsKey(key); });
+		    }
 			return null;
 		}
 		
@@ -331,7 +322,7 @@ package weavejs.path
 		 *                                    "dataType": A String specifying dataType: string/number/date/geometry
 		 * @return {Array} An array of record objects.
 		 */
-		public function retrieveRecords(pathMapping:Object, options:Object):Array
+		public function retrieveRecords(pathMapping:Object, options:Object = null):Array
 		{
 			var dataType:String = options ? options['dataType'] : null;
 			var keySetPath:WeavePath = options ? options['keySet'] : null;
@@ -363,8 +354,7 @@ package weavejs.path
 		    /* Perform the actual retrieval of records */
 		    var results:Array = ColumnUtils.joinColumns(obj.columns, dataType, true, keySetPath ? keySetPath.getObject() : null);
 		    return results[0]
-		        .map(this.qkeyToString)
-		        .map(function(key:String, iRow:int, a:Array):Object {
+		        .map(function(key:IQualifiedKey, iRow:int, a:Array):Object {
 		            var record:Object = {id: key};
 		            obj.chains.forEach(function(chain:Array, iChain:int, a:Array):void {
 		                setChain(record, chain, results[iChain + 1][iRow])
@@ -426,12 +416,14 @@ package weavejs.path
 		    {
 		        var item:Object = obj[key];
 		        if (item is WeavePath)
+					item = item.getObject();
+				
+				if (item is ILinkableObject)
 		        {
-					var column:ILinkableObject = item.getObject();
-		            if (column is IAttributeColumn)
+		            if (item is IAttributeColumn)
 		            {
 		                output.chains.push(prefix.concat(key));
-		                output.columns.push(column);
+		                output.columns.push(item);
 		            }
 		        }
 		        else
@@ -507,11 +499,11 @@ package weavejs.path
 		 * Sets the metadata for multiple columns that are children of the current path.
 		 * @param metadataMapping An object mapping child names (or indices) to column metadata.
 		 *                        An Array of column metadata objects may be given for a LinkableHashMap.
-		 * @param {string} [dataSourceName] The name of the data source in the session state.
+		 * @param dataSourceName The name of the data source in the session state.
 		 *                       If ommitted, the first data source in the session state will be used.
-		 * @return {weave.WeavePath} The current WeavePath object.
+		 * @return The current WeavePath object.
 		 */
-		public function setColumns(metadataMapping, dataSourceName):WeavePathData
+		public function setColumns(metadataMapping:Object, dataSourceName:String):WeavePathData
 		{
 			var useDataSource:Boolean = arguments.length > 1;
 			this.forEach(metadataMapping, function(value:Object, key:String, a:Array):void {

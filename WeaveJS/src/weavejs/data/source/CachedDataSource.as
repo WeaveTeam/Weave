@@ -22,15 +22,15 @@ package weavejs.data.source
 
 	public class CachedDataSource extends AbstractDataSource
 	{
-		public var type:LinkableString = Weave.linkableChild(this, LinkableString);
-		public var state:LinkableVariable = Weave.linkableChild(this, LinkableVariable);
+		public const type:LinkableString = Weave.linkableChild(this, LinkableString);
+		public const state:LinkableVariable = Weave.linkableChild(this, LinkableVariable);
 		
 		override protected function refreshHierarchy():void
 		{
 			var root:ILinkableHashMap = Weave.getRoot(this);
 			var name:String = root.getName(this);
 			var classDef:Class = Weave.getDefinition(type.value);
-			var state:Object = state.state;
+			var state:Object = this.state.state;
 			var dataSource:IDataSource = root.requestObject(name, classDef, false);
 			Weave.setState(dataSource, state);
 		}

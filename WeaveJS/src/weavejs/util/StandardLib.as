@@ -15,12 +15,6 @@
 
 package weavejs.util
 {
-	/**
-	 * This provides a set of useful static functions.
-	 * All the functions defined in this class are pure functions, meaning they always return the same result with the same arguments, and they have no side-effects.
-	 * 
-	 * @author adufilie
-	 */
 	public class StandardLib
 	{
 		public static function formatNumber(number:Number, precision:int = -1):String
@@ -41,13 +35,17 @@ package weavejs.util
 				return NaN; // return NaN because Number(null) == 0
 			
 			if (value is Number || value is Date)
-				return value;
+				return Number(value);
 			
 			try {
-				value = String(value);
-				if (value == '')
+				var str:String = String(value);
+				if (str == '')
 					return NaN; // return NaN because Number('') == 0
-				return Number(value);
+				if (str.charAt(0) === '#')
+					return Number('0x' + str.substr(1));
+				if (str.charAt(str.length - 1) === '%')
+					return Number(str.substr(0, -1)) / 100;
+				return Number(str);
 			} catch (e:Error) { }
 
 			return NaN;
@@ -152,6 +150,8 @@ package weavejs.util
 		 */
 		public static function substitute(format:String, ...args):String
 		{
+			if (format == null)
+				return '';
 			if (args.length == 1 && args[0] is Array)
 				args = args[0] as Array;
 			var split:Array = format.split('{')
@@ -269,7 +269,6 @@ package weavejs.util
 				case "\r":
 				case "\n":
 				case "\f":
-				/*
 					// non breaking space
 				case "\u00A0":
 					// line seperator
@@ -279,7 +278,6 @@ package weavejs.util
 					// ideographic space
 				case "\u3000":
 					return true;
-				*/
 				default:
 					return false;
 			}
@@ -681,7 +679,7 @@ package weavejs.util
 			if (value is Number)
 			{
 				var date:Date = new Date();
-				date.time = value as Number;
+				date.setTime(value as Number);
 				value = date;
 			}
 			return String(value);
@@ -879,8 +877,5 @@ package weavejs.util
 			}
 			return output + String.fromCharCode(value);
 		}
-		
-		[Deprecated(replacement="compare")] public static function arrayCompare(a:Object, b:Object):int { return compare(a,b); }
-		[Deprecated(replacement="compare")] public static function compareDynamicObjects(a:Object, b:Object):int { return compare(a,b); }
 	}
 }

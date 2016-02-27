@@ -49,6 +49,7 @@ package weave.core
 	import weave.primitives.Map;
 	import weave.primitives.WeakMap;
 	import weave.primitives.WeaveTreeItem;
+	import weave.utils.WeavePromise;
 	
 	/**
 	 * This is a collection of core functions in the Weave session framework.
@@ -800,8 +801,15 @@ package weave.core
 				return;
 			
 			if (taskToken is AsyncToken && !WeaveAPI.ProgressIndicator.hasTask(taskToken))
+			{
 				(taskToken as AsyncToken).addResponder(new AsyncResponder(unassignAsyncToken, unassignAsyncToken, taskToken));
-			
+			}
+			if (taskToken is WeavePromise)
+			{
+				var remove:Function = function(_:*):* { unassignBusyTask(taskToken); };
+				(taskToken as WeavePromise).then(remove, remove);
+			}
+
 			d2d_owner_task.set(busyObject, taskToken, true);
 			d2d_task_owner.set(taskToken, busyObject, true);
 		}
@@ -1370,9 +1378,6 @@ package weave.core
 			if (d2d_lhs_rhs_setState.get(primary, secondary) is Function)
 				return; // already linked
 			
-			if (CallbackCollection.debug)
-				var stackTrace:String = new Error().getStackTrace();
-				
 			var setPrimary:Function = function():void { setSessionState(primary, getSessionState(secondary), true); };
 			var setSecondary:Function = function():void { setSessionState(secondary, getSessionState(primary), true); };
 			

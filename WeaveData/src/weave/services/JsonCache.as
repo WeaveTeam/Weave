@@ -15,13 +15,12 @@
 
 package weave.services
 {
-	import flash.external.ExternalInterface;
 	import flash.net.URLRequest;
 	import flash.net.URLRequestHeader;
 	
-	import weave.api.core.ILinkableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.reportError;
+	import weave.api.core.ILinkableObject;
 	import weave.compiler.Compiler;
 	import weave.compiler.StandardLib;
 	import weave.core.ClassUtils;
@@ -51,7 +50,7 @@ package weave.services
 			{
 				var array:Array = [];
 				for (var key:String in requestHeaders)
-					array.push(new URLRequestHeader("Accept", "application/json"));
+					array.push(new URLRequestHeader(key, requestHeaders[key]));
 				requestHeaders = array;
 			}
 			this.requestHeaders = requestHeaders as Array;

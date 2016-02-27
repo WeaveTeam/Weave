@@ -22,6 +22,7 @@ package weavejs.data.column
 	import weavejs.api.data.IBaseColumn;
 	import weavejs.api.data.IPrimitiveColumn;
 	import weavejs.api.data.IQualifiedKey;
+	import weavejs.util.DateUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	
@@ -30,8 +31,6 @@ package weavejs.data.column
 	 */
 	public class DateColumn extends AbstractAttributeColumn implements IPrimitiveColumn, IBaseColumn
 	{
-		public static const flascc:Object = null;
-		
 		public function DateColumn(metadata:Object = null)
 		{
 			super(metadata);
@@ -54,9 +53,6 @@ package weavejs.data.column
 		private var _durationMode:Boolean = false;
 		private var _fakeData:Boolean = false;
 		
-		/**
-		 * @inheritDoc
-		 */
 		override public function getMetadata(propertyName:String):String
 		{
 			if (propertyName == ColumnMetadata.DATA_TYPE)
@@ -66,25 +62,19 @@ package weavejs.data.column
 			return super.getMetadata(propertyName);
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		override public function get keys():Array
 		{
 			return _uniqueKeys;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
 			return map_key_data.has(key);
 		}
 		
-		public function setRecords(qkeys:Array, dateStrings:Array):void
+		public function setRecords(qkeys:Array, dates:Array):void
 		{
-			if (keys.length > dateStrings.length)
+			if (keys.length > dates.length)
 			{
 				JS.error("Array lengths differ");
 				return;
@@ -96,19 +86,19 @@ package weavejs.data.column
 			_dateFormat = getMetadata(ColumnMetadata.DATE_FORMAT);
 			if (!_dateFormat)
 			{
-				var possibleFormats:Array = detectDateFormats(dateStrings);
+				var possibleFormats:Array = detectDateFormats(dates);
 				StandardLib.sortOn(possibleFormats, 'length');
 				_dateFormat = possibleFormats.pop();
 			}
 			
-			_dateFormat = convertDateFormat_as_to_c(_dateFormat);
+			_dateFormat = DateFormat.convertDateFormat_c_to_moment(_dateFormat);
 
 			// read dateDisplayFormat metadata, default to the input format if none is specified.
 			_dateDisplayFormat = getMetadata(ColumnMetadata.DATE_DISPLAY_FORMAT);
 
 			if (_dateDisplayFormat)
 			{
-				_dateDisplayFormat = convertDateFormat_as_to_c(_dateDisplayFormat);
+				_dateDisplayFormat = DateFormat.convertDateFormat_c_to_moment(_dateDisplayFormat);
 			}
 			else
 			{
@@ -147,7 +137,7 @@ package weavejs.data.column
 			
 			_i = 0;
 			_keys = qkeys;
-			_dates = dateStrings;
+			_dates = dates;
 			map_key_data = new JS.Map();
 			_uniqueKeys.length = 0;
 			_reportedError = false;
@@ -177,9 +167,7 @@ package weavejs.data.column
 		
 		private function parseDate(string:String):Object
 		{
-			if (_dateFormat)
-				return flascc.date_parse(string, _dateFormat);
-			return new Date(string);
+			return DateUtils.parse(string, _dateFormat);
 		}
 		
 		private static const SECOND:Number = 1000;
@@ -188,37 +176,9 @@ package weavejs.data.column
 		
 		private function formatDate(value:Object):String
 		{
-			if (_dateDisplayFormat)
-			{
-				if (value is Number && !_durationMode)
-					value = new Date(value);
-				
-				if (value is Number)
-				{
-					// TEMPORARY SOLUTION
-					var n:Number = Math.floor(value as Number);
-					var milliseconds:Number = n % 1000;
-					n = Math.floor(n / 1000);
-					var seconds:Number = n % 60;
-					n = Math.floor(n / 60);
-					var minutes:Number = n % 60;
-					n = Math.floor(n / 60);
-					var hours:Number = n;
-					var obj:Object = {
-						milliseconds: milliseconds,
-						seconds: seconds,
-						minutes: minutes,
-						hours: hours
-					};
-					return flascc.date_format(obj, _dateDisplayFormat);
-				}
-				else
-				{
-					var date:Date = value as Date || new Date(value);
-					return flascc.date_format(date, _dateDisplayFormat);
-				}
-			}
-			return StandardLib.formatDate(value, _dateDisplayFormat);
+			if (_durationMode)
+				return DateUtils.formatDuration(value);
+			return DateUtils.format(value, _dateDisplayFormat);
 		}
 		
 		private function _asyncIterate(stopTime:int):Number
@@ -230,25 +190,29 @@ package weavejs.data.column
 				
 				// get values for this iteration
 				var key:IQualifiedKey = _keys[_i];
-				var string:String = _dates[_i];
+				var input:* = _dates[_i];
 				var value:Object;
-				if (_fakeData)
+				var fakeTime:Number = _fakeData ? StandardLib.asNumber(input) : NaN;
+				if (input is Date)
 				{
-					var oneDay:Number = 24 * 60 * 60 * 1000;
-					var fakeTime:Number = StandardLib.asNumber(string) * oneDay;
+					value = input;
+				}
+				else if (_fakeData && isFinite(fakeTime))
+				{
 					var d:Date = new Date();
-					d.setTime(d.getTime() - d.getTime() % oneDay + fakeTime);
+					var oneDay:Number = 24 * 60 * 60 * 1000;
+					d.setTime(d.getTime() - d.getTime() % oneDay + fakeTime * oneDay);
 					value = d;
 				}
 				else if (_stringToNumberFunction != null)
 				{
-					var number:Number = _stringToNumberFunction(string);
+					var number:Number = _stringToNumberFunction(input);
 					if (_numberToStringFunction != null)
 					{
-						string = _numberToStringFunction(number);
-						if (!string)
+						input = _numberToStringFunction(number);
+						if (!input)
 							continue;
-						value = parseDate(string);
+						value = parseDate(input);
 					}
 					else
 					{
@@ -261,11 +225,11 @@ package weavejs.data.column
 				{
 					try
 					{
-						if (!string)
+						if (!input)
 							continue;
-						value = parseDate(string);
+						value = parseDate(input);
 						if (value is Date && isNaN((value as Date).getTime()))
-							value = StandardLib.asNumber(string);
+							value = Number(input);
 					}
 					catch (e:Error)
 					{
@@ -274,11 +238,10 @@ package weavejs.data.column
 							_reportedError = true;
 							var err:String = StandardLib.substitute(
 								'Warning: Unable to parse this value as a date: "{0}"'
-								+ ' (only the first error for this column is reported).'
-								+ ' Attribute column:',
-								string
+								+ ' (only the first error for this column is reported).',
+								input
 							);
-							JS.error(err, _metadata, e);
+							JS.error(err, 'Attribute column:', _metadata, e);
 						}
 						continue;
 					}
@@ -302,23 +265,14 @@ package weavejs.data.column
 			return 1;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function deriveStringFromNumber(number:Number):String
 		{
 			if (_numberToStringFunction != null)
 				return _numberToStringFunction(number);
 			
-			if (_dateFormat)
-				return formatDate(number);
-			
-			return new Date(number).toString();
+			return formatDate(number);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
 			var number:Number;
@@ -327,7 +281,7 @@ package weavejs.data.column
 			
 			if (dataType == Number)
 			{
-				number = map_key_data.get(key);
+				number = Number(map_key_data.get(key));
 				return number;
 			}
 			
@@ -335,7 +289,7 @@ package weavejs.data.column
 			{
 				if (_numberToStringFunction != null)
 				{
-					number = map_key_data.get(key);
+					number = Number(map_key_data.get(key));
 					return _numberToStringFunction(number);
 				}
 				
@@ -363,42 +317,10 @@ package weavejs.data.column
 			return value;
 		}
 
-		private static function convertDateFormat_as_to_c(format:String):String
-		{
-			if (!format || format.indexOf('%') >= 0)
-				return format;
-			return StandardLib.replace.apply(null, [format].concat(dateFormat_replacements_as_to_c));
-		}
-		
-		private static const dateFormat_replacements_as_to_c:Array = [
-			'YYYY','%Y',
-			'YY','%y',
-			'MMMM','%B',
-			'MMM','%b',
-			'MM','%m',
-			'M','%-m',
-			'DD','%d',
-			'D','%-d',
-			'E','%u',
-			'A','%p',
-			'JJ','%H',
-			'J','%-H',
-			'LL','%I',
-			'L','%-I',
-			'EEEE','%A', // note that %A appears after the A replaced above
-			'EEE','%a',
-			'NN','%M', // note that %M and %-M appear after the M's replaced above
-			'N','%-M',
-			'SS','%S',
-			'QQQ','%Q'
-			//,'S','%-S'
-		];
-		
 		public static function detectDateFormats(dates:*):Array
 		{
-			//TODO
-			return [];
-			//return flascc.dates_detect(dates, DateFormat.FOR_AUTO_DETECT);
+			var convertedFormats:Array = DateFormat.FOR_AUTO_DETECT.map(DateFormat.convertDateFormat_c_to_moment);
+			return DateUtils.detectFormats(dates, convertedFormats);
 		}
 	}
 }

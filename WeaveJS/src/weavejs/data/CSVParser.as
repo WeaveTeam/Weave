@@ -76,9 +76,6 @@ package weavejs.data
 			return csvDataArray;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function parseCSV(csvData:String):Array
 		{
 			// initialization
@@ -207,9 +204,6 @@ package weavejs.data
 				Weave.getCallbacks(this).triggerCallbacks();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function createCSV(rows:Array):String
 		{
 			var lines:Array = new Array(rows.length);
@@ -225,9 +219,6 @@ package weavejs.data
 			return csvData;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function parseCSVRow(csvData:String):Array
 		{
 			if (csvData == null)
@@ -242,19 +233,14 @@ package weavejs.data
 			return [].concat.apply(null, rows);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function createCSVRow(row:Array):String
 		{
 			return createCSV([row]);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function parseCSVToken(token:String):String
 		{
+			token = String(token);
 			var parsedToken:String = '';
 			
 			var tokenLength:int = token.length;
@@ -289,11 +275,9 @@ package weavejs.data
 			return parsedToken;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function createCSVToken(str:String):String
 		{
+			str = String(str);
 			if (str == null)
 				str = '';
 			
@@ -320,9 +304,6 @@ package weavejs.data
 			return token + quote;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function convertRowsToRecords(rows:Array, headerDepth:int = 1):Array
 		{
 			if (rows.length < headerDepth)
@@ -356,9 +337,6 @@ package weavejs.data
 			return records;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getRecordFieldNames(records:Array, includeNullFields:Boolean = false, headerDepth:int = 1):Array
 		{
 			assertHeaderDepth(headerDepth);
@@ -408,9 +386,6 @@ package weavejs.data
 			}
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function convertRecordsToRows(records:Array, columnOrder:Array = null, allowBlankColumns:Boolean = false, headerDepth:int = 1):Array
 		{
 			assertHeaderDepth(headerDepth);

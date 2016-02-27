@@ -12,10 +12,8 @@ package weavejs.path
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.core.LinkableHashMap;
 	import weavejs.core.LinkableString;
 	import weavejs.core.LinkableVariable;
-	import weavejs.core.SessionManager;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 
@@ -472,7 +470,7 @@ package weavejs.path
 					return (object as ILinkableHashMap).getNames();
 				if (object is ILinkableDynamicObject)
 					return [null];
-				return (WeaveAPI.SessionManager as SessionManager).getLinkablePropertyNames(object, true);
+				return WeaveAPI.SessionManager['getLinkablePropertyNames'](object, true);
 			}
 			
 			throw new Error("No ILinkableObject for which to get child names at " + this);
@@ -512,7 +510,10 @@ package weavejs.path
 		public function getType(...relativePath):String
 		{
 			relativePath = _A(relativePath, 1);
-			return Weave.className(this.getObject(relativePath));
+			var object:ILinkableObject = this.getObject(relativePath);
+			if (object is ILinkableHashMap && this.getType('class'))
+				return this.getState('class') as String;
+			return Weave.className(object);
 		}
 		
 		/**
@@ -548,30 +549,14 @@ package weavejs.path
 		public function getTypedState(...relativePath):Object
 		{
 			relativePath = _A(relativePath, 1);
-			return (WeaveAPI.SessionManager as SessionManager).getTypedStateTree(getObject(relativePath));
+			return WeaveAPI.SessionManager['getTypedStateTree'](getObject(relativePath));
 		}
 		
 		public function getUntypedState(...relativePath):Object
 		{
 			relativePath = _A(relativePath, 1);
 			var state:Object = JS.copyObject(this.getState(relativePath));
-			return _removeTypeFromState(state);
-		}
-		
-		private function _removeTypeFromState(state:Object):Object
-		{
-			if (DynamicState.isDynamicStateArray(state))
-			{
-				var newState:Object = {};
-				for each (var typedState:Object in state)
-					newState[typedState[DynamicState.OBJECT_NAME] || ''] = _removeTypeFromState(typedState[DynamicState.SESSION_STATE]);
-				return newState;
-			}
-			
-			if (typeof state === 'object')
-				for (var key:String in state)
-					state[key] = _removeTypeFromState(state[key]);
-			return state;
+			return DynamicState.removeTypeFromState(state);
 		}
 		
 		/**
@@ -704,7 +689,7 @@ package weavejs.path
 			if (def)
 				path.request(def);
 			else if (hasChildren)
-				path.request(LinkableHashMap).push('class').request(LinkableString).state(type);
+				path.request(WeaveAPI.ClassRegistry.getImplementations(ILinkableHashMap)[0]).push('class').request(LinkableString).state(type);
 			else
 				path.request(LinkableVariable);
 			

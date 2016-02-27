@@ -73,7 +73,7 @@ package weavejs.data
 		 * Generates a label to use when displaying the column in a list.
 		 * @param column
 		 * @return The column title followed by its dataType and/or keyType metadata.
-		 */		
+		 */
 		public static function getColumnListLabel(column:IAttributeColumn):String
 		{
 			var title:String = ColumnUtils.getTitle(column);
@@ -334,19 +334,38 @@ package weavejs.data
 		 * @param keys An Array of IQualifiedKeys
 		 * @param minImportance No points with importance less than this value will be returned.
 		 * @param visibleBounds If not null, this bounds will be used to remove unnecessary offscreen points.
-		 * @return An Array of GeoJson Geometry objects corresponding to the keys.
+		 * @return An Array of GeoJson Geometry objects corresponding to the keys.  The Array may be sparse if there are no coordinates for some of the keys.
 		 */
 		public static function getGeoJsonGeometries(geometryColumn:IAttributeColumn, keys:Array, minImportance:Number = 0, visibleBounds:Bounds2D = null):Array
 		{
+			var map_inputGeomArray_outputMultiGeom:Object = new JS.WeakMap();
 			var output:Array = new Array(keys.length);
+			var multiGeom:Object;
 			for (var i:int = 0; i < keys.length; i++)
 			{
 				var key:IQualifiedKey = keys[i];
-				var genGeoms:Array = geometryColumn.getValueFromKey(key, Array) as Array;
-				var geoJsonGeoms:Array = genGeoms.map(function(genGeom:GeneralizedGeometry, ..._):Object {
-					return genGeom.toGeoJson(minImportance, visibleBounds);
-				});
-				output[i] = GeoJSON.getMultiGeomObject(geoJsonGeoms);
+				var inputGeomArray:Array = geometryColumn.getValueFromKey(key, Array) as Array;
+				if (inputGeomArray)
+				{
+					if (map_inputGeomArray_outputMultiGeom.has(inputGeomArray))
+					{
+						multiGeom = map_inputGeomArray_outputMultiGeom.get(inputGeomArray);
+					}
+					else
+					{
+						var outputGeomArray:Array = [];
+						for each (var inputGeom:GeneralizedGeometry in inputGeomArray)
+						{
+							var outputGeom:Object = inputGeom.toGeoJson(minImportance, visibleBounds);
+							if (outputGeom)
+								outputGeomArray.push(outputGeom);
+						}
+						multiGeom = outputGeomArray.length ? GeoJSON.getMultiGeomObject(outputGeomArray) : null;
+						map_inputGeomArray_outputMultiGeom.set(inputGeomArray, multiGeom);
+					}
+					if (multiGeom)
+						output[i] = multiGeom;
+				}
 			}
 			return output;
 		}
@@ -439,6 +458,73 @@ package weavejs.data
 			}
 			return result;
 		}
+		
+		/**
+		 * Generates records using a custom format.
+		 * @param format An object mapping names to IAttributeColumn objects or constant values to be included in every record.
+		 *               You can nest Objects or Arrays.
+		 *               If you want each record to include its corresponding key, include a property with a value equal to weavejs.api.data.IQualifiedKey.
+		 * @param keys An Array of IQualifiedKeys
+		 * @param dataType A Class specifying the dataType to retrieve from columns: String/Number/Date/Array (default is Array)
+		 *                 You can also specify different data types in a structure matching that of the format object.
+		 * @param keyProperty The property name which should be used to store the IQualifiedKey for a record.
+		 * @return An array of record objects matching the structure of the format object.
+		 */
+		public static function getRecords(format:Object, keys:Array = null, dataType:Object = null):Array
+		{
+			if (JS.isPrimitive(format) || format is IAttributeColumn)
+				throw new Error("Invalid record format");
+			if (!keys)
+				keys = getAllKeys(getColumnsFromFormat(format, []));
+			var records:Array = new Array(keys.length);
+			for (var i:int in keys)
+				records[i] = getRecord(format, keys[i], dataType);
+			return records;
+		}
+		
+		private static function getColumnsFromFormat(format:Object, output:Array):Array
+		{
+			// check for primitive values
+			if (format === null || typeof format !== 'object')
+				return output;
+			for (var prop:String in format)
+				if (format[prop] is IAttributeColumn)
+					output.push(format[prop]);
+				else
+					getColumnsFromFormat(format[prop], output);
+			return output;
+		}
+		
+		/**
+		 * Generates a record using a custom format.
+		 * @param format An object mapping names to IAttributeColumn objects or constant values to be included in every record.
+		 *               You can nest Objects or Arrays.
+		 *               If you want the record to include its corresponding key, include include a property with a value equal to weavejs.api.data.IQualifiedKey.
+		 * @param key An IQualifiedKey
+		 * @param dataType A Class specifying the dataType to retrieve from columns: String/Number/Date/Array (default is Array)
+		 *                 You can also specify different data types in a structure matching that of the format object.
+		 * @return A record object matching the structure of the format object.
+		 */
+		public static function getRecord(format:Object, key:IQualifiedKey, dataType:Object):Object
+		{
+			if (format === IQualifiedKey)
+				return key;
+			
+			// check for primitive values
+			if (format === null || typeof format !== 'object')
+				return format;
+			
+			var dataTypeClass:Class = JS.asClass(dataType || Array);
+			var column:IAttributeColumn = format as IAttributeColumn;
+			if (column)
+				return column.getValueFromKey(key, dataTypeClass);
+			
+			var record:Object = format is Array ? [] : {};
+			for (var prop:String in format)
+				record[prop] = getRecord(format[prop], key, dataTypeClass || dataType[prop]);
+			return record;
+		}
+		
 		/**
 		 * @param attrCols An array of IAttributeColumns or ILinkableHashMaps containing IAttributeColumns.
 		 * @return An Array of non-wrapper columns with duplicates removed.

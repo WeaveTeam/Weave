@@ -17,9 +17,10 @@ package weavejs.data.key
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.api.data.DataType;
+	import weavejs.api.data.ICSVParser;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.api.data.IQualifiedKeyManager;
+	import weavejs.data.CSVParser;
 	import weavejs.util.Dictionary2D;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
@@ -36,6 +37,58 @@ package weavejs.data.key
 	 */
 	public final class QKeyManager implements IQualifiedKeyManager
 	{
+		public function QKeyManager()
+		{
+			// map_qkeyString_qkey corresponds to a null keyType
+			map_qkeyString_qkey = new JS.Map();
+			map_keyType_localName_qkey.map.set(null, map_qkeyString_qkey);
+		}
+		
+		/**
+		 * Maps IQualifiedKey to keyType - faster than reading the keyType property of a QKey
+		 */
+		public var map_qkey_keyType:/*/WeakMap<IQualifiedKey,string>/*/Object = new JS.WeakMap();
+		
+		/**
+		 * Maps IQualifiedKey to localName - faster than reading the localName property of a QKey
+		 */
+		public var map_qkey_localName:/*/WeakMap<IQualifiedKey,string>/*/Object = new JS.WeakMap();
+		
+		/**
+		 * keyType -> Object( localName -> IQualifiedKey )
+		 */
+		private var map_keyType_localName_qkey:Dictionary2D = new Dictionary2D();
+		
+		private var map_qkeyString_qkey:Object;
+
+		private var map_context_qkeyGetter:Object = new JS.WeakMap();
+		
+		private var _keyBuffer:Array = []; // holds one key
+		
+		// The # sign is used in anticipation that a key type will be a URI.
+		private static const DELIMITER:String = '#';
+		private var csvParser:ICSVParser;
+		private var array_numberToQKey:Array = [];
+		
+		public function stringToQKey(qkeyString:String):IQualifiedKey
+		{
+			var qkey:IQualifiedKey = map_qkeyString_qkey.get(qkeyString);
+			if (qkey)
+				return qkey;
+			
+			if (!csvParser)
+				csvParser = new CSVParser(false, DELIMITER);
+			var a:Array = csvParser.parseCSVRow(qkeyString);
+			if (a.length != 2)
+				throw new Error("qkeyString must be formatted like " + csvParser.createCSVRow(['keyType', 'localName']));
+			return getQKey(a[0], a[1])
+		}
+		
+		public function numberToQKey(qkeyNumber:Number):IQualifiedKey
+		{
+			return array_numberToQKey[qkeyNumber];
+		}
+		
 		/**
 		 * Get the QKey object for a given key type and key.
 		 *
@@ -48,35 +101,51 @@ package weavejs.data.key
 			return _keyBuffer[0] as IQualifiedKey;
 		}
 		
-		private var _keyBuffer:Array = []; // holds one key
+		private function init_map_localName_qkey(keyType:String):Object
+		{
+			// key type not seen before, so initialize it
+			var map_localName_qkey:Object = new JS.Map();
+			map_keyType_localName_qkey.map.set(keyType, map_localName_qkey);
+			return map_localName_qkey;
+		}
 		
 		/**
 		 * @param output An output Array for IQualifiedKeys.
 		 */
-		public function getQKeys_range(keyType:String, keyStrings:Array, iStart:uint, iEnd:uint, output:*):void
+		public function getQKeys_range(keyType:String, keyStrings:Array/*/<string>/*/, iStart:uint, iEnd:uint, output:Array/*/<IQualifiedKey>/*/):void
 		{
-			// if there is no keyType specified, use the default
-			if (!keyType)
-				keyType = DataType.STRING;
+			keyType = keyType == null ? null : String(keyType);
 			
 			// get mapping of key strings to QKey weak references
 			var map_localName_qkey:Object = map_keyType_localName_qkey.map.get(keyType);
 			if (!map_localName_qkey)
-			{
-				// key type not seen before, so initialize it
-				map_localName_qkey = new JS.Map();
-				map_keyType_localName_qkey.map.set(keyType, map_localName_qkey);
-			}
+				map_localName_qkey = init_map_localName_qkey(keyType);
+			
+			if (!csvParser)
+				csvParser = new CSVParser(false, DELIMITER);
 			
 			for (var i:int = iStart; i < iEnd; i++)
 			{
-				var localName:* = keyStrings[i];
+				var localName:String = String(keyStrings[i]);
 				var qkey:* = map_localName_qkey.get(localName);
 				if (qkey === undefined)
 				{
 					// QKey not created for this key yet (or it has been garbage-collected)
-					qkey = new QKey(keyType, localName);
-					map_localName_qkey.set(localName, qkey);
+					var qkeyString:String;
+					if (keyType)
+					{
+						qkeyString = csvParser.createCSVRow([keyType, localName]);
+					}
+					else
+					{
+						qkeyString = localName;
+					}
+					var qkeyTyped:QKey = qkey = new QKey(keyType, localName, qkeyString);
+					
+					array_numberToQKey[qkeyTyped.toNumber()] = qkey;
+					if (map_localName_qkey !== map_qkeyString_qkey)
+						map_localName_qkey.set(localName, qkey);
+					map_qkeyString_qkey.set(qkeyString, qkey);
 					map_qkey_keyType.set(qkey, keyType);
 					map_qkey_localName.set(qkey, localName);
 				}
@@ -90,7 +159,7 @@ package weavejs.data.key
 		 * 
 		 * @return An array of QKeys.
 		 */
-		public function getQKeys(keyType:String, keyStrings:Array):Array
+		public function getQKeys(keyType:String, keyStrings:Array/*/<string>/*/):Array/*/<IQualifiedKey>/*/
 		{
 			var keys:Array = new Array(keyStrings.length);
 			getQKeys_range(keyType, keyStrings, 0, keyStrings.length, keys);
@@ -103,7 +172,7 @@ package weavejs.data.key
 		 * @param objects An Array to modify.
 		 * @return The same Array that was passed in, modified.
 		 */
-		public function convertToQKeys(objects:Array):Array
+		public function convertToQKeys(objects:Array/*/<{keyType:string, localName:string}>/*/):Array/*/<IQualifiedKey>/*/
 		{
 			var i:int = objects.length;
 			while (i--)
@@ -120,12 +189,14 @@ package weavejs.data.key
 		 * 
 		 * @return An array of QKeys that will be filled in asynchronously.
 		 */
-		public function getQKeysAsync(relevantContext:ILinkableObject, keyType:String, keyStrings:Array, asyncCallback:Function, outputKeys:Array):void
+		public function getQKeysAsync(relevantContext:ILinkableObject, keyType:String, keyStrings:Array/*/<string>/*/, asyncCallback:/*/(keys:IQualifiedKey[])=>void/*/Function, outputKeys:Array/*/<IQualifiedKey>/*/):void
 		{
 			var qkg:QKeyGetter = map_context_qkeyGetter.get(relevantContext);
 			if (!qkg)
 				map_context_qkeyGetter.set(relevantContext, qkg = new QKeyGetter(this, relevantContext));
-			qkg.asyncStart(keyType, keyStrings, outputKeys).then(function(..._):* { asyncCallback(); });
+			var promise:WeavePromise = qkg.asyncStart(keyType, keyStrings, outputKeys);
+			if (asyncCallback != null)
+				promise.then(asyncCallback);
 		}
 		
 		/**
@@ -135,7 +206,7 @@ package weavejs.data.key
 		 * @param keyStrings An Array of localName values.
 		 * @return A WeavePromise that produces an Array of IQualifiedKeys.
 		 */
-		public function getQKeysPromise(relevantContext:Object, keyType:String, keyStrings:Array):WeavePromise
+		public function getQKeysPromise(relevantContext:Object, keyType:String, keyStrings:Array/*/<string>/*/):WeavePromise
 		{
 			var qkg:QKeyGetter = map_context_qkeyGetter.get(relevantContext);
 			if (!qkg)
@@ -144,14 +215,12 @@ package weavejs.data.key
 			return qkg;
 		}
 		
-		private var map_context_qkeyGetter:Object = new JS.WeakMap();
-
 		/**
 		 * Get a list of all previoused key types.
 		 *
 		 * @return An array of QKeys.
 		 */
-		public function getAllKeyTypes():Array
+		public function getAllKeyTypes():Array/*/<string>/*/
 		{
 			return map_keyType_localName_qkey.primaryKeys();
 		}
@@ -160,32 +229,17 @@ package weavejs.data.key
 		 * Get a list of all referenced QKeys for a given key type
 		 * @return An array of QKeys
 		 */
-		public function getAllQKeys(keyType:String):Array
+		public function getAllQKeys(keyType:String):Array/*/<IQualifiedKey>/*/
 		{
 			return JS.mapValues(map_keyType_localName_qkey.map.get(keyType));
 		}
 		
 		/**
-		 * keyType -> Object( localName -> IQualifiedKey )
-		 */
-		private var map_keyType_localName_qkey:Dictionary2D = new Dictionary2D();
-		
-		/**
-		 * Maps IQualifiedKey to keyType - faster than reading the keyType property of a QKey
-		 */
-		public var map_qkey_keyType:Object = new JS.WeakMap();
-		
-		/**
-		 * Maps IQualifiedKey to localName - faster than reading the localName property of a QKey
-		 */
-		public var map_qkey_localName:Object = new JS.WeakMap();
-
-		/**
 		 * This makes a sorted copy of an Array of keys.
 		 * @param An Array of IQualifiedKeys.
 		 * @return A sorted copy of the keys.
 		 */
-		public static function keySortCopy(keys:Array):Array
+		public static function keySortCopy(keys:Array/*/<IQualifiedKey>/*/):Array/*/<IQualifiedKey>/*/
 		{
 			var qkm:QKeyManager = WeaveAPI.QKeyManager as QKeyManager;
 			var params:Array = [qkm.map_qkey_keyType, qkm.map_qkey_localName];

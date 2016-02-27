@@ -36,7 +36,7 @@ package weavejs.data.key
 		/**
 		 * @param keyInclusionLogic A function that accepts an IQualifiedKey and returns true or false.
 		 */		
-		public function KeySetUnion(keyInclusionLogic:Function = null)
+		public function KeySetUnion(keyInclusionLogic:/*/(key:IQualifiedKey)=>boolean/*/Function = null)
 		{
 			_keyInclusionLogic = keyInclusionLogic;
 			
@@ -91,7 +91,7 @@ package weavejs.data.key
 		 * trigger callbacks when an asynchronous task completes, but we don't want to trigger KeySetUnion callbacks when nothing
 		 * changes as a result of completing the asynchronous task.
 		 */
-		public var busyStatus:ICallbackCollection = Weave.disposableChild(this, CallbackCollection); // separate owner for the async task to avoid affecting our busy status
+		public const busyStatus:ICallbackCollection = Weave.disposableChild(this, CallbackCollection); // separate owner for the async task to avoid affecting our busy status
 		
 		private var _asyncKeys:Array; // keys from current key set
 		private var _asyncKeySetIndex:int; // index of current key set

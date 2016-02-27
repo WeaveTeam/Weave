@@ -80,7 +80,6 @@ package weavejs.data.hierarchy
 		
 		/**
 		 * Compares constructor, dataSource, dependency, data, idFields.
-		 * @inheritDoc
 		 */
 		override public function equals(other:IWeaveTreeNode):Boolean
 		{
@@ -117,17 +116,11 @@ package weavejs.data.hierarchy
 			return true;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getDataSource():IDataSource
 		{
 			return dataSource;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getColumnMetadata():Object
 		{
 			if (isBranch())
@@ -135,9 +128,6 @@ package weavejs.data.hierarchy
 			return data;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function findPathToNode(descendant:IWeaveTreeNode):Array
 		{
 			// base case - if nodes are equal

@@ -43,7 +43,7 @@ package weavejs.data.column
 		/**
 		 * This is the dynamically created filter that filters the keys in the column.
 		 */		
-		public var filter:IDynamicKeyFilter = Weave.linkableChild(this, _filteredKeySet.keyFilter);
+		public const filter:IDynamicKeyFilter = Weave.linkableChild(this, _filteredKeySet.keyFilter);
 		
 		/**
 		 * This stores the filtered keys

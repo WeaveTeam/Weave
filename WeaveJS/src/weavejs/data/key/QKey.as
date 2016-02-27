@@ -23,14 +23,20 @@ package weavejs.data.key
 	 */
 	internal class QKey implements IQualifiedKey
 	{
-		public function QKey(keyType:String, localName:*)
+		private static var serial:uint = 0;
+		
+		public function QKey(keyType:String, localName:String, toString:String)
 		{
 			kt = keyType;
 			ln = localName;
+			_toNumber = serial++;
+			_toString = toString;
 		}
 		
 		private var kt:String;
-		private var ln:*;
+		private var ln:String;
+		private var _toNumber:Number;
+		private var _toString:String;
 		
 		/**
 		 * This is the namespace of the QKey.
@@ -48,11 +54,14 @@ package weavejs.data.key
 			return ln;
 		}
 		
-		// This is a String containing both the namespace and the local name of the QKey
-		//	public function toString():String
-		//	{
-		//		// The # sign is used in anticipation that a key type will be a URI.
-		//		return kt + '#' + ln;
-		//	}
+		public function toNumber():Number
+		{
+			return _toNumber;
+		}
+		
+		public function toString():String
+		{
+			return _toString;
+		}
 	}
 }

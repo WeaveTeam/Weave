@@ -19,6 +19,9 @@ package weave.data.KeySets
 	{
 		public static function isRange(obj:Object):Boolean
 		{
+			if (!obj)
+				return false;
+			
 			var count:int = 0;
 			var prop:String;
 			

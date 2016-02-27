@@ -6,9 +6,9 @@
 */
 package weavejs.core
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.util.Dictionary2D;
-	import weavejs.util.JS;
 
 	/**
 	 * @private
@@ -146,7 +146,7 @@ package weavejs.core
 			super(context, groupedCallback);
 			
 			if (!_initialized)
-				_initialized = JS.setInterval(_handleGroupedCallbacks, 0);
+				_initialized = WeaveAPI.Scheduler.frameCallbacks.addImmediateCallback(null, _handleGroupedCallbacks);
 		}
 		
 		/**
@@ -201,9 +201,9 @@ package weavejs.core
 			for (var i:int = 0; i < targets.length; i++)
 			{
 				var target:ICallbackCollection = targets[i];
-				if (Weave.wasDisposed(target))
+				if (WeaveAPI.SessionManager.objectWasDisposed(target))
 					targets.splice(i--, 1);
-				else if (delayWhileBusy && Weave.isBusy(target))
+				else if (delayWhileBusy && WeaveAPI.SessionManager.linkableObjectIsBusy(target))
 					return;
 			}
 			// if there are no more relevant contexts for this callback, don't run it.

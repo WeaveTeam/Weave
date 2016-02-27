@@ -93,8 +93,9 @@
 			import mx.core.mx_internal;
 			
 			import weave.menus.DataMenu;
-			import weave.menus.SelectionsMenu;
+			import weave.menus.ExportMenu;
 			import weave.menus.FileMenu;
+			import weave.menus.SelectionsMenu;
 			import weave.menus.SubsetsMenu;
 			import weave.menus.SystemMenu;
 			import weave.menus.ToolsMenu;
@@ -121,7 +122,8 @@
 				ToolsMenu,
 				SelectionsMenu,
 				SubsetsMenu,
-				WindowMenu
+				WindowMenu,
+				ExportMenu
 			]);
 			
 			public var maxLabelLength:int = 75;

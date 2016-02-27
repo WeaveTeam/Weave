@@ -154,9 +154,6 @@ package weavejs.data.column
 			return undefined;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		override public function dispose():void
 		{
 			super.dispose();

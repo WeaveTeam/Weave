@@ -36,9 +36,9 @@ package weavejs.data.key
 		public static const REGEXP:String = 'regexp';
 		private static const ALTERNATE_REGEX_PROPERTY:String = 'regex';
 		
-		public var enabled:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true), _cacheVars);
-		public var includeMissingKeyTypes:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true), _cacheVars);
-		public var column:DynamicColumn = Weave.linkableChild(this, DynamicColumn, _resetKeyLookup);
+		public const enabled:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true), _cacheVars);
+		public const includeMissingKeyTypes:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true), _cacheVars);
+		public const column:DynamicColumn = Weave.linkableChild(this, DynamicColumn, _resetKeyLookup);
 		
 		/**
 		 * An Array of Numbers, Strings and/or Range objects specifying numeric ranges.
@@ -46,7 +46,7 @@ package weavejs.data.key
 		 * Alternatively, you can specify "minInclusive" or "minExclusive" in place of "min"
 		 * and "minInclusive" or "maxExclusive" in place of "max".
 		 */
-		public var values:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array), _resetKeyLookup);
+		public const values:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array), _resetKeyLookup);
 		
 		private var _enabled:Boolean;
 		private var _includeMissingKeyTypes:Boolean;
@@ -234,22 +234,34 @@ package weavejs.data.key
 			return new RegExp(value[REGEXP] || value[ALTERNATE_REGEX_PROPERTY]);
 		}
 		
+		public function get deprecatedStateMapping():Object
+		{
+			return this.handleMissingSessionStateProperties;
+		}
+		
 		private var _deprecatedRangeState:Object;
-		public function handleMissingSessionStateProperty(newState:Object, property:String):void
+		private function handleMissingSessionStateProperties(newState:Object):void
 		{
 			// handle deprecated StringDataFilter single-string value
-			if (property == 'stringValue')
-				values.setSessionState([newState[property]]);
+			const STRING_VALUE:String = 'stringValue';
+			if (newState.hasOwnProperty(STRING_VALUE))
+				values.setSessionState([newState[STRING_VALUE]]);
+			
 			// handle deprecated StringDataFilter array of strings
-			if (property == 'stringValues')
-				values.setSessionState(newState[property]);
+			const STRING_VALUES:String = 'stringValues';
+			if (newState.hasOwnProperty(STRING_VALUES))
+				values.setSessionState(newState[STRING_VALUES]);
+			
 			// handle deprecated NumberDataFilter state
-			if (property == 'min' || property == 'max')
+			for each (var property:String in ['min', 'max'])
 			{
-				if (!_deprecatedRangeState)
-					_deprecatedRangeState = {};
-				_deprecatedRangeState[property] = newState[property];
-				values.setSessionState([_deprecatedRangeState]);
+				if (newState.hasOwnProperty(property))
+				{
+					if (!_deprecatedRangeState)
+						_deprecatedRangeState = {};
+					_deprecatedRangeState[property] = newState[property];
+					values.setSessionState([_deprecatedRangeState]);
+				}
 			}
 		}
 	}

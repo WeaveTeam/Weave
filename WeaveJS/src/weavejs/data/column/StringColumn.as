@@ -38,6 +38,7 @@ package weavejs.data.column
 			
 			dataTask = new ColumnDataTask(this, filterStringValue, handleDataTaskComplete);
 			dataCache = new Dictionary2D();
+			Weave.getCallbacks(_asyncSort).addImmediateCallback(this, handleSortComplete);
 		}
 		
 		override public function getMetadata(propertyName:String):String
@@ -74,7 +75,7 @@ package weavejs.data.column
 			{
 				try
 				{
-					_stringToNumberFunction = JS.compile(numberFormat, [ColumnMetadata.STRING, 'array']);
+					_stringToNumberFunction = JS.compile(numberFormat, [ColumnMetadata.STRING, 'array'], errorHandler);
 				}
 				catch (e:Error)
 				{
@@ -88,7 +89,7 @@ package weavejs.data.column
 			{
 				try
 				{
-					_numberToStringFunction = JS.compile(stringFormat, [ColumnMetadata.NUMBER]);
+					_numberToStringFunction = JS.compile(stringFormat, [ColumnMetadata.NUMBER], errorHandler);
 				}
 				catch (e:Error)
 				{

@@ -31,11 +31,11 @@ package weavejs.core
 			_callbacks.addImmediateCallback(null, selfCallback);
 		}
 		
-		public var primaryPath:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array), setPrimaryPath);
-		public var secondaryPath:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array), setSecondaryPath);
+		public const primaryPath:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array), setPrimaryPath);
+		public const secondaryPath:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array), setSecondaryPath);
 		
-		public var primaryTransform:LinkableFunction = Weave.linkableChild(this, new LinkableFunction(null, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handlePrimaryTransform);
-		public var secondaryTransform:LinkableFunction = Weave.linkableChild(this, new LinkableFunction(null, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handleSecondaryTransform);
+		public const primaryTransform:LinkableFunction = Weave.linkableChild(this, new LinkableFunction(null, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handlePrimaryTransform);
+		public const secondaryTransform:LinkableFunction = Weave.linkableChild(this, new LinkableFunction(null, false, [VAR_STATE, VAR_PRIMARY, VAR_SECONDARY]), handleSecondaryTransform);
 		
 		private var primaryWatcher:LinkableWatcher = Weave.disposableChild(this, new LinkableWatcher(null, synchronize));
 		private var secondaryWatcher:LinkableWatcher = Weave.disposableChild(this, new LinkableWatcher(null, synchronize));

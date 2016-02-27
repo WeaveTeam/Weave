@@ -20,6 +20,8 @@ package weavejs.core
 
 		public function get value():Boolean
 		{
+			if (_sessionStateExternal === undefined)
+				return false;
 			return _sessionStateExternal;
 		}
 		public function set value(value:Boolean):void
@@ -27,6 +29,13 @@ package weavejs.core
 			setSessionState(value);
 		}
 
+		override public function getSessionState():Object
+		{
+			if (_sessionStateExternal === undefined)
+				return false;
+			return _sessionStateExternal;
+		}
+		
 		override public function setSessionState(value:Object):void
 		{
 			if (value is String)

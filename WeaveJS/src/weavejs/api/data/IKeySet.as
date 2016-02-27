@@ -25,6 +25,6 @@ package weavejs.api.data
 		/**
 		 * This is a list of the IQualifiedKey objects that define the key set.
 		 */
-		function get keys():Array;
+		function get keys():Array/*/<IQualifiedKey>/*/;
 	}
 }

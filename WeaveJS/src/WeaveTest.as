@@ -9,6 +9,7 @@ package
 	import weavejs.api.core.ILinkableVariable;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IQualifiedKey;
+	import weavejs.api.ui.IVisTool;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableCallbackScript;
 	import weavejs.core.LinkableDynamicObject;
@@ -20,6 +21,7 @@ package
 	import weavejs.core.LinkableVariable;
 	import weavejs.core.LinkableWatcher;
 	import weavejs.core.SessionStateLog;
+	import weavejs.core.WeaveArchive;
 	import weavejs.data.bin.AbstractBinningDefinition;
 	import weavejs.data.bin.CategoryBinningDefinition;
 	import weavejs.data.bin.CustomSplitBinningDefinition;
@@ -55,6 +57,7 @@ package
 	import weavejs.data.column.SortedIndexColumn;
 	import weavejs.data.column.StringColumn;
 	import weavejs.data.column.StringLookup;
+	import weavejs.data.hierarchy.WeaveRootDataTreeNode;
 	import weavejs.data.key.ColumnDataFilter;
 	import weavejs.data.key.DynamicKeyFilter;
 	import weavejs.data.key.DynamicKeySet;
@@ -65,8 +68,17 @@ package
 	import weavejs.data.key.KeySetUnion;
 	import weavejs.data.key.SortedKeySet;
 	import weavejs.data.source.CSVDataSource;
-	import weavejs.util.DebugUtils;
+	import weavejs.data.source.CensusDataSource;
+	import weavejs.data.source.DBFDataSource;
+	import weavejs.data.source.ForeignDataMappingTransform;
+	import weavejs.data.source.GeoJSONDataSource;
+	import weavejs.data.source.GroupedDataTransform;
+	import weavejs.data.source.WeaveDataSource;
+	import weavejs.geom.SolidFillStyle;
+	import weavejs.geom.SolidLineStyle;
+	import weavejs.geom.ZoomBounds;
 	import weavejs.util.JS;
+	import weavejs.util.WeaveMenuItem;
 	
 	public class WeaveTest
 	{
@@ -122,6 +134,21 @@ package
 			SortedIndexColumn,
 			StringColumn,
 			StringLookup,
+			GeoJSONDataSource,
+			WeaveDataSource,
+			ForeignDataMappingTransform,
+			CensusDataSource,
+			DBFDataSource,
+			GroupedDataTransform,
+			
+			WeaveMenuItem,
+			ZoomBounds,
+			WeaveArchive,
+			WeaveRootDataTreeNode,
+			SolidLineStyle,
+			SolidFillStyle,
+			IVisTool,
+			
 			null
 		];
 		

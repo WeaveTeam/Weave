@@ -28,10 +28,10 @@ package weavejs.core
 			callbacks.addGroupedCallback(null, _groupedCallback);
 		}
 		
-		public var variables:LinkableHashMap = Weave.linkableChild(this, new LinkableHashMap());
-		public var script:LinkableString = Weave.linkableChild(this, new LinkableString());
-		public var delayWhileBusy:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
-		public var groupedCallback:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
+		public const variables:LinkableHashMap = Weave.linkableChild(this, new LinkableHashMap());
+		public const script:LinkableString = Weave.linkableChild(this, new LinkableString());
+		public const delayWhileBusy:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
+		public const groupedCallback:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
 		
 		private var _compiledFunction:Function;
 		

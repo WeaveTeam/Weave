@@ -60,9 +60,6 @@ package weavejs.data.source
 		
 		private var _hierarchyRefresh:ICallbackCollection = Weave.linkableChild(this, CallbackCollection, refreshHierarchy);
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get hierarchyRefresh():ICallbackCollection
 		{
 			return _hierarchyRefresh;
@@ -139,7 +136,6 @@ package weavejs.data.source
 		 * This function should be overridden if the hierachy is not known completely, since this
 		 * may result in traversing the entire hierarchy, causing many remote procedure calls if
 		 * the hierarchy is stored remotely.
-		 * @inheritDoc
 		 */
 		public function findHierarchyNode(metadata:Object):IWeaveTreeNode
 		{

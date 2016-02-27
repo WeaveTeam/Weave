@@ -17,7 +17,7 @@ package weavejs.api.data
 {
 	public class EntityType
 	{
-		public static const ALL_TYPES:Array = [TABLE, COLUMN, HIERARCHY, CATEGORY];
+		public static const ALL_TYPES:Array/*/<string>/*/ = [TABLE, COLUMN, HIERARCHY, CATEGORY];
 		
 		public static const TABLE:String = 'table';
 		public static const COLUMN:String = 'column';

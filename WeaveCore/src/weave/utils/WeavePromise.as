@@ -22,11 +22,13 @@ package weave.utils
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.core.IDisposableObject;
-	import weave.api.core.ILinkableObject;
+	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.objectWasDisposed;
 	import weave.api.registerDisposableChild;
+	import weave.api.reportError;
+	import weave.api.core.IDisposableObject;
+	import weave.api.core.ILinkableObject;
 	
 	/**
 	 * Use this when you need a Promise chain to depend on ILinkableObjects and resolve multiple times.
@@ -35,9 +37,13 @@ package weave.utils
 	 */
 	public class WeavePromise implements IDisposableObject
 	{
+		// true to conform to Promise spec, false to make Weave work correctly w/ busy status
+		public static var _callNewHandlersSeparately:Boolean = false;
+		
 		/**
 		 * @param relevantContext This parameter may be null.  If the relevantContext object is disposed, the promise will be disabled.
-		 * @param resolver A function like function(resolve:Function, reject:Function):void which carries out the promise
+		 * @param resolver A function like function(resolve:Function, reject:Function):void which carries out the promise.
+		 *                 If no resolver is given, setResult() or setError() should be called externally.
 		 */
 		public function WeavePromise(relevantContext:Object, resolver:Function = null)
 		{
@@ -51,24 +57,16 @@ package weave.utils
 			{
 				// this is a new root promise
 				this.rootPromise = this;
-				this.relevantContext = relevantContext;
-				
-				// if resolver is not specified, immediately set the result of the root promise equal to the relevantContext
-				if (resolver == null)
-					this.setResult(this.relevantContext);
+				// if no context is specified, make sure this promise stops functioning when it is disposed
+				this.relevantContext = relevantContext || this;
 			}
 			
 			if (relevantContext)
 				registerDisposableChild(relevantContext, this);
 			
 			if (resolver != null)
-			{
-				setBusy(true);
 				resolver(this.setResult, this.setError);
-			}
 		}
-		
-		private static function noop(value:Object):Object { return value; }
 		
 		private var rootPromise:WeavePromise;
 		protected var relevantContext:Object;
@@ -77,13 +75,13 @@ package weave.utils
 		private const handlers:Array = []; // array of Handler objects
 		private const dependencies:Array = [];
 		
-		public function setResult(result:Object):void
+		/**
+		 * @return This WeavePromise
+		 */
+		public function setResult(result:Object):WeavePromise
 		{
 			if (objectWasDisposed(relevantContext))
-			{
-				setBusy(false);
-				return;
-			}
+				return this;
 			
 			this.result = undefined;
 			this.error = undefined;
@@ -101,13 +99,15 @@ package weave.utils
 			}
 			else if (result is WeavePromise)
 			{
-				(result as WeavePromise).then(setResult, setError);
+				(result as WeavePromise)._notify(this);
 			}
 			else
 			{
-				this.result = result;
+				this.result = result as Object;
 				callHandlers();
 			}
+			
+			return this;
 		}
 		
 		public function getResult():Object
@@ -115,18 +115,20 @@ package weave.utils
 			return result;
 		}
 		
-		public function setError(error:Object):void
+		/**
+		 * @return This WeavePromise
+		 */
+		public function setError(error:Object):WeavePromise
 		{
 			if (objectWasDisposed(relevantContext))
-			{
-				setBusy(false);
-				return;
-			}
+				return this;
 			
 			this.result = undefined;
-			this.error = error;
+			this.error = error as Object;
 			
 			callHandlers();
+			
+			return this;
 		}
 		
 		public function getError():Object
@@ -134,78 +136,92 @@ package weave.utils
 			return error;
 		}
 		
-		private function setBusy(busy:Boolean):void
-		{
-			if (busy)
-			{
-				WeaveAPI.ProgressIndicator.addTask(rootPromise, relevantContext as ILinkableObject);
-			}
-			else
-			{
-				WeaveAPI.ProgressIndicator.removeTask(rootPromise);
-			}
-		}
-		
 		private function callHandlers(newHandlersOnly:Boolean = false):void
 		{
+			// stop if depenencies are busy because we will call handlers when they become unbusy
 			if (dependencies.some(dependencyIsBusy))
-			{
-				if (handlers.length)
-					setBusy(true);
 				return;
-			}
 			
-			// if there are no more handlers, remove the task
-			if (handlers.length == 0)
-				setBusy(false);
-			
-			if (objectWasDisposed(relevantContext))
-			{
-				setBusy(false);
+			// stop if the promise has not been resolved yet
+			if (result === undefined && error === undefined)
 				return;
-			}
+			
+			// make sure thrown errors are seen
+			if (handlers.length == 0 && error !== undefined)
+				reportError(error);
+			
+			var shouldCallLater:Boolean = false;
 			
 			for (var i:int = 0; i < handlers.length; i++)
 			{
 				var handler:Handler = handlers[i];
-				if (newHandlersOnly && handler.wasCalled)
-					continue;
+				
+				if (_callNewHandlersSeparately)
+				{
+					if (newHandlersOnly != handler.isNew)
+					{
+						shouldCallLater = handler.isNew;
+						continue;
+					}
+				}
+				else
+				{
+					if (newHandlersOnly && !handler.isNew)
+					{
+						continue;
+					}
+				}
+				
 				if (result !== undefined)
 					handler.onResult(result);
 				else if (error !== undefined)
 					handler.onError(error);
 			}
+			
+			if (shouldCallLater)
+				WeaveAPI.StageUtils.callLater(relevantContext, callHandlers, [true]);
 		}
 		
 		public function then(onFulfilled:Function = null, onRejected:Function = null):WeavePromise
 		{
-			if (onFulfilled == null)
-				onFulfilled = noop;
-			if (onRejected == null)
-				onRejected = noop;
+			if (objectWasDisposed(relevantContext))
+				return this;
 			
 			var next:WeavePromise = new WeavePromise(this);
-			next.result = undefined;
 			handlers.push(new Handler(onFulfilled, onRejected, next));
 			
+			// call new handler(s) if promise has already been resolved
 			if (result !== undefined || error !== undefined)
-			{
-				// callLater will not call the function if the context was disposed
 				WeaveAPI.StageUtils.callLater(relevantContext, callHandlers, [true]);
-				setBusy(true);
-			}
 			
 			return next;
 		}
 		
+		private function _notify(next:WeavePromise):void
+		{
+			if (objectWasDisposed(relevantContext))
+				return;
+			
+			// avoid adding duplicate handlers
+			for each (var handler:Handler in handlers)
+				if (handler.next === next)
+					return;
+			
+			handlers.push(new Handler(null, null, next));
+			
+			// resolve next immediately if this promise has been resolved
+			if (result !== undefined)
+				next.setResult(result);
+			else if (error !== undefined)
+				next.setError(error);
+		}
+		
 		public function depend(...linkableObjects):WeavePromise
 		{
-			if (linkableObjects.length)
-			{
-				setBusy(true);
-			}
 			for each (var dependency:ILinkableObject in linkableObjects)
 			{
+				if (dependencies.indexOf(dependency) < 0)
+					dependencies.push(dependency);
 				getCallbackCollection(dependency).addGroupedCallback(relevantContext, callHandlers, true);
 			}
 			return this;
@@ -236,8 +252,9 @@ package weave.utils
 		
 		public function dispose():void
 		{
+			disposeObject(this);
+			dependencies.length = 0;
 			handlers.length = 0;
-			setBusy(false);
 		}
 	}
 }
@@ -259,23 +276,29 @@ internal class Handler
 	
 	public function onResult(result:Object):void
 	{
-		wasCalled = true;
+		isNew = true;
 		try
 		{
-			next.setResult(onFulfilled(result));
+			if (onFulfilled != null)
+				next.setResult(onFulfilled(result));
+			else
+				next.setResult(result);
 		}
 		catch (e:Error)
 		{
-			onError(e);
+			next.setError(e);
 		}
 	}
 	
 	public function onError(error:Object):void
 	{
-		wasCalled = true;
+		isNew = true;
 		try
 		{
-			next.setError(onRejected(error));
+			if (onRejected != null)
+				next.setResult(onRejected(error));
+			else
+				next.setError(error);
 		}
 		catch (e:Error)
 		{
@@ -284,7 +307,7 @@ internal class Handler
 	}
 	
 	/**
-	 * Used as a flag to indicate whether or not this handler has been called 
+	 * Used as a flag to indicate that this handler has not been called yet
 	 */
-	public var wasCalled:Boolean = false;
+	public var isNew:Boolean = true;
 }

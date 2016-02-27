@@ -158,17 +158,11 @@ package weavejs.data.bin
 			return true;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get asyncResultCallbacks():ICallbackCollection
 		{
 			return Weave.getCallbacks(internalResultWatcher);
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			if (_columnLocked && columnWatcher.target)
@@ -176,9 +170,6 @@ package weavejs.data.bin
 			columnWatcher.target = column;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getBinClassifiers():Array
 		{
 			var override:Array = overrideBinsOutput.getObjects();
@@ -189,9 +180,6 @@ package weavejs.data.bin
 			return [];
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getBinNames():Array
 		{
 			var override:Array = overrideBinsOutput.getNames();

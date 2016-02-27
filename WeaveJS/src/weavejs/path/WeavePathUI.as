@@ -21,7 +21,7 @@ package weavejs.path
 		 * @param plotterType (Optional) The type of plotter to request if it doesn't exist yet.
 		 * @return A new WeavePath object which remembers the current WeavePath as its parent.
 		 */
-		public function pushPlotter(plotterName:String, plotterType:Object):WeavePath
+		public function pushPlotter(plotterName:String, plotterType:Object = null):WeavePath
 		{
 //			var tool:WeavePath = this.weave.path(this._path[0]);
 //			if (!(tool.getObject() is SimpleVisTool))

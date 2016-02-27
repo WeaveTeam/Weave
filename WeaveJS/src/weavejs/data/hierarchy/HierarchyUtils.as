@@ -16,6 +16,7 @@
 package weavejs.data.hierarchy
 {
 	import weavejs.api.data.IColumnReference;
+	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IDataSource_File;
 	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.api.data.IWeaveTreeNodeWithPathFinding;
@@ -27,6 +28,15 @@ package weavejs.data.hierarchy
 	 */
 	public class HierarchyUtils
 	{
+		public static function findParentNode(root:IWeaveTreeNode, dataSource:IDataSource, metadata:Object):IWeaveTreeNode
+		{
+			var leaf:IWeaveTreeNode = dataSource.findHierarchyNode(metadata);
+			var path:Array = findPathToNode(root, leaf);
+			if (path && path.length > 1)
+				return path[path.length - 2];
+			return null;
+		}
+		
 		/**
 		 * Finds a series of IWeaveTreeNode objects which can be traversed as a path to a descendant node.
 		 * @param root The root IWeaveTreeNode.

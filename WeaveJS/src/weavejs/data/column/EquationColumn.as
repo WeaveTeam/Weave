@@ -97,16 +97,16 @@ package weavejs.data.column
 		/**
 		 * This is the equation that will be used in getValueFromKey().
 		 */
-		public var equation:LinkableString = Weave.linkableChild(this, LinkableString);
+		public const equation:LinkableString = Weave.linkableChild(this, LinkableString);
 		/**
 		 * This is a list of named variables made available to the compiled equation.
 		 */
-		public var variables:LinkableHashMap = Weave.linkableChild(this, LinkableHashMap);
+		public const variables:LinkableHashMap = Weave.linkableChild(this, LinkableHashMap);
 		
 		/**
 		 * This holds the metadata for the column.
 		 */
-		public var metadata:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(null, verifyMetadata));
+		public const metadata:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(null, verifyMetadata));
 		
 		private function verifyMetadata(value:Object):Boolean
 		{
@@ -116,7 +116,7 @@ package weavejs.data.column
 		/**
 		 * Specify whether or not we should filter the keys by the column's keyType.
 		 */
-		public var filterByKeyType:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(false));
+		public const filterByKeyType:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(false));
 		
 		/**
 		 * This function intercepts requests for dataType and title metadata and uses the corresponding linkable variables.
@@ -228,7 +228,7 @@ package weavejs.data.column
 				if (filterByKeyType.value && (_allKeys.length > 0))
 				{
 					var keyType:String = this.getMetadata(ColumnMetadata.KEY_TYPE);
-					_allKeys = _allKeys.filter(function filter(key:IQualifiedKey, i:int, a:Array):Boolean {
+					_allKeys = _allKeys.filter(function(key:IQualifiedKey, i:int, a:Array):Boolean {
 						return key.keyType == keyType;
 					});
 				}

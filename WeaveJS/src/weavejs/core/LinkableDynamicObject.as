@@ -20,7 +20,6 @@ package weavejs.core
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.util.JS;
 
 	/**
 	 * This object links to an internal ILinkableObject.
@@ -46,31 +45,22 @@ package weavejs.core
 		
 		private static const ARRAY_CLASS_NAME:String = 'Array';
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get internalObject():ILinkableObject
 		{
 			return target;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getSessionState():Array
 		{
 			var obj:Object = targetPath || target;
 			if (!obj)
 				return [];
 			
-			var className:String = Weave.className(obj);
+			var className:String = Weave.className(LinkablePlaceholder.getClass(obj));
 			var sessionState:Object = obj as Array || Weave.getState(obj as ILinkableObject);
 			return [DynamicState.create(null, className, sessionState)];
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function setSessionState(newState:Array, removeMissingDynamicObjects:Boolean):void
 		{
 			//trace(debugId(this), removeMissingDynamicObjects ? 'diff' : 'state', Compiler.stringify(newState, null, '\t'));
@@ -129,7 +119,10 @@ package weavejs.core
 					// if className is not specified, make no change unless removeMissingDynamicObjects is true
 					if (className || removeMissingDynamicObjects)
 						setLocalObjectType(classDef);
-					if ((!className && target) || (classDef && target is classDef))
+					
+					var targetClassDef:Class = LinkablePlaceholder.getClass(target);
+					
+					if ((!className && target) || (classDef && (targetClassDef === classDef || targetClassDef.prototype is classDef)))
 						Weave.setState(target, sessionState, prevTarget != target || removeMissingDynamicObjects);
 				}
 			}
@@ -142,7 +135,7 @@ package weavejs.core
 		
 		override public function set target(newTarget:ILinkableObject):void
 		{
-			if (_locked)
+			if (_locked || this.target === newTarget)
 				return;
 			
 			if (!newTarget)
@@ -199,11 +192,15 @@ package weavejs.core
 			
 			targetPath = null;
 			
-			if ( Weave.isLinkable(classDef) && (_typeRestriction == null || JS.IS(classDef.prototype, _typeRestriction)) )
+			if ( Weave.isLinkable(classDef) && (_typeRestriction == null || classDef === _typeRestriction || classDef.prototype is _typeRestriction) )
 			{
-				var obj:Object = target;
-				if (!obj || obj.constructor != classDef)
-					super.target = new classDef();
+				if (classDef != LinkablePlaceholder.getClass(target))
+				{
+					if (Weave.isAsyncClass(classDef))
+						super.target = new LinkablePlaceholder(classDef);
+					else
+						super.target = new classDef();
+				}
 			}
 			else
 			{
@@ -213,10 +210,7 @@ package weavejs.core
 			cc.resumeCallbacks();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
-		public function requestLocalObject(objectType:Class, lockObject:Boolean):*
+		public function requestLocalObject(objectType:Class, lockObject:Boolean = false):*
 		{
 			cc.delayCallbacks();
 			
@@ -235,10 +229,7 @@ package weavejs.core
 			return target;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
-		public function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean):*
+		public function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean = false):*
 		{
 			if (!name)
 				return requestLocalObject(objectType, lockObject);
@@ -260,13 +251,10 @@ package weavejs.core
 			return target;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function requestLocalObjectCopy(objectToCopy:ILinkableObject):void
 		{
 			cc.delayCallbacks(); // make sure callbacks only trigger once
-			var classDef:Class = objectToCopy ? Object(objectToCopy).constructor : null;
+			var classDef:Class = LinkablePlaceholder.getClass(objectToCopy);
 			var object:ILinkableObject = requestLocalObject(classDef, false);
 			if (object != null && objectToCopy != null)
 				Weave.copyState(objectToCopy, object);
@@ -362,25 +350,16 @@ package weavejs.core
 				target = null;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function lock():void
 		{
 			_locked = true;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get locked():Boolean
 		{
 			return _locked;
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function removeObject():void
 		{
 			if (!_locked)

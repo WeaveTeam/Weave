@@ -15,6 +15,7 @@
 
 package weavejs.data.column
 {
+	import weavejs.api.data.IBaseColumn;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.geom.GeneralizedGeometry;
 	import weavejs.util.JS;
@@ -24,7 +25,7 @@ package weavejs.data.column
 	 * 
 	 * @author adufilie
 	 */
-	public class GeometryColumn extends AbstractAttributeColumn
+	public class GeometryColumn extends AbstractAttributeColumn implements IBaseColumn
 	{
 		public function GeometryColumn(metadata:Object = null)
 		{
@@ -34,7 +35,7 @@ package weavejs.data.column
 		/**
 		 * This object maps a key to an array of geometry objects that have that key.
 		 */
-		private var map_key_geomArray:Object = new JS.Map();
+		private var map_key_geomArray:Object = new JS.WeakMap();
 		
 		/**
 		 * This vector maps an index value to a GeneralizedGeometry object.
@@ -65,12 +66,12 @@ package weavejs.data.column
 			return map_key_geomArray.has(key);
 		}
 
-		public function setGeometries(keys:Array, geometries:Array/*Vector.<GeneralizedGeometry>*/):void
+		public function setRecords(keys:Array, geometries:Array/*Vector.<GeneralizedGeometry>*/):void
 		{
 			if (_geometryVector.length > 0)
 			{
 				// clear existing mappings
-				map_key_geomArray = new JS.Map();
+				map_key_geomArray = new JS.WeakMap();
 				_geometryToIndexMapping = new JS.WeakMap();
 			}
 			

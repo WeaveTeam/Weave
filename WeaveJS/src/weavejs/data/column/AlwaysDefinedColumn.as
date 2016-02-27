@@ -31,7 +31,7 @@ package weavejs.data.column
 		public function AlwaysDefinedColumn(defaultValue:* = undefined, defaultValueVerifier:Function = null)
 		{
 			super();
-			_defaultValue = new LinkableVariable(defaultValue, defaultValueVerifier);
+			_defaultValue = new LinkableVariable(null, defaultValueVerifier, defaultValue);
 			Weave.linkableChild(this, _defaultValue, handleDefaultValueChange);
 		}
 
@@ -95,6 +95,7 @@ package weavejs.data.column
 			if (value === undefined)
 			{
 				value = internalDynamicColumn.getValueFromKey(key, dataType);
+				//if (StandardLib.compare(value, EquationColumnLib.cast(undefined, dataType)) == 0)
 				if (StandardLib.isUndefined(value))
 				{
 					value = _cachedDefaultValue;

@@ -16,7 +16,6 @@
 package weave.data.DataSources
 {
 	import flash.net.URLRequest;
-	import flash.utils.Dictionary;
 	
 	import mx.rpc.AsyncToken;
 	import mx.rpc.events.FaultEvent;
@@ -85,7 +84,6 @@ package weave.data.DataSources
 		
 		private var _service:WeaveDataServlet = null;
 		private var _tablePromiseCache:Object;
-		private var _proxyPromiseCache:Dictionary;
 		private var _entityCache:EntityCache = null;
 		public const url:LinkableString = newLinkableChild(this, LinkableString);
 		public const hierarchyURL:LinkableString = newLinkableChild(this, LinkableString);
@@ -279,7 +277,6 @@ package weave.data.DataSources
 			_service = registerLinkableChild(this, new WeaveDataServlet(url.value), setIdFields);
 			_entityCache = registerLinkableChild(_service, new EntityCache(_service));
 			_tablePromiseCache = {};
-			_proxyPromiseCache = new Dictionary(true);
 			
 			url.resumeCallbacks();
 		}
@@ -662,6 +659,9 @@ package weave.data.DataSources
 						return;
 					}
 					
+					if (!dataType) // determine dataType from data
+						dataType = DataType.getDataTypeFromData(result.data);
+					
 					if (isGeom) // result.data is an array of PGGeom objects.
 					{
 						var geometriesVector:Vector.<GeneralizedGeometry> = new Vector.<GeneralizedGeometry>();
@@ -701,7 +701,7 @@ package weave.data.DataSources
 						var newStringColumn:StringColumn = new StringColumn(metadata);
 						newStringColumn.setRecords(keysVector, Vector.<String>(result.data));
 						proxyColumn.setInternalColumn(newStringColumn);
-					} 
+					}
 					//trace("column downloaded: ",proxyColumn);
 					// run hierarchy callbacks because we just modified the hierarchy.
 					_attributeHierarchy.detectChanges();
@@ -726,12 +726,10 @@ package weave.data.DataSources
 					var promise:WeavePromise = _tablePromiseCache[hash];
 					if (!promise)
 					{
+						if (debug)
+							weaveTrace('invoking getTable()', hash);
 						var getTablePromise:WeavePromise = new WeavePromise(_service)
-							.then(function(..._):AsyncToken {
-								if (debug)
-									weaveTrace('invoking getTable()', hash);
-								return _service.getTable(result.tableId, sqlParams);
-							});
+							.setResult(_service.getTable(result.tableId, sqlParams));
 						
 						var keyStrings:Array;
 						promise = getTablePromise
@@ -798,8 +796,7 @@ package weave.data.DataSources
 									tableData.derived_qkeys = qkeys;
 									return tableData;
 								});
-							})
-							.then(null, reportError);
+							});
 						_tablePromiseCache[hash] = promise;
 					}
 					
@@ -816,9 +813,8 @@ package weave.data.DataSources
 					});
 					
 					// make proxyColumn busy while table promise is busy
-					var proxyPromise:WeavePromise = _proxyPromiseCache[proxyColumn];
-					if (!proxyPromise)
-						_proxyPromiseCache[proxyColumn] = proxyPromise = new WeavePromise(proxyColumn).then(function(_:*):* { return promise; });
+					if (!promise.getResult())
+						WeaveAPI.SessionManager.assignBusyTask(promise, proxyColumn);
 				}
 			}
 			catch (e:Error)

@@ -17,40 +17,42 @@ package weavejs.core
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableVariable;
+	import weavejs.net.URLRequest;
+	import weavejs.util.WeavePromise;
 	
 	/**
-	 * A Promise for file content, given a URL.
-	 * @author pkovac
+	 * A promise for file content, given a URL.
 	 */
 	public class LinkableFile implements ILinkableVariable
 	{
-		private var contentPromise:LinkablePromise;
+		private var linkablePromise:LinkablePromise;
 		private var url:LinkableString;
+		private var responseType:String;
 
-		public function LinkableFile(defaultValue:String = null, taskDescription:* = null)
+		public function LinkableFile(defaultValue:String = null, taskDescription:* = null, responseType:String = "uint8array")
 		{
-			contentPromise = Weave.linkableChild(this, new LinkablePromise(requestContent, taskDescription));
-			url = Weave.linkableChild(contentPromise, new LinkableString(defaultValue));
+			this.responseType = responseType;
+			linkablePromise = Weave.linkableChild(this, new LinkablePromise(requestContent, taskDescription));
+			url = Weave.linkableChild(linkablePromise, new LinkableString(defaultValue));
 		}
 
-		/**
-		 * @return A Promise object.
-		 */
-		private function requestContent():Object
+		private function requestContent():WeavePromise
 		{
 			if (!url.value)
 				return null;
-			return WeaveAPI.URLRequestUtils.getURL(contentPromise, url.value, 'binary', true);
+			var request:URLRequest = new URLRequest(url.value);
+			request.responseType = responseType;
+			return WeaveAPI.URLRequestUtils.request(linkablePromise, request);
 		}
 
 		public function get result():Object
 		{
-			return contentPromise.result as Object;
+			return linkablePromise.result as Object;
 		}
 
 		public function get error():Object
 		{
-			return contentPromise.error;
+			return linkablePromise.error;
 		}
 
 		public function setSessionState(value:Object):void

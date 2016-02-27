@@ -43,7 +43,7 @@ package weavejs.data.bin
 			super(true, false);
 		}
 		
-		public var numOfBins:LinkableNumber = Weave.linkableChild(this,new LinkableNumber(5));
+		public const numOfBins:LinkableNumber = Weave.linkableChild(this,new LinkableNumber(5));
 		
 		// reusable temporary object
 		private var _tempNumberClassifier:NumberClassifier = Weave.disposableChild(this, NumberClassifier);

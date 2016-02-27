@@ -26,12 +26,19 @@ package weavejs.util
 	 */
 	public class WeavePromise implements IDisposableObject
 	{
+		// true to conform to Promise spec, false to make Weave work correctly w/ busy status
+		public static var _callNewHandlersSeparately:Boolean = false;
+		
 		/**
 		 * @param relevantContext This parameter may be null.  If the relevantContext object is disposed, the promise will be disabled.
-		 * @param resolver A function like function(resolve:Function, reject:Function):void which carries out the promise
+		 * @param resolver A function like function(resolve:Function, reject:Function):void which carries out the promise.
+		 *                 If no resolver is given, setResult() or setError() should be called externally.
 		 */
 		public function WeavePromise(relevantContext:Object, resolver:Function = null)
 		{
+			if (WeaveAPI.debugAsyncStack)
+				stackTrace_created = new Error("WeavePromise created");
+			
 			if (relevantContext is WeavePromise)
 			{
 				// this is a child promise
@@ -42,39 +49,37 @@ package weavejs.util
 			{
 				// this is a new root promise
 				this.rootPromise = this;
-				this.relevantContext = relevantContext;
-				
-				// if resolver is not specified, immediately set the result of the root promise equal to the relevantContext
-				if (resolver == null)
-					this.setResult(this.relevantContext);
+				// if no context is specified, make sure this promise stops functioning when it is disposed
+				this.relevantContext = relevantContext || this;
 			}
 			
 			if (relevantContext)
 				Weave.disposableChild(relevantContext, this);
 			
 			if (resolver != null)
-			{
-				setBusy(true);
 				resolver(this.setResult, this.setError);
-			}
 		}
 		
-		private static function noop(value:Object):Object { return value; }
+		private var stackTrace_created:Error;
+		private var stackTrace_resolved:Error;
 		
 		private var rootPromise:WeavePromise;
 		protected var relevantContext:Object;
 		private var result:* = undefined;
 		private var error:* = undefined;
-		private var handlers:Array = []; // array of Handler objects
-		private var dependencies:Array = [];
+		private const handlers:Array = []; // array of Handler objects
+		private const dependencies:Array = [];
 		
-		public function setResult(result:Object):void
+		/**
+		 * @return This WeavePromise
+		 */
+		public function setResult(result:Object):WeavePromise
 		{
 			if (Weave.wasDisposed(relevantContext))
-			{
-				setBusy(false);
-				return;
-			}
+				return this;
+			
+			if (WeaveAPI.debugAsyncStack)
+				stackTrace_resolved = new Error("WeavePromise resolved");
 			
 			this.result = undefined;
 			this.error = undefined;
@@ -85,13 +90,15 @@ package weavejs.util
 			}
 			else if (result is WeavePromise)
 			{
-				(result as WeavePromise).then(setResult, setError);
+				(result as WeavePromise)._notify(this);
 			}
 			else
 			{
-				this.result = result;
+				this.result = result as Object;
 				callHandlers();
 			}
+			
+			return this;
 		}
 		
 		public function getResult():Object
@@ -99,18 +106,23 @@ package weavejs.util
 			return result;
 		}
 		
-		public function setError(error:Object):void
+		/**
+		 * @return This WeavePromise
+		 */
+		public function setError(error:Object):WeavePromise
 		{
 			if (Weave.wasDisposed(relevantContext))
-			{
-				setBusy(false);
-				return;
-			}
+				return this;
+			
+			if (WeaveAPI.debugAsyncStack)
+				stackTrace_resolved = new Error("WeavePromise resolved");
 			
 			this.result = undefined;
-			this.error = error;
+			this.error = error as Object;
 			
 			callHandlers();
+			
+			return this;
 		}
 		
 		public function getError():Object
@@ -118,78 +130,92 @@ package weavejs.util
 			return error;
 		}
 		
-		private function setBusy(busy:Boolean):void
-		{
-			if (busy)
-			{
-				WeaveAPI.ProgressIndicator.addTask(rootPromise, relevantContext as ILinkableObject);
-			}
-			else
-			{
-				WeaveAPI.ProgressIndicator.removeTask(rootPromise);
-			}
-		}
-		
 		private function callHandlers(newHandlersOnly:Boolean = false):void
 		{
+			// stop if depenencies are busy because we will call handlers when they become unbusy
 			if (dependencies.some(Weave.isBusy))
-			{
-				if (handlers.length)
-					setBusy(true);
 				return;
-			}
 			
-			// if there are no more handlers, remove the task
-			if (handlers.length == 0)
-				setBusy(false);
-			
-			if (Weave.wasDisposed(relevantContext))
-			{
-				setBusy(false);
+			// stop if the promise has not been resolved yet
+			if (result === undefined && error === undefined)
 				return;
-			}
+			
+			// make sure thrown errors are seen
+			if (handlers.length == 0 && error !== undefined)
+				JS.error(error);
+			
+			var shouldCallLater:Boolean = false;
 			
 			for (var i:int = 0; i < handlers.length; i++)
 			{
 				var handler:WeavePromiseHandler = handlers[i];
-				if (newHandlersOnly && handler.wasCalled)
-					continue;
+				
+				if (_callNewHandlersSeparately)
+				{
+					if (newHandlersOnly != handler.isNew)
+					{
+						shouldCallLater = handler.isNew;
+						continue;
+					}
+				}
+				else
+				{
+					if (newHandlersOnly && !handler.isNew)
+					{
+						continue;
+					}
+				}
+				
 				if (result !== undefined)
 					handler.onResult(result);
 				else if (error !== undefined)
 					handler.onError(error);
 			}
+			
+			if (shouldCallLater)
+				WeaveAPI.Scheduler.callLater(relevantContext, callHandlers, [true]);
 		}
 		
 		public function then(onFulfilled:Function = null, onRejected:Function = null):WeavePromise
 		{
-			if (onFulfilled == null)
-				onFulfilled = noop;
-			if (onRejected == null)
-				onRejected = noop;
+			if (Weave.wasDisposed(relevantContext))
+				return this;
 			
 			var next:WeavePromise = new WeavePromise(this);
-			next.result = undefined;
 			handlers.push(new WeavePromiseHandler(onFulfilled, onRejected, next));
 			
+			// call new handler(s) if promise has already been resolved
 			if (result !== undefined || error !== undefined)
-			{
-				// callLater will not call the function if the context was disposed
 				WeaveAPI.Scheduler.callLater(relevantContext, callHandlers, [true]);
-				setBusy(true);
-			}
 			
 			return next;
 		}
 		
+		private function _notify(next:WeavePromise):void
+		{
+			if (Weave.wasDisposed(relevantContext))
+				return;
+			
+			// avoid adding duplicate handlers
+			for each (var handler:WeavePromiseHandler in handlers)
+				if (handler.next === next)
+					return;
+			
+			handlers.push(new WeavePromiseHandler(null, null, next));
+			
+			// resolve next immediately if this promise has been resolved
+			if (result !== undefined)
+				next.setResult(result);
+			else if (error !== undefined)
+				next.setError(error);
+		}
+		
 		public function depend(...linkableObjects):WeavePromise
 		{
-			if (linkableObjects.length)
-			{
-				setBusy(true);
-			}
 			for each (var dependency:ILinkableObject in linkableObjects)
 			{
+				if (dependencies.indexOf(dependency) < 0)
+					dependencies.push(dependency);
 				Weave.getCallbacks(dependency).addGroupedCallback(relevantContext, callHandlers, true);
 			}
 			return this;
@@ -202,14 +228,16 @@ package weavejs.util
 				var_resolve = resolve;
 				var_reject = reject;
 			});
+			promise._WeavePromise = this; // for debugging
 			then(var_resolve, var_reject);
 			return promise;
 		}
 		
 		public function dispose():void
 		{
+			Weave.dispose(this);
+			dependencies.length = 0;
 			handlers.length = 0;
-			setBusy(false);
 		}
 	}
 }

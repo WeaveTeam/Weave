@@ -25,6 +25,6 @@ package weavejs.api.data
 		 * @param keys An Array of IQualifiedKeys
 		 * @param data An Array of data values corresponding to the keys.
 		 */
-		function setRecords(keys:Array, data:Array):void;
+		function setRecords(keys:Array/*/<IQualifiedKey>/*/, data:Array):void;
 	}
 }

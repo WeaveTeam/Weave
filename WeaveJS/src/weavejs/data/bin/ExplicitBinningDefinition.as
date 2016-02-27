@@ -33,33 +33,21 @@ package weavejs.data.bin
 			super(IBinClassifier);
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function get asyncResultCallbacks():ICallbackCollection
 		{
 			return this; // when our callbacks trigger, the results are immediately available
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function generateBinClassifiersForColumn(column:IAttributeColumn):void
 		{
 			// do nothing because our bins don't depend on any column.
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getBinClassifiers():Array
 		{
 			return getObjects();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getBinNames():Array
 		{
 			return getNames();

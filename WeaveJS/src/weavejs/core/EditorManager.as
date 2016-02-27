@@ -27,18 +27,12 @@ package weavejs.core
 	{
 		private const labels:Object = new JS.WeakMap();
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function setLabel(object:ILinkableObject, label:String):void
 		{
 			labels.set(object, label);
-			WeaveAPI.SessionManager.getCallbackCollection(this).triggerCallbacks();
+			Weave.getCallbacks(this).triggerCallbacks();
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getLabel(object:ILinkableObject):String
 		{
 			return labels.get(object);

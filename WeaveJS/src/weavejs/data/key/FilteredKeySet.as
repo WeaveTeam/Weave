@@ -66,7 +66,7 @@ package weavejs.data.key
 		 * When this is set to true, the inverse of the filter will be used to filter the keys.
 		 * This means any keys appearing in the filter will be excluded from this key set.
 		 */
-		private var inverseFilter:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean);
+		private const inverseFilter:LinkableBoolean = Weave.linkableChild(this, LinkableBoolean);
 		
 		/**
 		 * This sets up the FilteredKeySet to get its base set of keys from a list of columns and provide them in sorted order.
@@ -76,7 +76,7 @@ package weavejs.data.key
 		 * @param keyInclusionLogic Passed to KeySetUnion constructor.
 		 * @see weave.data.KeySets.SortedKeySet#generateCompareFunction()
 		 */
-		public function setColumnKeySources(columns:Array, sortDirections:Array = null, keySortCopy:Function = null, keyInclusionLogic:Function = null):void
+		public function setColumnKeySources(columns:Array/*/<IKeySet|IAttributeColumn>/*/, sortDirections:Array/*/<number>/*/ = null, keySortCopy:/*/(keys:IQualifiedKey[])=>IQualifiedKey[]/*/Function = null, keyInclusionLogic:/*/(key:IQualifiedKey)=>boolean/*/Function = null):void
 		{
 			if (StandardLib.compare(_setColumnKeySources_arguments, arguments) == 0)
 				return;

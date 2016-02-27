@@ -37,6 +37,7 @@ package weavejs.data.source
 	import weavejs.data.column.StringColumn;
 	import weavejs.data.hierarchy.ColumnTreeNode;
 	import weavejs.data.key.QKeyManager;
+	import weavejs.net.ResponseType;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	
@@ -55,24 +56,24 @@ package weavejs.data.source
 			Weave.linkableChild(hierarchyRefresh, metadata);
 		}
 
-		public var csvData:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array, verifyRows), handleCSVDataChange);
+		public const csvData:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array, verifyRows), handleCSVDataChange);
 		private function verifyRows(rows:Array):Boolean
 		{
 			return StandardLib.arrayIsType(rows, Array);
 		}
 		
-		public var keyType:LinkableString = Weave.linkableChild(this, LinkableString, updateKeys);
-		public var keyColName:LinkableString = Weave.linkableChild(this, LinkableString, updateKeys);
+		public const keyType:LinkableString = Weave.linkableChild(this, LinkableString, updateKeys);
+		public const keyColName:LinkableString = Weave.linkableChild(this, LinkableString, updateKeys);
 		
-		public var metadata:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(null, verifyMetadata));
+		public const metadata:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(null, verifyMetadata));
 		private function verifyMetadata(value:Object):Boolean
 		{
 			return typeof value == 'object';
 		}
 		
-		public var url:LinkableFile = Weave.linkableChild(this, LinkableFile, parseRawData);
+		public const url:LinkableFile = Weave.linkableChild(this, new LinkableFile(null, null, ResponseType.TEXT), parseRawData);
 		
-		public var delimiter:LinkableString = Weave.linkableChild(this, new LinkableString(',', verifyDelimiter), parseRawData);
+		public const delimiter:LinkableString = Weave.linkableChild(this, new LinkableString(',', verifyDelimiter), parseRawData);
 		private function verifyDelimiter(value:String):Boolean { return value && value.length == 1 && value != '"'; }
 		
 		private function parseRawData():void
@@ -427,9 +428,6 @@ package weavejs.data.source
 		public static const METADATA_COLUMN_INDEX:String = 'csvColumnIndex';
 		public static const METADATA_COLUMN_NAME:String = 'csvColumn';
 
-		/**
-		 * @inheritDoc
-		 */
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
 		{
 			var metadata:Object = proxyColumn.getProxyMetadata();

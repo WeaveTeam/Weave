@@ -140,6 +140,32 @@ package weavejs.util
 			return StandardLib.interpolateColor(interpolationValue, leftNode.color, rightNode.color);
 		}
 		
+		/**
+		 * Normalizes a value between min and max and returns an RGB hex color.
+		 * @param value A numeric value
+		 * @param min The min value used for normalization
+		 * @param max The max value used for normalization
+		 * @return A color represented as a Number between 0x000000 and 0xFFFFFF
+		 */
+		public function getColor(value:Number, min:Number = 0, max:Number = 1):Number
+		{
+			var normValue:Number = min == 0 && max == 1 ? value : StandardLib.normalize(value, min, max);
+			return getColorFromNorm(normValue);
+		}
+		
+		/**
+		 * Normalizes a value between min and max and returns an RGB hex color.
+		 * @param value A numeric value
+		 * @param min The min value used for normalization
+		 * @param max The max value used for normalization
+		 * @return A 6-digit hex color String like #FFFFFF
+		 */
+		public function getHexColor(value:Number, min:Number = 0, max:Number = 1):String
+		{
+			var normValue:Number = min == 0 && max == 1 ? value : StandardLib.normalize(value, min, max);
+			return '#' + StandardLib.numberToBase(getColorFromNorm(normValue), 16, 6);
+		}
+		
 		/* *
 		 * This will draw the color ramp.
 		 * @param destination The sprite where the ramp should be drawn.

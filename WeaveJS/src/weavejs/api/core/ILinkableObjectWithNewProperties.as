@@ -21,10 +21,9 @@ package weavejs.api.core
 	public interface ILinkableObjectWithNewProperties extends ILinkableObject
 	{
 		/**
-		 * This function will be called by SessionManager.setSessionState() when a full session state is missing properties or a session state contains extra properties.
-		 * @param newState The new session state for this object.
-		 * @param missingProperty The name of the property, whether it is missing from the newState or this ILinkableObject.
+		 * Either a single mapping or an Array of mappings to be used with SessionManager.traverseAndSetState().
+		 * @see weavejs.core.SessionManager#traverseAndSetState()
 		 */
-		function handleMissingSessionStateProperty(newState:Object, property:String):void;
+		function get deprecatedStateMapping():Object;
 	}
 }

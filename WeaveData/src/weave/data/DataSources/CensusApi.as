@@ -191,6 +191,7 @@ package weave.data.DataSources
 			var requires:Array = null;
 			
 			return new WeavePromise(this)
+			.setResult(this)
 			.depend(dataSource.dataSet)
 			.then(
 				function (context:Object):WeavePromise
