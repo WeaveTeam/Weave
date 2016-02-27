@@ -210,18 +210,6 @@ package weave.menus
 								});
 						}
 					},
-					{
-						shown: function():Boolean {
-							return Weave.properties.version.value == 'Custom';
-						},
-						label: lang("Export to HTML5"),
-						click: function():void {
-//							var url:String = '/weavejs/js-debug/index.html';
-//							var url:String = 'weave-export.html';
-							var url:String = '/weave-html5/';
-							ExternalTool.launch(WeaveAPI.globalHashMap, url, ExternalTool.generateWindowName());
-						}
-					},
 					TYPE_SEPARATOR,
 					{
 						shown: fn_adminService,
