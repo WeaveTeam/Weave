@@ -7,7 +7,6 @@
 package weavejs.core
 {
 	import weavejs.api.core.ICallbackCollection;
-	import weavejs.api.core.ILinkableCompositeObject;
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
@@ -116,7 +115,7 @@ package weavejs.core
 		
 		public static function replaceInstanceWithPlaceholder(instance:ILinkableObject):void
 		{
-			if (instance is LinkablePlaceholder)
+			if (instance is LinkablePlaceholder || Weave.wasDisposed(instance))
 				return;
 			
 			var placeholder:LinkablePlaceholder = new LinkablePlaceholder(getClass(instance));
