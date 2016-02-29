@@ -118,7 +118,7 @@ package weavejs.path
 				className = type as String; // may not be full qualified class name, but useful for error messages
 				classDef = Weave.getDefinition(className);
 				if (!classDef)
-					throw new Error("No class definition for {0}", className);
+					throw new Error(StandardLib.substitute("No class definition for {0}", className));
 			}
 			
 			// stop if at root path
