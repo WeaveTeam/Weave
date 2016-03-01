@@ -38,9 +38,7 @@ package weavejs.core
 		
 		override public function setSessionState(value:Object):void
 		{
-			if (value != null)
-				value = String(value);
-			super.setSessionState(value);
+			super.setSessionState(value == null ? null : String(value));
 		}
 	}
 }

@@ -144,7 +144,11 @@ package weavejs.core
 			
 			var wasCopied:Boolean = false;
 			var type:String = null;
-			if (value != null)
+			if (value == null)
+			{
+				value = null; // converts undefined to null
+			}
+			else
 			{
 				type = typeof(value);
 				if (type == 'object' && value.constructor != Object && value.constructor != Array)
