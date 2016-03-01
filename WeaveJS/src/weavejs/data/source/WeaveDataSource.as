@@ -237,11 +237,11 @@ package weavejs.data.source
 			url.delayCallbacks();
 			
 			for each (var deprecatedBaseURL:String in ['/OpenIndicatorsDataServices', '/OpenIndicatorsDataService'])
-				if (!url.value || url.value == deprecatedBaseURL || url.value == deprecatedBaseURL + DEFAULT_SERVLET_NAME)
-					url.value = WeaveDataServlet.DEFAULT_URL;
+				if (url.value == deprecatedBaseURL || url.value == deprecatedBaseURL + DEFAULT_SERVLET_NAME)
+					url.value = null;
 			
 			// backwards compatibility -- if url ends in default base url, append default servlet name
-			if (url.value.split('/').pop() == DEFAULT_BASE_URL.split('/').pop())
+			if (url.value && url.value.split('/').pop() == DEFAULT_BASE_URL.split('/').pop())
 				url.value += DEFAULT_SERVLET_NAME;
 			
 			// replace old service
