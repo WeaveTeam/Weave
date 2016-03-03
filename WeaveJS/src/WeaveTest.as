@@ -67,6 +67,7 @@ package
 	import weavejs.data.key.KeySetCallbackInterface;
 	import weavejs.data.key.KeySetUnion;
 	import weavejs.data.key.SortedKeySet;
+	import weavejs.data.source.CKANDataSource;
 	import weavejs.data.source.CSVDataSource;
 	import weavejs.data.source.CensusDataSource;
 	import weavejs.data.source.DBFDataSource;
@@ -140,6 +141,7 @@ package
 			CensusDataSource,
 			DBFDataSource,
 			GroupedDataTransform,
+			CKANDataSource,
 			
 			WeaveMenuItem,
 			ZoomBounds,
