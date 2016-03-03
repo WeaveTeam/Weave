@@ -517,7 +517,12 @@ package weavejs.data
 			var dataTypeClass:Class = JS.asClass(dataType || Array);
 			var column:IAttributeColumn = format as IAttributeColumn;
 			if (column)
-				return column.getValueFromKey(key, dataTypeClass);
+			{
+				var value:* = column.getValueFromKey(key, dataTypeClass);
+				if (value === undefined)
+					value = null;
+				return value;
+			}
 			
 			var record:Object = format is Array ? [] : {};
 			for (var prop:String in format)
