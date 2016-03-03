@@ -46,10 +46,6 @@ package weavejs.core
 			replace(this, instance);
 			
 			this.instance = instance;
-			
-			var handler:Function = Weave.getAsyncInstanceHandler(classDef);
-			if (handler != null)
-				handler(instance);
 		}
 		
 		/**

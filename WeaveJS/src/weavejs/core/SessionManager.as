@@ -124,7 +124,13 @@ package weavejs.core
 				// make this first parent the owner
 				map_child_owner.set(disposableChild, disposableParent);
 				d2d_owner_child.set(disposableParent, disposableChild, true);
+				
+				// if this is an instance of an async class, call the async instance handler
+				var handler:Function = Weave.getAsyncInstanceHandler(disposableChild.constructor);
+				if (handler != null)
+					handler(disposableChild);
 			}
+			
 			return disposableChild;
 		}
 		
@@ -362,7 +368,7 @@ package weavejs.core
 				}
 			}
 		}
-
+		
 		public function setSessionState(linkableObject:ILinkableObject, newState:Object, removeMissingDynamicObjects:Boolean = true):void
 		{
 			if (linkableObject == null)
