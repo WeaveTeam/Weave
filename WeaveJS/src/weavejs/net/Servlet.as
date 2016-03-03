@@ -190,17 +190,15 @@ package weavejs.net
 				url = url.substr(0, qi);
 			}
 			
-			for each (var key:String in params)
+			for (var key:String in params)
 			{
 				if (queryString)
 					queryString += '&';
 				var value:* = params[key];
 				if (params != null && typeof params === 'object')
-					value = JSON.stringify(value);
-				queryString += encodeURIComponent(value);
-				params[key]
+					value = JS.isPrimitive(value) ? value : JSON.stringify(value);
+				queryString += encodeURIComponent(key) + '=' + encodeURIComponent(value);
 			}
-			
 			return url + '?' + queryString;
 		}
 	}
