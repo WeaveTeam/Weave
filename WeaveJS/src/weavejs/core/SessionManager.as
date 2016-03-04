@@ -358,6 +358,11 @@ package weavejs.core
 			{
 				mapping(state, removeMissingDynamicObjects);
 			}
+			else if (mapping is Array)
+			{
+				for each (var item:* in mapping)
+					traverseAndSetState(value, item, removeMissingDynamicObjects);
+			}
 			else if (state && typeof state === 'object' && typeof mapping === 'object')
 			{
 				for (var key:* in mapping)
@@ -493,8 +498,7 @@ package weavejs.core
 					if (mapping is Function)
 						mapping.call(linkableObject, newState, removeMissingDynamicObjects);
 					else
-						for each (var item:Object in (mapping as Array || [mapping]))
-							traverseAndSetState(newState, item, removeMissingDynamicObjects);
+						traverseAndSetState(newState, mapping, removeMissingDynamicObjects);
 				}
 			}
 			
