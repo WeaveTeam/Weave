@@ -186,6 +186,25 @@ package weavejs.geom
 			this.xMax = xMax;
 			this.yMax = yMax;
 		}
+		
+		/**
+		 * @param xMin_yMin_xMax_yMax An Array of four Numbers like [xMin, yMin, xMax, yMax]
+		 */
+		public function setCoords(xMin_yMin_xMax_yMax:/*/[number, number, number, number]/*/Array):void
+		{
+			this.xMin = xMin_yMin_xMax_yMax[0];
+			this.yMin = xMin_yMin_xMax_yMax[0];
+			this.xMax = xMin_yMin_xMax_yMax[0];
+			this.yMax = xMin_yMin_xMax_yMax[0];
+		}
+		
+		/**
+		 * @return [xMin, yMin, xMax, yMax]
+		 */
+		public function getCoords():/*/[number, number, number, number]/*/Array
+		{
+			return [xMin, yMin, xMax, yMax];
+		}
 
 		/**
 		 * This function sets the bounds coordinates using x, y, width and height values.
