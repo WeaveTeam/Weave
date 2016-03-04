@@ -361,7 +361,7 @@ package weavejs.core
 			else if (mapping is Array)
 			{
 				for each (var item:* in mapping)
-					traverseAndSetState(value, item, removeMissingDynamicObjects);
+					traverseAndSetState(state, item, removeMissingDynamicObjects);
 			}
 			else if (state && typeof state === 'object' && typeof mapping === 'object')
 			{
