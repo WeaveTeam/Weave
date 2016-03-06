@@ -163,7 +163,10 @@ package weavejs.util
 		public function getHexColor(value:Number, min:Number = 0, max:Number = 1):String
 		{
 			var normValue:Number = min == 0 && max == 1 ? value : StandardLib.normalize(value, min, max);
-			return '#' + StandardLib.numberToBase(getColorFromNorm(normValue), 16, 6);
+			var color:Number = getColorFromNorm(normValue);
+			if (!isFinite(color))
+				return null;
+			return '#' + StandardLib.numberToBase(color, 16, 6);
 		}
 		
 		/* *

@@ -292,6 +292,8 @@ package weavejs.util
 		 */
 		public static function numberToBase(number:Number, base:int = 10, zeroPad:int = 1):String
 		{
+			if (!isFinite(number))
+				return null;
 			var parts:Array = Math.abs(number).toString(base).split('.');
 			if (parts[0].length < zeroPad)
 				parts[0] = lpad(parts[0], zeroPad, '0');
