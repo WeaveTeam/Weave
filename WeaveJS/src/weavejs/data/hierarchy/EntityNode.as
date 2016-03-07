@@ -202,7 +202,8 @@ package weavejs.data.hierarchy
 					if (_rootFilterEntityType)
 					{
 						var ds:IDataSource = getDataSource();
-						title = Weave.getRoot(ds).getName(ds) || title;
+						if (ds)
+							title = Weave.getRoot(ds).getName(ds) || title;
 					}
 					else
 						title = '...';

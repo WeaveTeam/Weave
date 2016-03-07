@@ -118,6 +118,17 @@ package weavejs.core
 			if (!disposableChild)
 				throw new Error("registerDisposableChild(): Child parameter cannot be null.");
 			
+			var handler:Function;
+			
+			// if the parent has not been registered yet
+			if (!d2d_owner_child.map.has(disposableParent))
+			{
+				// if this is an instance of an async class, call the async instance handler
+				handler = Weave.getAsyncInstanceHandler(disposableParent.constructor);
+				if (handler != null)
+					handler(disposableParent);
+			}
+			
 			// if this child has no owner yet...
 			if (!map_child_owner.has(disposableChild))
 			{
@@ -126,7 +137,7 @@ package weavejs.core
 				d2d_owner_child.set(disposableParent, disposableChild, true);
 				
 				// if this is an instance of an async class, call the async instance handler
-				var handler:Function = Weave.getAsyncInstanceHandler(disposableChild.constructor);
+				handler = Weave.getAsyncInstanceHandler(disposableChild.constructor);
 				if (handler != null)
 					handler(disposableChild);
 			}
