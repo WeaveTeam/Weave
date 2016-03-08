@@ -496,6 +496,17 @@ package weavejs.util
 		}
 		
 		/**
+		 * @param color A numeric color value
+		 * @return A hex color string like #FFFFFF
+		 */
+		public static function getHexColor(color:Number):String
+		{
+			if (color != (color & 0xFFFFFF))
+				return null;
+			return '#' + numberToBase(color, 16, 6);
+		}
+		
+		/**
 		 * Code from Graphics Gems Volume 1
 		 */
 		public static function getNiceNumber(x:Number, round:Boolean):Number
