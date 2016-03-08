@@ -608,7 +608,7 @@ package
 			{
 				var col:IAttributeColumn = item as IAttributeColumn;
 				if (col)
-					(col.keys ? def : undef).push(item);
+					(col.keys.length ? def : undef).push(item);
 			}
 			for (var i:int = 0; i < undef.length; i++)
 				copyState(def[i % def.length], undef[i]);
