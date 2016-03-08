@@ -90,7 +90,7 @@ package weavejs.core
 			// get class info
 			var info:Object = definition.prototype[FLEXJS_CLASS_INFO] || (definition.prototype[FLEXJS_CLASS_INFO] = {});
 			var items:Array;
-			var item:Object;
+			var item:*;
 			
 			// add name if not present
 			var found:Boolean = false;
@@ -114,8 +114,11 @@ package weavejs.core
 			// add interfaces if not present
 			items = info[INTERFACES] || (info[INTERFACES] = []);
 			for each (item in interfaces)
+			{
 				if (items.indexOf(item) < 0)
 					items.push(item);
+				registerImplementation(item, definition);
+			}
 		}
 		
 		/**
