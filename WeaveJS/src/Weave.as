@@ -9,9 +9,11 @@ package
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
+	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ISessionManager;
+	import weavejs.api.data.IAttributeColumn;
 	import weavejs.core.SessionStateLog;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathUI;
@@ -592,6 +594,24 @@ package
 				filter = getDefinition(filter);
 			Weave.getDescendants(root, JS.asClass(filter))
 				.forEach(function(obj:ILinkableObject):void { getCallbacks(obj).triggerCallbacks(); });
+		}
+		
+		/**
+		 * For testing purposes.
+		 */
+		public function populateColumns():void
+		{
+			var all:Array = Weave.getDescendants(root, ILinkableDynamicObject);
+			var def:Array = [];
+			var undef:Array = [];
+			for each (var item:ILinkableDynamicObject in all)
+			{
+				var col:IAttributeColumn = item as IAttributeColumn;
+				if (col)
+					(col.keys ? def : undef).push(item);
+			}
+			for (var i:int = 0; i < undef.length; i++)
+				copyState(def[i % def.length], undef[i]);
 		}
 	}
 }
