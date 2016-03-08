@@ -601,14 +601,20 @@ package
 		 */
 		public function populateColumns():void
 		{
+			var RefCol:Class = Weave.getDefinition('ReferencedColumn');
+			var ExtDynCol:Class = Weave.getDefinition('ExtendedDynamicColumn');
 			var all:Array = Weave.getDescendants(root, ILinkableDynamicObject);
 			var def:Array = [];
 			var undef:Array = [];
 			for each (var item:ILinkableDynamicObject in all)
 			{
 				var col:IAttributeColumn = item as IAttributeColumn;
-				if (col)
-					(col.keys.length ? def : undef).push(item);
+				if (!col)
+					continue;
+				if (item.target is RefCol)
+					def.push(item);
+				if (!item.target)
+					undef.push(item);
 			}
 			for (var i:int = 0; i < undef.length; i++)
 				copyState(def[i % def.length], undef[i]);
