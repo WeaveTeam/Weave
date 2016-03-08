@@ -565,6 +565,16 @@ package weavejs.geom
 			yMin += yOffset;
 			yMax += yOffset;
 		}
+		
+		public function getXRange():/*/[number, number]/*/Array
+		{
+			return [xMin, xMax];
+		}
+		
+		public function getYRange():/*/[number, number]/*/Array
+		{
+			return [yMin, yMax];
+		}
 
 		public function setXRange(xMin:Number, xMax:Number):void
 		{
