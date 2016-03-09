@@ -39,6 +39,7 @@ package weave.utils
 	{
 		public function BitmapText()
 		{
+			//TODO - remove this and use bitmap rotation
 			_textField.embedFonts = true; // without this, rotated text is not possible.
 			
 			textFormat.font = DEFAULT_FONT_FAMILY;
@@ -122,6 +123,7 @@ package weave.utils
 			if (verticalAlign == "center")
 				verticalAlign = VERTICAL_ALIGN_MIDDLE;
 			
+			//TODO - remove this and use bitmap rotation
 			// If the font isn't embedded, we won't see anything.
 			// Use the default font if the specified one isn't embedded.
 			var app:UIComponent = WeaveAPI.topLevelApplication as UIComponent;
@@ -265,12 +267,16 @@ package weave.utils
 				{
 					// remember the original height we want to preserve
 					var originalHeight:Number = _textField.textHeight;
+					var prevWidth:Number = -1;
 					// resize text field to be the appropriate width.
 					// setting width equal to textWidth causes the words to wrap differently.
 					// this may cause the text to become more compact without changing textHeight.
 					// keep doing this as long as the textWidth changes and height is the same (text becomes more compact).
-					while (_textField.width > _textField.textWidth && _textField.textHeight == originalHeight)
+					while (_textField.width > _textField.textWidth && _textField.textHeight == originalHeight && _textField.width != prevWidth)
+					{
+						prevWidth = _textField.width;
 						_textField.width = _textField.textWidth;
+					}
 					// textHeight is now different.  increase the width until textHeight becomes originalHeight.
 					while (_textField.textHeight > originalHeight)
 					{
