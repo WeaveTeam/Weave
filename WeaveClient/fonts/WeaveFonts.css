@@ -4,8 +4,10 @@ To configure your project to compile this CSS into a SWF, right click on this fi
 and make sure the "Compile CSS to SWF" option is checked.
 */
 
-@font-face { src: url("fonts/SophiaNubian/SNR.ttf"); fontFamily: "Sophia Nubian"; fontWeight: normal; }
-@font-face { src: url("fonts/SophiaNubian/SNB.ttf"); fontFamily: "Sophia Nubian"; fontWeight: bold; }
+@font-face { src: url("fonts/SophiaNubian/SNR.ttf"); embedAsCFF: false; fontFamily: "Sophia Nubian"; fontWeight: normal; }
+@font-face { src: url("fonts/SophiaNubian/SNB.ttf"); embedAsCFF: false; fontFamily: "Sophia Nubian"; fontWeight: bold; }
+@font-face { src: url("fonts/NotoNaskhArabic/NotoNaskhArabic-Regular.ttf"); embedAsCFF: false; fontFamily: "Noto Naskh Arabic"; fontWeight: normal; }
+@font-face { src: url("fonts/NotoNaskhArabic/NotoNaskhArabic-Bold.ttf"); embedAsCFF: false; fontFamily: "Noto Naskh Arabic"; fontWeight: bold; }
 
 /*
 
