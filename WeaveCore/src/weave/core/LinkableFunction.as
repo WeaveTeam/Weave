@@ -37,6 +37,8 @@ package weave.core
 	 */
 	public class LinkableFunction extends LinkableString
 	{
+		public static var enabled:Boolean = true;
+		
 		/**
 		 * Debug mode. 
 		 */		
@@ -92,6 +94,9 @@ package weave.core
 				// in case compile fails, prevent re-compiling erroneous code
 				_compiledMethod = RETURN_UNDEFINED;
 				_isFunctionDefinition = false;
+				
+				if (!enabled)
+					return;
 				
 				if (_macroProxy == null)
 					_macroProxy = new ProxyObject(_hasMacro, evaluateMacro, null, callMacro); // allows evaluating macros but not setting them

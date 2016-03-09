@@ -15,28 +15,9 @@
 
 package weave.menus
 {
-	import flash.events.Event;
-	import flash.net.FileReference;
-	import flash.system.Capabilities;
-	
-	import mx.controls.Alert;
-	
 	import weave.Weave;
-	import weave.api.getCallbackCollection;
-	import weave.api.getLinkableDescendants;
-	import weave.api.linkableObjectIsBusy;
-	import weave.api.reportError;
-	import weave.api.data.IDataSource;
-	import weave.api.data.IDataSource_File;
-	import weave.api.ui.ISelectableAttributes;
-	import weave.data.AttributeColumnCache;
-	import weave.data.AttributeColumns.ReferencedColumn;
-	import weave.data.DataSources.CachedDataSource;
-	import weave.data.KeySets.KeySet;
-	import weave.ui.ExportSessionStateOptions;
-	import weave.utils.ColumnUtils;
-	import weave.utils.HierarchyUtils;
-	import weave.utils.PopUpUtils;
+	import weave.core.LinkableCallbackScript;
+	import weave.core.LinkableFunction;
 	import weave.visualization.tools.ExternalTool;
 
 	public class ExportMenu extends WeaveMenuItem
@@ -44,37 +25,19 @@ package weave.menus
 		public function ExportMenu()
 		{
 			super({
-				shown: function():Boolean {
-					return Weave.properties.version.value == 'Custom';
-				},
+				shown: function():Boolean { return shown; },
 				label: lang("Weave 2.0"),
 				children: [
 					{
 						label: lang("Export to HTML5"),
-						click: function():void {
-							var url:String = '/weave-html5/';
-							ExternalTool.launch(WeaveAPI.globalHashMap, url, lastHtml5WindowName = ExternalTool.generateWindowName());
-						}
+						click: export
 					},
 					{
-						enabled: function():Boolean {
-							return JavaScript.exec(
-								{
-									WEAVE_EXTERNAL_TOOLS: ExternalTool.WEAVE_EXTERNAL_TOOLS,
-									'windowName': lastHtml5WindowName,
-									'catch': function():*{}
-								},
-								'return !!window[WEAVE_EXTERNAL_TOOLS][windowName].window.weave;'
-							);
-						},
+						enabled: function():Boolean { return exported; },
 						label: lang("Copy layout from HTML5"),
 						click: function():void {
 							JavaScript.exec(
-								{
-									WEAVE_EXTERNAL_TOOLS: ExternalTool.WEAVE_EXTERNAL_TOOLS,
-									'windowName': lastHtml5WindowName,
-									'catch': false
-								},
+								jsVars(false),
 								'var obj = window[WEAVE_EXTERNAL_TOOLS][windowName];',
 								'this.path("Layout").request("FlexibleLayout").state(obj.window.weave.path("Layout").getState())'
 							);
@@ -84,6 +47,77 @@ package weave.menus
 			});
 		}
 		
-		private var lastHtml5WindowName:String;
+		private static var lastHtml5WindowName:String;
+		
+		public static function get shown():Boolean
+		{
+			return Weave.properties.version.value == 'Custom';
+		}
+		
+		private static function jsVars(catchErrors:Boolean):Object
+		{
+			return {
+				WEAVE_EXTERNAL_TOOLS: ExternalTool.WEAVE_EXTERNAL_TOOLS,
+				'windowName': lastHtml5WindowName,
+				'catch': catchErrors && function():*{}
+			};
+		}
+		
+		public static function get exported():Boolean
+		{
+			return JavaScript.exec(
+				jsVars(true),
+				'var obj = window[WEAVE_EXTERNAL_TOOLS][windowName];',
+				'return !!obj.window.weave;'
+			);
+		}
+		
+		public static function export():void
+		{
+			if (lastHtml5WindowName)
+				JavaScript.exec(
+					jsVars(true),
+					'var obj = window[WEAVE_EXTERNAL_TOOLS][windowName];',
+					'obj.window.close();'
+				);
+			var url:String = '/weave-html5/';
+			ExternalTool.launch(WeaveAPI.globalHashMap, url, lastHtml5WindowName = ExternalTool.generateWindowName());
+		}
+		
+		public static function disableScripts():void
+		{
+			LinkableFunction.enabled = false;
+			LinkableCallbackScript.enabled = false;
+			
+			var names:Array = WeaveAPI.globalHashMap.getNames();
+			var lcs:LinkableCallbackScript = WeaveAPI.globalHashMap.requestObject("_disableFlashScripts", LinkableCallbackScript, false);
+			//  put new script first
+			WeaveAPI.globalHashMap.setNameOrder(names);
+			lcs.groupedCallback.value = false;
+			lcs.script.value = "if (typeof ExportMenu != 'undefined') {\n" +
+				"\tExportMenu.disableScripts();\n" +
+				"\tExportMenu.export();\n" +
+				"\tSessionStateEditor.openDefaultEditor();\n" +
+				"}";
+		}
+		
+		/*
+		public static function flush():void
+		{
+			if (!exported)
+			{
+				export();
+				return;
+			}
+			JavaScript.exec(
+				jsVars(false),
+				<![CDATA[
+					var obj = window[WEAVE_EXTERNAL_TOOLS][windowName];
+					var content = atob(obj.path.getValue('btoa(Weave.createWeaveFileContent())'));
+					obj.window.weavejs.core.WeaveArchive.loadFileContent(obj.window.weave, content);
+				]]>
+			);
+		}
+		*/
 	}
 }

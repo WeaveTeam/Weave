@@ -36,6 +36,34 @@ A text editor to change the Session State on the fly.
 				<mx:Button label="{lang('Apply')}" click="handleApplyClick()" paddingLeft="5" paddingRight="5"/>
 				<mx:Button label="{lang('Save &amp; Close')}" click="saveAndClosePanel()" paddingLeft="5" paddingRight="5"/>
 				<mx:Button label="{lang('Cancel')}" click="removePanel()" paddingLeft="5" paddingRight="5"/>
+				<mx:Spacer width="100%"/>
+				<mx:Button id="disableScriptsButton" label="{lang(disableScriptsButton.enabled ? 'Disable scripts' : 'Scripts disabled')}" paddingLeft="5" paddingRight="5">
+					<mx:initialize>
+						<![CDATA[
+							disableScriptsButton.visible = disableScriptsButton.includeInLayout = ExportMenu.shown;
+							disableScriptsButton.enabled = LinkableFunction.enabled || LinkableCallbackScript.enabled;
+						]]>
+					</mx:initialize>
+					<mx:click>
+						<![CDATA[
+							ExportMenu.disableScripts();
+							disableScriptsButton.enabled = false;
+						]]>
+					</mx:click>
+				</mx:Button>
+				<mx:Button id="exportButton" label="{lang('Export to HTML5')}" paddingLeft="5" paddingRight="5">
+					<mx:initialize>
+						<![CDATA[
+							exportButton.visible = exportButton.includeInLayout = ExportMenu.shown;
+						]]>
+					</mx:initialize>
+					<mx:click>
+						<![CDATA[
+							handleApplyClick();
+							ExportMenu.export();
+						]]>
+					</mx:click>
+				</mx:Button>
 			</mx:HBox>
 			<mx:HDividedBox width="100%" height="100%">
 				<mx:VBox id="listVBox" width="100%" height="100%">
@@ -133,12 +161,15 @@ A text editor to change the Session State on the fly.
 			import weave.api.data.IColumnWrapper;
 			import weave.compiler.Compiler;
 			import weave.core.ClassUtils;
+			import weave.core.LinkableCallbackScript;
 			import weave.core.LinkableDynamicObject;
+			import weave.core.LinkableFunction;
 			import weave.core.LinkableString;
 			import weave.core.LinkableSynchronizer;
 			import weave.core.StageUtils;
 			import weave.core.WeaveXMLDecoder;
 			import weave.core.WeaveXMLEncoder;
+			import weave.menus.ExportMenu;
 			import weave.menus.WeaveContextMenu;
 			import weave.menus.WeaveMenuItem;
 			import weave.primitives.WeaveTreeItem;
