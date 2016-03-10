@@ -48,6 +48,7 @@ package
 	import weavejs.data.column.ExtendedDynamicColumn;
 	import weavejs.data.column.FilteredColumn;
 	import weavejs.data.column.GeometryColumn;
+	import weavejs.data.column.KeyColumn;
 	import weavejs.data.column.NormalizedColumn;
 	import weavejs.data.column.NumberColumn;
 	import weavejs.data.column.ProxyColumn;
@@ -142,6 +143,7 @@ package
 			DBFDataSource,
 			GroupedDataTransform,
 			CKANDataSource,
+			KeyColumn,
 			
 			WeaveMenuItem,
 			ZoomBounds,
