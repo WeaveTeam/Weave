@@ -79,6 +79,7 @@ package
 	import weavejs.geom.SolidFillStyle;
 	import weavejs.geom.SolidLineStyle;
 	import weavejs.geom.ZoomBounds;
+	import weavejs.path.ExternalTool;
 	import weavejs.util.JS;
 	import weavejs.util.WeaveMenuItem;
 	
@@ -144,6 +145,7 @@ package
 			GroupedDataTransform,
 			CKANDataSource,
 			KeyColumn,
+			ExternalTool,
 			
 			WeaveMenuItem,
 			ZoomBounds,

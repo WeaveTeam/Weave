@@ -136,10 +136,15 @@ package weavejs.core
 		{
 			var archive:WeaveArchive = new WeaveArchive(fileContent);
 			
-			var history:Object = archive.objects[ARCHIVE_HISTORY_AMF] || archive.objects[ARCHIVE_HISTORY_JSON];
-			if (history)
+			var historyJSON:Object = archive.objects[ARCHIVE_HISTORY_JSON];
+			var historyAMF:Object = archive.objects[ARCHIVE_HISTORY_AMF];
+			if (historyJSON)
 			{
-				weave.history.setSessionState(BackwardsCompatibility.updateSessionState(history));
+				weave.history.setSessionState(historyJSON);
+			}
+			else if (historyAMF)
+			{
+				weave.history.setSessionState(BackwardsCompatibility.updateSessionState(historyAMF));
 			}
 			else
 			{

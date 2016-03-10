@@ -4,6 +4,7 @@ package weavejs.util
 	import weavejs.core.LinkableHashMap;
 	import weavejs.core.LinkableString;
 	import weavejs.core.LinkableVariable;
+	import weavejs.path.ExternalTool;
 
 	public class BackwardsCompatibility
 	{
@@ -13,6 +14,7 @@ package weavejs.util
 		}
 		
 		private static const map_class_ignore:Object = new JS.Map();
+		private static const CLASS:String = 'class';
 		
 		public static function updateSessionState(state:Object):Object
 		{
@@ -30,9 +32,26 @@ package weavejs.util
 				var className:String = typedState[DynamicState.CLASS_NAME];
 				if (!classLookup.hasOwnProperty(className))
 					continue;
+
 				var classDef:Class = Weave.getDefinition(className);
+				
+				var externalToolClass:String = DynamicState.traverseState(typedState[DynamicState.SESSION_STATE], [CLASS]);
+				if (classDef == ExternalTool && Weave.getDefinition(externalToolClass))
+				{
+					typedState[DynamicState.CLASS_NAME] = externalToolClass;
+					var newState:Object = {};
+					for each (var item:Object in typedState[DynamicState.SESSION_STATE])
+					{
+						var itemName:String = item[DynamicState.OBJECT_NAME];
+						if (itemName != CLASS)
+							newState[itemName] = item[DynamicState.SESSION_STATE];
+					}
+					typedState[DynamicState.SESSION_STATE] = newState;
+				}
+				
 				if (classDef && !map_class_ignore.get(classDef))
 					continue;
+				
 				if (!classLookup[className])
 				{
 					typedState[DynamicState.CLASS_NAME] = Weave.className(LinkableVariable);
@@ -40,7 +59,7 @@ package weavejs.util
 				}
 				
 				typedState[DynamicState.CLASS_NAME] = Weave.className(LinkableHashMap);
-				var classNameState:Object = DynamicState.create('class', Weave.className(LinkableString), className);
+				var classNameState:Object = DynamicState.create(CLASS, Weave.className(LinkableString), className);
 				var childState:Object = typedState[DynamicState.SESSION_STATE];
 				if (DynamicState.isDynamicStateArray(childState))
 				{
