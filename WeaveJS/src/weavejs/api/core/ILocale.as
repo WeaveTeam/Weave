@@ -26,6 +26,7 @@ package weavejs.api.core
 		/**
 		 * A mapping from original text to translated text.
 		 */
+		function get data():Object;
 		function set data(value:Object):void;
 		
 		/**

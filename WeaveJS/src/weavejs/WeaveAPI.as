@@ -39,6 +39,11 @@ package weavejs
 		 * Set this to true to enable stack traces for debugging.
 		 */
 		public static var debugAsyncStack:Boolean = false;
+
+		/**
+		 * Set to true to clearly see where Locale is being used.
+		 */
+		public static var debugLocale:Boolean = false;
 		
 		/**
 		 * For use with StageUtils.startTask(); this priority is used for things that MUST be done before anything else.

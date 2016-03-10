@@ -558,19 +558,14 @@ package
 		{
 			// call localize() either way to let the LocaleManager know that we are interested in translations of this text.
 			var newText:String = WeaveAPI.Locale.getText(text);
-			
-			try
+
+			if (WeaveAPI.debugLocale)
 			{
-				if (WeaveAPI.Locale['locale'] == 'developer')
-				{
-					parameters.unshift(text);
-					return 'lang("' + parameters.join('", "') + '")';
-				}
+				parameters.unshift(text);
+				var str:String = stringify(parameters);
+				return 'lang(' + str.substring(1, str.length - 1) + ')';
 			}
-			catch (e:Error)
-			{
-			}
-			
+
 			if (parameters.length)
 				return StandardLib.substitute(newText, parameters);
 			
