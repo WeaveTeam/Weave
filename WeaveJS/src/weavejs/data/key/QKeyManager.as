@@ -104,7 +104,13 @@ package weavejs.data.key
 		private function init_map_localName_qkey(keyType:String):Object
 		{
 			// key type not seen before, so initialize it
-			var map_localName_qkey:Object = new JS.Map();
+			var map_localName_qkey:Object;
+			// use & prefer the same map associated with the trimmed keyType
+			var trimmedKeyType:String = StandardLib.trim(keyType);
+			if (trimmedKeyType != keyType)
+				map_localName_qkey = map_keyType_localName_qkey.map.get(trimmedKeyType) || init_map_localName_qkey(trimmedKeyType);
+			else
+				map_localName_qkey = new JS.Map();
 			map_keyType_localName_qkey.map.set(keyType, map_localName_qkey);
 			return map_localName_qkey;
 		}
@@ -116,10 +122,10 @@ package weavejs.data.key
 		{
 			keyType = keyType == null ? null : String(keyType);
 			
-			// get mapping of key strings to QKey weak references
 			var map_localName_qkey:Object = map_keyType_localName_qkey.map.get(keyType);
 			if (!map_localName_qkey)
 				map_localName_qkey = init_map_localName_qkey(keyType);
+			keyType = StandardLib.trim(keyType);
 			
 			if (!csvParser)
 				csvParser = new CSVParser(false, DELIMITER);
@@ -127,27 +133,29 @@ package weavejs.data.key
 			for (var i:int = iStart; i < iEnd; i++)
 			{
 				var localName:String = String(keyStrings[i]);
-				var qkey:* = map_localName_qkey.get(localName);
-				if (qkey === undefined)
+				var qkey:QKey = map_localName_qkey.get(localName);
+				if (!qkey)
 				{
-					// QKey not created for this key yet (or it has been garbage-collected)
-					var qkeyString:String;
-					if (keyType)
+					var trimmedLocalName:String = StandardLib.trim(localName);
+					qkey = map_localName_qkey.get(trimmedLocalName);
+					if (!qkey)
 					{
-						qkeyString = csvParser.createCSVRow([keyType, localName]);
+						var qkeyString:String;
+						if (keyType)
+							qkeyString = csvParser.createCSVRow([keyType, trimmedLocalName]);
+						else
+							qkeyString = trimmedLocalName;
+						
+						qkey = new QKey(keyType, trimmedLocalName, qkeyString);
+						
+						map_localName_qkey.set(trimmedLocalName, qkey);
+						map_qkeyString_qkey.set(qkeyString, qkey);
+						array_numberToQKey[qkey.toNumber()] = qkey;
+						map_qkey_keyType.set(qkey, keyType);
+						map_qkey_localName.set(qkey, trimmedLocalName);
 					}
-					else
-					{
-						qkeyString = localName;
-					}
-					var qkeyTyped:QKey = qkey = new QKey(keyType, localName, qkeyString);
-					
-					array_numberToQKey[qkeyTyped.toNumber()] = qkey;
-					if (map_localName_qkey !== map_qkeyString_qkey)
+					if (localName != trimmedLocalName)
 						map_localName_qkey.set(localName, qkey);
-					map_qkeyString_qkey.set(qkeyString, qkey);
-					map_qkey_keyType.set(qkey, keyType);
-					map_qkey_localName.set(qkey, localName);
 				}
 				
 				output[i] = qkey;
