@@ -120,9 +120,14 @@ package weavejs.core
 			
 			var handler:Function;
 			
-			// objectWasDisposed() will call async instance handler if the object hasn't been seen before
-			if (objectWasDisposed(disposableParent))
-				throw new Error("registerDisposableChild(): Parent was previously disposed");
+			// if the parent has not been registered yet
+			if (!d2d_owner_child.map.has(disposableParent))
+			{
+				// if this is an instance of an async class, call the async instance handler
+				handler = Weave.getAsyncInstanceHandler(disposableParent.constructor);
+				if (handler != null)
+					handler(disposableParent);
+			}
 			
 			// if this child has no owner yet...
 			if (!map_child_owner.has(disposableChild))
@@ -130,10 +135,6 @@ package weavejs.core
 				// make this first parent the owner
 				map_child_owner.set(disposableChild, disposableParent);
 				d2d_owner_child.set(disposableParent, disposableChild, true);
-				
-				// objectWasDisposed() will call async instance handler if the object hasn't been seen before
-				if (objectWasDisposed(disposableChild))
-					throw new Error("registerDisposableChild(): Child was previously disposed");
 				
 				// if this is an instance of an async class, call the async instance handler
 				handler = Weave.getAsyncInstanceHandler(disposableChild.constructor);
@@ -907,26 +908,12 @@ package weavejs.core
 		{
 			if (object == null)
 				return false;
-			
-			// if the object has not been registered yet
-			if (!d2d_owner_child.map.has(object))
-			{
-				// create a placeholder to prevent this code from running again
-				d2d_owner_child.map.set(object, new JS.Map());
-				
-				// if this is an instance of an async class, call the async instance handler
-				var handler:Function = Weave.getAsyncInstanceHandler(object.constructor);
-				if (handler != null)
-					handler(object);
-			}
-			
 			if (object is ILinkableObject)
 			{
 				var cc:CallbackCollection = getCallbackCollection(object as ILinkableObject) as CallbackCollection;
 				if (cc)
 					return cc.wasDisposed;
 			}
-			
 			return map_disposed.has(object);
 		}
 		
