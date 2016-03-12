@@ -472,8 +472,6 @@ package weavejs.data
 		 */
 		public static function getRecords(format:Object, keys:Array = null, dataType:Object = null):Array
 		{
-			if (JS.isPrimitive(format) || format is IAttributeColumn)
-				throw new Error("Invalid record format");
 			if (!keys)
 				keys = getAllKeys(getColumnsFromFormat(format, []));
 			var records:Array = new Array(keys.length);
@@ -484,13 +482,12 @@ package weavejs.data
 		
 		private static function getColumnsFromFormat(format:Object, output:Array):Array
 		{
-			// check for primitive values
-			if (format === null || typeof format !== 'object')
+			if (JS.isPrimitive(format))
 				return output;
-			for (var prop:String in format)
-				if (format[prop] is IAttributeColumn)
-					output.push(format[prop]);
-				else
+			if (format is IAttributeColumn)
+				output.push(format);
+			else
+				for (var prop:String in Object(format))
 					getColumnsFromFormat(format[prop], output);
 			return output;
 		}
