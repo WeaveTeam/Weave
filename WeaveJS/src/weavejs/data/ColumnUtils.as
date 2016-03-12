@@ -482,11 +482,9 @@ package weavejs.data
 		
 		private static function getColumnsFromFormat(format:Object, output:Array):Array
 		{
-			if (JS.isPrimitive(format))
-				return output;
 			if (format is IAttributeColumn)
 				output.push(format);
-			else
+			else if (!JS.isPrimitive(format))
 				for (var prop:String in Object(format))
 					getColumnsFromFormat(format[prop], output);
 			return output;
