@@ -197,6 +197,11 @@ package weavejs.core
 			return d2d_parent_child.secondaryKeys(parent);
 		}
 
+		public function getOwner(child:Object):Object
+		{
+			return map_child_owner.get(child);
+		}
+		
 		public function getLinkableOwner(child:ILinkableObject):ILinkableObject
 		{
 			return map_child_owner.get(child) as ILinkableObject;

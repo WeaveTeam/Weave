@@ -102,13 +102,20 @@ package weavejs.api.core
 		function registerDisposableChild(disposableParent:Object, disposableChild:Object):*;
 
 		/**
+		 * This function gets the owner of an object.  The owner of an object is defined as its first registered parent.
+		 * @param child An Object that was registered as a child of another Object.
+		 * @return The owner of the child object (the first parent that was registered with the child), or null if the child has no owner.
+		 */
+		function getOwner(child:Object):Object;
+		
+		/**
 		 * This function gets the owner of a linkable object.  The owner of an object is defined as its first registered parent.
 		 * @param child An ILinkableObject that was registered as a child of another ILinkableObject.
-		 * @return The owner of the child object (the first parent that was registered with the child), or null if the child has no owner.
+		 * @return The owner of the child object (the first parent that was registered with the child), or null if the child has no linkable owner.
 		 * @see #getLinkableDescendants()
 		 */
 		function getLinkableOwner(child:ILinkableObject):ILinkableObject;
-		
+
 		/**
 		 * This function will return all the descendant objects that implement ILinkableObject.
 		 * If the filter parameter is specified, the results will contain only those objects that extend or implement the filter class.

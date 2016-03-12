@@ -99,13 +99,16 @@ package
 		private static const map_root_weave:Object = new JS.Map();
 		
 		/**
-		 * Finds the Weave instance for a given ILinkableObject.
-		 * @param object An ILinkableObject.
-		 * @return The Weave instance.
+		 * Finds the Weave instance for a given Object.
+		 * @param object An Object.
+		 * @return The Weave instance, or null if the object was not registered as an ancestor of any instance of Weave.
 		 */
-		public static function getWeave(object:ILinkableObject):Weave
+		public static function getWeave(object:Object):Weave
 		{
-			return map_root_weave.get(getRoot(object));
+			var sm:ISessionManager = WeaveAPI.SessionManager;
+			while (object && !(object is Weave))
+				object = sm.getOwner(object);
+			return object as Weave;
 		}
 		
 		/**
