@@ -151,7 +151,7 @@ package weavejs.core
 		/**
 		 * This is the path that is currently being watched for linkable object targets.
 		 */
-		public function get targetPath():Array
+		public function get targetPath():Array/*/<string|number>/*/
 		{
 			return _targetPath ? _targetPath.concat() : null;
 		}
@@ -160,7 +160,7 @@ package weavejs.core
 		 * This will set a path which should be watched for new targets.
 		 * Callbacks will be triggered immediately if the path changes or points to a new target.
 		 */
-		public function set targetPath(path:Array):void
+		public function set targetPath(path:Array/*/<string|number>/*/):void
 		{
 			// do not allow watching the globalHashMap
 			if (path && path.length == 0)

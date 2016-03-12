@@ -175,7 +175,7 @@ package weavejs.core
 			super.internalSetTarget(newTarget);
 		}
 		
-		override public function set targetPath(path:Array):void
+		override public function set targetPath(path:Array/*/<string|number>/*/):void
 		{
 			if (_locked)
 				return;
