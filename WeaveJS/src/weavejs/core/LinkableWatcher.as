@@ -55,7 +55,7 @@ package weavejs.core
 		
 		protected var _typeRestriction:Class;
 		private var _target:ILinkableObject; // the current target or ancestor of the to-be-target
-		private var _foundRoot:Boolean = false; // false until Weave.getRoot(this) returns non-null
+		private var _foundRoot:Boolean = false; // false until Weave.getWeave() or Weave.getRoot(this) returns non-null
 		private var _foundTarget:Boolean = true; // false when _target is not the desired target
 		protected var _targetPath:Array; // the path that is being watched
 		private var _pathDependencies:Dictionary2D = new Dictionary2D(); // (ILinkableCompositeObject, String) -> child object
@@ -188,7 +188,8 @@ package weavejs.core
 				return;
 			}
 			
-			var root:ILinkableObject = Weave.getRoot(this);
+			var weave:Weave = Weave.getWeave(this);
+			var root:ILinkableObject = weave ? weave.root : Weave.getRoot(this);
 			_foundRoot = root != null;
 			var node:ILinkableObject = Weave.followPath(root, _targetPath);
 			if (!node)
@@ -237,8 +238,8 @@ package weavejs.core
 				}
 			}
 			
-			// we found a desired target if (there is no type restriction or the object fits the restriction) and it's not a placeholder
-			_foundTarget = (!_typeRestriction || node is _typeRestriction) && !(node is LinkablePlaceholder);
+			// we found a desired target if there is no type restriction or the object fits the restriction
+			_foundTarget = !_typeRestriction || node is _typeRestriction;
 			internalSetTarget(node);
 		}
 		
