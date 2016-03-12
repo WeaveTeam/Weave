@@ -485,8 +485,8 @@ package weavejs.data
 			if (format is IAttributeColumn)
 				output.push(format);
 			else if (!JS.isPrimitive(format))
-				for (var prop:String in Object(format))
-					getColumnsFromFormat(format[prop], output);
+				for each (var item:Object in format)
+					getColumnsFromFormat(item, output);
 			return output;
 		}
 		
