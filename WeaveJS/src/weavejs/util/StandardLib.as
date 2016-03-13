@@ -91,9 +91,9 @@ package weavejs.util
 		/**
 		 * Tests if a value is undefined, null, or NaN.
 		 */
-		public static function isUndefined(value:*):Boolean
+		public static function isUndefined(value:*, orEmptyString:Boolean = false):Boolean
 		{
-			return value === undefined || value === null || (value is Number && isNaN(value));
+			return value === undefined || value === null || (value is Number && isNaN(value)) || (orEmptyString && value === '');
 		}
 		
 		/**

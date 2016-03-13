@@ -75,7 +75,7 @@ package weavejs.data.column
 			{
 				var value:* = internalDynamicColumn.getValueFromKey(key, dataType);
 				
-				if (StandardLib.isUndefined(value))
+				if (StandardLib.isUndefined(value, true))
 				{
 					value = _cachedDefaultValue;
 					if (dataType != null)
@@ -96,7 +96,7 @@ package weavejs.data.column
 			{
 				value = internalDynamicColumn.getValueFromKey(key, dataType);
 				//if (StandardLib.compare(value, EquationColumnLib.cast(undefined, dataType)) == 0)
-				if (StandardLib.isUndefined(value))
+				if (StandardLib.isUndefined(value, true))
 				{
 					value = _cachedDefaultValue;
 					if (dataType != null)
