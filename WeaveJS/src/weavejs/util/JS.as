@@ -33,7 +33,7 @@ package weavejs.util
 			console.log.apply(console, args);
 		}
 		
-		private static const unnamedFunctionRegExp:RegExp = /^\s*function\s*\([^\)]*\)\s*\{.*\}\s*$/;
+		private static const unnamedFunctionRegExp:RegExp = /^\s*function\s*\([^\)]*\)\s*\{[^]*\}\s*$/m;
 		
 		/**
 		 * Compiles a script into a function with optional parameter names.
@@ -46,8 +46,11 @@ package weavejs.util
 			var isFunc:Boolean = unnamedFunctionRegExp.test(script);
 			if (isFunc)
 				script = "(" + script + ")";
+			// first try wrapping the script in "return eval(script)"
 			var args:Array = (paramNames || []).concat("return eval(" + JSON.stringify(script) + ");");
 			var func:Function = Function['apply'](null, args);
+			if (isFunc)
+				func = func();
 			return function():* {
 				try
 				{
@@ -62,12 +65,15 @@ package weavejs.util
 						args.push(script);
 						try
 						{
+							// overwrite func with original script
 							func = Function['apply'](null, args);
 						}
 						catch (e2:Error)
 						{
+							// on syntax error, overwrite func with one that does nothing so we don't get an error next time
 							if (e2 is SyntaxError)
 								func = Function['apply']();
+							
 							if (errorHandler != null)
 								return errorHandler(e2);
 							else

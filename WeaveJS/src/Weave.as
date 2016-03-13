@@ -14,6 +14,7 @@ package
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ISessionManager;
 	import weavejs.api.data.IAttributeColumn;
+	import weavejs.core.LinkableFunction;
 	import weavejs.core.SessionStateLog;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathUI;
@@ -53,6 +54,18 @@ package
 		 * The session history
 		 */
 		public var history:SessionStateLog;
+		
+		/**
+		 * For backwards compatibility, may be temporary solution
+		 */
+		public function macro(name:String, ...params):*
+		{
+			var macros:ILinkableHashMap = getObject('WeaveProperties', 'macros') as ILinkableHashMap;
+			var fn:LinkableFunction = macros.getObject(name) as LinkableFunction;
+			if (!fn)
+				throw new Error("Macro does not exist: " + name);
+			return fn.apply(null, params);
+		}
 		
 		/**
 		 * Creates a WeavePath object.  WeavePath objects are immutable after they are created.
