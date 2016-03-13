@@ -75,7 +75,6 @@ package
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IEditorManager, EditorManager);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ILocale, Locale);
-			Weave.registerClass("FlexibleLayout", LinkableVariable);
 			Weave.registerClass("ExtendedFillStyle", SolidFillStyle);
 			Weave.registerClass("ExtendedLineStyle", SolidLineStyle);
 			
