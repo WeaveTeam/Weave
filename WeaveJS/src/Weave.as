@@ -62,7 +62,7 @@ package
 		 * @return A WeavePath object.
 		 * @see WeavePath
 		 */
-		public function path(...basePath/*/[(string|number)[]] | (string|number)[]/*/):WeavePath
+		public function path(...basePath/*/(string|number|(string|number)[])[]/*/):WeavePath
 		{
 			if (basePath.length == 1 && basePath[0] is Array)
 				basePath = basePath[0];
@@ -77,7 +77,7 @@ package
 		 * @param path An Array (or multiple parameters) specifying the path to an object in the session state.
 		 *             A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
 		 */
-		public function getObject(...path/*/[(string|number)[]] | (string|number)[]/*/):ILinkableObject
+		public function getObject(...path/*/(string|number|(string|number)[])[]/*/):ILinkableObject
 		{
 			if (path.length == 1)
 			{
