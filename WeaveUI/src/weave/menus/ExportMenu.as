@@ -16,6 +16,7 @@
 package weave.menus
 {
 	import weave.Weave;
+	import weave.compiler.Compiler;
 	import weave.core.LinkableCallbackScript;
 	import weave.core.LinkableFunction;
 	import weave.visualization.tools.ExternalTool;
@@ -72,6 +73,8 @@ package weave.menus
 			);
 		}
 		
+		public static var url:String = "/weave-html5/";
+		
 		public static function export():void
 		{
 			if (lastHtml5WindowName)
@@ -80,14 +83,18 @@ package weave.menus
 					'var obj = window[WEAVE_EXTERNAL_TOOLS][windowName];',
 					'obj.window.close();'
 				);
-			var url:String = '/pdo/pdo.html';
 			ExternalTool.launch(WeaveAPI.globalHashMap, url, lastHtml5WindowName = ExternalTool.generateWindowName());
 		}
 		
-		public static function disableScripts():void
+		public static function disableScripts(exportUrl:String = null):void
 		{
 			LinkableFunction.enabled = false;
 			LinkableCallbackScript.enabled = false;
+			
+			if (exportUrl)
+				ExportMenu.url = exportUrl;
+			else
+				exportUrl = ExportMenu.url;
 			
 			var names:Array = WeaveAPI.globalHashMap.getNames();
 			var lcs:LinkableCallbackScript = WeaveAPI.globalHashMap.requestObject("_disableFlashScripts", LinkableCallbackScript, false);
@@ -95,7 +102,7 @@ package weave.menus
 			WeaveAPI.globalHashMap.setNameOrder(names);
 			lcs.groupedCallback.value = false;
 			lcs.script.value = "if (typeof ExportMenu != 'undefined') {\n" +
-				"\tExportMenu.disableScripts();\n" +
+				"\tExportMenu.disableScripts(" + Compiler.stringify(exportUrl) + ");\n" +
 				"\tExportMenu.export();\n" +
 				"\tSessionStateEditor.openDefaultEditor();\n" +
 				"}";
