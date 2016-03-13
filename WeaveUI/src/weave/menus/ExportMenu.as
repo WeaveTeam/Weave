@@ -80,7 +80,7 @@ package weave.menus
 					'var obj = window[WEAVE_EXTERNAL_TOOLS][windowName];',
 					'obj.window.close();'
 				);
-			var url:String = '/weave-html5/';
+			var url:String = '/pdo/pdo.html';
 			ExternalTool.launch(WeaveAPI.globalHashMap, url, lastHtml5WindowName = ExternalTool.generateWindowName());
 		}
 		

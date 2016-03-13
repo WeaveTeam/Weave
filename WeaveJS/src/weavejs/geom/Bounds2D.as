@@ -193,9 +193,9 @@ package weavejs.geom
 		public function setCoords(xMin_yMin_xMax_yMax:/*/[number, number, number, number]/*/Array):void
 		{
 			this.xMin = xMin_yMin_xMax_yMax[0];
-			this.yMin = xMin_yMin_xMax_yMax[0];
-			this.xMax = xMin_yMin_xMax_yMax[0];
-			this.yMax = xMin_yMin_xMax_yMax[0];
+			this.yMin = xMin_yMin_xMax_yMax[1];
+			this.xMax = xMin_yMin_xMax_yMax[2];
+			this.yMax = xMin_yMin_xMax_yMax[3];
 		}
 		
 		/**
