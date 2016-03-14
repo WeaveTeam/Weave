@@ -43,50 +43,71 @@ package weavejs.util
 		 */
 		public static function compile(script:String, paramNames:Array/*/<string>/*/ = null, errorHandler:/*/(e:Error)=>void/*/Function = null):Function
 		{
-			var isFunc:Boolean = unnamedFunctionRegExp.test(script);
-			if (isFunc)
-				script = "(" + script + ")";
-			// first try wrapping the script in "return eval(script)"
-			var args:Array = (paramNames || []).concat("return eval(" + JSON.stringify(script) + ");");
-			var func:Function = Function['apply'](null, args);
-			if (isFunc)
-				func = func();
-			return function():* {
-				try
-				{
-					return func.apply(this, arguments);
-				}
-				catch (e:Error)
-				{
-					// will get SyntaxError if script uses a return statement outside a function
-					if (e is SyntaxError)
+			try
+			{
+				var isFunc:Boolean = unnamedFunctionRegExp.test(script);
+				if (isFunc)
+					script = "(" + StandardLib.trim(script) + ")";
+				// first try wrapping the script in "return eval(script)"
+				var args:Array = (paramNames || []).concat("return eval(" + JSON.stringify(script) + ");");
+				var func:Function = Function['apply'](null, args);
+				if (isFunc)
+					func = func();
+				return function():* {
+					try
 					{
-						args.pop();
-						args.push(script);
-						try
-						{
-							// overwrite func with original script
-							func = Function['apply'](null, args);
-						}
-						catch (e2:Error)
-						{
-							// on syntax error, overwrite func with one that does nothing so we don't get an error next time
-							if (e2 is SyntaxError)
-								func = Function['apply']();
-							
-							if (errorHandler != null)
-								return errorHandler(e2);
-							else
-								throw e2;
-						}
 						return func.apply(this, arguments);
 					}
-					if (errorHandler != null)
-						return errorHandler(e);
-					else
-						throw e;
-				}
-			};
+					catch (e:Error)
+					{
+						// will get SyntaxError if script uses a return statement outside a function
+						if (e is SyntaxError)
+						{
+							args.pop();
+							args.push(script);
+							try
+							{
+								// overwrite func with original script
+								func = Function['apply'](null, args);
+							}
+							catch (e2:Error)
+							{
+								// on syntax error, overwrite func with one that does nothing so we don't get an error next time
+								if (e2 is SyntaxError)
+									func = Function['apply']();
+								
+								improveScriptError(e, 'evaluating', script, paramNames);
+								if (errorHandler != null)
+									return errorHandler(e2);
+								else
+									throw e2;
+							}
+							return func.apply(this, arguments);
+						}
+						
+						improveScriptError(e, 'evaluating', script, paramNames);
+						if (errorHandler != null)
+							return errorHandler(e);
+						else
+							throw e;
+					}
+				};
+			}
+			catch (e:Error)
+			{
+				improveScriptError(e, 'compiling', script, paramNames);
+				if (errorHandler != null)
+					errorHandler(e);
+				throw e;
+			}
+		}
+		
+		private static function improveScriptError(e:Error, doingWhat:String, script:String, paramNames:Array):void
+		{
+			script = StandardLib.replace(script, '\r\n','\n', '\r','\n', '\n','\n\t');
+			script = StandardLib.trim(script);
+			var paramsStr:String = paramNames && paramNames.length ? ' with params (' + paramNames.join(', ') + ')' : '';
+			e.message = StandardLib.substitute('Error {0} script{1}:\n\t{2}\n{3}', doingWhat, paramsStr, script, e.message);
 		}
 		
 		/**
