@@ -210,7 +210,7 @@ package weavejs.core
 			cc.resumeCallbacks();
 		}
 		
-		public function requestLocalObject(objectType:/*/new()=>any | string/*/Class, lockObject:Boolean = false):*
+		public function requestLocalObject(objectType:Class, lockObject:Boolean = false):*
 		{
 			if (objectType is String)
 				objectType = Weave.getDefinition(String(objectType), true);
@@ -232,7 +232,7 @@ package weavejs.core
 			return target;
 		}
 		
-		public function requestGlobalObject(name:String, objectType:/*/new()=>any | string/*/Class, lockObject:Boolean = false):*
+		public function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean = false):*
 		{
 			if (objectType is String)
 				objectType = Weave.getDefinition(String(objectType), true);
