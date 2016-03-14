@@ -59,18 +59,21 @@ package weavejs.core
 			return _childListCallbacks;
 		}
 
-		public function getNames(filter:Class = null, filterIncludesPlaceholders:Boolean = false):Array
+		public function getNames(filter:/*/new(..._:any[])=>any | string/*/Class = null, filterIncludesPlaceholders:Boolean = false):Array
 		{
 			return getList(false, filter, filterIncludesPlaceholders);
 		}
 		
-		public function getObjects(filter:Class = null, filterIncludesPlaceholders:Boolean = false):Array
+		public function getObjects(filter:/*/new(..._:any[])=>any | string/*/Class = null, filterIncludesPlaceholders:Boolean = false):Array
 		{
 			return getList(true, filter, filterIncludesPlaceholders);
 		}
 		
 		private function getList(listObjects:Boolean, filter:Class, filterIncludesPlaceholders:Boolean):Array
 		{
+			if (filter is String)
+				filter = Weave.getDefinition(String(filter), true);
+			
 			var result:Array = [];
 			for (var i:int = 0; i < _orderedNames.length; i++)
 			{
@@ -195,8 +198,11 @@ package weavejs.core
 				_childListCallbacks.runCallbacks(null, null, null);
 		}
 		
-		public function requestObject(name:String, classDef:Class, lockObject:Boolean = false):*
+		public function requestObject(name:String, classDef:/*/new()=>any | string/*/Class, lockObject:Boolean = false):*
 		{
+			if (classDef is String)
+				classDef = Weave.getDefinition(String(classDef), true);
+			
 			var className:String = classDef ? Weave.className(classDef) : null;
 			var result:* = initObjectByClassName(name, className, lockObject);
 			return classDef ? result as classDef : null;
