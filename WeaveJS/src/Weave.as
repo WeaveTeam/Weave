@@ -61,6 +61,8 @@ package
 		public function macro(name:String, ...params):*
 		{
 			var macros:ILinkableHashMap = getObject('WeaveProperties', 'macros') as ILinkableHashMap;
+			if (!macros)
+				throw new Error("macros hash map not found");
 			var fn:LinkableFunction = macros.getObject(name) as LinkableFunction;
 			if (!fn)
 				throw new Error("Macro does not exist: " + name);
