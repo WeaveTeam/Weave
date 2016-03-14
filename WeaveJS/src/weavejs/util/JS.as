@@ -76,7 +76,7 @@ package weavejs.util
 								if (e2 is SyntaxError)
 									func = Function['apply']();
 								
-								improveScriptError(e, 'evaluating', script, paramNames);
+								improveScriptError(e2, 'evaluating', script, paramNames);
 								if (errorHandler != null)
 									return errorHandler(e2);
 								else
