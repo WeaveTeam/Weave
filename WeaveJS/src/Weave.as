@@ -241,8 +241,11 @@ package
 		 * @return The closest ancestor of the given type.
 		 * @see weave.api.core.ISessionManager#getLinkableOwner()
 		 */
-		public static function getAncestor/*/<T>/*/(descendant:ILinkableObject, ancestorType:/*/new(..._:any[])=>T/*/Class):/*/T & ILinkableObject/*/ILinkableObject
+		public static function getAncestor/*/<T>/*/(descendant:ILinkableObject, ancestorType:/*/new(..._:any[])=>T | string/*/Class):/*/T & ILinkableObject/*/ILinkableObject
 		{
+			if (ancestorType is String)
+				ancestorType = Weave.getDefinition(String(ancestorType), true);
+			
 			var sm:ISessionManager = WeaveAPI.SessionManager;
 			do {
 				descendant = sm.getLinkableOwner(descendant);
@@ -264,8 +267,11 @@ package
 		 * Shortcut for WeaveAPI.SessionManager.getLinkableDescendants()
 		 * @copy weave.api.core.ISessionManager#getLinkableDescendants()
 		 */
-		public static function getDescendants/*/<T>/*/(object:ILinkableObject, filter:/*/new(..._:any[])=>T/*/Class = null):Array/*/<T & ILinkableObject>/*/
+		public static function getDescendants/*/<T>/*/(object:ILinkableObject, filter:/*/new(..._:any[])=>T | string/*/Class = null):Array/*/<T & ILinkableObject>/*/
 		{
+			if (filter is String)
+				filter = Weave.getDefinition(String(filter), true);
+			
 			return WeaveAPI.SessionManager.getLinkableDescendants(object, filter);
 		}
 		
