@@ -474,9 +474,12 @@ package
 		/**
 		 * Looks up a static definition by name.
 		 */
-		public static function getDefinition(name:String):*
+		public static function getDefinition(name:String, throwIfNotFound:Boolean = false):*
 		{
-			return WeaveAPI.ClassRegistry.getDefinition(name);
+			var result:* = WeaveAPI.ClassRegistry.getDefinition(name);
+			if (result === undefined && throwIfNotFound)
+				throw new Error("No definition for " + JSON.stringify(name));
+			return result;
 		}
 		
 		/**
