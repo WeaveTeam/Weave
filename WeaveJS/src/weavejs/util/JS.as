@@ -45,12 +45,16 @@ package weavejs.util
 		{
 			try
 			{
+				// normalize line endings
+				script = StandardLib.replace(script, '\r\n', '\n', '\r', '\n');
+				
 				var isFunc:Boolean = unnamedFunctionRegExp.test(script);
 				if (isFunc)
 					script = "(" + StandardLib.trim(script) + ")";
-				// first try wrapping the script in "return eval(script)"
+				// first try wrapping the script in "return eval(script)" to support scripts like "2+2"
 				var args:Array = (paramNames || []).concat("return eval(" + JSON.stringify(script) + ");");
 				var func:Function = Function['apply'](null, args);
+				// if it's a function definition, make func that function definition
 				if (isFunc)
 					func = func();
 				return function():* {
@@ -60,7 +64,7 @@ package weavejs.util
 					}
 					catch (e:Error)
 					{
-						// will get SyntaxError if script uses a return statement outside a function
+						// will get SyntaxError if script uses a return statement outside a function like "return 2+2"
 						if (e is SyntaxError)
 						{
 							args.pop();
@@ -76,38 +80,40 @@ package weavejs.util
 								if (e2 is SyntaxError)
 									func = Function['apply']();
 								
-								improveScriptError(e2, 'evaluating', script, paramNames);
-								if (errorHandler != null)
-									return errorHandler(e2);
-								else
-									throw e2;
+								return handleScriptError(e2, 'compiling', script, paramNames, errorHandler);
 							}
-							return func.apply(this, arguments);
+							
+							try
+							{
+								return func.apply(this, arguments);
+							}
+							catch (e3:Error)
+							{
+								return handleScriptError(e3, 'evaluating', script, paramNames, errorHandler);
+							}
 						}
-						
-						improveScriptError(e, 'evaluating', script, paramNames);
-						if (errorHandler != null)
-							return errorHandler(e);
-						else
-							throw e;
+						return handleScriptError(e, 'evaluating', script, paramNames, errorHandler);
 					}
 				};
 			}
 			catch (e:Error)
 			{
-				improveScriptError(e, 'compiling', script, paramNames);
-				if (errorHandler != null)
-					errorHandler(e);
+				// always throw when initial compile fails
+				handleScriptError(e, 'compiling', script, paramNames, errorHandler);
 				throw e;
 			}
 		}
 		
-		private static function improveScriptError(e:Error, doingWhat:String, script:String, paramNames:Array):void
+		private static function handleScriptError(e:Error, doingWhat:String, script:String, paramNames:Array, errorHandler:Function):*
 		{
-			script = StandardLib.replace(script, '\r\n','\n', '\r','\n', '\n','\n\t');
+			script = StandardLib.replace(script, '\n','\n\t');
 			script = StandardLib.trim(script);
 			var paramsStr:String = paramNames && paramNames.length ? ' with params (' + paramNames.join(', ') + ')' : '';
 			e.message = StandardLib.substitute('Error {0} script{1}:\n\t{2}\n{3}', doingWhat, paramsStr, script, e.message);
+			if (errorHandler != null)
+				return errorHandler(e);
+			else
+				throw e;
 		}
 		
 		/**
