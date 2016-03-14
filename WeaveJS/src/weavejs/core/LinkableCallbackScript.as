@@ -16,6 +16,8 @@
 package weavejs.core
 {
 	import weavejs.api.core.ICallbackCollection;
+	import weavejs.api.core.ILinkableDynamicObject;
+	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.util.JS;
 	
@@ -31,6 +33,7 @@ package weavejs.core
 		public const variables:LinkableHashMap = Weave.linkableChild(this, new LinkableHashMap());
 		public const script:LinkableString = Weave.linkableChild(this, new LinkableString());
 		public const delayWhileBusy:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
+		public const delayWhilePlaceholders:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
 		public const groupedCallback:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
 		
 		private var _compiledFunction:Function;
@@ -57,19 +60,42 @@ package weavejs.core
 			if (delayWhileBusy.value && Weave.isBusy(this))
 				return;
 			
+			if (delayWhilePlaceholders.value)
+			{
+				var ldos:Array = variables.getObjects(ILinkableDynamicObject);
+				for each (var ldo:ILinkableDynamicObject in ldos)
+					if (ldo.target is LinkablePlaceholder)
+						return;
+			}
+			
 			if (!script.value)
 				return;
 			
 			try
 			{
-				if (Weave.detectChange(this, script))
-					_compiledFunction = JS.compile(script.value);
-				_compiledFunction.call(this);
+				if (Weave.detectChange(this, script, variables.childListCallbacks))
+					_compiledFunction = JS.compile(script.value, variables.getNames(), errorHandler);
+				_compiledFunction.apply(this, variables.getObjects());
 			}
 			catch (e:Error)
 			{
 				JS.error(e);
 			}
+		}
+		
+		private function errorHandler(e:*):void
+		{
+			var root:ILinkableHashMap = Weave.getRoot(this);
+			if (root)
+				e.message = "In LinkableCallbackScript " + JSON.stringify(Weave.findPath(root, this)) + ":\n" + e.message;
+			
+			if (LinkableFunction.debug)
+			{
+				JS.error(e);
+				return;
+			}
+			
+			throw e;
 		}
 	}
 }
