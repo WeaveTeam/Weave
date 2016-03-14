@@ -22,14 +22,12 @@ package
 	import weavejs.core.EditorManager;
 	import weavejs.core.LinkableDynamicObject;
 	import weavejs.core.LinkableHashMap;
-	import weavejs.core.LinkableVariable;
 	import weavejs.core.Locale;
 	import weavejs.core.ProgressIndicator;
 	import weavejs.core.Scheduler;
 	import weavejs.core.SessionManager;
 	import weavejs.data.AttributeColumnCache;
 	import weavejs.data.CSVParser;
-	import weavejs.data.ColumnUtils;
 	import weavejs.data.StatisticsCache;
 	import weavejs.data.key.QKeyManager;
 	import weavejs.geom.SolidFillStyle;
