@@ -542,7 +542,7 @@ package weavejs.path
 			if (obj)
 				return Weave.getState(obj);
 			else
-				JS.error("No ILinkableObject from which to get session state at " + this.push(relativePath));
+				JS.error("Warning: No ILinkableObject from which to get session state at " + this.push(relativePath));
 			return null;
 		}
 		
@@ -576,7 +576,7 @@ package weavejs.path
 				if (obj)
 					return Weave.computeDiff(previousState, Weave.getState(obj));
 				else
-					JS.error("No ILinkableObject from which to get diff at " + this.push(args));
+					JS.error("Warning: No ILinkableObject from which to get diff at " + this.push(args));
 			}
 			return null;
 		}
@@ -598,7 +598,7 @@ package weavejs.path
 				if (obj)
 					return Weave.computeDiff(Weave.getState(obj), otherState);
 				else
-					JS.error("No ILinkableObject from which to get reverse diff at " + this.push(args));
+					JS.error("Warning: No ILinkableObject from which to get reverse diff at " + this.push(args));
 			}
 			return null;
 		}
