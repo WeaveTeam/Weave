@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "module": "system",
+        "declaration": true,
+        "target": "es6",
+        "outFile": "weavejs.js"
+    },
+    "exclude": ["weavejs.d.ts"]
+}
