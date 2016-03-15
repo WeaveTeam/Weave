@@ -3,12 +3,12 @@
   "version": "0.0.0",
   "description": "A session and data framework for visualization on the web",
   "main": "WeaveJS/bin/js-release/WeaveJS.js",
-  "dependencies": {
+  "devDependencies": {
     "as2dts": "^0.2.3",
     "flexjs": "^0.5.5",
     "typescript": "^1.8.7"
   },
-  "devDependencies": {},
+  "dependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "mxmlc -remove-circulars -js-compiler-options=\"--compilation_level WHITESPACE_ONLY --output_wrapper_file umdWrapper.js\" -fb ./WeaveJS/",
