@@ -5,7 +5,8 @@
   "main": "WeaveJS/bin/js-release/WeaveJS.js",
   "dependencies": {
     "as2dts": "^0.2.3",
-    "flexjs": "^0.5.5"
+    "flexjs": "^0.5.5",
+    "typescript": "^1.8.7"
   },
   "devDependencies": {},
   "scripts": {
