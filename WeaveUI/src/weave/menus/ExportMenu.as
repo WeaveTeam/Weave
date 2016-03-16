@@ -48,7 +48,7 @@ package weave.menus
 			});
 		}
 		
-		private static var lastHtml5WindowName:String;
+		private static const windowName:String = ExternalTool.generateWindowName();
 		
 		public static function get shown():Boolean
 		{
@@ -59,7 +59,7 @@ package weave.menus
 		{
 			return {
 				WEAVE_EXTERNAL_TOOLS: ExternalTool.WEAVE_EXTERNAL_TOOLS,
-				'windowName': lastHtml5WindowName,
+				'windowName': windowName,
 				'catch': catchErrors && function():*{}
 			};
 		}
@@ -77,13 +77,13 @@ package weave.menus
 		
 		public static function export():void
 		{
-			if (lastHtml5WindowName)
-				JavaScript.exec(
-					jsVars(true),
-					'var obj = window[WEAVE_EXTERNAL_TOOLS][windowName];',
-					'obj.window.close();'
-				);
-			ExternalTool.launch(WeaveAPI.globalHashMap, url, lastHtml5WindowName = ExternalTool.generateWindowName());
+			// clear all old window pointers because it gets very slow otherwise
+			JavaScript.exec(
+				jsVars(true),
+				'window[WEAVE_EXTERNAL_TOOLS][windowName].window.close();'
+			);
+			
+			ExternalTool.launch(WeaveAPI.globalHashMap, url, windowName);
 		}
 		
 		public static function disableScripts(exportUrl:String = null):void
