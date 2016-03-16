@@ -188,7 +188,11 @@ package weavejs.core
 		 * @return FlexJS class info object containing properties "variables", "accessors", and "methods",
 		 *         each being an Array of Objects like {type:String, declaredBy:String}
 		 */
-		public function getClassInfo(class_or_instance:Object):Object
+		public function getClassInfo(class_or_instance:Object):/*/{
+			variables: {[name:string]:{type: string}}[],
+			accessors: {[name:string]:{type: string, declaredBy: string}}[],
+			methods: {[name:string]:{type: string, declaredBy: string}}[]
+			}/*/Object
 		{
 			if (!class_or_instance)
 				return null;
