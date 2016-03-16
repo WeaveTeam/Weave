@@ -77,12 +77,6 @@ package weave.menus
 		
 		public static function export():void
 		{
-			// clear all old window pointers because it gets very slow otherwise
-			JavaScript.exec(
-				jsVars(true),
-				'window[WEAVE_EXTERNAL_TOOLS][windowName].window.close();'
-			);
-			
 			ExternalTool.launch(WeaveAPI.globalHashMap, url, windowName);
 		}
 		
