@@ -80,6 +80,16 @@ package weavejs.core
 		}
 		
 		/**
+		 * Checks if the target is currently a placeholder for an instance of an async class.
+		 * @return true if the target is a placeholder.
+		 * @see Weave#registerAsyncClass()
+		 */
+		public function get foundPlaceholder():Boolean
+		{
+			return _target is LinkablePlaceholder;
+		}
+		
+		/**
 		 * This sets the new target to be watched without resetting targetPath.
 		 * Callbacks will be triggered immediately if the new target is different from the old one.
 		 */

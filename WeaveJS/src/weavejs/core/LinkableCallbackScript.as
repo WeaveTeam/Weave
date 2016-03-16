@@ -64,7 +64,7 @@ package weavejs.core
 			{
 				var ldos:Array = variables.getObjects(ILinkableDynamicObject);
 				for each (var ldo:ILinkableDynamicObject in ldos)
-					if (ldo.target is LinkablePlaceholder)
+					if (ldo.foundPlaceholder)
 						return;
 			}
 			

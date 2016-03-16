@@ -47,6 +47,13 @@ package weavejs.api.core
 		function set targetPath(newPath:Array/*/<string|number>/*/):void;
 
 		/**
+		 * Checks if the target is currently a placeholder for an instance of an async class.
+		 * @return true if the target is a placeholder.
+		 * @see Weave#registerAsyncClass()
+		 */
+		function get foundPlaceholder():Boolean;
+
+		/**
 		 * This function creates a global object using the given Class definition if it doesn't already exist.
 		 * If the object gets disposed later, this object will still be linked to the global name.
 		 * If the existing object under the specified name is locked, this function will not modify it.
