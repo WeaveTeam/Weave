@@ -184,6 +184,28 @@ package weavejs.core
 		}
 		
 		/**
+		 * Gets FlexJS class info.
+		 * @return FlexJS class info object containing properties "variables", "accessors", and "methods",
+		 *         each being an Array of Objects like {type:String, declaredBy:String}
+		 */
+		public function getClassInfo(class_or_instance:Object):Object
+		{
+			if (!class_or_instance)
+				return null;
+			if (!class_or_instance.prototype)
+				class_or_instance = class_or_instance.constructor;
+			var info:Object = class_or_instance && class_or_instance.prototype && class_or_instance.prototype.FLEXJS_REFLECTION_INFO;
+			if (info is Function)
+			{
+				info = info();
+				info.variables = info.variables();
+				info.accessors = info.accessors();
+				info.methods = info.methods();
+			}
+			return info;
+		}
+		
+		/**
 		 * This registers an implementation for a singleton interface.
 		 * @param theInterface The interface to register.
 		 * @param theImplementation The implementation to register.

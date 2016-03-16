@@ -20,7 +20,7 @@ package weavejs.api.core
 		/**
 		 * Registers a class under a given qualified name and adds metadata about implementing interfaces.
 		 */
-		function registerClass(qualifiedName:String, definition:Class, additionalInterfaces:Array = null):void;
+		function registerClass(qualifiedName:String, definition:Class, interfaces:Array = null):void;
 		
 		/**
 		 * Gets the qualified class name from a class definition or an object instance.
@@ -31,6 +31,18 @@ package weavejs.api.core
 		 * Looks up a static definition by name.
 		 */
 		function getDefinition(name:String):*;
+		
+		/**
+		 * Gets FlexJS class info.
+		 * @param class_or_instance Either a Class or an instance of a Class.
+		 * @return FlexJS class info object containing properties "variables", "accessors", and "methods",
+		 *         each being an Array of Objects like {type:String, declaredBy:String}
+		 */
+		function getClassInfo(class_or_instance:Object):/*/{
+				variables: {[name:string]:{type: string}}[],
+				accessors: {[name:string]:{type: string, declaredBy: string}}[],
+				methods: {[name:string]:{type: string, declaredBy: string}}[]
+			}/*/Object;
 		
 		/**
 		 * Registers an implementation of an interface to be used as a singleton.
