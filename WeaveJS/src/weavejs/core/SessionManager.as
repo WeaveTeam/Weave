@@ -550,11 +550,7 @@ package weavejs.core
 				// implicit session state
 				// first pass: get property names
 				
-				var propertyNames:Array;
-				if (Weave.isAsyncClass(linkableObject['constructor']))
-					propertyNames = JS.getOwnPropertyNames(linkableObject);
-				else
-					propertyNames = JS.getPropertyNames(linkableObject, true); // includes getters
+				var propertyNames:Array = getLinkablePropertyNames(linkableObject, true);
 				var resultNames:Array = [];
 				var resultProperties:Array = [];
 				var property:ILinkableObject = null;
@@ -613,6 +609,8 @@ package weavejs.core
 			return result;
 		}
 		
+		private static const LINKABLE_PROPERTIES:String = 'linkableProperties';
+		
 		/**
 		 * This function gets a list of sessioned property names so accessor functions for non-sessioned properties do not have to be called.
 		 * @param linkableObject An object containing sessioned properties.
@@ -626,25 +624,45 @@ package weavejs.core
 				JS.error("SessionManager.getLinkablePropertyNames(): linkableObject cannot be null.");
 				return [];
 			}
-
-			var name:String;
-			// get the names from the object itself because each instance must have different
-			// linkable children, so we don't want to grab them from the prototype
-			var propertyNames:Array;
-			if (Weave.isAsyncClass(linkableObject['constructor']))
-				propertyNames = JS.getOwnPropertyNames(linkableObject);
-			else
-				propertyNames = JS.getPropertyNames(linkableObject, true); // includes getters
 			
-			var linkableNames:Array = [];
+			var propertyNames:Array;
+			var linkableNames:Array;
+			var name:String;
+			var property:Object;
+			
+			var info:Object = WeaveAPI.ClassRegistry.getClassInfo(linkableObject);
+			if (info && false)
+			{
+				if (!info[LINKABLE_PROPERTIES])
+				{
+					info[LINKABLE_PROPERTIES] = propertyNames = [];
+					for each (var lookup:Object in [info.variables, info.accessors])
+						for (name in lookup)
+							if (Weave.isLinkable(Weave.getDefinition(lookup[name].type)))
+								propertyNames.push(name);
+				}
+				propertyNames = info[LINKABLE_PROPERTIES];
+				if (!filtered)
+					return propertyNames; // already filtered by Weave.isLinkable()
+			}
+			else
+			{
+				// get the names from the object itself because each instance must have different
+				// linkable children, so we don't want to grab them from the prototype
+				if (Weave.isAsyncClass(linkableObject['constructor']))
+					propertyNames = JS.getOwnPropertyNames(linkableObject);
+				else
+					propertyNames = JS.getPropertyNames(linkableObject, true); // includes getters on prototype
+			}
+			
+			linkableNames = [];
 			for each (name in propertyNames)
 			{
-				var property:Object = linkableObject[name];
+				property = linkableObject[name];
 				if (Weave.isLinkable(property))
 					if (!filtered || d2d_child_parent.get(property, linkableObject))
 						linkableNames.push(name);
 			}
-			
 			return linkableNames;
 		}
 		
@@ -1121,15 +1139,15 @@ package weavejs.core
 					// ignore propertyName and always return the internalObject
 					object = (object as ILinkableDynamicObject).internalObject;
 				}
-				else if (getLinkablePropertyNames(object).indexOf(propertyName) < 0)
+				else if (object[propertyName] is ILinkableObject)
+				{
+					object = object[propertyName];
+				}
+				else
 				{
 					if (object is ILinkableObjectWithNewProperties || JS.hasProperty(object, DEPRECATED_STATE_MAPPING))
 						return getObjectFromDeprecatedPath(object[DEPRECATED_STATE_MAPPING], path, i);
 					return null;
-				}
-				else
-				{
-					object = object[propertyName] as ILinkableObject;
 				}
 			}
 			return map_disposed.get(object) ? null : object;
