@@ -15,6 +15,7 @@ package
 	import weavejs.api.core.ISessionManager;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.core.LinkableFunction;
+	import weavejs.core.LinkablePlaceholder;
 	import weavejs.core.SessionStateLog;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathUI;
@@ -104,7 +105,42 @@ package
 			return Weave.followPath(root, path);
 		}
 
-		
+		/**
+		 * Requests that an object be created if it doesn't already exist at the given path.
+		 * This function can also be used to assert that the object at the current path is of the type you expect it to be.
+		 * @param path The path
+		 * @param type The type
+		 * @return Either an instance of the requested type, a LinkablePlaceholder, or null if the object could not be created.
+		 */
+		public function requestObject(path:Array/*/<string|number>/*/, type:Class):ILinkableObject
+		{
+			// Get parent object first in case there is some backwards compatibility code that gets
+			// executed when it is accessed (registering deprecated class definitions, for example).
+			var parentPath:Array = path.concat();
+			var childName:Object = parentPath.pop();
+			var parent:ILinkableObject = Weave.followPath(root, parentPath);
+			
+			// request the child object
+			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
+			var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
+			var child:Object = null;
+			if (hashMap)
+			{
+				if (childName is Number)
+					childName = hashMap.getNames()[childName];
+				child = hashMap.requestObject(childName as String, type, false);
+			}
+			else if (dynamicObject)
+				child = dynamicObject.requestGlobalObject(childName as String, type, false);
+			else
+				child = Weave.followPath(root, path);
+			
+			// check for exact match only
+			if (LinkablePlaceholder.getClass(child) == type)
+				return child as ILinkableObject;
+			
+			return null;
+		}
 		
 		
 		//////////////////////////////////////////////////////////////////////////////////
