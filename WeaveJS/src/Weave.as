@@ -397,7 +397,7 @@ package
 			if (objectOrClass is ILinkableObject || objectOrClass === ILinkableObject)
 				return true;
 			// test class definition
-			return objectOrClass && objectOrClass.prototype is ILinkableObject;
+			return objectOrClass ? objectOrClass.prototype is ILinkableObject : false;
 		}
 		
 		
