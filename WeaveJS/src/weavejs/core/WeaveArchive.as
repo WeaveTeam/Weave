@@ -69,6 +69,8 @@ package weavejs.core
 			{
 				var fileName:String = filePath.substr(filePath.indexOf('/') + 1);
 				var file:Object = zip.files[filePath];
+				if (file.dir)
+					continue;
 				if (filePath.indexOf(FOLDER_JSON + '/') == 0)
 				{
 					objects[fileName] = JSON.parse(file.asText());
