@@ -436,6 +436,13 @@ package
 			return objectOrClass ? objectOrClass.prototype is ILinkableObject : false;
 		}
 		
+		/**
+		 * @return (object is type)
+		 */
+		public static function IS(object:Object, type:Class):Boolean
+		{
+			return object is type;
+		}
 		
 		
 		//////////////////////////////////////////////////////////////////////////////////
