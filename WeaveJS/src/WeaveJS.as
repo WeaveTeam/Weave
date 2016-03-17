@@ -15,6 +15,7 @@ package
 	import weavejs.api.core.ISessionManager;
 	import weavejs.api.data.IAttributeColumnCache;
 	import weavejs.api.data.ICSVParser;
+	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IQualifiedKeyManager;
 	import weavejs.api.data.IStatisticsCache;
 	import weavejs.api.net.IURLRequestUtils;
@@ -30,6 +31,14 @@ package
 	import weavejs.data.CSVParser;
 	import weavejs.data.StatisticsCache;
 	import weavejs.data.key.QKeyManager;
+	import weavejs.data.source.CKANDataSource;
+	import weavejs.data.source.CSVDataSource;
+	import weavejs.data.source.CensusDataSource;
+	import weavejs.data.source.DBFDataSource;
+	import weavejs.data.source.ForeignDataMappingTransform;
+	import weavejs.data.source.GeoJSONDataSource;
+	import weavejs.data.source.GroupedDataTransform;
+	import weavejs.data.source.WeaveDataSource;
 	import weavejs.geom.SolidFillStyle;
 	import weavejs.geom.SolidLineStyle;
 	import weavejs.net.URLRequestUtils;
@@ -61,8 +70,6 @@ package
 				'weavejs.util'
 			);
 			
-			WeaveAPI.ClassRegistry.registerImplementation(ILinkableHashMap, LinkableHashMap);
-			WeaveAPI.ClassRegistry.registerImplementation(ILinkableDynamicObject, LinkableDynamicObject);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IURLRequestUtils, URLRequestUtils);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
@@ -73,14 +80,25 @@ package
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IEditorManager, EditorManager);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ILocale, Locale);
+			
+			WeaveAPI.ClassRegistry.registerImplementation(ILinkableHashMap, LinkableHashMap);
+			WeaveAPI.ClassRegistry.registerImplementation(ILinkableDynamicObject, LinkableDynamicObject);
+			
+			// temporary hack
+			//TODO - traverse weavejs namespace and register all classes with all their interfaces
+			var IDataSource_File:Class = IDataSource;
+			var IDataSource_Service:Class = IDataSource;
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, CSVDataSource);
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, DBFDataSource);
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, GeoJSONDataSource);
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Service, WeaveDataSource);
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Service, CKANDataSource);
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Service, CensusDataSource);
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource, ForeignDataMappingTransform);
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GroupedDataTransform);
+			
 			Weave.registerClass("ExtendedFillStyle", SolidFillStyle);
 			Weave.registerClass("ExtendedLineStyle", SolidLineStyle);
-			
-			// TEMPORARY HACK - omit keySet filter
-//			var joinColumns:Function = ColumnUtils.joinColumns;
-//			ColumnUtils['joinColumns'] = function(columns:Array, dataType:Object = null, allowMissingData:Boolean = false):Array {
-//				return joinColumns.call(ColumnUtils, columns, dataType, allowMissingData);
-//			};
 			
 			// TEMPORARY
 			//WeaveTest.test(weave);
