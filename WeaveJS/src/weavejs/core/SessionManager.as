@@ -1251,6 +1251,12 @@ package weavejs.core
 		
 		public function computeDiff(oldState:Object, newState:Object):*
 		{
+			// convert undefined params to null params
+			if (oldState == null)
+				oldState = null;
+			if (newState == null)
+				newState = null;
+			
 			var type:String = typeof(oldState); // the type of null is 'object'
 			var diffValue:*;
 
@@ -1391,7 +1397,7 @@ package weavejs.core
 				// find new properties
 				for (var newName:String in newState)
 				{
-					if (oldState[newName] === undefined)
+					if (oldState[newName] === undefined && newState[newName] !== undefined)
 					{
 						if (!diff)
 							diff = {};
@@ -1405,6 +1411,12 @@ package weavejs.core
 		
 		public function combineDiff(baseDiff:Object, diffToAdd:Object):Object
 		{
+			// convert undefined params to null params
+			if (baseDiff == null)
+				baseDiff = null;
+			if (diffToAdd == null)
+				diffToAdd = null;
+			
 			var baseType:String = typeof(baseDiff); // the type of null is 'object'
 			var diffType:String = typeof(diffToAdd);
 
@@ -1491,7 +1503,7 @@ package weavejs.core
 					while (i--)
 					{
 						var value:Object = diffToAdd[i];
-						if (value === null || typeof value != 'object')
+						if (value == null || typeof value != 'object')
 							baseDiff[i] = value; // avoid function call overhead
 						else
 							baseDiff[i] = combineDiff(baseDiff[i], value);
