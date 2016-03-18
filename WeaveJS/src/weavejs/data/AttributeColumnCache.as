@@ -57,6 +57,10 @@ package weavejs.data
 				// If no column is associated with this hash value, request the
 				// column from its data source and save the column pointer.
 				column = dataSource.getAttributeColumn(metadata);
+				if (column)
+					column.addDisposeCallback(this, function():void {
+						this.d2d_dataSource_metadataHash_column.remove(dataSource, hashCode);
+					});
 				d2d_dataSource_metadataHash_column.set(dataSource, hashCode, column);
 			}
 			return column;
