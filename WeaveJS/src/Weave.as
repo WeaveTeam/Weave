@@ -15,7 +15,6 @@ package
 	import weavejs.api.core.ISessionManager;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.core.LinkableFunction;
-	import weavejs.core.LinkablePlaceholder;
 	import weavejs.core.SessionStateLog;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathUI;
@@ -107,12 +106,11 @@ package
 
 		/**
 		 * Requests that an object be created if it doesn't already exist at the given path.
-		 * This function can also be used to assert that the object at the current path is of the type you expect it to be.
 		 * @param path The path
 		 * @param type The type
-		 * @return Either an instance of the requested type, a LinkablePlaceholder, or null if the object could not be created.
+		 * @return Either an instance of the requested type, or null if the object could not be created or a LinkablePlaceholder was created.
 		 */
-		public function requestObject(path:Array/*/<string|number>/*/, type:Class):ILinkableObject
+		public function requestObject/*/<T>/*/(path:Array/*/<string|number>/*/, type:/*/(new(..._:any[])=>T) | string/*/Class):/*/T/*/ILinkableObject
 		{
 			// Get parent object first in case there is some backwards compatibility code that gets
 			// executed when it is accessed (registering deprecated class definitions, for example).
@@ -123,7 +121,7 @@ package
 			// request the child object
 			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
 			var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
-			var child:Object = null;
+			var child:* = null;
 			if (hashMap)
 			{
 				if (childName is Number)
@@ -136,8 +134,8 @@ package
 				child = Weave.followPath(root, path);
 			
 			// check for exact match only
-			if (LinkablePlaceholder.getClass(child) == type)
-				return child as ILinkableObject;
+			if (child && child.constructor == type)
+				return child;
 			
 			return null;
 		}
@@ -277,7 +275,7 @@ package
 		 * @return The closest ancestor of the given type.
 		 * @see weave.api.core.ISessionManager#getLinkableOwner()
 		 */
-		public static function getAncestor/*/<T>/*/(descendant:ILinkableObject, ancestorType:/*/new(..._:any[])=>T | string/*/Class):/*/T & ILinkableObject/*/ILinkableObject
+		public static function getAncestor/*/<T>/*/(descendant:ILinkableObject, ancestorType:/*/(new(..._:any[])=>T) | string/*/Class):/*/T & ILinkableObject/*/ILinkableObject
 		{
 			if (ancestorType is String)
 				ancestorType = Weave.getDefinition(String(ancestorType), true);
@@ -303,7 +301,7 @@ package
 		 * Shortcut for WeaveAPI.SessionManager.getLinkableDescendants()
 		 * @copy weave.api.core.ISessionManager#getLinkableDescendants()
 		 */
-		public static function getDescendants/*/<T>/*/(object:ILinkableObject, filter:/*/new(..._:any[])=>T | string/*/Class = null):Array/*/<T & ILinkableObject>/*/
+		public static function getDescendants/*/<T>/*/(object:ILinkableObject, filter:/*/(new(..._:any[])=>T) | string/*/Class = null):Array/*/<T & ILinkableObject>/*/
 		{
 			if (filter is String)
 				filter = Weave.getDefinition(String(filter), true);
