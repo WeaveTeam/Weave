@@ -18,6 +18,8 @@ package weavejs.core
 	{
 		public function LinkablePlaceholder(classDef:/*/new(..._:any[])=>T/*/Class)
 		{
+			if (!classDef)
+				throw new Error("classDef cannot be null");
 			this.classDef = classDef;
 			_bypassDiff = classDef === LinkableVariable || classDef.prototype is LinkableVariable;
 		}
@@ -111,7 +113,7 @@ package weavejs.core
 		
 		public static function replaceInstanceWithPlaceholder(instance:ILinkableObject):void
 		{
-			if (instance is LinkablePlaceholder || Weave.wasDisposed(instance))
+			if (!instance || instance is LinkablePlaceholder || Weave.wasDisposed(instance))
 				return;
 			
 			var placeholder:LinkablePlaceholder = new LinkablePlaceholder(getClass(instance));
