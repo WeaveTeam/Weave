@@ -442,6 +442,14 @@ package
 			return object is type;
 		}
 		
+		/**
+		 * @return (object as type)
+		 */
+		public static function AS(object:Object, type:Class):Boolean
+		{
+			return object as type;
+		}
+		
 		
 		//////////////////////////////////////////////////////////////////////////////////
 		// static general helper functions
