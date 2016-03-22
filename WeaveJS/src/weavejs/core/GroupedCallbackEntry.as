@@ -146,7 +146,10 @@ package weavejs.core
 			super(context, groupedCallback);
 			
 			if (!_initialized)
-				_initialized = WeaveAPI.Scheduler.frameCallbacks.addImmediateCallback(null, _handleGroupedCallbacks);
+			{
+				_initialized = true;
+				WeaveAPI.Scheduler.frameCallbacks.addImmediateCallback(null, _handleGroupedCallbacks);
+			}
 		}
 		
 		/**
