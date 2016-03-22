@@ -102,6 +102,7 @@ package weavejs.util
 				handleScriptError(e, 'compiling', script, paramNames, errorHandler);
 				throw e;
 			}
+			return null;
 		}
 		
 		private static function handleScriptError(e:Error, doingWhat:String, script:String, paramNames:Array, errorHandler:Function):*
