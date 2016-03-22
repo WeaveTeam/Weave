@@ -73,8 +73,9 @@ package weavejs.core
 		 * @param qualifiedName
 		 * @param definition
 		 * @param interfaces An Array of Class objects that are the interfaces the class implements.
+		 * @param displayName An optional display name for the class definition.
 		 */
-		public function registerClass(qualifiedName:String, definition:Class, interfaces:Array = null):void
+		public function registerClass(qualifiedName:String, definition:Class, interfaces:Array = null, displayName:String = null):void
 		{
 			// register qualified name
 			if (!map_name_class.has(qualifiedName))
@@ -117,7 +118,7 @@ package weavejs.core
 			{
 				if (items.indexOf(item) < 0)
 					items.push(item);
-				registerImplementation(item, definition);
+				registerImplementation(item, definition, displayName);
 			}
 		}
 		
