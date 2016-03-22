@@ -60,6 +60,7 @@ package
 	import weavejs.data.column.SortedIndexColumn;
 	import weavejs.data.column.StringColumn;
 	import weavejs.data.column.StringLookup;
+	import weavejs.data.hierarchy.EntityNodeSearch;
 	import weavejs.data.hierarchy.WeaveRootDataTreeNode;
 	import weavejs.data.key.ColumnDataFilter;
 	import weavejs.data.key.DynamicKeyFilter;
@@ -148,6 +149,7 @@ package
 			CKANDataSource,
 			KeyColumn,
 			ExternalTool,
+			EntityNodeSearch,
 			
 			WeaveMenuItem,
 			ZoomBounds,
