@@ -149,7 +149,7 @@ package
 			CKANDataSource,
 			KeyColumn,
 			ExternalTool,
-			EntityNodeSearch,
+//			EntityNodeSearch,
 			
 			WeaveMenuItem,
 			ZoomBounds,
