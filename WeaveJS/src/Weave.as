@@ -445,7 +445,7 @@ package
 		/**
 		 * @return (object as type)
 		 */
-		public static function AS(object:Object, type:Class):Boolean
+		public static function AS/*/<T>/*/(object:Object, type:/*/new(..._:any[])=>T/*/Class):/*/T/*/*
 		{
 			return object as type;
 		}
@@ -514,10 +514,11 @@ package
 		 * @param qualifiedName
 		 * @param definition
 		 * @param additionalInterfaces An Array of interfaces (Class objects) that the definition implements in addition to ILinkableObject.
+		 * @param displayName An optional display name for the class definition.
 		 */
-		public static function registerClass(qualifiedName:String, definition:Class, additionalInterfaces:Array/*/<new()=>any>/*/ = null):void
+		public static function registerClass(qualifiedName:String, definition:Class, additionalInterfaces:Array/*/<new()=>any>/*/ = null, displayName:String = null):void
 		{
-			WeaveAPI.ClassRegistry.registerClass(qualifiedName, definition, [ILinkableObject].concat(additionalInterfaces || []));
+			WeaveAPI.ClassRegistry.registerClass(qualifiedName, definition, [ILinkableObject].concat(additionalInterfaces || []), displayName);
 		}
 		
 		/**
