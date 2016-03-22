@@ -30,7 +30,6 @@ package weavejs.data.hierarchy
 		private var _searchRegExp:RegExp = null; // used for local comparisons
 		
 		private var _entityCacheSearchResults:Object = new JS.WeakMap(); // EntityCache -> SearchResults
-		private var _xmlNodeLookup:Object = new JS.WeakMap(); // XMLEntityNode -> true
 		
 		/**
 		 * Set this to true to include all descendants of matching nodes
@@ -63,7 +62,6 @@ package weavejs.data.hierarchy
 			if (_searchField != value)
 			{
 				_searchField = value;
-				_xmlNodeLookup = new JS.WeakMap();
 				Weave.getCallbacks(this).triggerCallbacks();
 			}
 		}
@@ -83,7 +81,6 @@ package weavejs.data.hierarchy
 			{
 				_searchString = value;
 				_searchRegExp = strToRegExp(value);
-				_xmlNodeLookup = new JS.WeakMap();
 				Weave.getCallbacks(this).triggerCallbacks();
 			}
 		}
@@ -114,10 +111,7 @@ package weavejs.data.hierarchy
 				
 				// if cache updated, rebuild idLookup
 				if (Weave.detectChange(results, cache))
-				{
-					_xmlNodeLookup = new JS.WeakMap();
 					results.rebuildLookup(cache);
-				}
 				
 				// The idLookup determines whether or not we want to include this EntityNode.
 				lookup = results.idLookup[en.id];
