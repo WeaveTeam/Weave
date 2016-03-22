@@ -324,6 +324,10 @@ package weavejs.core
 		 */
 		public function verifyImplementation(theInterface:Class, theImplementation:Class):void
 		{
+			if (!theInterface)
+				throw new Error("interface cannot be " + theInterface);
+			if (!theImplementation)
+				throw new Error("implementation cannot be " + theImplementation);
 			if (!(theImplementation.prototype is theInterface))
 				throw new Error(getClassName(theImplementation) + ' does not implement ' + getClassName(theInterface));
 		}
