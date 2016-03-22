@@ -10,6 +10,8 @@ package
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.api.ui.IVisTool;
+	import weavejs.api.ui.IVisTool_Basic;
+	import weavejs.api.ui.IVisTool_Utility;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableCallbackScript;
 	import weavejs.core.LinkableDynamicObject;
@@ -154,6 +156,8 @@ package
 			SolidLineStyle,
 			SolidFillStyle,
 			IVisTool,
+			IVisTool_Basic,
+			IVisTool_Utility,
 			
 			null
 		];
