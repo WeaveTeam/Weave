@@ -149,7 +149,6 @@ package
 			CKANDataSource,
 			KeyColumn,
 			ExternalTool,
-//			EntityNodeSearch,
 			
 			WeaveMenuItem,
 			ZoomBounds,
@@ -160,6 +159,8 @@ package
 			IVisTool,
 			IVisTool_Basic,
 			IVisTool_Utility,
+			
+			//EntityNodeSearch, //TODO - resolve circular dependency issue
 			
 			null
 		];
