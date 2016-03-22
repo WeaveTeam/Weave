@@ -87,7 +87,8 @@ package weavejs.util
 		 */
 		public function JSByteArray(data:/*/Uint8Array/*/Array, littleEndian:Boolean = false)
 		{
-			this.data = data as JS.Uint8Array || new JS.Uint8Array(data);
+			var data_any:* = data as JS.Uint8Array || new JS.Uint8Array(data);
+			this.data = data_any;
 			this.dataView = new JS.DataView(this.data.buffer, this.data.byteOffset, this.data.length);
 			this.littleEndian = littleEndian;
 			this.length = this.data.length;

@@ -82,7 +82,7 @@ package weavejs.path
 							{
 								JS.global[WEAVE_EXTERNAL_TOOLS][key].window.close();
 							}
-							catch (e)
+							catch (e:Error)
 							{
 								// ignore error
 							}

@@ -475,7 +475,7 @@ package weavejs.data
 			if (!keys)
 				keys = getAllKeys(getColumnsFromFormat(format, []));
 			var records:Array = new Array(keys.length);
-			for (var i:int in keys)
+			for (var i:String in keys)
 				records[i] = getRecord(format, keys[i], dataType);
 			return records;
 		}
