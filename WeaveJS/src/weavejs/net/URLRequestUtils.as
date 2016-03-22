@@ -134,7 +134,7 @@ package weavejs.net
 			
 			var ilo:ILinkableObject = relevantContext as ILinkableObject;
 			if (ilo)
-				WeaveAPI.ProgressIndicator.addTask(promise, ilo, request.url);
+				WeaveAPI.ProgressIndicator.addTask(promise, ilo, urlRequest.url);
 			
 			return promise;
 		}
