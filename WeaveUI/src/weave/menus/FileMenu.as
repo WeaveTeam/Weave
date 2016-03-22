@@ -17,7 +17,6 @@ package weave.menus
 {
 	import flash.events.Event;
 	import flash.net.FileReference;
-	import flash.system.Capabilities;
 	
 	import mx.controls.Alert;
 	
@@ -37,7 +36,6 @@ package weave.menus
 	import weave.utils.ColumnUtils;
 	import weave.utils.HierarchyUtils;
 	import weave.utils.PopUpUtils;
-	import weave.visualization.tools.ExternalTool;
 
 	public class FileMenu extends WeaveMenuItem
 	{
