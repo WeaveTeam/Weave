@@ -1251,6 +1251,13 @@ package weavejs.core
 		
 		public function computeDiff(oldState:Object, newState:Object):*
 		{
+			var diff:* = _computeDiff(oldState, newState);
+			if (diff is Array && diff.some(function(item:*):Boolean { return item === undefined; }))
+				return _computeDiff(oldState, newState);
+			return diff;
+		}
+		public function _computeDiff(oldState:Object, newState:Object):*
+		{
 			// convert undefined params to null params
 			if (oldState == null)
 				oldState = null;
@@ -1410,6 +1417,14 @@ package weavejs.core
 		}
 		
 		public function combineDiff(baseDiff:Object, diffToAdd:Object):Object
+		{
+			var a:Object = JS.copyObject(baseDiff), b:Object = JS.copyObject(diffToAdd);
+			var diff:* = _combineDiff(baseDiff, diffToAdd);
+			if (diff is Array && diff.some(function(item:*):Boolean { return item === undefined; }))
+				return _combineDiff(a, b);
+			return diff;
+		}
+		public function _combineDiff(baseDiff:Object, diffToAdd:Object):Object
 		{
 			// convert undefined params to null params
 			if (baseDiff == null)
