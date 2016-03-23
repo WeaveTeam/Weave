@@ -31,7 +31,8 @@ package weavejs.core
 		{
 			var request:URLRequest = new URLRequest(jsonUrl);
 			request.responseType = ResponseType.JSON;
-			return WeaveAPI.URLRequestUtils.request(this, request).then(function(data:Object):void { this.data = data; });
+			var self:Locale = this;
+			return WeaveAPI.URLRequestUtils.request(this, request).then(function(data:Object):void { self.data = data; });
 		}
 		
 		private var _data:Object = {};
