@@ -377,7 +377,7 @@ package
 		 * @see weave.api.core.ISessionManager#newDisposableChild()
 		 * @see weave.api.core.ISessionManager#registerDisposableChild()
 		 */
-		public static function disposableChild(disposableParent:Object, disposableChildOrType:Object):*
+		public static function disposableChild/*/T/*/(disposableParent:Object, disposableChildOrType:/*/(new()=>T) | T/*/Object):/*/T/*/*
 		{
 			if (JS.isClass(disposableChildOrType))
 				return WeaveAPI.SessionManager.newDisposableChild(disposableParent, JS.asClass(disposableChildOrType));
