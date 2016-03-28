@@ -506,7 +506,7 @@ package
 		 */
 		public static function getAsyncInstanceHandler(type:Class):Function
 		{
-			return map_class_isAsync.get(type) as Function;
+			return isAsyncClass(type) ? map_class_isAsync.get(type) as Function : null;
 		}
 		
 		/**
