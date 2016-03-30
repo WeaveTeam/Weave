@@ -222,8 +222,9 @@ package weavejs.core
 			//  if the name refers to the same object, remove the existing object so it can be replaced with a new one.
 			if (name == getName(objectToCopy))
 				removeObject(name);
-			var object:ILinkableObject = requestObject(name, classDef, false);
-			if (object != null)
+			requestObject(name, classDef, false);
+			var object:ILinkableObject = getObject(name);
+			if (classDef == LinkablePlaceholder.getClass(object))
 				Weave.setState(object, sessionState);
 			resumeCallbacks();
 			
