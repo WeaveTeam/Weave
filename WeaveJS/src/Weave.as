@@ -140,6 +140,14 @@ package
 			return null;
 		}
 		
+		/**
+		 * Removes an object at the given path.
+		 * @param path The path
+		 */
+		public function removeObject(path:Array/*/<string|number>/*/):void
+		{
+			requestObject(path, null);
+		}
 		
 		//////////////////////////////////////////////////////////////////////////////////
 		// static functions for linkable objects
