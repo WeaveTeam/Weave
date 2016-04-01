@@ -26,7 +26,7 @@ package weave.menus
 		public function ExportMenu()
 		{
 			super({
-				shown: function():Boolean { return shown; },
+				shown: function():Boolean { return ExportMenu.shown; },
 				label: lang("Weave 2.0"),
 				children: [
 					{
