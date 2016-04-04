@@ -69,6 +69,7 @@ package weavejs.net
 				promise = new WeavePromise(this)
 					.setResult(WeaveAPI.URLRequestUtils.request(this, request))
 					.then(function(result:Object):Object { return result || {}; });
+				cache[url] = promise;
 			}
 			return promise;
 		}
