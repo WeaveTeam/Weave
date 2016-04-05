@@ -53,7 +53,7 @@ package weavejs.data.source
 		
 		public const keyType:LinkableString = Weave.linkableChild(this, LinkableString);
 		public const apiKey:LinkableString = Weave.linkableChild(this, new LinkableString(""));
-		public const dataSet:LinkableString = Weave.linkableChild(this, new LinkableString("2010acs5"));
+		public const dataSet:LinkableString = Weave.linkableChild(this, new LinkableString("http://api.census.gov/data/id/ACSSF2014"));
 		public const geographicScope:LinkableString = Weave.linkableChild(this, new LinkableString("040"));
 		public const geographicFilters:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Object));
 		private const api:CensusApi = Weave.linkableChild(this, CensusApi);
