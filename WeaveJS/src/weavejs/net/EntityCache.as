@@ -320,6 +320,7 @@ package weavejs.net
 				_idsByType[entityType] = ids;
 			
 			callbacks.triggerCallbacks();
+			return result;
 		}
 		
 		/**
