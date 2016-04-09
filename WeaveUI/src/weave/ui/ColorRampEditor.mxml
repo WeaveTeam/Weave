@@ -32,7 +32,7 @@
 		<mx:VBox width="100%" height="100%" id="listVBox">
 			<ui:ColorRampList id="colorRampList" colorRamp="{colorRamp}"/>
 			<ui:Indent label="{lang('Filter:')}">
-				<ui:CustomComboBox id="filterCombo" change="(colorRampList.dataProvider as ICollectionView).refresh();"/>
+				<ui:CustomComboBox id="filterCombo" change="(colorRampList.dataProvider as ICollectionView).refresh();" labelFunction="{lang}"/>
 			</ui:Indent>
 		</mx:VBox>
 		<mx:VBox height="100%">
@@ -59,11 +59,9 @@
 										   click="outerDocument.removeColorItem();"/>
 								<mx:Script>
 									<![CDATA[
-										import mx.collections.ArrayCollection;
 										import mx.events.DragEvent;
 										
 										import weave.compiler.StandardLib;
-										import weave.core.UIUtils;
 										
 										override protected function childrenCreated():void
 										{
@@ -122,22 +120,16 @@
 	</mx:HBox>
 	<mx:Script>
 		<![CDATA[
-			import weave.utils.VectorUtils;
+			import mx.collections.ArrayCollection;
+			import mx.collections.ICollectionView;
+			
 			import weave.api.registerLinkableChild;
-			import weave.api.newLinkableChild;
+			import weave.api.core.ILinkableObject;
+			import weave.compiler.StandardLib;
 			import weave.core.LinkableWatcher;
 			import weave.core.UIUtils;
-			import weave.utils.AsyncSort;
-			import mx.events.DragEvent;
-			import mx.collections.ICollectionView;
-			import mx.collections.IList;
-			import mx.collections.ListCollectionView;
-			import weave.compiler.StandardLib;
-			import mx.collections.ArrayCollection;
-			import mx.collections.XMLListCollection;
-			
-			import weave.api.core.ILinkableObject;
 			import weave.primitives.ColorRamp;
+			import weave.utils.VectorUtils;
 			
 			private const colorRampWatcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(ColorRamp), handleColorRampChange, true);
 			[Bindable]
@@ -160,7 +152,7 @@
 				colorRampList.dataProvider.filterFunction = filterColormaps;
 			}
 			
-			private const ALL:String = lang('All');
+			private const ALL:String = 'All';
 			
 			private function filterColormaps(item:Object):Boolean
 			{
