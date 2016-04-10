@@ -17,6 +17,7 @@ package weavejs.data.key
 {
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableObject;
+	import weavejs.api.data.DataType;
 	import weavejs.api.data.ICSVParser;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.api.data.IQualifiedKeyManager;
@@ -39,9 +40,6 @@ package weavejs.data.key
 	{
 		public function QKeyManager()
 		{
-			// map_qkeyString_qkey corresponds to a null keyType
-			map_qkeyString_qkey = new JS.Map();
-			map_keyType_localName_qkey.map.set(null, map_qkeyString_qkey);
 		}
 		
 		/**
@@ -57,11 +55,11 @@ package weavejs.data.key
 		/**
 		 * keyType -> Object( localName -> IQualifiedKey )
 		 */
-		private var map_keyType_localName_qkey:Dictionary2D = new Dictionary2D();
+		private var d2d_keyType_localName_qkey:Dictionary2D/*/<string,string,IQualifiedKey>/*/ = new Dictionary2D();
 		
-		private var map_qkeyString_qkey:Object;
+		private var map_qkeyString_qkey:/*/Map<string,IQualifiedKey>/*/Object = new JS.Map();
 
-		private var map_context_qkeyGetter:Object = new JS.WeakMap();
+		private var map_context_qkeyGetter:/*/Map<Object,QKeyGetter>/*/Object = new JS.WeakMap();
 		
 		private var _keyBuffer:Array = []; // holds one key
 		
@@ -108,10 +106,10 @@ package weavejs.data.key
 			// use & prefer the same map associated with the trimmed keyType
 			var trimmedKeyType:String = StandardLib.trim(keyType);
 			if (trimmedKeyType != keyType)
-				map_localName_qkey = map_keyType_localName_qkey.map.get(trimmedKeyType) || init_map_localName_qkey(trimmedKeyType);
+				map_localName_qkey = d2d_keyType_localName_qkey.map.get(trimmedKeyType) || init_map_localName_qkey(trimmedKeyType);
 			else
 				map_localName_qkey = new JS.Map();
-			map_keyType_localName_qkey.map.set(keyType, map_localName_qkey);
+			d2d_keyType_localName_qkey.map.set(keyType, map_localName_qkey);
 			return map_localName_qkey;
 		}
 		
@@ -120,40 +118,39 @@ package weavejs.data.key
 		 */
 		public function getQKeys_range(keyType:String, keyStrings:Array/*/<string>/*/, iStart:uint, iEnd:uint, output:Array/*/<IQualifiedKey>/*/):void
 		{
-			keyType = keyType == null ? null : String(keyType);
+			if (!keyType)
+				keyType = DataType.STRING;
 			
-			var map_localName_qkey:Object = map_keyType_localName_qkey.map.get(keyType);
+			var map_localName_qkey:Object = d2d_keyType_localName_qkey.map.get(keyType);
 			if (!map_localName_qkey)
 				map_localName_qkey = init_map_localName_qkey(keyType);
-			keyType = StandardLib.trim(keyType);
 			
 			if (!csvParser)
 				csvParser = new CSVParser(false, DELIMITER);
 			
+			var trimmedKeyType:String = null;
 			for (var i:int = iStart; i < iEnd; i++)
 			{
 				var localName:String = String(keyStrings[i]);
 				var qkey:QKey = map_localName_qkey.get(localName);
 				if (!qkey)
 				{
+					if (!trimmedKeyType)
+						trimmedKeyType = StandardLib.trim(keyType);
 					var trimmedLocalName:String = StandardLib.trim(localName);
 					qkey = map_localName_qkey.get(trimmedLocalName);
 					if (!qkey)
 					{
-						var qkeyString:String;
-						if (keyType)
-							qkeyString = csvParser.createCSVRow([keyType, trimmedLocalName]);
-						else
-							qkeyString = trimmedLocalName;
-						
-						qkey = new QKey(keyType, trimmedLocalName, qkeyString);
+						var qkeyString:String = csvParser.createCSVRow([trimmedKeyType, trimmedLocalName]);
+						qkey = new QKey(trimmedKeyType, trimmedLocalName, qkeyString);
 						
 						map_localName_qkey.set(trimmedLocalName, qkey);
 						map_qkeyString_qkey.set(qkeyString, qkey);
 						array_numberToQKey[qkey.toNumber()] = qkey;
-						map_qkey_keyType.set(qkey, keyType);
+						map_qkey_keyType.set(qkey, trimmedKeyType);
 						map_qkey_localName.set(qkey, trimmedLocalName);
 					}
+					// make untrimmed localName point to QKey for trimmedLocalName to avoid calls to trim() next time
 					if (localName != trimmedLocalName)
 						map_localName_qkey.set(localName, qkey);
 				}
@@ -230,7 +227,7 @@ package weavejs.data.key
 		 */
 		public function getAllKeyTypes():Array/*/<string>/*/
 		{
-			return map_keyType_localName_qkey.primaryKeys();
+			return d2d_keyType_localName_qkey.primaryKeys();
 		}
 		
 		/**
@@ -239,7 +236,7 @@ package weavejs.data.key
 		 */
 		public function getAllQKeys(keyType:String):Array/*/<IQualifiedKey>/*/
 		{
-			return JS.mapValues(map_keyType_localName_qkey.map.get(keyType));
+			return JS.mapValues(d2d_keyType_localName_qkey.map.get(keyType));
 		}
 		
 		/**
