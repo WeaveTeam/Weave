@@ -15,6 +15,7 @@
 
 package weavejs.core
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IChildListCallbackInterface;
@@ -264,13 +265,19 @@ package weavejs.core
 		{
 			if (className)
 			{
-				// if no name is specified, generate a unique one now.
-				if (!name)
-					name = generateUniqueName(className.split('::').pop().split('.').pop());
 				var classDef:Class = Weave.getDefinition(className);
 				if (Weave.isLinkable(classDef)
 					&& (_typeRestriction == null || classDef === _typeRestriction || classDef.prototype is _typeRestriction) )
 				{
+					// if no name is specified, generate a unique one now.
+					if (!name)
+					{
+						var baseName:String = className.split('::').pop().split('.').pop();
+						if (name == '')
+							baseName = WeaveAPI.ClassRegistry.getDisplayName(classDef) || baseName;
+						name = generateUniqueName(baseName);
+					}
+					
 //					try
 //					{
 						// If this name is not associated with an object of the specified type,
@@ -296,7 +303,7 @@ package weavejs.core
 			{
 				removeObject(name);
 			}
-			return _nameToObjectMap[name];
+			return _nameToObjectMap[name || ''];
 		}
 		
 		/**
