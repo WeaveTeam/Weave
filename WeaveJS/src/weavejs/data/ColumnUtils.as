@@ -26,6 +26,7 @@ package weavejs.data
 	import weavejs.api.data.IKeySet;
 	import weavejs.api.data.IPrimitiveColumn;
 	import weavejs.api.data.IQualifiedKey;
+	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.data.column.DynamicColumn;
 	import weavejs.data.column.ExtendedDynamicColumn;
 	import weavejs.data.column.ReferencedColumn;
@@ -187,6 +188,15 @@ package weavejs.data
 					columnWrapper = (columnWrapper as ExtendedDynamicColumn).internalDynamicColumn;
 			}
 			return columnWrapper as DynamicColumn;
+		}
+		
+		public static function hack_findHierarchyNode(columnWrapper:IColumnWrapper):IWeaveTreeNode
+		{
+			var dc:DynamicColumn = hack_findInternalDynamicColumn(columnWrapper);
+			if (!dc)
+				return null;
+			var rc:ReferencedColumn = dc.target as ReferencedColumn;
+			return rc ? rc.getHierarchyNode() : null;
 		}
 
 		/**
