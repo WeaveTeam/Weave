@@ -31,7 +31,7 @@ package weavejs.api.data
 		 * @param key
 		 * @return A number between 0 and 1, or NaN 
 		 */		
-		function getNorm(key:IQualifiedKey):Number;
+		function getNorm(key:IQualifiedKey, useMin:Boolean = true, useMax:Boolean = true):Number;
 		
 		/**
 		 * Gets the minimum numeric value defined in the column.

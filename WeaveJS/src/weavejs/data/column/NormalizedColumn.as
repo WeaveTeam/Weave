@@ -19,6 +19,7 @@ package weavejs.data.column
 	import weavejs.api.data.IColumnStatistics;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.core.LinkableNumber;
+	import weavejs.core.LinkableBoolean;
 	
 	/**
 	 * @author adufilie
@@ -40,6 +41,7 @@ package weavejs.data.column
 		
 		public const min:LinkableNumber = Weave.linkableChild(this, LinkableNumber);
 		public const max:LinkableNumber = Weave.linkableChild(this, LinkableNumber);
+		public const preserveRatio:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(true));
 		
 		/**
 		 * getValueFromKey
@@ -54,9 +56,17 @@ package weavejs.data.column
 			if (dataType == Number)
 			{
 				// get norm value between 0 and 1
-				var norm:Number = _stats.getNorm(key);
+				var norm:Number = _stats.getNorm(key, preserveRatio.value);
 				// return number between min and max
-				return min.value + norm * (max.value - min.value);
+				if (preserveRatio.value)
+				{
+					return norm * (max.value);
+				}
+				else
+				{
+					return min.value + norm * (max.value - min.value);	
+				}
+				
 			}
 			
 			return super.getValueFromKey(key, dataType);

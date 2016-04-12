@@ -33,12 +33,15 @@ package weavejs.data
 			column.addImmediateCallback(this, Weave.getCallbacks(this).triggerCallbacks, false, true);
 		}
 		
-		public function getNorm(key:IQualifiedKey):Number
+		public function getNorm(key:IQualifiedKey, useMin:Boolean = true, useMax:Boolean = true):Number
 		{
 			var min:Number = validateCache(getMin);
 			var max:Number = validateCache(getMax);
 			var map_numericData:Object = validateCache(hack_getNumericData);
 			var value:Number = map_numericData ? map_numericData.get(key) : NaN;
+			
+			if (!useMin) min = 0; /* (value)/(max) */
+			if (!useMax) max = min + 1; /* (value - min)/1 */
 			return (value - min) / (max - min);
 		}
 		
