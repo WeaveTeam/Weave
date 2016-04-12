@@ -190,7 +190,7 @@ package weavejs.data
 			return columnWrapper as DynamicColumn;
 		}
 		
-		public static function hack_findHierarchyNode(columnWrapper:IColumnWrapper):IWeaveTreeNode
+		public static function hack_findHierarchyNode(columnWrapper:IColumnWrapper):/*/IWeaveTreeNode & IColumnReference/*/IWeaveTreeNode
 		{
 			var dc:DynamicColumn = hack_findInternalDynamicColumn(columnWrapper);
 			if (!dc)

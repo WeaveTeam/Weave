@@ -37,6 +37,15 @@ package weavejs.data.hierarchy
 			return null;
 		}
 		
+		public static function findSiblingNodes(dataSource:IDataSource, metadata:Object):Array/*/<IWeaveTreeNode>/*/
+		{
+			if (!dataSource || !metadata)
+				return [];
+			
+			var parent:IWeaveTreeNode = findParentNode(dataSource.getHierarchyRoot(), dataSource, metadata);
+			return parent ? parent.getChildren() : []
+		}
+		
 		/**
 		 * Finds a series of IWeaveTreeNode objects which can be traversed as a path to a descendant node.
 		 * @param root The root IWeaveTreeNode.

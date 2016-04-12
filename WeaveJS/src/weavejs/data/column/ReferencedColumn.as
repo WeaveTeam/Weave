@@ -18,6 +18,7 @@ package weavejs.data.column
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.data.IAttributeColumn;
+	import weavejs.api.data.IColumnReference;
 	import weavejs.api.data.IColumnWrapper;
 	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IQualifiedKey;
@@ -81,8 +82,10 @@ package weavejs.data.column
 			return _dataSource;
 		}
 		
-		public function getHierarchyNode():IWeaveTreeNode
+		public function getHierarchyNode():/*/IWeaveTreeNode & IColumnReference/*/IWeaveTreeNode
 		{
+			IColumnReference; // make sure this is imported for TypeScript typing
+			
 			if (!_dataSource)
 				return null;
 			
