@@ -284,9 +284,9 @@ package weavejs.data.source
 			
 			// overwrite identifying property
 			if (typeof id == 'number')
-				metadata[METADATA_COLUMN_INDEX] = id;
+				metadata[METADATA_COLUMN_INDEX] = String(id);
 			else
-				metadata[METADATA_COLUMN_NAME] = id;
+				metadata[METADATA_COLUMN_NAME] = String(id);
 			
 			return metadata;
 		}
