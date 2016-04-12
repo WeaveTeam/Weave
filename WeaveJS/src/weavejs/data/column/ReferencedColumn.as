@@ -15,12 +15,15 @@
 
 package weavejs.data.column
 {
+	import weave.api.data.IWeaveTreeNode;
+	
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IColumnWrapper;
 	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IQualifiedKey;
+	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.core.CallbackCollection;
 	import weavejs.core.LinkableString;
 	import weavejs.core.LinkableVariable;
@@ -78,6 +81,15 @@ package weavejs.data.column
 		public function getDataSource():IDataSource
 		{
 			return _dataSource;
+		}
+		
+		public function getHierarchyNode():IWeaveTreeNode
+		{
+			if (!_dataSource)
+				return null;
+			
+			var meta:Object = metadata.getSessionState();
+			return _dataSource.findHierarchyNode(meta);
 		}
 		
 		/**
