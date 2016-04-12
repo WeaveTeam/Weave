@@ -15,8 +15,6 @@
 
 package weavejs.data.column
 {
-	import weave.api.data.IWeaveTreeNode;
-	
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.data.IAttributeColumn;
