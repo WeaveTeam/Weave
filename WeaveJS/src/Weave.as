@@ -519,20 +519,20 @@ package
 		
 		/**
 		 * Registers an ILinkableObject class for use with Weave.className() and Weave.getDefinition().
-		 * @param qualifiedName Either a single String or an Array of Strings which are qualified class names under which to register the class definition.
 		 * @param definition The class definition.
+		 * @param qualifiedName Either a single String or an Array of Strings which are qualified class names under which to register the class definition.
 		 * @param additionalInterfaces An Array of interfaces (Class objects) that the definition implements in addition to ILinkableObject.
 		 * @param displayName An optional display name for the class definition.
 		 */
-		public static function registerClass(qualifiedName:/*/string|string[]/*/Object, definition:Class, additionalInterfaces:Array/*/<new()=>any>/*/ = null, displayName:String = null):void
+		public static function registerClass(definition:Class, qualifiedName:/*/string|string[]/*/Object, additionalInterfaces:Array/*/<new()=>any>/*/ = null, displayName:String = null):void
 		{
 			var names:Array = qualifiedName as Array || [qualifiedName];
 			for (var index:String in names)
 			{
 				if (index == '0')
-					WeaveAPI.ClassRegistry.registerClass(names[index], definition, [ILinkableObject].concat(additionalInterfaces || []), displayName);
+					WeaveAPI.ClassRegistry.registerClass(definition, names[index], [ILinkableObject].concat(additionalInterfaces || []), displayName);
 				else
-					WeaveAPI.ClassRegistry.registerClass(names[index], definition);
+					WeaveAPI.ClassRegistry.registerClass(definition, names[index]);
 			}
 		}
 		

@@ -19,12 +19,12 @@ package weavejs.api.core
 	{
 		/**
 		 * Registers a class under a given qualified name and adds metadata about implementing interfaces.
-		 * @param qualifiedName The qualified class name under which to register the class definition.
 		 * @param definition The class definition.
+		 * @param qualifiedName The qualified class name under which to register the class definition.
 		 * @param interfaces An Array of Class objects that are the interfaces the class implements.
 		 * @param displayName An optional display name for the class definition.
 		 */
-		function registerClass(qualifiedName:String, definition:Class, interfaces:Array = null, displayName:String = null):void;
+		function registerClass(definition:Class, qualifiedName:String, interfaces:Array = null, displayName:String = null):void;
 		
 		/**
 		 * Gets the qualified class name from a class definition or an object instance.

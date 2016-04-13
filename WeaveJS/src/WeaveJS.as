@@ -16,6 +16,7 @@ package
 	import weavejs.api.data.IAttributeColumnCache;
 	import weavejs.api.data.ICSVParser;
 	import weavejs.api.data.IDataSource;
+	import weavejs.api.data.IDataSource_Transform;
 	import weavejs.api.data.IQualifiedKeyManager;
 	import weavejs.api.data.IStatisticsCache;
 	import weavejs.api.net.IURLRequestUtils;
@@ -88,17 +89,18 @@ package
 			//TODO - traverse weavejs namespace and register all classes with all their interfaces
 			var IDataSource_File:Class = IDataSource;
 			var IDataSource_Service:Class = IDataSource;
-			WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file / Delimited text");
-			WeaveAPI.ClassRegistry.registerImplementation(IDataSource, DBFDataSource, "SHP/DBF files");
-			WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON file");
-			WeaveAPI.ClassRegistry.registerImplementation(IDataSource, WeaveDataSource, "Weave server");
-			WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CKANDataSource, "CKAN server");
-			WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CensusDataSource, "Census.gov");
-			WeaveAPI.ClassRegistry.registerImplementation(IDataSource, ForeignDataMappingTransform, "Foreign data mapping");
-			WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GroupedDataTransform, "Grouped data transform");
+			var IDataSource_Transform:Class = IDataSource;
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, CSVDataSource, "CSV file / Delimited text");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, DBFDataSource, "SHP/DBF files");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, GeoJSONDataSource, "GeoJSON file");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Service, WeaveDataSource, "Weave server");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Service, CKANDataSource, "CKAN server");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Service, CensusDataSource, "Census.gov");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Transform, ForeignDataMappingTransform, "Foreign data mapping");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Transform, GroupedDataTransform, "Grouped data transform");
 			
-			Weave.registerClass("ExtendedFillStyle", SolidFillStyle);
-			Weave.registerClass("ExtendedLineStyle", SolidLineStyle);
+			Weave.registerClass(SolidFillStyle, "ExtendedFillStyle");
+			Weave.registerClass(SolidLineStyle, "ExtendedLineStyle");
 			
 			// TEMPORARY
 			//WeaveTest.test(weave);

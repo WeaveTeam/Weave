@@ -68,7 +68,7 @@ package weavejs.core
 		private static const QNAME:String = 'qName';
 		private static const INTERFACES:String = 'interfaces';
 		
-		public function registerClass(qualifiedName:String, definition:Class, interfaces:Array = null, displayName:String = null):void
+		public function registerClass(definition:Class, qualifiedName:String, interfaces:Array = null, displayName:String = null):void
 		{
 			// register qualified name
 			if (!map_name_class.has(qualifiedName))
