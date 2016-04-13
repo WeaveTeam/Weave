@@ -63,7 +63,11 @@ package weavejs.data.source
 		}
 		
 		public const keyType:LinkableString = Weave.linkableChild(this, LinkableString, updateKeys);
-		public const keyColName:LinkableString = Weave.linkableChild(this, LinkableString, updateKeys);
+		public const keyColumn:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(null, verifyKeyColumnId), updateKeys);
+		private function verifyKeyColumnId(value:Object):Boolean
+		{
+			return value is Number || value is String || value == null;
+		}
 		
 		public const metadata:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(null, verifyMetadata));
 		private function verifyMetadata(value:Object):Boolean
@@ -139,7 +143,7 @@ package weavejs.data.source
 		private var keysArray:Array;
 		private var keysCallbacks:ICallbackCollection = Weave.linkableChild(this, CallbackCollection);
 		
-		protected function handleParsedRows(rows:Array):void
+		protected function handleParsedRows(rows:/*/string[][]/*/Array):void
 		{
 			if (!rows)
 				rows = [];
@@ -167,12 +171,16 @@ package weavejs.data.source
 				var colNames:Array = parsedRows[0] || [];
 				// getColumnValues supports columnIndex -1
 				var keyColIndex:int = -1;
-				if (keyColName.value)
+				if (keyColumn.state is String)
 				{
-					keyColIndex = colNames.indexOf(keyColName.value);
+					keyColIndex = colNames.indexOf(keyColumn.state as String);
 					// treat invalid keyColName as an error
 					if (keyColIndex < 0)
 						keyColIndex = -2;
+				}
+				if (keyColumn.state is Number)
+				{
+					keyColIndex = keyColumn.state as Number;
 				}
 				var keyStrings:Array = getColumnValues(parsedRows, keyColIndex, []);
 				var keyTypeString:String = keyType.value;
@@ -186,14 +194,14 @@ package weavejs.data.source
 		 * Convenience function for setting session state of csvData.
 		 * @param rows
 		 */
-		public function setCSVData(rows:Array):void
+		public function setCSVData(rows:/*/string[][]/*/Array):void
 		{
 			if (!verifyRows(rows))
 				throw new Error("Invalid data format. Expecting nested Arrays.");
 			csvData.setSessionState(rows);
 		}
 		
-		public function getCSVData():Array
+		public function getCSVData():/*/string[][]/*/Array
 		{
 			return csvData.getSessionState() as Array;
 		}
@@ -209,17 +217,20 @@ package weavejs.data.source
 		/**
 		 * This will get a list of column names in the data, which are taken directly from the header row and not guaranteed to be unique.
 		 */		
-		public function getColumnNames():Array
+		public function getColumnNames():Array/*/<string>/*/
 		{
-			if (parsedRows && parsedRows.length)
-				return parsedRows[0].concat();
-			return [];
+			return getColumnIds().map(asString);
+		}
+		
+		private function asString(value:Object, i:int, a:Array):Boolean
+		{
+			return value as String;
 		}
 
 		/**
 		 * A unique list of identifiers for columns which may be a mix of Strings and Numbers, depending on the uniqueness of column names.
 		 */
-		public function getColumnIds():Array
+		public function getColumnIds():Array/*/<number|string>/*/
 		{
 			return columnIds.concat();
 		}
@@ -607,6 +618,7 @@ package weavejs.data.source
 		private var nullValues:Array = [null, "", "null", "\\N", "NaN"];
 		
 		// backwards compatibility
+		[Deprecated(replacement="keyColumn")] public function set keyColName(value:String):void { keyColumn.state = value; }
 		[Deprecated(replacement="csvData")] public function set csvDataString(value:String):void { setCSVDataString(value); }
 		[Deprecated(replacement="getColumnById")] public function getColumnByName(name:String):IAttributeColumn { return getColumnById(name); }
 	}
