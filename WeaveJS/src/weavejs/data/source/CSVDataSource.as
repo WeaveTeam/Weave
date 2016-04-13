@@ -165,7 +165,7 @@ package weavejs.data.source
 		
 		private function updateKeys(forced:Boolean = false):void
 		{
-			var changed:Boolean = Weave.detectChange(updateKeys, keyType, keyColName);
+			var changed:Boolean = Weave.detectChange(updateKeys, keyType, keyColumn);
 			if (parsedRows && (forced || changed))
 			{
 				var colNames:Array = parsedRows[0] || [];
@@ -174,7 +174,7 @@ package weavejs.data.source
 				if (keyColumn.state is String)
 				{
 					keyColIndex = colNames.indexOf(keyColumn.state as String);
-					// treat invalid keyColName as an error
+					// treat invalid key column name as an error
 					if (keyColIndex < 0)
 						keyColIndex = -2;
 				}
