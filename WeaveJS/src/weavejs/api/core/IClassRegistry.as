@@ -19,8 +19,8 @@ package weavejs.api.core
 	{
 		/**
 		 * Registers a class under a given qualified name and adds metadata about implementing interfaces.
-		 * @param qualifiedName
-		 * @param definition
+		 * @param qualifiedName The qualified class name under which to register the class definition.
+		 * @param definition The class definition.
 		 * @param interfaces An Array of Class objects that are the interfaces the class implements.
 		 * @param displayName An optional display name for the class definition.
 		 */
@@ -50,6 +50,9 @@ package weavejs.api.core
 		
 		/**
 		 * Registers an implementation of an interface to be used as a singleton.
+		 * @param theInterface The interface to register.
+		 * @param theImplementation The implementation to register.
+		 * @return A value of true if the implementation was successfully registered.
 		 */
 		function registerSingletonImplementation(theInterface:Class, theImplementation:Class):Boolean;
 		

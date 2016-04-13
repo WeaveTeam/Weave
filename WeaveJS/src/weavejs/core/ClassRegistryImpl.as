@@ -68,13 +68,6 @@ package weavejs.core
 		private static const QNAME:String = 'qName';
 		private static const INTERFACES:String = 'interfaces';
 		
-		/**
-		 * Registers a class for use with Weave.className() and Weave.getDefinition().
-		 * @param qualifiedName
-		 * @param definition
-		 * @param interfaces An Array of Class objects that are the interfaces the class implements.
-		 * @param displayName An optional display name for the class definition.
-		 */
 		public function registerClass(qualifiedName:String, definition:Class, interfaces:Array = null, displayName:String = null):void
 		{
 			// register qualified name
@@ -122,9 +115,6 @@ package weavejs.core
 			}
 		}
 		
-		/**
-		 * Gets the qualified class name from a class definition or an object instance.
-		 */
 		public function getClassName(definition:Object):String
 		{
 			if (!definition)
@@ -142,9 +132,6 @@ package weavejs.core
 			return definition.name;
 		}
 		
-		/**
-		 * Looks up a static definition by name.
-		 */
 		public function getDefinition(name:String):*
 		{
 			// check cache
@@ -184,11 +171,6 @@ package weavejs.core
 			return def;
 		}
 		
-		/**
-		 * Gets FlexJS class info.
-		 * @return FlexJS class info object containing properties "variables", "accessors", and "methods",
-		 *         each being an Array of Objects like {type:String, declaredBy:String}
-		 */
 		public function getClassInfo(class_or_instance:Object):/*/{
 			variables: {[name:string]:{type: string}}[],
 			accessors: {[name:string]:{type: string, declaredBy: string}}[],
@@ -210,12 +192,6 @@ package weavejs.core
 			return info;
 		}
 		
-		/**
-		 * This registers an implementation for a singleton interface.
-		 * @param theInterface The interface to register.
-		 * @param theImplementation The implementation to register.
-		 * @return A value of true if the implementation was successfully registered.
-		 */
 		public function registerSingletonImplementation(theInterface:Class, theImplementation:Class):Boolean
 		{
 			if (!map_interface_singletonImplementation.get(theInterface))
@@ -226,24 +202,11 @@ package weavejs.core
 			return map_interface_singletonImplementation.get(theInterface) == theImplementation;
 		}
 		
-		/**
-		 * Gets the registered implementation of an interface.
-		 * @return The registered implementation Class for the given interface Class.
-		 */
 		public function getSingletonImplementation(theInterface:Class):Class
 		{
 			return map_interface_singletonImplementation.get(theInterface);
 		}
 		
-		/**
-		 * This function returns the singleton instance for a registered interface.
-		 *
-		 * This method should not be called at static initialization time,
-		 * because the implementation may not have been registered yet.
-		 * 
-		 * @param singletonInterface An interface to a singleton class.
-		 * @return The singleton instance that implements the specified interface.
-		 */
 		public function getSingletonInstance(theInterface:Class):*
 		{
 			if (!map_interface_singletonInstance.get(theInterface))
@@ -256,12 +219,6 @@ package weavejs.core
 			return map_interface_singletonInstance.get(theInterface);
 		}
 		
-		/**
-		 * This will register an implementation of an interface.
-		 * @param theInterface The interface class.
-		 * @param theImplementation An implementation of the interface.
-		 * @param displayName An optional display name for the implementation.
-		 */
 		public function registerImplementation(theInterface:Class, theImplementation:Class, displayName:String = null):void
 		{
 			verifyImplementation(theInterface, theImplementation);
@@ -282,22 +239,12 @@ package weavejs.core
 			}
 		}
 		
-		/**
-		 * This will get an Array of class definitions that were previously registered as map_interface_implementations of the specified interface.
-		 * @param theInterface The interface class.
-		 * @return An Array of class definitions that were previously registered as map_interface_implementations of the specified interface.
-		 */
 		public function getImplementations(theInterface:Class):Array
 		{
 			var array:Array = map_interface_implementations.get(theInterface);
 			return array ? array.concat() : [];
 		}
 		
-		/**
-		 * This will get the displayName that was specified when an implementation was registered with registerImplementation().
-		 * @param theImplementation An implementation that was registered with registerImplementation().
-		 * @return The display name for the implementation.
-		 */
 		public function getDisplayName(theImplementation:Class):String
 		{
 			var str:String = map_class_displayName.get(theImplementation);
