@@ -126,6 +126,8 @@ package weavejs.core
 
 		public function getSessionState():Object
 		{
+			if (_sessionStateExternal === undefined)
+				return null;
 			return _sessionStateExternal;
 		}
 		
