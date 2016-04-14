@@ -22,6 +22,7 @@ package weavejs.data
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IColumnReference;
 	import weavejs.api.data.IColumnWrapper;
+	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IKeyFilter;
 	import weavejs.api.data.IKeySet;
 	import weavejs.api.data.IPrimitiveColumn;
@@ -31,6 +32,7 @@ package weavejs.data
 	import weavejs.data.column.ExtendedDynamicColumn;
 	import weavejs.data.column.ReferencedColumn;
 	import weavejs.data.column.SecondaryKeyNumColumn;
+	import weavejs.data.hierarchy.HierarchyUtils;
 	import weavejs.geom.BLGNode;
 	import weavejs.geom.Bounds2D;
 	import weavejs.geom.GeneralizedGeometry;
@@ -717,12 +719,55 @@ package weavejs.data
 		}
 		
 		/**
+		 * Finds a set of columns from available data sources, preferring ones that are already in use. 
+		 */
+		public static function findFirstDataSet(root:ILinkableHashMap):Array/*/<IColumnReference>/*/
+		{
+			var ref:IColumnReference;
+			for each (var column:ReferencedColumn in Weave.getDescendants(root, ReferencedColumn))
+			{
+				ref = column.getHierarchyNode() as IColumnReference;
+				if (ref)
+					break;
+			}
+			if (!ref)
+			{
+				for each (var source:IDataSource in Weave.getDescendants(root, IDataSource))
+				{
+					ref = findFirstColumnReference(source.getHierarchyRoot());
+					if (ref)
+						break;
+				}
+			}
+			
+			return ref ? HierarchyUtils.findSiblingNodes(ref.getDataSource(), ref.getColumnMetadata()) : [];
+		}
+		
+		private static function findFirstColumnReference(node:IWeaveTreeNode):IColumnReference
+		{
+			var ref:IColumnReference = node as IColumnReference;
+			if (ref && ref.getColumnMetadata())
+				return ref;
+			
+			if (!node.isBranch())
+				return null;
+			
+			for each (var child:IWeaveTreeNode in node.getChildren())
+			{
+				ref = findFirstColumnReference(child);
+				if (ref)
+					return ref;
+			}
+			return null;
+		}
+		
+		/**
 		 * This will initialize selectable attributes using a list of columns and/or column references.
 		 * @param selectableAttributes An Array of IColumnWrapper and/or ILinkableHashMaps to initialize.
 		 * @param input An Array of IAttributeColumn and/or IColumnReference objects. If not specified, getColumnsWithCommonKeyType() will be used.
 		 * @see #getColumnsWithCommonKeyType()
 		 */
-		public static function initSelectableAttributes(selectableAttributes:Array, input:Array = null):void
+		public static function initSelectableAttributes(selectableAttributes:Array/*/<IColumnWrapper | ILinkableHashMap>/*/, input:Array/*/<IAttributeColumn | IColumnReference>/*/ = null):void
 		{
 			if (!input)
 				input = getColumnsWithCommonKeyType(Weave.getRoot(selectableAttributes[0]));

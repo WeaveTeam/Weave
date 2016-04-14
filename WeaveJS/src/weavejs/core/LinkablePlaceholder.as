@@ -45,9 +45,9 @@ package weavejs.core
 			if (!(instance is classDef))
 				throw new Error("Unexpected object type");
 			
-			replace(this, instance);
-			
 			this.instance = instance;
+			
+			replace(this, instance);
 		}
 		
 		/**
