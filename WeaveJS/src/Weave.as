@@ -706,5 +706,19 @@ package
 			for (var i:int = 0; i < undef.length; i++)
 				copyState(def[i % def.length], undef[i]);
 		}
+		
+		/**
+		 * For testing purposes.
+		 */
+		public function stringifyState(...pathOrType):String
+		{
+			var object:ILinkableObject;
+			if (JS.isClass(pathOrType[0]))
+				object = root.getObjects(pathOrType[0])[0];
+			else
+				object = getObject(pathOrType);
+			var state:Object = getState(object);
+			return stringify(state, null, '\t');
+		}
 	}
 }
