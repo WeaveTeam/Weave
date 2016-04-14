@@ -50,13 +50,16 @@ package weavejs.data.bin
 			output.removeAllObjects();
 			
 			var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(column);
-			var sortedColumn:Array = getSortedColumn(column); 
+			var sortedColumn:Array = getSortedColumn(column);
 			var binMin:Number;
-			var binMax:Number = sortedColumn[0]; 
-			var maxInclusive:Boolean;				
-						          
-			var refBinSize:Number = Math.ceil(stats.getCount() * refQuantile.value);//how many records in a bin
-			var numberOfBins:int = Math.ceil(stats.getCount()/ refBinSize);
+			var binMax:Number = sortedColumn[0];
+			var maxInclusive:Boolean;
+			
+			var recordCount:int = stats.getCount();
+			var refBinSize:Number = Math.ceil(recordCount * refQuantile.value);//how many records in a bin
+			if (!refBinSize)
+				refBinSize = recordCount;
+			var numberOfBins:int = Math.ceil(recordCount / refBinSize);
 			var binRecordCount:uint = refBinSize;
 			
 			for (var iBin:int = 0; iBin < numberOfBins; iBin++)
@@ -68,7 +71,8 @@ package weavejs.data.bin
 					binMax = sortedColumn[sortedColumn.length -1];
 					maxInclusive = true;
 				}
-				else {
+				else
+				{
 					binMax = sortedColumn[binRecordCount -1];
 					maxInclusive = binMax == binMin;
 				}
@@ -80,7 +84,7 @@ package weavejs.data.bin
 				//first get name from overrideBinNames
 				name = getOverrideNames()[iBin];
 				//if it is empty string set it from generateBinLabel
-				if(!name)
+				if (!name)
 					name = tempNumberClassifier.generateBinLabel(column);
 				output.requestObjectCopy(name, tempNumberClassifier);
 			}
