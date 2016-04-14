@@ -52,7 +52,8 @@ package weavejs.data.bin
 			var maxInclusive:Boolean;
 			//var valuesPerBin:int = Math.ceil((dataMax - dataMin + 1) / dataInterval.value);
 			var numberOfBins:int = Math.ceil((dataMax - dataMin) / dataInterval.value);
-			
+			if (!isFinite(numberOfBins))
+				numberOfBins = 1;
 			for (var iBin:int = 0; iBin < numberOfBins; iBin++)
 			{
 				
