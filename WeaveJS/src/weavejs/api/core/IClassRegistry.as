@@ -24,7 +24,7 @@ package weavejs.api.core
 		 * @param interfaces An Array of Class objects that are the interfaces the class implements.
 		 * @param displayName An optional display name for the class definition.
 		 */
-		function registerClass(definition:Class, qualifiedName:String, interfaces:Array = null, displayName:String = null):void;
+		function registerClass(definition:Class, qualifiedName:String, interfaces:Array/*/<new()=>any>/*/ = null, displayName:String = null):void;
 		
 		/**
 		 * Gets the qualified class name from a class definition or an object instance.
@@ -54,14 +54,14 @@ package weavejs.api.core
 		 * @param theImplementation The implementation to register.
 		 * @return A value of true if the implementation was successfully registered.
 		 */
-		function registerSingletonImplementation(theInterface:Class, theImplementation:Class):Boolean;
+		function registerSingletonImplementation/*/<T>/*/(theInterface:/*/new()=>T/*/Class, theImplementation:/*/new(..._:any[])=>T/*/Class):Boolean;
 		
 		/**
 		 * Gets the registered implementation of an interface.
 		 * @param theInterface An interface to a singleton class.
 		 * @return The registered implementation Class for the given interface Class.
 		 */
-		function getSingletonImplementation(theInterface:Class):Class;
+		function getSingletonImplementation/*/<T>/*/(theInterface:/*/new()=>T/*/Class):/*/new(..._:any[])=>T/*/Class;
 		
 		/**
 		 * This function returns the singleton instance for a registered interface.
@@ -72,7 +72,7 @@ package weavejs.api.core
 		 * @param theInterface An interface to a singleton class.
 		 * @return The singleton instance that implements the specified interface.
 		 */
-		function getSingletonInstance(theInterface:Class):*;
+		function getSingletonInstance(theInterface:/*/new()=>any/*/Class):*;
 		
 		/**
 		 * This will register an implementation of an interface.
@@ -80,14 +80,14 @@ package weavejs.api.core
 		 * @param theImplementation An implementation of the interface.
 		 * @param displayName An optional display name for the implementation.
 		 */
-		function registerImplementation(theInterface:Class, theImplementation:Class, displayName:String = null):void;
+		function registerImplementation/*/<T>/*/(theInterface:/*/new()=>T/*/Class, theImplementation:/*/new(..._:any[])=>T/*/Class, displayName:String = null):void;
 		
 		/**
 		 * This will get an Array of class definitions that were previously registered as implementations of the specified interface.
 		 * @param theInterface The interface class.
 		 * @return An Array of class definitions that were previously registered as implementations of the specified interface.
 		 */
-		function getImplementations(theInterface:Class):Array;
+		function getImplementations/*/<T>/*/(theInterface:/*/new()=>T/*/Class):Array/*/<new(..._:any[])=>T>/*/;
 		
 		/**
 		 * This will get the displayName that was specified when an implementation was registered with registerImplementation().
