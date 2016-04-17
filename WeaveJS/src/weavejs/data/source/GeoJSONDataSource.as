@@ -67,6 +67,11 @@ package weavejs.data.source
 		/**
 		 * Gets the keyType metadata used in the columns.
 		 */
+		
+		public function getPropertyNames():Array/*Array<string>*/
+		{
+			return (jsonData && jsonData.propertyNames) ? [].concat(jsonData.propertyNames) : [];
+		}
 		public function getKeyType():String
 		{
 			var kt:String = keyType.value;
