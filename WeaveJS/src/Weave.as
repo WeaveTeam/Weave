@@ -27,7 +27,7 @@ package
 		public static const HISTORY_SYNC_DELAY:int = 100;
 		public static const FRAME_INTERVAL:Number = 1000/30;
 		
-		public static var experimental:Boolean = false;
+		public static var beta:Boolean = false;
 		
 		public function Weave()
 		{
