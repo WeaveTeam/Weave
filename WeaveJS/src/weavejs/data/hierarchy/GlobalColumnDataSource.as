@@ -23,7 +23,6 @@ package weavejs.data.hierarchy
 	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.data.column.CSVColumn;
 	import weavejs.data.column.EquationColumn;
-	import weavejs.data.hierarchy.ColumnTreeNode;
 	import weavejs.util.JS;
 	
 	public class GlobalColumnDataSource implements IDataSource
@@ -46,11 +45,7 @@ package weavejs.data.hierarchy
 			var source:IDataSource = this;
 			_rootNode = new ColumnTreeNode({
 				dataSource: source,
-				label: function():String {
-					return root.getObjects(CSVColumn).length
-					? Weave.lang('Generated columns')
-					: Weave.lang('Equations');
-				},
+				label: getLabel,
 				hasChildBranches: false,
 				children: function():Array {
 					return getGlobalColumns().map(function(column:IAttributeColumn, ..._):* {
@@ -59,6 +54,25 @@ package weavejs.data.hierarchy
 					});
 				}
 			});
+		}
+		
+		
+		/**
+		 * Overrides root hierarchy label.
+		 */
+		private var _label:String;
+		
+		public function getLabel():String
+		{
+			return _label
+				||	_root.getObjects(CSVColumn).length
+					?	Weave.lang('Generated columns')
+					:	Weave.lang('Equations');;
+		}
+		
+		public function setLabel(value:String):void
+		{
+			_label = value;
 		}
 		
 		/**

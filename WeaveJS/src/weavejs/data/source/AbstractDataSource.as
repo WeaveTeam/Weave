@@ -22,6 +22,7 @@ package weavejs.data.source
 	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.core.CallbackCollection;
+	import weavejs.core.LinkableString;
 	import weavejs.data.column.ProxyColumn;
 	import weavejs.data.hierarchy.HierarchyUtils;
 	import weavejs.util.DebugUtils;
@@ -41,6 +42,21 @@ package weavejs.data.source
 			var cc:ICallbackCollection = Weave.getCallbacks(this);
 			cc.addImmediateCallback(this, uninitialize);
 			cc.addGroupedCallback(this, initialize, true, false);
+		}
+		
+		/**
+		 * Overrides root hierarchy label.
+		 */
+		public const label:LinkableString = Weave.linkableChild(this, LinkableString);
+		
+		public function getLabel():String
+		{
+			return label.value || Weave.getRoot(this).getName(this);
+		}
+		
+		public function setLabel(value:String):void
+		{
+			label.value = value;
 		}
 
 		/**
@@ -154,7 +170,7 @@ package weavejs.data.source
 		{
 			var proxyColumn:ProxyColumn = Weave.disposableChild(this, ProxyColumn);
 			proxyColumn.setMetadata(metadata);
-			var name:String = Weave.getRoot(this).getName(this) || DebugUtils.debugId(this);
+			var name:String = this.getLabel() || DebugUtils.debugId(this);
 			var description:String = name + " pending column request";
 			WeaveAPI.ProgressIndicator.addTask(proxyColumn, this, description);
 			WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn, description);

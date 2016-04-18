@@ -103,7 +103,7 @@ package weavejs.data
 		{
 			//cache data from AttributeColumnCache
 			var output:Array = [];
-			var dataSource:*;
+			var dataSource:IDataSource;
 			var dataSources:Array = d2d_dataSource_metadataHash_column.primaryKeys();
 			for each (dataSource in dataSources)
 			{
@@ -153,11 +153,12 @@ package weavejs.data
 			dataSources = root.getObjects(IDataSource);
 			for each (dataSource in dataSources)
 			{
-				if (dataSource.hasOwnProperty('NO_CACHE_HACK') || dataSource is CachedDataSource)
+				if (Object(dataSource).hasOwnProperty('NO_CACHE_HACK') || dataSource is CachedDataSource)
 					continue;
 				var type:String = Weave.className(dataSource);
 				var state:Object = Weave.getState(dataSource);
 				var cds:CachedDataSource = root.requestObject(root.getName(dataSource), CachedDataSource, false);
+				cds.label.value = Weave.lang('{0} (Cached)', dataSource.getLabel());
 				cds.type.value = type;
 				cds.state.state = state;
 			}

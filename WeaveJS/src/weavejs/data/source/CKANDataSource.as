@@ -393,7 +393,7 @@ internal class CKANAction implements IWeaveTreeNode, IColumnReference, IWeaveTre
 			return internalNode.getLabel();
 		
 		if (!action)
-			return Weave.getRoot(source).getName(source);
+			return source.getLabel();
 		
 		if (action == PACKAGE_LIST)
 			return Weave.lang("Packages");

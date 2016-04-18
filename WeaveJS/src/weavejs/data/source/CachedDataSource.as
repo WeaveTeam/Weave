@@ -22,6 +22,10 @@ package weavejs.data.source
 
 	public class CachedDataSource extends AbstractDataSource
 	{
+		public function CachedDataSource()
+		{
+		}
+		
 		public const type:LinkableString = Weave.linkableChild(this, LinkableString);
 		public const state:LinkableVariable = Weave.linkableChild(this, LinkableVariable);
 		

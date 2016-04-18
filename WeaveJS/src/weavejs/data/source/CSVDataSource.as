@@ -55,6 +55,11 @@ package weavejs.data.source
 			super();
 			Weave.linkableChild(hierarchyRefresh, metadata);
 		}
+		
+		override public function getLabel():String
+		{
+			return label.value || (url.value || '').split('/').pop() || super.getLabel();
+		}
 
 		public const csvData:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array, verifyRows), handleCSVDataChange);
 		private function verifyRows(rows:Array):Boolean
@@ -386,8 +391,9 @@ package weavejs.data.source
 		{
 			if (!_rootNode)
 				_rootNode = new ColumnTreeNode({
+					cacheSettings: {label: false},
 					dataSource: this,
-					label: Weave.getRoot(this).getName(this),
+					label: getLabel,
 					children: function(root:ColumnTreeNode):Array {
 						var items:Array = metadata.getSessionState() as Array;
 						if (!items)

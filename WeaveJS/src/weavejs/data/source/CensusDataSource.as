@@ -63,7 +63,7 @@ package weavejs.data.source
 		public function createDataSetNode():ColumnTreeNode
 		{
 			var _ds:IDataSource = this;
-			var name:String = Weave.getRoot(this).getName(this);
+			var name:String = getLabel();
 			var data:Object = {id:0, name: name};
 			var ctn:ColumnTreeNode = new ColumnTreeNode({
 				dataSource: this,

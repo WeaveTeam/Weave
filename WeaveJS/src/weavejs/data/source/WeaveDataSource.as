@@ -678,7 +678,7 @@ internal class RootNode_TablesAndGeoms implements IWeaveTreeNode
 	public function equals(other:IWeaveTreeNode):Boolean { return other == this; }
 	public function getLabel():String
 	{
-		return Weave.getRoot(source).getName(source);
+		return source.getLabel();
 	}
 	public function isBranch():Boolean { return true; }
 	public function hasChildBranches():Boolean { return true; }
