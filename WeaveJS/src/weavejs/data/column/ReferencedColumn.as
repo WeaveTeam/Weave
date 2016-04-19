@@ -104,6 +104,15 @@ package weavejs.data.column
 			resumeCallbacks();
 		}
 		
+		public static function generateReferencedColumnStateFromColumnReference(ref:IColumnReference):Object
+		{
+			var dataSource:IDataSource = ref.getDataSource();
+			return {
+				"dataSourceName": Weave.getRoot(dataSource).getName(dataSource),
+				"metadata": ref.getColumnMetadata()
+			};
+		}
+		
 		/**
 		 * The trigger counter value at the last time the internal column was retrieved.
 		 */		

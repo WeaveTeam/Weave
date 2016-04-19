@@ -16,6 +16,7 @@
 package weavejs.data
 {
 	import weavejs.WeaveAPI;
+	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.data.ColumnMetadata;
 	import weavejs.api.data.DataType;
@@ -808,6 +809,22 @@ package weavejs.data
 			columns.length = n;
 			
 			return columns;
+		}
+		
+		public static function replaceColumnsInHashMap(destination:ILinkableHashMap, columnReferences:Array/*/<IColumnReference>/*/):void
+		{
+			var className:String = WeaveAPI.ClassRegistry.getClassName(ReferencedColumn);
+			var baseName:String = className.split('.').pop();
+			var names:Array = destination.getNames();
+			var newState:Array = [];
+			for (var iRef:int = 0; iRef < columnReferences.length; iRef++)
+			{
+				var ref:IColumnReference = columnReferences[iRef] as IColumnReference;
+				var objectName:String = names[newState.length] || destination.generateUniqueName(baseName);
+				var sessionState:Object = ReferencedColumn.generateReferencedColumnStateFromColumnReference(ref);
+				newState.push(DynamicState.create(objectName, className, sessionState));
+			}
+			destination.setSessionState(newState, true);
 		}
 		
 		/**
