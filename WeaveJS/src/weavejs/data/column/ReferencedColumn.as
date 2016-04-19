@@ -107,8 +107,10 @@ package weavejs.data.column
 		public static function generateReferencedColumnStateFromColumnReference(ref:IColumnReference):Object
 		{
 			var dataSource:IDataSource = ref.getDataSource();
+			var root:ILinkableHashMap = Weave.getRoot(dataSource);
+			var name:String = root ? root.getName(dataSource) : null;
 			return {
-				"dataSourceName": Weave.getRoot(dataSource).getName(dataSource),
+				"dataSourceName": name,
 				"metadata": ref.getColumnMetadata()
 			};
 		}
