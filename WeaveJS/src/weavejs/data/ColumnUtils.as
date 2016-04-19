@@ -820,9 +820,12 @@ package weavejs.data
 			for (var iRef:int = 0; iRef < columnReferences.length; iRef++)
 			{
 				var ref:IColumnReference = columnReferences[iRef] as IColumnReference;
-				var objectName:String = names[newState.length] || destination.generateUniqueName(baseName);
-				var sessionState:Object = ReferencedColumn.generateReferencedColumnStateFromColumnReference(ref);
-				newState.push(DynamicState.create(objectName, className, sessionState));
+				if (ref)
+				{
+					var objectName:String = names[newState.length] || destination.generateUniqueName(baseName);
+					var sessionState:Object = ReferencedColumn.generateReferencedColumnStateFromColumnReference(ref);
+					newState.push(DynamicState.create(objectName, className, sessionState));
+				}
 			}
 			destination.setSessionState(newState, true);
 		}
