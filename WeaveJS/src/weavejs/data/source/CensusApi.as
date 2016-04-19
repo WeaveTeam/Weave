@@ -169,7 +169,8 @@ package weavejs.data.source
 			).then(
 				function (variableInfo:Object):WeavePromise
 				{
-					title = variableInfo[variable_name].title;
+					if (variableInfo && variableInfo[variable_name])
+						title = variableInfo[variable_name].title;
 					return getGeographies(dataset_name);
 				}
 			).depend(dataSource.geographicScope, dataSource.apiKey, dataSource.geographicFilters)
