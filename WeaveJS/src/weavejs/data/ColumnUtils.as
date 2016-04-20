@@ -811,7 +811,7 @@ package weavejs.data
 			return columns;
 		}
 		
-		public static function replaceColumnsInHashMap(destination:ILinkableHashMap, columnReferences:Array/*/<IColumnReference>/*/):void
+		public static function replaceColumnsInHashMap(destination:ILinkableHashMap, columnReferences:Array/*/<IWeaveTreeNode|IColumnReference>/*/):void
 		{
 			var className:String = WeaveAPI.ClassRegistry.getClassName(ReferencedColumn);
 			var baseName:String = className.split('.').pop();
