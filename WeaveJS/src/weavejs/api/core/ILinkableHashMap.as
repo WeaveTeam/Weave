@@ -45,7 +45,7 @@ package weavejs.api.core
 		function setNameOrder(newOrder:Array/*/<string>/*/):void;
 
 		/**
-		 * This function returns an ordered list of names in the hash map.
+		 * This function returns an ordered list of names in the LinkableHashMap.
 		 * @param filter If specified, names of objects that are not of this type will be filtered out.
 		 * @param filterIncludesPlaceholders If true, matching LinkablePlaceholders will be included in the results.
 		 * @return A copy of the ordered list of names of objects contained in this LinkableHashMap.
@@ -53,7 +53,7 @@ package weavejs.api.core
 		function getNames(filter:/*/new(..._:any[])=>any | string/*/Class = null, filterIncludesPlaceholders:Boolean = false):Array/*/<string>/*/;
 		
 		/**
-		 * This function returns an ordered list of objects in the hash map. 
+		 * This function returns an ordered list of objects in the LinkableHashMap. 
 		 * @param filter If specified, objects that are not of this type will be filtered out.
 		 * @param filterIncludesPlaceholders If true, matching LinkablePlaceholders will be included in the results.
 		 * @return An ordered Array of objects that correspond to the names returned by getNames(filter).
@@ -61,7 +61,23 @@ package weavejs.api.core
 		function getObjects/*/<T>/*/(filter:/*/new(..._:any[])=>T | string/*/Class = null, filterIncludesPlaceholders:Boolean = false):Array/*/<T & ILinkableObject>/*/;
 
 		/**
-		 * This function gets the name of the specified object in the hash map.
+		 * This function returns an Object mapping names to objects contained in the LinkableHashMap.
+		 * @param filter If specified, objects that are not of this type will be filtered out.
+		 * @param filterIncludesPlaceholders If true, matching LinkablePlaceholders will be included in the results.
+		 * @return An Object mapping names to objects contained in the LinkableHashMap.
+		 */
+		function toObject/*/<T>/*/(filter:/*/new(..._:any[])=>T | string/*/Class = null, filterIncludesPlaceholders:Boolean = false):/*/{[name:string]: T & ILinkableObject}/*/Object;
+		
+		/**
+		 * This function returns a Map containing the entries in the LinkableHashMap.
+		 * @param filter If specified, objects that are not of this type will be filtered out.
+		 * @param filterIncludesPlaceholders If true, matching LinkablePlaceholders will be included in the results.
+		 * @return A Map containing the ordered entries in the LinkableHashMap.
+		 */
+		function toMap/*/<T>/*/(filter:/*/new(..._:any[])=>T | string/*/Class = null, filterIncludesPlaceholders:Boolean = false):/*/Map<String, T & ILinkableObject>/*/Object;
+
+		/**
+		 * This function gets the name of the specified object in the LinkableHashMap.
 		 * @param object An object contained in this LinkableHashMap.
 		 * @return The name associated with the object, or null if the object was not found. 
 		 */
@@ -69,13 +85,13 @@ package weavejs.api.core
 
 		/**
 		 * This function gets the object associated with the specified name.
-		 * @param name The name identifying an object in the hash map.
+		 * @param name The name identifying an object in the LinkableHashMap.
 		 * @return The object associated with the given name.
 		 */
 		function getObject(name:String):ILinkableObject;
 		
 		/**
-		 * Sets an entry in the hash map, replacing any existing object under the same name.
+		 * Sets an entry in the LinkableHashMap, replacing any existing object under the same name.
 		 * @param name The identifying name to associate with an object.
 		 * @param lockObject If this is true, the object will be locked in place under the specified name.
 		 * @return The object to be associated with the given name.
@@ -83,7 +99,7 @@ package weavejs.api.core
 		function setObject(name:String, object:ILinkableObject, lockObject:Boolean = false):void;
 
 		/**
-		 * This function creates an object in the hash map if it doesn't already exist.
+		 * This function creates an object in the LinkableHashMap if it doesn't already exist.
 		 * If there is an existing object associated with the specified name, it will be kept if it
 		 * is the specified type, or replaced with a new instance of the specified type if it is not.
 		 * @param name The identifying name of a new or existing object.
@@ -116,7 +132,7 @@ package weavejs.api.core
 		function objectIsLocked(name:String):Boolean;
 
 		/**
-		 * This function removes an object from the hash map.
+		 * This function removes an object from the LinkableHashMap.
 		 * @param name The identifying name of an object previously saved with setObject().
 		 */
 		function removeObject(name:String):void;

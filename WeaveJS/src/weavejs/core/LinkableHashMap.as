@@ -70,6 +70,22 @@ package weavejs.core
 			return getList(true, filter, filterIncludesPlaceholders);
 		}
 		
+		public function toObject(filter:Class = null, filterIncludesPlaceholders:Boolean = false):Object
+		{
+			var obj:Object = {};
+			for each (var name:String in getList(false, filter, filterIncludesPlaceholders))
+				obj[name] = _nameToObjectMap[name];
+			return obj;
+		}
+		
+		public function toMap/*/<T>/*/(filter:/*/new(..._:any[])=>T | string/*/Class = null, filterIncludesPlaceholders:Boolean = false):/*/Map<String, T & ILinkableObject>/*/Object
+		{
+			var map:Object = new JS.Map();
+			for each (var name:String in getList(false, filter, filterIncludesPlaceholders))
+				map.set(name, _nameToObjectMap[name]);
+			return map;
+		}
+		
 		private function getList(listObjects:Boolean, filter:Class, filterIncludesPlaceholders:Boolean):Array
 		{
 			if (filter is String)
