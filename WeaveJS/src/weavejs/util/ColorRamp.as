@@ -55,7 +55,7 @@ package weavejs.util
 				this.setSessionState(array);
 				return false;
 			}
-			return type == String || type == Object;
+			return type == String || type == Object || (state is Array && !state.length);
 		}
 		
 		private var _validateTriggerCount:uint = 0;
