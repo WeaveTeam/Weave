@@ -407,6 +407,19 @@ package
 		}
 		
 		/**
+		 * Shortcut for WeaveAPI.SessionManager.newLinkableChild() and WeaveAPI.SessionManager.registerLinkableChild() except the child will not be included in the session state.
+		 * @see weave.api.core.ISessionManager#newLinkableChild()
+		 * @see weave.api.core.ISessionManager#registerLinkableChild()
+		 */
+		public static function privateLinkableChild/*/<T extends ILinkableObject>/*/(linkableParent:Object, linkableChildOrType:/*/(new()=>T) | T/*/Object, callback:Function = null, useGroupedCallback:Boolean = false):/*/T/*/*
+		{
+			var child:* = linkableChild(linkableParent, linkableChildOrType, callback, useGroupedCallback);
+			// HACK until added to ISessionManager
+			WeaveAPI.SessionManager['excludeLinkableChildFromSessionState'](linkableParent, child);
+			return child;
+		}
+		
+		/**
 		 * Shortcut for WeaveAPI.SessionManager.disposeObject()
 		 * @copy weave.api.core.ISessionManager#disposeObject()
 		 */
