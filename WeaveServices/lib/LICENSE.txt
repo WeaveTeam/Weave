@@ -4,6 +4,7 @@ Below is a list of JAR files included in Weave, organized by their licenses.
 Apache 2.0
 	commons-beanutils-1.7.0.jar
 	commons-io-1.4.jar
+        jasypt-1.9.2.jar (http://www.jasypt.org/)
 
 LGPL 3.0
 	BlazeDS - http://opensource.adobe.com/wiki/display/blazeds/License
