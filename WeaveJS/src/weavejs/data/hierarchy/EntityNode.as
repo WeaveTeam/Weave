@@ -116,9 +116,6 @@ package weavejs.data.hierarchy
 		// Each node must have its own child cache (not static) because we can't have the same node in two places in a Tree.
 		private const _childNodeCache:Object = {}; // id -> EntityNode
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function equals(other:IWeaveTreeNode):Boolean
 		{
 			if (other == this)
@@ -129,9 +126,6 @@ package weavejs.data.hierarchy
 				&& this.id == node.id;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getDataSource():IDataSource
 		{
 			var cache:EntityCache = getEntityCache();
@@ -145,10 +139,7 @@ package weavejs.data.hierarchy
 			return null;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
-		public function getColumnMetadata():Object
+		public function getColumnMetadata():/*/{[name:string]:string}/*/Object
 		{
 			var meta:Object = {};
 			var entity:Entity = getEntity();
@@ -160,9 +151,6 @@ package weavejs.data.hierarchy
 			return meta;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getLabel():String
 		{
 			if (_overrideLabel)
@@ -236,9 +224,6 @@ package weavejs.data.hierarchy
 			return title;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function isBranch():Boolean
 		{
 			// root is a branch
@@ -259,9 +244,6 @@ package weavejs.data.hierarchy
 				&& entity.getEntityType() != EntityType.COLUMN
 		}
 
-		/**
-		 * @inheritDoc
-		 */
 		public function hasChildBranches():Boolean
 		{
 			if (_rootFilterEntityType)
@@ -294,9 +276,6 @@ package weavejs.data.hierarchy
 			return child;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function getChildren():Array
 		{
 			var cache:EntityCache = getEntityCache();
@@ -327,9 +306,6 @@ package weavejs.data.hierarchy
 			return _childNodes;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function addChildAt(child:IWeaveTreeNode, index:int):Boolean
 		{
 			var childNode:EntityNode = child as EntityNode;
@@ -344,9 +320,6 @@ package weavejs.data.hierarchy
 			return false;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function removeChild(child:IWeaveTreeNode):Boolean
 		{
 			var childNode:EntityNode = child as EntityNode;
@@ -361,9 +334,6 @@ package weavejs.data.hierarchy
 			return false;
 		}
 		
-		/**
-		 * @inheritDoc
-		 */
 		public function findPathToNode(descendant:IWeaveTreeNode):Array
 		{
 			var node:EntityNode = descendant as EntityNode;
