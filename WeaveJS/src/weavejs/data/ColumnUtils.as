@@ -195,10 +195,14 @@ package weavejs.data
 		
 		public static function hack_findHierarchyNode(columnWrapper:IColumnWrapper):/*/IWeaveTreeNode & IColumnReference/*/IWeaveTreeNode
 		{
-			var dc:DynamicColumn = hack_findInternalDynamicColumn(columnWrapper);
-			if (!dc)
-				return null;
-			var rc:ReferencedColumn = dc.target as ReferencedColumn;
+			var rc:ReferencedColumn = columnWrapper as ReferencedColumn;
+			if (!rc)
+			{
+				var dc:DynamicColumn = hack_findInternalDynamicColumn(columnWrapper);
+				if (!dc)
+					return null;
+				rc = dc.target as ReferencedColumn;
+			}
 			return rc ? rc.getHierarchyNode() : null;
 		}
 
