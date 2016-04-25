@@ -53,11 +53,6 @@ package weavejs.data.source
 		{
 			return label.value || Weave.getRoot(this).getName(this);
 		}
-		
-		public function setLabel(value:String):void
-		{
-			label.value = value;
-		}
 
 		/**
 		 * This variable is set to false when the session state changes and true when initialize() is called.

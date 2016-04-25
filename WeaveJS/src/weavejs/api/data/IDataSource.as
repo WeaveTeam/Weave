@@ -32,12 +32,6 @@ package weavejs.api.data
 		function getLabel():String;
 		
 		/**
-		 * Overrides the label in the root hierarchy node, or resets it if given a value of null.
-		 * @param value The new label, or null to reset it to the default.
-		 */
-		function setLabel(value:String):void;
-		
-		/**
 		 * When explicitly triggered, this will force the hierarchy to be refreshed.
 		 * This should not be used to determine when the hierarchy is updated.
 		 * For that purpose, add a callback directly to the IDataSource instead.

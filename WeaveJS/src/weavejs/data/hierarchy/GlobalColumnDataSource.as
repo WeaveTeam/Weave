@@ -57,22 +57,11 @@ package weavejs.data.hierarchy
 		}
 		
 		
-		/**
-		 * Overrides root hierarchy label.
-		 */
-		private var _label:String;
-		
 		public function getLabel():String
 		{
-			return _label
-				||	_root.getObjects(CSVColumn).length
-					?	Weave.lang('Generated columns')
-					:	Weave.lang('Equations');;
-		}
-		
-		public function setLabel(value:String):void
-		{
-			_label = value;
+			return _root.getObjects(CSVColumn).length
+				?	Weave.lang('Generated columns')
+				:	Weave.lang('Equations');
 		}
 		
 		/**
