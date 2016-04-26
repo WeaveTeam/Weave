@@ -48,7 +48,7 @@ package weavejs.data.source
 	 */
 	public class CSVDataSource extends AbstractDataSource implements IDataSource_File
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file / Delimited text");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file");
 
 		public function CSVDataSource()
 		{
