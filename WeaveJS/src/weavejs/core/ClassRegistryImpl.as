@@ -81,10 +81,15 @@ package weavejs.core
 			if (!map_name_class.has(shortName))
 				map_name_class.set(shortName, definition);
 			
-			// get class info
-			var info:Object = definition.prototype[FLEXJS_CLASS_INFO] || (definition.prototype[FLEXJS_CLASS_INFO] = {});
+			var info:Object;
 			var items:Array;
 			var item:*;
+			
+			// get class info
+			if (Object(definition.prototype).hasOwnProperty(FLEXJS_CLASS_INFO))
+				info = definition.prototype[FLEXJS_CLASS_INFO];
+			else
+				info = definition.prototype[FLEXJS_CLASS_INFO] = {};
 			
 			// add name if not present
 			var found:Boolean = false;
