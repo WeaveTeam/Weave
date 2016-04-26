@@ -90,7 +90,7 @@ package
 			var IDataSource_File:Class = IDataSource;
 			var IDataSource_Service:Class = IDataSource;
 			var IDataSource_Transform:Class = IDataSource;
-			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, CSVDataSource, "CSV file / Delimited text");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, CSVDataSource, "CSV file");
 			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, DBFDataSource, "SHP/DBF files");
 			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, GeoJSONDataSource, "GeoJSON file");
 			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Service, WeaveDataSource, "Weave server");
