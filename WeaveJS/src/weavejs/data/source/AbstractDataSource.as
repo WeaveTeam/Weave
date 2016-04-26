@@ -18,6 +18,7 @@ package weavejs.data.source
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
+	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IWeaveTreeNode;
@@ -51,7 +52,12 @@ package weavejs.data.source
 		
 		public function getLabel():String
 		{
-			return label.value || Weave.getRoot(this).getName(this);
+			if (label.value)
+				return label.value;
+			var root:ILinkableHashMap = Weave.getRoot(this);
+			if (root)
+				return root.getName(this);
+			return null;
 		}
 
 		/**
