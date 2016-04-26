@@ -285,7 +285,7 @@ package weavejs.core
 		 * @return An Array of filtered Arrays corresponding to the given interfaces, including a final
 		 *         Array containing the remaining classes that did not implement any of the given interfaces.
 		 */
-		public static function partitionClassList(classes:Array/*/< new(..._:any[])=>any >/*/, ...interfaces/*/< new()=>any >/*/):/*/typeof classes/*/Array
+		public static function partitionClassList(classes:Array/*/< new(..._:any[])=>any >/*/, ...interfaces/*/< new()=>any >/*/):Array/*/<typeof classes>/*/
 		{
 			if (interfaces.length == 1 && interfaces[0] is Array)
 				interfaces = interfaces[0];
