@@ -36,7 +36,7 @@ package weavejs.util
 			while (n != items.length)
 			{
 				n = items.length;
-				items = [].concat.apply(null, items);
+				items = Array.prototype.concat.apply([], items);
 			}
 			
 			return items

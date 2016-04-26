@@ -138,7 +138,7 @@ package weavejs.path
 		public function getSelectableAttributes():Array
 		{
 			var hashMaps:Array = [this].concat(Weave.getDescendants(this, ILinkableHashMap));
-			var flatList:Array = [].concat.apply(null, hashMaps.map(function(hm:ILinkableHashMap, i:*, a:*):* { return hm.getObjects(IAttributeColumn); }));
+			var flatList:Array = Array.prototype.concat.apply([], hashMaps.map(function(hm:ILinkableHashMap, i:*, a:*):* { return hm.getObjects(IAttributeColumn); }));
 			return flatList.filter(function(item:ILinkableObject, i:*, a:*):Boolean { return getLabel(item, i, a) && true; });
 			
 			//return getObjects(IAttributeColumn);
