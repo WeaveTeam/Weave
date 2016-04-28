@@ -281,7 +281,12 @@ package weavejs.data.source
 			if (!title && typeof id == 'number' && parsedRows && parsedRows.length)
 				title = parsedRows[0][id];
 			if (!title)
-				title = String(id);
+			{
+				if (typeof id == 'number')
+					title = Weave.lang("Column {0}", id);
+				else
+					title = String(id);
+			}
 			return title;
 		}
 		
