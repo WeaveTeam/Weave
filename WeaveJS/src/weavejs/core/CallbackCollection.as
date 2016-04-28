@@ -152,7 +152,7 @@ package weavejs.core
 						shouldRemoveEntry = WeaveAPI.SessionManager.objectWasDisposed(entry.context);
 					if (shouldRemoveEntry)
 					{
-						entry.dispose();
+						Weave.dispose(entry);
 						// remove the empty callback reference from the list
 						var removed:Array = _callbackEntries.splice(i--, 1); // decrease i because remaining entries have shifted
 						if (WeaveAPI.debugAsyncStack)
@@ -194,7 +194,7 @@ package weavejs.core
 					{
 						// Remove the callback by setting the function pointer to null.
 						// This is done instead of removing the entry because we may be looping over the _callbackEntries Array right now.
-						entry.dispose();
+						Weave.dispose(entry);
 					}
 				}
 			}
@@ -246,7 +246,7 @@ package weavejs.core
 			if (WeaveAPI.debugAsyncStack)
 				_oldEntries = _oldEntries ? _oldEntries.concat(_callbackEntries) : _callbackEntries.concat();
 			for each (entry in _callbackEntries)
-				entry.dispose();
+				Weave.dispose(entry);
 			_callbackEntries.length = 0;
 			_wasDisposed = true;
 			
