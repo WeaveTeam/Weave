@@ -201,6 +201,12 @@ package weavejs.core
 		 */
 		public function handleGroupedCallback():void
 		{
+			if (!callback)
+			{
+				Weave.dispose(this);
+				return;
+			}
+			
 			for (var i:int = 0; i < targets.length; i++)
 			{
 				var target:ICallbackCollection = targets[i];
@@ -209,6 +215,7 @@ package weavejs.core
 				else if (delayWhileBusy && WeaveAPI.SessionManager.linkableObjectIsBusy(target))
 					return;
 			}
+			
 			// if there are no more relevant contexts for this callback, don't run it.
 			if (targets.length == 0)
 			{
