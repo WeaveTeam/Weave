@@ -18,6 +18,7 @@ package weavejs.data.source
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableHashMap;
+	import weavejs.api.core.ILinkableObjectWithNewProperties;
 	import weavejs.api.data.ColumnMetadata;
 	import weavejs.api.data.DataType;
 	import weavejs.api.data.IAttributeColumn;
@@ -38,6 +39,7 @@ package weavejs.data.source
 	import weavejs.data.hierarchy.ColumnTreeNode;
 	import weavejs.data.key.QKeyManager;
 	import weavejs.net.ResponseType;
+	import weavejs.util.ArrayUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	
@@ -46,7 +48,7 @@ package weavejs.data.source
 	 * @author adufilie
 	 * @author skolman
 	 */
-	public class CSVDataSource extends AbstractDataSource implements IDataSource_File
+	public class CSVDataSource extends AbstractDataSource implements IDataSource_File, ILinkableObjectWithNewProperties
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file");
 
@@ -197,7 +199,7 @@ package weavejs.data.source
 		
 		private function handleUpdatedKeys():void
 		{
-			_keysAreUnique = parsedRows ? keysArray.length == parsedRows.length : true;
+			_keysAreUnique = ArrayUtils.union(keysArray).length == keysArray.length;
 		}
 		
 		private var _keysAreUnique:Boolean = true;
@@ -640,9 +642,15 @@ package weavejs.data.source
 		
 		private var nullValues:Array = [null, "", "null", "\\N", "NaN"];
 		
+		public function get deprecatedStateMapping():Object
+		{
+			return {
+				keyColName: keyColumn,
+				csvDataString: setCSVDataString
+			};
+		}
+		
 		// backwards compatibility
-		[Deprecated(replacement="keyColumn")] public function set keyColName(value:String):void { keyColumn.state = value; }
-		[Deprecated(replacement="csvData")] public function set csvDataString(value:String):void { setCSVDataString(value); }
 		[Deprecated(replacement="getColumnById")] public function getColumnByName(name:String):IAttributeColumn { return getColumnById(name); }
 	}
 }
