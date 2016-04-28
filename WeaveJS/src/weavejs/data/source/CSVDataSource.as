@@ -191,8 +191,20 @@ package weavejs.data.source
 				var keyTypeString:String = keyType.value;
 				
 				keysArray = [];
-				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keysCallbacks, keyType.value, keyStrings, null, keysArray);
+				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keysCallbacks, keyType.value, keyStrings, handleUpdatedKeys, keysArray);
 			}
+		}
+		
+		private function handleUpdatedKeys():void
+		{
+			_keysAreUnique = parsedRows ? keysArray.length == parsedRows.length : true;
+		}
+		
+		private var _keysAreUnique:Boolean = true;
+		
+		public function get keysAreUnique():Boolean
+		{
+			return _keysAreUnique;
 		}
 		
 		/**
