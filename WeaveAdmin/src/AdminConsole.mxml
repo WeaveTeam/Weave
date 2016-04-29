@@ -12,7 +12,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/.
- * 
+ *
  * ***** END LICENSE BLOCK ***** */
 -->
 <mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
@@ -47,9 +47,12 @@
 							<mx:Button label="SQL" click="WizardPanel.createWizard(this, new SQLImportWizard())" toolTip="{lang('This publishes an existing SQL table through the Weave server. This will not create any new tables in the database. This will just allow Weave users to access the data.')}"/>
 							<mx:Button label="CSV" click="WizardPanel.createWizard(this, new CSVImportWizard())" toolTip="{lang('This uploads and publishes data from a CSV file on your computer.')}"/>
 							<mx:Button label="SHP + DBF" click="WizardPanel.createWizard(this, new SHPImportWizard())" toolTip="{lang('This uploads and publishes shape data from files on your computer.')}"/>
-							
+				
 							<mx:HRule width="100%"/>
 							
+							<mx:ComboBox id="useWeaveJsCombo" includeInLayout="{Admin.weaveJsIsAvailable &amp;&amp; Admin.weaveFlashIsAvailable}" visible="{Admin.weaveJsIsAvailable &amp;&amp; Admin.weaveFlashIsAvailable}"
+								dataProvider="{[true, false]}" labelFunction="{Admin.weaveClientLabelFunc}" selectedItem="{Admin.instance.useWeaveJs}" change="Admin.instance.useWeaveJs = useWeaveJsCombo.selectedItem;"
+							/>
 							<mx:Button label="Open Weave" click="Admin.instance.openWeavePopup();" toolTip="This will open Weave in a new browser window which allows you to save a new client configuration."/>
 							<mx:Button label="Recover last session" click="Admin.instance.openWeavePopup(null, true);" toolTip="This will open Weave with your last configuration."/>
 							
@@ -142,6 +145,8 @@
 							));
 					}
 				);
+
+				Admin.checkWeaveAvailability();
 
 				WeaveAdminService.messageLogCallbacks.addImmediateCallback(this, handleMessageLog, true);
 				function handleMessageLog():void
