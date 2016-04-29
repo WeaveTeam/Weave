@@ -21,25 +21,14 @@ package weavejs.net
 	import weavejs.api.net.IURLRequestUtils;
 	import weavejs.util.Dictionary2D;
 	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 	import weavejs.util.WeavePromise;
 
 	public class URLRequestUtils implements IURLRequestUtils
 	{
 		private function byteArrayToDataUri(byteArray:/*/Uint8Array/*/Array, mimeType:String):String
 		{
-			return "data:" + (mimeType || '') + ';base64,' + JS.global.btoa(byteArrayToString(byteArray));
-		}
-		
-		private function byteArrayToString(byteArray:/*/Uint8Array/*/Array):String
-		{
-			var CHUNK_SIZE:int = 8192;
-			var n:int = byteArray.length;
-			if (n <= CHUNK_SIZE)
-				return String.fromCharCode.apply(String, byteArray);
-			var strings:Array = [];
-			for (var i:int = 0; i < byteArray.length;)
-				strings.push(String.fromCharCode.apply(null, byteArray.subarray(i, i += CHUNK_SIZE)));
-			return strings.join('');
+			return "data:" + (mimeType || '') + ';base64,' + JS.global.btoa(StandardLib.byteArrayToString(byteArray));
 		}
 		
 		public function request(relevantContext:Object, urlRequest:URLRequest):WeavePromise
@@ -65,9 +54,9 @@ package weavejs.net
 						switch (responseType) {
 							default:
 							case ResponseType.TEXT:
-								return byteArrayToString(byteArray);
+								return StandardLib.byteArrayToString(byteArray);
 							case ResponseType.JSON:
-								return JSON.parse(byteArrayToString(byteArray));
+								return JSON.parse(StandardLib.byteArrayToString(byteArray));
 							case ResponseType.BLOB:
 								return new JS.global.Blob([byteArray.buffer]);
 							case ResponseType.ARRAYBUFFER:

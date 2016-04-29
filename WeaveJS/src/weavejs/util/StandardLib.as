@@ -902,5 +902,20 @@ package weavejs.util
 				.toString(16)
 				.substring(1);
 		}
+		
+		/**
+		 * Converts a Uint8Array to a binary String
+		 */
+		public static function byteArrayToString(byteArray:/*/Uint8Array/*/Array):String
+		{
+			var CHUNK_SIZE:int = 8192;
+			var n:int = byteArray.length;
+			if (n <= CHUNK_SIZE)
+				return String.fromCharCode.apply(String, byteArray);
+			var strings:Array = [];
+			for (var i:int = 0; i < byteArray.length;)
+				strings.push(String.fromCharCode.apply(null, byteArray.subarray(i, i += CHUNK_SIZE)));
+			return strings.join('');
+		}
 	}
 }
