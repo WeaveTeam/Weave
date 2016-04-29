@@ -81,7 +81,7 @@ package weavejs.data.hierarchy
 		}
 		private function createColumnNode(name:String):ColumnTreeNode
 		{
-			var column:IAttributeColumn = getAttributeColumn(name);
+			var column:IAttributeColumn = generateNewAttributeColumn(name);
 			if (!column)
 				return null;
 			
@@ -110,7 +110,7 @@ package weavejs.data.hierarchy
 		
 		public function findHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
-			var column:IAttributeColumn = getAttributeColumn(metadata);
+			var column:IAttributeColumn = generateNewAttributeColumn(metadata);
 			if (!column)
 				return null;
 			var name:String = _root.getName(column);
@@ -121,7 +121,7 @@ package weavejs.data.hierarchy
 			return null;
 		}
 		
-		public function getAttributeColumn(metadata:Object):IAttributeColumn
+		public function generateNewAttributeColumn(metadata:Object):IAttributeColumn
 		{
 			if (!metadata)
 				return null;

@@ -129,7 +129,7 @@ package weavejs.data.source
 			{
 				if (metadata[PARAMS_CKAN_FORMAT] == DATASTORE_FORMAT)
 					metadata = metadata[PARAMS_CKAN_FIELD];
-				proxyColumn.setInternalColumn(dataSource.getAttributeColumn(metadata));
+				proxyColumn.setInternalColumn(dataSource.generateNewAttributeColumn(metadata));
 			}
 			else
 				proxyColumn.dataUnavailable();

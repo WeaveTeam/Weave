@@ -26,9 +26,9 @@ package weavejs.api.data
 		 * This function will return the same IAttributeColumn for identical metadata values.
 		 * Use this function to avoid downloading duplicate column data.
 		 * @param dataSource The data source to request the column from if it is not already cached.
-		 * @param metadata The metadata to be passed to dataSource.getAttributeColumn().
+		 * @param metadata The metadata to be passed to dataSource.generateNewAttributeColumn().
 		 * @return The cached column object.
-		 * @see weave.api.data.IDataSource#getAttributeColumn()
+		 * @see weave.api.data.IDataSource#generateNewAttributeColumn()
 		 */
 		function getColumn(dataSource:IDataSource, metadata:Object):IAttributeColumn;
 	}

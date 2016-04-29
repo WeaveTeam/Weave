@@ -326,11 +326,11 @@ package weavejs.data.source
 			return metadata;
 		}
 		
-		override public function getAttributeColumn(metadata:Object):IAttributeColumn
+		override public function generateNewAttributeColumn(metadata:Object):IAttributeColumn
 		{
 			if (typeof metadata != 'object')
 				metadata = generateMetadataForColumnId(metadata);
-			return super.getAttributeColumn(metadata);
+			return super.generateNewAttributeColumn(metadata);
 		}
 		
 		/**

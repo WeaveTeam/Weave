@@ -283,7 +283,7 @@ package weavejs.data.source
 			return super.initializationComplete && _service.entityServiceInitialized;
 		}
 		
-		override public function getAttributeColumn(metadata:Object):IAttributeColumn
+		override public function generateNewAttributeColumn(metadata:Object):IAttributeColumn
 		{
 			if (typeof metadata != 'object')
 			{
@@ -296,7 +296,7 @@ package weavejs.data.source
 				meta[ENTITY_ID] = metadata;
 				metadata = meta;
 			}
-			return super.getAttributeColumn(metadata);
+			return super.generateNewAttributeColumn(metadata);
 		}
 		
 		private static const NO_RESULT_ERROR:String = "Received null result from Weave server.";
@@ -328,7 +328,7 @@ package weavejs.data.source
 				
 				query = _service.getColumnFromMetadata(params);
 			}
-			query.then(handleGetAttributeColumn.bind(this, proxyColumn), handleGetAttributeColumnFault.bind(this, proxyColumn));
+			query.then(handleGetColumn.bind(this, proxyColumn), handleGetColumnFault.bind(this, proxyColumn));
 			WeaveAPI.ProgressIndicator.addTask(query, proxyColumn, "Requesting column from server: " + Weave.stringify(params));
 		}
 		
@@ -361,7 +361,7 @@ package weavejs.data.source
 			return output;
 		}
 		
-		private function handleGetAttributeColumnFault(column:ProxyColumn, error:Object):void
+		private function handleGetColumnFault(column:ProxyColumn, error:Object):void
 		{
 			if (column.wasDisposed)
 				return;
@@ -370,9 +370,9 @@ package weavejs.data.source
 			
 			column.dataUnavailable();
 		}
-//		private function handleGetAttributeColumn(event:ResultEvent, token:Object = null):void
+//		private function handleGetColumn(event:ResultEvent, token:Object = null):void
 //		{
-//			DebugUtils.callLater(5000, handleGetAttributeColumn2, arguments);
+//			DebugUtils.callLater(5000, handleGetColumn2, arguments);
 //		}
 		
 		private function parseSqlParams(sqlParams:String):Array
@@ -390,7 +390,7 @@ package weavejs.data.source
 			return result;
 		}
 		
-		private function handleGetAttributeColumn(proxyColumn:ProxyColumn, result:AttributeColumnData):void
+		private function handleGetColumn(proxyColumn:ProxyColumn, result:AttributeColumnData):void
 		{
 			if (proxyColumn.wasDisposed)
 				return;
@@ -404,7 +404,7 @@ package weavejs.data.source
 					return;
 				}
 				
-				//trace("handleGetAttributeColumn",pathInHierarchy.toXMLString());
+				//trace("handleGetColumn",pathInHierarchy.toXMLString());
 	
 				// fill in metadata
 				for (var metadataName:String in result.metadata)
@@ -590,7 +590,7 @@ package weavejs.data.source
 			}
 			catch (e:Error)
 			{
-				JS.error(e, "handleGetAttributeColumn", metadata);
+				JS.error(e, "handleGetColumn", metadata);
 			}
 		}
 	}

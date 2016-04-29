@@ -51,10 +51,10 @@ package weavejs.api.data
 		function findHierarchyNode(metadata:Object):IWeaveTreeNode;
 		
 		/**
-		 * Retrieves an IAttributeColumn from this IDataSource.
+		 * Generates a new IAttributeColumn which will receive data from this IDataSource.
 		 * @param metadata Metadata used to identify a column in this IDataSource.
-		 * @return An IAttributeColumn object that will be updated when the column data is available.
+		 * @return A new IAttributeColumn object that will be updated when the column data is available.
 		 */
-		function getAttributeColumn(metadata:Object):IAttributeColumn;
+		function generateNewAttributeColumn(metadata:Object):IAttributeColumn;
 	}
 }

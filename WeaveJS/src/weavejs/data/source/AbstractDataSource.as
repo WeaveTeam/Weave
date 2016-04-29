@@ -167,7 +167,7 @@ package weavejs.data.source
 		 * @param metadata An object that contains all the information required to request the column from this IDataSource. 
 		 * @return A ProxyColumn object that will be updated when the column data is ready.
 		 */
-		public function getAttributeColumn(metadata:Object):IAttributeColumn
+		public function generateNewAttributeColumn(metadata:Object):IAttributeColumn
 		{
 			var proxyColumn:ProxyColumn = Weave.disposableChild(this, ProxyColumn);
 			proxyColumn.setMetadata(metadata);
@@ -215,7 +215,7 @@ package weavejs.data.source
 		}
 		
 		/**
-		 * Calls requestColumnFromSource() on all ProxyColumn objects created previously via getAttributeColumn().
+		 * Calls requestColumnFromSource() on all ProxyColumn objects created previously via generateNewAttributeColumn().
 		 */
 		protected function refreshAllProxyColumns(forced:Boolean = false):void
 		{
