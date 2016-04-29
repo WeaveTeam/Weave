@@ -135,6 +135,14 @@ package weavejs.data.column
 		public var metadataTilesPerQuery:int = 200; //10;
 		public var geometryTilesPerQuery:int = 200; //30;
 		
+		public function requestAllMetadata():void
+		{
+			var mode:String = metadataRequestMode;
+			metadataRequestMode = METADATA_REQUEST_MODE_ALL;
+			requestGeometryDetail(collectiveBounds, Infinity);
+			metadataRequestMode = mode;
+		}
+		
 		public function requestGeometryDetail(dataBounds:Bounds2D, lowestImportance:Number):void
 		{
 			//JS.log("requestGeometryDetail",dataBounds,lowestImportance);
