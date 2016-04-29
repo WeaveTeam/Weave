@@ -54,7 +54,7 @@ import org.jasypt.util.password.PasswordEncryptor;
 import org.jasypt.commons.CommonUtils;
 import org.jasypt.util.text.TextEncryptor;
 import org.jasypt.util.password.StrongPasswordEncryptor;
-import org.jasypt.util.text.StrongTextEncryptor;
+import org.jasypt.util.text.BasicTextEncryptor;
 
 /**
  * An interface to retrieve strings from a configuration file.
@@ -433,7 +433,7 @@ public class ConnectionConfig
 		_save();
 	}
 
-	private static StrongTextEncryptor encryptor = null;
+	private static BasicTextEncryptor encryptor = null;
 
 	public static TextEncryptor getEncryptor() throws RemoteException
 	{
@@ -458,7 +458,7 @@ public class ConnectionConfig
 
 				String keyString = CommonUtils.toHexadecimal(keyBytes);
 
-				encryptor = new StrongTextEncryptor();
+				encryptor = new BasicTextEncryptor();
 				encryptor.setPassword(keyString);	
 			}
 			catch (Exception ex)
