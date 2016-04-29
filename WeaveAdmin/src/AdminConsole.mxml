@@ -114,6 +114,7 @@
 			import weave.ui.DraggablePanel;
 			import weave.ui.ErrorLogPanel;
 			import weave.ui.TranslationPanel;
+			import weave.compiler.StandardLib;
 			import weave.ui.WeaveProgressBar;
 			import weave.ui.admin.WizardPanel;
 			import weave.ui.admin.wizards.CSVImportWizard;
@@ -183,6 +184,13 @@
 				
 				PopUpManager.createPopUp(this, WeaveProgressBar);
 				getCallbackCollection(Admin.entityCache).addImmediateCallback(this, handleEntityCache);
+
+				JavaScript.registerMethod("saveWeaveFile", saveWeaveFile);
+			}
+
+			private function saveWeaveFile(b64Content:String, fileName:String, overwrite:Boolean)
+			{
+				Admin.service.saveWeaveFile(StandardLib.atob(b64Content), fileName, overwrite);
 			}
 			
 			private function handleApplicationComplete():void
