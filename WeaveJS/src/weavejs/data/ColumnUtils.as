@@ -723,12 +723,12 @@ package weavejs.data
 			StandardLib.sortOn(names, [_preferredMetadataPropertyOrder.indexOf, names]);
 		}
 		
-		public static var firstDataSet:Array/*/<IColumnReference>/*/;
+		public static var firstDataSet:Array/*/<IWeaveTreeNode&IColumnReference>/*/;
 		
 		/**
 		 * Finds a set of columns from available data sources, preferring ones that are already in use. 
 		 */
-		public static function findFirstDataSet(root:ILinkableHashMap):Array/*/<IColumnReference>/*/
+		public static function findFirstDataSet(root:ILinkableHashMap):Array/*/<IWeaveTreeNode&IColumnReference>/*/
 		{
 			if (firstDataSet && firstDataSet.length)
 				return firstDataSet;
