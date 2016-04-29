@@ -99,7 +99,10 @@ package weavejs.data.column
 		public function setColumnReference(dataSource:IDataSource, metadata:Object):void
 		{
 			delayCallbacks();
-			dataSourceName.value = Weave.getRoot(this).getName(dataSource);
+			var root:ILinkableHashMap = Weave.getRoot(this);
+			if (!root)
+				throw new Error("ReferencedColumn is not registered with an instance of Weave");
+			dataSourceName.value = root.getName(dataSource);
 			this.metadata.setSessionState(metadata);
 			resumeCallbacks();
 		}
