@@ -88,6 +88,13 @@ public class WeaveConfig
 			_connConfig = new ConnectionConfig(new File(getConnectionConfigFilePath()));
 		return _connConfig;
 	}
+
+	synchronized public static String getKeyFilePath()
+	{
+		if (weaveContextParams == null)
+			return null;
+		return weaveContextParams.getConfigPath() + "/" + ConnectionConfig.KEY_FILENAME;
+	}
 	
 	synchronized public static DataConfig getDataConfig() throws RemoteException
 	{
