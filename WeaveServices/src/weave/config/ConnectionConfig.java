@@ -17,7 +17,6 @@ package weave.config;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -30,7 +29,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.security.SecureRandom;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -50,12 +48,6 @@ import weave.utils.SQLUtils;
 import weave.utils.Strings;
 import weave.utils.XMLUtils;
 
-import org.jasypt.util.password.PasswordEncryptor;
-import org.jasypt.commons.CommonUtils;
-import org.jasypt.util.text.TextEncryptor;
-import org.jasypt.util.password.StrongPasswordEncryptor;
-import org.jasypt.util.text.StrongTextEncryptor;
-
 /**
  * An interface to retrieve strings from a configuration file.
  * 
@@ -74,7 +66,6 @@ public class ConnectionConfig
 	
 	public static final String XML_FILENAME = "sqlconfig.xml";
 	public static final String DTD_FILENAME = "sqlconfig.dtd";
-	public static final String KEY_FILENAME = "sqlconfig.key";
 	public static final String SQLITE_DB_FILENAME = "weave.db";
 	public static final URL DTD_EMBEDDED = ConnectionConfig.class.getResource("/weave/config/" + DTD_FILENAME);
 	
@@ -255,7 +246,6 @@ public class ConnectionConfig
 				{
 					ConnectionInfo info = new ConnectionInfo();
 					info.copyFrom(_getXMLAttributes(nodes.item(i)));
-					info.validate();
 					connectionInfoMap.put(info.name, info);
 				}
 				
@@ -362,8 +352,6 @@ public class ConnectionConfig
 		ConnectionInfo original = _connectionInfoMap.get(name);
 		if (original == null)
 			return null;
-
-		original.validate();
 		
 		ConnectionInfo copy = new ConnectionInfo(dsUser, dsPass);
 		copy.copyFrom(original);
@@ -392,7 +380,7 @@ public class ConnectionConfig
 	public void saveConnectionInfo(ConnectionInfo connectionInfo) throws RemoteException
 	{
 		connectionInfo.validate();
-
+		
 		_load();
 		ConnectionInfo copy = new ConnectionInfo();
 		copy.copyFrom(connectionInfo);
@@ -432,53 +420,6 @@ public class ConnectionConfig
 		_databaseConfigInfo.copyFrom(info);
 		_save();
 	}
-
-	private static StrongTextEncryptor encryptor = null;
-
-	public static TextEncryptor getEncryptor() throws RemoteException
-	{
-		byte keyBytes[] = new byte[32];
-
-		if (encryptor == null)
-		{
-			try {
-				File keyFile = new File(WeaveConfig.getKeyFilePath());
-				if (!keyFile.exists())
-				{
-					SecureRandom random = new SecureRandom();
-					
-					FileOutputStream outStream = new FileOutputStream(keyFile);
-					random.nextBytes(keyBytes);
-					outStream.write(keyBytes);
-					outStream.close();
-				}
-
-				FileInputStream inStream = new FileInputStream(keyFile);
-				inStream.read(keyBytes);
-
-				String keyString = CommonUtils.toHexadecimal(keyBytes);
-
-				encryptor = new StrongTextEncryptor();
-				encryptor.setPassword(keyString);	
-			}
-			catch (Exception ex)
-			{
-				throw new RemoteException("Failure creating or accessing keyfile.", ex);
-			}
-		}
-
-		return encryptor;
-	}
-
-	private static PasswordEncryptor digester = null;
-
-	public static PasswordEncryptor getDigester()
-	{
-		if (digester == null)
-			digester = new StrongPasswordEncryptor();
-
-		return digester;
-	}
     
 	/**
 	 * This class contains all the information related to where the
@@ -506,7 +447,7 @@ public class ConnectionConfig
 			}
 		}
 		
-		public void copyFrom(Map<String,String> other) throws RemoteException
+		public void copyFrom(Map<String,String> other)
 		{
 			this.connection = other.get("connection");
 			this.schema = other.get("schema");
@@ -582,47 +523,26 @@ public class ConnectionConfig
 			String missingField = null;
 			if (Strings.isEmpty(name))
 				missingField = "name";
-			else if (Strings.isEmpty(pass) && Strings.isEmpty(passDigest) && !Strings.equal(name, DIRECTORY_SERVICE))
+			else if (Strings.isEmpty(pass) && !Strings.equal(name, DIRECTORY_SERVICE))
 				missingField = "password";
-			else if (Strings.isEmpty(connectString) && Strings.isEmpty(connectStringEnc))
+			else if (Strings.isEmpty(connectString))
 				missingField = "connectString";
 			if (missingField != null)
 				throw new RemoteException(String.format("Connection %s must be specified", missingField));
-
-			if (Strings.isEmpty(passDigest) && !Strings.isEmpty(pass))
-			{
-				PasswordEncryptor digester = ConnectionConfig.getDigester();
-
-				passDigest = digester.encryptPassword(pass);
-			}
-
-			TextEncryptor encryptor = ConnectionConfig.getEncryptor();
-
-			if (Strings.isEmpty(connectStringEnc) && !Strings.isEmpty(connectString))
-			{
-				connectStringEnc = encryptor.encrypt(connectString);
-			}
-
-			if (Strings.isEmpty(connectString) && !Strings.isEmpty(connectStringEnc))
-			{
-				connectString = encryptor.decrypt(connectStringEnc);
-			}
 		}
 
 		public void copyFrom(Map<String,String> other)
 		{
 			this.name = other.get("name");
 			this.pass = other.get("pass");
-			this.passDigest = other.get("passDigest");
 			this.folderName = other.get("folderName");
 			this.connectString = other.get("connectString");
-			this.connectStringEnc = other.get("connectStringEnc");
 			this.is_superuser = other.get("is_superuser").equalsIgnoreCase("true");
 			
 			validateDSInfo();
 			
 			// backwards compatibility
-			if ((connectString == null || connectString.length() == 0) && (connectStringEnc == null || connectStringEnc.length() == 0))
+			if (connectString == null || connectString.length() == 0)
 			{
 				String dbms = other.get("dbms");
 				String ip = other.get("ip");
@@ -637,10 +557,8 @@ public class ConnectionConfig
 		{
 			this.name = other.name;
 			this.pass = other.pass;
-			this.passDigest = other.passDigest;
 			this.folderName = other.folderName;
 			this.connectString = other.connectString;
-			this.connectStringEnc = other.connectStringEnc;
 			this.is_superuser = other.is_superuser;
 			
 			validateDSInfo();
@@ -657,17 +575,13 @@ public class ConnectionConfig
 			this.is_superuser = false;
 		}
 
-		public Map<String,String> getPropertyMap() throws RemoteException
+		public Map<String,String> getPropertyMap()
 		{
-			validate();
-
 			return MapUtils.fromPairs(
 				"name", name,
-				"pass", "",
-				"passDigest", passDigest,
+				"pass", pass,
 				"folderName", folderName,
-				"connectString", "",
-				"connectStringEnc", connectStringEnc,
+				"connectString", connectString,
 				"is_superuser", is_superuser ? "true" : "false"
 			);
 		}
@@ -679,14 +593,11 @@ public class ConnectionConfig
 		public String folderName = "";
 		public String connectString = "";
 		public boolean is_superuser = false;
-
-		public String passDigest = "";
-		public String connectStringEnc = "";
 		
 		public Connection getStaticReadOnlyConnection() throws RemoteException, WeaveAuthenticationException
 		{
 			if (requiresAuthentication())
-				throw new WeaveAuthenticationException("Authentication required");			
+				throw new WeaveAuthenticationException("Authentication required");
 			
 			return SQLUtils.getStaticReadOnlyConnection(connectString, dsUser, dsPass);
 		}
@@ -707,12 +618,6 @@ public class ConnectionConfig
 		public boolean usingDirectoryService()
 		{
 			return requiresAuthentication() || dsUser != null || dsPass != null;
-		}
-
-		public boolean checkPassword(String password)
-		{	
-			PasswordEncryptor digester = ConnectionConfig.getDigester();
-			return digester.checkPassword(password, passDigest);
 		}
 	}
 }

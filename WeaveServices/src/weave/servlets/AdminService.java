@@ -190,7 +190,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		if (info == null)
 			info = connConfig.getConnectionInfo(ConnectionInfo.DIRECTORY_SERVICE, user, pass);
 		
-		if (info == null || !info.checkPassword(pass))
+		if (info == null || !Strings.equal(pass, info.pass))
 		{
 			//System.out.println(String.format("authenticate failed, name=\"%s\" pass=\"%s\"", user, pass));
 			throw new RemoteException("Incorrect username or password.");
@@ -595,7 +595,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		ConnectionConfig config = getConnectionConfig();
 		boolean activeSuperuser = config.getDatabaseConfigInfo() == null || getConnectionInfo().is_superuser;
 		ConnectionInfo paramInfo = config.getConnectionInfo(connectionName);
-		if (paramInfo == null || paramInfo.checkPassword(password))
+		if (paramInfo == null || !Strings.equal(password, paramInfo.pass))
 			throw new RemoteException("Incorrect username or password.");
 		if (!activeSuperuser || !paramInfo.is_superuser)
 			throw new RemoteException("Unable to store configuration information without superuser privileges.");
