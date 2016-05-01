@@ -52,7 +52,8 @@ package weave.menus
 		
 		public static function get shown():Boolean
 		{
-			return Weave.properties.version.value == 'Custom';
+			// todo - test if weavejs is available
+			return true;
 		}
 		
 		private static function jsVars(catchErrors:Boolean):Object
