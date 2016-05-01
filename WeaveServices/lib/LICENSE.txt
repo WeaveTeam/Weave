@@ -1,4 +1,4 @@
-Weave is licensed under GPL 3.0.
+Weave is licensed under MPL-2.0.
 Below is a list of JAR files included in Weave, organized by their licenses.
 
 Apache 2.0
