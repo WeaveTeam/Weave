@@ -106,7 +106,7 @@ package weavejs.core
 			for (name in objects)
 				folder.file(name, JSON.stringify(objects[name], null, readableJSON && '\t'));
 			
-			return zip.generate({type: 'uint8array'});
+			return zip.generate({compression: "DEFLATE", type: 'uint8array'});
 		}
 		
 //		public static const HISTORY_SYNC_DELAY:int = 100;
