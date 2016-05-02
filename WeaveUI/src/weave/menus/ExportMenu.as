@@ -74,7 +74,7 @@ package weave.menus
 			);
 		}
 		
-		public static var url:String = "/weavejs/";
+		public static var url:String = "/weave-html5/";
 		
 		public static function export():void
 		{

@@ -413,7 +413,7 @@ package weave.services
 		private static const ADMIN_SESSION_WINDOW_NAME_PREFIX:String = "WeaveAdminSession";
 
 		private static const WEAVE_FLASH_URL:String = "weave.html";
-		private static const WEAVE_JS_URL:String = "weavejs/";
+		private static const WEAVE_JS_URL:String = "weave-html5/";
 
 		public static function checkWeaveAvailability():void {
 			Admin.checkWeaveFlashAvailability();
