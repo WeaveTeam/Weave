@@ -9,9 +9,12 @@ package
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
+	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ISessionManager;
+	import weavejs.api.data.IAttributeColumn;
+	import weavejs.core.LinkableFunction;
 	import weavejs.core.SessionStateLog;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathUI;
@@ -23,6 +26,8 @@ package
 	{
 		public static const HISTORY_SYNC_DELAY:int = 100;
 		public static const FRAME_INTERVAL:Number = 1000/30;
+		
+		public static var beta:Boolean = false;
 		
 		public function Weave()
 		{
@@ -53,6 +58,20 @@ package
 		public var history:SessionStateLog;
 		
 		/**
+		 * For backwards compatibility, may be temporary solution
+		 */
+		public function macro(name:String, ...params):*
+		{
+			var macros:ILinkableHashMap = getObject('WeaveProperties', 'macros') as ILinkableHashMap;
+			if (!macros)
+				throw new Error("macros hash map not found");
+			var fn:LinkableFunction = macros.getObject(name) as LinkableFunction;
+			if (!fn)
+				throw new Error("Macro does not exist: " + name);
+			return fn.apply(null, params);
+		}
+		
+		/**
 		 * Creates a WeavePath object.  WeavePath objects are immutable after they are created.
 		 * This is a shortcut for "new WeavePath(weave, basePath)".
 		 * @param basePath An optional Array (or multiple parameters) specifying the path to an object in the session state.
@@ -60,7 +79,7 @@ package
 		 * @return A WeavePath object.
 		 * @see WeavePath
 		 */
-		public function path(...basePath):WeavePath
+		public function path(...basePath/*/(string|number|(string|number)[])[]/*/):WeavePath
 		{
 			if (basePath.length == 1 && basePath[0] is Array)
 				basePath = basePath[0];
@@ -75,7 +94,7 @@ package
 		 * @param path An Array (or multiple parameters) specifying the path to an object in the session state.
 		 *             A child index number may be used in place of a name in the path when its parent object is a LinkableHashMap.
 		 */
-		public function getObject(...path):ILinkableObject
+		public function getObject(...path/*/(string|number|(string|number)[])[]/*/):ILinkableObject
 		{
 			if (path.length == 1)
 			{
@@ -87,8 +106,50 @@ package
 			return Weave.followPath(root, path);
 		}
 
+		/**
+		 * Requests that an object be created if it doesn't already exist at the given path.
+		 * @param path The path
+		 * @param type The type
+		 * @return Either an instance of the requested type, or null if the object could not be created or a LinkablePlaceholder was created.
+		 */
+		public function requestObject/*/<T>/*/(path:Array/*/<string|number>/*/, type:/*/(new(..._:any[])=>T) | string/*/Class):/*/T/*/ILinkableObject
+		{
+			// Get parent object first in case there is some backwards compatibility code that gets
+			// executed when it is accessed (registering deprecated class definitions, for example).
+			var parentPath:Array = path.concat();
+			var childName:Object = parentPath.pop();
+			var parent:ILinkableObject = Weave.followPath(root, parentPath);
+			
+			// request the child object
+			var hashMap:ILinkableHashMap = parent as ILinkableHashMap;
+			var dynamicObject:ILinkableDynamicObject = parent as ILinkableDynamicObject;
+			var child:* = null;
+			if (hashMap)
+			{
+				if (childName is Number)
+					childName = hashMap.getNames()[childName];
+				child = hashMap.requestObject(childName as String, type, false);
+			}
+			else if (dynamicObject)
+				child = dynamicObject.requestGlobalObject(childName as String, type, false);
+			else
+				child = Weave.followPath(root, path);
+			
+			// check for exact match only
+			if (child && child.constructor == type)
+				return child;
+			
+			return null;
+		}
 		
-		
+		/**
+		 * Removes an object at the given path.
+		 * @param path The path
+		 */
+		public function removeObject(path:Array/*/<string|number>/*/):void
+		{
+			requestObject(path, null);
+		}
 		
 		//////////////////////////////////////////////////////////////////////////////////
 		// static functions for linkable objects
@@ -97,13 +158,16 @@ package
 		private static const map_root_weave:Object = new JS.Map();
 		
 		/**
-		 * Finds the Weave instance for a given ILinkableObject.
-		 * @param object An ILinkableObject.
-		 * @return The Weave instance.
+		 * Finds the Weave instance for a given Object.
+		 * @param object An Object.
+		 * @return The Weave instance, or null if the object was not registered as an ancestor of any instance of Weave.
 		 */
-		public static function getWeave(object:ILinkableObject):Weave
+		public static function getWeave(object:Object):Weave
 		{
-			return map_root_weave.get(getRoot(object));
+			var sm:ISessionManager = WeaveAPI.SessionManager;
+			while (object && !(object is Weave))
+				object = sm.getOwner(object);
+			return object as Weave;
 		}
 		
 		/**
@@ -221,8 +285,11 @@ package
 		 * @return The closest ancestor of the given type.
 		 * @see weave.api.core.ISessionManager#getLinkableOwner()
 		 */
-		public static function getAncestor/*/<T>/*/(descendant:ILinkableObject, ancestorType:/*/new(..._:any[])=>T/*/Class):/*/T & ILinkableObject/*/ILinkableObject
+		public static function getAncestor/*/<T>/*/(descendant:ILinkableObject, ancestorType:/*/(new(..._:any[])=>T) | string/*/Class):/*/T & ILinkableObject/*/ILinkableObject
 		{
+			if (ancestorType is String)
+				ancestorType = Weave.getDefinition(String(ancestorType), true);
+			
 			var sm:ISessionManager = WeaveAPI.SessionManager;
 			do {
 				descendant = sm.getLinkableOwner(descendant);
@@ -244,8 +311,11 @@ package
 		 * Shortcut for WeaveAPI.SessionManager.getLinkableDescendants()
 		 * @copy weave.api.core.ISessionManager#getLinkableDescendants()
 		 */
-		public static function getDescendants/*/<T>/*/(object:ILinkableObject, filter:/*/new(..._:any[])=>T/*/Class = null):Array/*/<T & ILinkableObject>/*/
+		public static function getDescendants/*/<T>/*/(object:ILinkableObject, filter:/*/(new(..._:any[])=>T) | string/*/Class = null):Array/*/<T & ILinkableObject>/*/
 		{
+			if (filter is String)
+				filter = Weave.getDefinition(String(filter), true);
+			
 			return WeaveAPI.SessionManager.getLinkableDescendants(object, filter);
 		}
 		
@@ -317,7 +387,7 @@ package
 		 * @see weave.api.core.ISessionManager#newDisposableChild()
 		 * @see weave.api.core.ISessionManager#registerDisposableChild()
 		 */
-		public static function disposableChild(disposableParent:Object, disposableChildOrType:Object):*
+		public static function disposableChild/*/<T>/*/(disposableParent:Object, disposableChildOrType:/*/(new()=>T) | T/*/Object):/*/T/*/*
 		{
 			if (JS.isClass(disposableChildOrType))
 				return WeaveAPI.SessionManager.newDisposableChild(disposableParent, JS.asClass(disposableChildOrType));
@@ -334,6 +404,19 @@ package
 			if (JS.isClass(linkableChildOrType))
 				return WeaveAPI.SessionManager.newLinkableChild(linkableParent, JS.asClass(linkableChildOrType), callback, useGroupedCallback);
 			return WeaveAPI.SessionManager.registerLinkableChild(linkableParent, linkableChildOrType as ILinkableObject, callback, useGroupedCallback);
+		}
+		
+		/**
+		 * Shortcut for WeaveAPI.SessionManager.newLinkableChild() and WeaveAPI.SessionManager.registerLinkableChild() except the child will not be included in the session state.
+		 * @see weave.api.core.ISessionManager#newLinkableChild()
+		 * @see weave.api.core.ISessionManager#registerLinkableChild()
+		 */
+		public static function privateLinkableChild/*/<T extends ILinkableObject>/*/(linkableParent:Object, linkableChildOrType:/*/(new()=>T) | T/*/Object, callback:Function = null, useGroupedCallback:Boolean = false):/*/T/*/*
+		{
+			var child:* = linkableChild(linkableParent, linkableChildOrType, callback, useGroupedCallback);
+			// HACK until added to ISessionManager
+			WeaveAPI.SessionManager['excludeLinkableChildFromSessionState'](linkableParent, child);
+			return child;
 		}
 		
 		/**
@@ -371,9 +454,24 @@ package
 			if (objectOrClass is ILinkableObject || objectOrClass === ILinkableObject)
 				return true;
 			// test class definition
-			return objectOrClass && objectOrClass.prototype is ILinkableObject;
+			return objectOrClass ? objectOrClass.prototype is ILinkableObject : false;
 		}
 		
+		/**
+		 * @return (object is type)
+		 */
+		public static function IS(object:Object, type:Class):Boolean
+		{
+			return object is type;
+		}
+		
+		/**
+		 * @return (object as type)
+		 */
+		public static function AS/*/<T>/*/(object:Object, type:/*/new(..._:any[])=>T/*/Class):/*/T/*/*
+		{
+			return object as type;
+		}
 		
 		
 		//////////////////////////////////////////////////////////////////////////////////
@@ -431,18 +529,26 @@ package
 		 */
 		public static function getAsyncInstanceHandler(type:Class):Function
 		{
-			return map_class_isAsync.get(type) as Function;
+			return isAsyncClass(type) ? map_class_isAsync.get(type) as Function : null;
 		}
 		
 		/**
 		 * Registers an ILinkableObject class for use with Weave.className() and Weave.getDefinition().
-		 * @param qualifiedName
-		 * @param definition
+		 * @param definition The class definition.
+		 * @param qualifiedName Either a single String or an Array of Strings which are qualified class names under which to register the class definition.
 		 * @param additionalInterfaces An Array of interfaces (Class objects) that the definition implements in addition to ILinkableObject.
+		 * @param displayName An optional display name for the class definition.
 		 */
-		public static function registerClass(qualifiedName:String, definition:Class, additionalInterfaces:Array/*/<new()=>any>/*/ = null):void
+		public static function registerClass(definition:Class, qualifiedName:/*/string|string[]/*/Object, additionalInterfaces:Array/*/<new()=>any>/*/ = null, displayName:String = null):void
 		{
-			WeaveAPI.ClassRegistry.registerClass(qualifiedName, definition, [ILinkableObject].concat(additionalInterfaces || []));
+			var names:Array = qualifiedName as Array || [qualifiedName];
+			for (var index:String in names)
+			{
+				if (index == '0')
+					WeaveAPI.ClassRegistry.registerClass(definition, names[index], [ILinkableObject].concat(additionalInterfaces || []), displayName);
+				else
+					WeaveAPI.ClassRegistry.registerClass(definition, names[index]);
+			}
 		}
 		
 		/**
@@ -456,9 +562,12 @@ package
 		/**
 		 * Looks up a static definition by name.
 		 */
-		public static function getDefinition(name:String):*
+		public static function getDefinition(name:String, throwIfNotFound:Boolean = false):*
 		{
-			return WeaveAPI.ClassRegistry.getDefinition(name);
+			var result:* = WeaveAPI.ClassRegistry.getDefinition(name);
+			if (result === undefined && throwIfNotFound)
+				throw new Error("No definition for " + JSON.stringify(name));
+			return result;
 		}
 		
 		/**
@@ -556,19 +665,14 @@ package
 		{
 			// call localize() either way to let the LocaleManager know that we are interested in translations of this text.
 			var newText:String = WeaveAPI.Locale.getText(text);
-			
-			try
+
+			if (WeaveAPI.debugLocale)
 			{
-				if (WeaveAPI.Locale['locale'] == 'developer')
-				{
-					parameters.unshift(text);
-					return 'lang("' + parameters.join('", "') + '")';
-				}
+				parameters.unshift(text);
+				var str:String = stringify(parameters);
+				return 'lang(' + str.substring(1, str.length - 1) + ')';
 			}
-			catch (e:Error)
-			{
-			}
-			
+
 			if (parameters.length)
 				return StandardLib.substitute(newText, parameters);
 			
@@ -592,6 +696,44 @@ package
 				filter = getDefinition(filter);
 			Weave.getDescendants(root, JS.asClass(filter))
 				.forEach(function(obj:ILinkableObject):void { getCallbacks(obj).triggerCallbacks(); });
+		}
+		
+		/**
+		 * For testing purposes.
+		 */
+		public function populateColumns():void
+		{
+			var RefCol:Class = Weave.getDefinition('ReferencedColumn');
+			var ExtDynCol:Class = Weave.getDefinition('ExtendedDynamicColumn');
+			var all:Array = Weave.getDescendants(root, ILinkableDynamicObject);
+			var def:Array = [];
+			var undef:Array = [];
+			for each (var item:ILinkableDynamicObject in all)
+			{
+				var col:IAttributeColumn = item as IAttributeColumn;
+				if (!col)
+					continue;
+				if (item.target is RefCol)
+					def.push(item);
+				if (!item.target)
+					undef.push(item);
+			}
+			for (var i:int = 0; i < undef.length; i++)
+				copyState(def[i % def.length], undef[i]);
+		}
+		
+		/**
+		 * For testing purposes.
+		 */
+		public function stringifyState(...pathOrType):String
+		{
+			var object:ILinkableObject;
+			if (JS.isClass(pathOrType[0]))
+				object = root.getObjects(pathOrType[0])[0];
+			else
+				object = getObject(pathOrType);
+			var state:Object = getState(object);
+			return stringify(state, null, '\t');
 		}
 	}
 }

@@ -15,6 +15,7 @@
 
 package weavejs.core
 {
+	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	
@@ -67,35 +68,23 @@ package weavejs.core
 				_triggerCount = triggerCounter;
 				_compiledMethod = RETURN_UNDEFINED;
 				_isFunctionDefinition = false;
-				_compiledMethod = JS.compile(value, _paramNames);
+				_compiledMethod = JS.compile(value, _paramNames, errorHandler);
 			}
 		}
 		
-		private function errorHandler(e:*):Boolean
+		private function errorHandler(e:*):void
 		{
+			var root:ILinkableHashMap = Weave.getRoot(this);
+			if (root)
+				e.message = "In LinkableFunction " + JSON.stringify(Weave.findPath(root, this)) + ":\n" + e.message;
+			
 			if (debug)
 				JS.error(e);
 			
 			if (_ignoreRuntimeErrors || debug)
-				return true;
-			
-			if (_catchErrors)
-			{
-				JS.error(e);
-				return false;
-			}
+				return;
 			
 			throw e;
-		}
-		
-		/**
-		 * This gets the length property of the generated Function.
-		 */
-		public function get length():int
-		{
-			if (_triggerCount != triggerCounter)
-				validate();
-			return _compiledMethod.length;
 		}
 		
 		/**

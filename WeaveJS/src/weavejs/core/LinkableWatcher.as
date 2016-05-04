@@ -55,7 +55,7 @@ package weavejs.core
 		
 		protected var _typeRestriction:Class;
 		private var _target:ILinkableObject; // the current target or ancestor of the to-be-target
-		private var _foundRoot:Boolean = false; // false until Weave.getRoot(this) returns non-null
+		private var _foundRoot:Boolean = false; // false until Weave.getWeave() or Weave.getRoot(this) returns non-null
 		private var _foundTarget:Boolean = true; // false when _target is not the desired target
 		protected var _targetPath:Array; // the path that is being watched
 		private var _pathDependencies:Dictionary2D = new Dictionary2D(); // (ILinkableCompositeObject, String) -> child object
@@ -77,6 +77,16 @@ package weavejs.core
 			targetPath = null;
 			internalSetTarget(newTarget);
 			cc.resumeCallbacks();
+		}
+		
+		/**
+		 * Checks if the target is currently a placeholder for an instance of an async class.
+		 * @return true if the target is a placeholder.
+		 * @see Weave#registerAsyncClass()
+		 */
+		public function get foundPlaceholder():Boolean
+		{
+			return _target is LinkablePlaceholder;
 		}
 		
 		/**
@@ -151,7 +161,7 @@ package weavejs.core
 		/**
 		 * This is the path that is currently being watched for linkable object targets.
 		 */
-		public function get targetPath():Array
+		public function get targetPath():Array/*/<string|number>/*/
 		{
 			return _targetPath ? _targetPath.concat() : null;
 		}
@@ -160,7 +170,7 @@ package weavejs.core
 		 * This will set a path which should be watched for new targets.
 		 * Callbacks will be triggered immediately if the path changes or points to a new target.
 		 */
-		public function set targetPath(path:Array):void
+		public function set targetPath(path:Array/*/<string|number>/*/):void
 		{
 			// do not allow watching the globalHashMap
 			if (path && path.length == 0)
@@ -188,7 +198,8 @@ package weavejs.core
 				return;
 			}
 			
-			var root:ILinkableObject = Weave.getRoot(this);
+			var weave:Weave = Weave.getWeave(this);
+			var root:ILinkableObject = weave ? weave.root : Weave.getRoot(this);
 			_foundRoot = root != null;
 			var node:ILinkableObject = Weave.followPath(root, _targetPath);
 			if (!node)
@@ -237,8 +248,8 @@ package weavejs.core
 				}
 			}
 			
-			// we found a desired target if (there is no type restriction or the object fits the restriction) and it's not a placeholder
-			_foundTarget = (!_typeRestriction || node is _typeRestriction) && !(node is LinkablePlaceholder);
+			// we found a desired target if there is no type restriction or the object fits the restriction
+			_foundTarget = !_typeRestriction || node is _typeRestriction;
 			internalSetTarget(node);
 		}
 		

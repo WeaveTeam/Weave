@@ -16,9 +16,11 @@
 package weave.services
 {
 	import flash.utils.Dictionary;
-	
+	import flash.net.URLRequest;
+
 	import mx.controls.Alert;
 	import mx.rpc.events.ResultEvent;
+	import mx.rpc.AsyncToken;
 	import mx.utils.UIDUtil;
 	import mx.utils.URLUtil;
 	
@@ -27,6 +29,7 @@ package weave.services
 	import weave.api.data.ColumnMetadata;
 	import weave.api.services.beans.Entity;
 	import weave.api.services.beans.EntityHierarchyInfo;
+	import weave.services.URLRequestUtils;
 	import weave.compiler.StandardLib;
 	import weave.services.beans.DatabaseConfigInfo;
 
@@ -408,16 +411,62 @@ package weave.services
 		// LocalConnection Code
 		
 		private static const ADMIN_SESSION_WINDOW_NAME_PREFIX:String = "WeaveAdminSession";
+
+		private static const WEAVE_FLASH_URL:String = "weave.html";
+		private static const WEAVE_JS_URL:String = "weavejs/";
+
+		public static function checkWeaveAvailability():void {
+			Admin.checkWeaveFlashAvailability();
+			Admin.checkWeaveJsAvailability();
+		}
+
+		private static function checkWeaveFlashAvailability():void {
+			var token:AsyncToken = WeaveAPI.URLRequestUtils.getURL(Admin, new URLRequest(WEAVE_FLASH_URL));
+			addAsyncResponder(token, function ():void {
+				Admin.weaveFlashIsAvailable = true;
+			}, function():void { Admin.weaveFlashIsAvailable = false; });
+		}
+
+		private static function checkWeaveJsAvailability():void {
+			var token:AsyncToken = WeaveAPI.URLRequestUtils.getURL(Admin, new URLRequest(WEAVE_JS_URL+"index.html"));
+			addAsyncResponder(token, function ():void {
+				Admin.weaveJsIsAvailable = true;
+			}, function():void { Admin.weaveJsIsAvailable = false; });
+		}
+
+		[Bindable] public static var weaveJsIsAvailable:Boolean = false;
+		[Bindable] public static var weaveFlashIsAvailable:Boolean = false;
+		[Bindable] public var useWeaveJs:Boolean = false;
+
+		public static function weaveClientLabelFunc(item:Object):String
+		{
+			return item ? 'WeaveJS': 'Flash Weave';
+		}
 		
 		public function getWeaveURL(fileName:String, recover:Boolean = false):String
 		{
 			var flashVars:Object = WeaveAPI.topLevelApplication.root.loaderInfo.parameters || {};
-			var weaveUrl:String = flashVars['weaveUrl'] || 'weave.html';
+			var weaveUrl:String;
 			var params:Object = {};
+
 			if (fileName)
 				params['file'] = fileName;
 			if (recover)
 				params['recover'] = true;
+
+			if (weaveJsIsAvailable && !weaveFlashIsAvailable) useWeaveJs = true; /* You are on the cutting edge. */
+
+			if (!useWeaveJs)
+			{
+				weaveUrl = flashVars['weaveUrl'] || WEAVE_FLASH_URL;
+			}
+			else
+			{
+				weaveUrl = WEAVE_JS_URL;
+				if (params['file'])
+					params['file'] = "../" + params['file'];
+			}
+
 			return URLUtil.getFullURL(WeaveAPI.topLevelApplication.url, weaveUrl + '?' + StandardLib.replace(URLUtil.objectToString(params, '&'), '%2F', '/'));
 		}
 

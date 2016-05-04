@@ -26,6 +26,12 @@ package weavejs.api.data
 	public interface IDataSource extends ILinkableObject
 	{
 		/**
+		 * Gets the label of the root hierarchy node.
+		 * @return The label of the root hierarchy node.
+		 */
+		function getLabel():String;
+		
+		/**
 		 * When explicitly triggered, this will force the hierarchy to be refreshed.
 		 * This should not be used to determine when the hierarchy is updated.
 		 * For that purpose, add a callback directly to the IDataSource instead.
@@ -45,10 +51,10 @@ package weavejs.api.data
 		function findHierarchyNode(metadata:Object):IWeaveTreeNode;
 		
 		/**
-		 * Retrieves an IAttributeColumn from this IDataSource.
+		 * Generates a new IAttributeColumn which will receive data from this IDataSource.
 		 * @param metadata Metadata used to identify a column in this IDataSource.
-		 * @return An IAttributeColumn object that will be updated when the column data is available.
+		 * @return A new IAttributeColumn object that will be updated when the column data is available.
 		 */
-		function getAttributeColumn(metadata:Object):IAttributeColumn;
+		function generateNewAttributeColumn(metadata:Object):IAttributeColumn;
 	}
 }

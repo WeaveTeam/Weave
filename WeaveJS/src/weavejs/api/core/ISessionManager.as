@@ -75,8 +75,8 @@ package weavejs.api.core
 
 		/**
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
-		 * Use this function when a child object can be disposed but you do not want to link the callbacks.
 		 * The child will be disposed when the parent is disposed.
+		 * Use this function when a child object can be disposed but you do not want to link the callbacks or either object is not an ILinkableObject.
 		 * 
 		 * Example usage:   public const foo:LinkableNumber = newDisposableChild(this, LinkableNumber);
 		 * 
@@ -89,8 +89,7 @@ package weavejs.api.core
 		
 		/**
 		 * This will register a child of a parent and cause the child to be disposed when the parent is disposed.
-		 * Use this function when a child object can be disposed but you do not want to link the callbacks.
-		 * The child will be disposed when the parent is disposed.
+		 * Use this function when a child object can be disposed but you do not want to link the callbacks or either object is not an ILinkableObject.
 		 * 
 		 * Example usage:   public const foo:LinkableNumber = registerDisposableChild(this, someLinkableNumber);
 		 * 
@@ -102,13 +101,20 @@ package weavejs.api.core
 		function registerDisposableChild(disposableParent:Object, disposableChild:Object):*;
 
 		/**
+		 * This function gets the owner of an object.  The owner of an object is defined as its first registered parent.
+		 * @param child An Object that was registered as a child of another Object.
+		 * @return The owner of the child object (the first parent that was registered with the child), or null if the child has no owner.
+		 */
+		function getOwner(child:Object):Object;
+		
+		/**
 		 * This function gets the owner of a linkable object.  The owner of an object is defined as its first registered parent.
 		 * @param child An ILinkableObject that was registered as a child of another ILinkableObject.
-		 * @return The owner of the child object (the first parent that was registered with the child), or null if the child has no owner.
+		 * @return The owner of the child object (the first parent that was registered with the child), or null if the child has no linkable owner.
 		 * @see #getLinkableDescendants()
 		 */
 		function getLinkableOwner(child:ILinkableObject):ILinkableObject;
-		
+
 		/**
 		 * This function will return all the descendant objects that implement ILinkableObject.
 		 * If the filter parameter is specified, the results will contain only those objects that extend or implement the filter class.

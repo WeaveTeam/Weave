@@ -16,20 +16,24 @@
 package weavejs.data
 {
 	import weavejs.WeaveAPI;
+	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.data.ColumnMetadata;
 	import weavejs.api.data.DataType;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IColumnReference;
 	import weavejs.api.data.IColumnWrapper;
+	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IKeyFilter;
 	import weavejs.api.data.IKeySet;
 	import weavejs.api.data.IPrimitiveColumn;
 	import weavejs.api.data.IQualifiedKey;
+	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.data.column.DynamicColumn;
 	import weavejs.data.column.ExtendedDynamicColumn;
 	import weavejs.data.column.ReferencedColumn;
 	import weavejs.data.column.SecondaryKeyNumColumn;
+	import weavejs.data.hierarchy.HierarchyUtils;
 	import weavejs.geom.BLGNode;
 	import weavejs.geom.Bounds2D;
 	import weavejs.geom.GeneralizedGeometry;
@@ -187,6 +191,19 @@ package weavejs.data
 					columnWrapper = (columnWrapper as ExtendedDynamicColumn).internalDynamicColumn;
 			}
 			return columnWrapper as DynamicColumn;
+		}
+		
+		public static function hack_findHierarchyNode(columnWrapper:IColumnWrapper):/*/IWeaveTreeNode & IColumnReference/*/IWeaveTreeNode
+		{
+			var rc:ReferencedColumn = columnWrapper as ReferencedColumn;
+			if (!rc)
+			{
+				var dc:DynamicColumn = hack_findInternalDynamicColumn(columnWrapper);
+				if (!dc)
+					return null;
+				rc = dc.target as ReferencedColumn;
+			}
+			return rc ? rc.getHierarchyNode() : null;
 		}
 
 		/**
@@ -472,26 +489,21 @@ package weavejs.data
 		 */
 		public static function getRecords(format:Object, keys:Array = null, dataType:Object = null):Array
 		{
-			if (JS.isPrimitive(format) || format is IAttributeColumn)
-				throw new Error("Invalid record format");
 			if (!keys)
 				keys = getAllKeys(getColumnsFromFormat(format, []));
 			var records:Array = new Array(keys.length);
-			for (var i:int in keys)
+			for (var i:String in keys)
 				records[i] = getRecord(format, keys[i], dataType);
 			return records;
 		}
 		
 		private static function getColumnsFromFormat(format:Object, output:Array):Array
 		{
-			// check for primitive values
-			if (format === null || typeof format !== 'object')
-				return output;
-			for (var prop:String in format)
-				if (format[prop] is IAttributeColumn)
-					output.push(format[prop]);
-				else
-					getColumnsFromFormat(format[prop], output);
+			if (format is IAttributeColumn)
+				output.push(format);
+			else if (!JS.isPrimitive(format))
+				for each (var item:Object in format)
+					getColumnsFromFormat(item, output);
 			return output;
 		}
 		
@@ -517,7 +529,12 @@ package weavejs.data
 			var dataTypeClass:Class = JS.asClass(dataType || Array);
 			var column:IAttributeColumn = format as IAttributeColumn;
 			if (column)
-				return column.getValueFromKey(key, dataTypeClass);
+			{
+				var value:* = column.getValueFromKey(key, dataTypeClass);
+				if (value === undefined)
+					value = null;
+				return value;
+			}
 			
 			var record:Object = format is Array ? [] : {};
 			for (var prop:String in format)
@@ -706,13 +723,61 @@ package weavejs.data
 			StandardLib.sortOn(names, [_preferredMetadataPropertyOrder.indexOf, names]);
 		}
 		
+		public static var firstDataSet:Array/*/<IWeaveTreeNode&IColumnReference>/*/;
+		
+		/**
+		 * Finds a set of columns from available data sources, preferring ones that are already in use. 
+		 */
+		public static function findFirstDataSet(root:ILinkableHashMap):Array/*/<IWeaveTreeNode&IColumnReference>/*/
+		{
+			if (firstDataSet && firstDataSet.length)
+				return firstDataSet;
+			
+			var ref:IColumnReference;
+			for each (var column:ReferencedColumn in Weave.getDescendants(root, ReferencedColumn))
+			{
+				ref = column.getHierarchyNode() as IColumnReference;
+				if (ref)
+					break;
+			}
+			if (!ref)
+			{
+				for each (var source:IDataSource in Weave.getDescendants(root, IDataSource))
+				{
+					ref = findFirstColumnReference(source.getHierarchyRoot());
+					if (ref)
+						break;
+				}
+			}
+			
+			return ref ? HierarchyUtils.findSiblingNodes(ref.getDataSource(), ref.getColumnMetadata()) : [];
+		}
+		
+		private static function findFirstColumnReference(node:IWeaveTreeNode):IColumnReference
+		{
+			var ref:IColumnReference = node as IColumnReference;
+			if (ref && ref.getColumnMetadata())
+				return ref;
+			
+			if (!node.isBranch())
+				return null;
+			
+			for each (var child:IWeaveTreeNode in node.getChildren())
+			{
+				ref = findFirstColumnReference(child);
+				if (ref)
+					return ref;
+			}
+			return null;
+		}
+		
 		/**
 		 * This will initialize selectable attributes using a list of columns and/or column references.
 		 * @param selectableAttributes An Array of IColumnWrapper and/or ILinkableHashMaps to initialize.
 		 * @param input An Array of IAttributeColumn and/or IColumnReference objects. If not specified, getColumnsWithCommonKeyType() will be used.
 		 * @see #getColumnsWithCommonKeyType()
 		 */
-		public static function initSelectableAttributes(selectableAttributes:Array, input:Array = null):void
+		public static function initSelectableAttributes(selectableAttributes:Array/*/<IColumnWrapper | ILinkableHashMap>/*/, input:Array/*/<IAttributeColumn | IColumnReference>/*/ = null):void
 		{
 			if (!input)
 				input = getColumnsWithCommonKeyType(Weave.getRoot(selectableAttributes[0]));
@@ -748,6 +813,25 @@ package weavejs.data
 			columns.length = n;
 			
 			return columns;
+		}
+		
+		public static function replaceColumnsInHashMap(destination:ILinkableHashMap, columnReferences:Array/*/<IWeaveTreeNode|IColumnReference>/*/):void
+		{
+			var className:String = WeaveAPI.ClassRegistry.getClassName(ReferencedColumn);
+			var baseName:String = className.split('.').pop();
+			var names:Array = destination.getNames();
+			var newState:Array = [];
+			for (var iRef:int = 0; iRef < columnReferences.length; iRef++)
+			{
+				var ref:IColumnReference = columnReferences[iRef] as IColumnReference;
+				if (ref)
+				{
+					var objectName:String = names[newState.length] || destination.generateUniqueName(baseName);
+					var sessionState:Object = ReferencedColumn.generateReferencedColumnStateFromColumnReference(ref);
+					newState.push(DynamicState.create(objectName, className, sessionState));
+				}
+			}
+			destination.setSessionState(newState, true);
 		}
 		
 		/**

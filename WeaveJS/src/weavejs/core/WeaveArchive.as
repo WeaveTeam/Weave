@@ -69,6 +69,8 @@ package weavejs.core
 			{
 				var fileName:String = filePath.substr(filePath.indexOf('/') + 1);
 				var file:Object = zip.files[filePath];
+				if (file.dir)
+					continue;
 				if (filePath.indexOf(FOLDER_JSON + '/') == 0)
 				{
 					objects[fileName] = JSON.parse(file.asText());
@@ -90,7 +92,7 @@ package weavejs.core
 		 * @param contentType A String describing the type of content contained in the objects.
 		 * @return A Uint8Array in the Weave file format.
 		 */
-		public function serialize():/*/Uint8Array/*/Array
+		public function serialize(readableJSON:Boolean = true):/*/Uint8Array/*/Array
 		{
 			var zip:Object = new JSZip();
 			var name:String;
@@ -102,9 +104,9 @@ package weavejs.core
 			
 			folder = zip.folder(FOLDER_JSON);
 			for (name in objects)
-				folder.file(name, JSON.stringify(objects[name]));
+				folder.file(name, JSON.stringify(objects[name], null, readableJSON && '\t'));
 			
-			return zip.generate({type: 'uint8array'});
+			return zip.generate({compression: "DEFLATE", type: 'uint8array'});
 		}
 		
 //		public static const HISTORY_SYNC_DELAY:int = 100;
@@ -136,10 +138,15 @@ package weavejs.core
 		{
 			var archive:WeaveArchive = new WeaveArchive(fileContent);
 			
-			var history:Object = archive.objects[ARCHIVE_HISTORY_AMF] || archive.objects[ARCHIVE_HISTORY_JSON];
-			if (history)
+			var historyJSON:Object = archive.objects[ARCHIVE_HISTORY_JSON];
+			var historyAMF:Object = archive.objects[ARCHIVE_HISTORY_AMF];
+			if (historyJSON)
 			{
-				weave.history.setSessionState(BackwardsCompatibility.updateSessionState(history));
+				weave.history.setSessionState(historyJSON);
+			}
+			else if (historyAMF)
+			{
+				weave.history.setSessionState(BackwardsCompatibility.updateSessionState(historyAMF));
 			}
 			else
 			{
@@ -175,16 +182,16 @@ package weavejs.core
 			
 			// session history
 			var _history:Object = weave.history.getSessionState();
-			archive.objects[ARCHIVE_HISTORY_AMF] = _history;
+			archive.objects[ARCHIVE_HISTORY_JSON] = _history;
 			
 			// TEMPORARY SOLUTION - url cache
 //			if (WeaveAPI.URLRequestUtils['saveCache'])
-//				archive.objects[ARCHIVE_URL_CACHE_AMF] = WeaveAPI.URLRequestUtils.getCache();
+//				archive.objects[ARCHIVE_URL_CACHE_JSON] = WeaveAPI.URLRequestUtils.getCache();
 			
 			// TEMPORARY SOLUTION - column cache
 			var columnCache:Object = WeaveAPI.AttributeColumnCache['map_root_saveCache'].get(weave.root);
 			if (columnCache)
-				archive.objects[ARCHIVE_COLUMN_CACHE_AMF] = columnCache;
+				archive.objects[ARCHIVE_COLUMN_CACHE_JSON] = columnCache;
 			
 			return archive;
 		}

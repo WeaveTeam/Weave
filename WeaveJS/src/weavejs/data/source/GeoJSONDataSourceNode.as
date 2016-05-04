@@ -74,7 +74,7 @@ package weavejs.data.source
 		{
 			return source;
 		}
-		public function getColumnMetadata():Object
+		public function getColumnMetadata():/*/{[name:string]:string}/*/Object
 		{
 			return children ? null : metadata;
 		}

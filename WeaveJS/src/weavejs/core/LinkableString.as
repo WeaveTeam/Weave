@@ -29,18 +29,9 @@ package weavejs.core
 			setSessionState(value);
 		}
 		
-		override public function getSessionState():Object
-		{
-			if (_sessionStateExternal === undefined)
-				return null;
-			return _sessionStateExternal;
-		}
-		
 		override public function setSessionState(value:Object):void
 		{
-			if (value != null)
-				value = String(value);
-			super.setSessionState(value);
+			super.setSessionState(value == null ? null : String(value));
 		}
 	}
 }

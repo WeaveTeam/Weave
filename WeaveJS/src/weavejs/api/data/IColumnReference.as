@@ -35,6 +35,6 @@ package weavejs.api.data
 		 * For standard metadata property names, refer to the ColumnMetadata class.
 		 * @return An Object mapping metadata property names to values, or null if there is no column referenced.
 		 */
-		function getColumnMetadata():Object;
+		function getColumnMetadata():/*/{[name:string]:string}/*/Object;
 	}
 }

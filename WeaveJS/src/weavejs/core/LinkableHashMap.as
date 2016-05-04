@@ -15,6 +15,7 @@
 
 package weavejs.core
 {
+	import weavejs.WeaveAPI;
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IChildListCallbackInterface;
@@ -69,8 +70,27 @@ package weavejs.core
 			return getList(true, filter, filterIncludesPlaceholders);
 		}
 		
+		public function toObject(filter:Class = null, filterIncludesPlaceholders:Boolean = false):Object
+		{
+			var obj:Object = {};
+			for each (var name:String in getList(false, filter, filterIncludesPlaceholders))
+				obj[name] = _nameToObjectMap[name];
+			return obj;
+		}
+		
+		public function toMap/*/<T>/*/(filter:/*/new(..._:any[])=>T | string/*/Class = null, filterIncludesPlaceholders:Boolean = false):/*/Map<String, T & ILinkableObject>/*/Object
+		{
+			var map:Object = new JS.Map();
+			for each (var name:String in getList(false, filter, filterIncludesPlaceholders))
+				map.set(name, _nameToObjectMap[name]);
+			return map;
+		}
+		
 		private function getList(listObjects:Boolean, filter:Class, filterIncludesPlaceholders:Boolean):Array
 		{
+			if (filter is String)
+				filter = Weave.getDefinition(String(filter), true);
+			
 			var result:Array = [];
 			for (var i:int = 0; i < _orderedNames.length; i++)
 			{
@@ -197,6 +217,9 @@ package weavejs.core
 		
 		public function requestObject(name:String, classDef:Class, lockObject:Boolean = false):*
 		{
+			if (classDef is String)
+				classDef = Weave.getDefinition(String(classDef), true);
+			
 			var className:String = classDef ? Weave.className(classDef) : null;
 			var result:* = initObjectByClassName(name, className, lockObject);
 			return classDef ? result as classDef : null;
@@ -216,8 +239,9 @@ package weavejs.core
 			//  if the name refers to the same object, remove the existing object so it can be replaced with a new one.
 			if (name == getName(objectToCopy))
 				removeObject(name);
-			var object:ILinkableObject = requestObject(name, classDef, false);
-			if (object != null)
+			requestObject(name, classDef, false);
+			var object:ILinkableObject = getObject(name);
+			if (classDef == LinkablePlaceholder.getClass(object))
 				Weave.setState(object, sessionState);
 			resumeCallbacks();
 			
@@ -257,13 +281,19 @@ package weavejs.core
 		{
 			if (className)
 			{
-				// if no name is specified, generate a unique one now.
-				if (!name)
-					name = generateUniqueName(className.split('::').pop().split('.').pop());
 				var classDef:Class = Weave.getDefinition(className);
 				if (Weave.isLinkable(classDef)
 					&& (_typeRestriction == null || classDef === _typeRestriction || classDef.prototype is _typeRestriction) )
 				{
+					// if no name is specified, generate a unique one now.
+					if (!name)
+					{
+						var baseName:String = className.split('::').pop().split('.').pop();
+						if (name == '')
+							baseName = WeaveAPI.ClassRegistry.getDisplayName(classDef) || baseName;
+						name = generateUniqueName(baseName);
+					}
+					
 //					try
 //					{
 						// If this name is not associated with an object of the specified type,
@@ -289,7 +319,7 @@ package weavejs.core
 			{
 				removeObject(name);
 			}
-			return _nameToObjectMap[name];
+			return _nameToObjectMap[name || ''];
 		}
 		
 		/**

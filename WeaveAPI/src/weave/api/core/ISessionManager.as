@@ -70,8 +70,8 @@ package weave.api.core
 
 		/**
 		 * This function will create a new instance of the specified child class and register it as a child of the parent.
-		 * Use this function when a child object can be disposed but you do not want to link the callbacks.
 		 * The child will be disposed when the parent is disposed.
+		 * Use this function when a child object can be disposed but you do not want to link the callbacks or either object is not an ILinkableObject.
 		 * 
 		 * Example usage:   public const foo:LinkableNumber = newDisposableChild(this, LinkableNumber);
 		 * 
@@ -84,8 +84,7 @@ package weave.api.core
 		
 		/**
 		 * This will register a child of a parent and cause the child to be disposed when the parent is disposed.
-		 * Use this function when a child object can be disposed but you do not want to link the callbacks.
-		 * The child will be disposed when the parent is disposed.
+		 * Use this function when a child object can be disposed but you do not want to link the callbacks or either object is not an ILinkableObject.
 		 * 
 		 * Example usage:   public const foo:LinkableNumber = registerDisposableChild(this, someLinkableNumber);
 		 * 

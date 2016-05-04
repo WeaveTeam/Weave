@@ -302,7 +302,7 @@ package weavejs.net
 				.then(handleEntityHierarchyInfo.bind(this, publicMetadata));
 		}
 		
-		private function handleEntityHierarchyInfo(publicMetadata:Object, result:Array):void
+		private function handleEntityHierarchyInfo(publicMetadata:Object, result:Array):Array
 		{
 			var entityType:String = publicMetadata[ColumnMetadata.ENTITY_TYPE];
 			var infoArray:Array = result || [];
@@ -320,6 +320,7 @@ package weavejs.net
 				_idsByType[entityType] = ids;
 			
 			callbacks.triggerCallbacks();
+			return result;
 		}
 		
 		/**

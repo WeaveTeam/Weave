@@ -230,7 +230,7 @@ package weavejs.data
 			if (rows.length == 1)
 				return rows[0];
 			// flatten
-			return [].concat.apply(null, rows);
+			return Array.prototype.concat.apply([], rows);
 		}
 		
 		public function createCSVRow(row:Array):String

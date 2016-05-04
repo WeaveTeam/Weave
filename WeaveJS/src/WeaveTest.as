@@ -10,6 +10,8 @@ package
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.api.ui.IVisTool;
+	import weavejs.api.ui.IVisTool_Basic;
+	import weavejs.api.ui.IVisTool_Utility;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableCallbackScript;
 	import weavejs.core.LinkableDynamicObject;
@@ -48,6 +50,7 @@ package
 	import weavejs.data.column.ExtendedDynamicColumn;
 	import weavejs.data.column.FilteredColumn;
 	import weavejs.data.column.GeometryColumn;
+	import weavejs.data.column.KeyColumn;
 	import weavejs.data.column.NormalizedColumn;
 	import weavejs.data.column.NumberColumn;
 	import weavejs.data.column.ProxyColumn;
@@ -57,6 +60,7 @@ package
 	import weavejs.data.column.SortedIndexColumn;
 	import weavejs.data.column.StringColumn;
 	import weavejs.data.column.StringLookup;
+	import weavejs.data.hierarchy.EntityNodeSearch;
 	import weavejs.data.hierarchy.WeaveRootDataTreeNode;
 	import weavejs.data.key.ColumnDataFilter;
 	import weavejs.data.key.DynamicKeyFilter;
@@ -67,6 +71,7 @@ package
 	import weavejs.data.key.KeySetCallbackInterface;
 	import weavejs.data.key.KeySetUnion;
 	import weavejs.data.key.SortedKeySet;
+	import weavejs.data.source.CKANDataSource;
 	import weavejs.data.source.CSVDataSource;
 	import weavejs.data.source.CensusDataSource;
 	import weavejs.data.source.DBFDataSource;
@@ -77,6 +82,7 @@ package
 	import weavejs.geom.SolidFillStyle;
 	import weavejs.geom.SolidLineStyle;
 	import weavejs.geom.ZoomBounds;
+	import weavejs.path.ExternalTool;
 	import weavejs.util.JS;
 	import weavejs.util.WeaveMenuItem;
 	
@@ -140,6 +146,9 @@ package
 			CensusDataSource,
 			DBFDataSource,
 			GroupedDataTransform,
+			CKANDataSource,
+			KeyColumn,
+			ExternalTool,
 			
 			WeaveMenuItem,
 			ZoomBounds,
@@ -148,6 +157,10 @@ package
 			SolidLineStyle,
 			SolidFillStyle,
 			IVisTool,
+			IVisTool_Basic,
+			IVisTool_Utility,
+			
+			//EntityNodeSearch, //TODO - resolve circular dependency issue
 			
 			null
 		];

@@ -41,6 +41,11 @@ package weavejs.data.source
 		{
 		}
 
+		override public function getLabel():String
+		{
+			return label.value || (url.value || '').split('/').pop() || super.getLabel();
+		}
+		
 		public const url:LinkableFile = Weave.linkableChild(this, new LinkableFile(null, null, ResponseType.JSON), handleFile);
 		public const keyType:LinkableString = Weave.linkableChild(this, LinkableString);
 		public const keyProperty:LinkableString = Weave.linkableChild(this, LinkableString);
@@ -67,6 +72,11 @@ package weavejs.data.source
 		/**
 		 * Gets the keyType metadata used in the columns.
 		 */
+		
+		public function getPropertyNames():Array/*Array<string>*/
+		{
+			return (jsonData && jsonData.propertyNames) ? [].concat(jsonData.propertyNames) : [];
+		}
 		public function getKeyType():String
 		{
 			var kt:String = keyType.value;
@@ -145,7 +155,7 @@ package weavejs.data.source
 			if (!(_rootNode is GeoJSONDataSourceNode))
 			{
 				var meta:Object = {};
-				meta[ColumnMetadata.TITLE] = Weave.getRoot(this).getName(this);
+				meta[ColumnMetadata.TITLE] = getLabel();
 				
 				var rootChildren:Array = [];
 				if (jsonData)
@@ -280,7 +290,7 @@ package weavejs.data.source
 		
 		private function getGeomColumnTitle():String
 		{
-			return Weave.lang("{0} geometry", Weave.getRoot(this).getName(this));
+			return Weave.lang("{0} geometry", this.getLabel());
 		}
 	}
 }

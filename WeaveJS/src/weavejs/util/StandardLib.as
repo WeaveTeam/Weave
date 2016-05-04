@@ -91,9 +91,9 @@ package weavejs.util
 		/**
 		 * Tests if a value is undefined, null, or NaN.
 		 */
-		public static function isUndefined(value:*):Boolean
+		public static function isUndefined(value:*, orEmptyString:Boolean = false):Boolean
 		{
-			return value === undefined || value === null || (value is Number && isNaN(value));
+			return value === undefined || value === null || (value is Number && isNaN(value)) || (orEmptyString && value === '');
 		}
 		
 		/**
@@ -292,6 +292,8 @@ package weavejs.util
 		 */
 		public static function numberToBase(number:Number, base:int = 10, zeroPad:int = 1):String
 		{
+			if (!isFinite(number))
+				return null;
 			var parts:Array = Math.abs(number).toString(base).split('.');
 			if (parts[0].length < zeroPad)
 				parts[0] = lpad(parts[0], zeroPad, '0');
@@ -491,6 +493,17 @@ package weavejs.util
 		public static function getColorLuma(color:Number):Number
 		{
 			return 0.3 * ((color & 0xFF0000) >> 16) + 0.59 * ((color & 0x00FF00) >> 8) + 0.11 * (color & 0x0000FF);
+		}
+		
+		/**
+		 * @param color A numeric color value
+		 * @return A hex color string like #FFFFFF
+		 */
+		public static function getHexColor(color:Number):String
+		{
+			if (color != (color & 0xFFFFFF))
+				return null;
+			return '#' + numberToBase(color, 16, 6);
 		}
 		
 		/**
@@ -876,6 +889,33 @@ package weavejs.util
 				value = 0xDC00 | value & 0x3FF;
 			}
 			return output + String.fromCharCode(value);
+		}
+		
+		public static function guid():String
+		{
+			return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+				s4() + '-' + s4() + s4() + s4();
+		}
+		private static function s4():String
+		{
+			return Math.floor((1 + Math.random()) * 0x10000)
+				.toString(16)
+				.substring(1);
+		}
+		
+		/**
+		 * Converts a Uint8Array to a binary String
+		 */
+		public static function byteArrayToString(byteArray:/*/Uint8Array/*/Array):String
+		{
+			var CHUNK_SIZE:int = 8192;
+			var n:int = byteArray.length;
+			if (n <= CHUNK_SIZE)
+				return String.fromCharCode.apply(String, byteArray);
+			var strings:Array = [];
+			for (var i:int = 0; i < byteArray.length;)
+				strings.push(String.fromCharCode.apply(null, byteArray.subarray(i, i += CHUNK_SIZE)));
+			return strings.join('');
 		}
 	}
 }

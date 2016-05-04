@@ -18,9 +18,11 @@ package weavejs.data.column
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.data.IAttributeColumn;
+	import weavejs.api.data.IColumnReference;
 	import weavejs.api.data.IColumnWrapper;
 	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IQualifiedKey;
+	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.core.CallbackCollection;
 	import weavejs.core.LinkableString;
 	import weavejs.core.LinkableVariable;
@@ -80,15 +82,40 @@ package weavejs.data.column
 			return _dataSource;
 		}
 		
+		public function getHierarchyNode():/*/IWeaveTreeNode & IColumnReference/*/IWeaveTreeNode
+		{
+			IColumnReference; // make sure this is imported for TypeScript typing
+			
+			if (!_dataSource)
+				return null;
+			
+			var meta:Object = metadata.getSessionState();
+			return _dataSource.findHierarchyNode(meta);
+		}
+		
 		/**
 		 * Updates the session state to refer to a new column.
 		 */
 		public function setColumnReference(dataSource:IDataSource, metadata:Object):void
 		{
 			delayCallbacks();
-			dataSourceName.value = Weave.getRoot(this).getName(dataSource);
+			var root:ILinkableHashMap = Weave.getRoot(this);
+			if (!root)
+				throw new Error("ReferencedColumn is not registered with an instance of Weave");
+			dataSourceName.value = root.getName(dataSource);
 			this.metadata.setSessionState(metadata);
 			resumeCallbacks();
+		}
+		
+		public static function generateReferencedColumnStateFromColumnReference(ref:IColumnReference):Object
+		{
+			var dataSource:IDataSource = ref.getDataSource();
+			var root:ILinkableHashMap = Weave.getRoot(dataSource);
+			var name:String = root ? root.getName(dataSource) : null;
+			return {
+				"dataSourceName": name,
+				"metadata": ref.getColumnMetadata()
+			};
 		}
 		
 		/**

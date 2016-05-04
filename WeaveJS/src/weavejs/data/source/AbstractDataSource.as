@@ -18,10 +18,12 @@ package weavejs.data.source
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
+	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.core.CallbackCollection;
+	import weavejs.core.LinkableString;
 	import weavejs.data.column.ProxyColumn;
 	import weavejs.data.hierarchy.HierarchyUtils;
 	import weavejs.util.DebugUtils;
@@ -41,6 +43,21 @@ package weavejs.data.source
 			var cc:ICallbackCollection = Weave.getCallbacks(this);
 			cc.addImmediateCallback(this, uninitialize);
 			cc.addGroupedCallback(this, initialize, true, false);
+		}
+		
+		/**
+		 * Overrides root hierarchy label.
+		 */
+		public const label:LinkableString = Weave.linkableChild(this, LinkableString);
+		
+		public function getLabel():String
+		{
+			if (label.value)
+				return label.value;
+			var root:ILinkableHashMap = Weave.getRoot(this);
+			if (root)
+				return root.getName(this);
+			return null;
 		}
 
 		/**
@@ -150,11 +167,11 @@ package weavejs.data.source
 		 * @param metadata An object that contains all the information required to request the column from this IDataSource. 
 		 * @return A ProxyColumn object that will be updated when the column data is ready.
 		 */
-		public function getAttributeColumn(metadata:Object):IAttributeColumn
+		public function generateNewAttributeColumn(metadata:Object):IAttributeColumn
 		{
 			var proxyColumn:ProxyColumn = Weave.disposableChild(this, ProxyColumn);
 			proxyColumn.setMetadata(metadata);
-			var name:String = Weave.getRoot(this).getName(this) || DebugUtils.debugId(this);
+			var name:String = this.getLabel() || DebugUtils.debugId(this);
 			var description:String = name + " pending column request";
 			WeaveAPI.ProgressIndicator.addTask(proxyColumn, this, description);
 			WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn, description);
@@ -198,7 +215,7 @@ package weavejs.data.source
 		}
 		
 		/**
-		 * Calls requestColumnFromSource() on all ProxyColumn objects created previously via getAttributeColumn().
+		 * Calls requestColumnFromSource() on all ProxyColumn objects created previously via generateNewAttributeColumn().
 		 */
 		protected function refreshAllProxyColumns(forced:Boolean = false):void
 		{

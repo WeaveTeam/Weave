@@ -75,12 +75,8 @@ package weavejs.data.column
 			{
 				var value:* = internalDynamicColumn.getValueFromKey(key, dataType);
 				
-				if (StandardLib.isUndefined(value))
-				{
-					value = _cachedDefaultValue;
-					if (dataType != null)
-						value = EquationColumnLib.cast(value, dataType);
-				}
+				if (StandardLib.isUndefined(value, true))
+					value = EquationColumnLib.cast(_cachedDefaultValue, dataType);
 				
 				return value;
 			}
@@ -95,13 +91,9 @@ package weavejs.data.column
 			if (value === undefined)
 			{
 				value = internalDynamicColumn.getValueFromKey(key, dataType);
-				//if (StandardLib.compare(value, EquationColumnLib.cast(undefined, dataType)) == 0)
-				if (StandardLib.isUndefined(value))
-				{
-					value = _cachedDefaultValue;
-					if (dataType != null)
-						value = EquationColumnLib.cast(value, dataType);
-				}
+				
+				if (StandardLib.isUndefined(value, true))
+					value = EquationColumnLib.cast(_cachedDefaultValue, dataType);
 				
 				d2d_type_key.set(dataType, key, value === undefined ? UNDEFINED : value);
 			}

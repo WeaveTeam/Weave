@@ -261,7 +261,10 @@
 					{
 						// link the session state, giving priority to the binned column binning definition
 						if (localDef)
+						{
+							// TODO - should use copyState() instead of link because we don't want to be linked to multiple binning definitions
 							linkSessionState(def, localDef);
+						}
 						// select the radio button
 						typeGroup.selection = radioButton;
 						foundType = true;

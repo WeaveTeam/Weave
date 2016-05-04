@@ -13,27 +13,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weavejs.api.core
+package weavejs.api.ui
 {
-	/**
-	 * @author adufilie
-	 */
-	public interface ILocale
+	public interface IInitSelectableAttributes
 	{
-		function get reverseLayout():Boolean;
-		function set reverseLayout(value:Boolean):void;
-		
 		/**
-		 * A mapping from original text to translated text.
+		 * This will initialize the selectable attributes using a list of columns and/or column references.
+		 * Tools can override this function for different behavior.
+		 * @param input An Array of IAttributeColumn and/or IColumnReference objects
 		 */
-		function get data():Object;
-		function set data(value:Object):void;
-		
-		/**
-		 * This will look up the localized version of a piece of text.
-		 * @param text The original text as specified by the developer.
-		 * @return The text in the current locale, or the original text if no localization exists.
-		 */
-		function getText(text:String):String;
+		function initSelectableAttributes(input:Array):void;
 	}
 }

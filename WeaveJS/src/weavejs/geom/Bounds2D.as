@@ -186,6 +186,25 @@ package weavejs.geom
 			this.xMax = xMax;
 			this.yMax = yMax;
 		}
+		
+		/**
+		 * @param xMin_yMin_xMax_yMax An Array of four Numbers like [xMin, yMin, xMax, yMax]
+		 */
+		public function setCoords(xMin_yMin_xMax_yMax:/*/[number, number, number, number]/*/Array):void
+		{
+			this.xMin = xMin_yMin_xMax_yMax[0];
+			this.yMin = xMin_yMin_xMax_yMax[1];
+			this.xMax = xMin_yMin_xMax_yMax[2];
+			this.yMax = xMin_yMin_xMax_yMax[3];
+		}
+		
+		/**
+		 * @return [xMin, yMin, xMax, yMax]
+		 */
+		public function getCoords():/*/[number, number, number, number]/*/Array
+		{
+			return [xMin, yMin, xMax, yMax];
+		}
 
 		/**
 		 * This function sets the bounds coordinates using x, y, width and height values.
@@ -312,6 +331,24 @@ package weavejs.geom
 					if (newY > yMax) yMax = newY; // yMax = Math.max(yMax, newY);
 				}
 			}
+		}
+		
+		/**
+		 * This function will expand this Bounds2D to include an X value.
+		 * @param newX The X coordinate to include in this Bounds2D.
+		 */
+		public function includeX(newX:Number):void
+		{
+			includeCoords(newX, NaN);
+		}
+		
+		/**
+		 * This function will expand this Bounds2D to include a Y value.
+		 * @param newY The Y coordinate to include in this Bounds2D.
+		 */
+		public function includeY(newY:Number):void
+		{
+			includeCoords(NaN, newY);
 		}
 		
 		/**
@@ -545,6 +582,16 @@ package weavejs.geom
 			xMax += xOffset;
 			yMin += yOffset;
 			yMax += yOffset;
+		}
+		
+		public function getXRange():/*/[number, number]/*/Array
+		{
+			return [xMin, xMax];
+		}
+		
+		public function getYRange():/*/[number, number]/*/Array
+		{
+			return [yMin, yMax];
 		}
 
 		public function setXRange(xMin:Number, xMax:Number):void

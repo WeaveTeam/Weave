@@ -175,7 +175,7 @@ package weavejs.core
 			super.internalSetTarget(newTarget);
 		}
 		
-		override public function set targetPath(path:Array):void
+		override public function set targetPath(path:Array/*/<string|number>/*/):void
 		{
 			if (_locked)
 				return;
@@ -212,6 +212,9 @@ package weavejs.core
 		
 		public function requestLocalObject(objectType:Class, lockObject:Boolean = false):*
 		{
+			if (objectType is String)
+				objectType = Weave.getDefinition(String(objectType), true);
+			
 			cc.delayCallbacks();
 			
 			if (objectType)
@@ -231,6 +234,9 @@ package weavejs.core
 		
 		public function requestGlobalObject(name:String, objectType:Class, lockObject:Boolean = false):*
 		{
+			if (objectType is String)
+				objectType = Weave.getDefinition(String(objectType), true);
+			
 			if (!name)
 				return requestLocalObject(objectType, lockObject);
 			

@@ -118,7 +118,7 @@ package weavejs.path
 				className = type as String; // may not be full qualified class name, but useful for error messages
 				classDef = Weave.getDefinition(className);
 				if (!classDef)
-					throw new Error("No class definition for {0}", className);
+					throw new Error(StandardLib.substitute("No class definition for {0}", className));
 			}
 			
 			// stop if at root path
@@ -542,7 +542,7 @@ package weavejs.path
 			if (obj)
 				return Weave.getState(obj);
 			else
-				JS.error("No ILinkableObject from which to get session state at " + this.push(relativePath));
+				JS.error("Warning: No ILinkableObject from which to get session state at " + this.push(relativePath));
 			return null;
 		}
 		
@@ -576,7 +576,7 @@ package weavejs.path
 				if (obj)
 					return Weave.computeDiff(previousState, Weave.getState(obj));
 				else
-					JS.error("No ILinkableObject from which to get diff at " + this.push(args));
+					JS.error("Warning: No ILinkableObject from which to get diff at " + this.push(args));
 			}
 			return null;
 		}
@@ -598,7 +598,7 @@ package weavejs.path
 				if (obj)
 					return Weave.computeDiff(Weave.getState(obj), otherState);
 				else
-					JS.error("No ILinkableObject from which to get reverse diff at " + this.push(args));
+					JS.error("Warning: No ILinkableObject from which to get reverse diff at " + this.push(args));
 			}
 			return null;
 		}

@@ -36,7 +36,7 @@ package weavejs.util
 			while (n != items.length)
 			{
 				n = items.length;
-				items = [].concat.apply(null, items);
+				items = Array.prototype.concat.apply([], items);
 			}
 			
 			return items
@@ -108,6 +108,11 @@ package weavejs.util
 		 * Cached values that get invalidated when the source triggers callbacks.
 		 */
 		protected var _cache:Object = {};
+		
+		/**
+		 * Maps a property name to a Boolean which enables or disables caching for that property.
+		 */
+		public var cacheSettings:Object;
 		
 		/**
 		 * Cached values of getCallbackCollection(source).triggerCounter.
@@ -255,6 +260,8 @@ package weavejs.util
 		 */
 		protected function isCached(id:String):Boolean
 		{
+			if (cacheSettings && cacheSettings.hasOwnProperty(id) && !cacheSettings[id])
+				return false;
 			if (_dependency && Weave.wasDisposed(_dependency))
 				dependency = null;
 			return _dependency && _counter[id] === Weave.getCallbacks(_dependency).triggerCounter;

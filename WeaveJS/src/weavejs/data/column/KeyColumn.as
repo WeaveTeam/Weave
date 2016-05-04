@@ -13,14 +13,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weave.data.AttributeColumns
+package weavejs.data.column
 {
-	import weave.api.newLinkableChild;
-	import weave.api.data.ColumnMetadata;
-	import weave.api.data.IQualifiedKey;
-	import weave.core.LinkableString;
-	import weave.data.CSVParser;
-	import weave.utils.EquationColumnLib;
+	import weavejs.api.data.ColumnMetadata;
+	import weavejs.api.data.IQualifiedKey;
+	import weavejs.core.LinkableString;
+	import weavejs.data.CSVParser;
+	import weavejs.data.EquationColumnLib;
 
 	public class KeyColumn extends AbstractAttributeColumn
 	{
@@ -37,8 +36,8 @@ package weave.data.AttributeColumns
 			{
 				var kt:String = keyType.value;
 				if (kt)
-					return lang("Key ({0})", kt);
-				return lang("Key");
+					return Weave.lang("Key ({0})", kt);
+				return Weave.lang("Key");
 			}
 			if (propertyName == ColumnMetadata.KEY_TYPE)
 				return keyType.value;
@@ -46,7 +45,7 @@ package weave.data.AttributeColumns
 			return super.getMetadata(propertyName);
 		}
 		
-		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
+		public const keyType:LinkableString = Weave.linkableChild(this, LinkableString);
 		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class=null):*
 		{
@@ -55,12 +54,9 @@ package weave.data.AttributeColumns
 				return EquationColumnLib.cast(undefined, dataType);
 			
 			if (dataType == String)
-			{
-				if (!csvParser)
-					csvParser = new CSVParser(false, "#");
-				return csvParser.createCSVRow([key.keyType, key.localName]);
-			}
-			
+				return key.toString();
+			if (dataType == Number)
+				return key.toNumber();
 			if (dataType == IQualifiedKey)
 				return key;
 			

@@ -23,7 +23,6 @@ package weavejs.data.hierarchy
 	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.data.column.CSVColumn;
 	import weavejs.data.column.EquationColumn;
-	import weavejs.data.hierarchy.ColumnTreeNode;
 	import weavejs.util.JS;
 	
 	public class GlobalColumnDataSource implements IDataSource
@@ -46,11 +45,7 @@ package weavejs.data.hierarchy
 			var source:IDataSource = this;
 			_rootNode = new ColumnTreeNode({
 				dataSource: source,
-				label: function():String {
-					return root.getObjects(CSVColumn).length
-					? Weave.lang('Generated columns')
-					: Weave.lang('Equations');
-				},
+				label: getLabel,
 				hasChildBranches: false,
 				children: function():Array {
 					return getGlobalColumns().map(function(column:IAttributeColumn, ..._):* {
@@ -59,6 +54,14 @@ package weavejs.data.hierarchy
 					});
 				}
 			});
+		}
+		
+		
+		public function getLabel():String
+		{
+			return _root.getObjects(CSVColumn).length
+				?	Weave.lang('Generated columns')
+				:	Weave.lang('Equations');
 		}
 		
 		/**
@@ -78,7 +81,7 @@ package weavejs.data.hierarchy
 		}
 		private function createColumnNode(name:String):ColumnTreeNode
 		{
-			var column:IAttributeColumn = getAttributeColumn(name);
+			var column:IAttributeColumn = generateNewAttributeColumn(name);
 			if (!column)
 				return null;
 			
@@ -107,7 +110,7 @@ package weavejs.data.hierarchy
 		
 		public function findHierarchyNode(metadata:Object):IWeaveTreeNode
 		{
-			var column:IAttributeColumn = getAttributeColumn(metadata);
+			var column:IAttributeColumn = generateNewAttributeColumn(metadata);
 			if (!column)
 				return null;
 			var name:String = _root.getName(column);
@@ -118,7 +121,7 @@ package weavejs.data.hierarchy
 			return null;
 		}
 		
-		public function getAttributeColumn(metadata:Object):IAttributeColumn
+		public function generateNewAttributeColumn(metadata:Object):IAttributeColumn
 		{
 			if (!metadata)
 				return null;

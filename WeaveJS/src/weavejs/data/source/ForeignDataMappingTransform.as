@@ -67,10 +67,11 @@ package weavejs.data.source
 		{
 			if (!_rootNode)
 				_rootNode = new ColumnTreeNode({
+					cacheSettings: {label: false},
 					dataSource: this,
 					dependency: dataColumns,
 					data: this,
-					label: Weave.getRoot(this).getName(this),
+					label: getLabel,
 					hasChildBranches: false,
 					children: function():Array {
 						return dataColumns.getNames().map(

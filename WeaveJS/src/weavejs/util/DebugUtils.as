@@ -255,7 +255,7 @@ package weavejs.util
 		
 //		public static function historyToCSV(weave:Weave):String
 //		{
-//			var data:Array = [['t','path','value']].concat.apply(null, weave.history.undoHistory.map((e,t)=>flattenSessionState(e.forward).map((a,i)=>[t,'Weave'+a[0].map(n=>isValidSymbolName(n)?'.'+n:Weave.stringify([n])).join(''),Weave.stringify(a[1])])));
+//			var data:Array = Array.prototype.concat.apply([['t','path','value']], weave.history.undoHistory.map((e,t)=>flattenSessionState(e.forward).map((a,i)=>[t,'Weave'+a[0].map(n=>isValidSymbolName(n)?'.'+n:Weave.stringify([n])).join(''),Weave.stringify(a[1])])));
 //			var name:String = WeaveAPI.globalHashMap.generateUniqueName("Session History");
 //			var csv:CSVDataSource = WeaveAPI.globalHashMap.requestObject(name, CSVDataSource, false);
 //			csv.csvData.setSessionState(data);

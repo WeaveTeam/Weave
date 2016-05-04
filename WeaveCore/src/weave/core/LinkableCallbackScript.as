@@ -25,6 +25,8 @@ package weave.core
 	
 	public class LinkableCallbackScript implements ILinkableObject
 	{
+		public static var enabled:Boolean = true;
+		
 		public function LinkableCallbackScript()
 		{
 			var callbacks:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(this);
@@ -67,6 +69,9 @@ package weave.core
 		
 		private function _runScript():void
 		{
+			if (!enabled)
+				return;
+			
 			if (delayWhileBusy.value && WeaveAPI.SessionManager.linkableObjectIsBusy(this))
 				return;
 			

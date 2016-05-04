@@ -18,6 +18,7 @@ package weavejs.data.source
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.ILinkableHashMap;
+	import weavejs.api.core.ILinkableObjectWithNewProperties;
 	import weavejs.api.data.ColumnMetadata;
 	import weavejs.api.data.DataType;
 	import weavejs.api.data.IAttributeColumn;
@@ -38,6 +39,7 @@ package weavejs.data.source
 	import weavejs.data.hierarchy.ColumnTreeNode;
 	import weavejs.data.key.QKeyManager;
 	import weavejs.net.ResponseType;
+	import weavejs.util.ArrayUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	
@@ -46,14 +48,19 @@ package weavejs.data.source
 	 * @author adufilie
 	 * @author skolman
 	 */
-	public class CSVDataSource extends AbstractDataSource implements IDataSource_File
+	public class CSVDataSource extends AbstractDataSource implements IDataSource_File, ILinkableObjectWithNewProperties
 	{
-		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file / Delimited text");
+		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, CSVDataSource, "CSV file");
 
 		public function CSVDataSource()
 		{
 			super();
 			Weave.linkableChild(hierarchyRefresh, metadata);
+		}
+		
+		override public function getLabel():String
+		{
+			return label.value || (url.value || '').split('/').pop() || super.getLabel();
 		}
 
 		public const csvData:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(Array, verifyRows), handleCSVDataChange);
@@ -63,7 +70,11 @@ package weavejs.data.source
 		}
 		
 		public const keyType:LinkableString = Weave.linkableChild(this, LinkableString, updateKeys);
-		public const keyColName:LinkableString = Weave.linkableChild(this, LinkableString, updateKeys);
+		public const keyColumn:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(null, verifyKeyColumnId), updateKeys);
+		private function verifyKeyColumnId(value:Object):Boolean
+		{
+			return value is Number || value is String || value == null;
+		}
 		
 		public const metadata:LinkableVariable = Weave.linkableChild(this, new LinkableVariable(null, verifyMetadata));
 		private function verifyMetadata(value:Object):Boolean
@@ -139,7 +150,7 @@ package weavejs.data.source
 		private var keysArray:Array;
 		private var keysCallbacks:ICallbackCollection = Weave.linkableChild(this, CallbackCollection);
 		
-		protected function handleParsedRows(rows:Array):void
+		protected function handleParsedRows(rows:/*/string[][]/*/Array):void
 		{
 			if (!rows)
 				rows = [];
@@ -161,39 +172,55 @@ package weavejs.data.source
 		
 		private function updateKeys(forced:Boolean = false):void
 		{
-			var changed:Boolean = Weave.detectChange(updateKeys, keyType, keyColName);
+			var changed:Boolean = Weave.detectChange(updateKeys, keyType, keyColumn);
 			if (parsedRows && (forced || changed))
 			{
 				var colNames:Array = parsedRows[0] || [];
 				// getColumnValues supports columnIndex -1
 				var keyColIndex:int = -1;
-				if (keyColName.value)
+				if (keyColumn.state is String)
 				{
-					keyColIndex = colNames.indexOf(keyColName.value);
-					// treat invalid keyColName as an error
+					keyColIndex = colNames.indexOf(keyColumn.state as String);
+					// treat invalid key column name as an error
 					if (keyColIndex < 0)
 						keyColIndex = -2;
+				}
+				if (keyColumn.state is Number)
+				{
+					keyColIndex = keyColumn.state as Number;
 				}
 				var keyStrings:Array = getColumnValues(parsedRows, keyColIndex, []);
 				var keyTypeString:String = keyType.value;
 				
 				keysArray = [];
-				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keysCallbacks, keyType.value, keyStrings, null, keysArray);
+				(WeaveAPI.QKeyManager as QKeyManager).getQKeysAsync(keysCallbacks, keyType.value, keyStrings, handleUpdatedKeys, keysArray);
 			}
+		}
+		
+		private function handleUpdatedKeys():void
+		{
+			_keysAreUnique = ArrayUtils.union(keysArray).length == keysArray.length;
+		}
+		
+		private var _keysAreUnique:Boolean = true;
+		
+		public function get keysAreUnique():Boolean
+		{
+			return _keysAreUnique;
 		}
 		
 		/**
 		 * Convenience function for setting session state of csvData.
 		 * @param rows
 		 */
-		public function setCSVData(rows:Array):void
+		public function setCSVData(rows:/*/string[][]/*/Array):void
 		{
 			if (!verifyRows(rows))
 				throw new Error("Invalid data format. Expecting nested Arrays.");
 			csvData.setSessionState(rows);
 		}
 		
-		public function getCSVData():Array
+		public function getCSVData():/*/string[][]/*/Array
 		{
 			return csvData.getSessionState() as Array;
 		}
@@ -209,17 +236,20 @@ package weavejs.data.source
 		/**
 		 * This will get a list of column names in the data, which are taken directly from the header row and not guaranteed to be unique.
 		 */		
-		public function getColumnNames():Array
+		public function getColumnNames():Array/*/<string>/*/
 		{
-			if (parsedRows && parsedRows.length)
-				return parsedRows[0].concat();
-			return [];
+			return getColumnIds().map(asString);
+		}
+		
+		private function asString(value:Object, i:int, a:Array):Boolean
+		{
+			return value as String;
 		}
 
 		/**
 		 * A unique list of identifiers for columns which may be a mix of Strings and Numbers, depending on the uniqueness of column names.
 		 */
-		public function getColumnIds():Array
+		public function getColumnIds():Array/*/<number|string>/*/
 		{
 			return columnIds.concat();
 		}
@@ -265,7 +295,12 @@ package weavejs.data.source
 			if (!title && typeof id == 'number' && parsedRows && parsedRows.length)
 				title = parsedRows[0][id];
 			if (!title)
-				title = String(id);
+			{
+				if (typeof id == 'number')
+					title = Weave.lang("Column {0}", id);
+				else
+					title = String(id);
+			}
 			return title;
 		}
 		
@@ -284,18 +319,18 @@ package weavejs.data.source
 			
 			// overwrite identifying property
 			if (typeof id == 'number')
-				metadata[METADATA_COLUMN_INDEX] = id;
+				metadata[METADATA_COLUMN_INDEX] = String(id);
 			else
-				metadata[METADATA_COLUMN_NAME] = id;
+				metadata[METADATA_COLUMN_NAME] = String(id);
 			
 			return metadata;
 		}
 		
-		override public function getAttributeColumn(metadata:Object):IAttributeColumn
+		override public function generateNewAttributeColumn(metadata:Object):IAttributeColumn
 		{
 			if (typeof metadata != 'object')
 				metadata = generateMetadataForColumnId(metadata);
-			return super.getAttributeColumn(metadata);
+			return super.generateNewAttributeColumn(metadata);
 		}
 		
 		/**
@@ -375,8 +410,9 @@ package weavejs.data.source
 		{
 			if (!_rootNode)
 				_rootNode = new ColumnTreeNode({
+					cacheSettings: {label: false},
 					dataSource: this,
-					label: Weave.getRoot(this).getName(this),
+					label: getLabel,
 					children: function(root:ColumnTreeNode):Array {
 						var items:Array = metadata.getSessionState() as Array;
 						if (!items)
@@ -606,8 +642,15 @@ package weavejs.data.source
 		
 		private var nullValues:Array = [null, "", "null", "\\N", "NaN"];
 		
+		public function get deprecatedStateMapping():Object
+		{
+			return {
+				keyColName: keyColumn,
+				csvDataString: setCSVDataString
+			};
+		}
+		
 		// backwards compatibility
-		[Deprecated(replacement="csvData")] public function set csvDataString(value:String):void { setCSVDataString(value); }
 		[Deprecated(replacement="getColumnById")] public function getColumnByName(name:String):IAttributeColumn { return getColumnById(name); }
 	}
 }

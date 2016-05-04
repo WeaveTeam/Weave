@@ -15,6 +15,8 @@ package
 	import weavejs.api.core.ISessionManager;
 	import weavejs.api.data.IAttributeColumnCache;
 	import weavejs.api.data.ICSVParser;
+	import weavejs.api.data.IDataSource;
+	import weavejs.api.data.IDataSource_Transform;
 	import weavejs.api.data.IQualifiedKeyManager;
 	import weavejs.api.data.IStatisticsCache;
 	import weavejs.api.net.IURLRequestUtils;
@@ -22,16 +24,22 @@ package
 	import weavejs.core.EditorManager;
 	import weavejs.core.LinkableDynamicObject;
 	import weavejs.core.LinkableHashMap;
-	import weavejs.core.LinkableVariable;
 	import weavejs.core.Locale;
 	import weavejs.core.ProgressIndicator;
 	import weavejs.core.Scheduler;
 	import weavejs.core.SessionManager;
 	import weavejs.data.AttributeColumnCache;
 	import weavejs.data.CSVParser;
-	import weavejs.data.ColumnUtils;
 	import weavejs.data.StatisticsCache;
 	import weavejs.data.key.QKeyManager;
+	import weavejs.data.source.CKANDataSource;
+	import weavejs.data.source.CSVDataSource;
+	import weavejs.data.source.CensusDataSource;
+	import weavejs.data.source.DBFDataSource;
+	import weavejs.data.source.ForeignDataMappingTransform;
+	import weavejs.data.source.GeoJSONDataSource;
+	import weavejs.data.source.GroupedDataTransform;
+	import weavejs.data.source.WeaveDataSource;
 	import weavejs.geom.SolidFillStyle;
 	import weavejs.geom.SolidLineStyle;
 	import weavejs.net.URLRequestUtils;
@@ -63,8 +71,6 @@ package
 				'weavejs.util'
 			);
 			
-			WeaveAPI.ClassRegistry.registerImplementation(ILinkableHashMap, LinkableHashMap);
-			WeaveAPI.ClassRegistry.registerImplementation(ILinkableDynamicObject, LinkableDynamicObject);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IURLRequestUtils, URLRequestUtils);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IAttributeColumnCache, AttributeColumnCache);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ISessionManager, SessionManager);
@@ -75,16 +81,26 @@ package
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(IEditorManager, EditorManager);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ICSVParser, CSVParser);
 			WeaveAPI.ClassRegistry.registerSingletonImplementation(ILocale, Locale);
-			Weave.registerClass("FlexibleLayout", LinkableVariable);
-			Weave.registerClass("ExternalTool", LinkableHashMap);
-			Weave.registerClass("ExtendedFillStyle", SolidFillStyle);
-			Weave.registerClass("ExtendedLineStyle", SolidLineStyle);
 			
-			// TEMPORARY HACK - omit keySet filter
-//			var joinColumns:Function = ColumnUtils.joinColumns;
-//			ColumnUtils['joinColumns'] = function(columns:Array, dataType:Object = null, allowMissingData:Boolean = false):Array {
-//				return joinColumns.call(ColumnUtils, columns, dataType, allowMissingData);
-//			};
+			WeaveAPI.ClassRegistry.registerImplementation(ILinkableHashMap, LinkableHashMap);
+			WeaveAPI.ClassRegistry.registerImplementation(ILinkableDynamicObject, LinkableDynamicObject);
+			
+			// temporary hack
+			//TODO - traverse weavejs namespace and register all classes with all their interfaces
+			var IDataSource_File:Class = IDataSource;
+			var IDataSource_Service:Class = IDataSource;
+			var IDataSource_Transform:Class = IDataSource;
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, CSVDataSource, "CSV file");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, DBFDataSource, "SHP/DBF files");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_File, GeoJSONDataSource, "GeoJSON file");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Service, WeaveDataSource, "Weave server");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Service, CKANDataSource, "CKAN server");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Service, CensusDataSource, "Census.gov");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Transform, ForeignDataMappingTransform, "Foreign data mapping");
+			WeaveAPI.ClassRegistry.registerImplementation(IDataSource_Transform, GroupedDataTransform, "Grouped data transform");
+			
+			Weave.registerClass(SolidFillStyle, "ExtendedFillStyle");
+			Weave.registerClass(SolidLineStyle, "ExtendedLineStyle");
 			
 			// TEMPORARY
 			//WeaveTest.test(weave);

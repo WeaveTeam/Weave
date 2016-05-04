@@ -121,7 +121,7 @@ package weavejs.data.hierarchy
 			return dataSource;
 		}
 		
-		public function getColumnMetadata():Object
+		public function getColumnMetadata():/*/{[name:string]:string}/*/Object
 		{
 			if (isBranch())
 				return null;

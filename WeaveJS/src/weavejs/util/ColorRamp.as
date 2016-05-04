@@ -55,7 +55,7 @@ package weavejs.util
 				this.setSessionState(array);
 				return false;
 			}
-			return type == String || type == Object;
+			return type == String || type == Object || (state is Array && !state.length);
 		}
 		
 		private var _validateTriggerCount:uint = 0;
@@ -99,7 +99,7 @@ package weavejs.util
 		 */
 		private var _colorNodes:Array = [];
 		
-		public function getColors():Array
+		public function getColors():Array/*/<number>/*/
 		{
 			validate();
 			
@@ -108,6 +108,14 @@ package weavejs.util
 			for(var i:int = 0; i < _colorNodes.length; i++)
 				colors.push((_colorNodes[i] as ColorNode).color);
 			
+			return colors;
+		}
+		
+		public function getHexColors():Array/*/<string>/*/
+		{
+			var colors:Array = getColors();
+			for (var i:int = 0; i < colors.length; i++)
+				colors[i] = StandardLib.getHexColor(colors[i]);
 			return colors;
 		}
 		
@@ -163,7 +171,10 @@ package weavejs.util
 		public function getHexColor(value:Number, min:Number = 0, max:Number = 1):String
 		{
 			var normValue:Number = min == 0 && max == 1 ? value : StandardLib.normalize(value, min, max);
-			return '#' + StandardLib.numberToBase(getColorFromNorm(normValue), 16, 6);
+			var color:Number = getColorFromNorm(normValue);
+			if (!isFinite(color))
+				return null;
+			return '#' + StandardLib.numberToBase(color, 16, 6);
 		}
 		
 		/* *
@@ -219,7 +230,7 @@ package weavejs.util
 		/**
 		 * @return An Object with "name", "tags", and "colors" properties.
 		 */
-		public static function getColorRampByName(rampName:String):Object
+		public static function getColorRampByName(rampName:String):/*/{name:string, tags:string, colors:number[]}/*/Object
 		{
 			for each (var ramp:Object in allColorRamps)
 			if (ramp.name === rampName)
@@ -230,7 +241,7 @@ package weavejs.util
 		/**
 		 * @return An Object with "name", "tags", and "colors" properties.
 		 */
-		public static function findMatchingColorRamp(ramp:ColorRamp):Object
+		public static function findMatchingColorRamp(ramp:ColorRamp):/*/{name:string, tags:string, colors:number[]}/*/Object
 		{
 			var colors:Array = ramp.getColors();
 			for each (var obj:Object in allColorRamps)
@@ -239,7 +250,7 @@ package weavejs.util
 			return null;
 		}
 		
-		public static const allColorRamps:Array = [
+		public static const allColorRamps:Array/*/<{name:string, tags:string, colors:number[]}>/*/ = [
 			{name: "Campfire", tags: "OIC,aesthetic", colors: [0x660000,0xFF0000,0xFFFF00]},
 			{name: "Pink Rose", tags: "OIC,aesthetic", colors: [0xffc7fa,0xfa0094,0x660066]},
 			{name: "Linear Gray", tags: "OIC,visualization,colorblind-safe,single-hue", colors: [0x000000,0xffffff]},

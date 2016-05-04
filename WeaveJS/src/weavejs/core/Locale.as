@@ -23,8 +23,6 @@ package weavejs.core
 
 	public class Locale implements ILocale
 	{
-		public var locale:String = null;
-		
 		private var _reverseLayout:Boolean = false;
 		public function get reverseLayout():Boolean { return _reverseLayout; }
 		public function set reverseLayout(value:Boolean):void { _reverseLayout = value; }
@@ -33,14 +31,16 @@ package weavejs.core
 		{
 			var request:URLRequest = new URLRequest(jsonUrl);
 			request.responseType = ResponseType.JSON;
-			return WeaveAPI.URLRequestUtils.request(null, request).then(setData);
+			var self:Locale = this;
+			return WeaveAPI.URLRequestUtils.request(this, request).then(function(data:Object):void { self.data = data; });
 		}
 		
-		private function setData(value:Object):void
-		{
-			this.data = value;
-		}
 		private var _data:Object = {};
+		
+		public function get data():Object
+		{
+			return _data;
+		}
 		
 		public function set data(value:Object):void
 		{
@@ -49,6 +49,9 @@ package weavejs.core
 		
 		public function getText(text:String):String
 		{
+			if (!text)
+				return '';
+			
 			var result:String;
 			
 			if (_data.hasOwnProperty(text))
@@ -56,33 +59,7 @@ package weavejs.core
 			else // make the original text appear in the lookup table even though there is no translation yet.
 				_data[text] = null;
 			
-			if (!result && locale == 'piglatin')
-				return makePigLatins(text);
-			
 			return result || text;
-		}
-		
-		//-------------------------------------------------------------
-		// for testing
-		private function makePigLatins(words:String):String
-		{
-			var r:String = '';
-			for each (var word:String in words.split(' '))
-				r += ' ' + makePigLatin(word);
-			return r.substr(1);
-		}
-		private function makePigLatin(word:String):String
-		{
-			var firstVowelPosition:int = word.length;
-			var vowels:Array = ["a", "e", "i", "o", "u", "y"];
-			for each (var l:String in vowels)
-			{
-				if (word.indexOf(l) < firstVowelPosition && word.indexOf(l) != -1)
-					firstVowelPosition = word.indexOf(l);
-			}
-			return  word.substring(firstVowelPosition, word.length) +
-				word.substring(0, firstVowelPosition) +
-				"ay";
 		}
 	}
 }

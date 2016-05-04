@@ -50,6 +50,11 @@ package weavejs.data.source
 		{
 		}
 		
+		override public function getLabel():String
+		{
+			return label.value || (shpUrl.value || dbfUrl.value || '').split('/').pop() || super.getLabel();
+		}
+		
 		override protected function get initializationComplete():Boolean
 		{
 			// make sure everything is ready before column requests get handled.
@@ -101,7 +106,7 @@ package weavejs.data.source
 		public static const THE_GEOM_COLUMN:String = 'the_geom';
 		private function getGeomColumnTitle():String
 		{
-			return Weave.lang("{0} geometry", Weave.getRoot(this).getName(this));
+			return Weave.lang("{0} geometry", this.getLabel());
 		}
 		
 		/**
@@ -279,7 +284,7 @@ package weavejs.data.source
 		
 		public function getKeyType():String
 		{
-			return keyType.value || Weave.getRoot(this).getName(this);
+			return keyType.value || this.getLabel();
 		}
 		public function getColumnNames():Array
 		{
@@ -395,7 +400,7 @@ internal class DBFColumnNode implements IWeaveTreeNode, IColumnReference
 	public function getLabel():String
 	{
 		if (!columnName)
-			return Weave.getRoot(source).getName(source);
+			return source.getLabel();
 		return columnName;
 	}
 	public function isBranch():Boolean { return !columnName; }

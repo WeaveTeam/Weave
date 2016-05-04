@@ -13,27 +13,12 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-package weavejs.api.core
+package weavejs.api.ui
 {
 	/**
-	 * @author adufilie
+	 * A basic visusalization tool which most users would want.
 	 */
-	public interface ILocale
+	public interface IVisTool_Basic extends IVisTool
 	{
-		function get reverseLayout():Boolean;
-		function set reverseLayout(value:Boolean):void;
-		
-		/**
-		 * A mapping from original text to translated text.
-		 */
-		function get data():Object;
-		function set data(value:Object):void;
-		
-		/**
-		 * This will look up the localized version of a piece of text.
-		 * @param text The original text as specified by the developer.
-		 * @return The text in the current locale, or the original text if no localization exists.
-		 */
-		function getText(text:String):String;
 	}
 }

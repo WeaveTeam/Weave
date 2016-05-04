@@ -85,7 +85,7 @@ package weave.utils
 				else if (dataType == DataType.DATE)
 				{
 					newColumn = new DateColumn(metadata);
-					(newColumn as DateColumn).setRecords(keysVector, Vector.<String>(data));
+					(newColumn as DateColumn).setRecords(keysVector, data);
 				}
 				else
 				{
