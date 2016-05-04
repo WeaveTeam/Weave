@@ -693,7 +693,7 @@ package weave.data.DataSources
 					else if (ObjectUtil.stringCompare(dataType, DataType.DATE, true) == 0)
 					{
 						var newDateColumn:DateColumn = new DateColumn(metadata);
-						newDateColumn.setRecords(keysVector, Vector.<String>(result.data));
+						newDateColumn.setRecords(keysVector, result.data);
 						proxyColumn.setInternalColumn(newDateColumn);
 					}
 					else
