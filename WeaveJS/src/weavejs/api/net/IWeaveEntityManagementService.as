@@ -31,7 +31,7 @@ package weavejs.api.net
 		 * @param insertAtIndex Specifies insertion index for sort order.
 		 * @return RPC token for an entity ID.
 		 */
-		function newEntity(metadata:EntityMetadata, parentId:int, insertAtIndex:int):WeavePromise;
+		function newEntity(metadata:EntityMetadata, parentId:int, insertAtIndex:int):WeavePromise/*/<number>/*/;
 		
 		/**
 		 * Updates the metadata for an existing entity.
@@ -39,14 +39,14 @@ package weavejs.api.net
 		 * @param diff Specifies the changes to make to the metadata.
 		 * @return RPC token.
 		 */
-		function updateEntity(entityId:int, diff:EntityMetadata):WeavePromise;
+		function updateEntity(entityId:int, diff:EntityMetadata):WeavePromise/*/<void>/*/;
 		
 		/**
 		 * Removes entities and their children recursively.
 		 * @param entityIds A list of entity IDs to remove.
 		 * @return RPC token for an Array of entity IDs that were removed.
 		 */
-		function removeEntities(entityIds:Array):WeavePromise;
+		function removeEntities(entityIds:Array):WeavePromise/*/<number[]>/*/;
 		
 		/**
 		 * Adds a parent-child relationship to the server-side entity hierarchy table.
@@ -55,7 +55,7 @@ package weavejs.api.net
 		 * @param insertAtIndex Specifies insertion index for sort order.
 		 * @return RPC token for an Array of entity IDs whose relationships have changed as a result of adding the parent-child relationship.
 		 */
-		function addChild(parentId:int, childId:int, insertAtIndex:int):WeavePromise;
+		function addChild(parentId:int, childId:int, insertAtIndex:int):WeavePromise/*/<number[]>/*/;
 		
 		/**
 		 * Removes a parent-child relationship from the server-side entity hierarchy table.
@@ -63,6 +63,6 @@ package weavejs.api.net
 		 * @param childId The ID of the child entity.
 		 * @return RPC token.
 		 */
-		function removeChild(parentId:int, childId:int):WeavePromise;
+		function removeChild(parentId:int, childId:int):WeavePromise/*/<void>/*/;
 	}
 }

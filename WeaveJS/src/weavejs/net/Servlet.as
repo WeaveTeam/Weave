@@ -83,7 +83,7 @@ package weavejs.net
 		 * @param methodParameters The parameters to use when calling the method.
 		 * @return A WeavePromise generated for the call.
 		 */
-		public function invokeAsyncMethod(methodName:String, methodParameters:Object = null):WeavePromise
+		public function invokeAsyncMethod(methodName:String, methodParameters:Object = null):WeavePromise/*/<any>/*/
 		{
 			var promise:WeavePromise = new WeavePromise(this);
 			
@@ -109,7 +109,7 @@ package weavejs.net
 		 * This will make a url request that was previously delayed.
 		 * @param promise A WeavePromise generated from a previous call to invokeAsyncMethod().
 		 */
-		protected function invokeNow(promise:WeavePromise):void
+		protected function invokeNow(promise:WeavePromise/*/<any>/*/):void
 		{
 			//TODO - need a way to cancel previous request
 			// if promise.setResult was called with a urlPromise, dispose the old urlPromise or re-invoke it

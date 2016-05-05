@@ -28,11 +28,11 @@ package weavejs.api.net
 		/**
 		 * @return A WeavePromise which returns a JSByteArray
 		 */
-		function getMetadataTiles(tileIDs:Array):WeavePromise;
+		function getMetadataTiles(tileIDs:Array):WeavePromise/*/<weavejs.util.JSByteArray>/*/;
 		
 		/**
 		 * @return A WeavePromise which returns a JSByteArray
 		 */
-		function getGeometryTiles(tileIDs:Array):WeavePromise;
+		function getGeometryTiles(tileIDs:Array):WeavePromise/*/<weavejs.util.JSByteArray>/*/;
 	}
 }

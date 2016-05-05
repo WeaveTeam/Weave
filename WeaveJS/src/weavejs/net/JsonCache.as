@@ -58,7 +58,7 @@ package weavejs.net
 			return getJsonPromise(url).getResult();
 		}
 		
-		public function getJsonPromise(url:String):WeavePromise
+		public function getJsonPromise(url:String):WeavePromise/*/<any>/*/
 		{
 			var promise:WeavePromise = cache[url];
 			if (!promise)

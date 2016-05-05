@@ -296,7 +296,7 @@ package weavejs.net
 		 * @return RPC token for an Array of EntityHierarchyInfo objects.
 		 * @see weavejs.api.net.IWeaveEntityService#getHierarchyInfo()
 		 */		
-		public function getHierarchyInfo(publicMetadata:Object):WeavePromise
+		public function getHierarchyInfo(publicMetadata:Object):WeavePromise/*/<EntityHierarchyInfo[]>/*/
 		{
 			return service.getHierarchyInfo(publicMetadata)
 				.then(handleEntityHierarchyInfo.bind(this, publicMetadata));

@@ -32,6 +32,6 @@ package weavejs.api.net
 		 * @param methodParameters Either an Array or an Object to use as a list of parameters.
 		 * @return An AsyncToken that you can add responders to.
 		 */
-		function invokeAsyncMethod(methodName:String, methodParameters:Object = null):WeavePromise;
+		function invokeAsyncMethod(methodName:String, methodParameters:Object = null):WeavePromise/*/<any>/*/;
 	}
 }

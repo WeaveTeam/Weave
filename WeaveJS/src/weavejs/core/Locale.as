@@ -27,7 +27,7 @@ package weavejs.core
 		public function get reverseLayout():Boolean { return _reverseLayout; }
 		public function set reverseLayout(value:Boolean):void { _reverseLayout = value; }
 		
-		public function loadFromUrl(jsonUrl:String):WeavePromise
+		public function loadFromUrl(jsonUrl:String):WeavePromise/*/<void>/*/
 		{
 			var request:URLRequest = new URLRequest(jsonUrl);
 			request.responseType = ResponseType.JSON;

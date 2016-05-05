@@ -31,7 +31,7 @@ package weavejs.net
 			return "data:" + (mimeType || '') + ';base64,' + JS.global.btoa(StandardLib.byteArrayToString(byteArray));
 		}
 		
-		public function request(relevantContext:Object, urlRequest:URLRequest):WeavePromise
+		public function request(relevantContext:Object, urlRequest:URLRequest):WeavePromise/*/<any>/*/
 		{
 			var responseType:String = urlRequest.responseType || ResponseType.UINT8ARRAY;
 			var promise:WeavePromise;

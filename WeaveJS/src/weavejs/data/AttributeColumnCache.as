@@ -75,7 +75,7 @@ package weavejs.data
 		 * Creates a cache dump and modifies the session state so data sources are non-functional.
 		 * @return A WeavePromise that returns a cache dump that can later be passed to restoreCache();
 		 */
-		public function convertToCachedDataSources(root:ILinkableHashMap):WeavePromise
+		public function convertToCachedDataSources(root:ILinkableHashMap):WeavePromise/*/<any>/*/
 		{
 			var promise:WeavePromise = new WeavePromise(root).setResult(root);
 			var dispose:Function = function(_:*):void { promise.dispose(); };

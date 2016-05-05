@@ -26,7 +26,7 @@ package weavejs.api.net
 		 * @param urlRequest A URLRequest object.
 		 * @return A WeavePromise
 		 */
-		function request(relevantContext:Object, urlRequest:URLRequest):WeavePromise;
+		function request(relevantContext:Object, urlRequest:URLRequest):WeavePromise/*/<any>/*/;
 		
 		/**
 		 * This will save a file in memory so that it can be accessed later via getURL().

@@ -24,7 +24,7 @@ package weavejs.util
 	 * 
 	 * Adds support for <code>depend(...linkableObjects)</code>
 	 */
-	public class WeavePromise implements IDisposableObject
+	public class WeavePromise/*/<T>/*/ implements IDisposableObject
 	{
 		// true to conform to Promise spec, false to make Weave work correctly w/ busy status
 		public static var _callNewHandlersSeparately:Boolean = false;
@@ -34,7 +34,7 @@ package weavejs.util
 		 * @param resolver A function like function(resolve:Function, reject:Function):void which carries out the promise.
 		 *                 If no resolver is given, setResult() or setError() should be called externally.
 		 */
-		public function WeavePromise(relevantContext:Object, resolver:Function = null)
+		public function WeavePromise(relevantContext:Object, resolver:/*/( resolve:(value?:T)=>void, reject:(error?:any)=>void ) => void/*/Function = null)
 		{
 			if (WeaveAPI.debugAsyncStack)
 				stackTrace_created = new Error("WeavePromise created");
@@ -73,7 +73,7 @@ package weavejs.util
 		/**
 		 * @return This WeavePromise
 		 */
-		public function setResult(result:Object):WeavePromise
+		public function setResult(result:/*/T/*/Object):WeavePromise/*/<T>/*/
 		{
 			if (Weave.wasDisposed(relevantContext))
 				return this;
@@ -101,7 +101,7 @@ package weavejs.util
 			return this;
 		}
 		
-		public function getResult():Object
+		public function getResult():/*/T/*/Object
 		{
 			return result;
 		}
@@ -109,7 +109,7 @@ package weavejs.util
 		/**
 		 * @return This WeavePromise
 		 */
-		public function setError(error:Object):WeavePromise
+		public function setError(error:Object):WeavePromise/*/<T>/*/
 		{
 			if (Weave.wasDisposed(relevantContext))
 				return this;
@@ -176,7 +176,7 @@ package weavejs.util
 				WeaveAPI.Scheduler.callLater(relevantContext, callHandlers, [true]);
 		}
 		
-		public function then(onFulfilled:Function = null, onRejected:Function = null):WeavePromise
+		public function then/*/<U>/*/(onFulfilled:/*/(value:T) => (U|Promise<U>|WeavePromise<U>)/*/Function = null, onRejected:/*/(error:any) => (U|Promise<U>|WeavePromise<U>)/*/Function = null):WeavePromise/*/<U>/*/
 		{
 			if (Weave.wasDisposed(relevantContext))
 				return this;
@@ -210,7 +210,7 @@ package weavejs.util
 				next.setError(error);
 		}
 		
-		public function depend(...linkableObjects):WeavePromise
+		public function depend(...linkableObjects):WeavePromise/*/<T>/*/
 		{
 			for each (var dependency:ILinkableObject in linkableObjects)
 			{
@@ -221,7 +221,7 @@ package weavejs.util
 			return this;
 		}
 		
-		public function getPromise():Object
+		public function getPromise():/*/Promise<T>/*/Object
 		{
 			var var_resolve:Function, var_reject:Function;
 			var promise:Object = new JS.Promise(function(resolve:Function, reject:Function):void {

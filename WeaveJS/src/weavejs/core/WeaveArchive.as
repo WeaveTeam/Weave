@@ -123,7 +123,7 @@ package weavejs.core
 		/**
 		 * Loads a WeaveArchive from file content.
 		 */
-		public static function loadUrl(weave:Weave, fileUrl:String):WeavePromise
+		public static function loadUrl(weave:Weave, fileUrl:String):WeavePromise/*/<void>/*/
 		{
 			return new WeavePromise(weave.root).setResult(
 				WeaveAPI.URLRequestUtils.request(weave.root, new URLRequest(fileUrl))

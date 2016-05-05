@@ -34,14 +34,14 @@ package weavejs.api.net
 		 * @param publicMetadata Public metadata search criteria.
 		 * @return RPC token for an Array of EntityHierarchyInfo objects.
 		 */
-		function getHierarchyInfo(publicMetadata:Object):WeavePromise;
+		function getHierarchyInfo(publicMetadata:Object):WeavePromise/*/<weavejs.api.net.beans.EntityHierarchyInfo[]>/*/;
 		
 		/**
 		 * Gets an Array of Entity objects.
 		 * @param ids A list of entity IDs.
 		 * @return RPC token for an Array of Entity objects.
 		 */
-		function getEntities(ids:Array):WeavePromise;
+		function getEntities(ids:Array):WeavePromise/*/<weavejs.api.net.beans.Entity[]>/*/;
 		
 		/**
 		 * Gets an Array of entity IDs with matching metadata. 
@@ -51,7 +51,7 @@ package weavejs.api.net
 		 *                       and multi-character matching, respectively.
 		 * @return RPC token for an Array of IDs.
 		 */		
-		function findEntityIds(publicMetadata:Object, wildcardFields:Array):WeavePromise;
+		function findEntityIds(publicMetadata:Object, wildcardFields:Array):WeavePromise/*/<number[]>/*/;
 		
 		/**
 		 * Finds matching values for a public metadata field.
@@ -59,6 +59,6 @@ package weavejs.api.net
 		 * @param valueSearch A search string.
 		 * @return RPC token for an Array of matching values for the specified public metadata field.
 		 */
-		function findPublicFieldValues(fieldName:String, valueSearch:String):WeavePromise;
+		function findPublicFieldValues(fieldName:String, valueSearch:String):WeavePromise/*/<string[]>/*/;
 	}
 }

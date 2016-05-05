@@ -33,7 +33,7 @@ package weavejs.net
 		/**
 		 * If <code>invokeImmediately</code> was set to false in the constructor, this will invoke a deferred request.
 		 */
-		public function invokeDeferred(promise:WeavePromise):void
+		public function invokeDeferred(promise:WeavePromise/*/<any>/*/):void
 		{
 			invokeNow(promise);
 		}

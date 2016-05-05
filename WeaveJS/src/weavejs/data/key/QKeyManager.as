@@ -211,7 +211,7 @@ package weavejs.data.key
 		 * @param keyStrings An Array of localName values.
 		 * @return A WeavePromise that produces an Array of IQualifiedKeys.
 		 */
-		public function getQKeysPromise(relevantContext:Object, keyType:String, keyStrings:Array/*/<string>/*/):WeavePromise
+		public function getQKeysPromise(relevantContext:Object, keyType:String, keyStrings:Array/*/<string>/*/):WeavePromise/*/<IQualifiedKey[]>/*/
 		{
 			var qkg:QKeyGetter = map_context_qkeyGetter.get(relevantContext);
 			if (!qkg)
@@ -250,5 +250,63 @@ package weavejs.data.key
 			var params:Array = [qkm.map_qkey_keyType, qkm.map_qkey_localName];
 			return StandardLib.sortOn(keys, params, null, false);
 		}
+	}
+}
+
+
+import weavejs.WeaveAPI;
+import weavejs.data.key.QKeyManager;
+import weavejs.util.JS;
+import weavejs.util.WeavePromise;
+
+internal class QKeyGetter extends WeavePromise/*/<IQualifiedKey[]>/*/
+{
+	public function QKeyGetter(manager:QKeyManager, relevantContext:Object)
+	{
+		super(relevantContext);
+		
+		this.manager = manager;
+	}
+	
+	public function asyncStart(keyType:String, keyStrings:Array/*/<string>/*/, outputKeys:Array/*/<weavejs.api.data.IQualifiedKey>/*/ = null):QKeyGetter
+	{
+		if (!keyStrings)
+			keyStrings = [];
+		this.manager = manager;
+		this.keyType = keyType;
+		this.keyStrings = keyStrings;
+		this.i = 0;
+		this.outputKeys = outputKeys || new Array(keyStrings.length);
+		
+		this.outputKeys.length = keyStrings.length;
+		// high priority because all visualizations depend on key sets
+		WeaveAPI.Scheduler.startTask(relevantContext, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, Weave.lang("Initializing {0} record identifiers", keyStrings.length));
+		
+		return this;
+	}
+	
+	private var asyncCallback:Function;
+	private var i:int;
+	private var manager:QKeyManager;
+	private var keyType:String;
+	private var keyStrings:Array;
+	private var outputKeys:Array;
+	private var batch:uint = 5000;
+	
+	private function iterate(stopTime:int):Number
+	{
+		for (; i < keyStrings.length; i += batch)
+		{
+			if (JS.now() > stopTime)
+				return i / keyStrings.length;
+			
+			manager.getQKeys_range(keyType, keyStrings, i, Math.min(i + batch, keyStrings.length), outputKeys);
+		}
+		return 1;
+	}
+	
+	private function asyncComplete():void
+	{
+		setResult(this.outputKeys);
 	}
 }

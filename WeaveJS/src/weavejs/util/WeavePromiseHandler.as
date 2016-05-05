@@ -15,18 +15,18 @@
 
 package weavejs.util
 {
-	internal class WeavePromiseHandler
+	internal class WeavePromiseHandler/*/<T, U>/*/
 	{
-		public var onFulfilled:Function;
-		public var onRejected:Function;
-		public var next:WeavePromise;
+		public var onFulfilled:/*/(value:T) => (U|Promise<U>|WeavePromise<U>)/*/Function;
+		public var onRejected:/*/(error:any) => (U|Promise<U>|WeavePromise<U>)/*/Function;
+		public var next:WeavePromise/*/<U>/*/;
 		
 		/**
 		 * Used as a flag to indicate that this handler has not been called yet
 		 */
 		public var isNew:Boolean = true;
 		
-		public function WeavePromiseHandler(onFulfilled:Function, onRejected:Function, next:WeavePromise)
+		public function WeavePromiseHandler(onFulfilled:/*/(value:T) => (U|Promise<U>|WeavePromise<U>)/*/Function, onRejected:/*/(error:any) => (U|Promise<U>|WeavePromise<U>)/*/Function, next:WeavePromise/*/<T>/*/)
 		{
 			this.next = next;
 			this.onFulfilled = onFulfilled;

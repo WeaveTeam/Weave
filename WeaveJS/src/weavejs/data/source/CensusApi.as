@@ -37,7 +37,7 @@ package weavejs.data.source
 			return serviceUrl + paramsStr;
 		}
 		
-		public function getDatasets():WeavePromise
+		public function getDatasets():WeavePromise/*/<any>/*/
 		{
 			return jsonCache.getJsonPromise(BASE_URL + "data.json");
 		}
@@ -80,7 +80,7 @@ package weavejs.data.source
 				});
 		}
 		
-		public function getVariables(dataSetIdentifier:String):WeavePromise
+		public function getVariables(dataSetIdentifier:String):WeavePromise/*/<any>/*/
 		{
 			return getVariablesPromise(dataSetIdentifier).then(
 				function (result:Object):Object
@@ -100,7 +100,7 @@ package weavejs.data.source
 				});
 		}
 		
-		public function getGeographies(dataSetIdentifier:String):WeavePromise
+		public function getGeographies(dataSetIdentifier:String):WeavePromise/*/<any>/*/
 		{
 			return getGeographiesPromise(dataSetIdentifier).then(
 				function (result:Object):Object
@@ -124,7 +124,7 @@ package weavejs.data.source
 		 * @param metadata
 		 * @return An object containing three fields, "keys," "values," and "metadata" 
 		 */				
-		public function getColumn(metadata:Object):WeavePromise
+		public function getColumn(metadata:Object):WeavePromise/*/<{keys:any, values:any, metadata:any}>/*/
 		{	
 			var dataSource:CensusDataSource = Weave.getOwner(this) as CensusDataSource;
 			var dataset_name:String;

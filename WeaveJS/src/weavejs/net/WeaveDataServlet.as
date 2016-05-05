@@ -79,7 +79,7 @@ package weavejs.net
 		 *     It is unnecessary to specify this parameter if the return type is a primitive value.
 		 * @return The AsyncToken object representing the servlet method invocation.
 		 */		
-		private function invoke(method:Object, parameters:Array, returnType_or_castFunction:Object = null):WeavePromise
+		private function invoke(method:Object, parameters:Array, returnType_or_castFunction:Object = null):WeavePromise/*/<any>/*/
 		{
 			parameters = JS.toArray(parameters) || parameters;
 			var methodName:String = getMethodName(method);
@@ -231,22 +231,22 @@ package weavejs.net
 			return getServerInfo() != null;
 		}
 		
-		public function getHierarchyInfo(publicMetadata:Object):WeavePromise // returns EntityHierarchyInfo[]
+		public function getHierarchyInfo(publicMetadata:Object):WeavePromise/*/<EntityHierarchyInfo[]>/*/
 		{
 			return invoke(getHierarchyInfo, arguments, EntityHierarchyInfo);
 		}
 		
-		public function getEntities(ids:Array):WeavePromise // returns Entity[]
+		public function getEntities(ids:Array):WeavePromise/*/<Entity[]>/*/
 		{
 			return invoke(getEntities, arguments, Entity);
 		}
 		
-		public function findEntityIds(publicMetadata:Object, wildcardFields:Array):WeavePromise // returns int[]
+		public function findEntityIds(publicMetadata:Object, wildcardFields:Array):WeavePromise/*/<number[]>/*/
 		{
 			return invoke(findEntityIds, arguments);
 		}
 		
-		public function findPublicFieldValues(fieldName:String, valueSearch:String):WeavePromise // returns String[]
+		public function findPublicFieldValues(fieldName:String, valueSearch:String):WeavePromise/*/<string[]>/*/
 		{
 			return invoke(findPublicFieldValues, arguments);
 		}
@@ -254,12 +254,12 @@ package weavejs.net
 		////////////////////////////////////
 		// string and numeric data columns
 		
-		public function getColumn(columnId:Object, minParam:Number, maxParam:Number, sqlParams:Array):WeavePromise
+		public function getColumn(columnId:Object, minParam:Number, maxParam:Number, sqlParams:Array):WeavePromise/*/<AttributeColumnData>/*/
 		{
 			return invoke(getColumn, arguments, AttributeColumnData);
 		}
 		
-		public function getTable(id:int, sqlParams:Array):WeavePromise
+		public function getTable(id:int, sqlParams:Array):WeavePromise/*/<TableData>/*/
 		{
 			return invoke(getTable, arguments, TableData);
 		}
@@ -267,15 +267,15 @@ package weavejs.net
 		/////////////////////
 		// Geometry columns
 		
-		public function getGeometryStreamTileDescriptors(columnId:int):WeavePromise
+		public function getGeometryStreamTileDescriptors(columnId:int):WeavePromise/*/<GeometryStreamMetadata>/*/
 		{
 			return invoke(getGeometryStreamTileDescriptors, arguments, GeometryStreamMetadata);
 		}
-		public function getGeometryStreamMetadataTiles(columnId:int, tileIDs:Array):WeavePromise // returns byte[]
+		public function getGeometryStreamMetadataTiles(columnId:int, tileIDs:Array):WeavePromise/*/<weavejs.util.JSByteArray>/*/
 		{
 			return invoke(getGeometryStreamMetadataTiles, arguments);
 		}
-		public function getGeometryStreamGeometryTiles(columnId:int, tileIDs:Array):WeavePromise // returns byte[]
+		public function getGeometryStreamGeometryTiles(columnId:int, tileIDs:Array):WeavePromise/*/<weavejs.util.JSByteArray>/*/
 		{
 			return invoke(getGeometryStreamGeometryTiles, arguments);
 		}
@@ -293,7 +293,12 @@ package weavejs.net
 		//////////////
 		// Row query
 		
-		public function getRows(keys:Array):WeavePromise // returns WeaveRecordList
+		public function getRows(keys:Array):WeavePromise/*/<{
+				attributeColumnMetadata: {[key:string]:string}[],
+				keyType: string,
+				recordKeys: string[],
+				recordData: any[][]
+			}>/*/
 		{
 			var keysArray:Array = [];
 			for each( var key:IQualifiedKey in keys)
@@ -310,7 +315,7 @@ package weavejs.net
 		/**
 		 * Deprecated. Use getColumn() instead.
 		 */
-		public function getColumnFromMetadata(metadata:Object):WeavePromise
+		public function getColumnFromMetadata(metadata:Object):WeavePromise/*/<AttributeColumnData>/*/
 		{
 			return invoke(getColumnFromMetadata, arguments, AttributeColumnData);
 		}
@@ -339,14 +344,14 @@ internal class WeaveGeometryTileServlet implements IWeaveGeometryTileService
 	private var _service:WeaveDataServlet;
 	private var _columnId:int;
 	
-	public function getMetadataTiles(tileIDs:Array):WeavePromise
+	public function getMetadataTiles(tileIDs:Array):WeavePromise/*/<weavejs.util.JSByteArray>/*/
 	{
 		var token:WeavePromise = _service.getGeometryStreamMetadataTiles(_columnId, tileIDs);
 		WeaveAPI.ProgressIndicator.addTask(token, this);
 		return token;
 	}
 	
-	public function getGeometryTiles(tileIDs:Array):WeavePromise
+	public function getGeometryTiles(tileIDs:Array):WeavePromise/*/<weavejs.util.JSByteArray>/*/
 	{
 		var token:WeavePromise = _service.getGeometryStreamGeometryTiles(_columnId, tileIDs);
 		WeaveAPI.ProgressIndicator.addTask(token, this);
