@@ -17,6 +17,11 @@ package weavejs.util
 {
 	public class StandardLib
 	{
+		/**
+		 * This must be set externally.
+		 */
+		public static var lodash:Object;
+		
 		public static function formatNumber(number:Number, precision:int = -1):String
 		{
 			//TODO - use a library
