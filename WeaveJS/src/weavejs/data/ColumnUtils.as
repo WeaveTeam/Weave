@@ -197,9 +197,10 @@ package weavejs.data
 		public static function hack_findHierarchyNode(column:IAttributeColumn, createFakeNodeIfNotFound:Boolean = false):/*/IWeaveTreeNode & IColumnReference/*/IWeaveTreeNode
 		{
 			var rc:ReferencedColumn = column as ReferencedColumn;
+			var dc:DynamicColumn = null;
 			if (!rc)
 			{
-				var dc:DynamicColumn = hack_findInternalDynamicColumn(column as IColumnWrapper);
+				dc = hack_findInternalDynamicColumn(column as IColumnWrapper);
 				rc = dc ? dc.target as ReferencedColumn : null;
 			}
 			
@@ -211,7 +212,7 @@ package weavejs.data
 						dataSource: rc.getDataSource(),
 						data: rc.metadata.state
 					});
-				else if (column)
+				else if (column && (!dc || dc.getInternalColumn()))
 					node = new ColumnTreeNode({
 						dataSource: null,
 						data: ColumnMetadata.getAllMetadata(column)
