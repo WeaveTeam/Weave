@@ -33,6 +33,7 @@ package weavejs.data
 	import weavejs.data.column.ExtendedDynamicColumn;
 	import weavejs.data.column.ReferencedColumn;
 	import weavejs.data.column.SecondaryKeyNumColumn;
+	import weavejs.data.hierarchy.ColumnTreeNode;
 	import weavejs.data.hierarchy.HierarchyUtils;
 	import weavejs.geom.BLGNode;
 	import weavejs.geom.Bounds2D;
@@ -193,17 +194,31 @@ package weavejs.data
 			return columnWrapper as DynamicColumn;
 		}
 		
-		public static function hack_findHierarchyNode(columnWrapper:IColumnWrapper):/*/IWeaveTreeNode & IColumnReference/*/IWeaveTreeNode
+		public static function hack_findHierarchyNode(column:IAttributeColumn, createFakeNodeIfNotFound:Boolean = false):/*/IWeaveTreeNode & IColumnReference/*/IWeaveTreeNode
 		{
-			var rc:ReferencedColumn = columnWrapper as ReferencedColumn;
+			var rc:ReferencedColumn = column as ReferencedColumn;
 			if (!rc)
 			{
-				var dc:DynamicColumn = hack_findInternalDynamicColumn(columnWrapper);
-				if (!dc)
-					return null;
-				rc = dc.target as ReferencedColumn;
+				var dc:DynamicColumn = hack_findInternalDynamicColumn(column as IColumnWrapper);
+				rc = dc ? dc.target as ReferencedColumn : null;
 			}
-			return rc ? rc.getHierarchyNode() : null;
+			
+			var node:IWeaveTreeNode = rc ? rc.getHierarchyNode() : null;
+			if (!node && createFakeNodeIfNotFound)
+			{
+				if (rc)
+					node = new ColumnTreeNode({
+						dataSource: rc.getDataSource(),
+						data: rc.metadata.state
+					});
+				else if (column)
+					node = new ColumnTreeNode({
+						dataSource: null,
+						data: ColumnMetadata.getAllMetadata(column)
+					});
+			}
+			
+			return node;
 		}
 
 		/**

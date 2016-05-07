@@ -49,9 +49,9 @@ package weavejs.data.hierarchy
 			
 			childItemClass = ColumnTreeNode;
 			
-			if (!dataSource)
+			if (!params || !params.hasOwnProperty('dataSource'))
 				throw new Error('ColumnTreeNode constructor: "dataSource" parameter is required');
-			if (!dependency)
+			if (!dependency && dataSource)
 				dependency = dataSource.hierarchyRefresh;
 		}
 		
