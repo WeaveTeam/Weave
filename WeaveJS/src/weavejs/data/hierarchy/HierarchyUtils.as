@@ -55,7 +55,7 @@ package weavejs.data.hierarchy
 		 *         Returns null if the descendant is unreachable from this node.
 		 * @see weave.api.data.IWeaveTreeNode#equals()
 		 */
-		public static function findPathToNode(root:IWeaveTreeNode, descendant:IWeaveTreeNode):Array
+		public static function findPathToNode(root:IWeaveTreeNode, descendant:IWeaveTreeNode):Array/*/<IWeaveTreeNode>/*/
 		{
 			if (!root || !descendant)
 				return null;
@@ -84,7 +84,7 @@ package weavejs.data.hierarchy
 		 * Traverses an entire hierarchy and returns all nodes that
 		 * implement IColumnReference and have column metadata.
 		 */
-		public static function getAllColumnReferenceDescendants(source:IDataSource_File):Array
+		public static function getAllColumnReferenceDescendants(source:IDataSource_File):Array/*/<IColumnReference>/*/
 		{
 			return getAllColumnReferences(source.getHierarchyRoot(), []);
 		}

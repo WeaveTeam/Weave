@@ -42,7 +42,7 @@ package weave.api.data
 		 * @param metadata Metadata used to identify a node in the hierarchy, which may or may not reference a column.
 		 * @return The hierarchy node corresponding to the metadata or null if there is no corresponding node.
 		 */
-		function findHierarchyNode(metadata:Object):IWeaveTreeNode;
+		function findHierarchyNode(metadata:Object):/*/IWeaveTreeNode & weavejs.api.data.IColumnReference/*/IWeaveTreeNode;
 		
 		/**
 		 * Retrieves an IAttributeColumn from this IDataSource.
