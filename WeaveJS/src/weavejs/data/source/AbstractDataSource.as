@@ -154,7 +154,7 @@ package weavejs.data.source
 		 * may result in traversing the entire hierarchy, causing many remote procedure calls if
 		 * the hierarchy is stored remotely.
 		 */
-		public function findHierarchyNode(metadata:Object):IWeaveTreeNode
+		public function findHierarchyNode(metadata:Object):/*/IWeaveTreeNode & weavejs.api.data.IColumnReference/*/IWeaveTreeNode
 		{
 			var path:Array = HierarchyUtils.findPathToNode(getHierarchyRoot(), generateHierarchyNode(metadata));
 			if (path)

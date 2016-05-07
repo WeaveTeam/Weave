@@ -108,7 +108,7 @@ package weavejs.data.hierarchy
 			return _rootNode;
 		}
 		
-		public function findHierarchyNode(metadata:Object):IWeaveTreeNode
+		public function findHierarchyNode(metadata:Object):/*/IWeaveTreeNode & weavejs.api.data.IColumnReference/*/IWeaveTreeNode
 		{
 			var column:IAttributeColumn = generateNewAttributeColumn(metadata);
 			if (!column)
