@@ -84,13 +84,14 @@ package weavejs.util
 			this.result = undefined;
 			this.error = undefined;
 			
-			if (result is JS.Promise)
+			var wp:WeavePromise = result as WeavePromise;
+			if (wp)
+			{
+				wp._notify(this);
+			}
+			else if (isThenable(result))
 			{
 				result.then(setResult, setError);
-			}
-			else if (result is WeavePromise)
-			{
-				(result as WeavePromise)._notify(this);
 			}
 			else
 			{
@@ -99,6 +100,19 @@ package weavejs.util
 			}
 			
 			return this;
+		}
+		
+		public static function asPromise(obj:Object):/*/Promise/*/Object
+		{
+			var wp:WeavePromise = obj as WeavePromise;
+			if (wp)
+				return wp.getPromise();
+			return isThenable(obj) ? obj : null;
+		}
+		
+		public static function isThenable(obj:Object):Boolean
+		{
+			return obj && typeof obj.then === 'function';
 		}
 		
 		public function getResult():/*/T/*/Object

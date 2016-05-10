@@ -734,7 +734,7 @@ package weavejs.core
 			if (d2d_task_owner.get(taskToken, busyObject))
 				return;
 			
-			if ((taskToken is WeavePromise || taskToken is JS.Promise) && !WeaveAPI.ProgressIndicator.hasTask(taskToken))
+			if (WeavePromise.isThenable(taskToken) && !WeaveAPI.ProgressIndicator.hasTask(taskToken))
 			{
 				var unassign:Function = unassignBusyTask.bind(this, taskToken);
 				taskToken.then(unassign, unassign);

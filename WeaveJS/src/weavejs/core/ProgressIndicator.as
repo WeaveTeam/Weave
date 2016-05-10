@@ -67,7 +67,7 @@ package weavejs.core
 			// add task before WeaveAPI.SessionManager.assignBusyTask()
 			updateTask(taskToken, NaN); // NaN is used as a special case when adding the task
 			
-			if (isNewTask && (taskToken is WeavePromise || taskToken is JS.Promise))
+			if (isNewTask && WeavePromise.isThenable(taskToken))
 			{
 				var remove:Function = removeTask.bind(this, taskToken);
 				taskToken.then(remove, remove);

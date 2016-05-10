@@ -176,10 +176,7 @@ package weavejs.core
 				// set _invalidated to false now since we invoked the task
 				_invalidated = false;
 				
-				if (invokeResult is WeavePromise)
-					_jsPromise = (invokeResult as WeavePromise).getPromise();
-				else
-					_jsPromise = invokeResult as JS.Promise;
+				_jsPromise = WeavePromise.asPromise(invokeResult);
 				if (_jsPromise)
 				{
 					_jsPromise.then(_handleResult.bind(this, _jsPromise), _handleFault.bind(this, _jsPromise));
