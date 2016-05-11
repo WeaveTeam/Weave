@@ -205,7 +205,11 @@ package weavejs.core
 			_foundRoot = root != null;
 			if (!_foundRoot && !_warned)
 			{
-				JS.error("Warning: LinkableWatcher has a targetPath but has not been registered with an instance of Weave.");
+				var error:Error = new Error("LinkableWatcher has a targetPath but has not been registered with an instance of Weave");
+				WeaveAPI.Scheduler.callLater(this, function():void {
+					if (!_foundRoot && !Weave.getWeave(this))
+						JS.error("Warning:", error);
+				});
 				_warned = true;
 			}
 			var node:ILinkableObject = Weave.followPath(root, _targetPath);
