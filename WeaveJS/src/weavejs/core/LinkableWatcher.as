@@ -23,6 +23,7 @@ package weavejs.core
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.util.Dictionary2D;
+	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	
 	/**
@@ -59,6 +60,7 @@ package weavejs.core
 		private var _foundTarget:Boolean = true; // false when _target is not the desired target
 		protected var _targetPath:Array; // the path that is being watched
 		private var _pathDependencies:Dictionary2D = new Dictionary2D(); // (ILinkableCompositeObject, String) -> child object
+		private var _warned:Boolean = false; // true after warning has been shown
 		
 		/**
 		 * This is the linkable object currently being watched.
@@ -201,6 +203,11 @@ package weavejs.core
 			var weave:Weave = Weave.getWeave(this);
 			var root:ILinkableObject = weave ? weave.root : Weave.getRoot(this);
 			_foundRoot = root != null;
+			if (!_foundRoot && !_warned)
+			{
+				JS.error("Warning: LinkableWatcher has a targetPath but has not been registered with an instance of Weave.");
+				_warned = true;
+			}
 			var node:ILinkableObject = Weave.followPath(root, _targetPath);
 			if (!node)
 			{
