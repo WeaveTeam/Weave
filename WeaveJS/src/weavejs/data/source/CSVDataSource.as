@@ -178,7 +178,7 @@ package weavejs.data.source
 				var colNames:Array = parsedRows[0] || [];
 				// getColumnValues supports columnIndex -1
 				var keyColIndex:int = -1;
-				if (keyColumn.state is String)
+				if (keyColumn.state is String && keyColumn.state != '')
 				{
 					keyColIndex = colNames.indexOf(keyColumn.state as String);
 					// treat invalid key column name as an error
