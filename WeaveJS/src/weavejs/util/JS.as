@@ -241,7 +241,7 @@ package weavejs.util
 			
 			if (object is Array)
 				copy = [];
-			else if (Object['getPrototypeOf'](object))
+			else if (Object['getPrototypeOf'](Object['getPrototypeOf'](object)))
 				throw new Error("copyObject() cannot copy non-primitive Objects");
 			else
 				copy = {};
