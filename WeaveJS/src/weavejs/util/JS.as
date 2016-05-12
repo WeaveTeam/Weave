@@ -237,9 +237,18 @@ package weavejs.util
 			if (object === null || typeof object !== 'object')
 				return object;
 			
-			var copy:Object = object is Array ? [] : {};
+			var copy:Object;
+			
+			if (object is Array)
+				copy = [];
+			else if (Object['getPrototypeOf'](object))
+				throw new Error("copyObject() cannot copy non-primitive Objects");
+			else
+				copy = {};
+			
 			for (var key:String in object)
 				copy[key] = copyObject(object[key]);
+			
 			return copy;
 			
 			//return JSON.parse(JSON.stringify(object));
