@@ -138,7 +138,7 @@ package weavejs.net
 			service.addHook(
 				service.checkDatabaseConfigExists,
 				null,
-				function handleCheck(result:*, _:*):void
+				function(result:*, _:*):void
 				{
 					// save info
 					databaseConfigExists = result as Boolean;

@@ -215,7 +215,7 @@ package weavejs.net
 			var methodName:String = getMethodName(method);
 			if (!methodName)
 				throw new Error("method must be a member of WeaveAdminService");
-			return generateQuery(adminService, methodName, parameters, queued, returnType);
+			return generateQuery(adminService, methodName, JS.global.Array.from(parameters), queued, returnType);
 		}
 		
 		/**
@@ -230,7 +230,7 @@ package weavejs.net
 			var methodName:String = getMethodName(method);
 			if (!methodName)
 				throw new Error("method must be a member of WeaveAdminService");
-			return generateQuery(dataService, methodName, parameters, queued, returnType);
+			return generateQuery(dataService, methodName, JS.global.Array.from(parameters), queued, returnType);
 		}
 		
 		/**
