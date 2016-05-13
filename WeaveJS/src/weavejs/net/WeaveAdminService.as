@@ -74,18 +74,30 @@ package weavejs.net
 		{
 			adminService = Weave.linkableChild(this, new AMF3Servlet(url + "/AdminService"));
 			dataService = Weave.linkableChild(this, new AMF3Servlet(url + "/DataService"));
+			
 			resetQueue();
-			
-			//var info:* = DescribeType.getInfo(this, DescribeType.METHOD_FLAGS);
-			/* ??? */
-			for each (var item:String in JS.getPropertyNames(this, true))
-			{
-				var func:Function = this[item] as Function;
-				if (func != null)
-					propertyNameLookup.set(func, item);
-			}
-			
 			initializeAdminService();
+		}
+
+		private var map_method_name:Object = new JS.Map(); // method->string
+
+		private function getMethodName(method:Object):String
+		{
+			if (method is String)
+				return method as String;
+			
+			if (!map_method_name.has(method))
+			{
+				for each (var name:String in JS.getPropertyNames(this, true))
+				{
+					if (this[name] === method)
+					{
+						map_method_name.set(method, name);
+						return name;
+					}
+				}
+			}
+			return map_method_name.get(method);
 		}
 		
 		private function resetQueue():void
@@ -98,7 +110,6 @@ package weavejs.net
 		private var queue:AsyncInvocationQueue;
 		private var adminService:AMF3Servlet;
 		private var dataService:AMF3Servlet;
-		private var propertyNameLookup:Object = new JS.Map(); // Function -> String
 		private var methodHooks:Object = {}; // methodName -> Array (of MethodHook)
         /*Bindable*/ public var initialized:Boolean = false;
 		/*Bindable*/ public var migrationProgress:String = '';
@@ -145,7 +156,7 @@ package weavejs.net
 		 */
 		public function addHook(method:Function, captureHandler:Function, resultHandler:Function, faultHandler:Function = null):void
 		{
-			var methodName:String = propertyNameLookup.get(method);
+			var methodName:String = getMethodName(method);
 			if (!methodName)
 				throw new Error("method must be a member of WeaveAdminService");
 			var hooks:Array = methodHooks[methodName];
@@ -201,7 +212,7 @@ package weavejs.net
 		 */		
 		private function invokeAdmin(method:Function, parameters:Array, queued:Boolean = true, returnType:Class = null):WeavePromise/*/<any>/*/
 		{
-			var methodName:String = propertyNameLookup.get(method);
+			var methodName:String = getMethodName(method);
 			if (!methodName)
 				throw new Error("method must be a member of WeaveAdminService");
 			return generateQuery(adminService, methodName, parameters, queued, returnType);
@@ -216,7 +227,7 @@ package weavejs.net
 		 */		
 		private function invokeDataService(method:Function, parameters:Array, queued:Boolean = true, returnType:Class = null):WeavePromise/*/<any>/*/
 		{
-			var methodName:String = propertyNameLookup.get(method);
+			var methodName:String = getMethodName(method);
 			if (!methodName)
 				throw new Error("method must be a member of WeaveAdminService");
 			return generateQuery(dataService, methodName, parameters, queued, returnType);
@@ -241,9 +252,13 @@ package weavejs.net
 			
 			hookCaptureHandler(methodName, parameters, query);
 
-			if ([null, Array, String, Number, int, uint].indexOf(returnType) < 0)
+			if ([null, Array, String, Number].indexOf(returnType) < 0)
 			{
 				castedQuery = query.then(WeaveDataServlet.castResult.bind(this, returnType));
+			}
+			else
+			{
+				castedQuery = query;
 			}
 
 			castedQuery.then(hookHandler.bind(this, methodName, parameters), alertFault.bind(this, methodName, parameters, query));
