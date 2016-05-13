@@ -85,6 +85,7 @@ package
 	import weavejs.path.ExternalTool;
 	import weavejs.util.JS;
 	import weavejs.util.WeaveMenuItem;
+	import weavejs.net.Admin;
 	
 	public class WeaveTest
 	{
@@ -159,6 +160,7 @@ package
 			IVisTool,
 			IVisTool_Basic,
 			IVisTool_Utility,
+			Admin,
 			
 			//EntityNodeSearch, //TODO - resolve circular dependency issue
 			
