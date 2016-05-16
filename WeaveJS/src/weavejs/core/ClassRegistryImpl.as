@@ -168,6 +168,8 @@ package weavejs.core
 			// try short name
 			if (!def && name.indexOf("::") > 0)
 				def = getDefinition(name.split('::').pop());
+			if (!def)
+				def = getDefinition(names[names.length - 1]);
 			
 			// save in cache
 			if (def)
