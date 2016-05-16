@@ -490,7 +490,7 @@ package weavejs.net
 		/////////////////
 		// File uploads
 		
-		public function uploadFile(fileName:String, bytes:Array/*/Uint8Array/*/):WeavePromise/*/<any>/*/
+		public function uploadFile(fileName:String, bytes:/*/Uint8Array/*/Array):WeavePromise/*/<any>/*/
 		{
 			// queue up requests for uploading chunks at a time, then return the token of the last chunk
 			

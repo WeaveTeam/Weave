@@ -102,7 +102,7 @@ package weavejs.util
 			return this;
 		}
 		
-		public static function asPromise(obj:Object):/*/Promise/*/Object
+		public static function asPromise/*/<T>/*/(obj:Object):/*/Promise<T>/*/Object
 		{
 			var wp:WeavePromise = obj as WeavePromise;
 			if (wp)
