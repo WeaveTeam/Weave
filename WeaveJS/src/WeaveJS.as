@@ -53,6 +53,7 @@ package
 		public function start():void
 		{
 			WeaveAPI.ClassRegistry['defaultPackages'].push(
+				'',
 				'weavejs',
 				'weavejs.api',
 				'weavejs.api.core',

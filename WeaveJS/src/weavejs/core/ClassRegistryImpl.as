@@ -144,35 +144,39 @@ package weavejs.core
 			if (def || !name)
 				return def;
 			
-			// try following names from global scope
-			var names:Array = name.split('.');
-			def = JS.global;
-			for each (var key:String in names)
-			{
-				if (!def)
-					break;
-				def = def[key];
-			}
+			// try following chain of property names from global scope
+			def = evalChain(name);
 			
 			// check default packages
-			if (!def && names.length == 1)
+			if (!def)
 			{
+				var shortName:String = name.split('.').pop().split('::').pop();
 				for each (var pkg:String in defaultPackages)
 				{
-					def = getDefinition(pkg + '.' + name);
+					var qName:String = pkg ? pkg + '.' + shortName : shortName;
+					def = map_name_class.get(qName) || evalChain(qName);
 					if (def)
 						break;
 				}
 			}
 			
-			// try short name
-			if (!def && name.indexOf("::") > 0)
-				def = getDefinition(name.split('::').pop());
-			
 			// save in cache
 			if (def)
 				map_name_class.set(name, def);
 			
+			return def;
+		}
+		
+		private function evalChain(name:String):*
+		{
+			var chain:Array = name.split('.');
+			var def:* = JS.global;
+			for each (var key:String in chain)
+			{
+				if (!def)
+					break;
+				def = def[key];
+			}
 			return def;
 		}
 		
