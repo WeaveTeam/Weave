@@ -15,23 +15,19 @@
 
 package weavejs.net
 {
-	import weavejs.net.URLRequest;
-	import weavejs.net.RequestMethod;
-	import weavejs.util.JSByteArray;
-
-	import weavejs.util.WeavePromise;
-
 	import weavejs.api.net.IWeaveEntityManagementService;
 	import weavejs.api.net.beans.Entity;
 	import weavejs.api.net.beans.EntityHierarchyInfo;
 	import weavejs.api.net.beans.EntityMetadata;
-	import weavejs.util.JS;
-	import weavejs.util.StandardLib;
 	import weavejs.core.CallbackCollection;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.net.beans.ConnectionInfo;
 	import weavejs.net.beans.DatabaseConfigInfo;
 	import weavejs.net.beans.WeaveFileInfo;
+	import weavejs.util.JS;
+	import weavejs.util.JSByteArray;
+	import weavejs.util.StandardLib;
+	import weavejs.util.WeavePromise;
 	
 	/**
 	 * The functions in this class correspond directly to Weave servlet functions written in Java.
@@ -305,7 +301,7 @@ package weavejs.net
 			//fixErrorMessage(event.fault);
 			if (PREVENT_FAULT_ALERT.has(query))
 			{
-				PREVENT_FAULT_ALERT.delete(query);
+				PREVENT_FAULT_ALERT['delete'](query);
 				return;
 			}
 			
