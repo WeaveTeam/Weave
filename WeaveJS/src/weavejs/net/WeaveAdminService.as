@@ -257,7 +257,7 @@ package weavejs.net
 				castedQuery = query;
 			}
 
-			castedQuery.then(hookHandler.bind(this, methodName, parameters), alertFault.bind(this, methodName, parameters, query));
+			castedQuery.then(hookHandler.bind(this, methodName, parameters));
 			
 			if (!queued)
 				service.invokeDeferred(query);
@@ -359,14 +359,12 @@ package weavejs.net
 		public function saveWeaveFile(fileContent:JSByteArray, fileName:String, overwriteFile:Boolean):WeavePromise/*/<any>/*/
 		{
 			var query:WeavePromise/*/<any>/*/ = invokeAdmin(saveWeaveFile, arguments);
-			//addAsyncResponder(query, alertResult);
 			return query;
 		}
 
 		public function removeWeaveFile(fileName:String):WeavePromise/*/<any>/*/
 		{
 			var query:WeavePromise/*/<any>/*/ = invokeAdmin(removeWeaveFile, arguments);
-			query.then(alertResult);
 			return query;
 		}
 
@@ -392,13 +390,11 @@ package weavejs.net
 				saveConnectionInfo,
 				[info.name, info.pass, info.folderName, info.is_superuser, info.connectString, configOverwrite]
 			);
-			query.then(alertResult);
 		    return query;
 		}
 		public function removeConnectionInfo(connectionNameToRemove:String):WeavePromise/*/<any>/*/
 		{
 			var query:WeavePromise/*/<any>/*/ = invokeAdmin(removeConnectionInfo, arguments);
-			query.then(alertResult);
 			return query;
 		}
 		
@@ -413,7 +409,6 @@ package weavejs.net
 		public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String, idFields:Array):WeavePromise/*/<any>/*/
 		{
 			var query:WeavePromise/*/<any>/*/ = invokeAdmin(setDatabaseConfigInfo, arguments);
-			query.then(alertResult)
 			return query;
 		}
 
