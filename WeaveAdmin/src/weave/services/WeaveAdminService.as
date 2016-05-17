@@ -115,8 +115,8 @@ package weave.services
 		private var dataService:AMF3Servlet;
 		private var propertyNameLookup:Dictionary = new Dictionary(); // Function -> String
 		private var methodHooks:Object = {}; // methodName -> Array (of MethodHook)
-        /*Bindable*/ public var initialized:Boolean = false;
-		/*Bindable*/ public var migrationProgress:String = '';
+        [Bindable] public var initialized:Boolean = false;
+		[Bindable] public var migrationProgress:String = '';
 		
 		public function get entityServiceInitialized():Boolean
 		{
@@ -125,8 +125,8 @@ package weave.services
 		
 		//TODO - move hooks from Admin.as to here, and automatically set these user/pass/authenticated settings
 		public const authenticated:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		/*Bindable*/ public var user:String = '';
-		/*Bindable*/ public var pass:String = '';
+		[Bindable] public var user:String = '';
+		[Bindable] public var pass:String = '';
 		
 		//////////////////////////////
 		// Initialization
