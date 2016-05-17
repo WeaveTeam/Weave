@@ -67,7 +67,6 @@ package
 				'weavejs.data.key',
 				'weavejs.data.source',
 				'weavejs.geom',
-				'weavejs.layout',
 				'weavejs.path',
 				'weavejs.util'
 			);
