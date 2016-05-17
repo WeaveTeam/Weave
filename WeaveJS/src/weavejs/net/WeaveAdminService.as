@@ -68,8 +68,8 @@ package weavejs.net
 		 */		
 		public function WeaveAdminService(url:String)
 		{
-			adminService = Weave.linkableChild(this, new AMF3Servlet(url + "/AdminService"));
-			dataService = Weave.linkableChild(this, new AMF3Servlet(url + "/DataService"));
+			adminService = Weave.linkableChild(this, new AMF3Servlet(url + "/AdminService", false));
+			dataService = Weave.linkableChild(this, new AMF3Servlet(url + "/DataService", false));
 			
 			resetQueue();
 			initializeAdminService();
@@ -127,7 +127,7 @@ package weavejs.net
 		{
 			var req:URLRequest = new URLRequest(adminService.servletURL);
 
-			invokeAdmin(initializeAdminService, arguments).then(
+			invokeAdmin(initializeAdminService, arguments, false).then(
 				initializeAdminServiceComplete,
 				initializeAdminServiceError
 			);

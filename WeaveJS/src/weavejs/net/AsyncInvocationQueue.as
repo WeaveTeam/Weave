@@ -61,7 +61,7 @@ package weavejs.net
 		public function begin():void
 		{
 			assertQueueValid();
-			
+
 			if (_paused)
 			{
 				_paused = false;
@@ -86,7 +86,7 @@ package weavejs.net
 			// if this query has already been queued, then do not queue it again
 			if (_downloadQueue.indexOf(query) >= 0)
 			{
-				//trace("already queued", query);
+				//JS.error("already queued", query);
 				return;
 			}
 			
@@ -147,7 +147,7 @@ package weavejs.net
 			if (service)
 			{
 				if (debug)
-					JS.log('Query sent: ' + query);
+					JS.log('Query sent: ', query);
 				service.invokeDeferred(query);
 			}
 			else
@@ -169,7 +169,7 @@ package weavejs.net
 			// stop if query not found in queue
 			if (index < 0)
 			{
-				JS.log("Query not found in queue: " + query);
+				JS.log("Query not found in queue: ", query);
 				return;
 			}
 			
