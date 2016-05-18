@@ -123,11 +123,11 @@ package weavejs.net
 		//////////////////////////////
 		// Initialization
 		
-		public function initializeAdminService():void
+		public function initializeAdminService():WeavePromise/*/<void>/*/
 		{
 			var req:URLRequest = new URLRequest(adminService.servletURL);
 
-			invokeAdmin(initializeAdminService, arguments, false).then(
+			return invokeAdmin(initializeAdminService, arguments, false).then(
 				initializeAdminServiceComplete,
 				initializeAdminServiceError
 			);
@@ -328,22 +328,22 @@ package weavejs.net
 			messageDisplay(error, msg, true);
 		}
 		
-		public function getVersion():WeavePromise/*/<any>/*/
+		public function getVersion():WeavePromise/*/<string>/*/
 		{
 			return invokeAdmin(getVersion, arguments);
 		}
 
-		public function checkDatabaseConfigExists():WeavePromise/*/<any>/*/
+		public function checkDatabaseConfigExists():WeavePromise/*/<boolean>/*/
 		{
 			return invokeAdmin(checkDatabaseConfigExists, arguments);
 		}
 		
-		public function authenticate(user:String, pass:String):WeavePromise/*/<any>/*/
+		public function authenticate(user:String, pass:String):WeavePromise/*/<boolean>/*/
 		{
 			return invokeAdmin(authenticate, arguments);
 		}
 		
-		public function keepAlive():WeavePromise/*/<any>/*/
+		public function keepAlive():WeavePromise/*/<void>/*/
 		{
 			return invokeAdmin(keepAlive, arguments);
 		}
@@ -351,24 +351,24 @@ package weavejs.net
 		//////////////////////////////
 		// Weave client config files
 
-		public function getWeaveFileNames(showAllFiles:Boolean):WeavePromise/*/<any>/*/
+		public function getWeaveFileNames(showAllFiles:Boolean):WeavePromise/*/<string[]>/*/
 		{
 			return invokeAdmin(getWeaveFileNames, arguments);
 		}
 
-		public function saveWeaveFile(fileContent:JSByteArray, fileName:String, overwriteFile:Boolean):WeavePromise/*/<any>/*/
+		public function saveWeaveFile(fileContent:JSByteArray, fileName:String, overwriteFile:Boolean):WeavePromise/*/<string>/*/
 		{
 			var query:WeavePromise/*/<any>/*/ = invokeAdmin(saveWeaveFile, arguments);
 			return query;
 		}
 
-		public function removeWeaveFile(fileName:String):WeavePromise/*/<any>/*/
+		public function removeWeaveFile(fileName:String):WeavePromise/*/<string>/*/
 		{
 			var query:WeavePromise/*/<any>/*/ = invokeAdmin(removeWeaveFile, arguments);
 			return query;
 		}
 
-		public function getWeaveFileInfo(fileName:String):WeavePromise/*/<any>/*/
+		public function getWeaveFileInfo(fileName:String):WeavePromise/*/<WeaveFileInfo>/*/
 		{
 			return invokeAdmin(getWeaveFileInfo, arguments, false, WeaveFileInfo); // bypass queue
 		}
@@ -376,15 +376,15 @@ package weavejs.net
 		//////////////////////////////
 		// ConnectionInfo management
 		
-		public function getConnectionNames():WeavePromise/*/<any>/*/
+		public function getConnectionNames():WeavePromise/*/<string[]>/*/
 		{
 			return invokeAdmin(getConnectionNames, arguments);
 		}
-		public function getConnectionInfo(userToGet:String):WeavePromise/*/<any>/*/
+		public function getConnectionInfo(userToGet:String):WeavePromise/*/<ConnectionInfo>/*/
 		{
 			return invokeAdmin(getConnectionInfo, arguments, true, ConnectionInfo);
 		}
-		public function saveConnectionInfo(info:ConnectionInfo, configOverwrite:Boolean):WeavePromise/*/<any>/*/
+		public function saveConnectionInfo(info:ConnectionInfo, configOverwrite:Boolean):WeavePromise/*/<string>/*/
 		{
 			var query:WeavePromise/*/<any>/*/ = invokeAdmin(
 				saveConnectionInfo,
@@ -392,7 +392,7 @@ package weavejs.net
 			);
 		    return query;
 		}
-		public function removeConnectionInfo(connectionNameToRemove:String):WeavePromise/*/<any>/*/
+		public function removeConnectionInfo(connectionNameToRemove:String):WeavePromise/*/<string>/*/
 		{
 			var query:WeavePromise/*/<any>/*/ = invokeAdmin(removeConnectionInfo, arguments);
 			return query;
@@ -401,12 +401,12 @@ package weavejs.net
 		//////////////////////////////////
 		// DatabaseConfigInfo management
 		
-		public function getDatabaseConfigInfo():WeavePromise/*/<any>/*/
+		public function getDatabaseConfigInfo():WeavePromise/*/<DatabaseConfigInfo>/*/
 		{
 			return invokeAdmin(getDatabaseConfigInfo, arguments, true, DatabaseConfigInfo);
 		}
 
-		public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String, idFields:Array):WeavePromise/*/<any>/*/
+		public function setDatabaseConfigInfo(connectionName:String, password:String, schema:String, idFields:Array):WeavePromise/*/<string>/*/
 		{
 			var query:WeavePromise/*/<any>/*/ = invokeAdmin(setDatabaseConfigInfo, arguments);
 			return query;
@@ -415,47 +415,47 @@ package weavejs.net
 		//////////////////////////
 		// DataEntity management
 		
-		public function newEntity(metadata:EntityMetadata, parentId:int, insertAtIndex:int):WeavePromise/*/<any>/*/
+		public function newEntity(metadata:EntityMetadata, parentId:int, insertAtIndex:int):WeavePromise/*/<number>/*/
 		{
 			return invokeAdmin(newEntity, arguments);
 		}
 
-		public function updateEntity(entityId:int, diff:EntityMetadata):WeavePromise/*/<any>/*/
+		public function updateEntity(entityId:int, diff:EntityMetadata):WeavePromise/*/<void>/*/
 		{
 			return invokeAdmin(updateEntity, arguments);
 		}
 
-		public function removeEntities(entityIds:Array):WeavePromise/*/<any>/*/
+		public function removeEntities(entityIds:Array):WeavePromise/*/<number[]>/*/
 		{
 			return invokeAdmin(removeEntities, arguments);
 		}
 
-		public function addChild(parentId:int, childId:int, insertAtIndex:int):WeavePromise/*/<any>/*/
+		public function addChild(parentId:int, childId:int, insertAtIndex:int):WeavePromise/*/<number[]>/*/
 		{
 			return invokeAdmin(addChild, arguments);
 		}
 
-		public function removeChild(parentId:int, childId:int):WeavePromise/*/<any>/*/
+		public function removeChild(parentId:int, childId:int):WeavePromise/*/<void>/*/
 		{
 			return invokeAdmin(removeChild, arguments);
 		}
 
-		public function getHierarchyInfo(publicMetadata:Object):WeavePromise/*/<any>/*/
+		public function getHierarchyInfo(publicMetadata:Object):WeavePromise/*/<EntityHierarchyInfo[]>/*/
 		{
 			return invokeAdmin(getHierarchyInfo, arguments, true, EntityHierarchyInfo);
 		}
 
-		public function getEntities(entityIds:Array):WeavePromise/*/<any>/*/
+		public function getEntities(entityIds:Array):WeavePromise/*/<Entity[]>/*/
 		{
 			return invokeAdmin(getEntities, arguments, true, Entity);
 		}
 
-		public function findEntityIds(publicMetadata:Object, wildcardFields:Array):WeavePromise/*/<any>/*/
+		public function findEntityIds(publicMetadata:Object, wildcardFields:Array):WeavePromise/*/<number[]>/*/
 		{
 			return invokeAdmin(findEntityIds, arguments);
 		}
 
-		public function findPublicFieldValues(fieldName:String, valueSearch:String):WeavePromise/*/<any>/*/
+		public function findPublicFieldValues(fieldName:String, valueSearch:String):WeavePromise/*/<string[]>/*/
 		{
 			return invokeAdmin(findPublicFieldValues, arguments);
 		}
@@ -463,17 +463,17 @@ package weavejs.net
 		///////////////////////
 		// SQL info retrieval
 
-		public function getSQLSchemaNames():WeavePromise/*/<any>/*/
+		public function getSQLSchemaNames():WeavePromise/*/<string[]>/*/
 		{
 			return invokeAdmin(getSQLSchemaNames, arguments, false);
 		}
 
-		public function getSQLTableNames(schemaName:String):WeavePromise/*/<any>/*/
+		public function getSQLTableNames(schemaName:String):WeavePromise/*/<string[]>/*/
 		{
 			return invokeAdmin(getSQLTableNames, arguments, false);
 		}
 
-		public function getSQLColumnNames(schemaName:String, tableName:String):WeavePromise/*/<any>/*/
+		public function getSQLColumnNames(schemaName:String, tableName:String):WeavePromise/*/<string[]>/*/
 		{
 			return invokeAdmin(getSQLColumnNames, arguments, false);
 		}
@@ -481,7 +481,7 @@ package weavejs.net
 		/////////////////
 		// File uploads
 		
-		public function uploadFile(fileName:String, bytes:/*/Uint8Array/*/Array):WeavePromise/*/<any>/*/
+		public function uploadFile(fileName:String, bytes:/*/Uint8Array/*/Array):WeavePromise/*/<void>/*/
 		{
 			// queue up requests for uploading chunks at a time, then return the token of the last chunk
 			
@@ -505,22 +505,22 @@ package weavejs.net
 			return promise;
 		}
 
-		public function getUploadedCSVFiles():WeavePromise/*/<any>/*/
+		public function getUploadedCSVFiles():WeavePromise/*/<WeaveFileInfo[]>/*/
 		{
 			return invokeAdmin(getUploadedCSVFiles, arguments, false, WeaveFileInfo);
 		}
 
-		public function getUploadedSHPFiles():WeavePromise/*/<any>/*/
+		public function getUploadedSHPFiles():WeavePromise/*/<WeaveFileInfo[]>/*/
 		{
 			return invokeAdmin(getUploadedSHPFiles, arguments, false, WeaveFileInfo);
 		}
 
-		public function getCSVColumnNames(csvFiles:String):WeavePromise/*/<any>/*/
+		public function getCSVColumnNames(csvFiles:String):WeavePromise/*/<string[]>/*/
 		{
 			return invokeAdmin(getCSVColumnNames, arguments);
 		}
 
-		public function getDBFColumnNames(dbfFileNames:Array):WeavePromise/*/<any>/*/
+		public function getDBFColumnNames(dbfFileNames:Array):WeavePromise/*/<string[]>/*/
 		{
 		    return invokeAdmin(getDBFColumnNames, arguments);
 		}
@@ -528,17 +528,17 @@ package weavejs.net
 		/////////////////////////////////
 		// Key column uniqueness checks
 		
-		public function checkKeyColumnsForSQLImport(schemaName:String, tableName:String, keyColumns:Array):WeavePromise/*/<any>/*/
+		public function checkKeyColumnsForSQLImport(schemaName:String, tableName:String, keyColumns:Array):WeavePromise/*/<void>/*/
 		{
 			return invokeAdmin(checkKeyColumnsForSQLImport, arguments);
 		}
 
-		public function checkKeyColumnsForCSVImport(csvFileName:String, keyColumns:Array):WeavePromise/*/<any>/*/
+		public function checkKeyColumnsForCSVImport(csvFileName:String, keyColumns:Array):WeavePromise/*/<void>/*/
 		{
 			return invokeAdmin(checkKeyColumnsForCSVImport, arguments);
 		}
 
-		public function checkKeyColumnsForDBFImport(dbfFileNames:Array, keyColumns:Array):WeavePromise/*/<any>/*/
+		public function checkKeyColumnsForDBFImport(dbfFileNames:Array, keyColumns:Array):WeavePromise/*/<boolean>/*/
 		{
 			return invokeAdmin(checkKeyColumnsForDBFImport, arguments);
 		}
@@ -551,7 +551,7 @@ package weavejs.net
 				sqlSchema:String, sqlTable:String, sqlOverwrite:Boolean, configDataTableName:String,
 				configKeyType:String, nullValues:String,
 				filterColumnNames:Array, configAppend:Boolean
-			):WeavePromise/*/<any>/*/
+			):WeavePromise/*/<number>/*/
 		{
 		    return invokeAdmin(importCSV, arguments);
 		}
@@ -559,7 +559,7 @@ package weavejs.net
 				schemaName:String, tableName:String, keyColumnName:String,
 				secondaryKeyColumnName:String, configDataTableName:String,
 				keyType:String, filterColumns:Array, configAppend:Boolean
-			):WeavePromise/*/<any>/*/
+			):WeavePromise/*/<number>/*/
 		{
 		    return invokeAdmin(importSQL, arguments);
 		}
@@ -567,7 +567,7 @@ package weavejs.net
 				configfileNameWithoutExtension:String, keyColumns:Array,
 				sqlSchema:String, sqlTablePrefix:String, sqlOverwrite:Boolean, configTitle:String,
 				configKeyType:String, configProjection:String, nullValues:String, importDBFAsDataTable:Boolean, configAppend:Boolean
-			):WeavePromise/*/<any>/*/
+			):WeavePromise/*/<number>/*/
 		{
 		    return invokeAdmin(importSHP, arguments);
 		}
@@ -575,7 +575,7 @@ package weavejs.net
 		public function importDBF(
 				fileNameWithoutExtension:String, sqlSchema:String,
 				sqlTableName:String, sqlOverwrite:Boolean, nullValues:String
-			):WeavePromise/*/<any>/*/
+			):WeavePromise/*/<void>/*/
 		{
 			return invokeAdmin(importDBF, arguments);
 		}
@@ -583,7 +583,7 @@ package weavejs.net
 		//////////////////////
 		// SQL query testing
 		
-		public function testAllQueries(tableId:int):WeavePromise/*/<any>/*/
+		public function testAllQueries(tableId:int):WeavePromise/*/<any[]>/*/
 		{
 			return invokeAdmin(testAllQueries, arguments, false);
 		}
@@ -591,7 +591,7 @@ package weavejs.net
 		//////////////////
 		// Miscellaneous
 		
-		public function getKeyTypes():WeavePromise/*/<any>/*/
+		public function getKeyTypes():WeavePromise/*/<string[]>/*/
 		{
 			return invokeAdmin(getKeyTypes, arguments);
 		}
