@@ -52,6 +52,7 @@ public class WeaveConfig
 	
 	public static final String ALLOW_R_SCRIPT_ACCESS = "allow-r-script-access";
 	public static final String ALLOW_RSERVE_ROOT_ACCESS = "allow-rserve-root-access";
+	public static final String ALLOW_ANONYMOUS_FILE_LIST = "allow-anonymous-file-list";
 	private static LiveProperties properties;
 	public static String getProperty(String key)
 	{

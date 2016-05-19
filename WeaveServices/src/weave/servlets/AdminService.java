@@ -232,7 +232,21 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	public String[] getWeaveFileNames(Boolean showAllFiles)
 		throws RemoteException
 	{
-		ConnectionInfo info = getConnectionInfo();
+		ConnectionInfo info = null;
+		String folderName = "";
+		try 
+		{
+			info = getConnectionInfo();	
+			folderName = info.folderName;
+		}
+		catch (RemoteException e)
+		{
+			if (!WeaveConfig.getPropertyBoolean(WeaveConfig.ALLOW_ANONYMOUS_FILE_LIST) || showAllFiles)
+			{
+				throw e;
+			}
+		}
+
 		File[] files = null;
 		List<String> listOfFiles = new ArrayList<String>();
 		FilenameFilter fileFilter = new FilenameFilter()
@@ -269,8 +283,8 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		}
 
 		String path = getDocrootPath();
-		if (!showAllFiles && !Strings.isEmpty(info.folderName))
-			path = path + info.folderName + "/";
+		if (!showAllFiles && !Strings.isEmpty(folderName))
+			path = path + folderName + "/";
 
 		File docrootFolder = new File(path);
 
@@ -282,8 +296,8 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 			{
 				if (file.isFile())
 				{
-					listOfFiles.add(((!showAllFiles && !Strings.isEmpty(info.folderName))
-							? info.folderName + "/" : "") + file.getName().toString());
+					listOfFiles.add(((!showAllFiles && !Strings.isEmpty(folderName))
+							? folderName + "/" : "") + file.getName().toString());
 				}
 			}
 		}
@@ -392,7 +406,12 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	public WeaveFileInfo getWeaveFileInfo(String fileName)
 		throws RemoteException
 	{
-		getConnectionInfo();
+		/* If we allow anonymous file listing, don't get the connection info to trigger the authentication exception */
+		if (!WeaveConfig.getPropertyBoolean(WeaveConfig.ALLOW_ANONYMOUS_FILE_LIST))
+		{
+			getConnectionInfo();
+		}
+
 		return new WeaveFileInfo(getDocrootPath(), fileName);
 	}
 
