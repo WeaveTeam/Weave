@@ -93,16 +93,12 @@ package weavejs.data.column
 			
 			_dateFormat = DateFormat.convertDateFormat_c_to_moment(_dateFormat);
 
-			// read dateDisplayFormat metadata, default to the input format if none is specified.
+			// read dateDisplayFormat metadata
 			_dateDisplayFormat = getMetadata(ColumnMetadata.DATE_DISPLAY_FORMAT);
 
 			if (_dateDisplayFormat)
 			{
 				_dateDisplayFormat = DateFormat.convertDateFormat_c_to_moment(_dateDisplayFormat);
-			}
-			else
-			{
-				_dateDisplayFormat = _dateFormat;
 			}
 			
 			// compile the number format function from the metadata
@@ -174,11 +170,12 @@ package weavejs.data.column
 		private static const MINUTE:Number = 60 * 1000;
 		private static const HOUR:Number = 60 * 60 * 1000;
 		
+		/* When formatting date, default to input format if no display format specified. */
 		private function formatDate(value:Object):String
 		{
 			if (_durationMode)
 				return DateUtils.formatDuration(value);
-			return DateUtils.format(value, _dateDisplayFormat);
+			return DateUtils.format(value, _dateDisplayFormat || _dateFormat);
 		}
 		
 		private function _asyncIterate(stopTime:int):Number
@@ -298,7 +295,7 @@ package weavejs.data.column
 				if (value === undefined)
 					return '';
 				
-				if (_dateFormat)
+				if (_dateDisplayFormat || _dateFormat)
 					string = formatDate(value);
 				else
 					string = value.toString();
