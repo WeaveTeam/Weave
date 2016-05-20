@@ -55,6 +55,7 @@ package weavejs.core
 		}
 		
 		protected var _typeRestriction:Class;
+		private var _root:ILinkableObject; // the root object to which targetPath is relative
 		private var _target:ILinkableObject; // the current target or ancestor of the to-be-target
 		private var _foundRoot:Boolean = false; // false until Weave.getWeave() or Weave.getRoot(this) returns non-null
 		private var _foundTarget:Boolean = true; // false when _target is not the desired target
@@ -63,9 +64,43 @@ package weavejs.core
 		private var _warned:Boolean = false; // true after warning has been shown
 		
 		/**
+		 * This is the root object to which targetPath is relative.
+		 */
+		public function get root():ILinkableObject
+		{
+			if (!_root)
+			{
+				var weave:Weave = Weave.getWeave(this);
+				_root = weave ? weave.root : Weave.getRoot(this);
+				
+				if (_root && !_foundRoot && !_foundTarget)
+					handlePath();
+			}
+			return _root;
+		}
+		public function set root(object:ILinkableObject):void
+		{
+			if (root != object)
+			{
+				var cc:ICallbackCollection = Weave.getCallbacks(this);
+				cc.delayCallbacks();
+				
+				_root = object;
+				if (_targetPath)
+				{
+					resetPathDependencies();
+					handlePath();
+				}
+				cc.triggerCallbacks();
+				
+				cc.resumeCallbacks();
+			}
+		}
+		
+		/**
 		 * This is the linkable object currently being watched.
 		 * Setting this will unset the targetPath.
-		 */		
+		 */
 		public function get target():ILinkableObject
 		{
 			if (!_foundRoot && !_foundTarget)
@@ -174,7 +209,7 @@ package weavejs.core
 		 */
 		public function set targetPath(path:Array/*/<string|number>/*/):void
 		{
-			// do not allow watching the globalHashMap
+			// do not allow watching the root object
 			if (path && path.length == 0)
 				path = null;
 			if (StandardLib.compare(_targetPath, path) != 0)
@@ -200,23 +235,21 @@ package weavejs.core
 				return;
 			}
 			
-			var weave:Weave = Weave.getWeave(this);
-			var root:ILinkableObject = weave ? weave.root : Weave.getRoot(this);
 			_foundRoot = root != null;
 			if (!_foundRoot && !_warned)
 			{
-				var error:Error = new Error("LinkableWatcher has a targetPath but has not been registered with an instance of Weave");
+				var error:Error = new Error("LinkableWatcher has a targetPath but no root");
 				WeaveAPI.Scheduler.callLater(this, function():void {
-					if (!_foundRoot && !Weave.getWeave(this))
+					if (!_foundRoot && !root)
 						JS.error("Warning:", error);
 				});
 				_warned = true;
 			}
-			var node:ILinkableObject = Weave.followPath(root, _targetPath);
+			var node:ILinkableObject = Weave.followPath(_root, _targetPath);
 			if (!node)
 			{
 				// traverse the path, finding ILinkableDynamicObject path dependencies along the way
-				node = root;
+				node = _root;
 				var subPath:Array = [];
 				for each (var name:* in _targetPath)
 				{
@@ -323,6 +356,7 @@ package weavejs.core
 		{
 			_targetPath = null;
 			_target = null;
+			_root = null;
 			// everything else will be cleaned up automatically
 		}
 		
