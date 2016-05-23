@@ -832,11 +832,11 @@ package weavejs.util
 			// Convert to lowercase if we are case insensitive.
 			if (caseInsensitive)
 			{
-				a = a.toLocaleLowerCase();
-				b = b.toLocaleLowerCase();
+				a = String(a).toLocaleLowerCase();
+				b = String(b).toLocaleLowerCase();
 			}
 			
-			var result:int = a.localeCompare(b);
+			var result:int = String(a).localeCompare(b);
 			
 			if (result < -1)
 				result = -1;
