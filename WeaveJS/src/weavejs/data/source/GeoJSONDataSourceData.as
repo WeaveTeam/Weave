@@ -42,15 +42,19 @@ package weavejs.data.source
 			if (ids.every(function(item:*, i:*, a:*):Boolean { return item === undefined; }))
 				ids = features.map(function(o:*, i:*, a:*):* { return i; });
 			
-			// get property names
+			// get property names and determine types
 			propertyNames = [];
 			propertyTypes = {};
 			properties.forEach(function(props:Object, i:*, a:*):void {
 				for (var key:String in props)
 				{
 					var value:Object = props[key];
+					// don't let null affect type
+					if (value == null)
+						continue;
+					
 					var oldType:String = propertyTypes[key];
-					var newType:String = value == null ? oldType : typeof value; // don't let null affect type
+					var newType:String = typeof value;
 					if (!propertyTypes.hasOwnProperty(key))
 					{
 						propertyTypes[key] = newType;
