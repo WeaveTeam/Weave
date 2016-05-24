@@ -711,6 +711,7 @@ internal class GeomListNode implements IWeaveTreeNode
 	public function getLabel():String
 	{
 		var label:String = Weave.lang("Geometry Collections");
+		getChildren();
 		if (children && children.length)
 			return Weave.lang("{0} ({1})", label, children.length);
 		return label;
