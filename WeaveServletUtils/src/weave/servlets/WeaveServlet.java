@@ -835,7 +835,8 @@ public class WeaveServlet extends HttpServlet
 				{
 					Object fieldValue = ((Map<?,?>)value).get(field.getName());
 					fieldValue = cast(fieldValue, field.getGenericType());
-					field.set(bean, fieldValue);
+					if (!Modifier.isFinal(field.getModifiers()))
+						field.set(bean, fieldValue);
 				}
 				return bean;
 			}
