@@ -455,7 +455,14 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	{
 		// non-superusers can't get connection info
 		if (getConnectionInfo().is_superuser)
-			return getConnectionConfig().getConnectionInfo(userToGet);
+		{
+			ConnectionInfo info = getConnectionConfig().getConnectionInfo(userToGet);
+
+			/* Don't disclose these, even though it's to an admin; nothing good can come of this. */
+			info.passDigest = "";
+			info.connectStringEnc = "";
+			return info;
+		}
 		return null;
 	}
 	
