@@ -90,7 +90,10 @@ package weavejs.data.source
 		private function parseRawData():void
 		{
 			if (!url.value)
+			{
+				handleCSVDataChange();
 				return;
+			}
 			
 			if (url.error)
 				JS.error(url.error);
@@ -129,7 +132,7 @@ package weavejs.data.source
 		
 		/**
 		 * Called when csvData session state changes
-		 */		
+		 */
 		private function handleCSVDataChange():void
 		{
 			// save parsedRows only if csvData has non-null session state

@@ -126,7 +126,10 @@ package weave.data.DataSources
 		private function parseRawData():void
 		{
 			if (!url.value)
+			{
+				handleCSVDataChange();
 				return;
+			}
 			
 			if (url.error)
 				reportError(url.error);
@@ -165,7 +168,7 @@ package weave.data.DataSources
 		
 		/**
 		 * Called when csvData session state changes
-		 */		
+		 */
 		private function handleCSVDataChange():void
 		{
 			// save parsedRows only if csvData has non-null session state
