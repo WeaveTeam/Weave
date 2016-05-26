@@ -134,7 +134,8 @@ package weavejs.api.core
 			{
 				var newState:Object = {};
 				for each (var typedState:Object in state)
-					newState[typedState[OBJECT_NAME] || ''] = removeTypeFromState(typedState[SESSION_STATE]);
+					if (typeof typedState === 'object')
+						newState[typedState[OBJECT_NAME] || ''] = removeTypeFromState(typedState[SESSION_STATE]);
 				return newState;
 			}
 			
