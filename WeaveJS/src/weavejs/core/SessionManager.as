@@ -219,6 +219,8 @@ package weavejs.core
 		 */
 		public function getSessionStateTree(root:ILinkableObject, objectName:String):WeaveTreeItem
 		{
+			if (!root)
+				return null;
 			var treeItem:WeaveTreeItem = d2d_object_name_tree.get(root, objectName);
 			if (!treeItem.data)
 			{
@@ -1096,7 +1098,7 @@ package weavejs.core
 		
 		public function getPath(root:ILinkableObject, descendant:ILinkableObject):Array
 		{
-			if (!descendant)
+			if (!root || !descendant)
 				return null;
 			var tree:WeaveTreeItem = getSessionStateTree(root, null);
 			var path:Array = _getPath(tree, descendant);
