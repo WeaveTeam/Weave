@@ -21,6 +21,7 @@ package weavejs.util
 		 * This must be set externally.
 		 */
 		public static var lodash:Object;
+		public static var ol:Object;
 		
 		public static function formatNumber(number:Number, precision:int = -1):String
 		{
