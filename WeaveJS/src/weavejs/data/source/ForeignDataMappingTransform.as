@@ -26,6 +26,7 @@ package weavejs.data.source
 	import weavejs.data.column.DynamicColumn;
 	import weavejs.data.column.ProxyColumn;
 	import weavejs.data.hierarchy.ColumnTreeNode;
+	import weavejs.util.JS;
 
 	public class ForeignDataMappingTransform extends AbstractDataSource implements ISelectableAttributes
 	{
@@ -41,13 +42,11 @@ package weavejs.data.source
 		{
 		}
 
-		public function getSelectableAttributeNames():Array
+		public function get selectableAttributes():/*/Map<string, (weavejs.api.data.IColumnWrapper|weavejs.api.core.ILinkableHashMap)>/*/Object
 		{
-			return ["Foreign key mapping", "Data to transform"];
-		}
-		public function getSelectableAttributes():Array
-		{
-			return [keyColumn, dataColumns];
+			return new JS.Map()
+				.set("Foreign key mapping", keyColumn)
+				.set("Data to transform", dataColumns);
 		}
 		
 		override protected function get initializationComplete():Boolean

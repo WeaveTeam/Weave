@@ -17,22 +17,8 @@ package weavejs.api.data
 {
 	import weavejs.api.core.ILinkableObject;
 
-	/**
-	 * An object with a list of named DynamicColumn and/or ILinkableHashMap objects that an AttributeSelectorPanel can link to.
-	 */
 	public interface ISelectableAttributes extends ILinkableObject
 	{
-		/**
-		 * This function should be defined with override by subclasses.
-		 * @return An Array of names corresponding to the objects returned by getSelectableAttributes().
-		 *         These names will be passed to lang() before being displayed to the user.
-		 */
-		function getSelectableAttributeNames():Array/*/<string>/*/;
-		
-		/**
-		 * This function should be defined with override by subclasses.
-		 * @return An Array of DynamicColumn and/or ILinkableHashMap objects that an AttributeSelectorPanel can link to.
-		 */
-		function getSelectableAttributes():Array/*/<(IColumnWrapper & weavejs.api.core.ILinkableDynamicObject)|weavejs.api.core.ILinkableHashMap>/*/;
+		function get selectableAttributes():/*/Map<string, (weavejs.api.data.IColumnWrapper|weavejs.api.core.ILinkableHashMap)>/*/Object;
 	}
 }

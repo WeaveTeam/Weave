@@ -24,20 +24,15 @@ package weavejs.data.source
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IQualifiedKey;
-	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.api.data.ISelectableAttributes;
-	import weavejs.util.StandardLib;
+	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.core.LinkableHashMap;
 	import weavejs.core.LinkableString;
 	import weavejs.core.LinkableVariable;
 	import weavejs.data.column.DynamicColumn;
-	import weavejs.data.column.NumberColumn;
 	import weavejs.data.column.ProxyColumn;
-	import weavejs.data.column.StringColumn;
-	import weavejs.data.source.AbstractDataSource;
 	import weavejs.data.hierarchy.ColumnTreeNode;
-	import weavejs.data.ColumnUtils;
-	import weavejs.data.EquationColumnLib;
+	import weavejs.util.JS;
 
 	public class GroupedDataTransform extends AbstractDataSource implements ISelectableAttributes
 	{
@@ -49,13 +44,11 @@ package weavejs.data.source
 		{
 		}
 		
-		public function getSelectableAttributeNames():Array
+		public function get selectableAttributes():/*/Map<string, (weavejs.api.data.IColumnWrapper|weavejs.api.core.ILinkableHashMap)>/*/Object
 		{
-			return ["Group by", "Data to transform"];
-		}
-		public function getSelectableAttributes():Array
-		{
-			return [groupByColumn, dataColumns];
+			return new JS.Map()
+				.set("Group by", groupByColumn)
+				.set("Data to transform", dataColumns);
 		}
 		
 		override protected function get initializationComplete():Boolean
@@ -199,17 +192,16 @@ import weavejs.api.data.DataType;
 import weavejs.api.data.IAttributeColumn;
 import weavejs.api.data.IPrimitiveColumn;
 import weavejs.api.data.IQualifiedKey;
-import weavejs.util.StandardLib;
 import weavejs.core.SessionManager;
+import weavejs.data.ColumnUtils;
+import weavejs.data.EquationColumnLib;
 import weavejs.data.column.AbstractAttributeColumn;
 import weavejs.data.column.NumberColumn;
 import weavejs.data.column.StringColumn;
 import weavejs.data.source.GroupedDataTransform;
-import weavejs.util.Dictionary2D;
-import weavejs.data.ColumnUtils;
-import weavejs.data.EquationColumnLib;
-import weavejs.api.data.Aggregation;
 import weavejs.util.ArrayUtils;
+import weavejs.util.Dictionary2D;
+import weavejs.util.StandardLib;
 
 internal class AggregateColumn extends AbstractAttributeColumn implements IPrimitiveColumn
 {

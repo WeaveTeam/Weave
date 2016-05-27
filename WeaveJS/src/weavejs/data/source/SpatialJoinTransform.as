@@ -1,30 +1,18 @@
 package weavejs.data.source
 {
 	import weavejs.WeaveAPI;
-	import weavejs.api.core.ILinkableHashMap;
-	import weavejs.api.core.ILinkableVariable;
-	import weavejs.api.data.Aggregation;
 	import weavejs.api.data.ColumnMetadata;
-	import weavejs.api.data.DataType;
-	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IQualifiedKey;
-	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.api.data.ISelectableAttributes;
-	import weavejs.util.StandardLib;
-	import weavejs.util.JS;
-	import weavejs.util.ArrayUtils;
-	import weavejs.core.LinkableHashMap;
 	import weavejs.core.LinkableString;
-	import weavejs.core.LinkableVariable;
+	import weavejs.data.ColumnUtils;
 	import weavejs.data.column.DynamicColumn;
-	import weavejs.data.column.NumberColumn;
 	import weavejs.data.column.ProxyColumn;
 	import weavejs.data.column.StringColumn;
-	import weavejs.data.source.AbstractDataSource;
-	import weavejs.data.hierarchy.ColumnTreeNode;
-	import weavejs.data.ColumnUtils;
-	import weavejs.data.EquationColumnLib;
+	import weavejs.util.ArrayUtils;
+	import weavejs.util.JS;
+	import weavejs.util.StandardLib;
 
 	public class SpatialJoinTransform extends AbstractDataSource implements ISelectableAttributes
 	{
@@ -40,13 +28,12 @@ package weavejs.data.source
 		/* Output dataType is determined by the geometryColumn input. */
 		/* Output keyType is determined by the xColumn/yColumn input. */
 
-		public function getSelectableAttributes():Array
+		public function get selectableAttributes():/*/Map<string, (weavejs.api.data.IColumnWrapper|weavejs.api.core.ILinkableHashMap)>/*/Object
 		{
-			return [geometryColumn, xColumn, yColumn];
-		}
-		public function getSelectableAttributeNames():Array
-		{
-			return ["Join Geometry", "Datapoint X", "Datapoint Y"];
+			return new JS.Map()
+				.set("Join Geometry", geometryColumn)
+				.set("Datapoint X", xColumn)
+				.set("Datapoint Y", yColumn);
 		}
 
 		public function SpatialJoinTransform()
