@@ -257,7 +257,8 @@ package weavejs.core
 		override public function dispose():void
 		{
 			super.dispose();
-			setSessionState(null);
+			_sessionStateInternal = undefined;
+			_sessionStateExternal = undefined;
 		}
 	}
 }
