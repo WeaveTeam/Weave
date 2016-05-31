@@ -285,7 +285,7 @@ package weavejs.net
 		private function interceptFault(query:WeavePromise/*/<any>/*/, error:*):void
 		{
 			// if user has been signed out, clear the queue immediately
-			JS.log(error);
+			JS.error(error);
 			if (error == WEAVE_AUTHENTICATION_EXCEPTION && authenticated.value)
 			{
 				resetQueue();
@@ -312,7 +312,7 @@ package weavejs.net
 			else
 				paramDebugStr += Weave.stringify(methodParams);
 			
-			trace(StandardLib.substitute(
+			JS.error(StandardLib.substitute(
 					"Received error on {0}({1}):\n\t{2}",
 					methodName,
 					paramDebugStr,

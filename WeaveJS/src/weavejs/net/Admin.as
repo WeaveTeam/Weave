@@ -365,9 +365,9 @@ package weavejs.net
 			}
 			
 			if (exists)
-				JS.log(Weave.lang('Existing data table "{0}" was updated successfully.', title));
+				JS.error(Weave.lang('Existing data table "{0}" was updated successfully.', title));
 			else
-				JS.log(Weave.lang("New data table created successfully."));
+				JS.error(Weave.lang("New data table created successfully."));
 			
 			focusEntityId = tableId;
 			// request children
