@@ -17,14 +17,16 @@ package weavejs.core
 {
 	public class EventCallbackCollection/*/<T>/*/ extends CallbackCollection
 	{
-		public function EventCallbackCollection()
+		public function EventCallbackCollection(stopPropagation:/*/(event:T)=>void/*/Function = null)
 		{
 			// specify the preCallback function in super() so data will be set before each callback.
 			super(_setEvent);
+			this._stopPropagation = stopPropagation;
 		}
 	
 		// This variable is set before each callback runs
 		private var _event:Object = null;
+		private var _stopPropagation:Function = null;
 		
 		private function _setEvent(event:Object = null):void
 		{
@@ -49,6 +51,15 @@ package weavejs.core
 			var prevEvent:Object = _event;
 			_runCallbacksImmediately(event);
 			_setEvent(prevEvent);
+		}
+		
+		/**
+		 * calls the stopPropagation function which was passed to the constructor.
+		 */
+		public function stopPropagation():void
+		{
+			if (_stopPropagation != null)
+				_stopPropagation(event);
 		}
 	}
 }
