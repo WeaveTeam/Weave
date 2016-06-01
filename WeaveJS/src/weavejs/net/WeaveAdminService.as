@@ -337,6 +337,11 @@ package weavejs.net
 		{
 			return invokeAdmin(checkDatabaseConfigExists, arguments);
 		}
+
+		public function whoAmI():WeavePromise/*/<string>/*/
+		{
+			return invokeAdmin(whoAmI, arguments);
+		}
 		
 		public function authenticate(user:String, pass:String):WeavePromise/*/<boolean>/*/
 		{
