@@ -24,6 +24,7 @@ package weavejs.core
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ILinkableObjectWithBusyStatus;
+	import weavejs.api.core.ILinkableObjectWithNewPaths;
 	import weavejs.api.core.ILinkableObjectWithNewProperties;
 	import weavejs.api.core.ILinkableVariable;
 	import weavejs.api.core.ISessionManager;
@@ -357,6 +358,7 @@ package weavejs.core
 		}
 		
 		public static const DEPRECATED_STATE_MAPPING:String = 'deprecatedStateMapping';
+		public static const DEPRECATED_PATH_REWRITE:String = 'deprecatedPathRewrite';
 		
 		/**
 		 * Uses DynamicState.traverseState() to traverse a state and copy portions of the state to ILinkableObjects.
@@ -1147,6 +1149,8 @@ package weavejs.core
 				}
 				else
 				{
+					if (object is ILinkableObjectWithNewPaths || JS.hasProperty(object, DEPRECATED_PATH_REWRITE))
+						return getObject(root, object[DEPRECATED_PATH_REWRITE](path));
 					if (object is ILinkableObjectWithNewProperties || JS.hasProperty(object, DEPRECATED_STATE_MAPPING))
 						return getObjectFromDeprecatedPath(object[DEPRECATED_STATE_MAPPING], path, i);
 					return null;
