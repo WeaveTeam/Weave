@@ -12,6 +12,7 @@ package
 	import weavejs.api.ui.IVisTool;
 	import weavejs.api.ui.IVisTool_Basic;
 	import weavejs.api.ui.IVisTool_Utility;
+	import weavejs.core.EventCallbackCollection;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.core.LinkableCallbackScript;
 	import weavejs.core.LinkableDynamicObject;
@@ -82,10 +83,10 @@ package
 	import weavejs.geom.SolidFillStyle;
 	import weavejs.geom.SolidLineStyle;
 	import weavejs.geom.ZoomBounds;
+	import weavejs.net.Admin;
 	import weavejs.path.ExternalTool;
 	import weavejs.util.JS;
 	import weavejs.util.WeaveMenuItem;
-	import weavejs.net.Admin;
 	
 	public class WeaveTest
 	{
@@ -161,6 +162,7 @@ package
 			IVisTool_Basic,
 			IVisTool_Utility,
 			Admin,
+			EventCallbackCollection,
 			
 			//EntityNodeSearch, //TODO - resolve circular dependency issue
 			
