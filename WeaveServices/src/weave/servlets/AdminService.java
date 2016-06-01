@@ -168,7 +168,7 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 		return getConnectionInfo().is_superuser;
 	}
 
-	public String whoAmI() throws RemoteException
+	public String getAuthenticatedUser() throws RemoteException
 	{
 		HttpSession session = getServletRequestInfo().request.getSession(true);
 		getConnectionInfo(); // We want to throw an exception if we aren't logged in successfully.
