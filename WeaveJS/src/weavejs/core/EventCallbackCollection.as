@@ -15,40 +15,43 @@
 
 package weavejs.core
 {
+	/**
+	 * Manages callbacks that rely on event-related data.
+	 */
 	public class EventCallbackCollection/*/<T>/*/ extends CallbackCollection
 	{
 		public function EventCallbackCollection()
 		{
 			// specify the preCallback function in super() so data will be set before each callback.
-			super(_setEvent);
+			super(_setData);
 		}
 	
 		// This variable is set before each callback runs
-		private var _event:Object = null;
+		private var _data:Object = null;
 		
-		private function _setEvent(event:Object = null):void
+		private function _setData(data:Object = null):void
 		{
-			_event = event;
+			_data = data;
 		}
 		
 		/**
-		 * This is the event object.
+		 * This is the data that was dispatched.
 		 */
-		public function get event():/*/T/*/Object
+		public function get data():/*/T/*/Object
 		{
-			return _event;
+			return _data;
 		}
 		
 		/**
-		 * This function will run callbacks immediately, setting the event variable before each one.
-		 * @param event
+		 * This function will run callbacks immediately, setting the data variable before each one.
+		 * @param data
 		 */	
-		public function dispatch(event:/*/T/*/Object):void
+		public function dispatch(data:/*/T/*/Object):void
 		{
 			// remember previous value so it can be restored in case external code caused us to interrupt something else
-			var prevEvent:Object = _event;
-			_runCallbacksImmediately(event);
-			_setEvent(prevEvent);
+			var oldValue:Object = _data;
+			_runCallbacksImmediately(data);
+			_setData(oldValue);
 		}
 	}
 }
