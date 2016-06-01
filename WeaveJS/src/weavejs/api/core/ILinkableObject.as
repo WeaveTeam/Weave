@@ -22,7 +22,7 @@ package weavejs.api.core
 	 * 
 	 * @author adufilie
 	 */
-	public interface ILinkableObject
+	public interface ILinkableObject/*/ extends {_primitiveBrand?:void}/*/
 	{
 	}
 }
