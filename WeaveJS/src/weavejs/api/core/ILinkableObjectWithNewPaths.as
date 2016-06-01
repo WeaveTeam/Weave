@@ -16,14 +16,15 @@
 package weavejs.api.core
 {
 	/**
-	 * Implement this interface to detect when a full session state is missing properties or a session state contains extra properties.
+	 * Implement this interface to specify how to rewrite deprecated session state paths.
 	 */
 	public interface ILinkableObjectWithNewPaths extends ILinkableObject
 	{
 		/**
-		 * Either a single mapping or an Array of mappings to be used with SessionManager.traverseAndSetState().
-		 * @see weavejs.core.SessionManager#traverseAndSetState()
+		 * Receives a deprecated path and returns the new path.
+		 * @param relativePath The deprecated path.
+		 * @return The new path.
 		 */
-		function deprecatedPathRewrite(oldPath:Array/*/<string|number>/*/):Array/*/<string|number>/*/;
+		function deprecatedPathRewrite(relativePath:Array/*/<string|number>/*/):Array/*/<string|number>/*/;
 	}
 }
