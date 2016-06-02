@@ -652,6 +652,7 @@ package weavejs.util
 				{
 					customConvert = function(item:*):String
 					{
+						if (item === undefined || item === null) return "";
 						return item[fieldName].toString();
 					}
 				}
@@ -659,6 +660,7 @@ package weavejs.util
 				{
 					customConvert = function(item:*):String
 					{
+						if (item === undefined || item === null) return "";
 						return item[fieldName].toString().toLocaleLowerCase();
 					}
 				}
@@ -670,8 +672,12 @@ package weavejs.util
 			_indexMap.clear();
 			if (returnIndexedArray)
 			{
-				/* Assert that this is an object array, this won't necessarily work with primitive types. */
-				if (!arrayIsType(array, Object)) JS.error("Warning: Can't do an indexed array sort of non-objects reliably.");
+				/* Assert that this is an object array, this won't necessarily work with primitive types.
+				 * This technique won't work with non-unique items in general;
+				 * it would take more iteratee-generation code to make this work
+				 * reliably by wrapping it in objects with an attached index, 
+				 * then unpacking it in the iteratee functions. */
+				if (!arrayIsType(array, Object)) JS.error("Warning: Can't do an indexed array sort of non-objects reliably, as there's a higher chance of non-unique items.");
 				array.forEach(function(item:*, index:int):void {_indexMap.set(item, index);})
 			}
 
