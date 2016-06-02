@@ -616,7 +616,76 @@ package weavejs.util
 				sum += value;
 			return sum;
 		}
-		
+
+		private static const AS3_CASEINSENSITIVE:int = 1;
+		private static const AS3_DESCENDING:int = 2;
+		private static const AS3_UNIQUESORT:int = 4;
+		private static const AS3_RETURNINDEXEDARRAY:int = 8;
+		private static const AS3_NUMERIC:int = 16;
+
+		private static const LODASH_ASCENDING:String = "asc";
+		private static const LODASH_DESCENDING:String = "desc";
+
+		private static var _indexMap:Object;
+
+		private static function as3SortOn(array:Array, fieldNames:*, options:*):Array
+		{
+			/* Normalize to arrays */
+			if (!(fieldNames is Array)) fieldNames = [fieldNames];
+			if (!(options is Array)) options = [options];
+
+			/* Get global options */
+			var returnIndexedArray:Boolean = options.some(function(option:int):int {return option & AS3_RETURNINDEXEDARRAY;});
+			var uniqueSort:Boolean = options.some(function(option:int):int {return option & AS3_UNIQUESORT;});
+
+			var orders:Array = options.map(function (option:int):String {
+				return (option & AS3_DESCENDING) ? LODASH_DESCENDING : LODASH_ASCENDING;
+			});
+
+			var iteratees:Array = options.map(function (option:int, index:int):* {
+				var customConvert:Function;
+				var fieldName:String = fieldNames[index];
+				/* lodash's default behavior is numeric sort, so
+				 * we have to explicitly convert to strings if we 
+				 * don't want that. */
+				if (!(option & AS3_NUMERIC))
+				{
+					customConvert = function(item:*):String
+					{
+						return item[fieldName].toString();
+					}
+				}
+				else if (option & AS3_CASEINSENSITIVE)
+				{
+					customConvert = function(item:*):String
+					{
+						return item[fieldName].toString().toLocaleLowerCase();
+					}
+				}
+
+				return customConvert || fieldNames[index];
+			});
+
+			if (!_indexMap) _indexMap = new JS.Map();
+			_indexMap.clear();
+			if (returnIndexedArray)
+			{
+				/* Assert that this is an object array, this won't necessarily work with primitive types. */
+				if (!arrayIsType(array, Object)) JS.error("Warning: Can't do an indexed array sort of non-objects reliably.");
+				array.forEach(function(item:*, index:int):void {_indexMap.set(item, index);})
+			}
+
+			var result:Array = lodash.sortByOrder(array, iteratees, orders);
+
+			if (returnIndexedArray)
+			{
+				result = result.map(function (item:*):* {return _indexMap.get(item);});
+			}
+
+			return result;
+		}
+
+		private static const _sortBuffer:Array = []; /* Scratchspace to reduce GC pressure */
 		/**
 		 * Sorts an Array of items in place using properties, lookup tables, or replacer functions.
 		 * @param array An Array to sort.
@@ -634,10 +703,89 @@ package weavejs.util
 		 */
 		public static function sortOn(array:*, params:*, sortDirections:* = undefined, inPlace:Boolean = true, returnSortedIndexArray:Boolean = false):*
 		{
-			//TODO
+			if (array.length == 0)
+				return inPlace ? array : [];
+			
+			var values:Array;
+			var param:*;
+			var sortDirection:int;
+			var i:int;
+			
+			// expand _sortBuffer as necessary
+			for (i = _sortBuffer.length; i < array.length; i++)
+				_sortBuffer[i] = [];
+			
+			// If there is only one param, wrap it in an array.
+			// Array.sortOn() is preferred over Array.sort() in this case
+			// since an undefined value will crash Array.sort(Array.NUMERIC).
+			if (params === array || !(params is Array))
+			{
+				params = [params];
+				if (sortDirections)
+					sortDirections = [sortDirections];
+			}
+			
+			var fields:Array = new Array(params.length);
+			var fieldOptions:Array = new Array(params.length);
+			for (var p:int = 0; p < params.length; p++)
+			{
+				param = params[p];
+				sortDirection = sortDirections && sortDirections[p] < 0 ? AS3_DESCENDING : 0;
+				
+				i = array.length;
+				if (param is Array)
+					while (i--)
+						_sortBuffer[i][p] = param[i];
+				else if (param is Function)
+					while (i--)
+						_sortBuffer[i][p] = param(array[i]);
+				else if (param is JS.Map || param is JS.WeakMap)
+					while (i--)
+						_sortBuffer[i][p] = param.get(array[i]);
+				else if (typeof param === 'object')
+					while (i--)
+						_sortBuffer[i][p] = param[array[i]];
+				else
+					while (i--)
+						_sortBuffer[i][p] = array[i][param];
+				
+				fields[p] = p;
+				fieldOptions[p] = AS3_RETURNINDEXEDARRAY | guessSortMode(_sortBuffer, p) | sortDirection;
+			}
+			
+			values = _sortBuffer.slice(0, array.length);
+			values = as3SortOn(values, fields, fieldOptions);
+			
 			if (returnSortedIndexArray)
-				return array.map(function(o:*, i:*, a:*):* { return i; });
-			return inPlace ? array : array.concat();
+				return values;
+			
+			var array2:Array = new Array(array.length);
+			i = array.length;
+			while (i--)
+				array2[i] = array[values[i]];
+			
+			if (!inPlace)
+				return array2;
+			
+			i = array.length;
+			while (i--)
+				array[i] = array2[i];
+			return array;
+		}
+
+		/**
+		 * Guesses the appropriate Array.sort() mode based on the first non-undefined item property from an Array.
+		 * @return Either Array.NUMERIC or 0.
+		 */
+		private static function guessSortMode(array:Object, itemProp:*):int
+		{
+			for each (var item:* in array)
+			{
+				var value:* = item[itemProp];
+				if (value !== undefined)
+					return value is Number || value is Date ? Array.NUMERIC : 0;
+			}
+			return 0;
 		}
 		
 		/**
