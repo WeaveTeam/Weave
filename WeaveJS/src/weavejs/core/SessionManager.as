@@ -1125,6 +1125,8 @@ package weavejs.core
 		
 		public function getObject(root:ILinkableObject, path:Array):ILinkableObject
 		{
+			if (!path)
+				return null;
 			var object:ILinkableObject = root;
 			for (var i:int = 0; i < path.length; i++)
 			{
@@ -1150,7 +1152,7 @@ package weavejs.core
 				else
 				{
 					if (object is ILinkableObjectWithNewPaths || JS.hasProperty(object, DEPRECATED_PATH_REWRITE))
-						return getObject(root, object[DEPRECATED_PATH_REWRITE](path.slice(i)));
+						return getObject(object, object[DEPRECATED_PATH_REWRITE](path.slice(i)));
 					if (object is ILinkableObjectWithNewProperties || JS.hasProperty(object, DEPRECATED_STATE_MAPPING))
 						return getObjectFromDeprecatedPath(object[DEPRECATED_STATE_MAPPING], path, i);
 					return null;
