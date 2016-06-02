@@ -1152,7 +1152,11 @@ package weavejs.core
 				else
 				{
 					if (object is ILinkableObjectWithNewPaths || JS.hasProperty(object, DEPRECATED_PATH_REWRITE))
-						return getObject(object, object[DEPRECATED_PATH_REWRITE](path.slice(i)));
+					{
+						var rewrittenPath:Array = object[DEPRECATED_PATH_REWRITE](path.slice(i));
+						if (rewrittenPath)
+							return getObject(object, rewrittenPath);
+					}
 					if (object is ILinkableObjectWithNewProperties || JS.hasProperty(object, DEPRECATED_STATE_MAPPING))
 						return getObjectFromDeprecatedPath(object[DEPRECATED_STATE_MAPPING], path, i);
 					return null;
