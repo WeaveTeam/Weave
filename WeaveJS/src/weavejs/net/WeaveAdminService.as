@@ -340,7 +340,7 @@ package weavejs.net
 
 		public function getAuthenticatedUser():WeavePromise/*/<string>/*/
 		{
-			return invokeAdmin(whoAmI, arguments);
+			return invokeAdmin(getAuthenticatedUser, arguments);
 		}
 		
 		public function authenticate(user:String, pass:String):WeavePromise/*/<boolean>/*/
