@@ -275,7 +275,7 @@ package
 					break;
 				object = owner;
 			}
-			return object as ILinkableHashMap;
+			return wasDisposed(object) ? null : object as ILinkableHashMap;
 		}
 		
 		/**
