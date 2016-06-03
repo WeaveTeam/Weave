@@ -79,12 +79,19 @@ package weavejs.data.source
 					return jsonCache.getJsonPromise(dataset.c_geographyLink);
 				});
 		}
+
+		private var _variablesInfoCached:Object;
+		private var _variablesInfoProcessed:Object;
+
 		
 		public function getVariables(dataSetIdentifier:String):WeavePromise/*/<any>/*/
 		{
 			return getVariablesPromise(dataSetIdentifier).then(
 				function (result:Object):Object
 				{
+					if (result.variables === _variablesInfoCached)
+						return _variablesInfoProcessed;
+
 					var variablesInfo:Object = JS.copyObject(result.variables);
 					delete variablesInfo["for"];
 					delete variablesInfo["in"];
@@ -95,8 +102,11 @@ package weavejs.data.source
 						var title:String = StandardLib.substitute('{0} ({1})', StandardLib.replace(label, '!!', '\u2014'), key);
 						variablesInfo[key]['title'] = title;
 					}
+
+					_variablesInfoProcessed = variablesInfo;
+					_variablesInfoCached = result.variables;
 					
-					return variablesInfo;
+					return _variablesInfoProcessed;
 				});
 		}
 		
