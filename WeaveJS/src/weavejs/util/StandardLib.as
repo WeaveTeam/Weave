@@ -653,7 +653,7 @@ package weavejs.util
 					customConvert = function(item:*):String
 					{
 						if (item === undefined || item === null) return "";
-						return item[fieldName].toString();
+						return String(item[fieldName]);
 					}
 				}
 				else if (option & AS3_CASEINSENSITIVE)
@@ -661,7 +661,7 @@ package weavejs.util
 					customConvert = function(item:*):String
 					{
 						if (item === undefined || item === null) return "";
-						return item[fieldName].toString().toLocaleLowerCase();
+						return String(item[fieldName]).toLocaleLowerCase();
 					}
 				}
 
