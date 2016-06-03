@@ -5,11 +5,13 @@ package weavejs.data.source
 	import weavejs.api.data.IDataSource;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.api.data.ISelectableAttributes;
+	import weavejs.api.data.IWeaveTreeNode;
 	import weavejs.core.LinkableString;
 	import weavejs.data.ColumnUtils;
 	import weavejs.data.column.DynamicColumn;
 	import weavejs.data.column.ProxyColumn;
 	import weavejs.data.column.StringColumn;
+	import weavejs.data.hierarchy.ColumnTreeNode;
 	import weavejs.util.ArrayUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
@@ -38,13 +40,42 @@ package weavejs.data.source
 
 		public function SpatialJoinTransform()
 		{
-			_source = new StandardLib.ol.source.Vector()
+			_source = new StandardLib.ol.source.Vector();
 			_parser = new StandardLib.ol.format.GeoJSON();
 		}
 
 		override protected function initialize(forceRefresh:Boolean = false):void
 		{
 			super.initialize(true);
+		}
+
+		override public function getHierarchyRoot():IWeaveTreeNode
+		{
+			if (!_rootNode)
+			{
+				_rootNode = new ColumnTreeNode({
+					dataSource: this,
+					data: this,
+					label: getLabel,
+					hasChildBranches: false,
+					children: [
+						generateHierarchyNode({})
+					]
+				});
+			}
+			return _rootNode;
+		}
+
+		override protected function generateHierarchyNode(metadata:Object):IWeaveTreeNode
+		{
+			metadata[ColumnMetadata.TITLE] = ColumnUtils.getTitle(this.geometryColumn)
+			metadata[ColumnMetadata.KEY_TYPE] = this.xColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+			metadata[ColumnMetadata.DATA_TYPE] = this.geometryColumn.getMetadata(ColumnMetadata.KEY_TYPE);
+			return new ColumnTreeNode({
+				dataSource: this,
+				idFields: [],
+				data: metadata
+			});
 		}
 
 		override protected function requestColumnFromSource(proxyColumn:ProxyColumn):void
@@ -76,7 +107,8 @@ package weavejs.data.source
 					continue;
 				}
 
-				feature = new StandardLib.ol.Feature({id: key, geometry: geometry});
+				feature = new StandardLib.ol.Feature(geometry);
+				feature.setId(key);
 				_source.addFeature(feature);
 			}
 
@@ -97,7 +129,8 @@ package weavejs.data.source
 				}
 			}
 
-			var column:StringColumn = new StringColumn();
+			var column:StringColumn = new StringColumn(metadata);
+
 			column.setRecords(keys, data);
 			proxyColumn.setInternalColumn(column);
 		}
