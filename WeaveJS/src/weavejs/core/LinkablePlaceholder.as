@@ -26,7 +26,6 @@ package weavejs.core
 		
 		private var classDef:Class;
 		private var instance:ILinkableObject;
-		private var stateInvalid:Boolean = false;
 		
 		public function getClass():/*/new(..._:any[])=>T/*/Class
 		{
@@ -51,17 +50,8 @@ package weavejs.core
 			replace(this, instance);
 		}
 		
-		/**
-		 * Tells the LinkablePlaceholder that its current state should be ignored when it is later replaced with an instance.
-		 */
-		public function invalidateState():void
-		{
-			stateInvalid = true;
-		}
-		
 		override public function setSessionState(value:Object):void
 		{
-			stateInvalid = false;
 			super.setSessionState(value);
 		}
 		
@@ -80,18 +70,17 @@ package weavejs.core
 			ownerCC.delayCallbacks();
 			try
 			{
-				var sessionState:Object = Weave.getState(oldObject);
+				var sessionState:* = undefined;
+				if (Weave.getCallbacks(oldObject).triggerCounter != CallbackCollection.DEFAULT_TRIGGER_COUNT)
+					sessionState = Weave.getState(oldObject);
+				
 				if (lhm)
 					lhm.setObject(lhm.getName(oldObject), newObject);
 				else if (ldo)
 					ldo.target = newObject;
 				
-				// ignore LinkablePlaceholder state if it has been marked invalid
-				var oldPlaceholder:LinkablePlaceholder = oldObject as LinkablePlaceholder;
-				if (oldPlaceholder && oldPlaceholder.stateInvalid)
-					return;
-				
-				Weave.setState(newObject, sessionState);
+				if (sessionState !== undefined)
+					Weave.setState(newObject, sessionState);
 			}
 			finally
 			{
