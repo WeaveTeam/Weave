@@ -1002,7 +1002,7 @@ package weavejs.core
 				
 				// unregister from parents
 				var parents:Array = d2d_child_parent.secondaryKeys(object);
-				for (var parent:Object in parents)
+				for each (var parent:Object in parents)
 					d2d_parent_child.remove(parent, object);
 				d2d_child_parent.removeAllPrimary(object);
 				
@@ -1063,7 +1063,7 @@ package weavejs.core
 		{
 			var results:Array = [];
 			var parents:Array = d2d_child_parent.secondaryKeys(descendant);
-			for (var parent:Object in parents)
+			for each (var parent:Object in parents)
 			{
 				var name:String = _getChildPropertyName(parent as ILinkableObject, descendant);
 				if (name != null)
