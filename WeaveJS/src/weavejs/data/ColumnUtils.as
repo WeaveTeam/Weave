@@ -771,6 +771,9 @@ package weavejs.data
 		
 		private static function findFirstColumnReference(node:IWeaveTreeNode):IColumnReference
 		{
+			if (!node)
+				return null;
+				
 			var ref:IColumnReference = node as IColumnReference;
 			if (ref && ref.getColumnMetadata())
 				return ref;
