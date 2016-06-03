@@ -126,22 +126,24 @@ package weavejs.api.core
 		/**
 		 * Converts DynamicState Arrays into Objects.
 		 * @param state The state to convert
+		 * @param recursive Specifies whether or not to recursively remove types.
+		 *                  If this is set to false, this function will only have an effect if the given state is a DynamicState Array.
 		 * @return The converted state
 		 */
-		public static function removeTypeFromState(state:Object):Object
+		public static function removeTypeFromState(state:Object, recursive:Boolean = true):Object
 		{
 			if (DynamicState.isDynamicStateArray(state))
 			{
 				var newState:Object = {};
 				for each (var typedState:Object in state)
 					if (typeof typedState === 'object')
-						newState[typedState[OBJECT_NAME] || ''] = removeTypeFromState(typedState[SESSION_STATE]);
+						newState[typedState[OBJECT_NAME] || ''] = recursive ? removeTypeFromState(typedState[SESSION_STATE], true) : typedState[SESSION_STATE];
 				return newState;
 			}
 			
-			if (typeof state === 'object')
+			if (recursive && typeof state === 'object')
 				for (var key:String in state)
-					state[key] = removeTypeFromState(state[key]);
+					state[key] = removeTypeFromState(state[key], true);
 			return state;
 		}
 		
