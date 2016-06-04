@@ -27,22 +27,11 @@ package weave.menus
 		{
 			super({
 				shown: function():Boolean { return ExportMenu.shown; },
-				label: lang("Weave 2.0"),
+				label: lang("Weave 2.x"),
 				children: [
 					{
 						label: lang("Export to HTML5"),
 						click: export
-					},
-					{
-						enabled: function():Boolean { return exported; },
-						label: lang("Copy layout from HTML5"),
-						click: function():void {
-							JavaScript.exec(
-								jsVars(false),
-								'var obj = window[WEAVE_EXTERNAL_TOOLS][windowName];',
-								'this.path("Layout").request("FlexibleLayout").state(obj.window.weave.path("Layout").getState())'
-							);
-						}
 					}
 				]
 			});
