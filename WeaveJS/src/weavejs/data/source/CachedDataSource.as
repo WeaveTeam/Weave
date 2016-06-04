@@ -32,11 +32,13 @@ package weavejs.data.source
 		override protected function refreshHierarchy():void
 		{
 			var root:ILinkableHashMap = Weave.getRoot(this);
+			var names:Array = root.getNames();
 			var name:String = root.getName(this);
 			var classDef:Class = Weave.getDefinition(type.value);
 			var state:Object = this.state.state;
 			var dataSource:IDataSource = root.requestObject(name, classDef, false);
 			Weave.setState(dataSource, state);
+			root.setNameOrder(names);
 		}
 	}
 }

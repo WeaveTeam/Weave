@@ -30,10 +30,12 @@ package weave.data.DataSources
 		override protected function refreshHierarchy():void
 		{
 			var name:String = WeaveAPI.globalHashMap.getName(this);
+			var names:Array = WeaveAPI.globalHashMap.getNames();
 			var classDef:Class = ClassUtils.getClassDefinition(type.value);
 			var state:Object = this.state.state;
 			var dataSource:IDataSource = WeaveAPI.globalHashMap.requestObject(name, classDef, false);
 			setSessionState(dataSource, state);
+			WeaveAPI.globalHashMap.setNameOrder(names);
 		}
 	}
 }
