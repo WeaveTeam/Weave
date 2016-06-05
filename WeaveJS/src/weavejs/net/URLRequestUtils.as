@@ -95,9 +95,17 @@ package weavejs.net
 							result = new JS.Uint8Array(result);
 						if (responseType === ResponseType.DATAURI)
 							result = byteArrayToDataUri(new JS.Uint8Array(result), urlRequest.mimeType);
-						
-						resolve(result);
-						done = true;
+
+						if (xhr.status < 200 || xhr.status > 299) /* If we did not receive a success status code (200 OK, 201 Created, etc...), reject */
+						{
+							reject(xhr);
+							done = true;
+						}
+						else
+						{
+							resolve(result);
+							done = true;
+						}
 					};
 					xhr.onerror = function(event:*):void {
 						if (!done)
