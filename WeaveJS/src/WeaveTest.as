@@ -87,6 +87,7 @@ package
 	import weavejs.path.ExternalTool;
 	import weavejs.util.JS;
 	import weavejs.util.WeaveMenuItem;
+	import weavejs.util.GeometryUtils;
 	
 	public class WeaveTest
 	{
@@ -153,6 +154,7 @@ package
 			ExternalTool,
 			
 			WeaveMenuItem,
+			GeometryUtils,
 			ZoomBounds,
 			WeaveArchive,
 			WeaveRootDataTreeNode,
