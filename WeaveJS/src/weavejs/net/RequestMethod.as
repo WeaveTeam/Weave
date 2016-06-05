@@ -19,5 +19,6 @@ package weavejs.net
 	{
 		public static const GET:String = 'get';
 		public static const POST:String = 'post';
+		public static const PUT:String = 'put';
 	}
 }

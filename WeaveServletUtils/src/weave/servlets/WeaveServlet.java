@@ -325,6 +325,11 @@ public class WeaveServlet extends HttpServlet
 	{
 		handleServletRequest(request, response);
 	}
+
+	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+	{
+		handleServletRequest(request, response);	
+	}
 	
 	@SuppressWarnings("unchecked")
 	private void handleServletRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
@@ -360,7 +365,19 @@ public class WeaveServlet extends HttpServlet
 				info.setContentType = value instanceof Boolean ? (Boolean)value : false;
 			}
 			
-			if (request.getMethod().equals("GET"))
+			if (request.getMethod().equals("PUT"))
+			{
+				JsonRpcRequestModel json = new JsonRpcRequestModel();
+				json.jsonrpc = JSONRPC_VERSION;
+				json.id = "";
+				json.method = (String)urlParams.remove(METHOD);
+				json.params = urlParams;
+				info.currentJsonRequest = json;
+				info.prettyPrinting = true;
+				info.streamParameterIndex = (Number)urlParams.remove(STREAM_PARAMETER_INDEX);
+				invokeMethod(json.method, urlParams);
+			}
+			else if (request.getMethod().equals("GET"))
 			{
 				JsonRpcRequestModel json = new JsonRpcRequestModel();
 				json.jsonrpc = JSONRPC_VERSION;

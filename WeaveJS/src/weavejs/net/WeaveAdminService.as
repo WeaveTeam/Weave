@@ -26,6 +26,7 @@ package weavejs.net
 	import weavejs.net.beans.WeaveFileInfo;
 	import weavejs.util.JS;
 	import weavejs.util.JSByteArray;
+	import weavejs.util.StringView;
 	import weavejs.util.StandardLib;
 	import weavejs.util.WeavePromise;
 	
@@ -213,6 +214,22 @@ package weavejs.net
 				throw new Error("method must be a member of WeaveAdminService");
 			return generateQuery(adminService, methodName, JS.global.Array.from(parameters), queued, returnType);
 		}
+
+		/**
+		 * This function will generate a DelayedAsyncInvocation representing a servlet method invocation and add it to the queue. 
+		 * It will not cast it as Array first, allowing for named parameters.
+		 * @param method A WeaveAdminService class member function.
+		 * @param parameters Parameters for the servlet method.
+		 * @param queued If true, the request will be put into the queue so only one request is made at a time.
+		 * @return The DelayedAsyncInvocation object representing the servlet method invocation.
+		 */		
+		private function invokeAdminNamed(method:Function, parameters:*, queued:Boolean = true, returnType:Class = null):WeavePromise/*/<any>/*/
+		{
+			var methodName:String = getMethodName(method);
+			if (!methodName)
+				throw new Error("method must be a member of WeaveAdminService");
+			return generateQuery(adminService, methodName, parameters, queued, returnType);
+		}
 		
 		/**
 		 * This function will generate a DelayedAsyncInvocation representing a servlet method invocation and add it to the queue.
@@ -237,7 +254,7 @@ package weavejs.net
 		 * @param returnType The type of object which the result should be cast to.
 		 * @return The WeavePromise<any> object representing the servlet method invocation.
 		 */		
-		private function generateQuery(service:AMF3Servlet, methodName:String, parameters:Array, queued:Boolean, returnType:Class):WeavePromise/*/<any>/*/
+		private function generateQuery(service:AMF3Servlet, methodName:String, parameters:*, queued:Boolean, returnType:Class):WeavePromise/*/<any>/*/
 		{
 			var query:WeavePromise/*/<any>/*/ = service.invokeAsyncMethod(methodName, parameters);
 			var castedQuery:WeavePromise;
@@ -363,7 +380,11 @@ package weavejs.net
 
 		public function saveWeaveFile(fileContent:JSByteArray, fileName:String, overwriteFile:Boolean):WeavePromise/*/<string>/*/
 		{
-			var query:WeavePromise/*/<any>/*/ = invokeAdmin(saveWeaveFile, arguments);
+			var query:WeavePromise/*/<any>/*/ = invokeAdminNamed(saveWeaveFile, {
+					fileContent: fileContent,
+					fileName: fileName,
+					overwriteFile: overwriteFile
+				});
 			return query;
 		}
 

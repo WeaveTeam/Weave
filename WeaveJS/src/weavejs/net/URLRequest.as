@@ -36,7 +36,7 @@ package weavejs.net
 		/**
 		 * Specified if method is "post"
 		 */
-		public var data:String;
+		public var data:*;
 		
 		/**
 		 * Maps request header names to values

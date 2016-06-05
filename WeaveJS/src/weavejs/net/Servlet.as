@@ -58,6 +58,10 @@ package weavejs.net
 		 * The name of the property which contains method parameters.
 		 */
 		private var PARAMS:String = "params";
+		/**
+		 * The name of the property which specifies the index in the params Array that corresponds to an InputStream on the server side.
+		 */
+		private var STREAM_PARAM_INDEX:String = "streamParameterIndex";
 		
 		/**
 		 * This is the base URL of the servlet.
@@ -120,18 +124,41 @@ package weavejs.net
 			
 			var method:String = method0_params1_id2[0];
 			var params:Object = method0_params1_id2[1];
+			var protocol:String = _protocol;
+			var stream:JSByteArray;
+
+			/* Check if any of our arguments are bytearrays; 
+			   if they are, use URL_PARAM protocol */
+			for (var paramName:String in params)
+			{
+				var param:* = params[paramName];
+				if (param is weavejs.util.JSByteArray)
+				{
+					protocol = Protocol.URL_PARAMS;
+					stream = param;
+					delete params[paramName];
+					params[METHOD] = RequestMethod.PUT;
+					params[STREAM_PARAM_INDEX] = 0; /* Only will work for saveWeaveFile right now */
+					break;
+				}
+			}
 			var id:int = method0_params1_id2[2];
 			
 			var url:String = getServletURLForMethod(method);
 			var request:URLRequest = new URLRequest(url);
-			if (_protocol == Protocol.URL_PARAMS)
+			if (protocol == Protocol.URL_PARAMS)
 			{
 				params = JS.copyObject(params);
 				params[METHOD] = method;
 				request.url = buildUrlWithParams(url, params);
 				request.method = RequestMethod.GET;
+				if (stream)
+				{
+					request.data = stream.data;
+					request.method = RequestMethod.PUT;
+				}
 			}
-			else if (_protocol == Protocol.JSONRPC_2_0)
+			else if (protocol == Protocol.JSONRPC_2_0)
 			{
 				request.method = RequestMethod.POST;
 				request.data = JSON.stringify({
@@ -142,7 +169,7 @@ package weavejs.net
 				});
 				request.responseType = ResponseType.JSON;
 			}
-			else if (_protocol == Protocol.JSONRPC_2_0_AMF)
+			else if (protocol == Protocol.JSONRPC_2_0_AMF)
 			{
 				request.method = RequestMethod.POST;
 				request.data = JSON.stringify({
@@ -155,7 +182,7 @@ package weavejs.net
 			
 			var result:WeavePromise = WeaveAPI.URLRequestUtils.request(this, request);
 			
-			if (_protocol == Protocol.JSONRPC_2_0_AMF)
+			if (protocol == Protocol.JSONRPC_2_0_AMF)
 				result = result.then(readAmf3Object);
 			
 			promise.setResult(result);
