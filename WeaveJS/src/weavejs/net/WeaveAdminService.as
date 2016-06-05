@@ -141,7 +141,7 @@ package weavejs.net
 		private function initializeAdminServiceError(error:*):void
 		{
 			//fixErrorMessage(error);
-			messageDisplay(null, error, true);
+			messageDisplay(null, error, false);
 		}
 		
 		/**
@@ -325,7 +325,7 @@ package weavejs.net
 				msg = "Received no response from the servlet.\n"
 					+ "Has the WAR file been deployed correctly?\n"
 					+ "Expected servlet URL: "+ adminService.servletURL;
-			messageDisplay(error, msg, true);
+			messageDisplay(error, msg, false);
 		}
 		
 		public function getVersion():WeavePromise/*/<string>/*/
