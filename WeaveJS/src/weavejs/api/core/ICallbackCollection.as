@@ -52,8 +52,9 @@ package weavejs.api.core
 		 * This will add a callback that will only be called once, when this callback collection is disposed.
 		 * @param relevantContext If this is not null, then the callback will be removed when the relevantContext object is disposed via SessionManager.dispose().  This parameter is typically a 'this' pointer.
 		 * @param callback The function to call when this callback collection is disposed.
+		 * @param allowDelay If this is set to true, this callback will be delayed while callbacksAreDelayed is true.
 		 */
-		function addDisposeCallback(relevantContext:Object, callback:Function):void;
+		function addDisposeCallback(relevantContext:Object, callback:Function, allowDelay:Boolean = false):void;
 		
 		/**
 		 * This function will remove a callback that was previously added.

@@ -220,18 +220,28 @@ package weavejs.core
 			if (_delayCount > 0)
 				_delayCount--;
 
-			if (_delayCount == 0 && _runCallbacksIsPending)
-				triggerCallbacks();
+			if (_delayCount == 0)
+			{
+				if (_runCallbacksIsPending)
+					triggerCallbacks();
+				if (_wasDisposed)
+					runDisposeCallbacks();
+			}
 		}
 		
-		public function addDisposeCallback(relevantContext:Object, callback:Function):void
+		public function addDisposeCallback(relevantContext:Object, callback:Function, allowDelay:Boolean = false):void
 		{
+			var entry:CallbackEntry;
+			
 			// don't do anything if the dispose callback was already added
-			for each (var entry:CallbackEntry in _disposeCallbackEntries)
+			for each (entry in _disposeCallbackEntries)
 				if (entry.callback === callback && entry.context === relevantContext)
 					return;
 			
-			_disposeCallbackEntries.push(new CallbackEntry(relevantContext, callback));
+			entry = new CallbackEntry(relevantContext, callback);
+			if (allowDelay)
+				entry.schedule = 1;
+			_disposeCallbackEntries.push(entry);
 		}
 		
 		/**
@@ -249,14 +259,22 @@ package weavejs.core
 				Weave.dispose(entry);
 			_callbackEntries.length = 0;
 			_wasDisposed = true;
-			
+			runDisposeCallbacks();
+		}
+		
+		private function runDisposeCallbacks():void
+		{
 			// run & remove dispose callbacks
-			while (_disposeCallbackEntries.length)
+			for each (var entry:CallbackEntry in _disposeCallbackEntries)
 			{
-				entry = _disposeCallbackEntries.shift();
+				if (entry.schedule > 0 && _delayCount > 0)
+					continue;
 				
 				if (entry.callback != null && !WeaveAPI.SessionManager.objectWasDisposed(entry.context))
+				{
 					entry.callback.apply(entry.context || entry.callback['this']);
+					Weave.dispose(entry);
+				}
 			}
 		}
 		
