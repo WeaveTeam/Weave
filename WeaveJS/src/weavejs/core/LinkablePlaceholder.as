@@ -61,6 +61,7 @@ package weavejs.core
 		private static function replace(oldObject:ILinkableObject, newObject:ILinkableObject):void
 		{
 			var owner:ILinkableObject = Weave.getOwner(oldObject);
+			var oldPlaceholder:LinkablePlaceholder = oldObject as LinkablePlaceholder;
 			var lhm:ILinkableHashMap = owner as ILinkableHashMap;
 			var ldo:ILinkableDynamicObject = owner as ILinkableDynamicObject;
 			if (!lhm && !ldo)
@@ -74,6 +75,9 @@ package weavejs.core
 				if (Weave.getCallbacks(oldObject).triggerCounter != CallbackCollection.DEFAULT_TRIGGER_COUNT)
 					sessionState = Weave.getState(oldObject);
 				
+				if (oldPlaceholder)
+					Weave.getCallbacks(oldPlaceholder).delayCallbacks();
+				
 				if (lhm)
 					lhm.setObject(lhm.getName(oldObject), newObject);
 				else if (ldo)
@@ -81,6 +85,9 @@ package weavejs.core
 				
 				if (sessionState !== undefined)
 					Weave.setState(newObject, sessionState);
+				
+				if (oldPlaceholder)
+					Weave.getCallbacks(oldPlaceholder).resumeCallbacks();
 			}
 			finally
 			{
@@ -135,6 +142,30 @@ package weavejs.core
 			{
 				Weave.dispose(placeholder);
 				throw e;
+			}
+		}
+		
+		/**
+		 * Calls a function after a placeholder has been replaced with an instance and the instance session state has been initialized.
+		 * The onReady function will be called immediately if possiblePlaceholder is not a LinkablePlaceholder.
+		 * @param relevantContext The relevantContext parameter passed to ICallbackCollection.addDisposeCallback().
+		 * @param possiblePlaceholder Either a LinkablePlaceholder or another ILinkableObject.
+		 * @param onReady The function to call.
+		 */
+		public static function whenReady(relevantContext:ILinkableObject, possiblePlaceholder:ILinkableObject, onReady:/*/(instance:ILinkableObject)=>void/*/Function):void
+		{
+			var lp:LinkablePlaceholder = Weave.AS(possiblePlaceholder, LinkablePlaceholder);
+			if (lp)
+			{
+				Weave.getCallbacks(lp).addDisposeCallback(relevantContext, function():void {
+					var instance:ILinkableObject = lp.getInstance();
+					if (instance)
+						onReady(instance);
+				}, true);
+			}
+			else if (possiblePlaceholder && !Weave.wasDisposed(relevantContext))
+			{
+				onReady(possiblePlaceholder);
 			}
 		}
 	}
