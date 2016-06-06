@@ -342,6 +342,16 @@ package weavejs.net
 					entityCache.invalidate(parentId);
 				}
 			);
+
+			service.addHook(
+				service.getAuthenticatedUser,
+				null,
+				function(result:*, _:*):void
+				{
+					activeConnectionName = result as String;
+					userHasAuthenticated = true;
+				}
+			);
 			
 			service.checkDatabaseConfigExists();
 		}
