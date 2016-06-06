@@ -22,6 +22,7 @@ import static weave.config.WeaveConfig.getUploadPath;
 import static weave.config.WeaveConfig.initWeaveConfig;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -315,6 +316,18 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 
 		Collections.sort(listOfFiles, String.CASE_INSENSITIVE_ORDER);
 		return ListUtils.toStringArray(listOfFiles);
+	}
+	/**
+	 * Save a Weave session to the currently logged in user's folder.
+	 * @param  fileContentB64 A base64 encoded string containing the weave session.
+	 * @param  fileName       The filename under which to store the session.
+	 * @param  overwriteFile  Whether we should overwrite the existing file.
+	 * @return A success message.
+	 */
+	public String saveWeaveFileByteArray(byte[] fileContent, String fileName, boolean overwriteFile)
+		throws RemoteException
+	{
+		return saveWeaveFile(new ByteArrayInputStream(fileContent), fileName, overwriteFile);
 	}
 
 	/**

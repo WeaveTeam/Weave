@@ -19,6 +19,7 @@ package weavejs.net
 	import weavejs.api.net.beans.Entity;
 	import weavejs.api.net.beans.EntityHierarchyInfo;
 	import weavejs.api.net.beans.EntityMetadata;
+
 	import weavejs.core.CallbackCollection;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.net.beans.ConnectionInfo;
@@ -26,6 +27,7 @@ package weavejs.net
 	import weavejs.net.beans.WeaveFileInfo;
 	import weavejs.util.JS;
 	import weavejs.util.JSByteArray;
+	import weavejs.util.StringView;
 	import weavejs.util.StandardLib;
 	import weavejs.util.WeavePromise;
 	
@@ -361,10 +363,16 @@ package weavejs.net
 			return invokeAdmin(getWeaveFileNames, arguments);
 		}
 
+		public function saveWeaveFileByteArray(fileContent:JSByteArray, fileName:String, overwriteFile:Boolean):WeavePromise/*/<string>/*/
+		{
+			var b64string:String = StringView.bytesToBase64(fileContent.data);
+			arguments[0] = b64string;
+			return invokeAdmin(saveWeaveFileByteArray, arguments);
+		}
+
 		public function saveWeaveFile(fileContent:JSByteArray, fileName:String, overwriteFile:Boolean):WeavePromise/*/<string>/*/
 		{
-			var query:WeavePromise/*/<any>/*/ = invokeAdmin(saveWeaveFile, arguments);
-			return query;
+			return this.saveWeaveFileByteArray.apply(this, arguments);
 		}
 
 		public function removeWeaveFile(fileName:String):WeavePromise/*/<string>/*/
