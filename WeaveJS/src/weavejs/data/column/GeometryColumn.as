@@ -77,7 +77,7 @@ package weavejs.data.column
 			
 			if (keys.length != geometries.length)
 			{
-				trace("number of keys does not match number of geometires in GeometryColumn.setGeometries()");
+				JS.error("number of keys does not match number of geometires in GeometryColumn.setGeometries()");
 				return;
 			}
 			
