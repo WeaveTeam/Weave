@@ -241,7 +241,6 @@ package weavejs.net
 		{
 			var query:WeavePromise/*/<any>/*/ = service.invokeAsyncMethod(methodName, parameters);
 			var castedQuery:WeavePromise;
-			query.then(null, interceptFault.bind(this, query)); /* query? */
 			
 			if (queued)
 				queue.addToQueue(query, service);
@@ -257,7 +256,7 @@ package weavejs.net
 				castedQuery = query;
 			}
 
-			castedQuery.then(hookHandler.bind(this, methodName, parameters));
+			castedQuery.then(hookHandler.bind(this, methodName, parameters), interceptFault);
 			
 			if (!queued)
 				service.invokeDeferred(query);
@@ -282,7 +281,7 @@ package weavejs.net
 			PREVENT_FAULT_ALERT.set(query, true);
 		}
 		
-		private function interceptFault(query:WeavePromise/*/<any>/*/, error:*):void
+		private function interceptFault(error:*):void
 		{
 			// if user has been signed out, clear the queue immediately
 			//JS.error(error);
