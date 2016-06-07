@@ -349,7 +349,7 @@ package weavejs.net
 				function(result:*, _:*):void
 				{
 					activeConnectionName = result as String;
-					userHasAuthenticated = true;
+					userHasAuthenticated = !!activeConnectionName;
 				}
 			);
 			

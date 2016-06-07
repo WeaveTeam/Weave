@@ -19,7 +19,6 @@ package weavejs.net
 	import weavejs.api.net.beans.Entity;
 	import weavejs.api.net.beans.EntityHierarchyInfo;
 	import weavejs.api.net.beans.EntityMetadata;
-
 	import weavejs.core.CallbackCollection;
 	import weavejs.core.LinkableBoolean;
 	import weavejs.net.beans.ConnectionInfo;
@@ -27,7 +26,6 @@ package weavejs.net
 	import weavejs.net.beans.WeaveFileInfo;
 	import weavejs.util.JS;
 	import weavejs.util.JSByteArray;
-	import weavejs.util.StringView;
 	import weavejs.util.StandardLib;
 	import weavejs.util.WeavePromise;
 	
@@ -287,7 +285,7 @@ package weavejs.net
 		private function interceptFault(query:WeavePromise/*/<any>/*/, error:*):void
 		{
 			// if user has been signed out, clear the queue immediately
-			JS.error(error);
+			//JS.error(error);
 			if (error == WEAVE_AUTHENTICATION_EXCEPTION && authenticated.value)
 			{
 				resetQueue();
@@ -365,9 +363,8 @@ package weavejs.net
 
 		public function saveWeaveFileByteArray(fileContent:JSByteArray, fileName:String, overwriteFile:Boolean):WeavePromise/*/<string>/*/
 		{
-			var b64string:String = StringView.bytesToBase64(fileContent.data);
-			arguments[0] = b64string;
-			return invokeAdmin(saveWeaveFileByteArray, arguments);
+			var base64:String = JS.global.btoa(StandardLib.byteArrayToString(fileContent.data));
+			return invokeAdmin(saveWeaveFileByteArray, [base64, fileName, overwriteFile]);
 		}
 
 		public function saveWeaveFile(fileContent:JSByteArray, fileName:String, overwriteFile:Boolean):WeavePromise/*/<string>/*/
