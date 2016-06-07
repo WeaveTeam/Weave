@@ -50,7 +50,7 @@ package weavejs.net
 		{
 			if (!_service)
 			{
-				_service = new WeaveAdminService("/WeaveServices");
+				_service = WeaveAdminService.getInstance("/WeaveServices");
 				//linkBindableProperty(_service.authenticated, this, 'userHasAuthenticated');
 			}
 			return _service;

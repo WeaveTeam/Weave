@@ -40,6 +40,19 @@ package weavejs.net
 	{
 		public static const WEAVE_AUTHENTICATION_EXCEPTION:String = 'WeaveAuthenticationException';
 		
+		private static const _map_url_instance:Object = new JS.Map();
+
+		public static function getInstance(url:String):WeaveAdminService
+		{
+			if (_map_url_instance.has(url))
+			{
+				return _map_url_instance.get(url);
+			}
+			var serviceInstance:WeaveAdminService = new WeaveAdminService(url);
+			_map_url_instance.set(url, serviceInstance);
+			return serviceInstance;
+		}
+		
 		public static const messageLog:Array = new Array();
 		public static const messageLogCallbacks:CallbackCollection = new CallbackCollection();
 		public static function messageDisplay(messageTitle:String, message:String, showPopup:Boolean):void
