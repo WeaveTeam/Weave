@@ -844,8 +844,22 @@ public class WeaveServlet extends HttpServlet
 			
 			if (typeClass.isArray()) // ? -> T[]
 			{
-				if (value instanceof String) // String -> String[]
-					value = CSVParser.defaultParser.parseCSVRow((String)value, true);
+				Class<?> itemType = typeClass.getComponentType();
+				
+				
+				if (value instanceof String)
+				{
+					if (byte.class.isAssignableFrom(itemType))
+					{
+						// String -> byte[]
+						return Base64.decode((String)value);
+					}
+					else
+					{
+						// String -> String[]
+						value = CSVParser.defaultParser.parseCSVRow((String)value, true);
+					}
+				}
 				
 				if (value instanceof List) // List -> Object[]
 					value = ((List<?>)value).toArray();
@@ -853,7 +867,6 @@ public class WeaveServlet extends HttpServlet
 				if (value.getClass().isArray()) // T1[] -> T2[]
 				{
 					int n = Array.getLength(value);
-					Class<?> itemType = typeClass.getComponentType();
 					Object output = Array.newInstance(itemType, n);
 					while (n-- > 0)
 						Array.set(output, n, cast(Array.get(value, n), itemType));
