@@ -5,7 +5,7 @@ package weavejs.api.ui
 	public interface IAltText
 	{
 		function get altText():LinkableString;
-		altTextMode:LinkableString;
+		function get altTextMode():LinkableString;
 		function updateAltText():void;
 	}
 }

@@ -87,6 +87,7 @@ package
 	import weavejs.path.ExternalTool;
 	import weavejs.util.JS;
 	import weavejs.util.WeaveMenuItem;
+	import weavejs.api.ui.IAltText;
 	
 	public class WeaveTest
 	{
@@ -163,9 +164,9 @@ package
 			IVisTool_Utility,
 			Admin,
 			EventCallbackCollection,
-			
+			IAltText,
+
 			//EntityNodeSearch, //TODO - resolve circular dependency issue
-			
 			null
 		];
 		
