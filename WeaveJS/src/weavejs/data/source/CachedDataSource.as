@@ -26,6 +26,11 @@ package weavejs.data.source
 		{
 		}
 		
+		override public function get isLocal():Boolean 
+		{
+			return true;
+		}
+
 		public const type:LinkableString = Weave.linkableChild(this, LinkableString);
 		public const state:LinkableVariable = Weave.linkableChild(this, LinkableVariable);
 		

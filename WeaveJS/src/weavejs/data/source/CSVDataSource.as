@@ -57,6 +57,11 @@ package weavejs.data.source
 			super();
 			Weave.linkableChild(hierarchyRefresh, metadata);
 		}
+
+		override public function get isLocal():Boolean
+		{
+			return !!csvData.state || url.isLocal;
+		}
 		
 		override public function getLabel():String
 		{

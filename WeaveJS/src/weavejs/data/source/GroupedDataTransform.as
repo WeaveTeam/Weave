@@ -32,6 +32,8 @@ package weavejs.data.source
 	import weavejs.data.column.DynamicColumn;
 	import weavejs.data.column.ProxyColumn;
 	import weavejs.data.hierarchy.ColumnTreeNode;
+	import weavejs.data.ColumnUtils;
+	import weavejs.data.DataSourceUtils;
 	import weavejs.util.JS;
 
 	public class GroupedDataTransform extends AbstractDataSource implements ISelectableAttributes
@@ -40,10 +42,16 @@ package weavejs.data.source
 
 		public static const DATA_COLUMNNAME_META:String = "__GroupedDataColumnName__";
 
+
 		public function GroupedDataTransform()
 		{
 		}
 		
+		override public function get isLocal():Boolean 
+		{
+			return !DataSourceUtils.hasRemoteColumnDependencies(this);
+		}
+
 		public function get selectableAttributes():/*/Map<string, (weavejs.api.data.IColumnWrapper|weavejs.api.core.ILinkableHashMap)>/*/Object
 		{
 			return new JS.Map()

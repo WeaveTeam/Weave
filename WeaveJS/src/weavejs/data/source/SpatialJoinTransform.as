@@ -12,6 +12,7 @@ package weavejs.data.source
 	import weavejs.data.column.ProxyColumn;
 	import weavejs.data.column.StringColumn;
 	import weavejs.data.hierarchy.ColumnTreeNode;
+	import weavejs.data.DataSourceUtils;
 	import weavejs.util.ArrayUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
@@ -26,6 +27,11 @@ package weavejs.data.source
 		public const pointProjection:LinkableString = Weave.linkableChild(this, LinkableString);
 		private var _source:Object; /* This is a ol.source.Vector */
 		private var _parser:Object; /* This is an ol.format.GeoJSON */
+
+		override public function get isLocal():Boolean 
+		{
+			return !DataSourceUtils.hasRemoteColumnDependencies(this);
+		}
 
 		/* Output dataType is determined by the geometryColumn input. */
 		/* Output keyType is determined by the xColumn/yColumn input. */

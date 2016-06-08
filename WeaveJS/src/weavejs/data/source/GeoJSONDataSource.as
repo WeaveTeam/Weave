@@ -36,9 +36,14 @@ package weavejs.data.source
 	public class GeoJSONDataSource extends AbstractDataSource implements IDataSource_File
 	{
 		WeaveAPI.ClassRegistry.registerImplementation(IDataSource, GeoJSONDataSource, "GeoJSON file");
- 		
+
 		public function GeoJSONDataSource()
 		{
+		}
+		
+		override public function get isLocal():Boolean
+		{
+			return url.isLocal;
 		}
 
 		override public function getLabel():String

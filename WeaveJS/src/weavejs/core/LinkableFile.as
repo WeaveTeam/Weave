@@ -18,6 +18,7 @@ package weavejs.core
 	import weavejs.WeaveAPI;
 	import weavejs.api.core.ILinkableVariable;
 	import weavejs.net.URLRequest;
+	import weavejs.net.URLRequestUtils;
 	import weavejs.util.WeavePromise;
 	
 	/**
@@ -28,6 +29,12 @@ package weavejs.core
 		private var linkablePromise:LinkablePromise;
 		private var url:LinkableString;
 		private var responseType:String;
+
+		public function get isLocal():Boolean 
+		{
+			/* Cast needed to get access to work around asjs not knowing about String.startswith) */
+			return (url.value && (url.value as Object).startsWith(URLRequestUtils.LOCAL_FILE_URL_SCHEME)) || !url.value;
+		}
 
 		public function LinkableFile(defaultValue:String = null, taskDescription:* = null, responseType:String = "uint8array")
 		{

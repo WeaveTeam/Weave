@@ -26,6 +26,11 @@ package weavejs.api.data
 	public interface IDataSource extends ILinkableObject
 	{
 		/**
+		 * A boolean determining whether or not a datasource depends on only session-local resources.
+		 * @return False if the datasource uses or depends on remote/network resources, true otherwise.
+		 */
+		function get isLocal():Boolean;
+		/**
 		 * Gets the label of the root hierarchy node.
 		 * @return The label of the root hierarchy node.
 		 */

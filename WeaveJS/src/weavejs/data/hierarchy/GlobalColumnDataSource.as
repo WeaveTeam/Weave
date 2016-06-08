@@ -34,6 +34,11 @@ package weavejs.data.hierarchy
 				map_root_instance.set(root, instance = new GlobalColumnDataSource(root));
 			return instance;
 		}
+
+		public function get isLocal():Boolean
+		{
+			return true;
+		}
 		
 		private static const map_root_instance:Object = new JS.Map();
 		

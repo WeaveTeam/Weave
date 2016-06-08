@@ -20,6 +20,8 @@ package weavejs.data
 	import weavejs.api.data.DataType;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IQualifiedKey;
+	import weavejs.api.data.IDataSource;
+	import weavejs.data.column.DynamicColumn;
 	import weavejs.data.column.DateColumn;
 	import weavejs.data.column.NumberColumn;
 	import weavejs.data.column.ProxyColumn;
@@ -42,6 +44,26 @@ package weavejs.data
 				return DataType.STRING;
 			
 			return DataType.NUMBER;
+		}
+
+		/**
+		 * Determine whether a datasource that uses columns from other datasources that are remote.
+		 * @param  dataSource The datasource to test.
+		 * @return            True if a remote column is used by the datasource; false otherwise.
+		 */
+		public static function hasRemoteColumnDependencies(dataSource:IDataSource):Boolean
+		{
+			/* Possibly cache this and check for changes? */
+			for each (var column:DynamicColumn in Weave.getDescendants(dataSource, DynamicColumn))
+			{
+				for each (var columnDataSource:IDataSource in ColumnUtils.getDataSources(column))
+				{
+					if (columnDataSource === dataSource) continue;
+					if (!columnDataSource.isLocal)
+						return true;
+				}
+			}
+			return false;
 		}
 		
 		/**

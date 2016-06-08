@@ -36,12 +36,15 @@ package weavejs.data.source
 		
 		public static const CONCEPT_NAME:String = "__CensusDataSource__concept";
 		public static const VARIABLE_NAME:String = "__CensusDataSource__variable";
-		
-
 
         public function CensusDataSource()
         {
         }
+
+		override public function get isLocal():Boolean 
+		{
+			return false;
+		}
 		
 		override protected function initialize(forceRefresh:Boolean = false):void
         {

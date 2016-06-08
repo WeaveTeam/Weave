@@ -26,6 +26,7 @@ package weavejs.data.source
 	import weavejs.data.column.DynamicColumn;
 	import weavejs.data.column.ProxyColumn;
 	import weavejs.data.hierarchy.ColumnTreeNode;
+	import weavejs.data.DataSourceUtils;
 	import weavejs.util.JS;
 
 	public class ForeignDataMappingTransform extends AbstractDataSource implements ISelectableAttributes
@@ -36,10 +37,14 @@ package weavejs.data.source
 
 		public const keyColumn:DynamicColumn = Weave.linkableChild(this, DynamicColumn);
 		public const dataColumns:ILinkableHashMap = Weave.linkableChild(this, new LinkableHashMap(IAttributeColumn));
-		
 
 		public function ForeignDataMappingTransform()
 		{
+		}
+
+		override public function get isLocal():Boolean 
+		{
+			return !DataSourceUtils.hasRemoteColumnDependencies(this);
 		}
 
 		public function get selectableAttributes():/*/Map<string, (weavejs.api.data.IColumnWrapper|weavejs.api.core.ILinkableHashMap)>/*/Object
