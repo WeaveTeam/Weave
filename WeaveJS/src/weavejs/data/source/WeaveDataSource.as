@@ -62,7 +62,12 @@ package weavejs.data.source
 		{
 			url.addImmediateCallback(this, handleURLChange, true);
 		}
-		
+
+		override public function get isLocal():Boolean
+		{
+			return false;
+		}
+
 		private var _service:WeaveDataServlet = null;
 		private var _tablePromiseCache:Object;
 		private var map_proxy_promise:Object;

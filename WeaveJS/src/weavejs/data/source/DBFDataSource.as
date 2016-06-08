@@ -35,6 +35,7 @@ package weavejs.data.source
 	import weavejs.data.column.StringColumn;
 	import weavejs.geom.ShpFileReader;
 	import weavejs.net.URLRequest;
+	import weavejs.net.URLRequestUtils;
 	import weavejs.util.JS;
 	import weavejs.util.JSByteArray;
 	import weavejs.util.StandardLib;
@@ -49,6 +50,19 @@ package weavejs.data.source
 		public function DBFDataSource()
 		{
 		}
+
+		/**
+		 * Hack until dbfUrl and shpUrl are turned into LinkableFiles;
+		 */
+		private function hack_urlIsLocal(url:String):Boolean
+		{
+			return (url && (url as Object).startsWith(URLRequestUtils.LOCAL_FILE_URL_SCHEME)) || !url;
+		}
+
+		override public function get isLocal():Boolean 
+		{
+			return hack_urlIsLocal(dbfUrl.value) && hack_urlIsLocal(shpUrl.value);
+		}	
 		
 		override public function getLabel():String
 		{

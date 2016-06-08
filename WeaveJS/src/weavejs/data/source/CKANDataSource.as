@@ -35,6 +35,11 @@ package weavejs.data.source
 		{
 		}
 
+		override public function get isLocal():Boolean
+		{
+			return false;
+		}
+
 		public const url:LinkableString = Weave.linkableChild(this, new LinkableString());
 		public const apiVersion:LinkableNumber = Weave.linkableChild(this, new LinkableNumber(3, validateApiVersion));
 		public const useHttpPost:LinkableBoolean = Weave.linkableChild(this, new LinkableBoolean(false));

@@ -60,6 +60,11 @@ package weavejs.data.source
 			return null;
 		}
 
+		public function get isLocal():Boolean
+		{
+			return false;
+		}
+
 		/**
 		 * This variable is set to false when the session state changes and true when initialize() is called.
 		 */
