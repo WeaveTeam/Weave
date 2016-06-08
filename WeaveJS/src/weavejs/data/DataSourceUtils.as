@@ -21,13 +21,13 @@ package weavejs.data
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IQualifiedKey;
 	import weavejs.api.data.IDataSource;
-	import weavejs.data.column.DynamicColumn;
 	import weavejs.data.column.DateColumn;
 	import weavejs.data.column.NumberColumn;
 	import weavejs.data.column.ProxyColumn;
 	import weavejs.data.column.StringColumn;
 	import weavejs.data.key.QKeyManager;
 	import weavejs.util.StandardLib;
+	import weavejs.util.JS;
 	
 	public class DataSourceUtils
 	{
@@ -46,6 +46,7 @@ package weavejs.data
 			return DataType.NUMBER;
 		}
 
+		private static var _weakMap_dataSource_isLocal:Object = new JS.WeakMap();
 		/**
 		 * Determine whether a datasource that uses columns from other datasources that are remote.
 		 * @param  dataSource The datasource to test.
@@ -54,15 +55,28 @@ package weavejs.data
 		public static function hasRemoteColumnDependencies(dataSource:IDataSource):Boolean
 		{
 			/* Possibly cache this and check for changes? */
-			for each (var column:DynamicColumn in Weave.getDescendants(dataSource, DynamicColumn))
+			for each (var column:IAttributeColumn in Weave.getDescendants(dataSource, IAttributeColumn))
 			{
 				for each (var columnDataSource:IDataSource in ColumnUtils.getDataSources(column))
 				{
 					if (columnDataSource === dataSource) continue;
-					if (!columnDataSource.isLocal)
+					var isLocal:Boolean;
+					if (Weave.detectChange(_weakMap_dataSource_isLocal, columnDataSource))
+					{
+						isLocal = columnDataSource.isLocal;
+						_weakMap_dataSource_isLocal.set(columnDataSource, isLocal);
+					}
+					else
+					{
+						isLocal = _weakMap_dataSource_isLocal.has(columnDataSource) ? 
+							_weakMap_dataSource_isLocal.get(columnDataSource) : true;
+					}
+
+					if (!isLocal)
 						return true;
 				}
 			}
+
 			return false;
 		}
 		
