@@ -15,14 +15,16 @@
 
 package weavejs.api.core
 {
+	/*
+	export declare type NonArrayObject = {length?:void} | {toString?:void} | {toLocaleString?:void} | {push?:void} | {pop?:void} | {concat?:void} | {concat?:void} | {join?:void} | {reverse?:void} | {shift?:void} | {slice?:void} | {sort?:void} | {splice?:void} | {splice?:void} | {unshift?:void} | {indexOf?:void} | {lastIndexOf?:void} | {every?:void} | {some?:void} | {forEach?:void} | {map?:void} | {filter?:void} | {reduce?:void} | {reduce?:void} | {reduceRight?:void} | {reduceRight?:void};
+	*/
+	
 	/**
 	 * An object that implements this empty interface has an associated ICallbackCollection and session state,
 	 * accessible through the global functions in the weave.api package. In order for an ILinkableObject to
 	 * be created dynamically at runtime, it must not require any constructor parameters.
-	 * 
-	 * @author adufilie
 	 */
-	public interface ILinkableObject/*/ extends {_primitiveBrand?:void}/*/
+	public interface ILinkableObject/*/ extends NonArrayObject/*/
 	{
 	}
 }
