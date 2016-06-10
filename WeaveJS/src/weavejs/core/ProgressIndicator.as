@@ -143,11 +143,13 @@ package weavejs.core
 			// make any pending requests that no longer exist count as 100% done
 			sum += _maxTaskCount - _taskCount;
 			// divide by the max count to get overall percentage
-			return sum / _maxTaskCount;
+			if (sum)
+				return sum / _maxTaskCount;
+			return _taskCount ? 0 : 1;
 		}
 
 		private var _taskCount:int = 0;
-		private var _maxTaskCount:int = 0;
+		private var _maxTaskCount:int = 1;
 		private var map_task_progress:Object = new JS.Map();
 		private var map_task_description:Object = new JS.Map();
 		private var map_task_stackTrace:Object = new JS.Map();

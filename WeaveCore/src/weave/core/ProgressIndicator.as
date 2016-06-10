@@ -174,11 +174,13 @@ package weave.core
 			// make any pending requests that no longer exist count as 100% done
 			sum += _maxTaskCount - _taskCount;
 			// divide by the max count to get overall percentage
-			return sum / _maxTaskCount;
+			if (sum)
+				return sum / _maxTaskCount;
+			return _taskCount ? 0 : 1;
 		}
 
 		private var _taskCount:int = 0;
-		private var _maxTaskCount:int = 0;
+		private var _maxTaskCount:int = 1;
 		private const _progress:Dictionary = new Dictionary();
 		private const _description:Dictionary = new Dictionary();
 		private const _stackTrace:Dictionary = new Dictionary();
