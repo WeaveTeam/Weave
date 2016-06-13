@@ -304,6 +304,11 @@ package weavejs.util
 			return global['setInterval'].apply(global, params);
 		}
 		
+		public static function clearInterval(id:int):void
+		{
+			global['clearInterval'](id);
+		}
+		
 		public static function requestAnimationFrame(func:Function):int
 		{
 			return global['requestAnimationFrame'].call(global, func);
