@@ -739,13 +739,14 @@ package weavejs.data
 			StandardLib.sortOn(names, [_preferredMetadataPropertyOrder.indexOf, names]);
 		}
 		
-		public static var firstDataSet:Array/*/<IWeaveTreeNode&IColumnReference>/*/;
+		public static var map_root_firstDataSet:/*/WeakMap<ILinkableHashMap, Array<IWeaveTreeNode&IColumnReference>>/*/Object = new JS.WeakMap();
 		
 		/**
 		 * Finds a set of columns from available data sources, preferring ones that are already in use. 
 		 */
 		public static function findFirstDataSet(root:ILinkableHashMap):Array/*/<IWeaveTreeNode&IColumnReference>/*/
 		{
+			var firstDataSet:Array = map_root_firstDataSet.get(root);
 			if (firstDataSet && firstDataSet.length)
 				return firstDataSet;
 			
