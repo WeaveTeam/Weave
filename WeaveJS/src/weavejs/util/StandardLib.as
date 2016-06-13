@@ -22,7 +22,6 @@ package weavejs.util
 		 */
 		public static var lodash:Object;
 		public static var ol:Object;
-		public static var MouseUtils:Object;
 		
 		public static function formatNumber(number:Number, precision:int = -1):String
 		{

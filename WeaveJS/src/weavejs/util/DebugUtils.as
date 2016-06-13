@@ -248,11 +248,11 @@ package weavejs.util
 			}
 		}
 		
-		private static function isValidSymbolName(str:String):Boolean
-		{
-			return true; // temporary solution
-		}
-		
+//		private static function isValidSymbolName(str:String):Boolean
+//		{
+//			return true; // temporary solution
+//		}
+//		
 //		public static function historyToCSV(weave:Weave):String
 //		{
 //			var data:Array = Array.prototype.concat.apply([['t','path','value']], weave.history.undoHistory.map((e,t)=>flattenSessionState(e.forward).map((a,i)=>[t,'Weave'+a[0].map(n=>isValidSymbolName(n)?'.'+n:Weave.stringify([n])).join(''),Weave.stringify(a[1])])));
@@ -293,6 +293,12 @@ package weavejs.util
 				stateToModify = newState;
 			}
 			return stateToModify;
+		}
+		
+		public static var MouseUtils:Object;
+		public static function shiftKey(reactInstance:Object):Boolean
+		{
+			return MouseUtils.forInstance(reactInstance).mouseEvent.shiftKey;
 		}
 	}
 }
