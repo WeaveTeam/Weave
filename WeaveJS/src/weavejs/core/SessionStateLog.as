@@ -280,12 +280,15 @@ package weavejs.core
 				
 				_syncTime = currentTime; // remember when diff was saved
 				cc.triggerCallbacks();
+				
+				// To avoid unnecessary work, only make a copy of the state if there was a diff.
+				// If there was no diff, we don't need to update _prevState.
+				_prevState = JS.copyObject(state);
 			}
 			
 			// always reset sync time after undo/redo even if there was no new diff
 			if (_undoActive || _redoActive)
 				_syncTime = currentTime;
-			_prevState = state;
 			_undoActive = false;
 			_redoActive = false;
 			_savePending = false;
@@ -371,7 +374,7 @@ package weavejs.core
 					if (stepsRemaining == 0 && enableLogging.value)
 					{
 						// remember the session state right before applying the last step so we can rewrite the history if necessary
-						_prevState = sm.getSessionState(_subject);
+						_prevState = JS.copyObject(sm.getSessionState(_subject));
 					}
 					
 					if (combine)
