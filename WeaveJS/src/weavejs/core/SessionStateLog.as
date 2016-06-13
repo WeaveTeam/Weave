@@ -42,7 +42,7 @@ package weavejs.core
 			
 			_subject = subject;
 			_syncDelay = syncDelay;
-			_prevState = WeaveAPI.SessionManager.getSessionState(_subject); // remember the initial state
+			_prevState = JS.copyObject(WeaveAPI.SessionManager.getSessionState(_subject)); // remember the initial state
 			WeaveAPI.SessionManager.registerDisposableChild(_subject, this); // make sure this is disposed when _subject is disposed
 			
 			var cc:ICallbackCollection = WeaveAPI.SessionManager.getCallbackCollection(_subject);
@@ -235,11 +235,11 @@ package weavejs.core
 			cc.delayCallbacks();
 			
 			var state:Object = sm.getSessionState(_subject);
-			var forwardDiff:* = sm.computeDiff(_prevState, state);
+			var forwardDiff:* = JS.copyObject(sm.computeDiff(_prevState, state));
 			if (forwardDiff !== undefined)
 			{
 				var diffDuration:int = currentTime - (_syncTime + _triggerDelay);
-				var backwardDiff:* = sm.computeDiff(state, _prevState);
+				var backwardDiff:* = JS.copyObject(sm.computeDiff(state, _prevState));
 				var oldEntry:LogEntry;
 				var newEntry:LogEntry;
 				if (_undoActive)
@@ -400,7 +400,7 @@ package weavejs.core
 				_undoActive = delta < 0 && _savePending;
 				_redoActive = delta > 0 && _savePending;
 				if (!_savePending)
-					_prevState = sm.getSessionState(_subject);
+					_prevState = JS.copyObject(sm.getSessionState(_subject));
 				sm.getCallbackCollection(this).triggerCallbacks();
 			}
 		}
