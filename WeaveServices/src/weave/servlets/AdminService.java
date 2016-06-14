@@ -171,8 +171,18 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 
 	public String getAuthenticatedUser() throws RemoteException
 	{
-		HttpSession session = getServletRequestInfo().request.getSession(true);
-		return (String)session.getAttribute(SESSION_USERNAME);
+		try
+		{
+			/* Even though we don't use the result, we want to make sure that the info in the HTTP session is valid. */
+			ConnectionInfo info = getConnectionInfo();
+			HttpSession session = getServletRequestInfo().request.getSession(true);
+			return (String)session.getAttribute(SESSION_USERNAME);
+		}
+		catch (RemoteException e)
+		{
+			/* If getConnectionInfo fails, return null */
+			return null;
+		}
 	}
 	
 	public void keepAlive() throws RemoteException
