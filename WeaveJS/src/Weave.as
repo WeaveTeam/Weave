@@ -18,6 +18,7 @@ package
 	import weavejs.core.SessionStateLog;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathUI;
+	import weavejs.util.DebugUtils;
 	import weavejs.util.Dictionary2D;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
@@ -734,6 +735,14 @@ package
 				object = getObject(pathOrType);
 			var state:Object = getState(object);
 			return stringify(state, null, '\t');
+		}
+		
+		public static function $(arg:* = undefined):*
+		{
+			var type:String = typeof(arg);
+			if (arg === undefined || (type != 'object' && type != 'function'))
+				return DebugUtils.debugLookup(arg);
+			return DebugUtils.debugId(arg);
 		}
 	}
 }
