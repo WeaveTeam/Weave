@@ -182,7 +182,7 @@ package weavejs.data
 			map_key_runningTotal = new JS.WeakMap();
 			
 			// high priority because preparing data is often a prerequisite for other things
-			WeaveAPI.Scheduler.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, Weave.lang("Calculating statistics for {0} values in {1}", keys.length, DebugUtils.debugId(column)));
+			WeaveAPI.Scheduler.startTask(this, iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete, Weave.lang("Calculating statistics for {0} values", keys.length));
 		}
 		
 		private function iterate(stopTime:int):Number
@@ -276,8 +276,6 @@ package weavejs.data
 			map_method_result.set(getSortIndex, map_key_sortIndex);
 			map_method_result.set(hack_getNumericData, hack_map_key_number);
 			map_method_result.set(getRunningTotals, map_key_runningTotal);
-			
-			//trace('stats calculated', debugId(this), debugId(column), String(column));
 			
 			// trigger callbacks when we are done
 			Weave.getCallbacks(this).triggerCallbacks();

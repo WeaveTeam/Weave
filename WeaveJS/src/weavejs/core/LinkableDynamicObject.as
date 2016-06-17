@@ -63,8 +63,6 @@ package weavejs.core
 		
 		public function setSessionState(newState:Array, removeMissingDynamicObjects:Boolean):void
 		{
-			//trace(debugId(this), removeMissingDynamicObjects ? 'diff' : 'state', Compiler.stringify(newState, null, '\t'));
-			
 			// special case - no change
 			if (newState == null)
 				return;

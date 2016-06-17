@@ -176,7 +176,7 @@ package weavejs.data.source
 		{
 			var proxyColumn:ProxyColumn = Weave.disposableChild(this, ProxyColumn);
 			proxyColumn.setMetadata(metadata);
-			var name:String = this.getLabel() || DebugUtils.debugId(this);
+			var name:String = this.getLabel() || Weave.className(this).split('.').pop();
 			var description:String = name + " pending column request";
 			WeaveAPI.ProgressIndicator.addTask(proxyColumn, this, description);
 			WeaveAPI.ProgressIndicator.addTask(proxyColumn, proxyColumn, description);
