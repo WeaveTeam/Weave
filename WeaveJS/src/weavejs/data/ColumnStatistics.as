@@ -35,66 +35,66 @@ package weavejs.data
 		
 		public function getNorm(key:IQualifiedKey):Number
 		{
-			var min:Number = validateCache(getMin);
-			var max:Number = validateCache(getMax);
-			var map_numericData:Object = validateCache(hack_getNumericData);
+			var min:Number = validateCache(getMin, NaN);
+			var max:Number = validateCache(getMax, NaN);
+			var map_numericData:Object = validateCache(hack_getNumericData, null);
 			var value:Number = map_numericData ? map_numericData.get(key) : NaN;
 			return (value - min) / (max - min);
 		}
 		
 		public function getMin():Number
 		{
-			return validateCache(getMin);
+			return validateCache(getMin, NaN);
 		}
 		
 		public function getMax():Number
 		{
-			return validateCache(getMax);
+			return validateCache(getMax, NaN);
 		}
 		
 		public function getCount():Number
 		{
-			return validateCache(getCount);
+			return validateCache(getCount, 0);
 		}
 		
 		public function getSum():Number
 		{
-			return validateCache(getSum);
+			return validateCache(getSum, 0);
 		}
 		
 		public function getSquareSum():Number
 		{
-			return validateCache(getSquareSum);
+			return validateCache(getSquareSum, 0);
 		}
 		
 		public function getMean():Number
 		{
-			return validateCache(getMean);
+			return validateCache(getMean, NaN);
 		}
 		
 		public function getVariance():Number
 		{
-			return validateCache(getVariance);
+			return validateCache(getVariance, NaN);
 		}
 		
 		public function getStandardDeviation():Number
 		{
-			return validateCache(getStandardDeviation);
+			return validateCache(getStandardDeviation, NaN);
 		}
 		
 		public function getMedian():Number
 		{
-			return validateCache(getMedian);
+			return validateCache(getMedian, NaN);
 		}
 		
 		public function getSortIndex():Object
 		{
-			return validateCache(getSortIndex);
+			return validateCache(getSortIndex, null);
 		}
 		
 		public function hack_getNumericData():Object
 		{
-			return validateCache(hack_getNumericData);
+			return validateCache(hack_getNumericData, null);
 		}
 		
 		/**
@@ -102,7 +102,7 @@ package weavejs.data
 		 */
 		public function getRunningTotals():Object
 		{
-			return validateCache(getRunningTotals);
+			return validateCache(getRunningTotals, null);
 		}
 		
 		/**********************************************************************/
@@ -122,7 +122,7 @@ package weavejs.data
 		 * @param statsFunction The function we are interested in calling.
 		 * @return The cached result for the statsFunction.
 		 */
-		private function validateCache(statsFunction:Function):*
+		private function validateCache(statsFunction:Function, defaultValue:*):*
 		{
 			// the cache becomes invalid when the trigger counter has changed
 			if (prevTriggerCounter != column.triggerCounter)
@@ -134,7 +134,9 @@ package weavejs.data
 				if (!busy)
 					asyncStart();
 			}
-			return map_method_result.get(statsFunction);
+			
+			var result:* = map_method_result.get(statsFunction);
+			return result === undefined ? defaultValue : result;
 		}
 		
 		private var i:int;
