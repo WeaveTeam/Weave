@@ -743,7 +743,7 @@ package
 		public static function id(arg:* = undefined):*
 		{
 			var type:String = typeof(arg);
-			if (arguments.length == 0 || (type != 'object' && type != 'function'))
+			if (arguments.length == 0 || type == 'string' || type == 'number')
 				return DebugUtils.debugLookup(arg);
 			return DebugUtils.debugId(arg);
 		}
