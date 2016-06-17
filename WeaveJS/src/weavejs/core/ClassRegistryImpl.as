@@ -175,7 +175,15 @@ package weavejs.core
 			{
 				if (!def)
 					break;
-				def = def[key];
+				
+				try
+				{
+					def = def[key];
+				}
+				catch (e:Error)
+				{
+					def = undefined;
+				}
 			}
 			return def;
 		}
