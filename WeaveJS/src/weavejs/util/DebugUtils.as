@@ -56,7 +56,7 @@ package weavejs.util
 			if (!idString)
 			{
 				var idNumber:int = _nextId++;
-				var className:String = Weave.className(object).split(':').pop();
+				var className:String = Weave.className(object).split('.').pop();
 				idString = className + '#' + idNumber;
 				
 				// save lookup from object to idString
