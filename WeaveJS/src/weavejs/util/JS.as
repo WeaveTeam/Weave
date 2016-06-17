@@ -258,7 +258,7 @@ package weavejs.util
 			}
 			
 			for (var key:String in object)
-				copy[key] = copyObject(object[key]);
+				copy[key] = copyObject(object[key], allowNonPrimitiveRefs);
 			
 			return copy;
 			
