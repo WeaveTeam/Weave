@@ -737,10 +737,13 @@ package
 			return stringify(state, null, '\t');
 		}
 		
-		public static function $(arg:* = undefined):*
+		/**
+		 * Shortcut for DebugUtils.debugId() and DebugUtils.debugLookup()
+		 */
+		public static function id(arg:* = undefined):*
 		{
 			var type:String = typeof(arg);
-			if (arg === undefined || (type != 'object' && type != 'function'))
+			if (arguments.length == 0 || (type != 'object' && type != 'function'))
 				return DebugUtils.debugLookup(arg);
 			return DebugUtils.debugId(arg);
 		}
