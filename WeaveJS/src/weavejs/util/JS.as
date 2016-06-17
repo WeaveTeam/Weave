@@ -230,8 +230,10 @@ package weavejs.util
 		
 		/**
 		 * Makes a deep copy of an object.
+		 * @param allowNonPrimitiveRefs If allowNonPrimitiveRefs is true, references to non-primitive objects will be allowed.
+		 *                              If allowNonPrimitiveRefs is false, an error will be thrown if a non-primitive object is found.
 		 */
-		public static function copyObject/*/<T>/*/(object:/*/T/*/Object):/*/T/*/Object
+		public static function copyObject/*/<T>/*/(object:/*/T/*/Object, allowNonPrimitiveRefs:Boolean = false):/*/T/*/Object
 		{
 			// check for primitive values
 			if (object === null || typeof object !== 'object')
@@ -240,11 +242,20 @@ package weavejs.util
 			var copy:Object;
 			
 			if (object is Array)
+			{
 				copy = [];
+			}
 			else if (Object['getPrototypeOf'](Object['getPrototypeOf'](object)))
-				throw new Error("copyObject() cannot copy non-primitive Objects");
+			{
+				if (allowNonPrimitiveRefs)
+					copy = object;
+				else
+					throw new Error("copyObject() cannot copy non-primitive Objects");
+			}
 			else
+			{
 				copy = {};
+			}
 			
 			for (var key:String in object)
 				copy[key] = copyObject(object[key]);
