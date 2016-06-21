@@ -57,7 +57,7 @@ package weavejs.data.column
 		/**
 		 * String -> index in sorted _uniqueStrings
 		 */
-		private var _uniqueStringLookup:Object;
+		private var _uniqueStringLookup:Object = new JS.Map();
 
 		public function setRecords(keys:Array, stringData:Array):void
 		{
@@ -65,7 +65,7 @@ package weavejs.data.column
 			_asyncSort.abort();
 			
 			_uniqueStrings.length = 0;
-			_uniqueStringLookup = {};
+			_uniqueStringLookup.clear();
 			_stringToNumberFunction = null;
 			_numberToStringFunction = null;
 			
@@ -121,11 +121,11 @@ package weavejs.data.column
 				return false;
 			
 			// keep track of unique strings
-			if (_uniqueStringLookup[value] === undefined)
+			if (!_uniqueStringLookup.has(value))
 			{
 				_uniqueStrings.push(value);
 				// initialize mapping
-				_uniqueStringLookup[value] = -1;
+				_uniqueStringLookup.set(value, -1);
 			}
 			
 			return true;
@@ -162,7 +162,7 @@ package weavejs.data.column
 					return _i / _uniqueStrings.length;
 				
 				var string:String = _uniqueStrings[_i];
-				_uniqueStringLookup[string] = _i;
+				_uniqueStringLookup.set(string, _i);
 				
 				if (_stringToNumberFunction != null)
 				{
@@ -213,7 +213,7 @@ package weavejs.data.column
 				if (_stringToNumberFunction != null)
 					return Number(_stringToNumber[string]);
 				
-				return Number(_uniqueStringLookup[string]);
+				return Number(_uniqueStringLookup.get(string));
 			}
 			
 			if (dataType === IQualifiedKey)
