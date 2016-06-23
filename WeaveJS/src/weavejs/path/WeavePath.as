@@ -12,8 +12,6 @@ package weavejs.path
 	import weavejs.api.core.ILinkableDynamicObject;
 	import weavejs.api.core.ILinkableHashMap;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.core.LinkableString;
-	import weavejs.core.LinkableVariable;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 
@@ -689,9 +687,9 @@ package weavejs.path
 			if (def)
 				path.request(def);
 			else if (hasChildren)
-				path.request(WeaveAPI.ClassRegistry.getImplementations(ILinkableHashMap)[0]).push('class').request(LinkableString).state(type);
+				path.request(WeaveAPI.ClassRegistry.getImplementations(ILinkableHashMap)[0]).push('class').request('LinkableString').state(type);
 			else
-				path.request(LinkableVariable);
+				path.request('LinkableVariable');
 			
 			// delay callbacks before setting state
 			var cc:ICallbackCollection = Weave.getCallbacks(path.getObject());

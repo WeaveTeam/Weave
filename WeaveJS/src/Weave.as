@@ -7,6 +7,7 @@
 package
 {
 	import weavejs.WeaveAPI;
+	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ICallbackCollection;
 	import weavejs.api.core.IDisposableObject;
 	import weavejs.api.core.ILinkableDynamicObject;
@@ -14,7 +15,6 @@ package
 	import weavejs.api.core.ILinkableObject;
 	import weavejs.api.core.ISessionManager;
 	import weavejs.api.data.IAttributeColumn;
-	import weavejs.core.LinkableFunction;
 	import weavejs.core.SessionStateLog;
 	import weavejs.path.WeavePath;
 	import weavejs.path.WeavePathUI;
@@ -66,7 +66,8 @@ package
 			var macros:ILinkableHashMap = getObject('WeaveProperties', 'macros') as ILinkableHashMap;
 			if (!macros)
 				throw new Error("macros hash map not found");
-			var fn:LinkableFunction = macros.getObject(name) as LinkableFunction;
+			var LinkableFunction:Class = Weave.getDefinition('LinkableFunction'); // hack to avoid dependency
+			var fn:Object = macros.getObject(name) as LinkableFunction;
 			if (!fn)
 				throw new Error("Macro does not exist: " + name);
 			return fn.apply(null, params);
@@ -746,6 +747,19 @@ package
 			if (arguments.length == 0 || type == 'string' || type == 'number')
 				return DebugUtils.debugLookup(arg);
 			return DebugUtils.debugId(arg);
+		}
+		
+		/**
+		 * Temporary solution
+		 */
+		public function createScript(name:String, targets:/*/{[name:string]:string[]}/*/Object, script:String, groupedCallback:Boolean = false):/*/weavejs.core.LinkableCallbackScript/*/Object
+		{
+			var lcs:Object = root.requestObject(name, Weave.getDefinition('LinkableCallbackScript'));
+			var array:Array = [];
+			for (var key:String in targets)
+				array.push(DynamicState.create(key, 'LinkableDynamicObject', targets[key]));
+			setState(lcs as ILinkableObject, {script: script, variables: array, groupedCallback: groupedCallback}, true);
+			return lcs;
 		}
 	}
 }
