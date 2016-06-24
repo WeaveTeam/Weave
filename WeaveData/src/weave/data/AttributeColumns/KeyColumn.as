@@ -21,6 +21,7 @@ package weave.data.AttributeColumns
 	import weave.core.LinkableString;
 	import weave.data.CSVParser;
 	import weave.utils.EquationColumnLib;
+	import weave.utils.VectorUtils;
 
 	public class KeyColumn extends AbstractAttributeColumn
 	{
@@ -44,6 +45,11 @@ package weave.data.AttributeColumns
 				return keyType.value;
 			
 			return super.getMetadata(propertyName);
+		}
+		
+		override public function getMetadataPropertyNames():Array
+		{
+			return VectorUtils.union(super.getMetadataPropertyNames(), [ColumnMetadata.TITLE, ColumnMetadata.KEY_TYPE]);
 		}
 		
 		public const keyType:LinkableString = newLinkableChild(this, LinkableString);
