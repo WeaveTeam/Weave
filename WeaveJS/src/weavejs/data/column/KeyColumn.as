@@ -25,7 +25,7 @@ package weavejs.data.column
 	{
 		public function KeyColumn(metadata:Object = null)
 		{
-			super(metadata);
+			super(metadata || {});
 		}
 		
 		private static var csvParser:CSVParser;

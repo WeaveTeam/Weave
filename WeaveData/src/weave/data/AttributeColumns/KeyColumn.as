@@ -26,7 +26,7 @@ package weave.data.AttributeColumns
 	{
 		public function KeyColumn(metadata:Object = null)
 		{
-			super(metadata);
+			super(metadata || {});
 		}
 		
 		private static var csvParser:CSVParser;
