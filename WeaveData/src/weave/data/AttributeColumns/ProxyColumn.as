@@ -20,9 +20,9 @@ package weave.data.AttributeColumns
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
-	import weave.core.SessionManager;
+	import weave.core.LinkableWatcher;
 	import weave.utils.VectorUtils;
-
+	
 	/**
 	 * This class is a proxy (a wrapper) for another attribute column.
 	 * 
@@ -35,12 +35,14 @@ package weave.data.AttributeColumns
 			super(metadata);
 		}
 		
+		private const watcher:LinkableWatcher = registerLinkableChild(this, new LinkableWatcher(IAttributeColumn));
+		
 		/**
 		 * @return the keys associated with this column.
 		 */
 		override public function get keys():Array
 		{
-			var column:IAttributeColumn = internalNonProxyColumn;
+			var column:IAttributeColumn = watcher.target as IAttributeColumn;
 			return column ? column.keys : [];
 		}
 		
@@ -50,7 +52,8 @@ package weave.data.AttributeColumns
 		 */
 		override public function containsKey(key:IQualifiedKey):Boolean
 		{
-			return _internalColumn && _internalColumn.containsKey(key);
+			var column:IAttributeColumn = watcher.target as IAttributeColumn;
+			return column && column.containsKey(key);
 		}
 
 		/**
@@ -75,9 +78,10 @@ package weave.data.AttributeColumns
 			if (propertyName === ColumnMetadata.TITLE && _overrideTitle)
 				return _overrideTitle;
 			
+			var column:IAttributeColumn = watcher.target as IAttributeColumn;
 			var overrideValue:String = super.getMetadata(propertyName);
-			if (overrideValue == null && _internalColumn != null)
-				return _internalColumn.getMetadata(propertyName);
+			if (overrideValue == null && column != null)
+				return column.getMetadata(propertyName);
 			return overrideValue;
 		}
 		
@@ -88,60 +92,24 @@ package weave.data.AttributeColumns
 		
 		override public function getMetadataPropertyNames():Array
 		{
-			if (_internalColumn)
-				return VectorUtils.union(super.getMetadataPropertyNames(), _internalColumn.getMetadataPropertyNames());
+			var column:IAttributeColumn = watcher.target as IAttributeColumn;
+			if (column)
+				return VectorUtils.union(super.getMetadataPropertyNames(), column.getMetadataPropertyNames());
 			return super.getMetadataPropertyNames();
-		}
-		
-		/**
-		 * internalNonProxyColumn
-		 * As long as internalAttributeColumn is a ProxyColumn, this function will
-		 * keep traversing internalAttributeColumn until it reaches an IAttributeColumn that
-		 * is not a ProxyColumn.
-		 * @return An attribute column that is not a ProxyColumn, or null.
-		 */
-		public function get internalNonProxyColumn():IAttributeColumn
-		{
-			var column:IAttributeColumn = _internalColumn;
-			while (column is ProxyColumn)
-				column = (column as ProxyColumn)._internalColumn;
-			return column;
 		}
 		
 		/**
 		 * internalAttributeColumn
 		 * This is the IAttributeColumn object contained in this ProxyColumn.
 		 */
-		private var _internalColumn:IAttributeColumn = null;
 		public function getInternalColumn():IAttributeColumn
 		{
-			return _internalColumn;
+			return watcher.target as IAttributeColumn;
 		}
 		public function setInternalColumn(newColumn:IAttributeColumn):void
 		{
 			_overrideTitle = null;
-			
-			if (newColumn == this)
-			{
-				trace("WARNING! Attempted to set ProxyColumn.internalAttributeColumn to self: " + this);
-				return;
-			}
-			
-			if (_internalColumn == newColumn)
-				return;
-
-			// clean up ties to previous column
-			if (_internalColumn != null)
-				(WeaveAPI.SessionManager as SessionManager).unregisterLinkableChild(this, _internalColumn);
-
-			// save pointer to new column
-			_internalColumn = newColumn;
-			
-			// initialize for new column
-			if (_internalColumn != null)
-				registerLinkableChild(this, _internalColumn);
-
-			triggerCallbacks();
+			watcher.target = newColumn;
 		}
 		
 		/**
@@ -149,8 +117,9 @@ package weave.data.AttributeColumns
 		 */
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (_internalColumn)
-				return _internalColumn.getValueFromKey(key, dataType);
+			var column:IAttributeColumn = watcher.target as IAttributeColumn;
+			if (column)
+				return column.getValueFromKey(key, dataType);
 			return undefined;
 		}
 
