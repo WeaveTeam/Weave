@@ -107,6 +107,10 @@ package weavejs.data
 			var dataSources:Array = d2d_dataSource_metadataHash_column.primaryKeys();
 			for each (dataSource in dataSources)
 			{
+				// skip local data sources
+				if (dataSource.isLocal)
+					continue;
+				
 				var dataSourceName:String = root.getName(dataSource);
 				
 				// skip disposed data sources and global columns (EquationColumn, CSVColumn)
@@ -153,8 +157,10 @@ package weavejs.data
 			dataSources = root.getObjects(IDataSource);
 			for each (dataSource in dataSources)
 			{
-				if (Object(dataSource).hasOwnProperty('NO_CACHE_HACK') || dataSource is CachedDataSource)
+				// skip local data sources
+				if (dataSource.isLocal)
 					continue;
+				
 				var type:String = Weave.className(dataSource);
 				var state:Object = Weave.getState(dataSource);
 				var cds:CachedDataSource = root.requestObject(root.getName(dataSource), CachedDataSource, false);
