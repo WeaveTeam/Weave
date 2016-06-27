@@ -9,6 +9,7 @@ package
 	import weavejs.api.core.ILinkableVariable;
 	import weavejs.api.data.IAttributeColumn;
 	import weavejs.api.data.IQualifiedKey;
+	import weavejs.api.ui.IAltText;
 	import weavejs.api.ui.IVisTool;
 	import weavejs.api.ui.IVisTool_Basic;
 	import weavejs.api.ui.IVisTool_Utility;
@@ -84,9 +85,9 @@ package
 	import weavejs.geom.ZoomBounds;
 	import weavejs.net.Admin;
 	import weavejs.path.ExternalTool;
+	import weavejs.util.BackwardsCompatibility;
 	import weavejs.util.JS;
 	import weavejs.util.WeaveMenuItem;
-	import weavejs.api.ui.IAltText;
 	
 	public class WeaveTest
 	{
@@ -163,6 +164,7 @@ package
 			Admin,
 			EventCallbackCollection,
 			IAltText,
+			BackwardsCompatibility,
 
 			//EntityNodeSearch, //TODO - resolve circular dependency issue
 			null
