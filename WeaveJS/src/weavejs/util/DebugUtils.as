@@ -18,9 +18,6 @@ package weavejs.util
 	import weavejs.api.core.DynamicState;
 	import weavejs.api.core.ILinkableCompositeObject;
 	import weavejs.api.core.ILinkableObject;
-	import weavejs.core.LinkableHashMap;
-	import weavejs.core.LinkableString;
-	import weavejs.core.LinkableVariable;
 	
 	/**
 	 * Tools for debugging.
@@ -59,7 +56,7 @@ package weavejs.util
 			if (!idString)
 			{
 				var idNumber:int = _nextId++;
-				var className:String = Weave.className(object).split(':').pop();
+				var className:String = Weave.className(object).split('.').pop();
 				idString = className + '#' + idNumber;
 				
 				// save lookup from object to idString
@@ -274,7 +271,10 @@ package weavejs.util
 					className = obj[DynamicState.CLASS_NAME];
 					var classDef:Class = Weave.getDefinition(className);
 					if (!classDef)
-						obj[DynamicState.CLASS_NAME] = Weave.className(classDef = LinkableHashMap);
+					{
+						classDef = Weave.getDefinition('LinkableHashMap');
+						obj[DynamicState.CLASS_NAME] = 'LinkableHashMap';
+					}
 					if (classDef.prototype is ILinkableCompositeObject)
 						obj[DynamicState.SESSION_STATE] = replaceUnknownObjectsInState(obj[DynamicState.SESSION_STATE], className);
 				}
@@ -283,11 +283,11 @@ package weavejs.util
 			{
 				var newState:Array = [];
 				if (className)
-					newState.push(DynamicState.create("class", Weave.className(LinkableString), className));
+					newState.push(DynamicState.create("class", 'LinkableString', className));
 				for (var key:String in stateToModify)
 				{
 					var value:Object = stateToModify[key];
-					var type:String = Weave.className(JS.isPrimitive(value) ? LinkableVariable : LinkableHashMap);
+					var type:String = JS.isPrimitive(value) ? 'LinkableVariable' : 'LinkableHashMap';
 					newState.push(DynamicState.create(key, type, replaceUnknownObjectsInState(value)));
 				}
 				stateToModify = newState;

@@ -20,12 +20,13 @@ package weavejs.data.column
 	import weavejs.core.LinkableString;
 	import weavejs.data.CSVParser;
 	import weavejs.data.EquationColumnLib;
+	import weavejs.util.ArrayUtils;
 
 	public class KeyColumn extends AbstractAttributeColumn
 	{
 		public function KeyColumn(metadata:Object = null)
 		{
-			super(metadata);
+			super(metadata || {});
 		}
 		
 		private static var csvParser:CSVParser;
@@ -43,6 +44,11 @@ package weavejs.data.column
 				return keyType.value;
 			
 			return super.getMetadata(propertyName);
+		}
+		
+		override public function getMetadataPropertyNames():Array
+		{
+			return ArrayUtils.union(super.getMetadataPropertyNames(), [ColumnMetadata.TITLE, ColumnMetadata.KEY_TYPE]);
 		}
 		
 		public const keyType:LinkableString = Weave.linkableChild(this, LinkableString);

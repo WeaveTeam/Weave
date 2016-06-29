@@ -25,7 +25,6 @@ package weavejs.data.column
 	import weavejs.data.bin.DynamicBinningDefinition;
 	import weavejs.data.bin.NumberClassifier;
 	import weavejs.data.bin.SimpleBinningDefinition;
-	import weavejs.util.DebugUtils;
 	import weavejs.util.JS;
 	import weavejs.util.StandardLib;
 	
@@ -115,7 +114,7 @@ package weavejs.data.column
 				if (_column && _binClassifiers)
 				{
 					// high priority because not much can be done without data
-					WeaveAPI.Scheduler.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, triggerCallbacks, Weave.lang("Binning {0} records in {1}", _keys.length, DebugUtils.debugId(this)));
+					WeaveAPI.Scheduler.startTask(this, _asyncIterate, WeaveAPI.TASK_PRIORITY_HIGH, triggerCallbacks, Weave.lang("Binning {0} records", _keys.length));
 				}
 			}
 		}

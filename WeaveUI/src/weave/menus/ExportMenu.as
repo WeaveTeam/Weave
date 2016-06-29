@@ -15,7 +15,6 @@
 
 package weave.menus
 {
-	import weave.Weave;
 	import weave.compiler.Compiler;
 	import weave.core.LinkableCallbackScript;
 	import weave.core.LinkableFunction;
@@ -27,7 +26,7 @@ package weave.menus
 		{
 			super({
 				shown: function():Boolean { return ExportMenu.shown; },
-				label: lang("Weave 2.x"),
+				label: lang("WeaveJS"),
 				children: [
 					{
 						label: lang("Export to HTML5"),
@@ -63,7 +62,7 @@ package weave.menus
 			);
 		}
 		
-		public static var url:String = "/weavejs/";
+		public static var url:String = "/weavejs/weave.html";
 		
 		public static function export():void
 		{

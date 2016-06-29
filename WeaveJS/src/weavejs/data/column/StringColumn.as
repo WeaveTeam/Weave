@@ -57,7 +57,7 @@ package weavejs.data.column
 		/**
 		 * String -> index in sorted _uniqueStrings
 		 */
-		private var _uniqueStringLookup:Object;
+		private var _uniqueStringLookup:Object = new JS.Map();
 
 		public function setRecords(keys:Array, stringData:Array):void
 		{
@@ -65,7 +65,7 @@ package weavejs.data.column
 			_asyncSort.abort();
 			
 			_uniqueStrings.length = 0;
-			_uniqueStringLookup = {};
+			_uniqueStringLookup.clear();
 			_stringToNumberFunction = null;
 			_numberToStringFunction = null;
 			
@@ -121,11 +121,11 @@ package weavejs.data.column
 				return false;
 			
 			// keep track of unique strings
-			if (_uniqueStringLookup[value] === undefined)
+			if (!_uniqueStringLookup.has(value))
 			{
 				_uniqueStrings.push(value);
 				// initialize mapping
-				_uniqueStringLookup[value] = -1;
+				_uniqueStringLookup.set(value, -1);
 			}
 			
 			return true;
@@ -151,8 +151,8 @@ package weavejs.data.column
 		}
 		
 		private var _i:int;
-		private var _numberToString:Object = {};
-		private var _stringToNumber:Object = {};
+		private var _numberToString:Object = new JS.Map();
+		private var _stringToNumber:Object = new JS.Map();
 		
 		private function _iterate(stopTime:int):Number
 		{
@@ -162,13 +162,13 @@ package weavejs.data.column
 					return _i / _uniqueStrings.length;
 				
 				var string:String = _uniqueStrings[_i];
-				_uniqueStringLookup[string] = _i;
+				_uniqueStringLookup.set(string, _i);
 				
 				if (_stringToNumberFunction != null)
 				{
 					var number:Number = StandardLib.asNumber(_stringToNumberFunction(string));
-					_stringToNumber[string] = number;
-					_numberToString[number] = string;
+					_stringToNumber.set(string, number);
+					_numberToString.set(number, string);
 				}
 			}
 			return 1;
@@ -177,7 +177,7 @@ package weavejs.data.column
 		private function asyncComplete():void
 		{
 			// cache needs to be cleared after async task completes because some values may have been cached while the task was busy
-			dataCache = new Dictionary2D();
+			dataCache.map.clear();
 			triggerCallbacks();
 		}
 
@@ -186,11 +186,15 @@ package weavejs.data.column
 		{
 			if (_metadata && _metadata[ColumnMetadata.NUMBER])
 			{
-				if (_numberToString.hasOwnProperty(number))
-					return _numberToString[number];
+				if (_numberToString.has(number))
+					return _numberToString.get(number);
 				
 				if (_numberToStringFunction != null)
-					return _numberToString[number] = StandardLib.asString(_numberToStringFunction(number));
+				{
+					var string:String = StandardLib.asString(_numberToStringFunction(number));
+					_numberToString.set(number, string);
+					return string;
+				}
 			}
 			else if (number == int(number) && 0 <= number && number < _uniqueStrings.length)
 			{
@@ -211,9 +215,9 @@ package weavejs.data.column
 			if (dataType === Number)
 			{
 				if (_stringToNumberFunction != null)
-					return Number(_stringToNumber[string]);
+					return Number(_stringToNumber.get(string));
 				
-				return Number(_uniqueStringLookup[string]);
+				return Number(_uniqueStringLookup.get(string));
 			}
 			
 			if (dataType === IQualifiedKey)

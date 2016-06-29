@@ -69,7 +69,7 @@ package weavejs.data.column
 		private function asyncComplete():void
 		{
 			// cache needs to be cleared after async task completes because some values may have been cached while the task was busy
-			dataCache = new Dictionary2D();
+			dataCache.map.clear();
 			triggerCallbacks();
 		}
 		

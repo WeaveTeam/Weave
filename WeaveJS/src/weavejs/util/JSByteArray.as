@@ -456,7 +456,11 @@ package weavejs.util
 			}
 			else if (marker == AMF3_Integer)
 			{
-				return this.readUInt29();
+				// Uses the U29 encoding scheme, though the value is sign extended.
+				var int29:int = this.readUInt29();
+				if (int29 >= 0x10000000) // largest possible integer is (2^28 - 1)
+					int29 -= 0x20000000; // subtract 2^29 to get negative integer
+				return int29;
 			}
 			else if (marker == AMF3_Double)
 			{

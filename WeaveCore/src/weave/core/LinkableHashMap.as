@@ -376,6 +376,7 @@ package weave.core
 			var name:String = baseName;
 			while (_previousNameMap[name] != undefined)
 				name = baseName + (++count);
+			_previousNameMap[name] = true;
 			return name;
 		}
 

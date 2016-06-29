@@ -210,9 +210,7 @@ package weavejs.util
 				"min": "weave.core::LinkableNumber"
 			},
 			"weave.data.AttributeColumns::NumberColumn": null,
-			"weave.data.AttributeColumns::ProxyColumn": {
-				"internalNonProxyColumn": "weave.api.data::IAttributeColumn"
-			},
+			"weave.data.AttributeColumns::ProxyColumn": null,
 			"weave.data.AttributeColumns::ReferencedColumn": {
 				"dataSourceName": "weave.core::LinkableString",
 				"metadata": "weave.core::LinkableVariable"

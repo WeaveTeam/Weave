@@ -611,3 +611,16 @@ package weavejs.core
 		}
 	}
 }
+
+import weavejs.core.Scheduler;
+
+internal class WindowFrameHandler
+{
+	public function WindowFrameHandler(window:/*/Window/*/Object, scheduler:Scheduler)
+	{
+		
+	}
+	
+	private var window:Object;
+	private var scheduler:Scheduler;
+}

@@ -72,10 +72,13 @@ package weavejs.data.hierarchy
 		{
 			var str:String = super.label;
 			if (!str && data)
-				str = (typeof data == 'object' && data.hasOwnProperty(ColumnMetadata.TITLE))
-					? data[ColumnMetadata.TITLE]
-					: data.toString();
-			return str;
+			{
+				if (typeof data == 'object')
+					str = data.hasOwnProperty(ColumnMetadata.TITLE) ? data[ColumnMetadata.TITLE] : Weave.lang('(Untitled)');
+				else
+					str = String(data);
+			}
+			return str || '';
 		}
 		
 		/**

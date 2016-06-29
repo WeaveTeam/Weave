@@ -21,7 +21,6 @@ package weavejs.core
 	import weavejs.api.core.IProgressIndicator;
 	import weavejs.util.DebugUtils;
 	import weavejs.util.JS;
-	import weavejs.util.StandardLib;
 	import weavejs.util.WeavePromise;
 
 	public class ProgressIndicator implements IProgressIndicator
@@ -37,7 +36,7 @@ package weavejs.core
 				result.push(DebugUtils.debugId(task));
 			return result;
 		}
-		public function getDescriptions():Array
+		public function getDescriptions():Array/*/<[any, number, string]>/*/
 		{
 			var result:Array = [];
 			var tasks:Array = JS.mapKeys(map_task_progress);
@@ -45,9 +44,9 @@ package weavejs.core
 			{
 				var desc:String = map_task_description.get(task) || "Unnamed task";
 				if (desc)
-					result.push(DebugUtils.debugId(task) + " (" + StandardLib.roundSignificant(100 * map_task_progress.get(task), 3) + "%) " + desc);
+					result.push([task, map_task_progress.get(task), desc]);
 			}
-			return result.sort();
+			return result;
 		}
 		
 		public function getTaskCount():int
