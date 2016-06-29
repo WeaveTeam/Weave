@@ -1,1 +1,0 @@
-Minimal modifications to work with FlexJS and WeaveJS.
