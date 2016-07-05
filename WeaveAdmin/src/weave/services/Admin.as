@@ -428,7 +428,7 @@ package weave.services
 		}
 
 		private static function checkWeaveJsAvailability():void {
-			var token:AsyncToken = WeaveAPI.URLRequestUtils.getURL(Admin, new URLRequest(WEAVE_JS_URL+"index.html"));
+			var token:AsyncToken = WeaveAPI.URLRequestUtils.getURL(Admin, new URLRequest(WEAVE_JS_URL));
 			addAsyncResponder(token, function ():void {
 				Admin.weaveJsIsAvailable = true;
 			}, function():void { Admin.weaveJsIsAvailable = false; });
