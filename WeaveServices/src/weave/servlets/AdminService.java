@@ -173,14 +173,15 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	{
 		try
 		{
-			/* Even though we don't use the result, we want to make sure that the info in the HTTP session is valid. */
-			ConnectionInfo info = getConnectionInfo();
+			// make sure that the info in the HTTP session is valid.
+			getConnectionInfo();
+			
 			HttpSession session = getServletRequestInfo().request.getSession(true);
 			return (String)session.getAttribute(SESSION_USERNAME);
 		}
 		catch (RemoteException e)
 		{
-			/* If getConnectionInfo fails, return null */
+			// If getConnectionInfo fails, return null
 			return null;
 		}
 	}
