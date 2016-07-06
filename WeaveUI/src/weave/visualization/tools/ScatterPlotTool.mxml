@@ -475,6 +475,9 @@
 								creationComplete="linkBindableProperty(outerDocument.regressionPlotter.lineStyle.alpha.defaultValue, event.target, 'value')"/>
 				</ui:Indent>
 			</ui:CheckBoxWithNestedOptions>
+			<mx:CheckBox label="{lang('Zoom to subset')}" 
+						 toolTip="{lang('Enables automatic zooming to the subset of data currently displayed')}"
+						 creationComplete="linkBindableProperty(outerDocument.plotter.zoomToSubset, event.target, 'selected')"/>
 		</mx:VBox>
 	</ui:ControlPanel></mx:Component></editorFactory>
 </SimpleVisTool>

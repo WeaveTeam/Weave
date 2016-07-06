@@ -18,6 +18,7 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import weave.api.detectLinkableObjectChange;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
@@ -25,18 +26,12 @@ package weave.visualization.plotters
 	import weave.api.data.IKeySet;
 	import weave.api.data.IProjector;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
-	import weave.api.linkSessionState;
-	import weave.api.newDisposableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IObjectWithDescription;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
 	import weave.data.AttributeColumns.DynamicColumn;
-	import weave.data.AttributeColumns.FilteredColumn;
 	import weave.data.AttributeColumns.ProxyColumn;
-	import weave.data.KeySets.FilteredKeySet;
 	import weave.primitives.GeneralizedGeometry;
 	
 	/**
@@ -51,16 +46,6 @@ package weave.visualization.plotters
 			clipDrawing = false;
 			
 			setColumnKeySources([dataX, dataY]);
-			
-			// filter x and y columns so background data bounds will be correct
-			filteredDataX.filter.requestLocalObject(FilteredKeySet, true);
-			filteredDataY.filter.requestLocalObject(FilteredKeySet, true);
-			
-			registerSpatialProperty(dataX);
-			registerSpatialProperty(dataY);
-			
-			linkSessionState(_filteredKeySet.keyFilter, filteredDataX.filter);
-			linkSessionState(_filteredKeySet.keyFilter, filteredDataY.filter);
 		}
 		
 		public function getDescription():String
@@ -78,25 +63,17 @@ package weave.visualization.plotters
 			return lang('{0} vs. {1}', titleX || ProxyColumn.DATA_UNAVAILABLE, titleY || ProxyColumn.DATA_UNAVAILABLE);
 		}
 		
-		protected const filteredDataX:FilteredColumn = newDisposableChild(this, FilteredColumn);
-		protected const filteredDataY:FilteredColumn = newDisposableChild(this, FilteredColumn);
+		public const dataX:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const dataY:DynamicColumn = newSpatialProperty(DynamicColumn);
+		
 		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
 		
-		protected const statsX:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(filteredDataX));
-		protected const statsY:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(filteredDataY));
+		protected const statsX:IColumnStatistics = registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(dataX));
+		protected const statsY:IColumnStatistics = registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(dataY));
 		
 		public function hack_setSingleKeySource(keySet:IKeySet):void
 		{
 			setSingleKeySource(keySet);
-		}
-		
-		public function get dataX():DynamicColumn
-		{
-			return filteredDataX.internalDynamicColumn;
-		}
-		public function get dataY():DynamicColumn
-		{
-			return filteredDataY.internalDynamicColumn;
 		}
 		
 		public const sourceProjection:LinkableString = newSpatialProperty(LinkableString);

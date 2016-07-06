@@ -417,7 +417,7 @@
 				<ui:CustomColorPicker id="colorPicker"/>
 			</mx:HBox>
 
-			<mx:CheckBox id="zoomToSubsetCheckBox" label="{lang('Zoom to Subset')}" 
+			<mx:CheckBox id="zoomToSubsetCheckBox" label="{lang('Zoom to subset')}" 
 						 toolTip="{lang('Enables automatic zooming to the subset of data currently displayed')}"
 						 creationComplete="linkBindableProperty(_plotter.zoomToSubset, event.target, 'selected')"/>
 			
