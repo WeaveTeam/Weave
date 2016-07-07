@@ -639,6 +639,8 @@ package weave.data.DataSources
 		 */
 		private function stringsToNumbers(strings:Vector.<String>, forced:Boolean):Vector.<Number>
 		{
+			var nonNumber:String = null;
+			var foundNumber:Boolean = forced;
 			var numbers:Vector.<Number> = new Vector.<Number>(strings.length);
 			var i:int = strings.length;
 			outerLoop: while (i--)
@@ -663,12 +665,22 @@ package weave.data.DataSources
 					string = string.split(',').join('');
 				
 				var number:Number = Number(string);
-				if (isNaN(number) && !forced)
-					return null;
+				if (forced || isFinite(number))
+				{
+					foundNumber = true;
+				}
+				else
+				{
+					// only allow one non-number
+					if (nonNumber && nonNumber != string)
+						return null;
+					else
+						nonNumber = string;
+				}
 				
 				numbers[i] = number;
 			}
-			return numbers;
+			return foundNumber ? numbers : null;
 		}
 		
 		private const nullValues:Array = [null, "", "null", "\\N", "NaN"];
