@@ -20,18 +20,18 @@ package weave.visualization.plotters
 	import flash.geom.Rectangle;
 	
 	import weave.Weave;
+	import weave.api.detectLinkableObjectChange;
+	import weave.api.linkSessionState;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.api.core.DynamicState;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
-	import weave.api.linkSessionState;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
-	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
@@ -80,13 +80,28 @@ package weave.visualization.plotters
 			linkSessionState(_filteredKeySet.keyFilter, _filteredSortColumn.filter);
 			
 			heightColumns.addGroupedCallback(this, heightColumnsGroupCallback);
-			registerSpatialProperty(sortColumn);
-			registerSpatialProperty(colorColumn.internalDynamicColumn); // because color is used for sorting
+			registerLinkableChild(this, this.sortColumn);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
 			
 			_binnedSortColumn.binningDefinition.requestLocalObject(CategoryBinningDefinition, true); // creates one bin per unique value in the sort column
 			
 			heightColumns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
+			// color is a spatial property because it is used for sorting
+			this.addSpatialDependencies(
+				this.sortColumn,
+				this.colorColumn.internalDynamicColumn, // color is used for sorting
+				this.groupBySortColumn,
+				this._binnedSortColumn,
+				this.stackedMissingDataGap,
+				this.colorIndicatesDirection,
+				this.heightColumns,
+				this.positiveErrorColumns,
+				this.negativeErrorColumns,
+				this.horizontalMode,
+				this.zoomToSubset,
+				this.zoomToSubsetBars,
+				this.groupingMode
+			);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -94,7 +109,7 @@ package weave.visualization.plotters
 			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = heightColumns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
+				this.addSpatialDependencies(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn));
 		}
 		
 		
@@ -126,15 +141,15 @@ package weave.visualization.plotters
 		 */
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		
-		public const groupBySortColumn:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false)); // when this is true, we use _binnedSortColumn
-		private const _binnedSortColumn:BinnedColumn = newSpatialProperty(BinnedColumn); // only used when groupBySortColumn is true
+		public const groupBySortColumn:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false)); // when this is true, we use _binnedSortColumn
+		private const _binnedSortColumn:BinnedColumn = newLinkableChild(this, BinnedColumn); // only used when groupBySortColumn is true
 		private const _sortedIndexColumn:SortedIndexColumn = _binnedSortColumn.internalDynamicColumn.requestLocalObject(SortedIndexColumn, true); // this sorts the records
 		private const _filteredSortColumn:FilteredColumn = _sortedIndexColumn.requestLocalObject(FilteredColumn, true); // filters before sorting
 		public function get sortColumn():DynamicColumn { return _filteredSortColumn.internalDynamicColumn; }
 		public const colorColumn:AlwaysDefinedColumn = newLinkableChild(this, AlwaysDefinedColumn);
 		public const labelColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
-		public const stackedMissingDataGap:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
-		public const colorIndicatesDirection:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const stackedMissingDataGap:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const colorIndicatesDirection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		private const _colorColumnStatsWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher);
 		private var _sortedKeysByBinIndex:Array = [];
@@ -180,15 +195,15 @@ package weave.visualization.plotters
 		public const labelMaxWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(200, verifyLabelMaxWidth));
 		public const recordLabelColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
-		public const heightColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
-		public const positiveErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
-		public const negativeErrorColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		public const heightColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+		public const positiveErrorColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+		public const negativeErrorColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 		public const errorIsRelative:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
-		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
-		public const zoomToSubsetBars:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const horizontalMode:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const zoomToSubset:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const zoomToSubsetBars:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const barSpacing:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
-		public const groupingMode:LinkableString = registerSpatialProperty(new LinkableString(STACK, verifyGroupingMode));
+		public const groupingMode:LinkableString = registerLinkableChild(this, new LinkableString(STACK, verifyGroupingMode));
 		public static const GROUP:String = 'group';
 		public static const STACK:String = 'stack';
 		public static const PERCENT_STACK:String = 'percentStack';

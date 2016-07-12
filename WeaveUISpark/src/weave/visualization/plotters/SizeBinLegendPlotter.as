@@ -18,12 +18,10 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	import flash.geom.Point;
 	
-	import mx.utils.ObjectUtil;
-	
-	import weave.api.data.IColumnStatistics;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.IColumnStatistics;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.ITextPlotter;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -52,13 +50,14 @@ package weave.visualization.plotters
 			defaultScreenRadius.value = 5;
 			
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat);
+			this.addSpatialDependencies(this.radiusColumn, this.minScreenRadius, this.maxScreenRadius, this.defaultScreenRadius);
 		}
 		
-		public const radiusColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const radiusColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		private const radiusColumnStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(radiusColumn));
-		public const minScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const maxScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const defaultScreenRadius:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const minScreenRadius:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const maxScreenRadius:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const defaultScreenRadius:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
 		public const colorBySize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const colorNegative:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0x800000));

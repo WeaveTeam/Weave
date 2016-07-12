@@ -20,16 +20,16 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	
+	import weave.api.linkSessionState;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.linkSessionState;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
-	import weave.api.setSessionState;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.BinnedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
@@ -48,7 +48,7 @@ package weave.visualization.plotters
 	{
 		public function PieChartHistogramPlotter()
 		{
-			_beginRadians = newSpatialProperty(EquationColumn);
+			_beginRadians = newLinkableChild(this, EquationColumn);
 			_beginRadians.equation.value = "0.5 * PI + getRunningTotal(spanRadians) - getNumber(spanRadians)";
 			_spanRadians = _beginRadians.requestVariable("spanRadians", EquationColumn, true);
 			_spanRadians.equation.value = "getNumber(binSize) / getSum(binSize) * 2 * PI";
@@ -72,6 +72,8 @@ package weave.visualization.plotters
 			}
 			
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
+			
+			this.addSpatialDependencies(this._beginRadians);
 		}
 		
 		public function getSelectableAttributeNames():Array

@@ -18,11 +18,11 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.text.TextFormat;
 	
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IObjectWithDescription;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
@@ -40,10 +40,10 @@ package weave.visualization.plotters
 
 		public function GeometryRelationPlotter()
 		{
-			registerSpatialProperty(geometryColumn);
 			valueStats = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(valueColumn));
 			
 			setColumnKeySources([geometryColumn]);
+			this.addSpatialDependencies(this.geometryColumn, this.sourceKeyColumn, this.destinationKeyColumn);
 		}
 		
 		public function getDescription():String
@@ -51,9 +51,9 @@ package weave.visualization.plotters
 			return geometryColumn.getDescription();
 		}
 		
-		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
-		public const sourceKeyColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
-		public const destinationKeyColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const geometryColumn:ReprojectedGeometryColumn = newLinkableChild(this, ReprojectedGeometryColumn);
+		public const sourceKeyColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const destinationKeyColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const valueColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const lineWidth:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		public const posLineColor:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0xFF0000));

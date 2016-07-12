@@ -35,11 +35,12 @@ package weave.visualization.plotters
 		public function GridLinePlotter()
 		{
 			lineStyle.caps.defaultValue.value = CapsStyle.NONE;
+			this.addSpatialDependencies(this.bounds);
 		}
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		
-		public const bounds:LinkableBounds2D = newSpatialProperty(LinkableBounds2D);
+		public const bounds:LinkableBounds2D = newLinkableChild(this, LinkableBounds2D);
 		public const xInterval:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const yInterval:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const xOffset:LinkableNumber = newLinkableChild(this, LinkableNumber);

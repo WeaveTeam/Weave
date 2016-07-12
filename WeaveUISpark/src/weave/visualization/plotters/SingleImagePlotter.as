@@ -21,17 +21,17 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.net.URLRequest;
 	
-	import mx.core.BitmapAsset;
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	
-	import weave.api.core.ILinkableObjectWithNewProperties;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
 	import weave.api.objectWasDisposed;
-	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.core.ILinkableObjectWithNewProperties;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
@@ -52,6 +52,15 @@ package weave.visualization.plotters
 		
 		public function SingleImagePlotter()
 		{
+			this.addSpatialDependencies(
+				this.dataX,
+				this.dataY,
+				this.dataWidth,
+				this.dataHeight,
+				this.useImageSize,
+				this.horizontalAlign,
+				this.verticalAlign
+			);
 		}
 		
 		public function set defaultImage(value:BitmapData):void
@@ -76,14 +85,14 @@ package weave.visualization.plotters
 		 */
 		public const imageURL:LinkableString = newLinkableChild(this, LinkableString);
 		
-		public const dataX:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const dataY:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const dataWidth:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const dataHeight:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const useImageSize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const dataX:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const dataY:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const dataWidth:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const dataHeight:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const useImageSize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 
-		public const horizontalAlign:LinkableString = registerSpatialProperty(new LinkableString(BitmapText.HORIZONTAL_ALIGN_CENTER, verifyHAlign));
-		public const verticalAlign:LinkableString = registerSpatialProperty(new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE, verifyVAlign));
+		public const horizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_CENTER, verifyHAlign));
+		public const verticalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.VERTICAL_ALIGN_MIDDLE, verifyVAlign));
 		
 		private function verifyHAlign(value:String):Boolean
 		{

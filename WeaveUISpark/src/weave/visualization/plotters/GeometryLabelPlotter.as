@@ -15,18 +15,15 @@
 
 package weave.visualization.plotters
 {
-	import mx.utils.ObjectUtil;
-	
-	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
-	import weave.api.primitives.IBounds2D;
+	import weave.api.newLinkableChild;
 	import weave.api.setSessionState;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.ui.IObjectWithDescription;
 	import weave.api.ui.IPlotter;
 	import weave.core.SessionManager;
 	import weave.data.AttributeColumns.ReprojectedGeometryColumn;
 	import weave.data.KeySets.SortedKeySet;
-	import weave.primitives.Bounds2D;
 	import weave.primitives.GeneralizedGeometry;
 
 	/**
@@ -40,8 +37,6 @@ package weave.visualization.plotters
 
 		public function GeometryLabelPlotter()
 		{
-			registerSpatialProperty(geometryColumn);
-			
 			// hide dataX,dataY because they don't need to be shown in the session state.
 			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, dataX);
 			(WeaveAPI.SessionManager as SessionManager).excludeLinkableChildFromSessionState(this, dataY);
@@ -53,6 +48,7 @@ package weave.visualization.plotters
 			
 			_sortCopyKeys = SortedKeySet.generateSortCopyFunction([getGeometryArea, sortColumn, text], [-1, 1, 1]);
 			_filteredKeySet.setColumnKeySources([geometryColumn, sortColumn, text], null, _sortCopyKeys);
+			this.addSpatialDependencies(this.geometryColumn);
 		}
 		
 		override public function getDescription():String
@@ -60,7 +56,7 @@ package weave.visualization.plotters
 			return geometryColumn.getDescription();
 		}
 		
-		public const geometryColumn:ReprojectedGeometryColumn = newSpatialProperty(ReprojectedGeometryColumn);
+		public const geometryColumn:ReprojectedGeometryColumn = newLinkableChild(this, ReprojectedGeometryColumn);
 		
 		private var _sortCopyKeys:Function;
 		

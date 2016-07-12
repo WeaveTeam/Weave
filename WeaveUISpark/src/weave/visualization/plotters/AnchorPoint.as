@@ -15,8 +15,8 @@
 
 package weave.visualization.plotters
 {	
-	import weave.api.core.ILinkableObject;
 	import weave.api.newLinkableChild;
+	import weave.api.core.ILinkableObject;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
 

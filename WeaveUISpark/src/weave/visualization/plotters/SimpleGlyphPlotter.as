@@ -20,9 +20,9 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
+	import weave.api.registerLinkableChild;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableString;
@@ -63,7 +63,7 @@ package weave.visualization.plotters
 		/**
 		 * This determines the screen size of the glyphs.
 		 */
-		public const screenSize:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn());
+		public const screenSize:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
 		/**
 		 * If this is true, ellipses will be drawn instead of rectangles.
 		 */

@@ -21,23 +21,20 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.data.ISimpleGeometry;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
-	import weave.primitives.Bounds2D;
 	import weave.primitives.GeometryType;
 	import weave.primitives.SimpleGeometry;
 	import weave.utils.DrawUtils;
-	import weave.utils.ObjectPool;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	public class SimpleParallelCoordinatesPlotter extends AbstractPlotter implements IPlotterWithGeometries, ISelectableAttributes
@@ -47,9 +44,9 @@ package weave.visualization.plotters
 		private static const tempBoundsArray:Array = []; // Array of reusable Bounds2D objects
 		private static const tempPoint:Point = new Point(); // reusable Point object
 		
-		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
-		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
-		public const selectableLines:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+		public const normalize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const selectableLines:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const curvedLines:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
@@ -67,9 +64,10 @@ package weave.visualization.plotters
 			
 			clipDrawing = false;
 			
-			// bounds need to be re-indexed when this option changes
-			registerSpatialProperty(Weave.properties.enableGeometryProbing);
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
+			// bounds need to be re-indexed when this option changes
+			this.addSpatialDependencies(Weave.properties.enableGeometryProbing);
+			this.addSpatialDependencies(this.columns, this.normalize, this.selectableLines);
 		}
 		private function handleColumnsListChange():void
 		{

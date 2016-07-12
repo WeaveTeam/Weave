@@ -15,20 +15,15 @@
 
 package weave.visualization.plotters
 {
-	import flash.display.Graphics;
-	import flash.geom.Point;
-	
-	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.KeySets.FilteredKeySet;
-	import weave.visualization.layers.PlotTask;
 	import weave.visualization.plotters.styles.SolidLineStyle;
 	
 	public class LineChartPlotter extends AbstractPlotter implements ISelectableAttributes
@@ -39,6 +34,7 @@ package weave.visualization.plotters
 		{
 			sortedUnfilteredKeys.setColumnKeySources([group, order, dataX, dataY]);
 			setSingleKeySource(sortedUnfilteredKeys);
+			this.addSpatialDependencies(this.dataX, this.dataY, this.sortedUnfilteredKeys);
 		}
 		
 		public function getSelectableAttributeNames():Array
@@ -50,10 +46,10 @@ package weave.visualization.plotters
 			return [dataX, dataY, order, group];
 		}
 		
-		private const sortedUnfilteredKeys:FilteredKeySet = newSpatialProperty(FilteredKeySet);
+		private const sortedUnfilteredKeys:FilteredKeySet = newLinkableChild(this, FilteredKeySet);
 		
-		public const dataX:DynamicColumn = newSpatialProperty(DynamicColumn);
-		public const dataY:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const dataX:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const dataY:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const group:DynamicColumn = newLinkableChild(this, DynamicColumn);
  		public const order:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
@@ -83,10 +79,10 @@ import flash.utils.getTimer;
 
 import mx.utils.ObjectUtil;
 
-import weave.api.data.IKeySet;
-import weave.api.data.IQualifiedKey;
 import weave.api.newDisposableChild;
 import weave.api.reportError;
+import weave.api.data.IKeySet;
+import weave.api.data.IQualifiedKey;
 import weave.api.ui.IPlotTask;
 import weave.data.KeySets.KeySet;
 import weave.visualization.layers.PlotTask;

@@ -20,13 +20,13 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
-	import weave.api.core.DynamicState;
-	import weave.api.core.ILinkableObject;
-	import weave.api.data.IQualifiedKey;
-	import weave.api.primitives.IBounds2D;
+	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.core.DynamicState;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
@@ -43,10 +43,7 @@ package weave.visualization.plotters
 	{
 		public function BoundsPlotter()
 		{
-			for each (var spatialProperty:ILinkableObject in [xMinData, yMinData, xMaxData, yMaxData])
-				registerSpatialProperty(spatialProperty);
-			for each (var child:ILinkableObject in [xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset, line, fill])
-				registerLinkableChild(this, child);
+			this.addSpatialDependencies(this.xMinData, this.yMinData, this.xMaxData, this.yMaxData);
 			
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
@@ -57,45 +54,45 @@ package weave.visualization.plotters
 		/**
 		 * This is the minimum X data value associated with the rectangle.
 		 */
-		public const xMinData:DynamicColumn = new DynamicColumn();
+		public const xMinData:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		/**
 		 * This is the minimum Y data value associated with the rectangle.
 		 */
-		public const yMinData:DynamicColumn = new DynamicColumn();
+		public const yMinData:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		/**
 		 * This is the maximum X data value associated with the rectangle.
 		 */
-		public const xMaxData:DynamicColumn = new DynamicColumn();
+		public const xMaxData:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		/**
 		 * This is the maximum Y data value associated with the rectangle.
 		 */
-		public const yMaxData:DynamicColumn = new DynamicColumn();
+		public const yMaxData:DynamicColumn = newLinkableChild(this, DynamicColumn);
 
 		// visual properties
 		/**
 		 * This is an offset in screen coordinates when projecting the data rectangle onto the screen.
 		 */
-		public const xMinScreenOffset:AlwaysDefinedColumn = new AlwaysDefinedColumn(0);
+		public const xMinScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is an offset in screen coordinates when projecting the data rectangle onto the screen.
 		 */
-		public const yMinScreenOffset:AlwaysDefinedColumn = new AlwaysDefinedColumn(0);
+		public const yMinScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is an offset in screen coordinates when projecting the data rectangle onto the screen.
 		 */
-		public const xMaxScreenOffset:AlwaysDefinedColumn = new AlwaysDefinedColumn(0);
+		public const xMaxScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is an offset in screen coordinates when projecting the data rectangle onto the screen.
 		 */
-		public const yMaxScreenOffset:AlwaysDefinedColumn = new AlwaysDefinedColumn(0);
+		public const yMaxScreenOffset:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is the line style used to draw the outline of the rectangle.
 		 */
-		public const line:SolidLineStyle = new SolidLineStyle();
+		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		/**
 		 * This is the fill style used to fill the rectangle.
 		 */
-		public const fill:SolidFillStyle = new SolidFillStyle();
+		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 
 		/**
 		 * This function returns a Bounds2D object set to the data bounds associated with the given record key.

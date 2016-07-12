@@ -21,13 +21,13 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.detectLinkableObjectChange;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.detectLinkableObjectChange;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISelectableAttributes;
@@ -53,6 +53,7 @@ package weave.visualization.plotters
 			colorColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 
 			setColumnKeySources([xColumn, yColumn]);
+			this.addSpatialDependencies(this.xBinnedColumn, this.yBinnedColumn);
 		}
 		
 		public function getSelectableAttributeNames():Array
@@ -73,8 +74,8 @@ package weave.visualization.plotters
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const binColors:ColorRamp = registerLinkableChild(this, new ColorRamp("0xFFFFFF,0x000000"));
 		
-		public const xBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn);
-		public const yBinnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn);
+		public const xBinnedColumn:BinnedColumn = newLinkableChild(this, BinnedColumn);
+		public const yBinnedColumn:BinnedColumn = newLinkableChild(this, BinnedColumn);
 		private const xDataStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(xBinnedColumn.internalDynamicColumn);
 		private const yDataStats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(yBinnedColumn.internalDynamicColumn);
 

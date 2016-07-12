@@ -28,13 +28,13 @@ package weave.visualization.plotters
 	import org.openscales.proj4as.ProjConstants;
 	
 	import weave.Weave;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.core.IDisposableObject;
 	import weave.api.core.ILinkableObjectWithBusyStatus;
 	import weave.api.data.IProjectionManager;
 	import weave.api.data.IProjector;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.services.IWMSService;
 	import weave.api.ui.IObjectWithDescription;
 	import weave.api.ui.IPlotter;
@@ -73,6 +73,7 @@ package weave.visualization.plotters
 		{
 			//setting default WMS Map to Blue Marble
 			setProvider(WMSProviders.OPEN_STREET_MAP);
+			this.addSpatialDependencies(this.service, this.srs, this.gridSpacing);
 		}
 		
 		public function getDescription():String
@@ -110,10 +111,10 @@ package weave.visualization.plotters
 			return null;
 		}
 		
-		public const service:LinkableDynamicObject = registerSpatialProperty(new LinkableDynamicObject(IWMSService));
+		public const service:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IWMSService));
 		
 		public const preferLowerQuality:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const srs:LinkableString = newSpatialProperty(LinkableString); // needed for linking MapTool settings
+		public const srs:LinkableString = newLinkableChild(this, LinkableString); // needed for linking MapTool settings
 		public const styles:LinkableString = newLinkableChild(this, LinkableString, setStyle); // needed for changing seasons
 		public const displayMissingImage:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 		
@@ -131,7 +132,7 @@ package weave.visualization.plotters
 		private static const _missingImageColorTransform:ColorTransform = new ColorTransform(1, 1, 1, 0.25);
 		
 		// reprojecting bitmaps 
-		public const gridSpacing:LinkableNumber = registerSpatialProperty(new LinkableNumber(12)); // number of pixels between grid points
+		public const gridSpacing:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12)); // number of pixels between grid points
 		private const _tempBounds:IBounds2D = new Bounds2D();
 		private const _tempImageBounds:IBounds2D = new Bounds2D(); // bounds of the image
 		private const _latLonBounds:IBounds2D = new Bounds2D(-180 + ProjConstants.EPSLN, -90 + ProjConstants.EPSLN, 180 - ProjConstants.EPSLN, 90 - ProjConstants.EPSLN);

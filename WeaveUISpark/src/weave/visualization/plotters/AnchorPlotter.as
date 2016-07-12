@@ -27,10 +27,10 @@ package weave.visualization.plotters
 	import net.ivank.voronoi.Voronoi;
 	
 	import weave.Weave;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.newDisposableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.ILineStyle;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
@@ -73,14 +73,14 @@ package weave.visualization.plotters
 				anchors = (radviz as CompoundRadVizPlotter).anchors;
 			if (!anchors)
 				throw new Error("not a radviz plotter");
-			this.anchors = registerSpatialProperty(anchors);
+			this.addSpatialDependencies(this.anchors = anchors);
 			this.anchors.childListCallbacks.addGroupedCallback(this, handleAnchorsChange, true);
 			spatialCallbacks.triggerCallbacks();
 		}
 		private var _radviz:IPlotter;
 		private var anchors:LinkableHashMap = null;
 		
-		public const labelAngleRatio:LinkableNumber = registerSpatialProperty(new LinkableNumber(0, verifyLabelAngleRatio));
+		public const labelAngleRatio:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0, verifyLabelAngleRatio));
 		
 		private const _keySet:KeySet = newDisposableChild(this, KeySet);
 		private const tempPoint:Point = new Point();

@@ -19,12 +19,12 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	
-	import weave.api.core.DynamicState;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.core.DynamicState;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
 	import weave.utils.DrawUtils;
@@ -42,10 +42,11 @@ package weave.visualization.plotters
 		public function WedgePlotter()
 		{
 			setColumnKeySources([beginRadians]);
+			this.addSpatialDependencies(this.beginRadians, this.spanRadians);
 		}
 		
-		public const beginRadians:DynamicColumn = newSpatialProperty(DynamicColumn);
-		public const spanRadians:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const beginRadians:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const spanRadians:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		
 		public const line:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fill:SolidFillStyle = newLinkableChild(this, SolidFillStyle);		

@@ -18,14 +18,15 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	
 	import weave.api.copySessionState;
+	import weave.api.getCallbackCollection;
+	import weave.api.linkSessionState;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.linkSessionState;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
-	import weave.api.setSessionState;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
@@ -56,7 +57,7 @@ package weave.visualization.plotters
 		{
 			clipDrawing = true;
 			
-			aggregateStats = registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(columnToAggregate));
+			aggregateStats = WeaveAPI.StatisticsCache.getColumnStatistics(columnToAggregate);
 			
 			// don't lock the ColorColumn, so linking to global ColorColumn is possible
 			var _colorColumn:ColorColumn = fillStyle.color.internalDynamicColumn.requestLocalObject(ColorColumn, false);
@@ -70,9 +71,11 @@ package weave.visualization.plotters
 			linkSessionState(filteredKeySet.keyFilter, filteredColumn.filter);
 			
 			// make the colors spatial properties because the binned column is inside
-			registerSpatialProperty(fillStyle.color.internalDynamicColumn, setBinnedColumn, true);
+			getCallbackCollection(fillStyle.color.internalDynamicColumn).addGroupedCallback(this, this.setBinnedColumn, true);
 
 			setSingleKeySource(fillStyle.color.internalDynamicColumn); // use record keys, not bin keys!
+			
+			this.addSpatialDependencies(this.aggregateStats, fillStyle.color.internalDynamicColumn, this.binnedColumn, this.columnToAggregate, this.aggregationMethod, this.horizontalMode);
 		}
 		
 		public function getSelectableAttributeNames():Array
@@ -84,7 +87,7 @@ package weave.visualization.plotters
 			return [fillStyle.color, columnToAggregate];
 		}
 		
-		public const binnedColumn:BinnedColumn = newSpatialProperty(BinnedColumn, setColorColumn, true);
+		public const binnedColumn:BinnedColumn = newLinkableChild(this, BinnedColumn, setColorColumn, true);
 		private function setColorColumn():void
 		{
 			var colorBinCol:BinnedColumn = internalColorColumn ? internalColorColumn.getInternalColumn() as BinnedColumn : null;
@@ -119,9 +122,9 @@ package weave.visualization.plotters
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		public const drawPartialBins:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
-		public const columnToAggregate:DynamicColumn = newSpatialProperty(DynamicColumn);
-		public const aggregationMethod:LinkableString = registerSpatialProperty(new LinkableString(AG_COUNT, verifyAggregationMethod));
-		public const horizontalMode:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const columnToAggregate:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const aggregationMethod:LinkableString = registerLinkableChild(this, new LinkableString(AG_COUNT, verifyAggregationMethod));
+		public const horizontalMode:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const showValueLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const valueLabelHorizontalAlign:LinkableString = registerLinkableChild(this, new LinkableString(BitmapText.HORIZONTAL_ALIGN_LEFT));

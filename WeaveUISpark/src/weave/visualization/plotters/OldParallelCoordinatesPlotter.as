@@ -21,23 +21,23 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.detectLinkableObjectChange;
+	import weave.api.getCallbackCollection;
+	import weave.api.linkSessionState;
+	import weave.api.newDisposableChild;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.data.ISimpleGeometry;
-	import weave.api.detectLinkableObjectChange;
-	import weave.api.getCallbackCollection;
-	import weave.api.linkSessionState;
-	import weave.api.newDisposableChild;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
-	import weave.api.setSessionState;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotterWithGeometries;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableHashMap;
@@ -70,7 +70,7 @@ package weave.visualization.plotters
 			clipDrawing = false;
 			
 			// bounds need to be re-indexed when this option changes
-			registerSpatialProperty(Weave.properties.enableGeometryProbing);
+			this.addSpatialDependencies(Weave.properties.enableGeometryProbing);
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
 			xColumns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
 			
@@ -83,6 +83,18 @@ package weave.visualization.plotters
 			getCallbackCollection(colorDataWatcher).addImmediateCallback(this, updateFilterEquationColumns, true);
 			
 			// updateFilterEquationColumns sets key source
+			this.addSpatialDependencies(
+				this.columns,
+				this.xColumns,
+				this.enableGroupBy,
+				this.groupBy,
+				this.groupKeyType,
+				this.xValues,
+				this._filteredXData,
+				this._filteredYData,
+				this.normalize,
+				this.zoomToSubset
+			);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -130,18 +142,18 @@ package weave.visualization.plotters
 		 */
 		public const lineStyle:ExtendedLineStyle = newLinkableChild(this, ExtendedLineStyle);
 		
-		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
-		public const xColumns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
+		public const xColumns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 		
-		public const enableGroupBy:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), updateFilterEquationColumns);
-		public const groupBy:DynamicColumn = newSpatialProperty(DynamicColumn, updateFilterEquationColumns);
-		public const groupKeyType:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
+		public const enableGroupBy:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), updateFilterEquationColumns);
+		public const groupBy:DynamicColumn = newLinkableChild(this, DynamicColumn, updateFilterEquationColumns);
+		public const groupKeyType:LinkableString = newLinkableChild(this, LinkableString, updateFilterEquationColumns);
 		public function get xData():DynamicColumn { return _filteredXData.internalDynamicColumn; }
 		public function get yData():DynamicColumn { return _filteredYData.internalDynamicColumn; }
-		public const xValues:LinkableString = newSpatialProperty(LinkableString, updateFilterEquationColumns);
+		public const xValues:LinkableString = newLinkableChild(this, LinkableString, updateFilterEquationColumns);
 		
-		private const _filteredXData:FilteredColumn = newSpatialProperty(FilteredColumn);
-		private const _filteredYData:FilteredColumn = newSpatialProperty(FilteredColumn);
+		private const _filteredXData:FilteredColumn = newLinkableChild(this, FilteredColumn);
+		private const _filteredYData:FilteredColumn = newLinkableChild(this, FilteredColumn);
 		private const _keySet_groupBy:KeySet = newDisposableChild(this, KeySet);
 		
 		private var _yColumns:Array = [];
@@ -289,9 +301,9 @@ package weave.visualization.plotters
 			_in_updateFilterEquationColumns = false;
 		}
 		
-		public const normalize:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
+		public const normalize:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const curveType:LinkableString = registerLinkableChild(this, new LinkableString(CURVE_NONE, curveTypeVerifier));
-		public const zoomToSubset:LinkableBoolean = newSpatialProperty(LinkableBoolean);
+		public const zoomToSubset:LinkableBoolean = newLinkableChild(this, LinkableBoolean);
 
 		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(5));
 		public const shapeToDraw:LinkableString = registerLinkableChild(this, new LinkableString(SOLID_CIRCLE, shapeTypeVerifier));

@@ -23,11 +23,12 @@ package weave.visualization.plotters
 	import mx.rpc.events.ResultEvent;
 	
 	import weave.Weave;
-	import weave.api.core.IDisposableObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
+	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.core.IDisposableObject;
+	import weave.api.primitives.IBounds2D;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -60,12 +61,12 @@ package weave.visualization.plotters
 			});
 		}
 		
-		public const drawLine:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
-		public const currentTrendline:LinkableString = registerSpatialProperty(new LinkableString(LINEAR));
-		public const polynomialDegree:LinkableNumber = registerSpatialProperty(new LinkableNumber(2));
+		public const drawLine:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const currentTrendline:LinkableString = registerLinkableChild(this, new LinkableString(LINEAR));
+		public const polynomialDegree:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2));
 		
-		public const xColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
-		public const yColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const xColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const yColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		

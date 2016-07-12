@@ -22,15 +22,14 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.ITextPlotter;
-	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableNumber;
@@ -62,6 +61,7 @@ package weave.visualization.plotters
 			
 			setSingleKeySource(dynamicColorColumn);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
+			this.addSpatialDependencies(this.dynamicColorColumn, this.maxColumns, this.reverseOrder, this.itemLabelFunction);
 		}
 		
 		public function getSelectableAttributeNames():Array
@@ -77,7 +77,7 @@ package weave.visualization.plotters
 		 * This plotter is specifically implemented for visualizing a ColorColumn.
 		 * This DynamicColumn only allows internal columns of type ColorColumn.
 		 */
-		public const dynamicColorColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(ColorColumn), createHashMaps);
+		public const dynamicColorColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(ColorColumn), createHashMaps);
 		
 		/**
 		 * This accessor function provides convenient access to the internal ColorColumn, which may be null.
@@ -111,17 +111,17 @@ package weave.visualization.plotters
 		 * This is the maximum number of items to draw in a single row.
 		 * @default 1 
 		 */		
-		public const maxColumns:LinkableNumber = registerSpatialProperty(new LinkableNumber(1), createHashMaps);
+		public const maxColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1), createHashMaps);
 		
 		/**
 		 * This is an option to reverse the item order.
 		 */
-		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createHashMaps);
+		public const reverseOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), createHashMaps);
 		
 		/**
 		 * This is the compiled function to apply to the item labels.
 		 */		
-		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['number', 'string']), createHashMaps);
+		public const itemLabelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number', 'string']), createHashMaps);
 		
 		// TODO This should go somewhere else...
 		/**

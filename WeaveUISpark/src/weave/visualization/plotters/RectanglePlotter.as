@@ -20,18 +20,18 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
+	import weave.api.setSessionState;
 	import weave.api.core.DynamicState;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
-	import weave.api.setSessionState;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotter;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.core.LinkableBoolean;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.primitives.Bounds2D;
@@ -58,6 +58,7 @@ package weave.visualization.plotters
 				[xData, yData, widthData, heightData, xMinScreenOffset, yMinScreenOffset, xMaxScreenOffset, yMaxScreenOffset],
 				[1, 1, -1, -1]
 			);
+			this.addSpatialDependencies(this.xData, this.yData, this.widthData, this.heightData, this.centerX, this.centerY);
 		}
 		
 		public function getSelectableAttributeNames():Array
@@ -74,28 +75,28 @@ package weave.visualization.plotters
 		/**
 		 * This is the minimum X data value associated with the rectangle.
 		 */
-		public const xData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn());
+		public const xData:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
 		/**
 		 * This is the minimum Y data value associated with the rectangle.
 		 */
-		public const yData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn());
+		public const yData:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
 		/**
 		 * This is the maximum X data value associated with the rectangle.
 		 */
-		public const widthData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(0));
+		public const widthData:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		/**
 		 * This is the maximum Y data value associated with the rectangle.
 		 */
-		public const heightData:AlwaysDefinedColumn = registerSpatialProperty(new AlwaysDefinedColumn(0));
+		public const heightData:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn(0));
 		
 		/**
 		 * If this is true, the rectangle will be centered on xData coordinates.
 		 */
-		public const centerX:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const centerX:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		/**
 		 * If this is true, the rectangle will be centered on yData coordinates.
 		 */
-		public const centerY:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const centerY:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 
 		// visual properties
 		/**

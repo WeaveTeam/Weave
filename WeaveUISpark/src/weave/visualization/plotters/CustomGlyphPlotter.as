@@ -17,12 +17,13 @@ package weave.visualization.plotters
 {
 	import flash.display.BitmapData;
 	
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.reportError;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
-	import weave.api.reportError;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ITextPlotter;
@@ -40,6 +41,7 @@ package weave.visualization.plotters
 		{
 			setColumnKeySources([dataX, dataY]);
 			vars.childListCallbacks.addImmediateCallback(this, handleVarList);
+			this.addSpatialDependencies(this.vars, this.function_getDataBoundsFromRecordKey, this.function_getBackgroundDataBounds);
 		}
 		private function handleVarList():void
 		{
@@ -53,7 +55,7 @@ package weave.visualization.plotters
 		/**
 		 * This can hold any objects that should be stored in the session state.
 		 */
-		public const vars:ILinkableHashMap = newSpatialProperty(LinkableHashMap);
+		public const vars:ILinkableHashMap = newLinkableChild(this, LinkableHashMap);
 		public const locals:Object = {};
 		
 		public const function_drawPlot:LinkableFunction = registerLinkableChild(this, new LinkableFunction(script_drawPlot, false, true, ['keys','dataBounds','screenBounds','destination']));
@@ -150,7 +152,7 @@ package weave.visualization.plotters
 			}
 		}
 		
-		public const function_getDataBoundsFromRecordKey:LinkableFunction = registerSpatialProperty(new LinkableFunction(script_getDataBoundsFromRecordKey, false, true, ['key', 'output']));
+		public const function_getDataBoundsFromRecordKey:LinkableFunction = registerLinkableChild(this, new LinkableFunction(script_getDataBoundsFromRecordKey, false, true, ['key', 'output']));
 		public static const script_getDataBoundsFromRecordKey:String = <![CDATA[
 			// Parameter types: IQualifiedKey, Array
 			function(key, output)
@@ -177,7 +179,7 @@ package weave.visualization.plotters
 			}
 		}
 		
-		public const function_getBackgroundDataBounds:LinkableFunction = registerSpatialProperty(new LinkableFunction(script_getBackgroundDataBounds, false, true, ['output']));
+		public const function_getBackgroundDataBounds:LinkableFunction = registerLinkableChild(this, new LinkableFunction(script_getBackgroundDataBounds, false, true, ['output']));
 		public static const script_getBackgroundDataBounds:String = <![CDATA[
 			// Parameter type: IBounds2D
 			function (output)

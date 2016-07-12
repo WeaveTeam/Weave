@@ -19,11 +19,11 @@ package weave.visualization.plotters
 	import flash.display.Graphics;
 	import flash.utils.Dictionary;
 	
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.core.ILinkableHashMap;
 	import weave.api.data.IAttributeColumn;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableFunction;
 	import weave.core.LinkableHashMap;
@@ -45,11 +45,12 @@ package weave.visualization.plotters
 		public function BarChartLegendPlotter()
 		{
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
+			this.addSpatialDependencies(this.columns, this.chartColors, this.colorIndicatesDirection, this.maxColumns, this.reverseOrder, this.itemLabelFunction);
 		}
 		
-		public const columns:ILinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), createColumnHashes);
-		public const chartColors:ColorRamp = newSpatialProperty(ColorRamp);
-		public const colorIndicatesDirection:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createColumnHashes);
+		public const columns:ILinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn), createColumnHashes);
+		public const chartColors:ColorRamp = newLinkableChild(this, ColorRamp);
+		public const colorIndicatesDirection:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), createColumnHashes);
 		public const shapeSize:LinkableNumber = registerLinkableChild(this, new LinkableNumber(12));
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		private var numColumns:int = 0;
@@ -61,17 +62,17 @@ package weave.visualization.plotters
 		 * This is the maximum number of items to draw in a single row.
 		 * @default 1
 		 */
-		public const maxColumns:LinkableNumber = registerSpatialProperty(new LinkableNumber(1), createColumnHashes);
+		public const maxColumns:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1), createColumnHashes);
 		
 		/**
 		 * This is an option to reverse the item order.
 		 */
-		public const reverseOrder:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false), createColumnHashes);
+		public const reverseOrder:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false), createColumnHashes);
 		
 		/**
 		 * This is the compiled function to apply to the item labels.
 		 */
-		public const itemLabelFunction:LinkableFunction = registerSpatialProperty(new LinkableFunction('string', true, false, ['number','string','column']), createColumnHashes);
+		public const itemLabelFunction:LinkableFunction = registerLinkableChild(this, new LinkableFunction('string', true, false, ['number','string','column']), createColumnHashes);
 
 		// TODO This should go somewhere else...
 		/**

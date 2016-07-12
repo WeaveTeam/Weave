@@ -25,17 +25,16 @@ package weave.visualization.plotters
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
+	import weave.api.linkSessionState;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.setSessionState;
 	import weave.api.core.DynamicState;
 	import weave.api.core.ILinkableHashMap;
-	import weave.api.data.ColumnMetadata;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IColumnWrapper;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.linkSessionState;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
-	import weave.api.setSessionState;
 	import weave.api.ui.IObjectWithDescription;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
@@ -81,7 +80,7 @@ package weave.visualization.plotters
 			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, _filteredKeySet.triggerCallbacks);
 			
 			geometryColumn.boundingBoxCallbacks.addImmediateCallback(this, spatialCallbacks.triggerCallbacks); // bounding box should trigger spatial
-			registerSpatialProperty(_filteredKeySet.keyFilter); // subset should trigger spatial callbacks
+			this.addSpatialDependencies(_filteredKeySet.keyFilter); // subset should trigger spatial callbacks
 		}
 		
 		public function getDescription():String

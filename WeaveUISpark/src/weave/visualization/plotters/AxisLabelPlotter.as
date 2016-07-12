@@ -21,8 +21,8 @@ package weave.visualization.plotters
 	import flash.text.TextFormatAlign;
 	
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
@@ -48,6 +48,7 @@ package weave.visualization.plotters
 		{
 			setSingleKeySource(text);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
+			this.addSpatialDependencies(this.alongXAxis, this.begin, this.end);
 		}
 		
 		public function getSelectableAttributes():Array
@@ -65,9 +66,9 @@ package weave.visualization.plotters
 
 		private static const tempPoint:Point = new Point(); // reusable object
 
-		public const alongXAxis:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
-		public const begin:LinkableNumber = newSpatialProperty(LinkableNumber);
-		public const end:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const alongXAxis:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
+		public const begin:LinkableNumber = newLinkableChild(this, LinkableNumber);
+		public const end:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
 		public const interval:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		public const offset:LinkableNumber = newLinkableChild(this, LinkableNumber);

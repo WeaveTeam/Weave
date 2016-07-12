@@ -16,10 +16,9 @@
 package weave.visualization.plotters
 {
 	import weave.Weave;
-	import weave.api.data.IColumnStatistics;
 	import weave.api.newLinkableChild;
 	import weave.api.registerLinkableChild;
-	import weave.api.ui.ISelectableAttributes;
+	import weave.api.data.IColumnStatistics;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
 	
@@ -39,7 +38,7 @@ package weave.visualization.plotters
 		private const inputMode:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
 		//the column whose value drives this meter 
-		public const meterColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const meterColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		protected const meterColumnStats:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(meterColumn));
 		
 //		private var mode:Number = PROBE_MODE;
@@ -47,6 +46,7 @@ package weave.visualization.plotters
 		{
 			//this line causes only the currently probed records to be drawn.			
 			setSingleKeySource(Weave.defaultProbeKeySet);
+			this.addSpatialDependencies(this.meterColumn);
 		}
 	}
 }

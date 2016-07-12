@@ -19,15 +19,15 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Rectangle;
 	
+	import weave.api.getCallbackCollection;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.core.ICallbackCollection;
 	import weave.api.core.ILinkableObject;
 	import weave.api.data.IFilteredKeySet;
 	import weave.api.data.IKeySet;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.IPlotter;
 	import weave.core.CallbackCollection;
@@ -47,51 +47,25 @@ package weave.visualization.plotters
 		 */
 		public function AbstractPlotter()
 		{
-//			var self:Object = this;
-//			spatialCallbacks.addImmediateCallback(this, function():void{ debugTrace(self, 'spatialCallbacks', spatialCallbacks); });
-//			getCallbackCollection(keySet).addImmediateCallback(this, function():void{ debugTrace(self,'keys',keySet.keys.length); });
+			this.addSpatialDependencies(this.filteredKeySet);
 		}
 		
 		/**
-		 * This function creates a new registered linkable child of the plotter whose callbacks will also trigger the spatial callbacks.
-		 * @return A new instance of the specified class that is registered as a spatial property.
+		 * Registers dependencies that affect data bounds and should trigger spatial callbacks.
 		 */
-		protected function newSpatialProperty(linkableChildClass:Class, callback:Function = null, useGroupedCallback:Boolean = false):*
+		protected function addSpatialDependencies(...dependencies):void
 		{
-			var child:ILinkableObject = newLinkableChild(this, linkableChildClass, callback, useGroupedCallback);
-			
-			var thisCC:ICallbackCollection = getCallbackCollection(this);
-			var childCC:ICallbackCollection = getCallbackCollection(child);
-			// instead of triggering parent callbacks, trigger spatialCallbacks which will in turn trigger parent callbacks.
-			childCC.removeCallback(thisCC.triggerCallbacks);
-			registerLinkableChild(spatialCallbacks, child);
-			
-			return child;
+			for each (var child:ILinkableObject in dependencies)
+			{
+				var thisCC:ICallbackCollection = getCallbackCollection(this);
+				var childCC:ICallbackCollection = getCallbackCollection(child);
+				// instead of triggering parent callbacks, trigger spatialCallbacks which will in turn trigger parent callbacks.
+				childCC.removeCallback(thisCC.triggerCallbacks);
+				registerLinkableChild(this.spatialCallbacks, child);
+			}
 		}
 		
-		/**
-		 * This function registers a linkable child of the plotter whose callbacks will also trigger the spatial callbacks.
-		 * @param child An object to register as a spatial property.
-		 * @return The child object.
-		 */
-		protected function registerSpatialProperty(child:ILinkableObject, callback:Function = null, useGroupedCallback:Boolean = false):*
-		{
-			registerLinkableChild(this, child, callback, useGroupedCallback);
-
-			var thisCC:ICallbackCollection = getCallbackCollection(this);
-			var childCC:ICallbackCollection = getCallbackCollection(child);
-			// instead of triggering parent callbacks, trigger spatialCallbacks which will in turn trigger parent callbacks.
-			childCC.removeCallback(thisCC.triggerCallbacks);
-			registerLinkableChild(spatialCallbacks, child);
-			
-			return child;
-		}
-		
-		/**
-		 * This variable should not be set manually.  It cannot be made constant because we cannot guarantee that it will be initialized
-		 * before other properties are initialized, which means it may be null when someone wants to call registerSpatialProperty().
-		 */		
-		private var _spatialCallbacks:ICallbackCollection = null;
+		private const _spatialCallbacks:ICallbackCollection = newLinkableChild(this, CallbackCollection);
 
 		/**
 		 * This is an interface for adding callbacks that get called when any spatial properties of the plotter change.
@@ -99,8 +73,6 @@ package weave.visualization.plotters
 		 */
 		public function get spatialCallbacks():ICallbackCollection
 		{
-			if (_spatialCallbacks == null)
-				_spatialCallbacks = newLinkableChild(this, CallbackCollection);
 			return _spatialCallbacks;
 		}
 
@@ -127,7 +99,7 @@ package weave.visualization.plotters
 		/** 
 		 * This variable is returned by get keySet().
 		 */
-		protected const _filteredKeySet:FilteredKeySet = newSpatialProperty(FilteredKeySet);
+		protected const _filteredKeySet:FilteredKeySet = newLinkableChild(this, FilteredKeySet);
 		
 		/**
 		 * @return An IKeySet interface to the record keys that can be passed to the drawRecord() and getDataBoundsFromRecordKey() functions.

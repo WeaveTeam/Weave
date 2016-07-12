@@ -25,12 +25,12 @@ package weave.visualization.plotters
 	
 	import mx.formatters.NumberFormatter;
 	
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.CallbackCollection;
@@ -59,6 +59,17 @@ package weave.visualization.plotters
 			labelTextFormatWatcher.target = LinkableTextFormat.defaultTextFormat;
 			
 			setSingleKeySource(_keySet);
+			
+			this.addSpatialDependencies(
+				this.axisLineDataBounds,
+				this.axisLineMinValue,
+				this.axisLineMaxValue,
+				this.tickMinValue,
+				this.tickMaxValue,
+				this.tickCountRequested,
+				this.forceTickCount,
+				this._keySet
+			);
 		}
 		
 		public function setupTextFormats(titleTextFormat:LinkableTextFormat, labelTextFormat:LinkableTextFormat):void
@@ -80,23 +91,23 @@ package weave.visualization.plotters
 		public const axesAlpha:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1, isFinite));
 		
 		// the axis line beginning and end data coordinates
-		public const axisLineDataBounds:LinkableBounds2D = newSpatialProperty(LinkableBounds2D);
+		public const axisLineDataBounds:LinkableBounds2D = newLinkableChild(this, LinkableBounds2D);
 		// the value corresponding to the beginning of the axis line
-		public const axisLineMinValue:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const axisLineMinValue:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		// the value corresponding to the end of the axis line
-		public const axisLineMaxValue:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const axisLineMaxValue:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		// the value corresponding to the beginning of the axis line.  If not specified, axisLineMinValue will be used.
-		public const tickMinValue:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const tickMinValue:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		// the value corresponding to the end of the axis line.  If not specified, axisLineMaxValue will be used.
-		public const tickMaxValue:LinkableNumber = newSpatialProperty(LinkableNumber);
+		public const tickMaxValue:LinkableNumber = newLinkableChild(this, LinkableNumber);
 		
 		public const overrideAxisName:LinkableString = newLinkableChild(this, LinkableString);
 		// show or hide the axis name
 		public const showAxisName:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		// number of requested tick marks
-		public const tickCountRequested:LinkableNumber = registerSpatialProperty(new LinkableNumber(10));
+		public const tickCountRequested:LinkableNumber = registerLinkableChild(this, new LinkableNumber(10));
 		// This option forces the axis to generate the exact number of requested tick marks between tick min and max values (inclusive)
-		public const forceTickCount:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const forceTickCount:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
 		public const showLabels:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const labelNumberFormatter:LinkableNumberFormatter = newLinkableChild(this, LinkableNumberFormatter); // formatter to use when generating tick mark labels
@@ -111,7 +122,7 @@ package weave.visualization.plotters
 			}
 		]]>;
 		
-		private const _keySet:KeySet = newSpatialProperty(KeySet); // stores tick mark keys
+		private const _keySet:KeySet = newLinkableChild(this, KeySet); // stores tick mark keys
 		private const _axisDescription:LooseAxisDescription = new LooseAxisDescription(); // calculates tick marks
 		private const _bitmapText:BitmapText = new BitmapText(); // for drawing text
 		private var _xDataTickDelta:Number; // x distance between ticks

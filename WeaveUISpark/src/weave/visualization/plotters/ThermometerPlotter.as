@@ -22,8 +22,8 @@ package weave.visualization.plotters
 	
 	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.ui.ISelectableAttributes;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ISelectableAttributes;
 	
 	public class ThermometerPlotter extends MeterPlotter implements ISelectableAttributes
 	{

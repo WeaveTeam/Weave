@@ -19,11 +19,11 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.text.TextFormat;
 	
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.data.IColumnStatistics;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.primitives.Bounds2D;
@@ -50,9 +50,10 @@ package weave.visualization.plotters
 			setColumnKeySources([wordColumn], [-1]);
 			
 			registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(wordColumn));
+			this.addSpatialDependencies(this.wordColumn);
 		}	
 		
-		public const wordColumn:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const wordColumn:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 		

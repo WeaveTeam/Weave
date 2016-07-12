@@ -28,18 +28,18 @@ package weave.visualization.plotters
 	import mx.graphics.ImageSnapshot;
 	
 	import weave.Weave;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnStatistics;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.detectLinkableObjectChange;
 	import weave.api.disposeObject;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
-	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.registerDisposableChild;
 	import weave.api.registerLinkableChild;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
+	import weave.api.radviz.ILayoutAlgorithm;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.Compiler;
@@ -92,6 +92,17 @@ package weave.visualization.plotters
 			absNorm.addGroupedCallback(this, handleColumnsChange);
 			normMin.addGroupedCallback(this, handleColumnsChange);
 			normMax.addGroupedCallback(this, handleColumnsChange);
+			
+			this.addSpatialDependencies(
+				this.columns,
+				this.localNormalization,
+				this.absNorm,
+				this.normMin,
+				this.normMax,
+				this.anchors,
+				this.jitterLevel,
+				this.enableJitter
+			);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -104,7 +115,7 @@ package weave.visualization.plotters
 				// When a new column is created, register the stats to trigger callbacks and affect busy status.
 				// This will be cleaned up automatically when the column is disposed.
 				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(newColumn);
-				registerSpatialProperty(stats)
+				this.addSpatialDependencies(stats);
 				getCallbackCollection(stats).addGroupedCallback(this, handleColumnsChange);
 			}
 			var oldColumnName:String = columns.childListCallbacks.lastNameRemoved;
@@ -125,11 +136,11 @@ package weave.visualization.plotters
 			return [radiusColumn, fillStyle.color, columns];
 		}
 		
-		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn));
+		public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn));
 		
 		public const pointSensitivitySelection:LinkableVariable = registerLinkableChild(this, new LinkableVariable(Array), updatePointSensitivityColumns);
 				
-		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
+		public const localNormalization:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		public const probeLineNormalizedThreshold:LinkableNumber = registerLinkableChild(this,new LinkableNumber(0, verifyThresholdValue));
 		public const showValuesForAnchorProbeLines:LinkableBoolean= registerLinkableChild(this,new LinkableBoolean(false));
 		
@@ -139,9 +150,9 @@ package weave.visualization.plotters
 		private var annCenterColumns:Array = [];
 		public const showAnnulusCenter:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
-		public const absNorm:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
-		public const normMin:LinkableNumber = registerSpatialProperty(new LinkableNumber(0));
-		public const normMax:LinkableNumber = registerSpatialProperty(new LinkableNumber(1));
+		public const absNorm:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const normMin:LinkableNumber = registerLinkableChild(this, new LinkableNumber(0));
+		public const normMax:LinkableNumber = registerLinkableChild(this, new LinkableNumber(1));
 		
 		private function verifyThresholdValue(value:*):Boolean
 		{
@@ -172,15 +183,15 @@ package weave.visualization.plotters
 		 * LinkableHashMap of RadViz dimension locations: 
 		 * <br/>contains the location of each column as an AnchorPoint object
 		 */		
-		public const anchors:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(AnchorPoint));
+		public const anchors:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(AnchorPoint));
 		private var coordinate:Point = new Point();//reusable object
 		private const tempPoint:Point = new Point();//reusable object
 		
 		//public const drawAnnuliCenter:LinkableBoolean = newLinkableChild(this, LinkableBoolean(true));
 		
-		public const jitterLevel:LinkableNumber = 			registerSpatialProperty(new LinkableNumber(-19));			
-		public const enableJitter:LinkableBoolean = 		registerSpatialProperty(new LinkableBoolean(false));
-		public const iterations:LinkableNumber = 			newLinkableChild(this,LinkableNumber);
+		public const jitterLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-19));			
+		public const enableJitter:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
+		public const iterations:LinkableNumber = newLinkableChild(this,LinkableNumber);
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
 		public const fillStyle:SolidFillStyle = newLinkableChild(this,SolidFillStyle);
@@ -910,7 +921,8 @@ package weave.visualization.plotters
 			
 			disposeObject(_algorithm); // clean up previous algorithm
 			
-			_algorithm = newSpatialProperty(newAlgorithm);
+			_algorithm = newLinkableChild(this, newAlgorithm);
+			this.addSpatialDependencies(_algorithm);
 			var array:Array = _algorithm.run(columns.getObjects(IAttributeColumn), keyNumberMap);
 			
 			RadVizUtils.reorderColumns(columns, array);
@@ -1052,7 +1064,7 @@ package weave.visualization.plotters
 			return transposed;
 		}
 		
-		private var _algorithm:ILayoutAlgorithm = newSpatialProperty(GreedyLayoutAlgorithm);
+		private var _algorithm:ILayoutAlgorithm = newLinkableChild(this, GreedyLayoutAlgorithm);
 		
 		// algorithms
 		[Bindable] public var algorithms:Array = [RANDOM_LAYOUT, GREEDY_LAYOUT, NEAREST_NEIGHBOR, INCREMENTAL_LAYOUT, BRUTE_FORCE];

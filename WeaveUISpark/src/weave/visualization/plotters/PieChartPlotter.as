@@ -21,14 +21,14 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	
 	import weave.Weave;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.linkSessionState;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.setSessionState;
-	import weave.api.ui.ISelectableAttributes;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotTask;
+	import weave.api.ui.ISelectableAttributes;
 	import weave.core.LinkableNumber;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.data.AttributeColumns.EquationColumn;
@@ -48,7 +48,7 @@ package weave.visualization.plotters
 		{
 			fill.color.internalDynamicColumn.globalName = Weave.DEFAULT_COLOR_COLUMN;
 			
-			_beginRadians = newSpatialProperty(EquationColumn);
+			_beginRadians = newLinkableChild(this, EquationColumn);
 			_beginRadians.equation.value = "0.5 * PI + getRunningTotal(spanRadians) - getNumber(spanRadians)";
 			_spanRadians = _beginRadians.requestVariable("spanRadians", EquationColumn, true);
 			_spanRadians.equation.value = "getNumber(sortedData) / getSum(sortedData) * 2 * PI";
@@ -58,8 +58,10 @@ package weave.visualization.plotters
 			
 			setColumnKeySources([_filteredData]);
 			
-			registerSpatialProperty(data);
+			registerLinkableChild(this, this.data);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
+			
+			this.addSpatialDependencies(this._beginRadians, this.data); 
 		}
 		
 		public function getSelectableAttributeNames():Array

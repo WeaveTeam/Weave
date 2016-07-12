@@ -19,14 +19,14 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	
 	import weave.Weave;
-	import weave.api.core.DynamicState;
-	import weave.api.data.IColumnStatistics;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.core.DynamicState;
+	import weave.api.data.IColumnStatistics;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
 	import weave.core.LinkableNumber;

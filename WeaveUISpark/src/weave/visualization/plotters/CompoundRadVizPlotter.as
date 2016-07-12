@@ -22,15 +22,15 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.Weave;
-	import weave.api.data.IAttributeColumn;
-	import weave.api.data.IColumnStatistics;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.getCallbackCollection;
 	import weave.api.linkableObjectIsBusy;
 	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
+	import weave.api.data.IAttributeColumn;
+	import weave.api.data.IColumnStatistics;
+	import weave.api.data.IQualifiedKey;
 	import weave.api.primitives.IBounds2D;
 	import weave.api.radviz.ILayoutAlgorithm;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.api.ui.ISelectableAttributes;
 	import weave.compiler.StandardLib;
@@ -75,6 +75,7 @@ package weave.visualization.plotters
 			columns.childListCallbacks.addImmediateCallback(this, handleColumnsListChange);
 			getCallbackCollection(filteredKeySet).addImmediateCallback(this, handleColumnsChange, true);
 			getCallbackCollection(this).addImmediateCallback(this, clearCoordCache);
+			this.addSpatialDependencies(this.columns, this.localNormalization, this.anchors, this.jitterLevel, this.enableJitter);
 		}
 		private function handleColumnsListChange():void
 		{
@@ -82,7 +83,11 @@ package weave.visualization.plotters
 			// This will be cleaned up automatically when the column is disposed.
 			var newColumn:IAttributeColumn = columns.childListCallbacks.lastObjectAdded as IAttributeColumn;
 			if (newColumn)
-				registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(newColumn), handleColumnsChange);
+			{
+				var stats:IColumnStatistics = WeaveAPI.StatisticsCache.getColumnStatistics(newColumn);
+				this.addSpatialDependencies(stats);
+				getCallbackCollection(stats).addImmediateCallback(this, handleColumnsChange);
+			}
 		}
 		
 		public function getSelectableAttributeNames():Array
@@ -95,20 +100,20 @@ package weave.visualization.plotters
 			return [radiusColumn, fillStyle.color, columns];
 		}
 		
-		public const columns:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(IAttributeColumn), handleColumnsChange);
-		public const localNormalization:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(true));
+		public const columns:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(IAttributeColumn), handleColumnsChange);
+		public const localNormalization:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true));
 		
 		/**
 		 * LinkableHashMap of RadViz dimension locations: 
 		 * <br/>contains the location of each column as an AnchorPoint object
 		 */		
-		public const anchors:LinkableHashMap = registerSpatialProperty(new LinkableHashMap(AnchorPoint));
+		public const anchors:LinkableHashMap = registerLinkableChild(this, new LinkableHashMap(AnchorPoint));
 		private var coordinate:Point = new Point();//reusable object
 		private const tempPoint:Point = new Point();//reusable object
 				
-		public const jitterLevel:LinkableNumber = registerSpatialProperty(new LinkableNumber(-19));
+		public const jitterLevel:LinkableNumber = registerLinkableChild(this, new LinkableNumber(-19));
 		public const enableWedgeColoring:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
-		public const enableJitter:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const enableJitter:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		public const iterations:LinkableNumber = newLinkableChild(this,LinkableNumber);
 		
 		public const lineStyle:SolidLineStyle = newLinkableChild(this, SolidLineStyle);
@@ -517,13 +522,13 @@ package weave.visualization.plotters
 			if (newAlgorithm == null) 
 				return;
 			
-			_algorithm = newSpatialProperty(newAlgorithm);
+			_algorithm = newLinkableChild(this, newAlgorithm);
 			var array:Array = _algorithm.run(columns.getObjects(IAttributeColumn), keyNumberMap);
 			
 			RadVizUtils.reorderColumns(columns, array);
 		}
 		
-		private var _algorithm:ILayoutAlgorithm = newSpatialProperty(GreedyLayoutAlgorithm);
+		private var _algorithm:ILayoutAlgorithm = newLinkableChild(this, GreedyLayoutAlgorithm);
 		
 		// algorithms
 		[Bindable] public var algorithms:Array = [RANDOM_LAYOUT, GREEDY_LAYOUT, NEAREST_NEIGHBOR, INCREMENTAL_LAYOUT, BRUTE_FORCE];

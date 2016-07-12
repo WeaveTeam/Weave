@@ -18,9 +18,9 @@ package weave.visualization.plotters
 	import flash.display.BitmapData;
 	
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
+	import weave.api.primitives.IBounds2D;
 	import weave.api.ui.IPlotter;
 	import weave.core.LinkableDynamicObject;
 	import weave.core.LinkableFunction;

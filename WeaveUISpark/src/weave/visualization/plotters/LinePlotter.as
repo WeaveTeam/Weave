@@ -19,13 +19,13 @@ package weave.visualization.plotters
 	import flash.display.Shape;
 	import flash.geom.Point;
 	
-	import weave.api.core.DynamicState;
-	import weave.api.data.IQualifiedKey;
 	import weave.api.newLinkableChild;
-	import weave.api.primitives.IBounds2D;
 	import weave.api.registerLinkableChild;
 	import weave.api.reportError;
 	import weave.api.setSessionState;
+	import weave.api.core.DynamicState;
+	import weave.api.data.IQualifiedKey;
+	import weave.api.primitives.IBounds2D;
 	import weave.data.AttributeColumns.AlwaysDefinedColumn;
 	import weave.data.AttributeColumns.DynamicColumn;
 	import weave.visualization.plotters.styles.SolidLineStyle;
@@ -41,25 +41,26 @@ package weave.visualization.plotters
 		public function LinePlotter()
 		{
 			setColumnKeySources([x1Data, y1Data, x2Data, y2Data]);
+			this.addSpatialDependencies(this.x1Data, this.y1Data, this.x2Data, this.y2Data);
 		}
 
 		// spatial properties
 		/**
 		 * This is the beginning X data value associated with the line.
 		 */
-		public const x1Data:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const x1Data:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		/**
 		 * This is the beginning Y data value associated with the line.
 		 */
-		public const y1Data:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const y1Data:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		/**
 		 * This is the ending X data value associated with the line.
 		 */
-		public const x2Data:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const x2Data:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		/**
 		 * This is the ending Y data value associated with the line.
 		 */
-		public const y2Data:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const y2Data:DynamicColumn = newLinkableChild(this, DynamicColumn);
 
 		// visual properties
 		/**

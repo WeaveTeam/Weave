@@ -18,13 +18,13 @@ package weave.visualization.plotters
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
 	import weave.api.graphs.IGraphAlgorithm;
 	import weave.api.graphs.IGraphNode;
-	import weave.api.newLinkableChild;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.core.LinkableNumber;
 	import weave.core.LinkableString;
@@ -50,6 +50,8 @@ package weave.visualization.plotters
 			setSingleKeySource(nodesColumn);
 			//nodesColumn.addImmediateCallback(this, setKeySource, [nodesColumn], true);
 			registerLinkableChild(this, LinkableTextFormat.defaultTextFormat); // redraw when text format changes
+			this.addSpatialDependencies(this.labelColumn, this.nodesColumn, this.edgeSourceColumn, this.edgeTargetColumn, this.radius);
+			//this.addSpatialDependencies(this.layoutAlgorithm);
 		}
 
 		public function runCallbacks():void
@@ -180,14 +182,14 @@ package weave.visualization.plotters
 		public const fillStyle:SolidFillStyle = newLinkableChild(this, SolidFillStyle);
 
 //		public const sizeColumn:AlwaysDefinedColumn = registerLinkableChild(this, new AlwaysDefinedColumn());
-		public const labelColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(IAttributeColumn), handleColumnsChange);
-		public const nodesColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(IAttributeColumn), handleColumnsChange);
-		public const edgeSourceColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(IAttributeColumn), handleColumnsChange);
-		public const edgeTargetColumn:DynamicColumn = registerSpatialProperty(new DynamicColumn(IAttributeColumn), handleColumnsChange);		
-		public const radius:LinkableNumber = registerSpatialProperty(new LinkableNumber(2)); // radius of the circles
+		public const labelColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleColumnsChange);
+		public const nodesColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleColumnsChange);
+		public const edgeSourceColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleColumnsChange);
+		public const edgeTargetColumn:DynamicColumn = registerLinkableChild(this, new DynamicColumn(IAttributeColumn), handleColumnsChange);		
+		public const radius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2)); // radius of the circles
 
 		public var layoutAlgorithm:IGraphAlgorithm = null;
-		//public const layoutAlgorithm:LinkableDynamicObject = registerSpatialProperty(new LinkableDynamicObject(IGraphAlgorithm), handleColumnsChange);
+		//public const layoutAlgorithm:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IGraphAlgorithm), handleColumnsChange);
 		public const currentAlgorithm:LinkableString = registerLinkableChild(this, new LinkableString());
 
 		private const tempRectangle:Rectangle = new Rectangle();

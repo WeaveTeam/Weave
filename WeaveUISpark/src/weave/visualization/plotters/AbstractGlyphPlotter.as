@@ -19,6 +19,8 @@ package weave.visualization.plotters
 	import flash.utils.Dictionary;
 	
 	import weave.api.detectLinkableObjectChange;
+	import weave.api.newLinkableChild;
+	import weave.api.registerLinkableChild;
 	import weave.api.data.ColumnMetadata;
 	import weave.api.data.DataType;
 	import weave.api.data.IAttributeColumn;
@@ -46,6 +48,7 @@ package weave.visualization.plotters
 			clipDrawing = false;
 			
 			setColumnKeySources([dataX, dataY]);
+			this.addSpatialDependencies(this.dataX, this.dataY, this.zoomToSubset, this.statsX, this.statsY, this.sourceProjection, this.destinationProjection);
 		}
 		
 		public function getDescription():String
@@ -63,21 +66,21 @@ package weave.visualization.plotters
 			return lang('{0} vs. {1}', titleX || ProxyColumn.DATA_UNAVAILABLE, titleY || ProxyColumn.DATA_UNAVAILABLE);
 		}
 		
-		public const dataX:DynamicColumn = newSpatialProperty(DynamicColumn);
-		public const dataY:DynamicColumn = newSpatialProperty(DynamicColumn);
+		public const dataX:DynamicColumn = newLinkableChild(this, DynamicColumn);
+		public const dataY:DynamicColumn = newLinkableChild(this, DynamicColumn);
 		
-		public const zoomToSubset:LinkableBoolean = registerSpatialProperty(new LinkableBoolean(false));
+		public const zoomToSubset:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false));
 		
-		protected const statsX:IColumnStatistics = registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(dataX));
-		protected const statsY:IColumnStatistics = registerSpatialProperty(WeaveAPI.StatisticsCache.getColumnStatistics(dataY));
+		protected const statsX:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(dataX));
+		protected const statsY:IColumnStatistics = registerLinkableChild(this, WeaveAPI.StatisticsCache.getColumnStatistics(dataY));
 		
 		public function hack_setSingleKeySource(keySet:IKeySet):void
 		{
 			setSingleKeySource(keySet);
 		}
 		
-		public const sourceProjection:LinkableString = newSpatialProperty(LinkableString);
-		public const destinationProjection:LinkableString = newSpatialProperty(LinkableString);
+		public const sourceProjection:LinkableString = newLinkableChild(this, LinkableString);
+		public const destinationProjection:LinkableString = newLinkableChild(this, LinkableString);
 		
 		public const tempPoint:Point = new Point();
 		private var _projector:IProjector;

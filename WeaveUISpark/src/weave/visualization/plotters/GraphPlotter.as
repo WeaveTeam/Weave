@@ -23,13 +23,13 @@ package weave.visualization.plotters
 	import flash.utils.getTimer;
 	
 	import weave.Weave;
+	import weave.api.getCallbackCollection;
+	import weave.api.registerLinkableChild;
 	import weave.api.data.IAttributeColumn;
 	import weave.api.data.IQualifiedKey;
-	import weave.api.getCallbackCollection;
 	import weave.api.graphs.IGraphAlgorithm;
 	import weave.api.graphs.IGraphNode;
 	import weave.api.primitives.IBounds2D;
-	import weave.api.registerLinkableChild;
 	import weave.api.ui.IPlotTask;
 	import weave.compiler.StandardLib;
 	import weave.core.LinkableBoolean;
@@ -66,6 +66,7 @@ package weave.visualization.plotters
 			setSingleKeySource(nodesColumn);
 
 			layoutAlgorithm.requestLocalObject(ForceDirectedLayout, true);
+			this.addSpatialDependencies(this.layoutAlgorithm);
 
 			init();
 		}
@@ -260,7 +261,7 @@ package weave.visualization.plotters
 		// the algorithms
 		
 		[Bindable] public var algorithms:Array = [ FORCE_DIRECTED, GRID_FORCE_DIRECTED, LARGE_GRAPH_LAYOUT, KAMADA_KAWAI ];
-		public const layoutAlgorithm:LinkableDynamicObject = registerSpatialProperty( new LinkableDynamicObject(IGraphAlgorithm));
+		public const layoutAlgorithm:LinkableDynamicObject = registerLinkableChild(this, new LinkableDynamicObject(IGraphAlgorithm));
 		public const currentAlgorithm:LinkableString = registerLinkableChild(this, new LinkableString(FORCE_DIRECTED), changeAlgorithm); // the algorithm
 		private static const FORCE_DIRECTED:String = "Force Directed";	
 		private static const LARGE_GRAPH_LAYOUT:String = "Large Graph Layout";
@@ -268,7 +269,7 @@ package weave.visualization.plotters
 		private static const KAMADA_KAWAI:String = "Kamada Kawai";
 
 		// properties
-		public const radius:LinkableNumber = registerSpatialProperty(new LinkableNumber(2)); // radius of the circles
+		public const radius:LinkableNumber = registerLinkableChild(this, new LinkableNumber(2)); // radius of the circles
 		public const shouldStop:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false)); // should the algorithm halt on the next iteration? 
 		public const algorithmRunning:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(false)); // is an algorithm running?
 		public const drawCurvedLines:LinkableBoolean = registerLinkableChild(this, new LinkableBoolean(true)); // should we draw curved lines instead of a gradient?
