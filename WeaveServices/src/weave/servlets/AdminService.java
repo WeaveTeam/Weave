@@ -802,6 +802,19 @@ public class AdminService extends WeaveServlet implements IWeaveEntityManagement
 	/////////////////
 	// File uploads
 
+
+
+	/**
+	 * This function accepts an uploaded file.
+	 * @param fileName The name of the file.
+	 * @param fileContent The file content.
+	 * @param append Set to true to append to an existing file.
+	 */
+	public void uploadFileByteArray(String fileName, byte[] content, boolean append) throws RemoteException
+	{
+		uploadFile(fileName, new ByteArrayInputStream(content), append);
+	}
+
 	/**
 	 * This function accepts an uploaded file.
 	 * 
