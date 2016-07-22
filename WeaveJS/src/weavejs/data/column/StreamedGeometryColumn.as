@@ -46,6 +46,7 @@ package weavejs.data.column
 			super(metadata);
 			
 			_tileService = Weave.linkableChild(this, tileService);
+			Weave.getCallbacks(_tileService).addDisposeCallback(this, this.handleTileServiceDispose);
 			
 			_geometryStreamDecoder.keyType = metadata[ColumnMetadata.KEY_TYPE];
 			
@@ -62,6 +63,13 @@ package weavejs.data.column
 				if (debug)
 					DebugUtils.debugTrace(self,keys.length,'keys');
 			});
+		}
+		
+		private function handleTileServiceDispose():void
+		{
+			if (debug)
+				DebugUtils.debugTrace(this, 'tile service disposed');
+			Weave.dispose(this);
 		}
 		
 		public function get boundingBoxCallbacks():ICallbackCollection

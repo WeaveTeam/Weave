@@ -256,6 +256,7 @@ package weavejs.data.source
 			_entityCache = Weave.linkableChild(_service, new EntityCache(_service));
 			_tablePromiseCache = {};
 			map_proxy_promise = new JS.WeakMap();
+			refreshAllProxyColumns();
 			
 			url.resumeCallbacks();
 		}
