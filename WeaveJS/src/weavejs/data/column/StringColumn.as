@@ -145,7 +145,8 @@ package weavejs.data.column
 				return;
 			
 			_i = 0;
-			_numberToString = {};
+			_numberToString.clear();
+			_stringToNumber.clear();
 			// high priority because not much can be done without data
 			WeaveAPI.Scheduler.startTask(this, _iterate, WeaveAPI.TASK_PRIORITY_HIGH, asyncComplete);
 		}
