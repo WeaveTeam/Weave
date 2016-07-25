@@ -126,9 +126,7 @@ package weave.data
 			var qkg:QKeyGetter = _qkeyGetterLookup[relevantContext] as QKeyGetter;
 			if (!qkg)
 				_qkeyGetterLookup[relevantContext] = qkg = new QKeyGetter(this, relevantContext);
-			var promise:WeavePromise = qkg.asyncStart(keyType, keyStrings, outputKeys);
-			if (asyncCallback != null)
-				promise.then(function(..._):* { asyncCallback(); });
+			qkg.asyncStart(keyType, keyStrings, outputKeys, asyncCallback);
 		}
 		
 		/**
@@ -257,11 +255,12 @@ internal class QKeyGetter extends WeavePromise
 		this.manager = manager;
 	}
 	
-	public function asyncStart(keyType:String, keyStrings:Array, outputKeys:Vector.<IQualifiedKey> = null):QKeyGetter
+	public function asyncStart(keyType:String, keyStrings:Array, outputKeys:Vector.<IQualifiedKey> = null, asyncCallback:Function = null):QKeyGetter
 	{
 		if (!keyStrings)
 			keyStrings = [];
 		this.manager = manager;
+		this.asyncCallback = asyncCallback;
 		this.keyType = keyType;
 		this.keyStrings = keyStrings;
 		this.i = 0;
@@ -297,5 +296,11 @@ internal class QKeyGetter extends WeavePromise
 	private function asyncComplete():void
 	{
 		setResult(this.outputKeys);
+		
+		if (this.asyncCallback)
+		{
+			this.asyncCallback.call(this.relevantContext, this.outputKeys);
+			this.asyncCallback = null;
+		}
 	}
 }
