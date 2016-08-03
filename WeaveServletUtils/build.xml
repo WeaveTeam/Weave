@@ -10,6 +10,7 @@
 		<echo message="Compiling ${ant.project.name}..."/>
                 <mkdir dir="bin/classes"/>
                 <javac srcdir="src" destdir="bin/classes" classpathref="classpath"
+                    target="1.6"
                     debug="true"
                     debuglevel="lines,vars,source"/>
     </target>
