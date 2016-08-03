@@ -560,9 +560,14 @@ public class WeaveServlet extends HttpServlet
 	private static String JSON_RPC_ID_ERROR_MESSAGE = "ID cannot contain fractional parts";
 	private static String JSON_RPC_METHOD_ERROR_MESSAGE = "The method does not exist or is not available.";
 	private static String JSON_RPC_PARSE_ERROR_MESSAGE = "Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.";
-	private void sendJsonError(String message, Object data)
+	private void sendJsonError(String message, Object data) throws IOException
 	{
 		ServletRequestInfo info = getServletRequestInfo();
+		if (info.currentJsonRequest == null)
+		{
+			sendError(new RemoteException(String.format("%s (received \"%s\")", message, data)), null);
+			return;
+		}
 		Object id = info.currentJsonRequest.id;
 		
 		// If ID is empty then it is a notification and we send nothing back
