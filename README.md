@@ -29,7 +29,8 @@ Additional developer documentation can be found [here](http://WeaveTeam.github.c
 * cd WeaveApp
 * npm install
 * npm run compile
-
+  
+#Repositories 
 Nightly build: https://github.com/WeaveTeam/Weave-Binaries/zipball/master
 
 Components in this repository:
