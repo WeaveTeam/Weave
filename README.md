@@ -1,10 +1,34 @@
-Weave: Web-based Analysis and Visualization Environment - http://www.oicweave.org/
+![Weave Logo](http://iweave.com/img/weave_logo.png)
+## Visit us at [our site](http://iweave.com)
 
-License: MPL 2.0
+## To View a running version of Weave click [here](http://iweave.com/demo.html)
 
-Issue Tracker & Wiki: http://info.oicweave.org/
+##For some examples of what you can do with Weave click [here](http://iweave.com/documentation.html#examples)
 
-Developer documentation: http://WeaveTeam.github.com/Weave-Binaries/asdoc/
+#License
+Weave 2 is distributed under the [MPL-2.0](https://www.mozilla.org/en-US/MPL/2.0/) license.
+
+#Download
+[Windows](http://example.iweave.com/WeaveSetup.exe) [Installation Guide](http://iweave.com/assets/getstarted/WeaveInstallationGuideForWindows.pdf)  
+[Mac](http://example.iweave.com/WeaveSetup.zip) [Installation Guide](http://iweave.com/assets/getstarted/WeaveInstallationGuideForMac.pdf)  
+[Linux](http://example.iweave.com/WeaveSetup.exe) [Installation Guide](http://iweave.com/assets/getstarted/WeaveInstallationGuideForLinux.pdf)
+
+#Documentation
+You can find the Admin Console User Guide [here](http://iweave.com/assets/documentation/WeaveUserGuide-AdminConsole.pdf)
+
+Weave supports integration from multiple data sources including: **CSV, GeoJSON, SHP/DBF, CKAN**  
+  
+Additional developer documentation can be found [here](http://WeaveTeam.github.com/Weave-Binaries/asdoc/)
+
+#To devlop with Weave  
+##Install WeaveJS
+* npm install
+* nmp run compile
+ 
+##Install WeaveApp
+* cd WeaveApp
+* npm install
+* npm run compile
 
 Nightly build: https://github.com/WeaveTeam/Weave-Binaries/zipball/master
 
@@ -28,3 +52,4 @@ The bare minimum you need to build Weave is [Flex 4.5.1.A](http://fpdownload.ado
 To build the projects on the command line, use the **build.xml** Ant script. To create a ZIP file for deployment on another system (much like the nightlies,) use the **dist** target.
 
 See install-linux.md for detailed linux install instructions.
+
