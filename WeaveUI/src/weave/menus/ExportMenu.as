@@ -15,9 +15,16 @@
 
 package weave.menus
 {
+	import flash.net.URLRequest;
+	import flash.system.Capabilities;
+	
+	import mx.rpc.events.ResultEvent;
+	
+	import weave.Weave;
 	import weave.compiler.Compiler;
 	import weave.core.LinkableCallbackScript;
 	import weave.core.LinkableFunction;
+	import weave.services.addAsyncResponder;
 	import weave.visualization.tools.ExternalTool;
 
 	public class ExportMenu extends WeaveMenuItem
@@ -34,14 +41,24 @@ package weave.menus
 					}
 				]
 			});
+			
+			if (!foundWeaveJS && Capabilities.playerType != 'Desktop')
+				addAsyncResponder(
+					WeaveAPI.URLRequestUtils.getURL(this, new URLRequest(url)),
+					function(event:ResultEvent, token:Object = null):void {
+						foundWeaveJS = true;
+						Weave.properties.enableMenuBar.triggerCallbacks(); // hack to refresh menu
+					}
+				);
 		}
+		
+		private static var foundWeaveJS:Boolean = false;
 		
 		private static const windowName:String = ExternalTool.generateWindowName();
 		
 		public static function get shown():Boolean
 		{
-			// todo - test if weavejs is available
-			return true;
+			return foundWeaveJS;
 		}
 		
 		private static function jsVars(catchErrors:Boolean):Object
