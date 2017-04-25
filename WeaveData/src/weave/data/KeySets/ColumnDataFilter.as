@@ -116,8 +116,8 @@ package weave.data.KeySets
 				}
 			}
 			
-			// last step - canonicalize session states containing ranges
-			if (_ranges)
+			// last step - canonicalize session states containing ranges or regexps
+			if (_ranges || _regexps)
 			{
 				var newState:Array = [];
 				for each (value in state)
