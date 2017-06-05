@@ -1,37 +1,28 @@
 ![Weave Logo](http://iweave.com/img/weave_logo.png)
 ## Visit us at [our site](http://iweave.com)
 
-## To View a running version of Weave click [here](http://iweave.com/demo.html)
+## This repository is for Weave version 1.9 ([Wiki](http://info.iweave.com/projects/weave/wiki)).
 
-##For some examples of what you can do with Weave click [here](http://iweave.com/documentation.html#examples)
+## To View a running version of Weave click [here](http://weaveteam.github.io/Weave-Binaries/weave.html)
 
-#License
-Weave 2 is distributed under the [MPL-2.0](https://www.mozilla.org/en-US/MPL/2.0/) license.
+## For some examples of what you can do with Weave click [here](http://iweave.com/documentation.html#examples)
 
-#Download
-[Windows](http://example.iweave.com/WeaveSetup.exe) [Installation Guide](http://iweave.com/assets/getstarted/WeaveInstallationGuideForWindows.pdf)  
-[Mac](http://example.iweave.com/WeaveSetup.zip) [Installation Guide](http://iweave.com/assets/getstarted/WeaveInstallationGuideForMac.pdf)  
-[Linux](http://example.iweave.com/WeaveSetup.exe) [Installation Guide](http://iweave.com/assets/getstarted/WeaveInstallationGuideForLinux.pdf)
+# License
+Weave is distributed under the [MPL-2.0](https://www.mozilla.org/en-US/MPL/2.0/) license.
 
-#Documentation
-You can find the Admin Console User Guide [here](http://iweave.com/assets/documentation/WeaveUserGuide-AdminConsole.pdf)
+# Download
+[Installation Guide](http://info.iweave.com/projects/weave/wiki/Deployment_Guide)
+
+[Milestone 1.9.45](https://github.com/WeaveTeam/Weave-Binaries/archive/milestone-1.9.45.zip)
+
+[Nightly build](https://github.com/WeaveTeam/Weave-Binaries/zipball/master)
+
+# Documentation
+You can find the Admin Console User Guide [here](http://info.iweave.com/projects/weave/wiki/Weave_Administration_Console_User_Guide)
 
 Weave supports integration from multiple data sources including: **CSV, GeoJSON, SHP/DBF, CKAN**  
   
 Additional developer documentation can be found [here](http://WeaveTeam.github.com/Weave-Binaries/asdoc/)
-
-#To devlop with Weave  
-##Install WeaveJS
-* npm install
-* nmp run compile
- 
-##Install WeaveApp
-* cd WeaveApp
-* npm install
-* npm run compile
-  
-#Repositories 
-Nightly build: https://github.com/WeaveTeam/Weave-Binaries/zipball/master
 
 Components in this repository:
 
