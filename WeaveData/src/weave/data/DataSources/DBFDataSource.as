@@ -277,7 +277,8 @@ package weave.data.DataSources
 			if (dataType == DataType.GEOMETRY)
 			{
 				newColumn = new GeometryColumn(metadata);
-				(newColumn as GeometryColumn).setGeometries(keysVector, Vector.<GeneralizedGeometry>(data));
+				if (shpfile)
+					(newColumn as GeometryColumn).setGeometries(keysVector, Vector.<GeneralizedGeometry>(data));
 			}
 			else if (dataType == DataType.DATE)
 			{

@@ -82,14 +82,16 @@ package weave.core
 		 */
 		protected function internalSetTarget(newTarget:ILinkableObject):void
 		{
+			var sm:SessionManager = WeaveAPI.SessionManager as SessionManager;
+			if (sm.objectWasDisposed(newTarget))
+				newTarget = null;
+			
 			if (_foundTarget && _typeRestriction)
 				newTarget = newTarget as _typeRestriction as ILinkableObject;
 			
 			// do nothing if the targets are the same.
 			if (_target == newTarget)
 				return;
-			
-			var sm:SessionManager = WeaveAPI.SessionManager as SessionManager;
 			
 			// unlink from old target
 			if (_target)

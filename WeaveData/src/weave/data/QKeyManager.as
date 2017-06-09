@@ -297,7 +297,7 @@ internal class QKeyGetter extends WeavePromise
 	{
 		setResult(this.outputKeys);
 		
-		if (this.asyncCallback)
+		if (this.asyncCallback != null)
 		{
 			this.asyncCallback.call(this.relevantContext, this.outputKeys);
 			this.asyncCallback = null;

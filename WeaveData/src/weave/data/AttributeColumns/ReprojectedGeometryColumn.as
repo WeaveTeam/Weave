@@ -81,35 +81,32 @@ package weave.data.AttributeColumns
 		 */		
 		public const projectionSRS:LinkableString = newLinkableChild(this, LinkableString);
 		
-		/**
-		 * This function updates the private _reprojectedColumn variable.
-		 */		
 		private function updateReprojectedColumn():void
 		{
 			var column:IAttributeColumn = ColumnUtils.hack_findNonWrapperColumn(super.getInternalColumn());
 			var newColumn:IAttributeColumn = WeaveAPI.ProjectionManager.getProjectedGeometryColumn(column, projectionSRS.value);
 			
-			reprojectedColumnWatcher.target = _reprojectedColumn = newColumn;
+			reprojectedColumnWatcher.target = newColumn;
 		}
 		
-		private var _reprojectedColumn:IAttributeColumn;
 		private const reprojectedColumnWatcher:LinkableWatcher = newLinkableChild(this, LinkableWatcher, handleReprojectedColumnChange);
 		
 		private function handleReprojectedColumnChange(cleanup:Boolean = false):void
 		{
 			// if _unprojectedColumn is not null, it means there is no reprojection to do.
-			var _unprojectedColumn:StreamedGeometryColumn = ColumnUtils.hack_findNonWrapperColumn(_reprojectedColumn) as StreamedGeometryColumn;
+			var _unprojectedColumn:StreamedGeometryColumn = ColumnUtils.hack_findNonWrapperColumn(reprojectedColumnWatcher.target as IAttributeColumn) as StreamedGeometryColumn;
 			
 			// get the callback target that should trigger boundingBoxCallbacks
-			var newTarget:ILinkableObject = _unprojectedColumn ? _unprojectedColumn.boundingBoxCallbacks : _reprojectedColumn;
+			var newTarget:ILinkableObject = _unprojectedColumn ? _unprojectedColumn.boundingBoxCallbacks : reprojectedColumnWatcher.target;
 			
 			boundingBoxCallbacksTriggerWatcher.target = newTarget;
 		}
 		
 		override public function getValueFromKey(key:IQualifiedKey, dataType:Class = null):*
 		{
-			if (_reprojectedColumn)
-				return _reprojectedColumn.getValueFromKey(key, dataType);
+			var column:IAttributeColumn = reprojectedColumnWatcher.target as IAttributeColumn;
+			if (column)
+				return column.getValueFromKey(key, dataType);
 			
 			return super.getValueFromKey(key, dataType);
 		}

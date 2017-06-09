@@ -235,7 +235,7 @@ package weave.visualization.layers
 		
 		private function asyncStart():void
 		{
-			if (asyncInit())
+			if (asyncInit(true))
 			{
 				if (debug)
 					trace(this, 'begin async rendering');
@@ -255,7 +255,7 @@ package weave.visualization.layers
 		/**
 		 * @return true if shouldBeRendered() returns true.
 		 */
-		private function asyncInit():Boolean
+		private function asyncInit(fromAsyncStart:Boolean = false):Boolean
 		{
 			var shouldRender:Boolean = shouldBeRendered();
 			if (_delayInit)
@@ -288,7 +288,8 @@ package weave.visualization.layers
 				if (debug)
 					trace(this, 'clear');
 				// clear bitmap and resize if necessary
-				PlotterUtils.setBitmapDataSize(bufferBitmap, _unscaledWidth, _unscaledHeight);
+				if (!fromAsyncStart)
+					PlotterUtils.setBitmapDataSize(bufferBitmap, _unscaledWidth, _unscaledHeight);
 			}
 			else
 			{
