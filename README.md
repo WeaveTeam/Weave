@@ -13,7 +13,7 @@ Weave is distributed under the [MPL-2.0](https://www.mozilla.org/en-US/MPL/2.0/)
 # Download
 [Installation Guide](http://info.iweave.com/projects/weave/wiki/Deployment_Guide)
 
-[Milestone 1.9.45](https://github.com/WeaveTeam/Weave-Binaries/archive/milestone-1.9.45.zip)
+[Releases](https://github.com/WeaveTeam/Weave-Binaries/releases)
 
 [Nightly build](https://github.com/WeaveTeam/Weave-Binaries/zipball/master)
 
